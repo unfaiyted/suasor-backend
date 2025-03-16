@@ -1,0 +1,35 @@
+{
+  "app": {
+    "apiBaseURL": "http://localhost:8080",
+    "appURL": "http://localhost:3000",
+    "environment": "development",
+    "logLevel": "info",
+    "maxPageSize": 100,
+    "name": "suasor"
+  },
+  "auth": {
+    "allowedOrigins": ["http://localhost:3000"],
+    "enable2FA": false,
+    "enableLocal": true,
+    "sessionTimeout": 60,
+    "tokenExpiration": 24
+  },
+  "db": {
+    "host": "localhost",
+    "maxConns": 20,
+    "name": "shortendb",
+    "password": "yourpassword",
+    "port": "5432",
+    "timeout": 30,
+    "user": "postgres"
+  },
+  "http": {
+    "enableSSL": false,
+    "idleTimeout": 60,
+    "port": "8080",
+    "rateLimitEnabled": true,
+    "readTimeout": 30,
+    "requestsPerMin": 100,
+    "writeTimeout": 30
+  }
+}

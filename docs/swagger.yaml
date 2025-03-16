@@ -1,0 +1,1026 @@
+basePath: /api/v1
+definitions:
+  models.APIResponse-any:
+    properties:
+      data: {}
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  models.APIResponse-models_AuthData:
+    properties:
+      data:
+        $ref: '#/definitions/models.AuthData'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  models.APIResponse-models_ShortenData:
+    properties:
+      data:
+        $ref: '#/definitions/models.ShortenData'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  models.APIResponse-models_UserResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.UserResponse'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  models.APIResponse-string:
+    properties:
+      data:
+        type: string
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  models.AuthData:
+    description: Authentication data returned to client after successful authentication
+    properties:
+      accessToken:
+        description: |-
+          AccessToken is the JWT token for API access
+          @Description JWT access token for authenticated requests
+          @Example "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        type: string
+      expiresAt:
+        description: |-
+          ExpiresAt indicates when the access token expires
+          @Description UNIX timestamp when the access token expires
+          @Example 1674140400
+        type: integer
+      refreshToken:
+        description: |-
+          RefreshToken is used to get new access tokens
+          @Description JWT refresh token for obtaining new access tokens
+          @Example "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        type: string
+      user:
+        allOf:
+        - $ref: '#/definitions/models.UserResponse'
+        description: |-
+          User contains the user profile information
+          @Description User profile data
+    type: object
+  models.ChangePasswordRequest:
+    description: Request payload for changing user password
+    properties:
+      currentPassword:
+        description: |-
+          CurrentPassword is the user's existing password for verification
+          @Description User's current password for verification
+          @Example "oldpassword123"
+        example: oldpassword123
+        type: string
+      newPassword:
+        description: |-
+          NewPassword is the password to change to
+          @Description New password to set for the user
+          @Example "newpassword456"
+        example: newpassword456
+        type: string
+    required:
+    - currentPassword
+    - newPassword
+    type: object
+  models.ChangeRoleRequest:
+    description: Request payload for changing user role
+    properties:
+      role:
+        description: |-
+          Role is the new role to assign to the user
+          @Description New role to assign to the user
+          @Enum "user" "admin"
+          @Example "admin"
+        enum:
+        - user
+        - admin
+        example: admin
+        type: string
+    required:
+    - role
+    type: object
+  models.ErrorResponse-error:
+    properties:
+      details: {}
+      message:
+        example: This is a pretty message
+        type: string
+      request_id:
+        type: string
+      statusCode:
+        example: 201
+        type: integer
+      timestamp:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/models.ErrorType'
+        example: FAILED_CHECK
+    type: object
+  models.ErrorType:
+    enum:
+    - FAILED_CHECK
+    - UNAUTHORIZED
+    - NOT_FOUND
+    - BAD_REQUEST
+    - INTERNAL_ERROR
+    - FORBIDDEN
+    - CONFLICT
+    - VALIDATION_ERROR
+    - RATE_LIMITED
+    - TIMEOUT
+    - SERVICE_UNAVAILABLE
+    - UNPROCESSABLE_ENTITY
+    type: string
+    x-enum-varnames:
+    - ErrorTypeFailedCheck
+    - ErrorTypeUnauthorized
+    - ErrorTypeNotFound
+    - ErrorTypeBadRequest
+    - ErrorTypeInternalError
+    - ErrorTypeForbidden
+    - ErrorTypeConflict
+    - ErrorTypeValidation
+    - ErrorTypeRateLimited
+    - ErrorTypeTimeout
+    - ErrorTypeServiceUnavailable
+    - ErrorTypeUnprocessableEntity
+  models.GetByOriginalURLRequest:
+    properties:
+      createIfNotExists:
+        type: boolean
+      customCode:
+        type: string
+      expiresAfter:
+        type: integer
+      originalUrl:
+        type: string
+    required:
+    - originalUrl
+    type: object
+  models.HealthResponse:
+    properties:
+      application:
+        example: true
+        type: boolean
+      database:
+        example: true
+        type: boolean
+      status:
+        description: Overall status of the system
+        enum:
+        - up
+        - down
+        - degraded
+        example: up
+        type: string
+    required:
+    - application
+    - database
+    - status
+    type: object
+  models.LoginRequest:
+    description: Request payload for user login
+    properties:
+      email:
+        description: |-
+          Email is the user's email address
+          @Description User's email address
+          @Example "user@example.com"
+        example: user@example.com
+        type: string
+      password:
+        description: |-
+          Password is the user's chosen password
+          @Description User's password (plain text in request)
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.LogoutRequest:
+    description: Request payload for user logout
+    properties:
+      refreshToken:
+        description: |-
+          RefreshToken identifies the session to terminate
+          @Description JWT refresh token to invalidate
+        type: string
+    required:
+    - refreshToken
+    type: object
+  models.RefreshTokenRequest:
+    description: Request payload for refreshing access tokens
+    properties:
+      refreshToken:
+        description: |-
+          RefreshToken is used to generate a new access token
+          @Description JWT refresh token to use for generating new access token
+        type: string
+    required:
+    - refreshToken
+    type: object
+  models.RegisterRequest:
+    description: Request payload for user registration
+    properties:
+      email:
+        description: |-
+          Email is the user's email address
+          @Description User's email address
+          @Example "user@example.com"
+        example: user@example.com
+        type: string
+      password:
+        description: |-
+          Password is the user's chosen password
+          @Description User's password (plain text in request)
+        minLength: 8
+        type: string
+      username:
+        description: |-
+          Username is the user's desired username
+          @Description User's chosen username
+          @Example "johndoe"
+        example: johndoe
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  models.Shorten:
+    properties:
+      clickCount:
+        example: 0
+        type: integer
+      createdAt:
+        type: string
+      expiresAt:
+        type: string
+      id:
+        example: 1
+        type: integer
+      originalUrl:
+        example: https://example.com/some/long/path
+        type: string
+      shortCode:
+        example: abc123
+        type: string
+      updatedAt:
+        type: string
+    required:
+    - originalUrl
+    type: object
+  models.ShortenData:
+    properties:
+      shortUrl:
+        type: string
+      shorten:
+        $ref: '#/definitions/models.Shorten'
+    type: object
+  models.ShortenRequest:
+    properties:
+      customCode:
+        type: string
+      expiresAfter:
+        description: In days
+        type: integer
+      originalUrl:
+        type: string
+    required:
+    - originalUrl
+    type: object
+  models.UpdateProfileRequest:
+    description: Request payload for updating user profile
+    properties:
+      email:
+        description: |-
+          Email is the new email address
+          @Description Updated email address for the user
+          @Example "newemail@example.com"
+        example: newemail@example.com
+        type: string
+      username:
+        description: |-
+          Username is the new username
+          @Description Updated username for the user
+          @Example "newusername"
+        example: newusername
+        type: string
+    type: object
+  models.UserResponse:
+    description: User information returned in API responses
+    properties:
+      email:
+        description: |-
+          Email is the unique email address of the user
+          @Description User's email address
+          @Example "user@example.com"
+        type: string
+      id:
+        description: |-
+          ID is the unique identifier for the user
+          @Description User's unique identifier
+          @Example 1
+        type: integer
+      role:
+        description: |-
+          Role defines the user's permission level
+          @Description User's role in the system
+          @Enum "user" "admin"
+          @Example "user"
+        type: string
+      username:
+        description: |-
+          Username is the display name chosen by the user
+          @Description User's chosen username
+          @Example "johndoe"
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: API Server for suasor URL Shortener
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: suasor API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user with email and password
+      parameters:
+      - description: User login data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully authenticated user
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_AuthData'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Invalid credentials or inactive account
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      summary: Log in a user
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Invalidates the refresh token, effectively logging the user out
+      parameters:
+      - description: Logout data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LogoutRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully logged out
+          schema:
+            $ref: '#/definitions/models.APIResponse-any'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Invalid refresh token
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      summary: Log out a user
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Get a new access token using a refresh token
+      parameters:
+      - description: Refresh token data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully refreshed token
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_AuthData'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Invalid or expired refresh token
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      summary: Refresh access token
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new user with email, username, and password
+      parameters:
+      - description: User registration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully registered user
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_AuthData'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "409":
+          description: Email or username already in use
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      summary: Register a new user
+      tags:
+      - auth
+  /health:
+    get:
+      description: returns JSON object with health statuses.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.HealthResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      summary: checks app and database health
+      tags:
+      - health
+  /shorten:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new shortened URL from a long URL, with optional custom
+        code and expiration. If no custom code is provided, one will be generated.
+      parameters:
+      - description: URL to shorten
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ShortenRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created shortened URL
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_ShortenData'
+        "400":
+          description: Invalid request format or short code already exists
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      summary: Create a shortened URL
+      tags:
+      - shorten
+  /shorten/{code}:
+    delete:
+      description: Deletes an existing shortened URL by its short code
+      parameters:
+      - description: Short code identifier
+        in: path
+        name: code
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content - URL successfully deleted
+        "400":
+          description: Bad request - missing code parameter
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "404":
+          description: Short URL not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      summary: Delete a shortened URL
+      tags:
+      - shorten
+    get:
+      description: Redirects to the original URL from a short code
+      parameters:
+      - description: Short code identifier
+        in: path
+        name: code
+        required: true
+        type: string
+      responses:
+        "302":
+          description: Found - Redirects to the original URL
+          headers:
+            Location:
+              description: The URL to redirect to
+              type: string
+        "400":
+          description: Bad request - missing code parameter
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "404":
+          description: Short URL not found or has expired
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      summary: Redirect to original URL
+      tags:
+      - shorten
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing shortened URL by its short code
+      parameters:
+      - description: Short code identifier
+        in: path
+        name: code
+        required: true
+        type: string
+      - description: Updated URL data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ShortenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated shortened URL
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_ShortenData'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "404":
+          description: Short URL not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      summary: Update a shortened URL
+      tags:
+      - shorten
+  /shorten/lookup:
+    post:
+      consumes:
+      - application/json
+      description: Checks if an original URL already has a short code and optionally
+        creates one if it doesn't exist
+      parameters:
+      - description: Original URL to check
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.GetByOriginalURLRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved shortened URL information
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_ShortenData'
+        "201":
+          description: Successfully created new shortened URL
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_ShortenData'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "404":
+          description: Original URL not found and createIfNotExists is false
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      summary: Check if a URL is already shortened
+      tags:
+      - shorten
+  /users/{id}:
+    delete:
+      description: Deletes a user account (admin only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content - User successfully deleted
+        "400":
+          description: Invalid user ID format
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Unauthorized - Not logged in
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "403":
+          description: Forbidden - Not an admin
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Delete a user account
+      tags:
+      - users
+    get:
+      description: Retrieves a user by their ID (admin only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved user
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_UserResponse'
+        "400":
+          description: Invalid user ID format
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Unauthorized - Not logged in
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "403":
+          description: Forbidden - Not an admin
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get user by ID
+      tags:
+      - users
+  /users/{id}/activate:
+    post:
+      description: Activates a user account (admin only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully activated user account
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_UserResponse'
+        "400":
+          description: Invalid user ID format
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Unauthorized - Not logged in
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "403":
+          description: Forbidden - Not an admin
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Activate a user account
+      tags:
+      - users
+  /users/{id}/deactivate:
+    post:
+      description: Deactivates a user account (admin only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully deactivated user account
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_UserResponse'
+        "400":
+          description: Invalid user ID format
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Unauthorized - Not logged in
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "403":
+          description: Forbidden - Not an admin
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Deactivate a user account
+      tags:
+      - users
+  /users/{id}/role:
+    put:
+      consumes:
+      - application/json
+      description: Changes a user's role (admin only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: New role information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ChangeRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully changed user role
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_UserResponse'
+        "400":
+          description: Invalid user ID format or invalid role
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Unauthorized - Not logged in
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "403":
+          description: Forbidden - Not an admin
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Change user role
+      tags:
+      - users
+  /users/password:
+    put:
+      consumes:
+      - application/json
+      description: Changes the password for the currently authenticated user
+      parameters:
+      - description: Password change information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully changed password
+          schema:
+            $ref: '#/definitions/models.APIResponse-string'
+        "400":
+          description: Invalid request format or incorrect current password
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Unauthorized - Not logged in
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Change user password
+      tags:
+      - users
+  /users/profile:
+    get:
+      description: Retrieves the profile information for the currently authenticated
+        user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved user profile
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_UserResponse'
+        "401":
+          description: Unauthorized - Not logged in
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get the current user's profile
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Updates the profile information for the currently authenticated
+        user
+      parameters:
+      - description: Updated profile information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated user profile
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_UserResponse'
+        "400":
+          description: Invalid request format or email/username already exists
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Unauthorized - Not logged in
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Update user profile
+      tags:
+      - users
+  /users/register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user account with the provided information
+      parameters:
+      - description: User registration information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully registered user
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_UserResponse'
+        "400":
+          description: Invalid request format or email/username already exists
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      summary: Register a new user
+      tags:
+      - users
+schemes:
+- http
+swagger: "2.0"
