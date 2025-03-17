@@ -101,7 +101,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	log.Info().Uint("userId", result.User.ID).Str("email", result.User.Email).Msg("Successfully registered user")
+	log.Info().Uint64("userId", result.User.ID).Str("email", result.User.Email).Msg("Successfully registered user")
 
 	utils.RespondCreated(c, result, "User registered successfully")
 }
@@ -179,7 +179,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	log.Info().Uint("userId", result.User.ID).Str("email", result.User.Email).Msg("User successfully logged in")
+	log.Info().Uint64("userId", result.User.ID).Str("email", result.User.Email).Msg("User successfully logged in")
 
 	utils.RespondOK(c, result, "Login successful")
 }
@@ -256,7 +256,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	log.Info().Uint("userId", result.User.ID).Msg("Token refreshed successfully")
+	log.Info().Uint64("userId", result.User.ID).Msg("Token refreshed successfully")
 
 	utils.RespondOK(c, result, "Token refreshed successfully")
 }

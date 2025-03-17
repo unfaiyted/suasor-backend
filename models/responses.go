@@ -92,3 +92,7 @@ func NewShortenResponse(shorten *Shorten, message string) APIResponse[ShortenDat
 		Data:    ShortenData{Shorten: shorten},
 	}
 }
+
+type EmptyResponse struct {
+	Success bool `json:"success"`
+}

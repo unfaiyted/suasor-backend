@@ -97,7 +97,7 @@ func (s *authService) Register(ctx context.Context, request models.RegisterReque
 	// Create session
 	now := time.Now()
 	session := &models.Session{
-		UserID:       user.ID,
+		UserID:       uint64(user.ID),
 		RefreshToken: tokens.RefreshUUID,
 		UserAgent:    "User registration", // This would normally come from the request
 		IP:           "0.0.0.0",           // This would normally come from the request
@@ -117,7 +117,7 @@ func (s *authService) Register(ctx context.Context, request models.RegisterReque
 
 	return &models.AuthData{
 		User: models.UserResponse{
-			ID:       user.ID,
+			ID:       uint64(user.ID),
 			Email:    user.Email,
 			Username: user.Username,
 			Role:     user.Role,
@@ -162,7 +162,7 @@ func (s *authService) Login(ctx context.Context, request models.LoginRequest) (*
 	// Create session
 	now := time.Now()
 	session := &models.Session{
-		UserID:       user.ID,
+		UserID:       uint64(user.ID),
 		RefreshToken: tokens.RefreshUUID,
 		UserAgent:    "User login", // This would normally come from the request
 		IP:           "0.0.0.0",    // This would normally come from the request
@@ -182,7 +182,7 @@ func (s *authService) Login(ctx context.Context, request models.LoginRequest) (*
 
 	return &models.AuthData{
 		User: models.UserResponse{
-			ID:       user.ID,
+			ID:       uint64(user.ID),
 			Email:    user.Email,
 			Username: user.Username,
 			Role:     user.Role,
@@ -220,7 +220,7 @@ func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (*m
 
 	// Check if session has expired
 	if time.Now().After(session.ExpiresAt) {
-		if err := s.sessionRepo.Delete(ctx, session.ID); err != nil {
+		if err := s.sessionRepo.Delete(ctx, uint64(session.ID)); err != nil {
 			return nil, fmt.Errorf("error deleting expired session: %w", err)
 		}
 		return nil, errors.New("session expired")
@@ -250,7 +250,7 @@ func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (*m
 
 	return &models.AuthData{
 		User: models.UserResponse{
-			ID:       user.ID,
+			ID:       uint64(user.ID),
 			Email:    user.Email,
 			Username: user.Username,
 			Role:     user.Role,
@@ -286,7 +286,7 @@ func (s *authService) Logout(ctx context.Context, refreshToken string) error {
 		return fmt.Errorf("error finding session: %w", err)
 	}
 
-	if err := s.sessionRepo.Delete(ctx, session.ID); err != nil {
+	if err := s.sessionRepo.Delete(ctx, uint64(session.ID)); err != nil {
 		return fmt.Errorf("error deleting session: %w", err)
 	}
 
@@ -322,7 +322,7 @@ func (s *authService) generateTokens(user *models.User) (*models.TokenDetails, e
 
 	// Create access token
 	atClaims := models.JWTClaim{
-		UserID: user.ID,
+		UserID: uint64(user.ID),
 		UUID:   td.AccessUUID,
 		Role:   user.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -345,7 +345,7 @@ func (s *authService) generateTokens(user *models.User) (*models.TokenDetails, e
 
 	// Create refresh token
 	rtClaims := models.JWTClaim{
-		UserID: user.ID,
+		UserID: uint64(user.ID),
 		UUID:   td.RefreshUUID,
 		Role:   user.Role,
 		RegisteredClaims: jwt.RegisteredClaims{

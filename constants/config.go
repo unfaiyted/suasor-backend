@@ -35,4 +35,10 @@ var DefaultConfig = map[string]interface{}{
 	"auth.enable2FA":       false,
 	"auth.tokenExpiration": 24,
 	"auth.allowedOrigins":  []string{"http://localhost:3000"},
+
+	"auth.jwtSecret":           "your-default-jwt-secret-change-me-in-production",
+	"auth.accessExpiryMinutes": 15,
+	"auth.refreshExpiryDays":   7,
+	"auth.tokenIssuer":         "suasor-api",
+	"auth.tokenAudience":       "suasor-client",
 }

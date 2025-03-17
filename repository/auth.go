@@ -12,10 +12,10 @@ import (
 type SessionRepository interface {
 	Create(ctx context.Context, session *models.Session) error
 	Update(ctx context.Context, session *models.Session) error
-	Delete(ctx context.Context, id uint) error
-	FindByID(ctx context.Context, id uint) (*models.Session, error)
+	Delete(ctx context.Context, id uint64) error
+	FindByID(ctx context.Context, id uint64) (*models.Session, error)
 	FindByRefreshToken(ctx context.Context, refreshToken string) (*models.Session, error)
-	FindByUserID(ctx context.Context, userID uint) ([]*models.Session, error)
+	FindByUserID(ctx context.Context, userID uint64) ([]*models.Session, error)
 	DeleteExpired(ctx context.Context) error
 }
 
@@ -44,13 +44,13 @@ func (r *sessionRepository) Update(ctx context.Context, session *models.Session)
 }
 
 // Delete deletes a session by ID
-func (r *sessionRepository) Delete(ctx context.Context, id uint) error {
+func (r *sessionRepository) Delete(ctx context.Context, id uint64) error {
 	result := r.db.Delete(&models.Session{}, id)
 	return result.Error
 }
 
 // FindByID finds a session by ID
-func (r *sessionRepository) FindByID(ctx context.Context, id uint) (*models.Session, error) {
+func (r *sessionRepository) FindByID(ctx context.Context, id uint64) (*models.Session, error) {
 	var session models.Session
 	result := r.db.First(&session, id)
 
@@ -80,7 +80,7 @@ func (r *sessionRepository) FindByRefreshToken(ctx context.Context, refreshToken
 }
 
 // FindByUserID finds all sessions for a specific user
-func (r *sessionRepository) FindByUserID(ctx context.Context, userID uint) ([]*models.Session, error) {
+func (r *sessionRepository) FindByUserID(ctx context.Context, userID uint64) ([]*models.Session, error) {
 	var sessions []*models.Session
 	result := r.db.Where("user_id = ?", userID).Find(&sessions)
 

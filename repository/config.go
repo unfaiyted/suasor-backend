@@ -1,4 +1,4 @@
-// repository/config_repository.go
+// repository/config.go
 package repository
 
 import (
@@ -26,7 +26,7 @@ type configRepository struct {
 
 // NewConfigRepository creates a new configuration repository
 func NewConfigRepository() ConfigRepository {
-	if configPath := os.Getenv("suasor_CONFIG_DIR"); configPath != "" {
+	if configPath := os.Getenv("SUASOR_CONFIG_DIR"); configPath != "" {
 		return &configRepository{
 			configPath: configPath,
 		}

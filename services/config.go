@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"suasor/constants"
 	"suasor/models"
 	"suasor/repository"
 	"suasor/utils"
-	"strings"
 	"sync"
 
 	"github.com/joho/godotenv"
@@ -342,4 +342,3 @@ func (s *configService) ResetFileConfig(ctx context.Context) error {
 	log.Info().Msg("Reloading main configuration")
 	return s.InitConfig(ctx)
 }
-

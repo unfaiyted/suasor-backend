@@ -17,8 +17,8 @@ var (
 type UserRepository interface {
 	Create(ctx context.Context, user *models.User) error
 	Update(ctx context.Context, user *models.User) error
-	Delete(ctx context.Context, id uint) error
-	FindByID(ctx context.Context, id uint) (*models.User, error)
+	Delete(ctx context.Context, id uint64) error
+	FindByID(ctx context.Context, id uint64) (*models.User, error)
 	FindByEmail(ctx context.Context, email string) (*models.User, error)
 	FindByUsername(ctx context.Context, username string) (*models.User, error)
 }
@@ -48,13 +48,13 @@ func (r *userRepository) Update(ctx context.Context, user *models.User) error {
 }
 
 // Delete deletes a user by ID
-func (r *userRepository) Delete(ctx context.Context, id uint) error {
+func (r *userRepository) Delete(ctx context.Context, id uint64) error {
 	result := r.db.Delete(&models.User{}, id)
 	return result.Error
 }
 
 // FindByID finds a user by ID
-func (r *userRepository) FindByID(ctx context.Context, id uint) (*models.User, error) {
+func (r *userRepository) FindByID(ctx context.Context, id uint64) (*models.User, error) {
 	var user models.User
 	result := r.db.First(&user, id)
 
@@ -97,4 +97,3 @@ func (r *userRepository) FindByUsername(ctx context.Context, username string) (*
 
 	return &user, nil
 }
-

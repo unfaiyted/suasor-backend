@@ -23,16 +23,16 @@ var (
 type UserService interface {
 	Create(ctx context.Context, user *models.User) error
 	Update(ctx context.Context, user *models.User) error
-	Delete(ctx context.Context, id uint) error
-	GetByID(ctx context.Context, id uint) (*models.UserResponse, error)
+	Delete(ctx context.Context, id uint64) error
+	GetByID(ctx context.Context, id uint64) (*models.UserResponse, error)
 	GetByEmail(ctx context.Context, email string) (*models.UserResponse, error)
 	GetByUsername(ctx context.Context, username string) (*models.UserResponse, error)
-	UpdatePassword(ctx context.Context, id uint, currentPassword, newPassword string) error
-	UpdateProfile(ctx context.Context, id uint, updateData map[string]interface{}) error
-	ChangeRole(ctx context.Context, id uint, newRole string) error
-	ActivateUser(ctx context.Context, id uint) error
-	DeactivateUser(ctx context.Context, id uint) error
-	RecordLogin(ctx context.Context, id uint) error
+	UpdatePassword(ctx context.Context, id uint64, currentPassword, newPassword string) error
+	UpdateProfile(ctx context.Context, id uint64, updateData map[string]interface{}) error
+	ChangeRole(ctx context.Context, id uint64, newRole string) error
+	ActivateUser(ctx context.Context, id uint64) error
+	DeactivateUser(ctx context.Context, id uint64) error
+	RecordLogin(ctx context.Context, id uint64) error
 }
 
 // userService implements the UserService interface
@@ -80,12 +80,12 @@ func (s *userService) Update(ctx context.Context, user *models.User) error {
 }
 
 // Delete deletes a user by ID
-func (s *userService) Delete(ctx context.Context, id uint) error {
+func (s *userService) Delete(ctx context.Context, id uint64) error {
 	return s.userRepo.Delete(ctx, id)
 }
 
 // GetByID retrieves a user by ID and returns a UserResponse
-func (s *userService) GetByID(ctx context.Context, id uint) (*models.UserResponse, error) {
+func (s *userService) GetByID(ctx context.Context, id uint64) (*models.UserResponse, error) {
 	user, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -95,7 +95,7 @@ func (s *userService) GetByID(ctx context.Context, id uint) (*models.UserRespons
 	}
 
 	return &models.UserResponse{
-		ID:       user.ID,
+		ID:       uint64(user.ID),
 		Email:    user.Email,
 		Username: user.Username,
 		Role:     user.Role,
@@ -113,7 +113,7 @@ func (s *userService) GetByEmail(ctx context.Context, email string) (*models.Use
 	}
 
 	return &models.UserResponse{
-		ID:       user.ID,
+		ID:       uint64(user.ID),
 		Email:    user.Email,
 		Username: user.Username,
 		Role:     user.Role,
@@ -131,7 +131,7 @@ func (s *userService) GetByUsername(ctx context.Context, username string) (*mode
 	}
 
 	return &models.UserResponse{
-		ID:       user.ID,
+		ID:       uint64(user.ID),
 		Email:    user.Email,
 		Username: user.Username,
 		Role:     user.Role,
@@ -139,7 +139,7 @@ func (s *userService) GetByUsername(ctx context.Context, username string) (*mode
 }
 
 // UpdatePassword updates a user's password after verifying the current password
-func (s *userService) UpdatePassword(ctx context.Context, id uint, currentPassword, newPassword string) error {
+func (s *userService) UpdatePassword(ctx context.Context, id uint64, currentPassword, newPassword string) error {
 	user, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -166,7 +166,7 @@ func (s *userService) UpdatePassword(ctx context.Context, id uint, currentPasswo
 }
 
 // UpdateProfile updates user profile information
-func (s *userService) UpdateProfile(ctx context.Context, id uint, updateData map[string]interface{}) error {
+func (s *userService) UpdateProfile(ctx context.Context, id uint64, updateData map[string]interface{}) error {
 	user, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -197,7 +197,7 @@ func (s *userService) UpdateProfile(ctx context.Context, id uint, updateData map
 }
 
 // ChangeRole changes a user's role
-func (s *userService) ChangeRole(ctx context.Context, id uint, newRole string) error {
+func (s *userService) ChangeRole(ctx context.Context, id uint64, newRole string) error {
 	user, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -216,7 +216,7 @@ func (s *userService) ChangeRole(ctx context.Context, id uint, newRole string) e
 }
 
 // ActivateUser activates a user account
-func (s *userService) ActivateUser(ctx context.Context, id uint) error {
+func (s *userService) ActivateUser(ctx context.Context, id uint64) error {
 	user, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -230,7 +230,7 @@ func (s *userService) ActivateUser(ctx context.Context, id uint) error {
 }
 
 // DeactivateUser deactivates a user account
-func (s *userService) DeactivateUser(ctx context.Context, id uint) error {
+func (s *userService) DeactivateUser(ctx context.Context, id uint64) error {
 	user, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -244,7 +244,7 @@ func (s *userService) DeactivateUser(ctx context.Context, id uint) error {
 }
 
 // RecordLogin updates the LastLogin timestamp for a user
-func (s *userService) RecordLogin(ctx context.Context, id uint) error {
+func (s *userService) RecordLogin(ctx context.Context, id uint64) error {
 	user, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {

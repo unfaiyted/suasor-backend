@@ -110,7 +110,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	log.Info().Uint("id", userResponse.ID).Str("email", userResponse.Email).Msg("Successfully registered user")
+	log.Info().Uint64("id", userResponse.ID).Str("email", userResponse.Email).Msg("Successfully registered user")
 	utils.RespondCreated(c, userResponse, "User registered successfully")
 }
 
@@ -149,22 +149,22 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 		return
 	}
 
-	id := userID.(uint)
-	log.Info().Uint("id", id).Msg("Retrieving user profile")
+	id := userID.(uint64)
+	log.Info().Uint64("id", id).Msg("Retrieving user profile")
 
 	userResponse, err := h.service.GetByID(ctx, id)
 	if err != nil {
 		if err.Error() == "user not found" {
-			log.Warn().Uint("id", id).Msg("User not found")
+			log.Warn().Uint64("id", id).Msg("User not found")
 			utils.RespondNotFound(c, err, "User not found")
 			return
 		}
-		log.Error().Err(err).Uint("id", id).Msg("Failed to retrieve user profile")
+		log.Error().Err(err).Uint64("id", id).Msg("Failed to retrieve user profile")
 		utils.RespondInternalError(c, err, "Failed to retrieve user profile")
 		return
 	}
 
-	log.Info().Uint("id", id).Msg("Successfully retrieved user profile")
+	log.Info().Uint64("id", id).Msg("Successfully retrieved user profile")
 	utils.RespondOK(c, userResponse, "Profile retrieved successfully")
 }
 
@@ -213,7 +213,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	id := userID.(uint)
+	id := userID.(uint64)
 
 	var req models.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -222,7 +222,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	log.Info().Uint("id", id).Str("email", req.Email).Str("username", req.Username).Msg("Updating user profile")
+	log.Info().Uint64("id", id).Str("email", req.Email).Str("username", req.Username).Msg("Updating user profile")
 
 	// Create map of fields to update
 	updateData := make(map[string]interface{})
@@ -245,12 +245,12 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 			return
 		}
 		if err.Error() == "user not found" {
-			log.Warn().Uint("id", id).Msg("User not found")
+			log.Warn().Uint64("id", id).Msg("User not found")
 			utils.RespondNotFound(c, err, "User not found")
 			return
 		}
 
-		log.Error().Err(err).Uint("id", id).Msg("Failed to update user profile")
+		log.Error().Err(err).Uint64("id", id).Msg("Failed to update user profile")
 		utils.RespondInternalError(c, err, "Failed to update user profile")
 		return
 	}
@@ -258,12 +258,12 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	// Get updated user response
 	userResponse, err := h.service.GetByID(ctx, id)
 	if err != nil {
-		log.Error().Err(err).Uint("id", id).Msg("Failed to retrieve updated user profile")
+		log.Error().Err(err).Uint64("id", id).Msg("Failed to retrieve updated user profile")
 		utils.RespondInternalError(c, err, "Failed to retrieve updated user profile")
 		return
 	}
 
-	log.Info().Uint("id", id).Msg("Successfully updated user profile")
+	log.Info().Uint64("id", id).Msg("Successfully updated user profile")
 	utils.RespondOK(c, userResponse, "Profile updated successfully")
 }
 
@@ -307,7 +307,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 		return
 	}
 
-	id := userID.(uint)
+	id := userID.(uint64)
 
 	var req models.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -316,26 +316,26 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 		return
 	}
 
-	log.Info().Uint("id", id).Msg("Changing user password")
+	log.Info().Uint64("id", id).Msg("Changing user password")
 
 	if err := h.service.UpdatePassword(ctx, id, req.CurrentPassword, req.NewPassword); err != nil {
 		if err.Error() == "invalid credentials" {
-			log.Warn().Uint("id", id).Msg("Invalid current password")
+			log.Warn().Uint64("id", id).Msg("Invalid current password")
 			utils.RespondBadRequest(c, err, "Current password is incorrect")
 			return
 		}
 		if err.Error() == "user not found" {
-			log.Warn().Uint("id", id).Msg("User not found")
+			log.Warn().Uint64("id", id).Msg("User not found")
 			utils.RespondNotFound(c, err, "User not found")
 			return
 		}
 
-		log.Error().Err(err).Uint("id", id).Msg("Failed to change password")
+		log.Error().Err(err).Uint64("id", id).Msg("Failed to change password")
 		utils.RespondInternalError(c, err, "Failed to change password")
 		return
 	}
 
-	log.Info().Uint("id", id).Msg("Successfully changed password")
+	log.Info().Uint64("id", id).Msg("Successfully changed password")
 	utils.RespondOK(c, http.StatusOK, "Password changed successfully")
 }
 
@@ -389,7 +389,7 @@ func (h *UserHandler) GetByID(c *gin.Context) {
 
 	log.Info().Uint64("id", id).Msg("Admin retrieving user by ID")
 
-	userResponse, err := h.service.GetByID(ctx, uint(id))
+	userResponse, err := h.service.GetByID(ctx, id)
 	if err != nil {
 		if err.Error() == "user not found" {
 			log.Warn().Uint64("id", id).Msg("User not found")
@@ -470,7 +470,7 @@ func (h *UserHandler) ChangeRole(c *gin.Context) {
 
 	log.Info().Uint64("id", id).Str("newRole", req.Role).Msg("Changing user role")
 
-	if err := h.service.ChangeRole(ctx, uint(id), req.Role); err != nil {
+	if err := h.service.ChangeRole(ctx, id, req.Role); err != nil {
 		if err.Error() == "invalid role" {
 			log.Warn().Uint64("id", id).Str("role", req.Role).Msg("Invalid role specified")
 			utils.RespondBadRequest(c, err, "Invalid role specified")
@@ -488,7 +488,7 @@ func (h *UserHandler) ChangeRole(c *gin.Context) {
 	}
 
 	// Get updated user response
-	userResponse, err := h.service.GetByID(ctx, uint(id))
+	userResponse, err := h.service.GetByID(ctx, id)
 	if err != nil {
 		log.Error().Err(err).Uint64("id", id).Msg("Failed to retrieve updated user")
 		utils.RespondInternalError(c, err, "Failed to retrieve updated user")
@@ -549,7 +549,7 @@ func (h *UserHandler) ActivateUser(c *gin.Context) {
 
 	log.Info().Uint64("id", id).Msg("Activating user account")
 
-	if err := h.service.ActivateUser(ctx, uint(id)); err != nil {
+	if err := h.service.ActivateUser(ctx, id); err != nil {
 		if err.Error() == "user not found" {
 			log.Warn().Uint64("id", id).Msg("User not found")
 			utils.RespondNotFound(c, err, "User not found")
@@ -562,7 +562,7 @@ func (h *UserHandler) ActivateUser(c *gin.Context) {
 	}
 
 	// Get updated user response
-	userResponse, err := h.service.GetByID(ctx, uint(id))
+	userResponse, err := h.service.GetByID(ctx, id)
 	if err != nil {
 		log.Error().Err(err).Uint64("id", id).Msg("Failed to retrieve updated user")
 		utils.RespondInternalError(c, err, "Failed to retrieve updated user")
@@ -623,7 +623,7 @@ func (h *UserHandler) DeactivateUser(c *gin.Context) {
 
 	log.Info().Uint64("id", id).Msg("Deactivating user account")
 
-	if err := h.service.DeactivateUser(ctx, uint(id)); err != nil {
+	if err := h.service.DeactivateUser(ctx, id); err != nil {
 		if err.Error() == "user not found" {
 			log.Warn().Uint64("id", id).Msg("User not found")
 			utils.RespondNotFound(c, err, "User not found")
@@ -636,7 +636,7 @@ func (h *UserHandler) DeactivateUser(c *gin.Context) {
 	}
 
 	// Get updated user response
-	userResponse, err := h.service.GetByID(ctx, uint(id))
+	userResponse, err := h.service.GetByID(ctx, id)
 	if err != nil {
 		log.Error().Err(err).Uint64("id", id).Msg("Failed to retrieve updated user")
 		utils.RespondInternalError(c, err, "Failed to retrieve updated user")
@@ -683,7 +683,7 @@ func (h *UserHandler) Delete(c *gin.Context) {
 
 	log.Info().Uint64("id", id).Msg("Deleting user account")
 
-	if err := h.service.Delete(ctx, uint(id)); err != nil {
+	if err := h.service.Delete(ctx, id); err != nil {
 		if err.Error() == "user not found" {
 			log.Warn().Uint64("id", id).Msg("User not found")
 			utils.RespondNotFound(c, err, "User not found")

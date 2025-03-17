@@ -49,7 +49,7 @@ type UserResponse struct {
 	// ID is the unique identifier for the user
 	// @Description User's unique identifier
 	// @Example 1
-	ID uint `json:"id"`
+	ID uint64 `json:"id"`
 
 	// Email is the unique email address of the user
 	// @Description User's email address

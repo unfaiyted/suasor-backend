@@ -1,0 +1,106 @@
+// handlers/config.go
+package handlers
+
+import (
+	"suasor/models"
+	"suasor/services"
+	"suasor/utils"
+
+	"github.com/gin-gonic/gin"
+)
+
+// UserConfigHandler handles configuration API endpoints
+type UserConfigHandler struct {
+	userConfigService services.UserConfigService
+}
+
+// NewConfigHandler creates a new configuration handler
+func NewUserConfigHandler(userConfigService services.UserConfigService) *UserConfigHandler {
+	return &UserConfigHandler{
+		userConfigService: userConfigService,
+	}
+}
+
+// GetUserConfig godoc
+// @Summary Get user configuration
+// @Description Returns the configuration for the current user
+// @Tags config
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.APIResponse[models.UserConfig] "User configuration retrieved successfully"
+// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized access"
+// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Router /config/user [get]
+func (h *UserConfigHandler) GetUserConfig(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	// Get authenticated user ID
+	userID, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("Unauthorized attempt to get user configuration")
+		utils.RespondUnauthorized(c, nil, "Authentication required")
+		return
+	}
+
+	uid := userID.(uint64)
+	log.Info().Uint64("userID", uid).Msg("Retrieving user configuration")
+
+	config, err := h.userConfigService.GetUserConfig(ctx, uid)
+	if err != nil {
+		log.Error().Err(err).Uint64("userID", uid).Msg("Failed to retrieve user configuration")
+		utils.RespondInternalError(c, err, "Failed to retrieve user configuration")
+		return
+	}
+
+	log.Info().Uint64("userID", uid).Msg("User configuration retrieved successfully")
+	utils.RespondOK(c, config, "User configuration retrieved successfully")
+}
+
+// UpdateUserConfig godoc
+// @Summary Update user configuration
+// @Description Updates the configuration for the current user
+// @Tags config
+// @Accept json
+// @Produce json
+// @Param request body models.UserConfig true "User configuration data"
+// @Success 200 {object} models.APIResponse[any] "User configuration updated successfully"
+// @Failure 400 {object} models.ErrorResponse[error] "Invalid request format"
+// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized access"
+// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Router /config/user [put]
+func (h *UserConfigHandler) UpdateUserConfig(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	// Get authenticated user ID
+	userID, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("Unauthorized attempt to update user configuration")
+		utils.RespondUnauthorized(c, nil, "Authentication required")
+		return
+	}
+
+	uid := userID.(uint64)
+
+	var cfg models.UserConfig
+	if err := c.ShouldBindJSON(&cfg); err != nil {
+		log.Error().Err(err).Msg("Invalid user configuration format")
+		utils.RespondValidationError(c, err)
+		return
+	}
+
+	// Ensure the user can only modify their own config
+	cfg.UserID = uid
+
+	log.Info().Uint64("userID", uid).Msg("Updating user configuration")
+
+	if err := h.userConfigService.SaveUserConfig(ctx, cfg); err != nil {
+		log.Error().Err(err).Uint64("userID", uid).Msg("Failed to update user configuration")
+		utils.RespondInternalError(c, err, "Failed to update user configuration")
+		return
+	}
+
+	log.Info().Uint64("userID", uid).Msg("User configuration updated successfully")
+	utils.RespondOK(c, models.EmptyResponse{Success: true}, "User configuration updated successfully")
+}

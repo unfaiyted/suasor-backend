@@ -6,6 +6,7 @@ import (
 	"suasor/repository"
 	"suasor/services"
 	"suasor/utils"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -35,13 +36,28 @@ func Setup(ctx context.Context, db *gorm.DB, configService services.ConfigServic
 	// TODO: should I fix this? It doesent technically need a repo, but ti does interact with the database?
 	healthService := services.NewHealthService(db)
 
-	shortenRepo := repository.NewShortenRepository(db)
-	shortenService := services.NewShortenService(shortenRepo, configService.GetConfig().App.AppURL)
+	userRepo := repository.NewUserRepository(db)
+	userConfigRepo := repository.NewUserConfigRepository(db)
+	sessionRepo := repository.NewSessionRepository(db)
+
+	userService := services.NewUserService(userRepo)
+	userConfigService := services.NewUserConfigService(userConfigRepo)
+
+	authService := services.NewAuthService(userRepo,
+		sessionRepo,
+		appConfig.Auth.JWTSecret,
+		time.Duration(appConfig.Auth.AccessExpiryMinutes)*time.Minute,
+		time.Duration(appConfig.Auth.RefreshExpiryDays)*24*time.Hour,
+		appConfig.Auth.TokenIssuer,
+		appConfig.Auth.TokenAudience,
+	)
 
 	// Register all routes
 	RegisterConfigRoutes(v1, configService)
 	RegisterHealthRoutes(v1, healthService)
-	RegisterShortenRoutes(v1, shortenService)
+	RegisterAuthRoutes(v1, authService)
+	RegisterUserRoutes(v1, userService)
+	RegisterUserConfigRoutes(v1, userConfigService)
 
 	return r
 }
