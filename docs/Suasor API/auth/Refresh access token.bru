@@ -1,0 +1,19 @@
+meta {
+  name: Refresh access token
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/auth/refresh
+  body: json
+  auth: none
+}
+
+script:pre-request {
+  let refreshToken = bru.getGlobalEnvVar('refreshToken');
+  console.log(refreshToken);
+  req.setBody({
+  refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInV1aWQiOiJhMTQ5NzA4My03OTg3LTRmYTctYjQyMy1mYmM2YTA4YWFmMDgiLCJyb2xlIjoidXNlciIsImlzcyI6InN1YXNvci1hcGkiLCJzdWIiOiIxIiwiYXVkIjpbInN1YXNvci1jbGllbnQiXSwiZXhwIjoxNzQyODYzMTYwLCJuYmYiOjE3NDIyNTgzNjAsImlhdCI6MTc0MjI1ODM2MCwianRpIjoiYTE0OTcwODMtNzk4Ny00ZmE3LWI0MjMtZmJjNmEwOGFhZjA4In0.xLlJnR4GZigHqAy2nJK2jtqwNMLrNc3c5ecVVXeIDbs"
+  })
+}

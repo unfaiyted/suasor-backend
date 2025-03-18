@@ -1,10 +1,6 @@
 // models/config.go
 package models
 
-import (
-	"gorm.io/gorm"
-)
-
 // Configuration represents the complete application configuration
 // @Description Complete application configuration settings
 type Configuration struct {
@@ -137,7 +133,7 @@ type ConfigResponse struct {
 // UserConfig represents user-specific configuration preferences
 // @Description User-specific configuration stored in the database
 type UserConfig struct {
-	gorm.Model
+	BaseModel
 	// UserID links this config to a specific user
 	UserID uint64 `json:"userId" gorm:"uniqueIndex;not null"`
 	User   User   `json:"-" gorm:"foreignKey:UserID"`

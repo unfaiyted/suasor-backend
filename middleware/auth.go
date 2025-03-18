@@ -47,6 +47,8 @@ func VerifyToken(authService services.AuthService) gin.HandlerFunc {
 		ctx := c.Request.Context()
 		log := utils.LoggerFromContext(ctx)
 
+		log.Info().Msg("Authenticating request with JWT token")
+
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
 			log.Warn().Msg("Authorization header missing")
@@ -73,7 +75,7 @@ func VerifyToken(authService services.AuthService) gin.HandlerFunc {
 		}
 
 		// Set user claims in context
-		c.Set("userId", claims.UserID)
+		c.Set("userID", claims.UserID)
 		c.Set("userRole", claims.Role)
 		c.Next()
 	}

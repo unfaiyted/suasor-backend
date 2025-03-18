@@ -3,6 +3,7 @@ package router
 
 import (
 	"context"
+	"suasor/middleware"
 	"suasor/repository"
 	"suasor/services"
 	"suasor/utils"
@@ -52,12 +53,24 @@ func Setup(ctx context.Context, db *gorm.DB, configService services.ConfigServic
 		appConfig.Auth.TokenAudience,
 	)
 
-	// Register all routes
-	RegisterConfigRoutes(v1, configService)
 	RegisterHealthRoutes(v1, healthService)
 	RegisterAuthRoutes(v1, authService)
-	RegisterUserRoutes(v1, userService)
-	RegisterUserConfigRoutes(v1, userConfigService)
+
+	// Protected Routes
+	authenticated := v1.Group("")
+	authenticated.Use(middleware.VerifyToken(authService))
+	{
+		// Register all routes
+		RegisterUserRoutes(authenticated, userService)
+		RegisterUserConfigRoutes(authenticated, userConfigService)
+	}
+
+	//Admin Routes
+	adminRoutes := v1.Group("")
+	adminRoutes.Use(middleware.VerifyToken(authService), middleware.RequireRole("admin"))
+	{
+		RegisterConfigRoutes(adminRoutes, configService)
+	}
 
 	return r
 }

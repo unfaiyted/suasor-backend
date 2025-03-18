@@ -18,15 +18,15 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-//	@title			suasor API
+//	@title			Suasor API
 //	@version		1.0
-//	@description	API Server for suasor URL Shortener
+//	@description	API Server for Suasor
 //	@termsOfService	http://swagger.io/terms/
-
-//	@contact.name	API Support
+// @x-bruno-variable {"baseUrl": "http://localhost:8080"}
+// @x-bruno-variable {"apiKey": "{{your_api_key}}"}
+//	@contact.name	Dane Miller
 //	@contact.url	http://www.swagger.io/support
 //	@contact.email	support@swagger.io
-
 //	@license.name	Apache 2.0
 //	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 

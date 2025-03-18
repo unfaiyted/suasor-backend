@@ -54,11 +54,19 @@ func (h *ConfigHandler) checkAdminAccess(c *gin.Context) (uint64, bool) {
 // @Accept json
 // @Produce json
 // @Success 200 {object} models.APIResponse[models.Configuration] "Configuration retrieved successfully"
+// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized access"
+// @Failure 403 {object} models.ErrorResponse[error] "Forbidden - admin access required"
 // @Failure 500 {object} models.ErrorResponse[error] "Server error"
 // @Router /config [get]
 func (h *ConfigHandler) GetConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
+
+	// Check if user is authenticated and has admin role
+	_, ok := h.checkAdminAccess(c)
+	if !ok {
+		return
+	}
 
 	log.Info().Msg("Retrieving system configuration")
 

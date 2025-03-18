@@ -1,0 +1,25 @@
+meta {
+  name: Log out a user
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/auth/logout
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+  "refresh_token": "{{accessToken}}"
+  }
+}
+
+script:pre-request {
+  let refreshToken = bru.getGlobalEnvVar('refreshToken');
+  console.log(refreshToken);
+  req.setBody({
+  refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInV1aWQiOiJhMWM5N2M2OC0wOWNiLTQxMTctOTg0ZS1iYTI0ZWQwYmIyYzMiLCJyb2xlIjoidXNlciIsImlzcyI6InN1YXNvci1hcGkiLCJzdWIiOiIxIiwiYXVkIjpbInN1YXNvci1jbGllbnQiXSwiZXhwIjoxNzQyODYyNjI3LCJuYmYiOjE3NDIyNTc4MjcsImlhdCI6MTc0MjI1NzgyNywianRpIjoiYTFjOTdjNjgtMDljYi00MTE3LTk4NGUtYmEyNGVkMGJiMmMzIn0.UREtvC1FdeFQuK_SP8brv9OZwHevQKyiardgy9os9Ak"
+  })
+}

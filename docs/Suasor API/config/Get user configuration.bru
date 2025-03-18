@@ -1,0 +1,15 @@
+meta {
+  name: Get user configuration
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/config/user
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInV1aWQiOiI3YmJkOWYzOS05ZDYzLTRkYzItYWY2Ny0xZGFjNzUwMzBkOTQiLCJyb2xlIjoidXNlciIsImlzcyI6InN1YXNvci1hcGkiLCJzdWIiOiIxIiwiYXVkIjpbInN1YXNvci1jbGllbnQiXSwiZXhwIjoxNzQyMjYwNjYwLCJuYmYiOjE3NDIyNTk3NjAsImlhdCI6MTc0MjI1OTc2MCwianRpIjoiN2JiZDlmMzktOWQ2My00ZGMyLWFmNjctMWRhYzc1MDMwZDk0In0.WPniZyKbPA0w5jophLbWohNhYV7Spn0n5l8YSlp8OUg
+}

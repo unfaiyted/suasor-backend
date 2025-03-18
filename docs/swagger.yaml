@@ -21,10 +21,32 @@ definitions:
         example: true
         type: boolean
     type: object
+  models.APIResponse-models_Configuration:
+    properties:
+      data:
+        $ref: '#/definitions/models.Configuration'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   models.APIResponse-models_ShortenData:
     properties:
       data:
         $ref: '#/definitions/models.ShortenData'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  models.APIResponse-models_UserConfig:
+    properties:
+      data:
+        $ref: '#/definitions/models.UserConfig'
       message:
         example: Operation successful
         type: string
@@ -120,6 +142,219 @@ definitions:
     required:
     - role
     type: object
+  models.Configuration:
+    description: Complete application configuration settings
+    properties:
+      app:
+        description: App contains core application settings
+        properties:
+          apiBaseURL:
+            example: http://localhost:8080
+            type: string
+          appURL:
+            example: http://localhost:3000
+            type: string
+          environment:
+            enum:
+            - development
+            - staging
+            - production
+            example: development
+            type: string
+          logLevel:
+            enum:
+            - debug
+            - info
+            - warn
+            - error
+            example: info
+            type: string
+          maxPageSize:
+            example: 100
+            maximum: 1000
+            minimum: 1
+            type: integer
+          name:
+            example: suasor
+            type: string
+        required:
+        - apiBaseURL
+        - appURL
+        - environment
+        - logLevel
+        - maxPageSize
+        - name
+        type: object
+      auth:
+        description: Auth contains authentication settings
+        properties:
+          accessExpiryMinutes:
+            description: New fields to add
+            example: 15
+            minimum: 1
+            type: integer
+          allowedOrigins:
+            example:
+            - http://localhost:3000
+            items:
+              type: string
+            type: array
+          enable2FA:
+            example: false
+            type: boolean
+          enableLocal:
+            example: true
+            type: boolean
+          jwtSecret:
+            example: your-secret-key
+            type: string
+          refreshExpiryDays:
+            example: 7
+            minimum: 1
+            type: integer
+          sessionTimeout:
+            example: 60
+            minimum: 1
+            type: integer
+          tokenAudience:
+            example: suasor-client
+            type: string
+          tokenExpiration:
+            example: 24
+            minimum: 1
+            type: integer
+          tokenIssuer:
+            example: suasor-api
+            type: string
+        required:
+        - accessExpiryMinutes
+        - jwtSecret
+        - refreshExpiryDays
+        - sessionTimeout
+        - tokenAudience
+        - tokenExpiration
+        - tokenIssuer
+        type: object
+      db:
+        description: Database contains database connection settings
+        properties:
+          host:
+            example: localhost
+            type: string
+          maxConns:
+            example: 20
+            minimum: 1
+            type: integer
+          name:
+            example: suasor
+            type: string
+          password:
+            example: yourpassword
+            type: string
+          port:
+            example: "5432"
+            type: string
+          timeout:
+            example: 30
+            minimum: 1
+            type: integer
+          user:
+            example: postgres_user
+            type: string
+        required:
+        - host
+        - maxConns
+        - name
+        - password
+        - port
+        - timeout
+        - user
+        type: object
+      http:
+        description: HTTP contains HTTP server configuration
+        properties:
+          enableSSL:
+            example: false
+            type: boolean
+          idleTimeout:
+            example: 60
+            minimum: 1
+            type: integer
+          port:
+            example: "8080"
+            type: string
+          proxyEnabled:
+            example: false
+            type: boolean
+          proxyURL:
+            example: http://proxy:8080
+            type: string
+          rateLimitEnabled:
+            example: true
+            type: boolean
+          readTimeout:
+            example: 30
+            minimum: 1
+            type: integer
+          requestsPerMin:
+            example: 100
+            minimum: 0
+            type: integer
+          sslCert:
+            example: /path/to/cert.pem
+            type: string
+          sslKey:
+            example: /path/to/key.pem
+            type: string
+          writeTimeout:
+            example: 30
+            minimum: 1
+            type: integer
+        required:
+        - idleTimeout
+        - port
+        - readTimeout
+        - writeTimeout
+        type: object
+      integrations:
+        description: Integrations contains all third-party service configurations
+        properties:
+          emby:
+            $ref: '#/definitions/models.EmbyConfig'
+          jellyfin:
+            $ref: '#/definitions/models.JellyfinConfig'
+          navidrome:
+            $ref: '#/definitions/models.NavidromeConfig'
+          plex:
+            $ref: '#/definitions/models.PlexConfig'
+          spotify:
+            $ref: '#/definitions/models.SpotifyConfig'
+          trakt:
+            $ref: '#/definitions/models.TraktConfig'
+        type: object
+    type: object
+  models.EmbyConfig:
+    description: Emby media server configuration
+    properties:
+      apiKey:
+        example: your-api-key
+        type: string
+      enabled:
+        example: false
+        type: boolean
+      host:
+        example: localhost
+        type: string
+      port:
+        example: 8096
+        type: integer
+      ssl:
+        example: false
+        type: boolean
+      username:
+        example: admin
+        type: string
+    type: object
   models.ErrorResponse-error:
     properties:
       details: {}
@@ -200,6 +435,28 @@ definitions:
     - database
     - status
     type: object
+  models.JellyfinConfig:
+    description: Jellyfin media server configuration
+    properties:
+      apiKey:
+        example: your-api-key
+        type: string
+      enabled:
+        example: false
+        type: boolean
+      host:
+        example: localhost
+        type: string
+      port:
+        example: 8096
+        type: integer
+      ssl:
+        example: false
+        type: boolean
+      username:
+        example: admin
+        type: string
+    type: object
   models.LoginRequest:
     description: Request payload for user login
     properties:
@@ -230,6 +487,47 @@ definitions:
         type: string
     required:
     - refreshToken
+    type: object
+  models.NavidromeConfig:
+    description: Supersonic music server configuration
+    properties:
+      enabled:
+        example: false
+        type: boolean
+      host:
+        example: localhost
+        type: string
+      password:
+        example: your-password
+        type: string
+      port:
+        example: 4533
+        type: integer
+      ssl:
+        example: false
+        type: boolean
+      username:
+        example: admin
+        type: string
+    type: object
+  models.PlexConfig:
+    description: Plex media server configuration
+    properties:
+      enabled:
+        example: false
+        type: boolean
+      host:
+        example: localhost
+        type: string
+      port:
+        example: 32400
+        type: integer
+      ssl:
+        example: false
+        type: boolean
+      token:
+        example: your-plex-token
+        type: string
     type: object
   models.RefreshTokenRequest:
     description: Request payload for refreshing access tokens
@@ -312,6 +610,41 @@ definitions:
     required:
     - originalUrl
     type: object
+  models.SpotifyConfig:
+    description: Spotify configuration
+    properties:
+      clientId:
+        example: your-client-id
+        type: string
+      clientSecret:
+        example: your-client-secret
+        type: string
+      enabled:
+        example: false
+        type: boolean
+      redirectUri:
+        example: http://localhost:8080/callback
+        type: string
+      scopes:
+        example: user-library-read playlist-read-private
+        type: string
+    type: object
+  models.TraktConfig:
+    description: Trakt.tv configuration
+    properties:
+      clientId:
+        example: your-client-id
+        type: string
+      clientSecret:
+        example: your-client-secret
+        type: string
+      enabled:
+        example: false
+        type: boolean
+      redirectUri:
+        example: http://localhost:8080/callback
+        type: string
+    type: object
   models.UpdateProfileRequest:
     description: Request payload for updating user profile
     properties:
@@ -329,6 +662,143 @@ definitions:
           @Example "newusername"
         example: newusername
         type: string
+    type: object
+  models.UserConfig:
+    description: User-specific configuration stored in the database
+    properties:
+      autoSyncRecommendations:
+        example: true
+        type: boolean
+      contentLanguages:
+        example: en,es,fr
+        type: string
+      createServerPlaylists:
+        example: true
+        type: boolean
+      createdAt:
+        type: string
+      defaultCollection:
+        example: AI Picks
+        type: string
+      defaultMediaServer:
+        description: Sync Preferences
+        enum:
+        - emby
+        - jellyfin
+        - plex
+        example: plex
+        type: string
+      deletedAt:
+        type: string
+      digestFrequency:
+        enum:
+        - never
+        - daily
+        - weekly
+        example: weekly
+        type: string
+      emailNotifications:
+        example: true
+        type: boolean
+      enableAnimations:
+        example: true
+        type: boolean
+      enableExperimentalAI:
+        example: false
+        type: boolean
+      excludedGenres:
+        example: horror,war
+        type: string
+      id:
+        type: integer
+      includeUnratedContent:
+        example: false
+        type: boolean
+      itemsPerPage:
+        example: 20
+        maximum: 100
+        minimum: 5
+        type: integer
+      language:
+        example: en-US
+        type: string
+      maxContentRating:
+        example: R
+        type: string
+      maxRecommendations:
+        example: 20
+        maximum: 100
+        minimum: 5
+        type: integer
+      minContentRating:
+        example: PG-13
+        type: string
+      newContentWeight:
+        example: 0.7
+        maximum: 1
+        minimum: 0
+        type: number
+      notificationsEnabled:
+        description: Notification Settings
+        example: true
+        type: boolean
+      notifyOnNewRecommendations:
+        example: true
+        type: boolean
+      notifyOnSync:
+        example: false
+        type: boolean
+      personalHistoryWeight:
+        example: 0.8
+        maximum: 1
+        minimum: 0
+        type: number
+      popularityWeight:
+        example: 0.3
+        maximum: 1
+        minimum: 0
+        type: number
+      preferredGenres:
+        example: action,comedy,drama
+        type: string
+      recommendationFrequency:
+        description: Recommendation Preferences
+        enum:
+        - daily
+        - weekly
+        - monthly
+        example: daily
+        type: string
+      recommendationStrategy:
+        description: AI Algorithm Settings
+        enum:
+        - similar
+        - diverse
+        - balanced
+        example: diverse
+        type: string
+      syncFrequency:
+        enum:
+        - manual
+        - daily
+        - weekly
+        example: daily
+        type: string
+      theme:
+        description: UI Preferences
+        enum:
+        - light
+        - dark
+        - system
+        example: dark
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        description: UserID links this config to a specific user
+        type: integer
+    required:
+    - language
     type: object
   models.UserResponse:
     description: User information returned in API responses
@@ -363,14 +833,14 @@ host: localhost:8080
 info:
   contact:
     email: support@swagger.io
-    name: API Support
+    name: Dane Miller
     url: http://www.swagger.io/support
-  description: API Server for suasor URL Shortener
+  description: API Server for Suasor
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
-  title: suasor API
+  title: Suasor API
   version: "1.0"
 paths:
   /auth/login:
@@ -509,6 +979,209 @@ paths:
       summary: Register a new user
       tags:
       - auth
+  /config:
+    get:
+      consumes:
+      - application/json
+      description: Returns the current system configuration
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Configuration retrieved successfully
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_Configuration'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      summary: Get current configuration
+      tags:
+      - config
+    put:
+      consumes:
+      - application/json
+      description: Updates the system-wide application configuration (admin only)
+      parameters:
+      - description: Configuration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.Configuration'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Configuration updated successfully
+          schema:
+            $ref: '#/definitions/models.APIResponse-any'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Unauthorized access
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "403":
+          description: Forbidden - admin access required
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      summary: Update application configuration
+      tags:
+      - config
+  /config/file:
+    get:
+      consumes:
+      - application/json
+      description: Returns the file-based system configuration (admin only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: File configuration retrieved successfully
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_Configuration'
+        "401":
+          description: Unauthorized access
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "403":
+          description: Forbidden - admin access required
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      summary: Get file-based configuration
+      tags:
+      - config
+    put:
+      consumes:
+      - application/json
+      description: Saves the configuration to file only (admin only)
+      parameters:
+      - description: Configuration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.Configuration'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Configuration saved to file successfully
+          schema:
+            $ref: '#/definitions/models.APIResponse-any'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Unauthorized access
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "403":
+          description: Forbidden - admin access required
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      summary: Save configuration to file
+      tags:
+      - config
+  /config/reset:
+    post:
+      consumes:
+      - application/json
+      description: Resets the system configuration to default values (admin only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Configuration reset successfully
+          schema:
+            $ref: '#/definitions/models.APIResponse-any'
+        "401":
+          description: Unauthorized access
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "403":
+          description: Forbidden - admin access required
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      summary: Reset configuration to defaults
+      tags:
+      - config
+  /config/user:
+    get:
+      consumes:
+      - application/json
+      description: Returns the configuration for the current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User configuration retrieved successfully
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_UserConfig'
+        "401":
+          description: Unauthorized access
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      summary: Get user configuration
+      tags:
+      - config
+    put:
+      consumes:
+      - application/json
+      description: Updates the configuration for the current user
+      parameters:
+      - description: User configuration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User configuration updated successfully
+          schema:
+            $ref: '#/definitions/models.APIResponse-any'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Unauthorized access
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      summary: Update user configuration
+      tags:
+      - config
   /health:
     get:
       description: returns JSON object with health statuses.
@@ -1024,3 +1697,5 @@ paths:
 schemes:
 - http
 swagger: "2.0"
+x-bruno-variable:
+  apiKey: '{{your_api_key}}'

@@ -1,0 +1,11 @@
+meta {
+  name: Check if a URL is already shortened
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/shorten/lookup
+  body: none
+  auth: none
+}

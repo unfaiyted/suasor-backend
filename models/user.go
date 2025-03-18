@@ -2,14 +2,12 @@ package models
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 // User represents the user account in the system
 // @Description User account information
 type User struct {
-	gorm.Model
+	BaseModel
 	// Email is the unique identifier for the user
 	// @Description User's email address
 	// @Example "user@example.com"

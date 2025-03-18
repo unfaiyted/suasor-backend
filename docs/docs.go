@@ -11,7 +11,7 @@ const docTemplate = `{
         "title": "{{.Title}}",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
-            "name": "API Support",
+            "name": "Dane Miller",
             "url": "http://www.swagger.io/support",
             "email": "support@swagger.io"
         },
@@ -219,6 +219,314 @@ const docTemplate = `{
                     },
                     "409": {
                         "description": "Email or username already in use",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/config": {
+            "get": {
+                "description": "Returns the current system configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "config"
+                ],
+                "summary": "Get current configuration",
+                "responses": {
+                    "200": {
+                        "description": "Configuration retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-models_Configuration"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Updates the system-wide application configuration (admin only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "config"
+                ],
+                "summary": "Update application configuration",
+                "parameters": [
+                    {
+                        "description": "Configuration data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Configuration"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Configuration updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized access",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - admin access required",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/config/file": {
+            "get": {
+                "description": "Returns the file-based system configuration (admin only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "config"
+                ],
+                "summary": "Get file-based configuration",
+                "responses": {
+                    "200": {
+                        "description": "File configuration retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-models_Configuration"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized access",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - admin access required",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Saves the configuration to file only (admin only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "config"
+                ],
+                "summary": "Save configuration to file",
+                "parameters": [
+                    {
+                        "description": "Configuration data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Configuration"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Configuration saved to file successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized access",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - admin access required",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/config/reset": {
+            "post": {
+                "description": "Resets the system configuration to default values (admin only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "config"
+                ],
+                "summary": "Reset configuration to defaults",
+                "responses": {
+                    "200": {
+                        "description": "Configuration reset successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized access",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - admin access required",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/config/user": {
+            "get": {
+                "description": "Returns the configuration for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "config"
+                ],
+                "summary": "Get user configuration",
+                "responses": {
+                    "200": {
+                        "description": "User configuration retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-models_UserConfig"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized access",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Updates the configuration for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "config"
+                ],
+                "summary": "Update user configuration",
+                "parameters": [
+                    {
+                        "description": "User configuration data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UserConfig"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User configuration updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized access",
                         "schema": {
                             "$ref": "#/definitions/models.ErrorResponse-error"
                         }
@@ -1050,11 +1358,43 @@ const docTemplate = `{
                 }
             }
         },
+        "models.APIResponse-models_Configuration": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.Configuration"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "models.APIResponse-models_ShortenData": {
             "type": "object",
             "properties": {
                 "data": {
                     "$ref": "#/definitions/models.ShortenData"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "models.APIResponse-models_UserConfig": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.UserConfig"
                 },
                 "message": {
                     "type": "string",
@@ -1158,6 +1498,287 @@ const docTemplate = `{
                         "user",
                         "admin"
                     ],
+                    "example": "admin"
+                }
+            }
+        },
+        "models.Configuration": {
+            "description": "Complete application configuration settings",
+            "type": "object",
+            "properties": {
+                "app": {
+                    "description": "App contains core application settings",
+                    "type": "object",
+                    "required": [
+                        "apiBaseURL",
+                        "appURL",
+                        "environment",
+                        "logLevel",
+                        "maxPageSize",
+                        "name"
+                    ],
+                    "properties": {
+                        "apiBaseURL": {
+                            "type": "string",
+                            "example": "http://localhost:8080"
+                        },
+                        "appURL": {
+                            "type": "string",
+                            "example": "http://localhost:3000"
+                        },
+                        "environment": {
+                            "type": "string",
+                            "enum": [
+                                "development",
+                                "staging",
+                                "production"
+                            ],
+                            "example": "development"
+                        },
+                        "logLevel": {
+                            "type": "string",
+                            "enum": [
+                                "debug",
+                                "info",
+                                "warn",
+                                "error"
+                            ],
+                            "example": "info"
+                        },
+                        "maxPageSize": {
+                            "type": "integer",
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "example": 100
+                        },
+                        "name": {
+                            "type": "string",
+                            "example": "suasor"
+                        }
+                    }
+                },
+                "auth": {
+                    "description": "Auth contains authentication settings",
+                    "type": "object",
+                    "required": [
+                        "accessExpiryMinutes",
+                        "jwtSecret",
+                        "refreshExpiryDays",
+                        "sessionTimeout",
+                        "tokenAudience",
+                        "tokenExpiration",
+                        "tokenIssuer"
+                    ],
+                    "properties": {
+                        "accessExpiryMinutes": {
+                            "description": "New fields to add",
+                            "type": "integer",
+                            "minimum": 1,
+                            "example": 15
+                        },
+                        "allowedOrigins": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "example": [
+                                "http://localhost:3000"
+                            ]
+                        },
+                        "enable2FA": {
+                            "type": "boolean",
+                            "example": false
+                        },
+                        "enableLocal": {
+                            "type": "boolean",
+                            "example": true
+                        },
+                        "jwtSecret": {
+                            "type": "string",
+                            "example": "your-secret-key"
+                        },
+                        "refreshExpiryDays": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "example": 7
+                        },
+                        "sessionTimeout": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "example": 60
+                        },
+                        "tokenAudience": {
+                            "type": "string",
+                            "example": "suasor-client"
+                        },
+                        "tokenExpiration": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "example": 24
+                        },
+                        "tokenIssuer": {
+                            "type": "string",
+                            "example": "suasor-api"
+                        }
+                    }
+                },
+                "db": {
+                    "description": "Database contains database connection settings",
+                    "type": "object",
+                    "required": [
+                        "host",
+                        "maxConns",
+                        "name",
+                        "password",
+                        "port",
+                        "timeout",
+                        "user"
+                    ],
+                    "properties": {
+                        "host": {
+                            "type": "string",
+                            "example": "localhost"
+                        },
+                        "maxConns": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "example": 20
+                        },
+                        "name": {
+                            "type": "string",
+                            "example": "suasor"
+                        },
+                        "password": {
+                            "type": "string",
+                            "example": "yourpassword"
+                        },
+                        "port": {
+                            "type": "string",
+                            "example": "5432"
+                        },
+                        "timeout": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "example": 30
+                        },
+                        "user": {
+                            "type": "string",
+                            "example": "postgres_user"
+                        }
+                    }
+                },
+                "http": {
+                    "description": "HTTP contains HTTP server configuration",
+                    "type": "object",
+                    "required": [
+                        "idleTimeout",
+                        "port",
+                        "readTimeout",
+                        "writeTimeout"
+                    ],
+                    "properties": {
+                        "enableSSL": {
+                            "type": "boolean",
+                            "example": false
+                        },
+                        "idleTimeout": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "example": 60
+                        },
+                        "port": {
+                            "type": "string",
+                            "example": "8080"
+                        },
+                        "proxyEnabled": {
+                            "type": "boolean",
+                            "example": false
+                        },
+                        "proxyURL": {
+                            "type": "string",
+                            "example": "http://proxy:8080"
+                        },
+                        "rateLimitEnabled": {
+                            "type": "boolean",
+                            "example": true
+                        },
+                        "readTimeout": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "example": 30
+                        },
+                        "requestsPerMin": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "example": 100
+                        },
+                        "sslCert": {
+                            "type": "string",
+                            "example": "/path/to/cert.pem"
+                        },
+                        "sslKey": {
+                            "type": "string",
+                            "example": "/path/to/key.pem"
+                        },
+                        "writeTimeout": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "example": 30
+                        }
+                    }
+                },
+                "integrations": {
+                    "description": "Integrations contains all third-party service configurations",
+                    "type": "object",
+                    "properties": {
+                        "emby": {
+                            "$ref": "#/definitions/models.EmbyConfig"
+                        },
+                        "jellyfin": {
+                            "$ref": "#/definitions/models.JellyfinConfig"
+                        },
+                        "navidrome": {
+                            "$ref": "#/definitions/models.NavidromeConfig"
+                        },
+                        "plex": {
+                            "$ref": "#/definitions/models.PlexConfig"
+                        },
+                        "spotify": {
+                            "$ref": "#/definitions/models.SpotifyConfig"
+                        },
+                        "trakt": {
+                            "$ref": "#/definitions/models.TraktConfig"
+                        }
+                    }
+                }
+            }
+        },
+        "models.EmbyConfig": {
+            "description": "Emby media server configuration",
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "type": "string",
+                    "example": "your-api-key"
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "host": {
+                    "type": "string",
+                    "example": "localhost"
+                },
+                "port": {
+                    "type": "integer",
+                    "example": 8096
+                },
+                "ssl": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "username": {
+                    "type": "string",
                     "example": "admin"
                 }
             }
@@ -1269,6 +1890,36 @@ const docTemplate = `{
                 }
             }
         },
+        "models.JellyfinConfig": {
+            "description": "Jellyfin media server configuration",
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "type": "string",
+                    "example": "your-api-key"
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "host": {
+                    "type": "string",
+                    "example": "localhost"
+                },
+                "port": {
+                    "type": "integer",
+                    "example": 8096
+                },
+                "ssl": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "username": {
+                    "type": "string",
+                    "example": "admin"
+                }
+            }
+        },
         "models.LoginRequest": {
             "description": "Request payload for user login",
             "type": "object",
@@ -1299,6 +1950,62 @@ const docTemplate = `{
                 "refreshToken": {
                     "description": "RefreshToken identifies the session to terminate\n@Description JWT refresh token to invalidate",
                     "type": "string"
+                }
+            }
+        },
+        "models.NavidromeConfig": {
+            "description": "Supersonic music server configuration",
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "host": {
+                    "type": "string",
+                    "example": "localhost"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "your-password"
+                },
+                "port": {
+                    "type": "integer",
+                    "example": 4533
+                },
+                "ssl": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "username": {
+                    "type": "string",
+                    "example": "admin"
+                }
+            }
+        },
+        "models.PlexConfig": {
+            "description": "Plex media server configuration",
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "host": {
+                    "type": "string",
+                    "example": "localhost"
+                },
+                "port": {
+                    "type": "integer",
+                    "example": 32400
+                },
+                "ssl": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "token": {
+                    "type": "string",
+                    "example": "your-plex-token"
                 }
             }
         },
@@ -1403,6 +2110,54 @@ const docTemplate = `{
                 }
             }
         },
+        "models.SpotifyConfig": {
+            "description": "Spotify configuration",
+            "type": "object",
+            "properties": {
+                "clientId": {
+                    "type": "string",
+                    "example": "your-client-id"
+                },
+                "clientSecret": {
+                    "type": "string",
+                    "example": "your-client-secret"
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "redirectUri": {
+                    "type": "string",
+                    "example": "http://localhost:8080/callback"
+                },
+                "scopes": {
+                    "type": "string",
+                    "example": "user-library-read playlist-read-private"
+                }
+            }
+        },
+        "models.TraktConfig": {
+            "description": "Trakt.tv configuration",
+            "type": "object",
+            "properties": {
+                "clientId": {
+                    "type": "string",
+                    "example": "your-client-id"
+                },
+                "clientSecret": {
+                    "type": "string",
+                    "example": "your-client-secret"
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "redirectUri": {
+                    "type": "string",
+                    "example": "http://localhost:8080/callback"
+                }
+            }
+        },
         "models.UpdateProfileRequest": {
             "description": "Request payload for updating user profile",
             "type": "object",
@@ -1416,6 +2171,184 @@ const docTemplate = `{
                     "description": "Username is the new username\n@Description Updated username for the user\n@Example \"newusername\"",
                     "type": "string",
                     "example": "newusername"
+                }
+            }
+        },
+        "models.UserConfig": {
+            "description": "User-specific configuration stored in the database",
+            "type": "object",
+            "required": [
+                "language"
+            ],
+            "properties": {
+                "autoSyncRecommendations": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "contentLanguages": {
+                    "type": "string",
+                    "example": "en,es,fr"
+                },
+                "createServerPlaylists": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "defaultCollection": {
+                    "type": "string",
+                    "example": "AI Picks"
+                },
+                "defaultMediaServer": {
+                    "description": "Sync Preferences",
+                    "type": "string",
+                    "enum": [
+                        "emby",
+                        "jellyfin",
+                        "plex"
+                    ],
+                    "example": "plex"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "digestFrequency": {
+                    "type": "string",
+                    "enum": [
+                        "never",
+                        "daily",
+                        "weekly"
+                    ],
+                    "example": "weekly"
+                },
+                "emailNotifications": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "enableAnimations": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "enableExperimentalAI": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "excludedGenres": {
+                    "type": "string",
+                    "example": "horror,war"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "includeUnratedContent": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "itemsPerPage": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 5,
+                    "example": 20
+                },
+                "language": {
+                    "type": "string",
+                    "example": "en-US"
+                },
+                "maxContentRating": {
+                    "type": "string",
+                    "example": "R"
+                },
+                "maxRecommendations": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 5,
+                    "example": 20
+                },
+                "minContentRating": {
+                    "type": "string",
+                    "example": "PG-13"
+                },
+                "newContentWeight": {
+                    "type": "number",
+                    "maximum": 1,
+                    "minimum": 0,
+                    "example": 0.7
+                },
+                "notificationsEnabled": {
+                    "description": "Notification Settings",
+                    "type": "boolean",
+                    "example": true
+                },
+                "notifyOnNewRecommendations": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "notifyOnSync": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "personalHistoryWeight": {
+                    "type": "number",
+                    "maximum": 1,
+                    "minimum": 0,
+                    "example": 0.8
+                },
+                "popularityWeight": {
+                    "type": "number",
+                    "maximum": 1,
+                    "minimum": 0,
+                    "example": 0.3
+                },
+                "preferredGenres": {
+                    "type": "string",
+                    "example": "action,comedy,drama"
+                },
+                "recommendationFrequency": {
+                    "description": "Recommendation Preferences",
+                    "type": "string",
+                    "enum": [
+                        "daily",
+                        "weekly",
+                        "monthly"
+                    ],
+                    "example": "daily"
+                },
+                "recommendationStrategy": {
+                    "description": "AI Algorithm Settings",
+                    "type": "string",
+                    "enum": [
+                        "similar",
+                        "diverse",
+                        "balanced"
+                    ],
+                    "example": "diverse"
+                },
+                "syncFrequency": {
+                    "type": "string",
+                    "enum": [
+                        "manual",
+                        "daily",
+                        "weekly"
+                    ],
+                    "example": "daily"
+                },
+                "theme": {
+                    "description": "UI Preferences",
+                    "type": "string",
+                    "enum": [
+                        "light",
+                        "dark",
+                        "system"
+                    ],
+                    "example": "dark"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "description": "UserID links this config to a specific user",
+                    "type": "integer"
                 }
             }
         },
@@ -1441,6 +2374,9 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "x-bruno-variable": {
+        "apiKey": "{{your_api_key}}"
     }
 }`
 
@@ -1450,8 +2386,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "/api/v1",
 	Schemes:          []string{"http"},
-	Title:            "suasor API",
-	Description:      "API Server for suasor URL Shortener",
+	Title:            "Suasor API",
+	Description:      "API Server for Suasor",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

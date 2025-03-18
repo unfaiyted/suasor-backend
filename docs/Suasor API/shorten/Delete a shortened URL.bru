@@ -1,0 +1,15 @@
+meta {
+  name: Delete a shortened URL
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/shorten/:code
+  body: none
+  auth: none
+}
+
+params:path {
+  code: 
+}

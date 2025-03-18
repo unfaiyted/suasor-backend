@@ -271,7 +271,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 // @Example request
 //
 //	{
-//	  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+//	  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 //	}
 //
 // @Success 200 {object} models.APIResponse[any] "Successfully logged out"
