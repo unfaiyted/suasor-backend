@@ -1,5 +1,7 @@
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
+github.com/LukeHagar/plexgo v0.19.2 h1:FAeUef5TquR9WFyJ8V8IosrJCO4rE1poWz1Lx6+KXJU=
+github.com/LukeHagar/plexgo v0.19.2/go.mod h1:eAA9BCpb3nnro4pF6H0qfbLxvsS7Uqm62kKPFZPQfwQ=
 github.com/bitfield/gotestdox v0.2.2 h1:x6RcPAbBbErKLnapz1QeAlf3ospg8efBsedU93CDsnE=
 github.com/bitfield/gotestdox v0.2.2/go.mod h1:D+gwtS0urjBrzguAkTM2wodsTQYFHdpx8eqRJ3N+9pY=
 github.com/bytedance/sonic v1.12.5 h1:hoZxY8uW+mT+OpkcUWw4k0fDINtOcVavEsGfzwzFU/w=
@@ -24,6 +26,8 @@ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/delucks/go-subsonic v0.0.0-20240806025900-2a743ec36238 h1:uejyepOdHISrJTw7P84Y7yEC0FMyv1q3KNDRxWsviKw=
+github.com/delucks/go-subsonic v0.0.0-20240806025900-2a743ec36238/go.mod h1:vnbEuj6Z20PLcHB4rrLQAOXGMjtULfMGhRVSFPcSdUo=
 github.com/devopsarr/lidarr-go v1.2.0 h1:umU91TYu+Eh54dJMWSvwT1KBAzT/9+gckMDVu7e6oRk=
 github.com/devopsarr/lidarr-go v1.2.0/go.mod h1:l6uoYzFsExwp0zGNQGmMw2UueqXwL3Vaux+i2YspEOg=
 github.com/devopsarr/radarr-go v1.2.0 h1:ffP+iDMbM5N9moXN0BZRAgBbBNvywdpQsgA+hl+HCeg=
@@ -32,6 +36,8 @@ github.com/devopsarr/sonarr-go v1.1.0 h1:R36Lve/gL1EIN5i6VMSg7oT6Kfpf6ReCxL+zAAY
 github.com/devopsarr/sonarr-go v1.1.0/go.mod h1:jArmSulMGIBz0w/ZiEu/Ow9/oyVz/aTOiFDvSLdk6xM=
 github.com/dnephin/pflag v1.0.7 h1:oxONGlWxhmUct0YzKTgrpQv9AUA1wtPBn7zuSjJqptk=
 github.com/dnephin/pflag v1.0.7/go.mod h1:uxE91IoWURlOiTUIA8Mq5ZZkAv3dPUfZNaT80Zm7OQE=
+github.com/ericlagergren/decimal v0.0.0-20221120152707-495c53812d05 h1:S92OBrGuLLZsyM5ybUzgc/mPjIYk2AZqufieooe98uw=
+github.com/ericlagergren/decimal v0.0.0-20221120152707-495c53812d05/go.mod h1:M9R1FoZ3y//hwwnJtO51ypFGwm8ZfpxPT/ZLtO1mcgQ=
 github.com/fatih/color v1.15.0/go.mod h1:0h5ZqXfHYED7Bhv2ZJamyIOUej9KtShiJESRwBDUSsw=
 github.com/fatih/color v1.16.0 h1:zmkK9Ngbjj+K0yRhTVONQh1p/HknKYSlNT+vZCzyokM=
 github.com/fatih/color v1.16.0/go.mod h1:fL2Sau1YI5c0pdGEVCbKQbLXB6edEj1ZgiY4NijnWvE=
@@ -170,6 +176,8 @@ github.com/russross/blackfriday/v2 v2.1.0 h1:JIOH55/0cWyOuilr9/qlrm0BSXldqnqwMsf
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/shurcooL/sanitized_anchor_name v1.0.0 h1:PdmoCO6wvbs+7yrJyMORt4/BmY5IYyJwS/kOiWx8mHo=
 github.com/shurcooL/sanitized_anchor_name v1.0.0/go.mod h1:1NzhyTcUVG4SuEtjjoZeVRXNmyL/1OwPU0+IJeTBvfc=
+github.com/sj14/jellyfin-go v0.3.2 h1:8SglTeI5Ff8aWLn/yKb1t25cHe4WklHx/KmoBELGhPI=
+github.com/sj14/jellyfin-go v0.3.2/go.mod h1:K3ozYgrTZF4403JWijLJyNDlGm+nkNZvfU5YRC+GYYc=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
 github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=

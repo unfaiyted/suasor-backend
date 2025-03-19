@@ -23,6 +23,19 @@ definitions:
         example: true
         type: boolean
     type: object
+  models.APIResponse-array_models_MediaClient-models_ClientConfig:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.MediaClient-models_ClientConfig'
+        type: array
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   models.APIResponse-models_AuthData:
     properties:
       data:
@@ -60,6 +73,39 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/models.DownloadClient'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  models.APIResponse-models_EmptyResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.EmptyResponse'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  models.APIResponse-models_MediaClientResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.MediaClientResponse'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  models.APIResponse-models_MediaClientTestResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.MediaClientTestResponse'
       message:
         example: Operation successful
         type: string
@@ -388,22 +434,6 @@ definitions:
         - readTimeout
         - writeTimeout
         type: object
-      integrations:
-        description: Integrations contains all third-party service configurations
-        properties:
-          emby:
-            $ref: '#/definitions/models.EmbyConfig'
-          jellyfin:
-            $ref: '#/definitions/models.JellyfinConfig'
-          navidrome:
-            $ref: '#/definitions/models.NavidromeConfig'
-          plex:
-            $ref: '#/definitions/models.PlexConfig'
-          spotify:
-            $ref: '#/definitions/models.SpotifyConfig'
-          trakt:
-            $ref: '#/definitions/models.TraktConfig'
-        type: object
     type: object
   models.DownloadClient:
     properties:
@@ -449,27 +479,10 @@ definitions:
     - name
     - url
     type: object
-  models.EmbyConfig:
-    description: Emby media server configuration
+  models.EmptyResponse:
     properties:
-      apiKey:
-        example: your-api-key
-        type: string
-      enabled:
-        example: false
+      success:
         type: boolean
-      host:
-        example: localhost
-        type: string
-      port:
-        example: 8096
-        type: integer
-      ssl:
-        example: false
-        type: boolean
-      username:
-        example: admin
-        type: string
     type: object
   models.ErrorResponse-error:
     properties:
@@ -551,28 +564,6 @@ definitions:
     - database
     - status
     type: object
-  models.JellyfinConfig:
-    description: Jellyfin media server configuration
-    properties:
-      apiKey:
-        example: your-api-key
-        type: string
-      enabled:
-        example: false
-        type: boolean
-      host:
-        example: localhost
-        type: string
-      port:
-        example: 8096
-        type: integer
-      ssl:
-        example: false
-        type: boolean
-      username:
-        example: admin
-        type: string
-    type: object
   models.LoginRequest:
     description: Request payload for user login
     properties:
@@ -604,47 +595,90 @@ definitions:
     required:
     - refreshToken
     type: object
-  models.NavidromeConfig:
-    description: Supersonic music server configuration
+  models.MediaClient-models_ClientConfig:
     properties:
-      enabled:
-        example: false
-        type: boolean
-      host:
-        example: localhost
+      client: {}
+      clientType:
+        $ref: '#/definitions/models.MediaClientType'
+      createdAt:
         type: string
-      password:
-        example: your-password
-        type: string
-      port:
-        example: 4533
+      id:
         type: integer
-      ssl:
-        example: false
+      name:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: integer
+    type: object
+  models.MediaClientRequest:
+    properties:
+      client: {}
+      clientType:
+        allOf:
+        - $ref: '#/definitions/models.MediaClientType'
+        enum:
+        - plex
+        - jellyfin
+        - emby
+        - subsonic
+      name:
+        type: string
+    required:
+    - clientType
+    - name
+    type: object
+  models.MediaClientResponse:
+    properties:
+      client: {}
+      clientType:
+        $ref: '#/definitions/models.MediaClientType'
+      createdAt:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: integer
+    type: object
+  models.MediaClientTestRequest:
+    properties:
+      client: {}
+      clientType:
+        allOf:
+        - $ref: '#/definitions/models.MediaClientType'
+        enum:
+        - plex
+        - jellyfin
+        - emby
+        - subsonic
+    required:
+    - clientType
+    type: object
+  models.MediaClientTestResponse:
+    properties:
+      message:
+        type: string
+      success:
         type: boolean
-      username:
-        example: admin
+      version:
         type: string
     type: object
-  models.PlexConfig:
-    description: Plex media server configuration
-    properties:
-      enabled:
-        example: false
-        type: boolean
-      host:
-        example: localhost
-        type: string
-      port:
-        example: 32400
-        type: integer
-      ssl:
-        example: false
-        type: boolean
-      token:
-        example: your-plex-token
-        type: string
-    type: object
+  models.MediaClientType:
+    enum:
+    - plex
+    - jellyfin
+    - emby
+    - subsonic
+    type: string
+    x-enum-varnames:
+    - MediaClientTypePlex
+    - MediaClientTypeJellyfin
+    - MediaClientTypeEmby
+    - MediaClientTypeSubsonic
   models.RefreshTokenRequest:
     description: Request payload for refreshing access tokens
     properties:
@@ -725,41 +759,6 @@ definitions:
         type: string
     required:
     - originalUrl
-    type: object
-  models.SpotifyConfig:
-    description: Spotify configuration
-    properties:
-      clientId:
-        example: your-client-id
-        type: string
-      clientSecret:
-        example: your-client-secret
-        type: string
-      enabled:
-        example: false
-        type: boolean
-      redirectUri:
-        example: http://localhost:8080/callback
-        type: string
-      scopes:
-        example: user-library-read playlist-read-private
-        type: string
-    type: object
-  models.TraktConfig:
-    description: Trakt.tv configuration
-    properties:
-      clientId:
-        example: your-client-id
-        type: string
-      clientSecret:
-        example: your-client-secret
-        type: string
-      enabled:
-        example: false
-        type: boolean
-      redirectUri:
-        example: http://localhost:8080/callback
-        type: string
     type: object
   models.UpdateProfileRequest:
     description: Request payload for updating user profile
@@ -1333,6 +1332,141 @@ paths:
       security:
       - BearerAuth: []
       summary: Test download client connection
+      tags:
+      - clients
+  /clients/media:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all media client configurations for the user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Media clients retrieved
+          schema:
+            $ref: '#/definitions/models.APIResponse-array_models_MediaClient-models_ClientConfig'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get all media clients
+      tags:
+      - clients
+    post:
+      consumes:
+      - application/json
+      description: Creates a new media client configuration
+      parameters:
+      - description: Media client data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.MediaClientRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Media client created
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_MediaClientResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Create a new media client
+      tags:
+      - clients
+  /clients/media/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a media client configuration
+      parameters:
+      - description: Client ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Media client deleted
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_EmptyResponse'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "404":
+          description: Client not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Delete media client
+      tags:
+      - clients
+  /clients/media/test:
+    post:
+      consumes:
+      - application/json
+      description: Tests the connection to a media client using the provided configuration
+      parameters:
+      - description: Client configuration to test
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.MediaClientTestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Connection test result
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_MediaClientTestResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Test media client connection
       tags:
       - clients
   /config:

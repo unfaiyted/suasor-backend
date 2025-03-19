@@ -9,8 +9,8 @@ import (
 )
 
 // SetupClientRoutes configures routes for client endpoints
-func RegisterClientRoutes(r *gin.RouterGroup, service services.DownloadClientService) {
-	downloadClientHandler := handlers.NewDownloadClientHandler(service)
+func RegisterClientRoutes(r *gin.RouterGroup, downloadService services.DownloadClientService, mediaService services.MediaClientService) {
+	downloadClientHandler := handlers.NewDownloadClientHandler(downloadService)
 
 	clients := r.Group("/clients")
 
@@ -23,6 +23,20 @@ func RegisterClientRoutes(r *gin.RouterGroup, service services.DownloadClientSer
 		download.PUT("/:id", downloadClientHandler.UpdateClient)
 		download.DELETE("/:id", downloadClientHandler.DeleteClient)
 		download.POST("/test", downloadClientHandler.TestConnection)
+	}
+
+	mediaClientHandler := handlers.NewMediaClientHandler(mediaService)
+
+	media := clients.Group("/media")
+	{
+
+		media.POST("", mediaClientHandler.CreateClient)
+		media.GET("", mediaClientHandler.GetAllClients)
+		media.GET("/:id", mediaClientHandler.GetClient)
+		media.DELETE("/:id", mediaClientHandler.DeleteClient)
+		media.PUT("/:id", mediaClientHandler.UpdateClient)
+		media.POST("/test", mediaClientHandler.TestConnection)
+
 	}
 
 }

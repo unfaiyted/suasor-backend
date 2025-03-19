@@ -609,6 +609,219 @@ const docTemplate = `{
                 }
             }
         },
+        "/clients/media": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all media client configurations for the user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Get all media clients",
+                "responses": {
+                    "200": {
+                        "description": "Media clients retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-array_models_MediaClient-models_ClientConfig"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new media client configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Create a new media client",
+                "parameters": [
+                    {
+                        "description": "Media client data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.MediaClientRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Media client created",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-models_MediaClientResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/media/test": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tests the connection to a media client using the provided configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Test media client connection",
+                "parameters": [
+                    {
+                        "description": "Client configuration to test",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.MediaClientTestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Connection test result",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-models_MediaClientTestResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/media/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes a media client configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Delete media client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Media client deleted",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-models_EmptyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "404": {
+                        "description": "Client not found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
         "/config": {
             "get": {
                 "description": "Returns the current system configuration",
@@ -1750,6 +1963,25 @@ const docTemplate = `{
                 }
             }
         },
+        "models.APIResponse-array_models_MediaClient-models_ClientConfig": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MediaClient-models_ClientConfig"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "models.APIResponse-models_AuthData": {
             "type": "object",
             "properties": {
@@ -1803,6 +2035,54 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/models.DownloadClient"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "models.APIResponse-models_EmptyResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.EmptyResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "models.APIResponse-models_MediaClientResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.MediaClientResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "models.APIResponse-models_MediaClientTestResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.MediaClientTestResponse"
                 },
                 "message": {
                     "type": "string",
@@ -2221,30 +2501,6 @@ const docTemplate = `{
                             "example": 30
                         }
                     }
-                },
-                "integrations": {
-                    "description": "Integrations contains all third-party service configurations",
-                    "type": "object",
-                    "properties": {
-                        "emby": {
-                            "$ref": "#/definitions/models.EmbyConfig"
-                        },
-                        "jellyfin": {
-                            "$ref": "#/definitions/models.JellyfinConfig"
-                        },
-                        "navidrome": {
-                            "$ref": "#/definitions/models.NavidromeConfig"
-                        },
-                        "plex": {
-                            "$ref": "#/definitions/models.PlexConfig"
-                        },
-                        "spotify": {
-                            "$ref": "#/definitions/models.SpotifyConfig"
-                        },
-                        "trakt": {
-                            "$ref": "#/definitions/models.TraktConfig"
-                        }
-                    }
                 }
             }
         },
@@ -2315,33 +2571,11 @@ const docTemplate = `{
                 }
             }
         },
-        "models.EmbyConfig": {
-            "description": "Emby media server configuration",
+        "models.EmptyResponse": {
             "type": "object",
             "properties": {
-                "apiKey": {
-                    "type": "string",
-                    "example": "your-api-key"
-                },
-                "enabled": {
-                    "type": "boolean",
-                    "example": false
-                },
-                "host": {
-                    "type": "string",
-                    "example": "localhost"
-                },
-                "port": {
-                    "type": "integer",
-                    "example": 8096
-                },
-                "ssl": {
-                    "type": "boolean",
-                    "example": false
-                },
-                "username": {
-                    "type": "string",
-                    "example": "admin"
+                "success": {
+                    "type": "boolean"
                 }
             }
         },
@@ -2452,36 +2686,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.JellyfinConfig": {
-            "description": "Jellyfin media server configuration",
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "type": "string",
-                    "example": "your-api-key"
-                },
-                "enabled": {
-                    "type": "boolean",
-                    "example": false
-                },
-                "host": {
-                    "type": "string",
-                    "example": "localhost"
-                },
-                "port": {
-                    "type": "integer",
-                    "example": 8096
-                },
-                "ssl": {
-                    "type": "boolean",
-                    "example": false
-                },
-                "username": {
-                    "type": "string",
-                    "example": "admin"
-                }
-            }
-        },
         "models.LoginRequest": {
             "description": "Request payload for user login",
             "type": "object",
@@ -2515,61 +2719,130 @@ const docTemplate = `{
                 }
             }
         },
-        "models.NavidromeConfig": {
-            "description": "Supersonic music server configuration",
+        "models.MediaClient-models_ClientConfig": {
             "type": "object",
             "properties": {
-                "enabled": {
-                    "type": "boolean",
-                    "example": false
+                "client": {},
+                "clientType": {
+                    "$ref": "#/definitions/models.MediaClientType"
                 },
-                "host": {
-                    "type": "string",
-                    "example": "localhost"
+                "createdAt": {
+                    "type": "string"
                 },
-                "password": {
-                    "type": "string",
-                    "example": "your-password"
+                "id": {
+                    "type": "integer"
                 },
-                "port": {
-                    "type": "integer",
-                    "example": 4533
+                "name": {
+                    "type": "string"
                 },
-                "ssl": {
-                    "type": "boolean",
-                    "example": false
+                "updatedAt": {
+                    "type": "string"
                 },
-                "username": {
-                    "type": "string",
-                    "example": "admin"
+                "userId": {
+                    "type": "integer"
                 }
             }
         },
-        "models.PlexConfig": {
-            "description": "Plex media server configuration",
+        "models.MediaClientRequest": {
             "type": "object",
+            "required": [
+                "clientType",
+                "name"
+            ],
             "properties": {
-                "enabled": {
-                    "type": "boolean",
-                    "example": false
+                "client": {},
+                "clientType": {
+                    "enum": [
+                        "plex",
+                        "jellyfin",
+                        "emby",
+                        "subsonic"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.MediaClientType"
+                        }
+                    ]
                 },
-                "host": {
-                    "type": "string",
-                    "example": "localhost"
-                },
-                "port": {
-                    "type": "integer",
-                    "example": 32400
-                },
-                "ssl": {
-                    "type": "boolean",
-                    "example": false
-                },
-                "token": {
-                    "type": "string",
-                    "example": "your-plex-token"
+                "name": {
+                    "type": "string"
                 }
             }
+        },
+        "models.MediaClientResponse": {
+            "type": "object",
+            "properties": {
+                "client": {},
+                "clientType": {
+                    "$ref": "#/definitions/models.MediaClientType"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.MediaClientTestRequest": {
+            "type": "object",
+            "required": [
+                "clientType"
+            ],
+            "properties": {
+                "client": {},
+                "clientType": {
+                    "enum": [
+                        "plex",
+                        "jellyfin",
+                        "emby",
+                        "subsonic"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.MediaClientType"
+                        }
+                    ]
+                }
+            }
+        },
+        "models.MediaClientTestResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.MediaClientType": {
+            "type": "string",
+            "enum": [
+                "plex",
+                "jellyfin",
+                "emby",
+                "subsonic"
+            ],
+            "x-enum-varnames": [
+                "MediaClientTypePlex",
+                "MediaClientTypeJellyfin",
+                "MediaClientTypeEmby",
+                "MediaClientTypeSubsonic"
+            ]
         },
         "models.RefreshTokenRequest": {
             "description": "Request payload for refreshing access tokens",
@@ -2669,54 +2942,6 @@ const docTemplate = `{
                 },
                 "originalUrl": {
                     "type": "string"
-                }
-            }
-        },
-        "models.SpotifyConfig": {
-            "description": "Spotify configuration",
-            "type": "object",
-            "properties": {
-                "clientId": {
-                    "type": "string",
-                    "example": "your-client-id"
-                },
-                "clientSecret": {
-                    "type": "string",
-                    "example": "your-client-secret"
-                },
-                "enabled": {
-                    "type": "boolean",
-                    "example": false
-                },
-                "redirectUri": {
-                    "type": "string",
-                    "example": "http://localhost:8080/callback"
-                },
-                "scopes": {
-                    "type": "string",
-                    "example": "user-library-read playlist-read-private"
-                }
-            }
-        },
-        "models.TraktConfig": {
-            "description": "Trakt.tv configuration",
-            "type": "object",
-            "properties": {
-                "clientId": {
-                    "type": "string",
-                    "example": "your-client-id"
-                },
-                "clientSecret": {
-                    "type": "string",
-                    "example": "your-client-secret"
-                },
-                "enabled": {
-                    "type": "boolean",
-                    "example": false
-                },
-                "redirectUri": {
-                    "type": "string",
-                    "example": "http://localhost:8080/callback"
                 }
             }
         },

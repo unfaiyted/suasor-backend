@@ -56,6 +56,9 @@ func Setup(ctx context.Context, db *gorm.DB, configService services.ConfigServic
 	downloadClientRepo := repository.NewDownloadClientRepository(db)
 	downloadClientService := services.NewDownloadClientService(downloadClientRepo)
 
+	mediaClientRepo := repository.NewMediaClientRepository(db)
+	mediaClientService := services.NewMediaClientService(mediaClientRepo)
+
 	RegisterHealthRoutes(v1, healthService)
 	RegisterAuthRoutes(v1, authService)
 
@@ -66,7 +69,7 @@ func Setup(ctx context.Context, db *gorm.DB, configService services.ConfigServic
 		// Register all routes
 		RegisterUserRoutes(authenticated, userService)
 		RegisterUserConfigRoutes(authenticated, userConfigService)
-		RegisterClientRoutes(authenticated, downloadClientService)
+		RegisterClientRoutes(authenticated, downloadClientService, mediaClientService)
 	}
 
 	//Admin Routes
