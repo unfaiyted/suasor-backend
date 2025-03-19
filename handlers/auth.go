@@ -319,3 +319,85 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		Message: "Successfully logged out",
 	})
 }
+
+// ValidateSession godoc
+// @Summary Validate user session
+// @Description Validates the user's session token and returns current user profile
+// @Tags auth
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} models.APIResponse[models.UserResponse] "Valid session with user details"
+// @Example response
+//
+//	{
+//	  "success": true,
+//	  "data": {
+//	    "id": 1,
+//	    "email": "user@example.com",
+//	    "username": "johndoe",
+//	    "role": "user"
+//	  },
+//	  "message": "Session is valid"
+//	}
+//
+// @Failure 401 {object} models.ErrorResponse[error] "Invalid or expired session token"
+// @Example response
+//
+//	{
+//	  "error": "unauthorized",
+//	  "message": "Invalid or expired session token",
+//	  "details": {},
+//	  "timestamp": "2025-03-16T10:30:45Z",
+//	  "requestId": "c7f3305d-8c9a-4b9b-b701-3b9a1e36c1f0"
+//	}
+//
+// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Router /auth/validate [get]
+func (h *AuthHandler) ValidateSession(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	// Extract the token from the Authorization header
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		log.Warn().Msg("Missing Authorization header")
+		utils.RespondUnauthorized(c, nil, "Missing Authorization header")
+		return
+	}
+
+	// Check if the Authorization header has the correct format
+	bearerPrefix := "Bearer "
+	if !strings.HasPrefix(authHeader, bearerPrefix) {
+		log.Warn().Msg("Invalid Authorization header format")
+		utils.RespondUnauthorized(c, nil, "Invalid Authorization header format")
+		return
+	}
+
+	// Extract the token
+	token := strings.TrimPrefix(authHeader, bearerPrefix)
+	if token == "" {
+		log.Warn().Msg("Empty token provided")
+		utils.RespondUnauthorized(c, nil, "Empty token provided")
+		return
+	}
+
+	log.Info().Msg("Validating user session")
+
+	// Validate the token and get the user data
+	_, err := h.service.ValidateToken(ctx, token)
+	if err != nil {
+		log.Warn().Err(err).Msg("Session validation failed")
+		utils.RespondUnauthorized(c, err, "Invalid or expired session token")
+		return
+	}
+
+	user, err := h.service.GetAuthorizedUser(ctx, token)
+	if err != nil {
+		log.Warn().Err(err).Msg("Getting Authorize User failed")
+		utils.RespondInternalError(c, err, "Unable to get authorized user information")
+	}
+	log.Info().Uint64("userId", user.ID).Str("email", user.Email).Msg("Session validated successfully")
+
+	// Return the user profile
+	utils.RespondOK(c, user, "Session is valid")
+}

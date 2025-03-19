@@ -19,6 +19,7 @@ type AuthService interface {
 	RefreshToken(ctx context.Context, refreshToken string) (*models.AuthData, error)
 	Logout(ctx context.Context, refreshToken string) error
 	ValidateToken(ctx context.Context, token string) (*models.JWTClaim, error)
+	GetAuthorizedUser(ctx context.Context, token string) (*models.UserResponse, error)
 }
 
 // authService implements the AuthService interface
@@ -367,4 +368,37 @@ func (s *authService) generateTokens(user *models.User) (*models.TokenDetails, e
 	td.RefreshToken = refreshToken
 
 	return td, nil
+}
+
+func (s *authService) GetAuthorizedUser(ctx context.Context, tokenString string) (*models.UserResponse, error) {
+	var userID uint64
+
+	// Try to get and validate token from context
+	claims, err := s.ValidateToken(ctx, tokenString)
+	if err != nil {
+		return nil, fmt.Errorf("unauthorized: %w", err)
+	}
+	userID = claims.UserID
+
+	// Fetch user from repository
+	user, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			return nil, errors.New("user not found")
+		}
+		return nil, fmt.Errorf("error finding user: %w", err)
+	}
+
+	// Check if account is active
+	if !user.Active {
+		return nil, errors.New("account is inactive")
+	}
+
+	// Return user response
+	return &models.UserResponse{
+		ID:       uint64(user.ID),
+		Email:    user.Email,
+		Username: user.Username,
+		Role:     user.Role,
+	}, nil
 }

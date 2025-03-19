@@ -22,8 +22,6 @@ import (
 //	@version		1.0
 //	@description	API Server for Suasor
 //	@termsOfService	http://swagger.io/terms/
-// @x-bruno-variable {"baseUrl": "http://localhost:8080"}
-// @x-bruno-variable {"apiKey": "{{your_api_key}}"}
 //	@contact.name	Dane Miller
 //	@contact.url	http://www.swagger.io/support
 //	@contact.email	support@swagger.io

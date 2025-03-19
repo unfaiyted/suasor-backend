@@ -232,6 +232,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/validate": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Validates the user's session token and returns current user profile",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Validate user session",
+                "responses": {
+                    "200": {
+                        "description": "Valid session with user details",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-models_UserResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or expired session token",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
         "/config": {
             "get": {
                 "description": "Returns the current system configuration",
@@ -250,6 +287,18 @@ const docTemplate = `{
                         "description": "Configuration retrieved successfully",
                         "schema": {
                             "$ref": "#/definitions/models.APIResponse-models_Configuration"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized access",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - admin access required",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
                         }
                     },
                     "500": {
@@ -2374,9 +2423,6 @@ const docTemplate = `{
                 }
             }
         }
-    },
-    "x-bruno-variable": {
-        "apiKey": "{{your_api_key}}"
     }
 }`
 

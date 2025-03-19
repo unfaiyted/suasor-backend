@@ -8,7 +8,7 @@
     "name": "suasor"
   },
   "auth": {
-    "allowedOrigins": ["http://localhost:3000"],
+    "allowedOrigins": ["http://localhost:5173"],
     "enable2FA": false,
     "enableLocal": true,
     "sessionTimeout": 60,
