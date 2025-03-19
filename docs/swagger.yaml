@@ -10,6 +10,19 @@ definitions:
         example: true
         type: boolean
     type: object
+  models.APIResponse-array_models_DownloadClient:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.DownloadClient'
+        type: array
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   models.APIResponse-models_AuthData:
     properties:
       data:
@@ -21,10 +34,32 @@ definitions:
         example: true
         type: boolean
     type: object
+  models.APIResponse-models_ClientTestResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.ClientTestResponse'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   models.APIResponse-models_Configuration:
     properties:
       data:
         $ref: '#/definitions/models.Configuration'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  models.APIResponse-models_DownloadClient:
+    properties:
+      data:
+        $ref: '#/definitions/models.DownloadClient'
       message:
         example: Operation successful
         type: string
@@ -142,6 +177,43 @@ definitions:
     required:
     - role
     type: object
+  models.ClientTestRequest:
+    properties:
+      apiKey:
+        type: string
+      clientType:
+        allOf:
+        - $ref: '#/definitions/models.ClientType'
+        enum:
+        - radarr
+        - sonarr
+        - lidarr
+      url:
+        type: string
+    required:
+    - apiKey
+    - clientType
+    - url
+    type: object
+  models.ClientTestResponse:
+    properties:
+      message:
+        type: string
+      success:
+        type: boolean
+      version:
+        type: string
+    type: object
+  models.ClientType:
+    enum:
+    - radarr
+    - sonarr
+    - lidarr
+    type: string
+    x-enum-varnames:
+    - ClientTypeRadarr
+    - ClientTypeSonarr
+    - ClientTypeLidarr
   models.Configuration:
     description: Complete application configuration settings
     properties:
@@ -332,6 +404,50 @@ definitions:
           trakt:
             $ref: '#/definitions/models.TraktConfig'
         type: object
+    type: object
+  models.DownloadClient:
+    properties:
+      apiKey:
+        type: string
+      clientType:
+        $ref: '#/definitions/models.ClientType'
+      createdAt:
+        type: string
+      id:
+        type: integer
+      isEnabled:
+        type: boolean
+      name:
+        type: string
+      updatedAt:
+        type: string
+      url:
+        type: string
+      userId:
+        type: integer
+    type: object
+  models.DownloadClientRequest:
+    properties:
+      apiKey:
+        type: string
+      clientType:
+        allOf:
+        - $ref: '#/definitions/models.ClientType'
+        enum:
+        - radarr
+        - sonarr
+        - lidarr
+      isEnabled:
+        type: boolean
+      name:
+        type: string
+      url:
+        type: string
+    required:
+    - apiKey
+    - clientType
+    - name
+    - url
     type: object
   models.EmbyConfig:
     description: Emby media server configuration
@@ -1002,6 +1118,223 @@ paths:
       summary: Validate user session
       tags:
       - auth
+  /clients/download:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all download client configurations for the user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Download clients retrieved
+          schema:
+            $ref: '#/definitions/models.APIResponse-array_models_DownloadClient'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get all download clients
+      tags:
+      - clients
+    post:
+      consumes:
+      - application/json
+      description: Creates a new download client configuration
+      parameters:
+      - description: Download client data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.DownloadClientRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Download client created
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_DownloadClient'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Create a new download client
+      tags:
+      - clients
+  /clients/download/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a download client configuration
+      parameters:
+      - description: Client ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Download client deleted
+          schema:
+            $ref: '#/definitions/models.APIResponse-any'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "404":
+          description: Client not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Delete download client
+      tags:
+      - clients
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific download client configuration
+      parameters:
+      - description: Client ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Download client retrieved
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_DownloadClient'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "404":
+          description: Client not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get download client
+      tags:
+      - clients
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing download client configuration
+      parameters:
+      - description: Client ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated client data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.DownloadClientRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Download client updated
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_DownloadClient'
+        "400":
+          description: Invalid request or client ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "404":
+          description: Client not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Update download client
+      tags:
+      - clients
+  /clients/download/test:
+    post:
+      consumes:
+      - application/json
+      description: Tests the connection to a download client using the provided configuration
+      parameters:
+      - description: Client configuration to test
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ClientTestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Connection test result
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_ClientTestResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Test download client connection
+      tags:
+      - clients
   /config:
     get:
       consumes:

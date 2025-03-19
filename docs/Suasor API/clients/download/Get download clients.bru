@@ -1,0 +1,15 @@
+meta {
+  name: Get download clients
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/clients/download
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInV1aWQiOiJiODdjYmY3NS0zNWZjLTQzYzMtOWQzOC0zZjNkNzc4NmI2OTkiLCJyb2xlIjoidXNlciIsImlzcyI6InN1YXNvci1hcGkiLCJzdWIiOiIxIiwiYXVkIjpbInN1YXNvci1jbGllbnQiXSwiZXhwIjoxNzQyMzk4Mzg1LCJuYmYiOjE3NDIzOTc0ODUsImlhdCI6MTc0MjM5NzQ4NSwianRpIjoiYjg3Y2JmNzUtMzVmYy00M2MzLTlkMzgtM2YzZDc3ODZiNjk5In0.gtbfKwOXDFpvHpnLi2OdnUwqMM0ZW3OMsxiig7DqQfw
+}

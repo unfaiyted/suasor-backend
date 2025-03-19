@@ -53,6 +53,9 @@ func Setup(ctx context.Context, db *gorm.DB, configService services.ConfigServic
 		appConfig.Auth.TokenAudience,
 	)
 
+	downloadClientRepo := repository.NewDownloadClientRepository(db)
+	downloadClientService := services.NewDownloadClientService(downloadClientRepo)
+
 	RegisterHealthRoutes(v1, healthService)
 	RegisterAuthRoutes(v1, authService)
 
@@ -63,6 +66,7 @@ func Setup(ctx context.Context, db *gorm.DB, configService services.ConfigServic
 		// Register all routes
 		RegisterUserRoutes(authenticated, userService)
 		RegisterUserConfigRoutes(authenticated, userConfigService)
+		RegisterClientRoutes(authenticated, downloadClientService)
 	}
 
 	//Admin Routes

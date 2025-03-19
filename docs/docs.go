@@ -269,6 +269,346 @@ const docTemplate = `{
                 }
             }
         },
+        "/clients/download": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all download client configurations for the user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Get all download clients",
+                "responses": {
+                    "200": {
+                        "description": "Download clients retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-array_models_DownloadClient"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new download client configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Create a new download client",
+                "parameters": [
+                    {
+                        "description": "Download client data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.DownloadClientRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Download client created",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-models_DownloadClient"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/download/test": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tests the connection to a download client using the provided configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Test download client connection",
+                "parameters": [
+                    {
+                        "description": "Client configuration to test",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ClientTestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Connection test result",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-models_ClientTestResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/download/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a specific download client configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Get download client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Download client retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-models_DownloadClient"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "404": {
+                        "description": "Client not found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates an existing download client configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Update download client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated client data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.DownloadClientRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Download client updated",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-models_DownloadClient"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request or client ID",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "404": {
+                        "description": "Client not found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes a download client configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Delete download client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Download client deleted",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "404": {
+                        "description": "Client not found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
         "/config": {
             "get": {
                 "description": "Returns the current system configuration",
@@ -1391,6 +1731,25 @@ const docTemplate = `{
                 }
             }
         },
+        "models.APIResponse-array_models_DownloadClient": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DownloadClient"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "models.APIResponse-models_AuthData": {
             "type": "object",
             "properties": {
@@ -1407,11 +1766,43 @@ const docTemplate = `{
                 }
             }
         },
+        "models.APIResponse-models_ClientTestResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.ClientTestResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "models.APIResponse-models_Configuration": {
             "type": "object",
             "properties": {
                 "data": {
                     "$ref": "#/definitions/models.Configuration"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "models.APIResponse-models_DownloadClient": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.DownloadClient"
                 },
                 "message": {
                     "type": "string",
@@ -1550,6 +1941,61 @@ const docTemplate = `{
                     "example": "admin"
                 }
             }
+        },
+        "models.ClientTestRequest": {
+            "type": "object",
+            "required": [
+                "apiKey",
+                "clientType",
+                "url"
+            ],
+            "properties": {
+                "apiKey": {
+                    "type": "string"
+                },
+                "clientType": {
+                    "enum": [
+                        "radarr",
+                        "sonarr",
+                        "lidarr"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ClientType"
+                        }
+                    ]
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ClientTestResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ClientType": {
+            "type": "string",
+            "enum": [
+                "radarr",
+                "sonarr",
+                "lidarr"
+            ],
+            "x-enum-varnames": [
+                "ClientTypeRadarr",
+                "ClientTypeSonarr",
+                "ClientTypeLidarr"
+            ]
         },
         "models.Configuration": {
             "description": "Complete application configuration settings",
@@ -1799,6 +2245,73 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.TraktConfig"
                         }
                     }
+                }
+            }
+        },
+        "models.DownloadClient": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "type": "string"
+                },
+                "clientType": {
+                    "$ref": "#/definitions/models.ClientType"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "isEnabled": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.DownloadClientRequest": {
+            "type": "object",
+            "required": [
+                "apiKey",
+                "clientType",
+                "name",
+                "url"
+            ],
+            "properties": {
+                "apiKey": {
+                    "type": "string"
+                },
+                "clientType": {
+                    "enum": [
+                        "radarr",
+                        "sonarr",
+                        "lidarr"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ClientType"
+                        }
+                    ]
+                },
+                "isEnabled": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
                 }
             }
         },

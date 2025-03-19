@@ -24,6 +24,12 @@ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/devopsarr/lidarr-go v1.2.0 h1:umU91TYu+Eh54dJMWSvwT1KBAzT/9+gckMDVu7e6oRk=
+github.com/devopsarr/lidarr-go v1.2.0/go.mod h1:l6uoYzFsExwp0zGNQGmMw2UueqXwL3Vaux+i2YspEOg=
+github.com/devopsarr/radarr-go v1.2.0 h1:ffP+iDMbM5N9moXN0BZRAgBbBNvywdpQsgA+hl+HCeg=
+github.com/devopsarr/radarr-go v1.2.0/go.mod h1:e39qfD0vJOaSc4BzelF6/bkyZQsYtqLuVtEGVM8mDJo=
+github.com/devopsarr/sonarr-go v1.1.0 h1:R36Lve/gL1EIN5i6VMSg7oT6Kfpf6ReCxL+zAAY1J3E=
+github.com/devopsarr/sonarr-go v1.1.0/go.mod h1:jArmSulMGIBz0w/ZiEu/Ow9/oyVz/aTOiFDvSLdk6xM=
 github.com/dnephin/pflag v1.0.7 h1:oxONGlWxhmUct0YzKTgrpQv9AUA1wtPBn7zuSjJqptk=
 github.com/dnephin/pflag v1.0.7/go.mod h1:uxE91IoWURlOiTUIA8Mq5ZZkAv3dPUfZNaT80Zm7OQE=
 github.com/fatih/color v1.15.0/go.mod h1:0h5ZqXfHYED7Bhv2ZJamyIOUej9KtShiJESRwBDUSsw=

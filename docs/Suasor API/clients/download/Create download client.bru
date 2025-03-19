@@ -1,0 +1,25 @@
+meta {
+  name: Create download client
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/clients/download
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInV1aWQiOiJiODdjYmY3NS0zNWZjLTQzYzMtOWQzOC0zZjNkNzc4NmI2OTkiLCJyb2xlIjoidXNlciIsImlzcyI6InN1YXNvci1hcGkiLCJzdWIiOiIxIiwiYXVkIjpbInN1YXNvci1jbGllbnQiXSwiZXhwIjoxNzQyMzk4Mzg1LCJuYmYiOjE3NDIzOTc0ODUsImlhdCI6MTc0MjM5NzQ4NSwianRpIjoiYjg3Y2JmNzUtMzVmYy00M2MzLTlkMzgtM2YzZDc3ODZiNjk5In0.gtbfKwOXDFpvHpnLi2OdnUwqMM0ZW3OMsxiig7DqQfw
+}
+
+body:json {
+  {
+    "name": "testtt",
+    "clientType": "sonarr",
+    "url":"http://192.168.0.101:8989",
+    "apiKey": "760b6730464c443ab89bbcc96bc0b581",
+    "isEnabled":true
+  }
+}

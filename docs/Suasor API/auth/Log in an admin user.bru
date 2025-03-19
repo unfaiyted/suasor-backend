@@ -1,0 +1,32 @@
+meta {
+  name: Log in an admin user
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "email": "user@example.com",
+      "password": "securePassword123"
+  }
+}
+
+script:post-response {
+  
+  // Parse the response body
+  const response = res.body;
+  
+  // Extract tokens
+  const accessToken = response.data.accessToken;
+  const refreshToken = response.data.refreshToken;
+  console.log(accessToken);
+  // Store them as environment variables
+  bru.setEnvVar("accessToken", accessToken);
+  bru.setGlobalEnvVar("refreshToken", refreshToken);
+}

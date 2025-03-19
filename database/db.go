@@ -55,7 +55,7 @@ func Initialize(dbConfig Config) (*gorm.DB, error) {
 
 	// Auto Migrate the schema
 	//&models.User{},
-	if err := db.AutoMigrate(&models.User{}, &models.UserConfig{}, &models.Session{}, &models.Shorten{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}, &models.UserConfig{}, &models.DownloadClient{}, &models.Session{}, &models.Shorten{}); err != nil {
 		return nil, fmt.Errorf("failed to migrate database schema: %w", err)
 	}
 

@@ -75,7 +75,7 @@ func VerifyToken(authService services.AuthService) gin.HandlerFunc {
 		}
 
 		// Set user claims in context
-		c.Set("userID", claims.ID)
+		c.Set("userID", claims.UserID)
 		c.Set("userRole", claims.Role)
 		c.Next()
 	}

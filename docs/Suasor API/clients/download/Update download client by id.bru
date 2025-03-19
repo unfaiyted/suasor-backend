@@ -1,0 +1,29 @@
+meta {
+  name: Update download client by id
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/clients/download/:id
+  body: json
+  auth: bearer
+}
+
+params:path {
+  id: 122
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInV1aWQiOiI2MGFlY2E5Ny1hNDIxLTRiM2YtODRmNi1iZjg3OGZjYzQxMDQiLCJyb2xlIjoidXNlciIsImlzcyI6InN1YXNvci1hcGkiLCJzdWIiOiIxIiwiYXVkIjpbInN1YXNvci1jbGllbnQiXSwiZXhwIjoxNzQyMzk5MzUzLCJuYmYiOjE3NDIzOTg0NTMsImlhdCI6MTc0MjM5ODQ1MywianRpIjoiNjBhZWNhOTctYTQyMS00YjNmLTg0ZjYtYmY4NzhmY2M0MTA0In0.6PI8kSNZ6WY64OAOKzkbCV9OdX2nJ9oK0tsrH-Yu86U
+}
+
+body:json {
+  {
+    "name": "lesttttttt",
+    "clientType": "sonarr",
+    "url":"http://192.168.0.101:8989",
+    "apiKey": "760b6730464c443ab89bbcc96bc0b581",
+    "isEnabled":true
+  }
+}

@@ -29,6 +29,9 @@ require (
 	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/devopsarr/lidarr-go v1.2.0 // indirect
+	github.com/devopsarr/radarr-go v1.2.0 // indirect
+	github.com/devopsarr/sonarr-go v1.1.0 // indirect
 	github.com/dnephin/pflag v1.0.7 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
