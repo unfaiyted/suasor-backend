@@ -13,7 +13,7 @@ const (
 )
 
 type ClientConfig interface {
-	PlexConfig | EmbyConfig | JellyfinConfig | NavidromeConfig
+	PlexConfig | EmbyConfig | JellyfinConfig | SubsonicConfig
 }
 
 // MediaClient represents a media client configuration

@@ -19,6 +19,7 @@ type MediaClientService interface {
 	UpdateClient(ctx context.Context, userID, clientID uint64, req models.MediaClientRequest) (models.MediaClientResponse, error)
 	DeleteClient(ctx context.Context, userID, clientID uint64) error
 	TestClientConnection(ctx context.Context, req models.MediaClientTestRequest) (models.MediaClientTestResponse, error)
+	GetContentProvider(ctx context.Context, userID, clientID uint64) (models.MediaContentProvider, error)
 }
 
 type mediaClientService struct {
@@ -494,4 +495,14 @@ func (s *mediaClientService) testSubsonicConnection(ctx context.Context, clientC
 		Success: true,
 		Message: "Successfully connected to Subsonic server",
 	}, nil
+}
+
+// GetContentProvider returns a MediaContentProvider for the specified client
+func (s *mediaClientService) GetContentProvider(ctx context.Context, userID, clientID uint64) (models.MediaContentProvider, error) {
+	clientResp, err := s.GetClientByID(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	return models.NewMediaContentProvider(clientID, clientResp.ClientType, clientResp.Client)
 }

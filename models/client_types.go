@@ -31,7 +31,7 @@ type PlexConfig struct {
 }
 
 // @Description Supersonic music server configuration
-type NavidromeConfig struct {
+type SubsonicConfig struct {
 	Enabled  bool   `json:"enabled" mapstructure:"enabled" example:"false"`
 	Host     string `json:"host" mapstructure:"host" example:"localhost" binding:"required_if=Enabled true"`
 	Port     int    `json:"port" mapstructure:"port" example:"4533" binding:"required_if=Enabled true"`
