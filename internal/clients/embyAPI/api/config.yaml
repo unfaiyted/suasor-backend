@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/oapi-codegen/oapi-codegen/HEAD/configuration-schema.json
+# Basic package and output configuration
+package: embyAPI
+output: embyAPI.gen.go
+
+# What to generate
+generate:
+  client: true
+  embedded-spec: false 
+  models: true
+  # gin-server: true
+
+# Output options
+output-options:
+  # skip-prune: true
+

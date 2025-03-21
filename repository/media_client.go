@@ -18,8 +18,8 @@ type MediaClientRepository interface {
 	UpdateJellyfin(ctx context.Context, client models.MediaClient[models.JellyfinConfig]) (*models.MediaClient[models.JellyfinConfig], error)
 	CreateEmby(ctx context.Context, client models.MediaClient[models.EmbyConfig]) (*models.MediaClient[models.EmbyConfig], error)
 	UpdateEmby(ctx context.Context, client models.MediaClient[models.EmbyConfig]) (*models.MediaClient[models.EmbyConfig], error)
-	CreateNavidrome(ctx context.Context, client models.MediaClient[models.NavidromeConfig]) (*models.MediaClient[models.NavidromeConfig], error)
-	UpdateNavidrome(ctx context.Context, client models.MediaClient[models.NavidromeConfig]) (*models.MediaClient[models.NavidromeConfig], error)
+	CreateNavidrome(ctx context.Context, client models.MediaClient[models.SubsonicConfig]) (*models.MediaClient[models.SubsonicConfig], error)
+	UpdateNavidrome(ctx context.Context, client models.MediaClient[models.SubsonicConfig]) (*models.MediaClient[models.SubsonicConfig], error)
 
 	// Common operations
 	GetByID(ctx context.Context, id, userID uint64) (models.MediaClientResponse, error)
@@ -100,12 +100,12 @@ func (r *mediaClientRepository) UpdateEmby(ctx context.Context, client models.Me
 }
 
 // CreateNavidrome creates a new Navidrome/Subsonic media client
-func (r *mediaClientRepository) CreateNavidrome(ctx context.Context, client models.MediaClient[models.NavidromeConfig]) (*models.MediaClient[models.NavidromeConfig], error) {
+func (r *mediaClientRepository) CreateNavidrome(ctx context.Context, client models.MediaClient[models.SubsonicConfig]) (*models.MediaClient[models.SubsonicConfig], error) {
 	return createClient(r.db, ctx, client, "subsonic")
 }
 
 // UpdateNavidrome updates an existing Navidrome/Subsonic media client
-func (r *mediaClientRepository) UpdateNavidrome(ctx context.Context, client models.MediaClient[models.NavidromeConfig]) (*models.MediaClient[models.NavidromeConfig], error) {
+func (r *mediaClientRepository) UpdateNavidrome(ctx context.Context, client models.MediaClient[models.SubsonicConfig]) (*models.MediaClient[models.SubsonicConfig], error) {
 	return updateClient(r.db, ctx, client, "subsonic")
 }
 
@@ -152,7 +152,7 @@ func (r *mediaClientRepository) GetByID(ctx context.Context, id, userID uint64) 
 		return models.ToResponse(&client), nil
 
 	case models.MediaClientTypeSubsonic:
-		var client models.MediaClient[models.NavidromeConfig]
+		var client models.MediaClient[models.SubsonicConfig]
 		if err := r.db.WithContext(ctx).Where("id = ? AND user_id = ?", id, userID).First(&client).Error; err != nil {
 			return models.MediaClientResponse{}, fmt.Errorf("failed to get subsonic client: %w", err)
 		}

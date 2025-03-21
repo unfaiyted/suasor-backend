@@ -10,6 +10,16 @@ type ExternalID struct {
 	ID     string `json:"id"`     // The actual ID
 }
 
+// ExternalID represents an ID from an external source
+type Rating struct {
+	Source string  `json:"source"` // e.g., "tmdb", "imdb", "trakt", "tvdb"
+	Value  float32 `json:"value"`  // The actual ID
+	// For sources that might have how many people voted on an item
+	Votes int `json:"votes,omitempty"`
+}
+
+type Ratings []Rating
+
 // ExternalIDs is a collection of IDs from different sources
 type ExternalIDs []ExternalID
 
@@ -21,6 +31,53 @@ func (ids ExternalIDs) GetID(source string) string {
 		}
 	}
 	return ""
+}
+
+// Add method to add/update exisiting IDs by source
+
+func (ratings Ratings) GetRating(source string) float32 {
+	for _, rating := range ratings {
+		if rating.Source == source {
+			return rating.Value
+		}
+	}
+	return 0
+}
+
+func (ratings Ratings) GetRatingVotes(source string) int {
+	for _, rating := range ratings {
+		if rating.Source == source {
+			return rating.Votes
+		}
+	}
+	return 0
+}
+
+// AddOrUpdate adds a new ExternalID or updates an existing one with the same source
+func (ids *ExternalIDs) AddOrUpdate(source string, id string) {
+	for i, extID := range *ids {
+		if extID.Source == source {
+			// Update existing ID
+			(*ids)[i].ID = id
+			return
+		}
+	}
+	// Add new ID if not found
+	*ids = append(*ids, ExternalID{Source: source, ID: id})
+}
+
+// AddOrUpdateRating adds a new Rating or updates an existing one with the same source
+func (ratings *Ratings) AddOrUpdateRating(source string, value float32, votes int) {
+	for i, rating := range *ratings {
+		if rating.Source == source {
+			// Update existing rating
+			(*ratings)[i].Value = value
+			(*ratings)[i].Votes = votes
+			return
+		}
+	}
+	// Add new rating if not found
+	*ratings = append(*ratings, Rating{Source: source, Value: value, Votes: votes})
 }
 
 // Artwork holds different types of artwork
@@ -42,29 +99,30 @@ type Person struct {
 
 // MediaMetadata contains common metadata fields for all media types
 type MediaMetadata struct {
-	Title         string      `json:"title"`
-	Description   string      `json:"description,omitempty"`
-	ReleaseDate   time.Time   `json:"releaseDate,omitempty"`
-	ReleaseYear   int         `json:"releaseYear,omitempty"`
-	AddedAt       time.Time   `json:"addedAt,omitempty"`
-	UpdatedAt     time.Time   `json:"updatedAt,omitempty"`
-	Genres        []string    `json:"genres,omitempty"`
-	Tags          []string    `json:"tags,omitempty"`
-	Studios       []string    `json:"studios,omitempty"`
-	ExternalIDs   ExternalIDs `json:"externalIds,omitempty"`
-	ContentRating string      `json:"contentRating,omitempty"`
-	Rating        float64     `json:"rating,omitempty"` // 0-10 scale
-	UserRating    float64     `json:"userRating,omitempty"`
-	Artwork       Artwork     `json:"artwork,omitempty"`
-	Duration      int         `json:"durationSeconds,omitempty"`
+	Title         string        `json:"title"`
+	Description   string        `json:"description,omitempty"`
+	ReleaseDate   time.Time     `json:"releaseDate,omitempty"`
+	ReleaseYear   int           `json:"releaseYear,omitempty"`
+	AddedAt       time.Time     `json:"addedAt,omitempty"`
+	UpdatedAt     time.Time     `json:"updatedAt,omitempty"`
+	Genres        []string      `json:"genres,omitempty"`
+	Tags          []string      `json:"tags,omitempty"`
+	Studios       []string      `json:"studios,omitempty"`
+	ExternalIDs   ExternalIDs   `json:"externalIDs,omitempty"`
+	ContentRating string        `json:"contentRating,omitempty"`
+	Ratings       Ratings       `json:"ratings,omitempty"`
+	UserRating    float32       `json:"userRating,omitempty"`
+	Artwork       Artwork       `json:"artwork,omitempty"`
+	Duration      time.Duration `json:"durationSeconds,omitempty"`
 }
 
 // MediaItem is the base type for all media items
 type MediaItem struct {
-	ID          string        `json:"id"`
-	Type        string        `json:"type"` // "movie", "tvshow", "episode", "music"
-	ClientID    uint64        `json:"clientId"`
-	ClientType  string        `json:"clientType"` // "plex", "jellyfin", etc.
+	ID          uint64        `json:"ID" gorm:"primaryKey"` // internal ID
+	ExternalID  string        `json:"externalID" gorm:"index"`
+	ClientID    uint64        `json:"clientID"  gorm:"index"` // internal ClientID
+	ClientType  string        `json:"clientType"`             // internal Client Type "plex", "jellyfin", etc.
+	Type        string        `json:"type"`                   // "movie", "tvshow", "episode", "music","playlist","artist"
 	Metadata    MediaMetadata `json:"metadata"`
 	StreamURL   string        `json:"streamUrl,omitempty"`
 	DownloadURL string        `json:"downloadUrl,omitempty"`
@@ -85,25 +143,23 @@ type Movie struct {
 // Season represents a TV season
 type Season struct {
 	MediaItem
-	ID                string      `json:"id"`
-	Number            int         `json:"seasonNumber"`
-	Title             string      `json:"title,omitempty"`
-	Overview          string      `json:"overview,omitempty"`
-	EpisodeCount      int         `json:"episodeCount"`
-	Artwork           Artwork     `json:"artwork,omitempty"`
-	ReleaseDate       time.Time   `json:"releaseDate,omitempty"`
-	ExternalParentIDs ExternalIDs `json:"externalIds,omitempty"`
+	Number       int       `json:"seasonNumber"`
+	Title        string    `json:"title,omitempty"`
+	Overview     string    `json:"overview,omitempty"`
+	EpisodeCount int       `json:"episodeCount"`
+	Artwork      Artwork   `json:"artwork,omitempty"`
+	ReleaseDate  time.Time `json:"releaseDate,omitempty"`
+	ParentID     string    `json:"parentID,omitempty"`
 }
 
 // Episode represents a TV episode
 type Episode struct {
 	MediaItem
-	Number            int64       `json:"number"`
-	ShowID            string      `json:"showId"`
-	SeasonID          string      `json:"seasonId"`
-	ExternalParentIDs ExternalIDs `json:"externalIds,omitempty"`
-	SeasonNumber      int         `json:"seasonNumber"`
-	ShowTitle         string      `json:"showTitle,omitempty"`
+	Number       int64  `json:"number"`
+	ShowID       string `json:"showID"`
+	SeasonID     string `json:"seasonID"`
+	SeasonNumber int    `json:"seasonNumber"`
+	ShowTitle    string `json:"showTitle,omitempty"`
 }
 
 // TVShow represents a TV series
@@ -123,7 +179,7 @@ type TVShow struct {
 // MusicArtist represents a music artist
 type MusicArtist struct {
 	MediaItem
-	Albums         []string `json:"albumIds,omitempty"`
+	Albums         []string `json:"albumIDs,omitempty"`
 	Biography      string   `json:"biography,omitempty"`
 	SimilarArtists []string `json:"similarArtists,omitempty"`
 }
@@ -131,21 +187,18 @@ type MusicArtist struct {
 // MusicAlbum represents a music album
 type MusicAlbum struct {
 	MediaItem
-	ArtistID          string      `json:"artistId"`
-	ArtistName        string      `json:"artistName"`
-	ExternalAlbumIDs  ExternalIDs `json:"externalAlbumIds,omitempty"`
-	ExternalArtistIDs ExternalIDs `json:"externalArtistIds,omitempty"`
-	TrackCount        int         `json:"trackCount"`
+	ArtistID   string `json:"artistID"`
+	ArtistName string `json:"artistName"`
+	TrackCount int    `json:"trackCount"`
 }
 
 // MusicTrack represents a music track
 type MusicTrack struct {
 	MediaItem
-	AlbumID           string      `json:"albumId"`
-	ArtistID          string      `json:"artistId"`
-	AlbumTitle        string      `json:"albumTitle,omitempty"`
-	ExternalAlbumIDs  ExternalIDs `json:"externalAlbumIds,omitempty"`
-	ExternalArtistIDs ExternalIDs `json:"externalArtistIds,omitempty"`
+	AlbumID    string `json:"albumID"`
+	ArtistID   string `json:"artistID"`
+	AlbumName  string `json:"albumName"`
+	AlbumTitle string `json:"albumTitle,omitempty"`
 
 	ArtistName string `json:"artistName,omitempty"`
 	Number     int    `json:"trackNumber,omitempty"`
@@ -157,7 +210,7 @@ type MusicTrack struct {
 // Collection represents a collection of media items
 type Collection struct {
 	MediaItem
-	ItemIDs        []string `json:"itemIds"`
+	ItemIDs        []string `json:"itemIDs"`
 	ItemCount      int      `json:"itemCount"`
 	CollectionType string   `json:"collectionType"` // e.g., "movie", "tvshow"
 }
@@ -165,7 +218,7 @@ type Collection struct {
 // Playlist represents a user-created playlist of media items
 type Playlist struct {
 	MediaItem
-	ItemIDs   []string `json:"itemIds"`
+	ItemIDs   []string `json:"itemIDs"`
 	ItemCount int      `json:"itemCount"`
 	Owner     string   `json:"owner,omitempty"`
 	IsPublic  bool     `json:"isPublic"`
@@ -173,15 +226,15 @@ type Playlist struct {
 
 // WatchHistoryItem represents an item in watch history
 type WatchHistoryItem struct {
-	ItemID          string    `json:"itemId"`
-	ItemType        string    `json:"itemType"` // "movie", "episode"
-	Title           string    `json:"title"`
-	WatchedAt       time.Time `json:"watchedAt"`
-	PositionSeconds int       `json:"positionSeconds"`
-	DurationSeconds int       `json:"durationSeconds"`
-	Completed       bool      `json:"completed"`
-	ClientID        uint64    `json:"clientId"`
-	ClientType      string    `json:"clientType"`
+	MediaItem
+	ItemType         string    `json:"itemType"` // "movie", "episode"
+	WatchedAt        time.Time `json:"watchedAt"`
+	IsFavorite       bool      `json:"isFavorite,omitempty"`
+	PlayedPercentage float64   `json:"playedPercentage,omitempty"`
+	PlayCount        int32     `json:"playCount,omitempty"`
+	PositionSeconds  int       `json:"positionSeconds"`
+	DurationSeconds  int       `json:"durationSeconds"`
+	Completed        bool      `json:"completed"`
 }
 
 // QueryOptions provides parameters for filtering and pagination

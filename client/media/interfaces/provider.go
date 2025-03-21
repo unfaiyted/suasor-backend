@@ -72,7 +72,7 @@ func (b *BaseMediaClient) AddClientInfo(item *MediaItem) {
 }
 
 // Provider factory type definition
-type ProviderFactory func(clientID uint64, config interface{}) (MediaContentProvider, error)
+type ProviderFactory func(ctx context.Context, clientID uint64, config interface{}) (MediaContentProvider, error)
 
 // Registry to store provider factories
 var providerFactories = make(map[models.MediaClientType]ProviderFactory)
@@ -83,10 +83,10 @@ func RegisterProvider(clientType models.MediaClientType, factory ProviderFactory
 }
 
 // NewMediaContentProvider creates providers using the registry
-func NewMediaContentProvider(clientID uint64, clientType models.MediaClientType, config interface{}) (MediaContentProvider, error) {
+func NewMediaContentProvider(ctx context.Context, clientID uint64, clientType models.MediaClientType, config interface{}) (MediaContentProvider, error) {
 	factory, exists := providerFactories[clientType]
 	if !exists {
 		return nil, fmt.Errorf("unsupported client type: %s", clientType)
 	}
-	return factory(clientID, config)
+	return factory(ctx, clientID, config)
 }
