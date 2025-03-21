@@ -30,7 +30,7 @@ type PlexClient struct {
 }
 
 // NewPlexClient creates a new Plex client
-func NewPlexClient(clientID uint64, config interface{}) (interfaces.MediaContentProvider, error) {
+func NewPlexClient(ctx context.Context, clientID uint64, config any) (interfaces.MediaContentProvider, error) {
 	plexConfig, ok := config.(models.PlexConfig)
 	if !ok {
 		return nil, fmt.Errorf("invalid Plex configuration")
@@ -142,10 +142,15 @@ func (c *PlexClient) createMetadataFromPlexItem(item *operations.GetLibraryItems
 		metadata.ReleaseYear = *item.Year
 	}
 	if item.Rating != nil {
-		metadata.Rating = *item.Rating
+		metadata.Ratings = interfaces.Ratings{
+			interfaces.Rating{
+				Source: "plex",
+				Value:  float32(*item.Rating),
+			},
+		}
 	}
 	if item.Duration != nil {
-		metadata.Duration = *item.Duration
+		metadata.Duration = time.Duration(*item.Duration) * time.Millisecond
 	}
 	if item.Studio != nil {
 		metadata.Studios = []string{*item.Studio}
@@ -182,19 +187,21 @@ func (c *PlexClient) createMediaMetadataFromPlexItem(item *operations.GetMediaMe
 	}
 
 	// Add optional fields if present
-	if &item.UpdatedAt != nil {
-		metadata.UpdatedAt = time.Unix(int64(item.UpdatedAt), 0)
-	}
 	if item.AddedAt != 0 {
 		metadata.AddedAt = time.Unix(int64(item.AddedAt), 0)
 	}
-	if &item.Year != nil {
-		metadata.ReleaseYear = item.Year
-	}
+
+	metadata.UpdatedAt = time.Unix(int64(item.UpdatedAt), 0)
+	metadata.ReleaseYear = item.Year
+
 	if item.Rating != nil {
-		metadata.Rating = float64(*item.Rating)
-	}
-	// if item.Duration != nil {
+		metadata.Ratings = interfaces.Ratings{
+			interfaces.Rating{
+				Source: "plex",
+				Value:  float32(*item.Rating),
+			},
+		}
+	} // if item.Duration != nil {
 	// 	metadata.Duration = *item.Duration
 	// }
 	if item.Studio != nil {
@@ -208,9 +215,7 @@ func (c *PlexClient) createMediaMetadataFromPlexItem(item *operations.GetMediaMe
 	if item.Genre != nil {
 		metadata.Genres = make([]string, 0, len(item.Genre))
 		for _, genre := range item.Genre {
-			if &genre.Tag != nil {
-				metadata.Genres = append(metadata.Genres, genre.Tag)
-			}
+			metadata.Genres = append(metadata.Genres, genre.Tag)
 		}
 	}
 
@@ -232,6 +237,9 @@ func (c *PlexClient) GetPlaylists(ctx context.Context, options *interfaces.Query
 	for _, item := range res.Object.MediaContainer.Metadata {
 		playlist := interfaces.Playlist{
 			MediaItem: interfaces.MediaItem{
+				ExternalID: *item.RatingKey,
+				ClientID:   c.ClientID,
+				ClientType: string(c.ClientType),
 				Metadata: interfaces.MediaMetadata{
 					Description: *item.Summary,
 					Title:       *item.Title,
@@ -267,6 +275,9 @@ func (c *PlexClient) GetCollections(ctx context.Context, options *interfaces.Que
 	for _, dir := range directories {
 		collection := interfaces.Collection{
 			MediaItem: interfaces.MediaItem{
+				ExternalID: dir.Key,
+				ClientID:   c.ClientID,
+				ClientType: string(c.ClientType),
 				Metadata: interfaces.MediaMetadata{
 					Title: dir.Title,
 					Artwork: interfaces.Artwork{
@@ -325,7 +336,10 @@ func (c *PlexClient) GetMovies(ctx context.Context, options *interfaces.QueryOpt
 
 		movie := interfaces.Movie{
 			MediaItem: interfaces.MediaItem{
-				Metadata: c.createMetadataFromPlexItem(&item),
+				ExternalID: item.RatingKey,
+				ClientID:   c.ClientID,
+				ClientType: string(c.ClientType),
+				Metadata:   c.createMetadataFromPlexItem(&item),
 			},
 		}
 
@@ -369,7 +383,10 @@ func (c *PlexClient) GetTVShows(ctx context.Context, options *interfaces.QueryOp
 
 		show := interfaces.TVShow{
 			MediaItem: interfaces.MediaItem{
-				Metadata: c.createMetadataFromPlexItem(&item),
+				ExternalID: item.RatingKey,
+				ClientID:   c.ClientID,
+				ClientType: string(c.ClientType),
+				Metadata:   c.createMetadataFromPlexItem(&item),
 			},
 		}
 
@@ -427,6 +444,9 @@ func (c *PlexClient) GetTVShowSeasons(ctx context.Context, showID string) ([]int
 
 		season := interfaces.Season{
 			MediaItem: interfaces.MediaItem{
+				ExternalID: *item.RatingKey,
+				ClientID:   c.ClientID,
+				ClientType: string(c.ClientType),
 				Metadata: interfaces.MediaMetadata{
 					Description: *item.Summary,
 					Title:       *item.Title,
@@ -496,26 +516,25 @@ func (c *PlexClient) GetTVShowEpisodes(ctx context.Context, showID string, seaso
 
 		episode := interfaces.Episode{
 			MediaItem: interfaces.MediaItem{
+				ExternalID: *item.RatingKey,
+				ClientID:   c.ClientID,
+				ClientType: string(c.ClientType),
 				Metadata: interfaces.MediaMetadata{
 					Description: *item.Summary,
 					Title:       *item.Title,
 					Artwork: interfaces.Artwork{
 						Thumbnail: c.makeFullURL(*item.Thumb),
 					},
-					ExternalIDs: interfaces.ExternalIDs{interfaces.ExternalID{
-						Source: "plex",
-						ID:     *item.RatingKey,
-					}},
+					// ExternalIDs: interfaces.ExternalIDs{interfaces.ExternalID{
+					// 	Source: "plex",
+					// 	ID:     *item.RatingKey,
+					// }},
 					UpdatedAt: time.Unix(int64(*item.UpdatedAt), 0),
 					AddedAt:   time.Unix(int64(*item.AddedAt), 0),
 				},
 			},
 			Number:       int64(*item.Index),
 			SeasonNumber: int(*item.ParentIndex),
-			ExternalParentIDs: interfaces.ExternalIDs{interfaces.ExternalID{
-				Source: "plex",
-				ID:     *item.ParentRatingKey,
-			}},
 		}
 
 		// Add studio if available
@@ -582,21 +601,17 @@ func (c *PlexClient) GetMusic(ctx context.Context, options *interfaces.QueryOpti
 
 							track := interfaces.MusicTrack{
 								MediaItem: interfaces.MediaItem{
-									Metadata: c.createChildMetadataFromPlexItem(&item),
+									ExternalID: *item.RatingKey,
+									ClientID:   c.ClientID,
+									ClientType: string(c.ClientType),
+									Metadata:   c.createChildMetadataFromPlexItem(&item),
 								},
-								Number: *item.Index,
-								ExternalArtistIDs: interfaces.ExternalIDs{interfaces.ExternalID{
-									Source: "plex",
-									ID:     *artist.RatingKey,
-								}},
-								ExternalAlbumIDs: interfaces.ExternalIDs{interfaces.ExternalID{
-									Source: "plex",
-									ID:     *album.RatingKey,
-								}},
+								Number:     *item.Index,
+								ArtistID:   *artist.RatingKey,
 								ArtistName: *artist.Title,
-								AlbumTitle: *album.Title,
+								AlbumID:    *album.RatingKey,
+								AlbumName:  *album.Title,
 							}
-
 							c.BaseMediaClient.AddClientInfo(&track.MediaItem)
 							tracks = append(tracks, track)
 
@@ -645,7 +660,10 @@ func (c *PlexClient) GetMusicArtists(ctx context.Context, options *interfaces.Qu
 
 		artist := interfaces.MusicArtist{
 			MediaItem: interfaces.MediaItem{
-				Metadata: c.createChildMetadataFromPlexItem(&item),
+				ExternalID: *item.RatingKey,
+				ClientID:   c.ClientID,
+				ClientType: string(c.ClientType),
+				Metadata:   c.createChildMetadataFromPlexItem(&item),
 			},
 		}
 
@@ -696,12 +714,12 @@ func (c *PlexClient) GetMusicAlbums(ctx context.Context, options *interfaces.Que
 
 					album := interfaces.MusicAlbum{
 						MediaItem: interfaces.MediaItem{
-							Metadata: c.createChildMetadataFromPlexItem(&item),
+							ExternalID: *item.RatingKey,
+							ClientID:   c.ClientID,
+							ClientType: string(c.ClientType),
+							Metadata:   c.createChildMetadataFromPlexItem(&item),
 						},
-						ExternalArtistIDs: interfaces.ExternalIDs{interfaces.ExternalID{
-							Source: "plex",
-							ID:     *artist.RatingKey,
-						}},
+						ArtistID:   *artist.RatingKey,
 						ArtistName: *artist.Title,
 						TrackCount: *item.LeafCount,
 					}
@@ -744,7 +762,10 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (interfaces.Mo
 
 	movie := interfaces.Movie{
 		MediaItem: interfaces.MediaItem{
-			Metadata: c.createMediaMetadataFromPlexItem(&item),
+			ExternalID: item.RatingKey,
+			ClientID:   c.ClientID,
+			ClientType: string(c.ClientType),
+			Metadata:   c.createMediaMetadataFromPlexItem(&item),
 		},
 	}
 
@@ -775,7 +796,10 @@ func (c *PlexClient) GetTVShowByID(ctx context.Context, id string) (interfaces.T
 
 	show := interfaces.TVShow{
 		MediaItem: interfaces.MediaItem{
-			Metadata: c.createMediaMetadataFromPlexItem(&item),
+			ExternalID: item.RatingKey,
+			ClientID:   c.ClientID,
+			ClientType: string(c.ClientType),
+			Metadata:   c.createMediaMetadataFromPlexItem(&item),
 		},
 	}
 
@@ -849,7 +873,10 @@ func (c *PlexClient) GetEpisodeByID(ctx context.Context, id string) (interfaces.
 
 	episode := interfaces.Episode{
 		MediaItem: interfaces.MediaItem{
-			Metadata: c.createMediaMetadataFromPlexItem(&item),
+			ExternalID: item.RatingKey,
+			ClientID:   c.ClientID,
+			ClientType: string(c.ClientType),
+			Metadata:   c.createMediaMetadataFromPlexItem(&item),
 		},
 		ShowID:       showID,
 		SeasonNumber: seasonNumber,
@@ -879,7 +906,7 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (interfac
 	}
 
 	// Get album and artist info
-	// var albumName string
+	var albumName string
 	var artistID string
 	var artistName string
 
@@ -919,8 +946,12 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (interfac
 
 	track := interfaces.MusicTrack{
 		MediaItem: interfaces.MediaItem{
-			Metadata: c.createMediaMetadataFromPlexItem(&item),
+			ExternalID: item.RatingKey,
+			ClientID:   c.ClientID,
+			ClientType: string(c.ClientType),
+			Metadata:   c.createMediaMetadataFromPlexItem(&item),
 		},
+		AlbumName:  albumName,
 		ArtistName: artistName,
 		ArtistID:   artistID,
 		AlbumID:    *item.ParentRatingKey,

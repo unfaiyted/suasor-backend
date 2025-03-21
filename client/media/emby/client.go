@@ -1184,10 +1184,6 @@ func (e *EmbyClient) GetPlaylists(ctx context.Context, options *interfaces.Query
 		Recursive:        optional.NewBool(true),
 	}
 
-	// if e.config.UserID != "" {
-	// 	queryParams.UserId = optional.NewString(e.config.UserID)
-	// }
-
 	if options != nil {
 		if options.Limit > 0 {
 			queryParams.Limit = optional.NewInt32(int32(options.Limit))
