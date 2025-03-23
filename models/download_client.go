@@ -12,12 +12,12 @@ const (
 	ClientTypeLidarr ClientType = "lidarr"
 )
 
-// DownloadClient represents a download client configuration
-type DownloadClient struct {
+// AutomationClient represents a download client configuration
+type AutomationClient struct {
 	ID         uint64     `json:"id" gorm:"primaryKey"`
 	UserID     uint64     `json:"userId" gorm:"not null"`
-	Name       string     `json:"name" gorm:"not null"`
 	ClientType ClientType `json:"clientType" gorm:"not null"`
+	Name       string     `json:"name" gorm:"not null"`
 	URL        string     `json:"url" gorm:"not null"`
 	APIKey     string     `json:"apiKey" gorm:"not null"`
 	IsEnabled  bool       `json:"isEnabled" gorm:"default:true"`
@@ -25,8 +25,8 @@ type DownloadClient struct {
 	UpdatedAt  time.Time  `json:"updatedAt"`
 }
 
-// DownloadClientRequest is used for creating/updating a download client
-type DownloadClientRequest struct {
+// AutomationClientRequest is used for creating/updating a download client
+type AutomationClientRequest struct {
 	Name       string     `json:"name" binding:"required"`
 	ClientType ClientType `json:"clientType" binding:"required,oneof=radarr sonarr lidarr"`
 	URL        string     `json:"url" binding:"required,url"`

@@ -1,5 +1,5 @@
-// plex/client_integration_test.go
-package plex
+// jellyfin_client_integration_test.go
+package jellyfin
 
 import (
 	"context"
@@ -14,7 +14,6 @@ import (
 
 	"github.com/joho/godotenv"
 	"suasor/client/media/interfaces"
-	"suasor/models"
 	logger "suasor/utils"
 )
 
@@ -23,7 +22,7 @@ func init() {
 	locations := []string{
 		".env",          // Current directory
 		"../../../.env", // Project root
-		filepath.Join(os.Getenv("HOME"), "plex_test.env"), // Home directory
+		filepath.Join(os.Getenv("HOME"), "jellyfin_test.env"), // Home directory
 	}
 
 	for _, location := range locations {
@@ -35,35 +34,37 @@ func init() {
 	}
 }
 
-// Integration test for PlexClient
+// Integration test for JellyfinClient
 // To run these tests:
-// PLEX_TEST_HOST=http://your-server:32400 PLEX_TEST_TOKEN=your-token INTEGRATION=true go test -v -tags=integration
+// JELLYFIN_TEST_URL=http://your-server:8096 JELLYFIN_TEST_API_KEY=your-api-key JELLYFIN_TEST_USER_ID=your-user-id go test -v -tags=integration
 
-func TestPlexClientIntegration(t *testing.T) {
+func TestJellyfinClientIntegration(t *testing.T) {
 	// Skip if not running integration tests or missing environment variables
 	if os.Getenv("INTEGRATION") != "true" {
 		t.Skip("Skipping integration test. Set INTEGRATION=true to run")
 	}
 
 	// Get test credentials from environment
-	host := os.Getenv("PLEX_TEST_HOST")
-	token := os.Getenv("PLEX_TEST_TOKEN")
+	baseURL := os.Getenv("JELLYFIN_TEST_URL")
+	apiKey := os.Getenv("JELLYFIN_TEST_API_KEY")
+	username := os.Getenv("JELLYFIN_TEST_USER")
 
-	if host == "" || token == "" {
+	if baseURL == "" || apiKey == "" || username == "" {
 		t.Fatal("Missing required environment variables for integration test")
 	}
 
 	// Create client configuration
-	config := models.PlexConfig{
-		Host:  host,
-		Token: token,
+	config := Configuration{
+		BaseURL:  baseURL,
+		ApiKey:   apiKey,
+		Username: username,
 	}
 
 	logger.Initialize()
 	ctx := context.Background()
 
 	// Initialize client
-	client, err := NewPlexClient(ctx, 1, config)
+	client, err := NewJellyfinClient(ctx, 1, config)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 
@@ -113,12 +114,12 @@ func TestPlexClientIntegration(t *testing.T) {
 	})
 }
 
-// Test getting movies from Plex
+// Test getting movies from Jellyfin
 func testGetMovies(t *testing.T, ctx context.Context, client interfaces.MediaContentProvider) {
 	// Get movies with limit
 	options := &interfaces.QueryOptions{
 		Limit: 10,
-		Sort:  "title",
+		Sort:  "SortName",
 	}
 
 	movies, err := client.GetMovies(ctx, options)
@@ -133,7 +134,7 @@ func testGetMovies(t *testing.T, ctx context.Context, client interfaces.MediaCon
 		// Verify movie has expected fields
 		assert.NotEmpty(t, movie.ExternalID)
 		assert.NotEmpty(t, movie.Metadata.Title)
-		assert.NotEmpty(t, movie.Metadata.Artwork.Thumbnail, "Expected movie to have a thumbnail image")
+		assert.NotEmpty(t, movie.Metadata.Artwork.Poster, "Expected movie to have a poster image")
 	}
 }
 
@@ -166,7 +167,7 @@ func testGetTVShows(t *testing.T, ctx context.Context, client interfaces.MediaCo
 		show := shows[0]
 		assert.NotEmpty(t, show.ExternalID)
 		assert.NotEmpty(t, show.Metadata.Title)
-		assert.NotEmpty(t, show.Metadata.Artwork.Thumbnail, "Expected TV show to have a thumbnail image")
+		assert.NotEmpty(t, show.Metadata.Artwork.Poster, "Expected TV show to have a poster image")
 
 		// Test GetTVShowByID with the first show
 		showByID, err := client.GetTVShowByID(ctx, show.ExternalID)
@@ -233,7 +234,6 @@ func testGetTVShowEpisodes(t *testing.T, ctx context.Context, client interfaces.
 
 		// Test GetEpisodeByID
 		episodeByID, err := client.GetEpisodeByID(ctx, episode.ExternalID)
-		time.Sleep(2000)
 		require.NoError(t, err)
 		assert.Equal(t, episode.ExternalID, episodeByID.ExternalID)
 	} else {
@@ -309,12 +309,7 @@ func testGetPlaylists(t *testing.T, ctx context.Context, client interfaces.Media
 // Test getting watch history
 func testGetWatchHistory(t *testing.T, ctx context.Context, client interfaces.MediaContentProvider) {
 	history, err := client.GetWatchHistory(ctx, &interfaces.QueryOptions{Limit: 10})
-
-	// Note: The Plex client implementation may return an error as it's not fully implemented
-	if err != nil {
-		t.Logf("Watch history retrieval returned error (expected): %v", err)
-		return
-	}
+	require.NoError(t, err)
 
 	t.Logf("Got %d watch history items", len(history))
 	if len(history) > 0 {

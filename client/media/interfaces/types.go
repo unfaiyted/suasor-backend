@@ -227,14 +227,18 @@ type Playlist struct {
 // WatchHistoryItem represents an item in watch history
 type WatchHistoryItem struct {
 	MediaItem
-	ItemType         string    `json:"itemType"` // "movie", "episode"
+	ItemType         string    `json:"itemType"` // "movie", "episode" , "show","season"
 	WatchedAt        time.Time `json:"watchedAt"`
+	LastWatchedAt    time.Time `json:"lastWatchedAt"`
 	IsFavorite       bool      `json:"isFavorite,omitempty"`
 	PlayedPercentage float64   `json:"playedPercentage,omitempty"`
 	PlayCount        int32     `json:"playCount,omitempty"`
 	PositionSeconds  int       `json:"positionSeconds"`
 	DurationSeconds  int       `json:"durationSeconds"`
 	Completed        bool      `json:"completed"`
+	SeriesName       string    `json:"seriesName,omiempty"`
+	SeasonNumber     int       `json:"seasonNumber,omitempty"`
+	EpisodeNumber    int       `json:"episodeNumber,omitempty"`
 }
 
 // QueryOptions provides parameters for filtering and pagination

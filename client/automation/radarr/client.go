@@ -110,7 +110,7 @@ func (r *RadarrClient) GetSystemStatus(ctx context.Context) (interfaces.SystemSt
 }
 
 // GetLibraryItems retrieves all movies from Radarr
-func (r *RadarrClient) GetLibraryItems(ctx context.Context, options *interfaces.LibraryQueryOptions) ([]interfaces.AutomationMediaItem, error) {
+func (r *RadarrClient) GetLibraryItems(ctx context.Context, options *interfaces.LibraryQueryOptions) ([]interfaces.AutomationMediaItem[interfaces.AutomationData], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -172,7 +172,7 @@ func (r *RadarrClient) GetLibraryItems(ctx context.Context, options *interfaces.
 	}
 
 	// Convert to our internal type
-	mediaItems := make([]interfaces.AutomationMediaItem, 0, len(pagedMovies))
+	mediaItems := make([]interfaces.AutomationMediaItem[interfaces.AutomationData], 0, len(pagedMovies))
 	for _, movie := range pagedMovies {
 		mediaItem := r.convertMovieToMediaItem(&movie)
 		mediaItems = append(mediaItems, mediaItem)
@@ -186,7 +186,7 @@ func (r *RadarrClient) GetLibraryItems(ctx context.Context, options *interfaces.
 }
 
 // Helper function to convert Radarr movie to generic MediaItem
-func (r *RadarrClient) convertMovieToMediaItem(movie *radarr.MovieResource) interfaces.AutomationMediaItem {
+func (r *RadarrClient) convertMovieToMediaItem(movie *radarr.MovieResource) interfaces.AutomationMediaItem[interfaces.AutomationData] {
 	// Convert images
 	images := make([]interfaces.AutomationMediaImage, 0, len(movie.GetImages()))
 	for _, img := range movie.GetImages() {
@@ -202,19 +202,27 @@ func (r *RadarrClient) convertMovieToMediaItem(movie *radarr.MovieResource) inte
 		Name: "", // We don't have the name in the movie object
 	}
 
-	return interfaces.AutomationMediaItem{
-		ID:             uint64(movie.GetId()),
-		Title:          movie.GetTitle(),
-		Overview:       movie.GetOverview(),
-		MediaType:      "movie",
-		Year:           movie.GetYear(),
-		AddedAt:        movie.GetAdded(),
-		Status:         string(movie.GetStatus()),
-		Path:           movie.GetPath(),
-		QualityProfile: qualityProfile,
-		Images:         images,
-		IsDownloaded:   movie.GetHasFile(),
-		Monitored:      movie.GetMonitored(),
+	status := interfaces.DOWNLOADEDSTATUS_NONE
+	if movie.GetHasFile() {
+		status = interfaces.DOWNLOADEDSTATUS_COMPLETE
+	}
+
+	return interfaces.AutomationMediaItem[interfaces.AutomationData]{
+		ID:               uint64(movie.GetId()),
+		Title:            movie.GetTitle(),
+		Overview:         movie.GetOverview(),
+		MediaType:        "movie",
+		AddedAt:          movie.GetAdded(),
+		Status:           interfaces.GetStatusFromMovieStatus(movie.GetStatus()),
+		Path:             movie.GetPath(),
+		QualityProfile:   qualityProfile,
+		Images:           images,
+		DownloadedStatus: status,
+		Monitored:        movie.GetMonitored(),
+		Data: interfaces.AutomationMovie{
+			ReleaseDate: movie.GetReleaseDate(),
+			Year:        movie.GetYear(),
+		},
 	}
 }
 
@@ -228,7 +236,8 @@ func (r *RadarrClient) convertMovieToMediaItem(movie *radarr.MovieResource) inte
 // }
 
 // GetMediaByID retrieves a specific movie by ID
-func (r *RadarrClient) GetMediaByID(ctx context.Context, id int64) (interfaces.AutomationMediaItem, error) {
+func (r *RadarrClient) GetMediaByID(ctx context.Context, id int64) (interfaces.AutomationMediaItem[interfaces.AutomationData], error) {
+
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -252,7 +261,7 @@ func (r *RadarrClient) GetMediaByID(ctx context.Context, id int64) (interfaces.A
 			Str("apiEndpoint", fmt.Sprintf("/movie/%d", id)).
 			Int("statusCode", 0).
 			Msg("Failed to fetch movie from Radarr")
-		return interfaces.AutomationMediaItem{}, fmt.Errorf("failed to fetch movie: %w", err)
+		return interfaces.AutomationMediaItem[interfaces.AutomationData]{}, fmt.Errorf("failed to fetch movie: %w", err)
 	}
 
 	log.Info().
@@ -274,7 +283,7 @@ func (r *RadarrClient) GetMediaByID(ctx context.Context, id int64) (interfaces.A
 }
 
 // AddMedia adds a new movie to Radarr
-func (r *RadarrClient) AddMedia(ctx context.Context, item interfaces.AutomationMediaAddRequest) (interfaces.AutomationMediaItem, error) {
+func (r *RadarrClient) AddMedia(ctx context.Context, item interfaces.AutomationMediaAddRequest) (interfaces.AutomationMediaItem[interfaces.AutomationData], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -306,7 +315,7 @@ func (r *RadarrClient) AddMedia(ctx context.Context, item interfaces.AutomationM
 			Str("baseURL", r.URL).
 			Str("title", item.Title).
 			Msg("Failed to add movie to Radarr")
-		return interfaces.AutomationMediaItem{}, fmt.Errorf("failed to add movie: %w", err)
+		return interfaces.AutomationMediaItem[interfaces.AutomationData]{}, fmt.Errorf("failed to add movie: %w", err)
 	}
 
 	log.Info().
@@ -319,7 +328,7 @@ func (r *RadarrClient) AddMedia(ctx context.Context, item interfaces.AutomationM
 }
 
 // UpdateMedia updates an existing movie in Radarr
-func (r *RadarrClient) UpdateMedia(ctx context.Context, id int64, item interfaces.AutomationMediaUpdateRequest) (interfaces.AutomationMediaItem, error) {
+func (r *RadarrClient) UpdateMedia(ctx context.Context, id int64, item interfaces.AutomationMediaUpdateRequest) (interfaces.AutomationMediaItem[interfaces.AutomationData], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -335,7 +344,7 @@ func (r *RadarrClient) UpdateMedia(ctx context.Context, id int64, item interface
 			Err(err).
 			Int64("movieID", id).
 			Msg("Failed to fetch movie for update")
-		return interfaces.AutomationMediaItem{}, fmt.Errorf("failed to fetch movie for update: %w", err)
+		return interfaces.AutomationMediaItem[interfaces.AutomationData]{}, fmt.Errorf("failed to fetch movie for update: %w", err)
 	}
 
 	// Update fields as needed
@@ -362,7 +371,7 @@ func (r *RadarrClient) UpdateMedia(ctx context.Context, id int64, item interface
 			Err(err).
 			Int64("movieID", id).
 			Msg("Failed to update movie in Radarr")
-		return interfaces.AutomationMediaItem{}, fmt.Errorf("failed to update movie: %w", err)
+		return interfaces.AutomationMediaItem[interfaces.AutomationData]{}, fmt.Errorf("failed to update movie: %w", err)
 	}
 
 	log.Info().
@@ -409,7 +418,7 @@ func (r *RadarrClient) DeleteMedia(ctx context.Context, id int64) error {
 }
 
 // SearchMedia searches for movies in Radarr
-func (r *RadarrClient) SearchMedia(ctx context.Context, query string, options *interfaces.SearchOptions) ([]interfaces.AutomationMediaItem, error) {
+func (r *RadarrClient) SearchMedia(ctx context.Context, query string, options *interfaces.SearchOptions) ([]interfaces.AutomationMediaItem[interfaces.AutomationData], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -433,7 +442,7 @@ func (r *RadarrClient) SearchMedia(ctx context.Context, query string, options *i
 		Msg("Successfully searched for movies in Radarr")
 
 	// Convert results to MediaItems
-	mediaItems := make([]interfaces.AutomationMediaItem, 0, len(searchResult))
+	mediaItems := make([]interfaces.AutomationMediaItem[interfaces.AutomationData], 0, len(searchResult))
 	for _, movie := range searchResult {
 		mediaItem := r.convertMovieToMediaItem(&movie)
 		mediaItems = append(mediaItems, mediaItem)
@@ -545,7 +554,7 @@ func (r *RadarrClient) CreateTag(ctx context.Context, tagName string) (interface
 }
 
 // GetCalendar retrieves upcoming releases from Radarr
-func (r *RadarrClient) GetCalendar(ctx context.Context, start, end time.Time) ([]interfaces.AutomationMediaItem, error) {
+func (r *RadarrClient) GetCalendar(ctx context.Context, start, end time.Time) ([]interfaces.AutomationMediaItem[interfaces.AutomationData], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -579,20 +588,28 @@ func (r *RadarrClient) GetCalendar(ctx context.Context, start, end time.Time) ([
 		Msg("Successfully retrieved calendar from Radarr")
 
 	// Convert to our internal representation
-	result := make([]interfaces.AutomationMediaItem, 0, len(calendar))
+	result := make([]interfaces.AutomationMediaItem[interfaces.AutomationData], 0, len(calendar))
 	for _, item := range calendar {
-		result = append(result, interfaces.AutomationMediaItem{
-			ID:           uint64(item.GetId()),
-			ClientID:     r.ClientID,
-			ClientType:   r.ClientType,
-			Title:        item.GetTitle(),
-			ReleaseDate:  item.GetPhysicalRelease(),
-			MediaType:    "movie",
-			Status:       string(item.GetStatus()),
-			Overview:     item.GetOverview(),
-			Year:         item.GetYear(),
-			Monitored:    item.GetMonitored(),
-			IsDownloaded: item.GetHasFile(),
+
+		status := interfaces.DOWNLOADEDSTATUS_NONE
+		if item.GetHasFile() {
+			status = interfaces.DOWNLOADEDSTATUS_COMPLETE
+		}
+
+		result = append(result, interfaces.AutomationMediaItem[interfaces.AutomationData]{
+			ID:               uint64(item.GetId()),
+			ClientID:         r.ClientID,
+			ClientType:       r.ClientType,
+			Title:            item.GetTitle(),
+			MediaType:        "movie",
+			Status:           interfaces.GetStatusFromMovieStatus(item.GetStatus()),
+			Overview:         item.GetOverview(),
+			Year:             item.GetYear(),
+			Monitored:        item.GetMonitored(),
+			DownloadedStatus: status,
+			Data: interfaces.AutomationMovie{
+				ReleaseDate: item.GetPhysicalRelease(),
+			},
 		})
 	}
 
@@ -661,4 +678,8 @@ func convertInt64SliceToInt32(in []int64) []int32 {
 		out[i] = int32(v)
 	}
 	return out
+}
+
+func (r *RadarrClient) GetMetadataProfiles(ctx context.Context) ([]interfaces.MetadataProfile, error) {
+	return nil, interfaces.ErrAutomationFeatureNotSupported
 }
