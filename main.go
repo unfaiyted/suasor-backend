@@ -1,5 +1,4 @@
-// main.go
-package main
+package project
 
 import (
 	"context"
@@ -12,7 +11,6 @@ import (
 
 	_ "suasor/docs"
 
-	"github.com/joho/godotenv"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
@@ -66,7 +64,6 @@ func main() {
 
 	// Swagger Docs
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
 	// Start server
 	r.Run(":8080")
 }

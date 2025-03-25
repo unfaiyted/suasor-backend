@@ -339,6 +339,7 @@ func (c *PlexClient) GetPlaylists(ctx context.Context, options *interfaces.Query
 			},
 		}
 		playlist.SetClientInfo(c.ClientID, c.ClientType, *item.RatingKey)
+
 		playlists = append(playlists, playlist)
 	}
 
