@@ -1,4 +1,4 @@
-package interfaces
+package media
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 )
 
 // Provider factory type definition
-type ProviderFactory func(ctx context.Context, clientID uint64, config any) (MediaClient, error)
+type ProviderFactory func(ctx context.Context, clientID uint64, config t.ClientConfig) (MediaClient, error)
 
 // Registry to store provider factories
 var providerFactories = make(map[t.MediaClientType]ProviderFactory)
@@ -20,7 +20,7 @@ func RegisterProvider(clientType t.MediaClientType, factory ProviderFactory) {
 }
 
 // NewMediaClient creates providers using the registry
-func NewMediaClient(ctx context.Context, clientID uint64, clientType t.MediaClientType, config any) (MediaClient, error) {
+func NewMediaClient(ctx context.Context, clientID uint64, clientType t.MediaClientType, config t.ClientConfig) (MediaClient, error) {
 	factory, exists := providerFactories[clientType]
 	if !exists {
 		return nil, fmt.Errorf("unsupported client type: %s", clientType)
@@ -56,5 +56,5 @@ func AsCollectionProvider(client MediaClient) (p.CollectionProvider, bool) {
 
 func AsWatchHistoryProvider(client MediaClient) (p.WatchHistoryProvider, bool) {
 	provider, ok := client.(p.WatchHistoryProvider)
-	return provider, ok
+	return provider, ok && provider.SupportsWatchHistory()
 }

@@ -21,19 +21,19 @@ type EmbyClient struct {
 }
 
 // NewEmbyClient creates a new Emby client instance
-func NewEmbyClient(ctx context.Context, clientID uint64, cfg interface{}) (media.MediaClient, error) {
-	config, ok := cfg.(*types.EmbyConfig)
+func NewEmbyClient(ctx context.Context, clientID uint64, cfg types.ClientConfig) (media.MediaClient, error) {
+	embyConfig, ok := cfg.(types.EmbyConfig)
 	if !ok {
 		return nil, fmt.Errorf("invalid configuration for Emby client")
 	}
 
 	// Create API client configuration
 	apiConfig := embyclient.NewConfiguration()
-	apiConfig.BasePath = config.BaseURL
+	apiConfig.BasePath = embyConfig.BaseURL
 
 	// Set up API key in default headers
 	apiConfig.DefaultHeader = map[string]string{
-		"X-Emby-Token": config.APIKey,
+		"X-Emby-Token": embyConfig.APIKey,
 	}
 
 	client := embyclient.NewAPIClient(apiConfig)
@@ -44,17 +44,17 @@ func NewEmbyClient(ctx context.Context, clientID uint64, cfg interface{}) (media
 			ClientType: types.MediaClientTypeEmby,
 		},
 		client: client,
-		config: config,
+		config: &embyConfig,
 	}
 
 	// Resolve user ID if username is provided
-	if config.Username != "" && config.UserID == "" {
+	if embyConfig.Username != "" && embyConfig.UserID == "" {
 		if err := embyClient.resolveUserID(ctx); err != nil {
 			// Log but don't fail - some operations might work without a user ID
 			log := utils.LoggerFromContext(ctx)
 			log.Warn().
 				Err(err).
-				Str("username", config.Username).
+				Str("username", embyConfig.Username).
 				Msg("Failed to resolve Emby user ID, some operations may be limited")
 		}
 	}

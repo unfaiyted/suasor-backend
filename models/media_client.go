@@ -1,7 +1,7 @@
 package models
 
 import (
-	types "suasor/client/media/interfaces"
+	types "suasor/client/media/types"
 	"time"
 )
 

@@ -123,7 +123,7 @@ type MediaItem[T MediaData] struct {
 	ExternalID  string          `json:"externalID" gorm:"index"`
 	ClientID    uint64          `json:"clientID"  gorm:"index"` // internal ClientID
 	ClientType  MediaClientType `json:"clientType"`             // internal Client Type "plex", "jellyfin", etc.
-	Type        string          `json:"type"`                   // "movie", "tvshow", "episode", "music","playlist","artist"
+	Type        MediaType       `json:"type"`                   // "movie", "tvshow", "episode", "music","playlist","artist"
 	StreamURL   string          `json:"streamUrl,omitempty"`
 	DownloadURL string          `json:"downloadUrl,omitempty"`
 	Data        T

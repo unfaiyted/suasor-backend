@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/joho/godotenv"
+	"suasor/client/media"
+	"suasor/client/media/providers"
 	"suasor/client/media/types"
 
 	logger "suasor/utils"
@@ -72,7 +74,7 @@ func TestPlexClientIntegration(t *testing.T) {
 	defer cancel()
 
 	// Test each provider capability if supported
-	if movieProvider, ok := interfaces.AsMovieProvider(client); ok {
+	if movieProvider, ok := media.AsMovieProvider(client); ok {
 		t.Run("TestMovieProvider", func(t *testing.T) {
 			testMovieProvider(t, ctx, movieProvider)
 		})
@@ -80,7 +82,7 @@ func TestPlexClientIntegration(t *testing.T) {
 		t.Log("Client does not support MovieProvider interface")
 	}
 
-	if tvProvider, ok := interfaces.AsTVShowProvider(client); ok {
+	if tvProvider, ok := media.AsTVShowProvider(client); ok {
 		t.Run("TestTVShowProvider", func(t *testing.T) {
 			testTVShowProvider(t, ctx, tvProvider)
 		})
@@ -88,7 +90,7 @@ func TestPlexClientIntegration(t *testing.T) {
 		t.Log("Client does not support TVShowProvider interface")
 	}
 
-	if musicProvider, ok := interfaces.AsMusicProvider(client); ok {
+	if musicProvider, ok := media.AsMusicProvider(client); ok {
 		t.Run("TestMusicProvider", func(t *testing.T) {
 			testMusicProvider(t, ctx, musicProvider)
 		})
@@ -96,7 +98,7 @@ func TestPlexClientIntegration(t *testing.T) {
 		t.Log("Client does not support MusicProvider interface")
 	}
 
-	if playlistProvider, ok := interfaces.AsPlaylistProvider(client); ok {
+	if playlistProvider, ok := media.AsPlaylistProvider(client); ok {
 		t.Run("TestPlaylistProvider", func(t *testing.T) {
 			testPlaylistProvider(t, ctx, playlistProvider)
 		})
@@ -104,7 +106,7 @@ func TestPlexClientIntegration(t *testing.T) {
 		t.Log("Client does not support PlaylistProvider interface")
 	}
 
-	if collectionProvider, ok := interfaces.AsCollectionProvider(client); ok {
+	if collectionProvider, ok := media.AsCollectionProvider(client); ok {
 		t.Run("TestCollectionProvider", func(t *testing.T) {
 			testCollectionProvider(t, ctx, collectionProvider)
 		})
@@ -112,7 +114,7 @@ func TestPlexClientIntegration(t *testing.T) {
 		t.Log("Client does not support CollectionProvider interface")
 	}
 
-	if watchHistoryProvider, ok := interfaces.AsWatchHistoryProvider(client); ok {
+	if watchHistoryProvider, ok := media.AsWatchHistoryProvider(client); ok {
 		t.Run("TestWatchHistoryProvider", func(t *testing.T) {
 			testWatchHistoryProvider(t, ctx, watchHistoryProvider)
 		})
@@ -122,7 +124,7 @@ func TestPlexClientIntegration(t *testing.T) {
 }
 
 // Test movie functionality
-func testMovieProvider(t *testing.T, ctx context.Context, provider interfaces.MovieProvider) {
+func testMovieProvider(t *testing.T, ctx context.Context, provider providers.MovieProvider) {
 	// Test getting movies
 	t.Run("TestGetMovies", func(t *testing.T) {
 		options := &types.QueryOptions{
@@ -164,7 +166,7 @@ func testMovieProvider(t *testing.T, ctx context.Context, provider interfaces.Mo
 }
 
 // Test TV show functionality
-func testTVShowProvider(t *testing.T, ctx context.Context, provider interfaces.TVShowProvider) {
+func testTVShowProvider(t *testing.T, ctx context.Context, provider providers.TVShowProvider) {
 	// Test getting TV shows
 	t.Run("TestGetTVShows", func(t *testing.T) {
 		shows, err := provider.GetTVShows(ctx, &types.QueryOptions{Limit: 5})
@@ -203,7 +205,7 @@ func testTVShowProvider(t *testing.T, ctx context.Context, provider interfaces.T
 }
 
 // Test TV show seasons and episodes
-func testTVShowSeasons(t *testing.T, ctx context.Context, provider interfaces.TVShowProvider, showID string) {
+func testTVShowSeasons(t *testing.T, ctx context.Context, provider providers.TVShowProvider, showID string) {
 	// Get seasons for the show
 	seasons, err := provider.GetTVShowSeasons(ctx, showID)
 	require.NoError(t, err)
@@ -249,7 +251,7 @@ func testTVShowSeasons(t *testing.T, ctx context.Context, provider interfaces.TV
 }
 
 // Test music functionality
-func testMusicProvider(t *testing.T, ctx context.Context, provider interfaces.MusicProvider) {
+func testMusicProvider(t *testing.T, ctx context.Context, provider providers.MusicProvider) {
 	// Test getting artists
 	t.Run("TestGetMusicArtists", func(t *testing.T) {
 		artists, err := provider.GetMusicArtists(ctx, &types.QueryOptions{Limit: 5})
@@ -325,7 +327,7 @@ func testMusicProvider(t *testing.T, ctx context.Context, provider interfaces.Mu
 }
 
 // Test playlist functionality
-func testPlaylistProvider(t *testing.T, ctx context.Context, provider interfaces.PlaylistProvider) {
+func testPlaylistProvider(t *testing.T, ctx context.Context, provider providers.PlaylistProvider) {
 	playlists, err := provider.GetPlaylists(ctx, &types.QueryOptions{Limit: 5})
 	require.NoError(t, err)
 
@@ -339,7 +341,7 @@ func testPlaylistProvider(t *testing.T, ctx context.Context, provider interfaces
 }
 
 // Test collection functionality
-func testCollectionProvider(t *testing.T, ctx context.Context, provider interfaces.CollectionProvider) {
+func testCollectionProvider(t *testing.T, ctx context.Context, provider providers.CollectionProvider) {
 	collections, err := provider.GetCollections(ctx, &types.QueryOptions{Limit: 5})
 	require.NoError(t, err)
 
@@ -353,7 +355,7 @@ func testCollectionProvider(t *testing.T, ctx context.Context, provider interfac
 }
 
 // Test watch history functionality
-func testWatchHistoryProvider(t *testing.T, ctx context.Context, provider interfaces.WatchHistoryProvider) {
+func testWatchHistoryProvider(t *testing.T, ctx context.Context, provider providers.WatchHistoryProvider) {
 	history, err := provider.GetWatchHistory(ctx, &types.QueryOptions{Limit: 10})
 
 	// Note: The Plex client implementation may return an error as it's not fully implemented

@@ -1,5 +1,5 @@
 // interfaces/media_client.go
-package interfaces
+package media
 
 import (
 	"suasor/client/media/types"

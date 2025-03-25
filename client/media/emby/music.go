@@ -125,7 +125,7 @@ func (e *EmbyClient) GetMusicArtists(ctx context.Context, options *types.QueryOp
 }
 
 // GetAlbums retrieves music albums from the Emby server
-func (e *EmbyClient) GetAlbums(ctx context.Context, options *types.QueryOptions) ([]types.MediaItem[types.Album], error) {
+func (e *EmbyClient) GetMusicAlbums(ctx context.Context, options *types.QueryOptions) ([]types.MediaItem[types.Album], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().

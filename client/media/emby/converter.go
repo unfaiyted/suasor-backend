@@ -15,7 +15,9 @@ func (e *EmbyClient) convertToWatchHistoryItem(item *embyclient.BaseItemDto) (ty
 		return types.WatchHistoryItem[types.MediaData]{}, fmt.Errorf("cannot convert nil item to watch history item")
 	}
 
+	// TODO: Needs to properly handle other types
 	var watchData types.MediaData
+	// TODO: find emby types list
 	if item.Type_ == "Movie" {
 		watchData = types.Movie{}
 	}
