@@ -2,11 +2,13 @@ package types
 
 // @Description Emby media server configuration
 type EmbyConfig struct {
-	Enabled  bool   `json:"enabled" mapstructure:"enabled" example:"false"`
-	Host     string `json:"host" mapstructure:"host" example:"localhost" binding:"required_if=Enabled true"`
-	Port     int    `json:"port" mapstructure:"port" example:"8096" binding:"required_if=Enabled true"`
+	Enabled bool `json:"enabled" mapstructure:"enabled" example:"false"`
+	// Host     string `json:"host" mapstructure:"host" example:"localhost" binding:"required_if=Enabled true"`
+	// Port     int    `json:"port" mapstructure:"port" example:"8096" binding:"required_if=Enabled true"`
+	BaseURL  string `json:"baseURL" mapstructure:"baseURL" example:"http://localhost:8096"`
 	APIKey   string `json:"apiKey" mapstructure:"apiKey" example:"your-api-key" binding:"required_if=Enabled true"`
 	Username string `json:"username" mapstructure:"username" example:"admin"`
+	UserID   string `json:"userID" mapstructure:"userID" example:"your-internal-user-id"`
 	SSL      bool   `json:"ssl" mapstructure:"ssl" example:"false"`
 }
 

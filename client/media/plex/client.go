@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"suasor/client/media/interfaces"
-	"suasor/models"
+	"suasor/client/media/types"
 	"suasor/utils"
 	"time"
 
@@ -18,13 +18,13 @@ import (
 
 // init is automatically called when package is imported
 func init() {
-	interfaces.RegisterProvider(interfaces.MediaClientTypePlex, NewPlexClient)
+	interfaces.RegisterProvider(types.MediaClientTypePlex, NewPlexClient)
 }
 
 // PlexClient implements MediaContentProvider for Plex
 type PlexClient struct {
 	interfaces.BaseMediaClient
-	config     models.PlexConfig
+	config     types.PlexConfig
 	httpClient *http.Client
 	baseURL    string
 	plexAPI    *plexgo.PlexAPI
@@ -37,14 +37,14 @@ func NewPlexClient(ctx context.Context, clientID uint64, config any) (interfaces
 
 	log.Info().
 		Uint64("clientID", clientID).
-		Str("clientType", string(interfaces.MediaClientTypePlex)).
+		Str("clientType", string(types.MediaClientTypePlex)).
 		Msg("Creating new Plex client")
 
-	plexConfig, ok := config.(models.PlexConfig)
+	plexConfig, ok := config.(types.PlexConfig)
 	if !ok {
 		log.Error().
 			Uint64("clientID", clientID).
-			Str("clientType", string(interfaces.MediaClientTypePlex)).
+			Str("clientType", string(types.MediaClientTypePlex)).
 			Msg("Invalid Plex configuration")
 		return nil, fmt.Errorf("invalid Plex configuration")
 	}
@@ -63,7 +63,7 @@ func NewPlexClient(ctx context.Context, clientID uint64, config any) (interfaces
 	client := &PlexClient{
 		BaseMediaClient: interfaces.BaseMediaClient{
 			ClientID:   clientID,
-			ClientType: interfaces.MediaClientTypePlex,
+			ClientType: types.MediaClientTypePlex,
 		},
 		config:  plexConfig,
 		plexAPI: plexAPI,
@@ -72,7 +72,7 @@ func NewPlexClient(ctx context.Context, clientID uint64, config any) (interfaces
 
 	log.Info().
 		Uint64("clientID", clientID).
-		Str("clientType", string(interfaces.MediaClientTypePlex)).
+		Str("clientType", string(types.MediaClientTypePlex)).
 		Str("host", plexConfig.Host).
 		Msg("Successfully created Plex client")
 
@@ -151,14 +151,14 @@ func (c *PlexClient) findLibrarySectionByType(ctx context.Context, sectionType s
 	return "", nil
 }
 
-func (c *PlexClient) createChildMetadataFromPlexItem(item *operations.GetMetadataChildrenMetadata) interfaces.MediaMetadata {
-	metadata := interfaces.MediaMetadata{
+func (c *PlexClient) createChildMetadataFromPlexItem(item *operations.GetMetadataChildrenMetadata) types.MediaMetadata {
+	metadata := types.MediaMetadata{
 		Title:       *item.Title,
 		Description: *item.Summary,
-		Artwork: interfaces.Artwork{
+		Artwork: types.Artwork{
 			Thumbnail: c.makeFullURL(*item.Thumb),
 		},
-		ExternalIDs: interfaces.ExternalIDs{interfaces.ExternalID{
+		ExternalIDs: types.ExternalIDs{types.ExternalID{
 			Source: "plex",
 			ID:     *item.RatingKey,
 		}},
@@ -179,14 +179,14 @@ func (c *PlexClient) createChildMetadataFromPlexItem(item *operations.GetMetadat
 }
 
 // createMetadataFromPlexItem creates a MediaMetadata from a Plex item
-func (c *PlexClient) createMetadataFromPlexItem(item *operations.GetLibraryItemsMetadata) interfaces.MediaMetadata {
-	metadata := interfaces.MediaMetadata{
+func (c *PlexClient) createMetadataFromPlexItem(item *operations.GetLibraryItemsMetadata) types.MediaMetadata {
+	metadata := types.MediaMetadata{
 		Title:       item.Title,
 		Description: item.Summary,
-		Artwork: interfaces.Artwork{
+		Artwork: types.Artwork{
 			Thumbnail: c.makeFullURL(*item.Thumb),
 		},
-		ExternalIDs: interfaces.ExternalIDs{interfaces.ExternalID{
+		ExternalIDs: types.ExternalIDs{types.ExternalID{
 			Source: "plex",
 			ID:     item.RatingKey,
 		}},
@@ -203,8 +203,8 @@ func (c *PlexClient) createMetadataFromPlexItem(item *operations.GetLibraryItems
 		metadata.ReleaseYear = *item.Year
 	}
 	if item.Rating != nil {
-		metadata.Ratings = interfaces.Ratings{
-			interfaces.Rating{
+		metadata.Ratings = types.Ratings{
+			types.Rating{
 				Source: "plex",
 				Value:  float32(*item.Rating),
 			},
@@ -234,14 +234,14 @@ func (c *PlexClient) createMetadataFromPlexItem(item *operations.GetLibraryItems
 }
 
 // createMediaMetadataFromPlexItem creates a MediaMetadata from a Plex item
-func (c *PlexClient) createMediaMetadataFromPlexItem(item *operations.GetMediaMetaDataMetadata) interfaces.MediaMetadata {
-	metadata := interfaces.MediaMetadata{
+func (c *PlexClient) createMediaMetadataFromPlexItem(item *operations.GetMediaMetaDataMetadata) types.MediaMetadata {
+	metadata := types.MediaMetadata{
 		Title:       item.Title,
 		Description: item.Summary,
-		Artwork:     interfaces.Artwork{
+		Artwork:     types.Artwork{
 			// Thumbnail: c.makeFullURL(*item.Thumb),
 		},
-		ExternalIDs: interfaces.ExternalIDs{interfaces.ExternalID{
+		ExternalIDs: types.ExternalIDs{types.ExternalID{
 			Source: "plex",
 			ID:     item.RatingKey,
 		}},
@@ -256,8 +256,8 @@ func (c *PlexClient) createMediaMetadataFromPlexItem(item *operations.GetMediaMe
 	metadata.ReleaseYear = item.Year
 
 	if item.Rating != nil {
-		metadata.Ratings = interfaces.Ratings{
-			interfaces.Rating{
+		metadata.Ratings = types.Ratings{
+			types.Rating{
 				Source: "plex",
 				Value:  float32(*item.Rating),
 			},
@@ -282,7 +282,7 @@ func (c *PlexClient) createMediaMetadataFromPlexItem(item *operations.GetMediaMe
 }
 
 // GetPlaylists retrieves playlists from Plex
-func (c *PlexClient) GetPlaylists(ctx context.Context, options *interfaces.QueryOptions) ([]interfaces.MediaItem[interfaces.Playlist], error) {
+func (c *PlexClient) GetPlaylists(ctx context.Context, options *types.QueryOptions) ([]types.MediaItem[types.Playlist], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -309,7 +309,7 @@ func (c *PlexClient) GetPlaylists(ctx context.Context, options *interfaces.Query
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No playlists found in Plex")
-		return []interfaces.MediaItem[interfaces.Playlist]{}, nil
+		return []types.MediaItem[types.Playlist]{}, nil
 	}
 
 	log.Info().
@@ -318,18 +318,18 @@ func (c *PlexClient) GetPlaylists(ctx context.Context, options *interfaces.Query
 		Int("totalItems", len(res.Object.MediaContainer.Metadata)).
 		Msg("Successfully retrieved playlists from Plex")
 
-	playlists := make([]interfaces.MediaItem[interfaces.Playlist], 0, len(res.Object.MediaContainer.Metadata))
+	playlists := make([]types.MediaItem[types.Playlist], 0, len(res.Object.MediaContainer.Metadata))
 	for _, item := range res.Object.MediaContainer.Metadata {
-		playlist := interfaces.MediaItem[interfaces.Playlist]{
+		playlist := types.MediaItem[types.Playlist]{
 			ExternalID: *item.RatingKey,
-			Data: interfaces.Playlist{
-				Details: interfaces.MediaMetadata{
+			Data: types.Playlist{
+				Details: types.MediaMetadata{
 					Description: *item.Summary,
 					Title:       *item.Title,
-					Artwork:     interfaces.Artwork{
+					Artwork:     types.Artwork{
 						// Thumbnail: c.makeFullURL(*item.Thumb),
 					},
-					ExternalIDs: interfaces.ExternalIDs{interfaces.ExternalID{
+					ExternalIDs: types.ExternalIDs{types.ExternalID{
 						Source: "plex",
 						ID:     *item.RatingKey,
 					}},
@@ -353,7 +353,7 @@ func (c *PlexClient) GetPlaylists(ctx context.Context, options *interfaces.Query
 }
 
 // GetCollections retrieves collections from Plex
-func (c *PlexClient) GetCollections(ctx context.Context, options *interfaces.QueryOptions) ([]interfaces.MediaItem[interfaces.Collection], error) {
+func (c *PlexClient) GetCollections(ctx context.Context, options *types.QueryOptions) ([]types.MediaItem[types.Collection], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -383,17 +383,17 @@ func (c *PlexClient) GetCollections(ctx context.Context, options *interfaces.Que
 		Int("totalDirectories", len(directories)).
 		Msg("Successfully retrieved library directories from Plex")
 
-	collections := make([]interfaces.MediaItem[interfaces.Collection], 0, len(directories))
+	collections := make([]types.MediaItem[types.Collection], 0, len(directories))
 
 	for _, dir := range directories {
-		collection := interfaces.MediaItem[interfaces.Collection]{
-			Data: interfaces.Collection{
-				Details: interfaces.MediaMetadata{
+		collection := types.MediaItem[types.Collection]{
+			Data: types.Collection{
+				Details: types.MediaMetadata{
 					Title: dir.Title,
-					Artwork: interfaces.Artwork{
+					Artwork: types.Artwork{
 						Thumbnail: c.makeFullURL(dir.Thumb),
 					},
-					ExternalIDs: interfaces.ExternalIDs{interfaces.ExternalID{
+					ExternalIDs: types.ExternalIDs{types.ExternalID{
 						Source: "plex",
 						ID:     dir.Key,
 					}},
@@ -420,7 +420,7 @@ func (c *PlexClient) GetCollections(ctx context.Context, options *interfaces.Que
 }
 
 // GetMovies retrieves movies from Plex
-func (c *PlexClient) GetMovies(ctx context.Context, options *interfaces.QueryOptions) ([]interfaces.MediaItem[interfaces.Movie], error) {
+func (c *PlexClient) GetMovies(ctx context.Context, options *types.QueryOptions) ([]types.MediaItem[types.Movie], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -447,7 +447,7 @@ func (c *PlexClient) GetMovies(ctx context.Context, options *interfaces.QueryOpt
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No movie library section found in Plex")
-		return []interfaces.MediaItem[interfaces.Movie]{}, nil
+		return []types.MediaItem[types.Movie]{}, nil
 	}
 
 	// Get movies from the movie section
@@ -481,7 +481,7 @@ func (c *PlexClient) GetMovies(ctx context.Context, options *interfaces.QueryOpt
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No movies found in Plex")
-		return []interfaces.MediaItem[interfaces.Movie]{}, nil
+		return []types.MediaItem[types.Movie]{}, nil
 	}
 
 	log.Info().
@@ -490,15 +490,15 @@ func (c *PlexClient) GetMovies(ctx context.Context, options *interfaces.QueryOpt
 		Int("totalItems", len(res.Object.MediaContainer.Metadata)).
 		Msg("Successfully retrieved movies from Plex")
 
-	movies := make([]interfaces.MediaItem[interfaces.Movie], 0, len(res.Object.MediaContainer.Metadata))
+	movies := make([]types.MediaItem[types.Movie], 0, len(res.Object.MediaContainer.Metadata))
 	for _, item := range res.Object.MediaContainer.Metadata {
 		if item.Type != "movie" {
 			continue
 		}
 
-		movie := interfaces.MediaItem[interfaces.Movie]{
+		movie := types.MediaItem[types.Movie]{
 
-			Data: interfaces.Movie{Details: c.createMetadataFromPlexItem(&item)},
+			Data: types.Movie{Details: c.createMetadataFromPlexItem(&item)},
 		}
 
 		movie.SetClientInfo(c.ClientID, c.ClientType, item.RatingKey)
@@ -520,7 +520,7 @@ func (c *PlexClient) GetMovies(ctx context.Context, options *interfaces.QueryOpt
 }
 
 // GetTVShows retrieves TV shows from Plex
-func (c *PlexClient) GetTVShows(ctx context.Context, options *interfaces.QueryOptions) ([]interfaces.MediaItem[interfaces.TVShow], error) {
+func (c *PlexClient) GetTVShows(ctx context.Context, options *types.QueryOptions) ([]types.MediaItem[types.TVShow], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -547,7 +547,7 @@ func (c *PlexClient) GetTVShows(ctx context.Context, options *interfaces.QueryOp
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No TV show library section found in Plex")
-		return []interfaces.MediaItem[interfaces.TVShow]{}, nil
+		return []types.MediaItem[types.TVShow]{}, nil
 	}
 
 	// Get TV shows from the TV section
@@ -577,7 +577,7 @@ func (c *PlexClient) GetTVShows(ctx context.Context, options *interfaces.QueryOp
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No TV shows found in Plex")
-		return []interfaces.MediaItem[interfaces.TVShow]{}, nil
+		return []types.MediaItem[types.TVShow]{}, nil
 	}
 
 	log.Info().
@@ -586,14 +586,14 @@ func (c *PlexClient) GetTVShows(ctx context.Context, options *interfaces.QueryOp
 		Int("totalItems", len(res.Object.MediaContainer.Metadata)).
 		Msg("Successfully retrieved TV shows from Plex")
 
-	shows := make([]interfaces.MediaItem[interfaces.TVShow], 0, len(res.Object.MediaContainer.Metadata))
+	shows := make([]types.MediaItem[types.TVShow], 0, len(res.Object.MediaContainer.Metadata))
 	for _, item := range res.Object.MediaContainer.Metadata {
 		if item.Type != "show" {
 			continue
 		}
 
-		show := interfaces.MediaItem[interfaces.TVShow]{
-			Data: interfaces.TVShow{Details: c.createMetadataFromPlexItem(&item)},
+		show := types.MediaItem[types.TVShow]{
+			Data: types.TVShow{Details: c.createMetadataFromPlexItem(&item)},
 		}
 
 		show.SetClientInfo(c.ClientID, c.ClientType, item.RatingKey)
@@ -642,7 +642,7 @@ func (c *PlexClient) GetTVShows(ctx context.Context, options *interfaces.QueryOp
 }
 
 // GetTVShowSeasons retrieves seasons for a specific TV show
-func (c *PlexClient) GetTVShowSeasons(ctx context.Context, showID string) ([]interfaces.MediaItem[interfaces.Season], error) {
+func (c *PlexClient) GetTVShowSeasons(ctx context.Context, showID string) ([]types.MediaItem[types.Season], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -678,7 +678,7 @@ func (c *PlexClient) GetTVShowSeasons(ctx context.Context, showID string) ([]int
 			Str("clientType", string(c.ClientType)).
 			Str("showID", showID).
 			Msg("No seasons found for TV show in Plex")
-		return []interfaces.MediaItem[interfaces.Season]{}, nil
+		return []types.MediaItem[types.Season]{}, nil
 	}
 
 	log.Info().
@@ -688,24 +688,24 @@ func (c *PlexClient) GetTVShowSeasons(ctx context.Context, showID string) ([]int
 		Int("totalItems", len(childRes.Object.MediaContainer.Metadata)).
 		Msg("Successfully retrieved seasons for TV show from Plex")
 
-	seasons := make([]interfaces.MediaItem[interfaces.Season], 0, len(childRes.Object.MediaContainer.Metadata))
+	seasons := make([]types.MediaItem[types.Season], 0, len(childRes.Object.MediaContainer.Metadata))
 	for _, item := range childRes.Object.MediaContainer.Metadata {
 		if *item.Type != "season" {
 			continue
 		}
 
-		season := interfaces.MediaItem[interfaces.Season]{
+		season := types.MediaItem[types.Season]{
 			ExternalID: *item.RatingKey,
-			Data: interfaces.Season{
+			Data: types.Season{
 				EpisodeCount: *item.LeafCount,
 				Number:       *item.Index,
-				Details: interfaces.MediaMetadata{
+				Details: types.MediaMetadata{
 					Description: *item.Summary,
 					Title:       *item.Title,
-					Artwork: interfaces.Artwork{
+					Artwork: types.Artwork{
 						Thumbnail: c.makeFullURL(*item.Thumb),
 					},
-					ExternalIDs: interfaces.ExternalIDs{interfaces.ExternalID{
+					ExternalIDs: types.ExternalIDs{types.ExternalID{
 						Source: "plex",
 						ID:     *item.RatingKey,
 					}},
@@ -738,7 +738,7 @@ func (c *PlexClient) GetTVShowSeasons(ctx context.Context, showID string) ([]int
 }
 
 // GetTVShowEpisodes retrieves episodes for a specific season of a TV show
-func (c *PlexClient) GetTVShowEpisodes(ctx context.Context, showID string, seasonNumber int) ([]interfaces.MediaItem[interfaces.Episode], error) {
+func (c *PlexClient) GetTVShowEpisodes(ctx context.Context, showID string, seasonNumber int) ([]types.MediaItem[types.Episode], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -788,7 +788,7 @@ func (c *PlexClient) GetTVShowEpisodes(ctx context.Context, showID string, seaso
 			Str("showID", showID).
 			Int("seasonNumber", seasonNumber).
 			Msg("Season not found for TV show in Plex")
-		return []interfaces.MediaItem[interfaces.Episode]{}, nil
+		return []types.MediaItem[types.Episode]{}, nil
 	}
 
 	ratingKey, _ := strconv.Atoi(seasonID)
@@ -819,7 +819,7 @@ func (c *PlexClient) GetTVShowEpisodes(ctx context.Context, showID string, seaso
 			Str("showID", showID).
 			Int("seasonNumber", seasonNumber).
 			Msg("No episodes found for TV show season in Plex")
-		return []interfaces.MediaItem[interfaces.Episode]{}, nil
+		return []types.MediaItem[types.Episode]{}, nil
 	}
 
 	log.Info().
@@ -830,24 +830,24 @@ func (c *PlexClient) GetTVShowEpisodes(ctx context.Context, showID string, seaso
 		Int("totalItems", len(childRes.Object.MediaContainer.Metadata)).
 		Msg("Successfully retrieved episodes for TV show season from Plex")
 
-	episodes := make([]interfaces.MediaItem[interfaces.Episode], 0, len(childRes.Object.MediaContainer.Metadata))
+	episodes := make([]types.MediaItem[types.Episode], 0, len(childRes.Object.MediaContainer.Metadata))
 	for _, item := range childRes.Object.MediaContainer.Metadata {
 		if *item.Type != "episode" {
 			continue
 		}
 
-		episode := interfaces.MediaItem[interfaces.Episode]{
+		episode := types.MediaItem[types.Episode]{
 
 			ExternalID: *item.RatingKey,
-			Data: interfaces.Episode{
+			Data: types.Episode{
 				ShowID:       showID,
 				Number:       int64(*item.Index),
 				SeasonNumber: int(*item.ParentIndex),
 				SeasonID:     *item.ParentKey,
-				Details: interfaces.MediaMetadata{
+				Details: types.MediaMetadata{
 					Description: *item.Summary,
 					Title:       *item.Title,
-					Artwork: interfaces.Artwork{
+					Artwork: types.Artwork{
 						Thumbnail: c.makeFullURL(*item.Thumb),
 					},
 					UpdatedAt: time.Unix(int64(*item.UpdatedAt), 0),
@@ -884,7 +884,7 @@ func (c *PlexClient) GetTVShowEpisodes(ctx context.Context, showID string, seaso
 }
 
 // GetMusic retrieves music tracks from Plex
-func (c *PlexClient) GetMusic(ctx context.Context, options *interfaces.QueryOptions) ([]interfaces.MediaItem[interfaces.Track], error) {
+func (c *PlexClient) GetMusic(ctx context.Context, options *types.QueryOptions) ([]types.MediaItem[types.Track], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -911,7 +911,7 @@ func (c *PlexClient) GetMusic(ctx context.Context, options *interfaces.QueryOpti
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No music library section found in Plex")
-		return []interfaces.MediaItem[interfaces.Track]{}, nil
+		return []types.MediaItem[types.Track]{}, nil
 	}
 
 	// For tracks, we need to traverse the hierarchy: artists > albums > tracks
@@ -931,7 +931,7 @@ func (c *PlexClient) GetMusic(ctx context.Context, options *interfaces.QueryOpti
 		return nil, fmt.Errorf("failed to get music artists: %w", err)
 	}
 
-	var tracks []interfaces.MediaItem[interfaces.Track]
+	var tracks []types.MediaItem[types.Track]
 
 	// Loop through artists
 	if res.Object.MediaContainer != nil && res.Object.MediaContainer.Metadata != nil {
@@ -999,8 +999,8 @@ func (c *PlexClient) GetMusic(ctx context.Context, options *interfaces.QueryOpti
 								continue
 							}
 
-							track := interfaces.MediaItem[interfaces.Track]{
-								Data: interfaces.Track{
+							track := types.MediaItem[types.Track]{
+								Data: types.Track{
 									Details:    c.createChildMetadataFromPlexItem(&item),
 									Number:     *item.Index,
 									ArtistID:   artist.RatingKey,
@@ -1042,7 +1042,7 @@ func (c *PlexClient) GetMusic(ctx context.Context, options *interfaces.QueryOpti
 }
 
 // GetMusicArtists retrieves music artists from Plex
-func (c *PlexClient) GetMusicArtists(ctx context.Context, options *interfaces.QueryOptions) ([]interfaces.MediaItem[interfaces.Artist], error) {
+func (c *PlexClient) GetMusicArtists(ctx context.Context, options *types.QueryOptions) ([]types.MediaItem[types.Artist], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -1069,7 +1069,7 @@ func (c *PlexClient) GetMusicArtists(ctx context.Context, options *interfaces.Qu
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No music library section found in Plex")
-		return []interfaces.MediaItem[interfaces.Artist]{}, nil
+		return []types.MediaItem[types.Artist]{}, nil
 	}
 
 	sectionKey, _ := strconv.Atoi(musicSectionKey)
@@ -1094,7 +1094,7 @@ func (c *PlexClient) GetMusicArtists(ctx context.Context, options *interfaces.Qu
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No music artists found in Plex")
-		return []interfaces.MediaItem[interfaces.Artist]{}, nil
+		return []types.MediaItem[types.Artist]{}, nil
 	}
 
 	log.Info().
@@ -1103,14 +1103,14 @@ func (c *PlexClient) GetMusicArtists(ctx context.Context, options *interfaces.Qu
 		Int("totalItems", len(res.Object.MediaContainer.Metadata)).
 		Msg("Successfully retrieved music artists from Plex")
 
-	artists := make([]interfaces.MediaItem[interfaces.Artist], 0, len(res.Object.MediaContainer.Metadata))
+	artists := make([]types.MediaItem[types.Artist], 0, len(res.Object.MediaContainer.Metadata))
 	for _, item := range res.Object.MediaContainer.Metadata {
 		if item.Type != "artist" {
 			continue
 		}
 
-		artist := interfaces.MediaItem[interfaces.Artist]{
-			Data: interfaces.Artist{
+		artist := types.MediaItem[types.Artist]{
+			Data: types.Artist{
 				Details: c.createMetadataFromPlexItem(&item),
 			},
 		}
@@ -1135,7 +1135,7 @@ func (c *PlexClient) GetMusicArtists(ctx context.Context, options *interfaces.Qu
 }
 
 // GetMusicAlbums retrieves music albums from Plex
-func (c *PlexClient) GetMusicAlbums(ctx context.Context, options *interfaces.QueryOptions) ([]interfaces.MediaItem[interfaces.Album], error) {
+func (c *PlexClient) GetMusicAlbums(ctx context.Context, options *types.QueryOptions) ([]types.MediaItem[types.Album], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -1162,7 +1162,7 @@ func (c *PlexClient) GetMusicAlbums(ctx context.Context, options *interfaces.Que
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No music library section found in Plex")
-		return []interfaces.MediaItem[interfaces.Album]{}, nil
+		return []types.MediaItem[types.Album]{}, nil
 	}
 
 	// For albums, we need to traverse artists first
@@ -1183,7 +1183,7 @@ func (c *PlexClient) GetMusicAlbums(ctx context.Context, options *interfaces.Que
 		return nil, fmt.Errorf("failed to get music artists: %w", err)
 	}
 
-	var albums []interfaces.MediaItem[interfaces.Album]
+	var albums []types.MediaItem[types.Album]
 
 	// Loop through artists to get their albums
 	if res.Object.MediaContainer != nil && res.Object.MediaContainer.Metadata != nil {
@@ -1222,8 +1222,8 @@ func (c *PlexClient) GetMusicAlbums(ctx context.Context, options *interfaces.Que
 						continue
 					}
 
-					album := interfaces.MediaItem[interfaces.Album]{
-						Data: interfaces.Album{
+					album := types.MediaItem[types.Album]{
+						Data: types.Album{
 							Details:    c.createChildMetadataFromPlexItem(&item),
 							ArtistID:   artist.RatingKey,
 							ArtistName: artist.Title,
@@ -1254,7 +1254,7 @@ func (c *PlexClient) GetMusicAlbums(ctx context.Context, options *interfaces.Que
 }
 
 // GetWatchHistory retrieves watch history from Plex
-func (c *PlexClient) GetWatchHistory(ctx context.Context, options *interfaces.QueryOptions) ([]interfaces.WatchHistoryItem[interfaces.MediaData], error) {
+func (c *PlexClient) GetWatchHistory(ctx context.Context, options *types.QueryOptions) ([]types.WatchHistoryItem[types.MediaData], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -1270,11 +1270,11 @@ func (c *PlexClient) GetWatchHistory(ctx context.Context, options *interfaces.Qu
 		Msg("Watch history retrieval not yet implemented for Plex")
 
 	// This would require querying Plex for watch history
-	return []interfaces.WatchHistoryItem[interfaces.MediaData]{}, fmt.Errorf("Watch history retrieval not yet implemented for Plex")
+	return []types.WatchHistoryItem[types.MediaData]{}, fmt.Errorf("Watch history retrieval not yet implemented for Plex")
 }
 
 // GetMovieByID retrieves a specific movie by ID
-func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (interfaces.MediaItem[interfaces.Movie], error) {
+func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (types.MediaItem[types.Movie], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -1303,7 +1303,7 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (interfaces.Me
 			Str("clientType", string(c.ClientType)).
 			Str("movieID", id).
 			Msg("Failed to get movie from Plex")
-		return interfaces.MediaItem[interfaces.Movie]{}, fmt.Errorf("failed to get movie: %w", err)
+		return types.MediaItem[types.Movie]{}, fmt.Errorf("failed to get movie: %w", err)
 	}
 
 	if res.Object.MediaContainer == nil || res.Object.MediaContainer.Metadata == nil || len(res.Object.MediaContainer.Metadata) == 0 {
@@ -1312,7 +1312,7 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (interfaces.Me
 			Str("clientType", string(c.ClientType)).
 			Str("movieID", id).
 			Msg("Movie not found in Plex")
-		return interfaces.MediaItem[interfaces.Movie]{}, fmt.Errorf("movie not found")
+		return types.MediaItem[types.Movie]{}, fmt.Errorf("movie not found")
 	}
 
 	item := res.Object.MediaContainer.Metadata[0]
@@ -1323,7 +1323,7 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (interfaces.Me
 			Str("movieID", id).
 			Str("actualType", item.Type).
 			Msg("Item retrieved is not a movie")
-		return interfaces.MediaItem[interfaces.Movie]{}, fmt.Errorf("item is not a movie")
+		return types.MediaItem[types.Movie]{}, fmt.Errorf("item is not a movie")
 	}
 
 	log.Info().
@@ -1333,8 +1333,8 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (interfaces.Me
 		Str("movieTitle", item.Title).
 		Msg("Successfully retrieved movie from Plex")
 
-	movie := interfaces.MediaItem[interfaces.Movie]{
-		Data: interfaces.Movie{
+	movie := types.MediaItem[types.Movie]{
+		Data: types.Movie{
 			Details: c.createMediaMetadataFromPlexItem(&item),
 		},
 	}
@@ -1351,7 +1351,7 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (interfaces.Me
 }
 
 // GetTVShowByID retrieves a specific TV show by ID
-func (c *PlexClient) GetTVShowByID(ctx context.Context, id string) (interfaces.MediaItem[interfaces.TVShow], error) {
+func (c *PlexClient) GetTVShowByID(ctx context.Context, id string) (types.MediaItem[types.TVShow], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -1381,7 +1381,7 @@ func (c *PlexClient) GetTVShowByID(ctx context.Context, id string) (interfaces.M
 			Str("clientType", string(c.ClientType)).
 			Str("showID", id).
 			Msg("Failed to get TV show from Plex")
-		return interfaces.MediaItem[interfaces.TVShow]{}, fmt.Errorf("failed to get TV show: %w", err)
+		return types.MediaItem[types.TVShow]{}, fmt.Errorf("failed to get TV show: %w", err)
 	}
 
 	if res.Object.MediaContainer == nil || res.Object.MediaContainer.Metadata == nil || len(res.Object.MediaContainer.Metadata) == 0 {
@@ -1390,7 +1390,7 @@ func (c *PlexClient) GetTVShowByID(ctx context.Context, id string) (interfaces.M
 			Str("clientType", string(c.ClientType)).
 			Str("showID", id).
 			Msg("TV show not found in Plex")
-		return interfaces.MediaItem[interfaces.TVShow]{}, fmt.Errorf("TV show not found")
+		return types.MediaItem[types.TVShow]{}, fmt.Errorf("TV show not found")
 	}
 
 	item := res.Object.MediaContainer.Metadata[0]
@@ -1401,7 +1401,7 @@ func (c *PlexClient) GetTVShowByID(ctx context.Context, id string) (interfaces.M
 			Str("showID", id).
 			Str("actualType", item.Type).
 			Msg("Item retrieved is not a TV show")
-		return interfaces.MediaItem[interfaces.TVShow]{}, fmt.Errorf("item is not a TV show")
+		return types.MediaItem[types.TVShow]{}, fmt.Errorf("item is not a TV show")
 	}
 
 	log.Info().
@@ -1411,8 +1411,8 @@ func (c *PlexClient) GetTVShowByID(ctx context.Context, id string) (interfaces.M
 		Str("showTitle", item.Title).
 		Msg("Successfully retrieved TV show from Plex")
 
-	show := interfaces.MediaItem[interfaces.TVShow]{
-		Data: interfaces.TVShow{
+	show := types.MediaItem[types.TVShow]{
+		Data: types.TVShow{
 			Details: c.createMediaMetadataFromPlexItem(&item),
 		},
 	}
@@ -1450,7 +1450,7 @@ func (c *PlexClient) GetTVShowByID(ctx context.Context, id string) (interfaces.M
 }
 
 // GetEpisodeByID retrieves a specific episode by ID
-func (c *PlexClient) GetEpisodeByID(ctx context.Context, id string) (interfaces.MediaItem[interfaces.Episode], error) {
+func (c *PlexClient) GetEpisodeByID(ctx context.Context, id string) (types.MediaItem[types.Episode], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -1468,24 +1468,24 @@ func (c *PlexClient) GetEpisodeByID(ctx context.Context, id string) (interfaces.
 	})
 	if err != nil {
 		log.Error().Err(err).Str("episodeID", id).Msg("Failed to get episode from Plex")
-		return interfaces.MediaItem[interfaces.Episode]{}, fmt.Errorf("failed to get episode: %w", err)
+		return types.MediaItem[types.Episode]{}, fmt.Errorf("failed to get episode: %w", err)
 	}
 
 	if res.Object.MediaContainer == nil ||
 		res.Object.MediaContainer.Metadata == nil ||
 		len(res.Object.MediaContainer.Metadata) == 0 {
 		log.Error().Str("episodeID", id).Msg("Episode not found in Plex")
-		return interfaces.MediaItem[interfaces.Episode]{}, fmt.Errorf("episode not found")
+		return types.MediaItem[types.Episode]{}, fmt.Errorf("episode not found")
 	}
 
 	item := res.Object.MediaContainer.Metadata[0]
 	if item.Type != "episode" {
 		log.Error().Str("episodeID", id).Str("actualType", item.Type).Msg("Item retrieved is not an episode")
-		return interfaces.MediaItem[interfaces.Episode]{}, fmt.Errorf("item is not an episode")
+		return types.MediaItem[types.Episode]{}, fmt.Errorf("item is not an episode")
 	}
 
-	episode := interfaces.MediaItem[interfaces.Episode]{
-		Data: interfaces.Episode{
+	episode := types.MediaItem[types.Episode]{
+		Data: types.Episode{
 			Details: c.createMediaMetadataFromPlexItem(&item),
 			Number:  int64(*item.Index),
 		},
@@ -1519,7 +1519,7 @@ func (c *PlexClient) GetEpisodeByID(ctx context.Context, id string) (interfaces.
 }
 
 // GetMusicTrackByID retrieves a specific music track by ID
-func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (interfaces.MediaItem[interfaces.Track], error) {
+func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (types.MediaItem[types.Track], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -1546,7 +1546,7 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (interfac
 			Str("clientType", string(c.ClientType)).
 			Str("trackID", id).
 			Msg("Failed to get music track from Plex")
-		return interfaces.MediaItem[interfaces.Track]{}, fmt.Errorf("failed to get music track: %w", err)
+		return types.MediaItem[types.Track]{}, fmt.Errorf("failed to get music track: %w", err)
 	}
 
 	if res.Object.MediaContainer == nil || res.Object.MediaContainer.Metadata == nil || len(res.Object.MediaContainer.Metadata) == 0 {
@@ -1555,7 +1555,7 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (interfac
 			Str("clientType", string(c.ClientType)).
 			Str("trackID", id).
 			Msg("Music track not found in Plex")
-		return interfaces.MediaItem[interfaces.Track]{}, fmt.Errorf("music track not found")
+		return types.MediaItem[types.Track]{}, fmt.Errorf("music track not found")
 	}
 
 	item := res.Object.MediaContainer.Metadata[0]
@@ -1566,7 +1566,7 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (interfac
 			Str("trackID", id).
 			Str("actualType", item.Type).
 			Msg("Item retrieved is not a music track")
-		return interfaces.MediaItem[interfaces.Track]{}, fmt.Errorf("item is not a music track")
+		return types.MediaItem[types.Track]{}, fmt.Errorf("item is not a music track")
 	}
 
 	// Get album and artist info
@@ -1630,8 +1630,8 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (interfac
 		Str("artistName", artistName).
 		Msg("Successfully retrieved music track from Plex")
 
-	track := interfaces.MediaItem[interfaces.Track]{
-		Data: interfaces.Track{
+	track := types.MediaItem[types.Track]{
+		Data: types.Track{
 			AlbumName:  albumName,
 			ArtistName: artistName,
 			ArtistID:   artistID,

@@ -14,7 +14,8 @@ import (
 
 	"github.com/joho/godotenv"
 	"suasor/client/media/interfaces"
-	"suasor/models"
+	"suasor/client/media/types"
+
 	logger "suasor/utils"
 )
 
@@ -54,7 +55,7 @@ func TestPlexClientIntegration(t *testing.T) {
 	}
 
 	// Create client configuration
-	config := models.PlexConfig{
+	config := types.PlexConfig{
 		Host:  host,
 		Token: token,
 	}
@@ -125,7 +126,7 @@ func TestPlexClientIntegration(t *testing.T) {
 func testMovieProvider(t *testing.T, ctx context.Context, provider interfaces.MovieProvider) {
 	// Test getting movies
 	t.Run("TestGetMovies", func(t *testing.T) {
-		options := &interfaces.QueryOptions{
+		options := &types.QueryOptions{
 			Limit: 10,
 			Sort:  "title",
 		}
@@ -167,7 +168,7 @@ func testMovieProvider(t *testing.T, ctx context.Context, provider interfaces.Mo
 func testTVShowProvider(t *testing.T, ctx context.Context, provider interfaces.TVShowProvider) {
 	// Test getting TV shows
 	t.Run("TestGetTVShows", func(t *testing.T) {
-		shows, err := provider.GetTVShows(ctx, &interfaces.QueryOptions{Limit: 5})
+		shows, err := provider.GetTVShows(ctx, &types.QueryOptions{Limit: 5})
 		require.NoError(t, err)
 
 		if len(shows) > 0 {
@@ -183,7 +184,7 @@ func testTVShowProvider(t *testing.T, ctx context.Context, provider interfaces.T
 			// We need to use type assertion here because GetTVShowByID isn't in the TVShowProvider interface
 			// This is a good example of where your interface design is beneficial - we only test what's explicitly supported
 			fullClient, ok := provider.(interface {
-				GetTVShowByID(ctx context.Context, id string) (interfaces.MediaItem[interfaces.TVShow], error)
+				GetTVShowByID(ctx context.Context, id string) (types.MediaItem[types.TVShow], error)
 			})
 
 			if ok {
@@ -229,7 +230,7 @@ func testTVShowSeasons(t *testing.T, ctx context.Context, provider interfaces.TV
 
 			// Test GetEpisodeByID if supported
 			fullClient, ok := provider.(interface {
-				GetEpisodeByID(ctx context.Context, id string) (interfaces.MediaItem[interfaces.Episode], error)
+				GetEpisodeByID(ctx context.Context, id string) (types.MediaItem[types.Episode], error)
 			})
 
 			if ok {
@@ -252,7 +253,7 @@ func testTVShowSeasons(t *testing.T, ctx context.Context, provider interfaces.TV
 func testMusicProvider(t *testing.T, ctx context.Context, provider interfaces.MusicProvider) {
 	// Test getting artists
 	t.Run("TestGetMusicArtists", func(t *testing.T) {
-		artists, err := provider.GetMusicArtists(ctx, &interfaces.QueryOptions{Limit: 5})
+		artists, err := provider.GetMusicArtists(ctx, &types.QueryOptions{Limit: 5})
 		require.NoError(t, err)
 		if len(artists) > 0 {
 			t.Logf("Got %d music artists", len(artists))
@@ -265,7 +266,7 @@ func testMusicProvider(t *testing.T, ctx context.Context, provider interfaces.Mu
 
 	// Test getting albums
 	t.Run("TestGetMusicAlbums", func(t *testing.T) {
-		albums, err := provider.GetMusicAlbums(ctx, &interfaces.QueryOptions{Limit: 5})
+		albums, err := provider.GetMusicAlbums(ctx, &types.QueryOptions{Limit: 5})
 		require.NoError(t, err)
 		if len(albums) > 0 {
 			t.Logf("Got %d music albums", len(albums))
@@ -278,7 +279,7 @@ func testMusicProvider(t *testing.T, ctx context.Context, provider interfaces.Mu
 
 	// Test getting tracks
 	t.Run("TestGetMusic", func(t *testing.T) {
-		tracks, err := provider.GetMusic(ctx, &interfaces.QueryOptions{Limit: 5})
+		tracks, err := provider.GetMusic(ctx, &types.QueryOptions{Limit: 5})
 		require.NoError(t, err)
 		if len(tracks) > 0 {
 			t.Logf("Got %d music tracks", len(tracks))
@@ -288,7 +289,7 @@ func testMusicProvider(t *testing.T, ctx context.Context, provider interfaces.Mu
 
 			// Test GetMusicTrackByID if supported
 			fullClient, ok := provider.(interface {
-				GetMusicTrackByID(ctx context.Context, id string) (interfaces.MediaItem[interfaces.Track], error)
+				GetMusicTrackByID(ctx context.Context, id string) (types.MediaItem[types.Track], error)
 			})
 
 			if ok {
@@ -326,7 +327,7 @@ func testMusicProvider(t *testing.T, ctx context.Context, provider interfaces.Mu
 
 // Test playlist functionality
 func testPlaylistProvider(t *testing.T, ctx context.Context, provider interfaces.PlaylistProvider) {
-	playlists, err := provider.GetPlaylists(ctx, &interfaces.QueryOptions{Limit: 5})
+	playlists, err := provider.GetPlaylists(ctx, &types.QueryOptions{Limit: 5})
 	require.NoError(t, err)
 
 	if len(playlists) > 0 {
@@ -340,7 +341,7 @@ func testPlaylistProvider(t *testing.T, ctx context.Context, provider interfaces
 
 // Test collection functionality
 func testCollectionProvider(t *testing.T, ctx context.Context, provider interfaces.CollectionProvider) {
-	collections, err := provider.GetCollections(ctx, &interfaces.QueryOptions{Limit: 5})
+	collections, err := provider.GetCollections(ctx, &types.QueryOptions{Limit: 5})
 	require.NoError(t, err)
 
 	if len(collections) > 0 {
@@ -354,7 +355,7 @@ func testCollectionProvider(t *testing.T, ctx context.Context, provider interfac
 
 // Test watch history functionality
 func testWatchHistoryProvider(t *testing.T, ctx context.Context, provider interfaces.WatchHistoryProvider) {
-	history, err := provider.GetWatchHistory(ctx, &interfaces.QueryOptions{Limit: 10})
+	history, err := provider.GetWatchHistory(ctx, &types.QueryOptions{Limit: 10})
 
 	// Note: The Plex client implementation may return an error as it's not fully implemented
 	if err != nil {

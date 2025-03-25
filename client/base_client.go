@@ -28,6 +28,6 @@ func (b *BaseMediaClient) SupportsCollections() bool { return false }
 
 // Default error implementation for unsupported features
 // Embed in your clients to provide default behavior
-func (b *BaseMediaClient) GetMovies(ctx context.Context, options *types.QueryOptions) ([]Movie, error) {
+func (b *BaseMediaClient) GetMovies(ctx context.Context, options *types.QueryOptions) ([]types.Movie, error) {
 	return nil, ErrFeatureNotSupported
 }
