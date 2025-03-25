@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/joho/godotenv"
-	"suasor/client/media/interfaces"
 	"suasor/client/media/types"
 
 	logger "suasor/utils"
