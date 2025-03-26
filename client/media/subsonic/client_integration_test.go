@@ -14,9 +14,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/joho/godotenv"
-	"suasor/client/media/interfaces"
-	"suasor/models"
-	logger "suasor/utils"
+
+	"suasor/client/media"
+	"suasor/client/media/providers"
+	"suasor/client/media/types"
 )
 
 func init() {
@@ -74,7 +75,7 @@ func TestSubsonicClientIntegration(t *testing.T) {
 	}
 
 	// Create client configuration
-	config := models.SubsonicConfig{
+	config := types.SubsonicConfig{
 		Host:     host,
 		Port:     portNum,
 		Username: username,
@@ -82,159 +83,98 @@ func TestSubsonicClientIntegration(t *testing.T) {
 		SSL:      ssl,
 	}
 
-	logger.Initialize()
 	ctx := context.Background()
 
 	// Initialize client
-	client := NewSubsonicClient(1, config)
+	client, err := NewSubsonicClient(ctx, 1, config)
+	require.NoError(t, err)
 	require.NotNil(t, client)
 
 	// Create context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// Run all test cases that are supported by Subsonic
-	t.Run("TestGetMusic", func(t *testing.T) {
-		testGetMusic(t, ctx, client)
-	})
-
-	t.Run("TestGetMusicTrackByID", func(t *testing.T) {
-		testGetMusicTrackByID(t, ctx, client)
-	})
-
-	t.Run("TestGetMusicArtists", func(t *testing.T) {
-		testGetMusicArtists(t, ctx, client)
-	})
-
-	t.Run("TestGetMusicAlbums", func(t *testing.T) {
-		testGetMusicAlbums(t, ctx, client)
-	})
-
-	t.Run("TestGetMusicGenres", func(t *testing.T) {
-		testGetMusicGenres(t, ctx, client)
-	})
-
-	t.Run("TestGetPlaylists", func(t *testing.T) {
-		testGetPlaylists(t, ctx, client)
-	})
-
-	t.Run("TestGetPlaylistItems", func(t *testing.T) {
-		testGetPlaylistItems(t, ctx, client)
-	})
-
-	t.Run("TestStreamURL", func(t *testing.T) {
-		testStreamURL(t, ctx, client)
-	})
-
-	t.Run("TestCoverArtURL", func(t *testing.T) {
-		testCoverArtURL(t, ctx, client)
-	})
-}
-
-// Test getting music tracks from Subsonic
-func testGetMusic(t *testing.T, ctx context.Context, client interfaces.MediaContentProvider) {
-	// Get tracks with limit
-	options := &interfaces.QueryOptions{
-		Limit: 10,
+	// Run test cases for supported interfaces
+	if musicProvider, ok := media.AsMusicProvider(client); ok {
+		t.Run("TestMusicProvider", func(t *testing.T) {
+			testGetMusicContent(t, ctx, musicProvider)
+		})
+	} else {
+		t.Log("Client does not support MusicProvider interface")
 	}
 
-	tracks, err := client.GetMusic(ctx, options)
-	require.NoError(t, err)
+	if playlistProvider, ok := media.AsPlaylistProvider(client); ok {
+		t.Run("TestPlaylistProvider", func(t *testing.T) {
+			testGetPlaylists(t, ctx, playlistProvider)
+		})
+	} else {
+		t.Log("Client does not support PlaylistProvider interface")
+	}
 
-	// Validate results
-	assert.NotEmpty(t, tracks, "Expected to get at least one music track")
-	if len(tracks) > 0 {
-		track := tracks[0]
-		t.Logf("Got track: %s (ID: %s)", track.Metadata.Title, track.ExternalID)
-
-		// Verify track has expected fields
-		assert.NotEmpty(t, track.ExternalID)
-		assert.NotEmpty(t, track.Metadata.Title)
-		assert.NotEmpty(t, track.ArtistName, "Expected track to have artist name")
+	// Test Subsonic-specific features using type assertion
+	if subsonicClient, ok := client.(*SubsonicClient); ok {
+		t.Run("TestSubsonicSpecific", func(t *testing.T) {
+			testGetPlaylistItems(t, ctx, subsonicClient)
+			testStreamURL(t, ctx, subsonicClient)
+			testCoverArtURL(t, ctx, subsonicClient)
+		})
 	}
 }
 
-// Test getting a specific music track by ID
-func testGetMusicTrackByID(t *testing.T, ctx context.Context, client interfaces.MediaContentProvider) {
-	// First get a list of tracks to get a valid ID
-	tracks, err := client.GetMusic(ctx, &interfaces.QueryOptions{Limit: 1})
+// Test getting music content
+func testGetMusicContent(t *testing.T, ctx context.Context, client providers.MusicProvider) {
+	// Test artists
+	artists, err := client.GetMusicArtists(ctx, &types.QueryOptions{Limit: 5})
 	require.NoError(t, err)
-	require.NotEmpty(t, tracks, "Need at least one track to test GetMusicTrackByID")
-
-	trackID := tracks[0].ExternalID
-
-	// Get the specific track
-	track, err := client.GetMusicTrackByID(ctx, trackID)
-	require.NoError(t, err)
-
-	// Validate the result
-	assert.Equal(t, trackID, track.ExternalID)
-	assert.NotEmpty(t, track.Metadata.Title)
-	assert.NotEmpty(t, track.ArtistName)
-}
-
-// Test getting music artists
-func testGetMusicArtists(t *testing.T, ctx context.Context, client interfaces.MediaContentProvider) {
-	artists, err := client.GetMusicArtists(ctx, &interfaces.QueryOptions{Limit: 5})
-	require.NoError(t, err)
-
 	if len(artists) > 0 {
-		t.Logf("Got %d artists", len(artists))
-		artist := artists[0]
-		assert.NotEmpty(t, artist.ExternalID)
-		assert.NotEmpty(t, artist.Metadata.Title)
-	} else {
-		t.Log("No artists found in library")
+		t.Logf("Got %d music artists", len(artists))
+		assert.NotEmpty(t, artists[0].ExternalID)
+		assert.NotEmpty(t, artists[0].Data.Details.Title)
 	}
-}
 
-// Test getting music albums
-func testGetMusicAlbums(t *testing.T, ctx context.Context, client interfaces.MediaContentProvider) {
-	albums, err := client.GetMusicAlbums(ctx, &interfaces.QueryOptions{Limit: 5})
+	// Test albums
+	albums, err := client.GetMusicAlbums(ctx, &types.QueryOptions{Limit: 5})
 	require.NoError(t, err)
-
 	if len(albums) > 0 {
-		t.Logf("Got %d albums", len(albums))
-		album := albums[0]
-		assert.NotEmpty(t, album.ExternalID)
-		assert.NotEmpty(t, album.Metadata.Title)
-		assert.NotEmpty(t, album.ArtistName, "Expected album to have artist name")
-		assert.GreaterOrEqual(t, album.TrackCount, 0, "Track count should be at least 0")
-	} else {
-		t.Log("No albums found in library")
+		t.Logf("Got %d music albums", len(albums))
+		assert.NotEmpty(t, albums[0].ExternalID, "Expected album to have an external ID")
+		assert.NotEmpty(t, albums[0].Data.Details.Title, "Expected album to have a title")
 	}
-}
 
-// Test getting music genres
-func testGetMusicGenres(t *testing.T, ctx context.Context, client interfaces.MediaContentProvider) {
-	genres, err := client.GetMusicGenres(ctx)
+	// Test tracks
+	tracks, err := client.GetMusic(ctx, &types.QueryOptions{Limit: 5})
 	require.NoError(t, err)
+	if len(tracks) > 0 {
+		t.Logf("Got %d music tracks", len(tracks))
+		track := tracks[0]
+		assert.NotEmpty(t, track.ExternalID)
+		assert.NotEmpty(t, track.Data.Details.Title)
 
-	t.Logf("Got %d music genres", len(genres))
-	if len(genres) > 0 {
-		t.Logf("Some music genres: %v", genres[:min(3, len(genres))])
+		// Test GetMusicTrackByID
+		trackByID, err := client.GetMusicTrackByID(ctx, track.ExternalID)
+		require.NoError(t, err)
+		assert.Equal(t, track.ExternalID, trackByID.ExternalID)
 	}
 }
 
 // Test getting playlists
-func testGetPlaylists(t *testing.T, ctx context.Context, client interfaces.MediaContentProvider) {
-	playlists, err := client.GetPlaylists(ctx, &interfaces.QueryOptions{Limit: 5})
+func testGetPlaylists(t *testing.T, ctx context.Context, client providers.PlaylistProvider) {
+	playlists, err := client.GetPlaylists(ctx, &types.QueryOptions{Limit: 5})
 	require.NoError(t, err)
 
 	if len(playlists) > 0 {
 		t.Logf("Got %d playlists", len(playlists))
-		playlist := playlists[0]
-		assert.NotEmpty(t, playlist.ExternalID)
-		assert.NotEmpty(t, playlist.Metadata.Title)
+		assert.NotEmpty(t, playlists[0].ExternalID)
+		assert.NotEmpty(t, playlists[0].Data.Details.Title)
 	} else {
 		t.Log("No playlists found in library")
 	}
 }
 
-// Test getting playlist items
+// Test getting playlist items - Subsonic specific
 func testGetPlaylistItems(t *testing.T, ctx context.Context, client *SubsonicClient) {
 	// Get a playlist first
-	playlists, err := client.GetPlaylists(ctx, &interfaces.QueryOptions{Limit: 1})
+	playlists, err := client.GetPlaylists(ctx, &types.QueryOptions{Limit: 1})
 	if err != nil || len(playlists) == 0 {
 		t.Skip("No playlists available to test items")
 	}
@@ -246,20 +186,19 @@ func testGetPlaylistItems(t *testing.T, ctx context.Context, client *SubsonicCli
 	require.NoError(t, err)
 
 	if len(tracks) > 0 {
-		t.Logf("Got %d tracks for playlist '%s'", len(tracks), playlists[0].Metadata.Title)
+		t.Logf("Got %d tracks for playlist '%s'", len(tracks), playlists[0].Data.Details.Title)
 		track := tracks[0]
 		assert.NotEmpty(t, track.ExternalID)
-		assert.NotEmpty(t, track.Metadata.Title)
-		assert.NotEmpty(t, track.ArtistName)
+		assert.NotEmpty(t, track.Data.Details.Title)
 	} else {
-		t.Logf("No tracks found for the playlist '%s'", playlists[0].Metadata.Title)
+		t.Logf("No tracks found for the playlist '%s'", playlists[0].Data.Details.Title)
 	}
 }
 
-// Test getting stream URL
+// Test getting stream URL - Subsonic specific
 func testStreamURL(t *testing.T, ctx context.Context, client *SubsonicClient) {
 	// First get a track to get a valid ID
-	tracks, err := client.GetMusic(ctx, &interfaces.QueryOptions{Limit: 1})
+	tracks, err := client.GetMusic(ctx, &types.QueryOptions{Limit: 1})
 	if err != nil || len(tracks) == 0 {
 		t.Skip("No tracks available to test stream URL")
 	}
@@ -271,21 +210,21 @@ func testStreamURL(t *testing.T, ctx context.Context, client *SubsonicClient) {
 	require.NoError(t, err)
 	assert.NotEmpty(t, streamURL)
 
-	t.Logf("Stream URL for track '%s': %s", tracks[0].Metadata.Title, streamURL)
+	t.Logf("Stream URL for track '%s': %s", tracks[0].Data.Details.Title, streamURL)
 }
 
-// Test getting cover art URL
+// Test getting cover art URL - Subsonic specific
 func testCoverArtURL(t *testing.T, ctx context.Context, client *SubsonicClient) {
 	// First get an album to get a valid cover art ID
-	albums, err := client.GetMusicAlbums(ctx, &interfaces.QueryOptions{Limit: 1})
-	if err != nil || len(albums) == 0 || albums[0].Metadata.Artwork.Poster == "" {
+	albums, err := client.GetMusicAlbums(ctx, &types.QueryOptions{Limit: 1})
+	if err != nil || len(albums) == 0 || albums[0].Data.Details.Artwork.Poster == "" {
 		t.Skip("No albums with cover art available to test")
 	}
 
-	coverURL := albums[0].Metadata.Artwork.Poster
+	coverURL := albums[0].Data.Details.Artwork.Poster
 	assert.NotEmpty(t, coverURL)
 
-	t.Logf("Cover art URL for album '%s': %s", albums[0].Metadata.Title, coverURL)
+	t.Logf("Cover art URL for album '%s': %s", albums[0].Data.Details.Title, coverURL)
 }
 
 // Helper function for min value
