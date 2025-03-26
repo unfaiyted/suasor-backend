@@ -8,7 +8,7 @@ type MediaContentProvider interface {
 	MusicProvider
 	PlaylistProvider
 	CollectionProvider
-	WatchHistoryProvider
+	HistoryProvider
 }
 
 // MovieMusicProvider combines movie and music provider interfaces

@@ -114,9 +114,9 @@ func TestPlexClientIntegration(t *testing.T) {
 		t.Log("Client does not support CollectionProvider interface")
 	}
 
-	if watchHistoryProvider, ok := media.AsWatchHistoryProvider(client); ok {
+	if historyProvider, ok := media.AsHistoryProvider(client); ok {
 		t.Run("TestWatchHistoryProvider", func(t *testing.T) {
-			testWatchHistoryProvider(t, ctx, watchHistoryProvider)
+			testWatchHistoryProvider(t, ctx, historyProvider)
 		})
 	} else {
 		t.Log("Client does not support WatchHistoryProvider interface")
@@ -355,8 +355,8 @@ func testCollectionProvider(t *testing.T, ctx context.Context, provider provider
 }
 
 // Test watch history functionality
-func testWatchHistoryProvider(t *testing.T, ctx context.Context, provider providers.WatchHistoryProvider) {
-	history, err := provider.GetWatchHistory(ctx, &types.QueryOptions{Limit: 10})
+func testWatchHistoryProvider(t *testing.T, ctx context.Context, provider providers.HistoryProvider) {
+	history, err := provider.GetPlayHistory(ctx, &types.QueryOptions{Limit: 10})
 
 	// Note: The Plex client implementation may return an error as it's not fully implemented
 	if err != nil {

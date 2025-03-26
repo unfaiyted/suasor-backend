@@ -54,7 +54,7 @@ func AsCollectionProvider(client MediaClient) (p.CollectionProvider, bool) {
 	return provider, ok && provider.SupportsCollections()
 }
 
-func AsWatchHistoryProvider(client MediaClient) (p.WatchHistoryProvider, bool) {
-	provider, ok := client.(p.WatchHistoryProvider)
-	return provider, ok && provider.SupportsWatchHistory()
+func AsHistoryProvider(client MediaClient) (p.HistoryProvider, bool) {
+	provider, ok := client.(p.HistoryProvider)
+	return provider, ok && provider.SupportsHistory()
 }

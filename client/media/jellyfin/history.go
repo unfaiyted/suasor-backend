@@ -9,7 +9,7 @@ import (
 	"suasor/utils"
 )
 
-func (j *JellyfinClient) GetWatchHistory(ctx context.Context, options *t.QueryOptions) ([]t.WatchHistoryItem[t.MediaData], error) {
+func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOptions) ([]t.MediaPlayHistory[t.MediaData], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -50,7 +50,7 @@ func (j *JellyfinClient) GetWatchHistory(ctx context.Context, options *t.QueryOp
 		Msg("Successfully retrieved watch history from Jellyfin")
 
 	// Convert results to expected format
-	historyItems := make([]t.WatchHistoryItem[t.MediaData], 0)
+	historyItems := make([]t.MediaPlayHistory[t.MediaData], 0)
 	for _, item := range result.Items {
 
 		userDataReq := j.client.ItemsAPI.GetItemUserData(ctx, *item.Id)
@@ -65,14 +65,7 @@ func (j *JellyfinClient) GetWatchHistory(ctx context.Context, options *t.QueryOp
 			Int32("playCount", userData.GetPlayCount()).
 			Msg("Successfully retrieved user item data from Jellyfin")
 
-		historyItem := t.WatchHistoryItem[t.MediaData]{
-			// Item: t.MediaData{
-			// 	Details: t.MediaMetadata{
-			// 		Title:       *item.Name.Get(),
-			// 		Description: *item.Overview.Get(),
-			// 		Artwork:     j.getArtworkURLs(&item),
-			// 	},
-			// },
+		historyItem := t.MediaPlayHistory[t.MediaData]{
 			PlayedPercentage: *userData.PlayedPercentage.Get(),
 			LastWatchedAt:    *userData.LastPlayedDate.Get(), // Default to now if not available
 		}
@@ -82,21 +75,44 @@ func (j *JellyfinClient) GetWatchHistory(ctx context.Context, options *t.QueryOp
 		switch *item.Type {
 		case jellyfin.BASEITEMKIND_MOVIE:
 			historyItem.Item.Type = t.MEDIATYPE_MOVIE
+			mediaItemMovie, err := j.convertToMovie(ctx, &item)
+			if err != nil {
+				log.Warn().
+					Err(err).
+					Str("movieID", *item.Id).
+					Str("movieName", *item.Name.Get()).
+					Msg("Error converting Jellyfin item to movie format")
+				continue
+			}
+			historyItem.Item.SetData(&historyItem.Item, mediaItemMovie.Data)
 		case jellyfin.BASEITEMKIND_SERIES:
 			historyItem.Item.Type = t.MEDIATYPE_SHOW
+			mediaItemTVShow, err := j.convertToTVShow(ctx, &item)
+			if err != nil {
+				log.Warn().
+					Err(err).
+					Str("showID", *item.Id).
+					Str("showName", *item.Name.Get()).
+					Msg("Error converting Jellyfin item to TV show format")
+				continue
+			}
+			historyItem.Item.SetData(&historyItem.Item, mediaItemTVShow.Data)
 		case jellyfin.BASEITEMKIND_EPISODE:
 			historyItem.Item.Type = t.MEDIATYPE_EPISODE
+			mediaItemEpisode, err := j.convertToEpisode(ctx, &item)
+			if err != nil {
+				log.Warn().
+					Err(err).
+					Str("episodeID", *item.Id).
+					Str("episodeName", *item.Name.Get()).
+					Msg("Error converting Jellyfin item to episode format")
+				continue
+			}
+			historyItem.Item.SetData(&historyItem.Item, mediaItemEpisode.Data)
 
-			// Add additional episode info if available
-			if item.SeriesName.IsSet() {
-				historyItem.SeriesName = *item.SeriesName.Get()
-			}
-			if item.ParentIndexNumber.IsSet() {
-				historyItem.SeasonNumber = int(*item.ParentIndexNumber.Get())
-			}
-			if item.IndexNumber.IsSet() {
-				historyItem.EpisodeNumber = int(*item.IndexNumber.Get())
-			}
+		}
+
+		if *item.Type == jellyfin.BASEITEMKIND_EPISODE {
 		}
 
 		// Set last played date if available

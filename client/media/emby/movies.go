@@ -47,10 +47,10 @@ func (e *EmbyClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 		Msg("Successfully retrieved movies from Emby")
 
 	// Convert results to expected format
-	movies := make([]types.MediaItem[types.Movie], 0)
+	itemMovies := make([]types.MediaItem[types.Movie], 0)
 	for _, item := range items.Items {
 		if item.Type_ == "Movie" {
-			movie, err := e.convertToMovie(ctx, &item)
+			itemMovie, err := e.convertToMovie(ctx, &item)
 			if err != nil {
 				log.Warn().
 					Err(err).
@@ -59,15 +59,16 @@ func (e *EmbyClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 					Msg("Error converting Emby item to movie format")
 				continue
 			}
-			movies = append(movies, movie)
+
+			itemMovies = append(itemMovies, itemMovie)
 		}
 	}
 
 	log.Info().
-		Int("moviesReturned", len(movies)).
+		Int("moviesReturned", len(itemMovies)).
 		Msg("Completed GetMovies request")
 
-	return movies, nil
+	return itemMovies, nil
 }
 
 // GetMovieByID retrieves a specific movie by ID

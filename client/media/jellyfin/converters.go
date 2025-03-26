@@ -440,3 +440,553 @@ func (j *JellyfinClient) convertToMovie(ctx context.Context, item *jellyfin.Base
 
 	return movie, nil
 }
+
+func (j *JellyfinClient) convertToAlbum(ctx context.Context, item *jellyfin.BaseItemDto) (t.MediaItem[t.Album], error) {
+	// Get logger from context
+	log := utils.LoggerFromContext(ctx)
+
+	// Validate required fields
+	if item == nil {
+		return t.MediaItem[t.Album]{}, fmt.Errorf("cannot convert nil item to album")
+	}
+
+	if item.Id == nil || *item.Id == "" {
+		return t.MediaItem[t.Album]{}, fmt.Errorf("album is missing required ID field")
+	}
+
+	// Safely get name or fallback to empty string
+	title := ""
+	if item.Name.IsSet() {
+		title = *item.Name.Get()
+	}
+
+	log.Debug().
+		Str("albumID", *item.Id).
+		Str("albumName", title).
+		Msg("Converting Jellyfin item to album format")
+
+	// Safely handle optional fields
+	description := ""
+	if item.Overview.IsSet() {
+		description = *item.Overview.Get()
+	}
+
+	// Safely handle artist name
+	artistName := ""
+	if item.AlbumArtist.IsSet() {
+		artistName = *item.AlbumArtist.Get()
+	}
+
+	// Safely handle release year
+	releaseYear := 0
+	if item.ProductionYear.IsSet() {
+		releaseYear = int(*item.ProductionYear.Get())
+	}
+
+	// Safely handle track count
+	trackCount := 0
+	if item.ChildCount.IsSet() {
+		trackCount = int(*item.ChildCount.Get())
+	}
+
+	// Build album object
+	album := t.MediaItem[t.Album]{
+		Data: t.Album{
+			Details: t.MediaMetadata{
+				Title:       title,
+				Description: description,
+				ReleaseYear: releaseYear,
+				Artwork:     j.getArtworkURLs(item),
+			},
+			ArtistName: artistName,
+			TrackCount: trackCount,
+		},
+		Type: "album",
+	}
+
+	album.SetClientInfo(j.ClientID, j.ClientType, *item.Id)
+
+	// Add user rating if available
+	if item.UserData.IsSet() && item.UserData.Get().Rating.IsSet() {
+		album.Data.Details.UserRating = float32(*item.UserData.Get().Rating.Get())
+	}
+
+	// Add community rating if available
+	if item.CommunityRating.IsSet() {
+		album.Data.Details.Ratings = append(album.Data.Details.Ratings, t.Rating{
+			Source: "jellyfin",
+			Value:  float32(*item.CommunityRating.Get()),
+		})
+	}
+
+	// Extract provider IDs if available
+	extractProviderIDs(&item.ProviderIds, &album.Data.Details.ExternalIDs)
+
+	log.Debug().
+		Str("albumID", *item.Id).
+		Str("albumName", album.Data.Details.Title).
+		Str("artistName", album.Data.ArtistName).
+		Int("trackCount", album.Data.TrackCount).
+		Msg("Successfully converted Jellyfin item to album")
+
+	return album, nil
+}
+
+// Helper function to convert Jellyfin item to internal Season type
+func (j *JellyfinClient) convertToSeason(ctx context.Context, item *jellyfin.BaseItemDto) (t.MediaItem[t.Season], error) {
+	// Get logger from context
+	log := utils.LoggerFromContext(ctx)
+
+	// Validate required fields
+	if item == nil {
+		return t.MediaItem[t.Season]{}, fmt.Errorf("cannot convert nil item to season")
+	}
+
+	if item.Id == nil || *item.Id == "" {
+		return t.MediaItem[t.Season]{}, fmt.Errorf("season is missing required ID field")
+	}
+
+	// Safely get name or fallback to empty string
+	title := ""
+	if item.Name.IsSet() {
+		title = *item.Name.Get()
+	}
+
+	log.Debug().
+		Str("seasonID", *item.Id).
+		Str("seasonName", title).
+		Msg("Converting Jellyfin item to season format")
+
+	// Safely handle optional fields
+	description := ""
+	if item.Overview.IsSet() {
+		description = *item.Overview.Get()
+	}
+
+	// Safely handle season number
+	seasonNumber := 0
+	if item.IndexNumber.IsSet() {
+		seasonNumber = int(*item.IndexNumber.Get())
+	}
+
+	// Safely handle episode count
+	episodeCount := 0
+	if item.ChildCount.IsSet() {
+		episodeCount = int(*item.ChildCount.Get())
+	}
+
+	// Safely handle series name
+	seriesName := ""
+	if item.SeriesName.IsSet() {
+		seriesName = *item.SeriesName.Get()
+	}
+
+	// Safely handle series ID
+	seriesID := ""
+	if item.SeriesId.IsSet() {
+		seriesID = *item.SeriesId.Get()
+	}
+
+	// Build season object
+	season := t.MediaItem[t.Season]{
+		Data: t.Season{
+			Details: t.MediaMetadata{
+				Title:       title,
+				Description: description,
+				Artwork:     j.getArtworkURLs(item),
+			},
+			Number:       seasonNumber,
+			EpisodeCount: episodeCount,
+			SeriesName:   seriesName,
+			SeriesID:     seriesID,
+		},
+		Type: "season",
+	}
+
+	season.SetClientInfo(j.ClientID, j.ClientType, *item.Id)
+
+	// Add release year if available
+	if item.ProductionYear.IsSet() {
+		season.Data.Details.ReleaseYear = int(*item.ProductionYear.Get())
+	}
+
+	// Add premiere date if available
+	if item.PremiereDate.IsSet() {
+		season.Data.Details.ReleaseDate = *item.PremiereDate.Get()
+	}
+
+	// Add community rating if available
+	if item.CommunityRating.IsSet() {
+		season.Data.Details.Ratings = append(season.Data.Details.Ratings, t.Rating{
+			Source: "jellyfin",
+			Value:  float32(*item.CommunityRating.Get()),
+		})
+	}
+
+	// Add user rating if available
+	if item.UserData.IsSet() && item.UserData.Get().Rating.IsSet() {
+		season.Data.Details.UserRating = float32(*item.UserData.Get().Rating.Get())
+	}
+
+	// Extract provider IDs if available
+	extractProviderIDs(&item.ProviderIds, &season.Data.Details.ExternalIDs)
+
+	log.Debug().
+		Str("seasonID", *item.Id).
+		Str("seasonName", season.Data.Details.Title).
+		Int("seasonNumber", season.Data.Number).
+		Int("episodeCount", season.Data.EpisodeCount).
+		Msg("Successfully converted Jellyfin item to season")
+
+	return season, nil
+}
+
+func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.BaseItemDto) (t.MediaItem[t.MediaData], error) {
+
+	if item == nil {
+		return t.MediaItem[t.MediaData]{}, fmt.Errorf("cannot convert nil item to item")
+	}
+
+	var result t.MediaItem[t.MediaData]
+	// var err error
+
+	switch *item.Type {
+	case jellyfin.BASEITEMKIND_MOVIE:
+		movie, convErr := j.convertToMovie(ctx, item)
+		if convErr != nil {
+			return t.MediaItem[t.MediaData]{}, convErr
+		}
+		// Convert to generic MediaData
+		result.Type = movie.Type
+		result.ClientID = movie.ClientID
+		result.ExternalID = movie.ExternalID
+		result.ClientType = movie.ClientType
+		result.Data = movie.Data
+
+	case jellyfin.BASEITEMKIND_EPISODE:
+		episode, convErr := j.convertToEpisode(ctx, item)
+		if convErr != nil {
+			return t.MediaItem[t.MediaData]{}, convErr
+		}
+		result.Type = episode.Type
+		result.ClientID = episode.ClientID
+		result.ExternalID = episode.ExternalID
+		result.ClientType = episode.ClientType
+		result.Data = episode.Data
+	case jellyfin.BASEITEMKIND_MUSIC_ALBUM:
+		album, convErr := j.convertToAlbum(ctx, item)
+		if convErr != nil {
+			return t.MediaItem[t.MediaData]{}, convErr
+		}
+		result.Type = album.Type
+		result.ClientID = album.ClientID
+		result.ExternalID = album.ExternalID
+		result.ClientType = album.ClientType
+		result.Data = album.Data
+	case jellyfin.BASEITEMKIND_SERIES:
+		tvShow, convErr := j.convertToTVShow(ctx, item)
+		if convErr != nil {
+			return t.MediaItem[t.MediaData]{}, convErr
+		}
+		result.Type = tvShow.Type
+		result.ClientID = tvShow.ClientID
+		result.ExternalID = tvShow.ExternalID
+		result.ClientType = tvShow.ClientType
+		result.Data = tvShow.Data
+	case jellyfin.BASEITEMKIND_SEASON:
+		season, convErr := j.convertToSeason(ctx, item)
+		if convErr != nil {
+			return t.MediaItem[t.MediaData]{}, convErr
+		}
+		result.Type = season.Type
+		result.ClientID = season.ClientID
+		result.ExternalID = season.ExternalID
+		result.ClientType = season.ClientType
+		result.Data = season.Data
+	case jellyfin.BASEITEMKIND_AUDIO:
+		artist, convErr := j.convertToArtist(ctx, item)
+		if convErr != nil {
+			return t.MediaItem[t.MediaData]{}, convErr
+		}
+		result.Type = artist.Type
+		result.ClientID = artist.ClientID
+		result.ExternalID = artist.ExternalID
+		result.ClientType = artist.ClientType
+		result.Data = artist.Data
+	case jellyfin.BASEITEMKIND_PLAYLIST:
+		playlist, convErr := j.convertToPlaylist(ctx, item)
+		if convErr != nil {
+			return t.MediaItem[t.MediaData]{}, convErr
+		}
+		result.Type = playlist.Type
+		result.ClientID = playlist.ClientID
+		result.ExternalID = playlist.ExternalID
+		result.ClientType = playlist.ClientType
+		result.Data = playlist.Data
+	case jellyfin.BASEITEMKIND_COLLECTION_FOLDER:
+		collection, convErr := j.convertToCollection(ctx, item)
+		if convErr != nil {
+			return t.MediaItem[t.MediaData]{}, convErr
+		}
+		result.Type = collection.Type
+		result.ClientID = collection.ClientID
+		result.ExternalID = collection.ExternalID
+		result.ClientType = collection.ClientType
+		result.Data = collection.Data
+	default:
+		return t.MediaItem[t.MediaData]{}, fmt.Errorf("item type not supported")
+	}
+	return result, nil
+
+}
+
+//convertToArtist
+
+func (j *JellyfinClient) convertToArtist(ctx context.Context, item *jellyfin.BaseItemDto) (t.MediaItem[t.Artist], error) {
+	// Get logger from context
+	log := utils.LoggerFromContext(ctx)
+
+	// Validate required fields
+	if item == nil {
+		return t.MediaItem[t.Artist]{}, fmt.Errorf("cannot convert nil item to artist")
+	}
+
+	if item.Id == nil || *item.Id == "" {
+		return t.MediaItem[t.Artist]{}, fmt.Errorf("artist is missing required ID field")
+	}
+
+	// Safely get name or fallback to empty string
+	name := ""
+	if item.Name.IsSet() {
+		name = *item.Name.Get()
+	}
+
+	log.Debug().
+		Str("artistID", *item.Id).
+		Str("artistName", name).
+		Msg("Converting Jellyfin item to artist format")
+
+	// Safely handle optional fields
+	description := ""
+	if item.Overview.IsSet() {
+		description = *item.Overview.Get()
+	}
+
+	// Safely handle album count
+	albumCount := 0
+	if item.ChildCount.IsSet() {
+		albumCount = int(*item.ChildCount.Get())
+	}
+
+	// Safely handle genres
+	var genres []string
+	if item.Genres != nil {
+		genres = item.Genres
+	}
+
+	// Build artist object
+	artist := t.MediaItem[t.Artist]{
+		Data: t.Artist{
+			Details: t.MediaMetadata{
+				Title:       name,
+				Description: description,
+				Genres:      genres,
+				Artwork:     j.getArtworkURLs(item),
+			},
+			AlbumCount: albumCount,
+		},
+		Type: "artist",
+	}
+
+	artist.SetClientInfo(j.ClientID, j.ClientType, *item.Id)
+
+	// Add user rating if available
+	if item.UserData.IsSet() && item.UserData.Get().Rating.IsSet() {
+		artist.Data.Details.UserRating = float32(*item.UserData.Get().Rating.Get())
+	}
+
+	// Add community rating if available
+	if item.CommunityRating.IsSet() {
+		artist.Data.Details.Ratings = append(artist.Data.Details.Ratings, t.Rating{
+			Source: "jellyfin",
+			Value:  float32(*item.CommunityRating.Get()),
+		})
+	}
+
+	// Extract provider IDs if available
+	extractProviderIDs(&item.ProviderIds, &artist.Data.Details.ExternalIDs)
+
+	log.Debug().
+		Str("artistID", *item.Id).
+		Str("artistName", artist.Data.Details.Title).
+		Int("albumCount", len(artist.Data.Albums)).
+		Msg("Successfully converted Jellyfin item to artist")
+
+	return artist, nil
+}
+
+func (j *JellyfinClient) convertToPlaylist(ctx context.Context, item *jellyfin.BaseItemDto) (t.MediaItem[t.Playlist], error) {
+	// Get logger from context
+	log := utils.LoggerFromContext(ctx)
+
+	// Validate required fields
+	if item == nil {
+		return t.MediaItem[t.Playlist]{}, fmt.Errorf("cannot convert nil item to playlist")
+	}
+
+	if item.Id == nil || *item.Id == "" {
+		return t.MediaItem[t.Playlist]{}, fmt.Errorf("playlist is missing required ID field")
+	}
+
+	// Safely get name or fallback to empty string
+	title := ""
+	if item.Name.IsSet() {
+		title = *item.Name.Get()
+	}
+
+	log.Debug().
+		Str("playlistID", *item.Id).
+		Str("playlistName", title).
+		Msg("Converting Jellyfin item to playlist format")
+
+	// Safely handle optional fields
+	description := ""
+	if item.Overview.IsSet() {
+		description = *item.Overview.Get()
+	}
+
+	// Safely handle item count
+	itemCount := 0
+	if item.ChildCount.IsSet() {
+		itemCount = int(*item.ChildCount.Get())
+	}
+
+	// Build playlist object
+	playlist := t.MediaItem[t.Playlist]{
+		Data: t.Playlist{
+			Details: t.MediaMetadata{
+				Title:       title,
+				Description: description,
+				Artwork:     j.getArtworkURLs(item),
+			},
+			ItemCount: itemCount,
+			IsPublic:  true, // Assume public by default in Jellyfin
+		},
+		Type: "playlist",
+	}
+
+	playlist.SetClientInfo(j.ClientID, j.ClientType, *item.Id)
+
+	// Add community rating if available
+	if item.CommunityRating.IsSet() {
+		playlist.Data.Details.Ratings = append(playlist.Data.Details.Ratings, t.Rating{
+			Source: "jellyfin",
+			Value:  float32(*item.CommunityRating.Get()),
+		})
+	}
+
+	// Add user rating if available
+	if item.UserData.IsSet() && item.UserData.Get().Rating.IsSet() {
+		playlist.Data.Details.UserRating = float32(*item.UserData.Get().Rating.Get())
+	}
+
+	log.Debug().
+		Str("playlistID", *item.Id).
+		Str("playlistName", playlist.Data.Details.Title).
+		Int("itemCount", playlist.Data.ItemCount).
+		Msg("Successfully converted Jellyfin item to playlist")
+
+	return playlist, nil
+}
+
+// func (j *JellyfinClient) convertToSeason(ctx context.Context, item *jellyfin.BaseItemDto, showID string) (t.MediaItem[t.Season], error) {
+// 	// Get logger from context
+// 	log := utils.LoggerFromContext(ctx)
+//
+// 	// Validate required fields
+// 	if item == nil {
+// 		return t.MediaItem[t.Season]{}, fmt.Errorf("cannot convert nil item to season")
+// 	}
+//
+// 	if item.Id == nil || *item.Id == "" {
+// 		return t.MediaItem[t.Season]{}, fmt.Errorf("season is missing required ID field")
+// 	}
+//
+// 	// Safely get name or fallback to empty string
+// 	title := ""
+// 	if item.Name.IsSet() {
+// 		title = *item.Name.Get()
+// 	}
+//
+// 	log.Debug().
+// 		Str("seasonID", *item.Id).
+// 		Str("seasonName", title).
+// 		Str("showID", showID).
+// 		Msg("Converting Jellyfin item to season format")
+//
+// 	// Safely handle optional fields
+// 	description := ""
+// 	if item.Overview.IsSet() {
+// 		description = *item.Overview.Get()
+// 	}
+//
+// 	// Safely handle season number
+// 	seasonNumber := 0
+// 	if item.IndexNumber.IsSet() {
+// 		seasonNumber = int(*item.IndexNumber.Get())
+// 	}
+//
+// 	// Safely handle episode count
+// 	episodeCount := 0
+// 	if item.ChildCount.IsSet() {
+// 		episodeCount = int(*item.ChildCount.Get())
+// 	}
+//
+// 	// Create the basic season object
+// 	season := t.MediaItem[t.Season]{
+// 		Data: t.Season{
+// 			Details: t.MediaMetadata{
+// 				Title:       title,
+// 				Description: description,
+// 				Artwork:     j.getArtworkURLs(item),
+// 			},
+//
+// 			ParentID:     showID,
+// 			Number:       seasonNumber,
+// 			EpisodeCount: episodeCount,
+// 		},
+// 		Type: "season",
+// 	}
+//
+// 	season.SetClientInfo(j.ClientID, j.ClientType, *item.Id)
+//
+// 	// Safely set release date if available
+// 	if item.PremiereDate.IsSet() {
+// 		season.Data.ReleaseDate = *item.PremiereDate.Get()
+// 	}
+//
+// 	// Add community rating if available
+// 	if item.CommunityRating.IsSet() {
+// 		season.Data.Details.Ratings = append(season.Data.Details.Ratings, t.Rating{
+// 			Source: "jellyfin",
+// 			Value:  float32(*item.CommunityRating.Get()),
+// 		})
+// 	}
+//
+// 	// Add user rating if available
+// 	if item.UserData.IsSet() && item.UserData.Get().Rating.IsSet() {
+// 		season.Data.Details.UserRating = float32(*item.UserData.Get().Rating.Get())
+// 	}
+//
+// 	// Extract provider IDs if available
+// 	extractProviderIDs(&item.ProviderIds, &season.Data.Details.ExternalIDs)
+//
+// 	log.Debug().
+// 		Str("seasonID", *item.Id).
+// 		Str("seasonName", season.Data.Details.Title).
+// 		Int("seasonNumber", season.Data.Number).
+// 		Int("episodeCount", season.Data.EpisodeCount).
+// 		Msg("Successfully converted Jellyfin item to season")
+//
+// 	return season, nil
+// }

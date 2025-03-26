@@ -187,10 +187,10 @@ func (e *EmbyClient) GetTVShowEpisodes(ctx context.Context, showID string, seaso
 		return nil, fmt.Errorf("failed to fetch episodes: %w", err)
 	}
 
-	episodes := make([]types.MediaItem[types.Episode], 0)
+	mediaItemEpisodes := make([]types.MediaItem[types.Episode], 0)
 	for _, item := range items.Items {
 		if item.Type_ == "Episode" && int(item.ParentIndexNumber) == seasonNumber {
-			episode, err := e.convertToEpisode(&item, showID, seasonNumber)
+			episode, err := e.convertToEpisode(&item)
 			if err != nil {
 				log.Warn().
 					Err(err).
@@ -199,11 +199,19 @@ func (e *EmbyClient) GetTVShowEpisodes(ctx context.Context, showID string, seaso
 					Msg("Error converting Emby item to episode format")
 				continue
 			}
-			episodes = append(episodes, episode)
+			if err != nil {
+				log.Warn().
+					Err(err).
+					Str("episodeID", item.Id).
+					Str("episodeName", item.Name).
+					Msg("Error converting Emby item to episode format")
+				continue
+			}
+			mediaItemEpisodes = append(mediaItemEpisodes, episode)
 		}
 	}
 
-	return episodes, nil
+	return mediaItemEpisodes, nil
 }
 
 // GetEpisodeByID retrieves a specific episode by ID
@@ -249,5 +257,5 @@ func (e *EmbyClient) GetEpisodeByID(ctx context.Context, id string) (types.Media
 		return types.MediaItem[types.Episode]{}, fmt.Errorf("item with ID %s is not an episode", id)
 	}
 
-	return e.convertToEpisode(&item, item.SeriesId, int(item.ParentIndexNumber))
+	return e.convertToEpisode(&item)
 }

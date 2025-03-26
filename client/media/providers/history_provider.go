@@ -5,8 +5,8 @@ import (
 	"suasor/client/media/types"
 )
 
-// WatchHistoryProvider defines watch history capabilities
-type WatchHistoryProvider interface {
-	SupportsWatchHistory() bool
-	GetWatchHistory(ctx context.Context, options *types.QueryOptions) ([]types.WatchHistoryItem[types.MediaData], error)
+// HistoryProvider defines watch and play history capabilities
+type HistoryProvider interface {
+	SupportsHistory() bool
+	GetPlayHistory(ctx context.Context, options *types.QueryOptions) ([]types.MediaPlayHistory[types.MediaData], error)
 }

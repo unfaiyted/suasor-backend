@@ -160,98 +160,6 @@ func (j *JellyfinClient) GetTVShowByID(ctx context.Context, id string) (t.MediaI
 	return show, nil
 }
 
-func (j *JellyfinClient) convertToSeason(ctx context.Context, item *jellyfin.BaseItemDto, showID string) (t.MediaItem[t.Season], error) {
-	// Get logger from context
-	log := utils.LoggerFromContext(ctx)
-
-	// Validate required fields
-	if item == nil {
-		return t.MediaItem[t.Season]{}, fmt.Errorf("cannot convert nil item to season")
-	}
-
-	if item.Id == nil || *item.Id == "" {
-		return t.MediaItem[t.Season]{}, fmt.Errorf("season is missing required ID field")
-	}
-
-	// Safely get name or fallback to empty string
-	title := ""
-	if item.Name.IsSet() {
-		title = *item.Name.Get()
-	}
-
-	log.Debug().
-		Str("seasonID", *item.Id).
-		Str("seasonName", title).
-		Str("showID", showID).
-		Msg("Converting Jellyfin item to season format")
-
-	// Safely handle optional fields
-	description := ""
-	if item.Overview.IsSet() {
-		description = *item.Overview.Get()
-	}
-
-	// Safely handle season number
-	seasonNumber := 0
-	if item.IndexNumber.IsSet() {
-		seasonNumber = int(*item.IndexNumber.Get())
-	}
-
-	// Safely handle episode count
-	episodeCount := 0
-	if item.ChildCount.IsSet() {
-		episodeCount = int(*item.ChildCount.Get())
-	}
-
-	// Create the basic season object
-	season := t.MediaItem[t.Season]{
-		Data: t.Season{
-			Details: t.MediaMetadata{
-				Title:       title,
-				Description: description,
-				Artwork:     j.getArtworkURLs(item),
-			},
-
-			ParentID:     showID,
-			Number:       seasonNumber,
-			EpisodeCount: episodeCount,
-		},
-		Type: "season",
-	}
-
-	season.SetClientInfo(j.ClientID, j.ClientType, *item.Id)
-
-	// Safely set release date if available
-	if item.PremiereDate.IsSet() {
-		season.Data.ReleaseDate = *item.PremiereDate.Get()
-	}
-
-	// Add community rating if available
-	if item.CommunityRating.IsSet() {
-		season.Data.Details.Ratings = append(season.Data.Details.Ratings, t.Rating{
-			Source: "jellyfin",
-			Value:  float32(*item.CommunityRating.Get()),
-		})
-	}
-
-	// Add user rating if available
-	if item.UserData.IsSet() && item.UserData.Get().Rating.IsSet() {
-		season.Data.Details.UserRating = float32(*item.UserData.Get().Rating.Get())
-	}
-
-	// Extract provider IDs if available
-	extractProviderIDs(&item.ProviderIds, &season.Data.Details.ExternalIDs)
-
-	log.Debug().
-		Str("seasonID", *item.Id).
-		Str("seasonName", season.Data.Details.Title).
-		Int("seasonNumber", season.Data.Number).
-		Int("episodeCount", season.Data.EpisodeCount).
-		Msg("Successfully converted Jellyfin item to season")
-
-	return season, nil
-}
-
 func (j *JellyfinClient) GetTVShowSeasons(ctx context.Context, showID string) ([]t.MediaItem[t.Season], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
@@ -294,7 +202,7 @@ func (j *JellyfinClient) GetTVShowSeasons(ctx context.Context, showID string) ([
 	seasons := make([]t.MediaItem[t.Season], 0)
 	for _, item := range result.Items {
 		if *item.Type == "Season" {
-			season, err := j.convertToSeason(ctx, &item, showID)
+			season, err := j.convertToSeason(ctx, &item)
 			if err != nil {
 				// Log error but continue
 				log.Warn().

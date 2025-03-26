@@ -119,8 +119,8 @@ func TestJellyfinClientIntegration(t *testing.T) {
 		t.Log("Client does not support CollectionProvider interface")
 	}
 
-	if watchHistoryProvider, ok := media.AsWatchHistoryProvider(client); ok {
-		t.Run("TestWatchHistoryProvider", func(t *testing.T) {
+	if watchHistoryProvider, ok := media.AsHistoryProvider(client); ok {
+		t.Run("TestHistoryProvider", func(t *testing.T) {
 			testGetWatchHistory(t, ctx, watchHistoryProvider)
 		})
 	} else {
@@ -325,8 +325,8 @@ func testGetPlaylists(t *testing.T, ctx context.Context, client providers.Playli
 }
 
 // Test getting watch history
-func testGetWatchHistory(t *testing.T, ctx context.Context, client providers.WatchHistoryProvider) {
-	history, err := client.GetWatchHistory(ctx, &types.QueryOptions{Limit: 10})
+func testGetWatchHistory(t *testing.T, ctx context.Context, client providers.HistoryProvider) {
+	history, err := client.GetPlayHistory(ctx, &types.QueryOptions{Limit: 10})
 	require.NoError(t, err)
 
 	t.Logf("Got %d watch history items", len(history))

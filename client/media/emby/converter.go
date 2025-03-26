@@ -10,23 +10,62 @@ import (
 	"suasor/utils"
 )
 
-func (e *EmbyClient) convertToWatchHistoryItem(item *embyclient.BaseItemDto) (types.WatchHistoryItem[types.MediaData], error) {
+func (e *EmbyClient) convertToWatchHistoryItem(ctx context.Context, item *embyclient.BaseItemDto) (types.MediaPlayHistory[types.MediaData], error) {
 	if item == nil || item.UserData == nil {
-		return types.WatchHistoryItem[types.MediaData]{}, fmt.Errorf("cannot convert nil item to watch history item")
+		return types.MediaPlayHistory[types.MediaData]{}, fmt.Errorf("cannot convert nil item to watch history item")
 	}
 
 	// TODO: Needs to properly handle other types
-	var watchData types.MediaData
+	var watchData types.MediaItem[types.MediaData]
+	watchData.SetClientInfo(e.ClientID, e.ClientType, item.Id)
 	// TODO: find emby types list
 	if item.Type_ == "Movie" {
-		watchData = types.Movie{}
+		mediaItemMovie, err := e.convertToMovie(ctx, item)
+		if err != nil {
+			return types.MediaPlayHistory[types.MediaData]{}, err
+		}
+		watchData.SetData(&watchData, mediaItemMovie.GetData())
+	} else if item.Type_ == "Episode" {
+		mediaItemEpisode, err := e.convertToEpisode(item)
+		if err != nil {
+			return types.MediaPlayHistory[types.MediaData]{}, err
+		}
+		watchData.SetData(&watchData, mediaItemEpisode.GetData())
+	} else if item.Type_ == "Audio" {
+		mediaItemMusic, err := e.convertToTrack(item)
+		if err != nil {
+			return types.MediaPlayHistory[types.MediaData]{}, err
+		}
+		watchData.SetData(&watchData, mediaItemMusic.GetData())
+	} else if item.Type_ == "Playlist" {
+		mediaItemPlaylist, err := e.convertToPlaylist(item)
+		if err != nil {
+			return types.MediaPlayHistory[types.MediaData]{}, err
+		}
+		watchData.SetData(&watchData, mediaItemPlaylist.GetData())
+	} else if item.Type_ == "Series" {
+		mediaItemTVShow, err := e.convertToTVShow(item)
+		if err != nil {
+			return types.MediaPlayHistory[types.MediaData]{}, err
+		}
+		watchData.SetData(&watchData, mediaItemTVShow.GetData())
+	} else if item.Type_ == "Season" {
+		mediaItemSeason, err := e.convertToSeason(item, item.ParentId)
+		if err != nil {
+			return types.MediaPlayHistory[types.MediaData]{}, err
+		}
+		watchData.SetData(&watchData, mediaItemSeason.GetData())
+	} else if item.Type_ == "Collection" {
+		mediaItemCollection, err := e.convertToCollection(item)
+		if err != nil {
+			return types.MediaPlayHistory[types.MediaData]{}, err
+		}
+		watchData.SetData(&watchData, mediaItemCollection.GetData())
 	}
 
-	watchItem := types.WatchHistoryItem[types.MediaData]{
-		Item: types.MediaItem[types.MediaData]{
-			Data: watchData,
-		},
-		ItemType:        string(item.Type_),
+	watchItem := types.MediaPlayHistory[types.MediaData]{
+		Item:            watchData,
+		Type:            string(item.Type_),
 		WatchedAt:       item.UserData.LastPlayedDate,
 		IsFavorite:      item.UserData.IsFavorite,
 		PlayCount:       item.UserData.PlayCount,
@@ -79,31 +118,33 @@ func (e *EmbyClient) convertToMovie(ctx context.Context, item *embyclient.BaseIt
 	}
 
 	// Build movie object with safe handling of optional fields
-	movie := types.MediaItem[types.Movie]{
-		Data: types.Movie{
-			Details: types.MediaMetadata{
-				Title:       item.Name,
-				Description: item.Overview,
-				ReleaseDate: item.PremiereDate,
-				ReleaseYear: releaseYear,
-				Genres:      item.Genres,
-				Artwork:     e.getArtworkURLs(item),
-				Duration:    time.Duration(item.RunTimeTicks/10000000) * time.Second,
-				Ratings: types.Ratings{
-					types.Rating{
-						Source: "emby",
-						Value:  float32(item.CommunityRating),
-					},
+	movie := types.Movie{
+		Details: types.MediaMetadata{
+			Title:       item.Name,
+			Description: item.Overview,
+			ReleaseDate: item.PremiereDate,
+			ReleaseYear: releaseYear,
+			Genres:      item.Genres,
+			Artwork:     e.getArtworkURLs(item),
+			Duration:    time.Duration(item.RunTimeTicks/10000000) * time.Second,
+			Ratings: types.Ratings{
+				types.Rating{
+					Source: "emby",
+					Value:  float32(item.CommunityRating),
 				},
 			},
 		},
-		Type: "movie",
 	}
-	movie.SetClientInfo(e.ClientID, e.ClientType, item.Id)
+
+	mediaItemMovie := types.MediaItem[types.Movie]{
+		Data: movie,
+		Type: movie.GetMediaType(),
+	}
+	mediaItemMovie.SetClientInfo(e.ClientID, e.ClientType, item.Id)
 
 	// Only set UserRating if UserData is not nil
 	if item.UserData != nil {
-		movie.Data.Details.UserRating = float32(item.UserData.Rating)
+		movie.Details.UserRating = float32(item.UserData.Rating)
 	} else {
 		log.Debug().
 			Str("movieID", item.Id).
@@ -114,20 +155,20 @@ func (e *EmbyClient) convertToMovie(ctx context.Context, item *embyclient.BaseIt
 	if item.ProviderIds != nil {
 		ids := *item.ProviderIds
 		if imdbID, ok := ids["Imdb"]; ok {
-			movie.Data.Details.ExternalIDs.AddOrUpdate("imdb", imdbID)
+			movie.Details.ExternalIDs.AddOrUpdate("imdb", imdbID)
 		}
 		if tmdbID, ok := ids["Tmdb"]; ok {
-			movie.Data.Details.ExternalIDs.AddOrUpdate("tmdb", tmdbID)
+			movie.Details.ExternalIDs.AddOrUpdate("tmdb", tmdbID)
 		}
 	}
 
 	log.Debug().
 		Str("movieID", item.Id).
-		Str("movieTitle", movie.Data.Details.Title).
-		Int("year", movie.Data.Details.ReleaseYear).
+		Str("movieTitle", movie.Details.Title).
+		Int("year", movie.Details.ReleaseYear).
 		Msg("Successfully converted Emby item to movie")
 
-	return movie, nil
+	return mediaItemMovie, nil
 }
 
 func (e *EmbyClient) convertToTrack(item *embyclient.BaseItemDto) (types.MediaItem[types.Track], error) {
@@ -234,21 +275,22 @@ func (e *EmbyClient) convertToPlaylist(item *embyclient.BaseItemDto) (types.Medi
 		return types.MediaItem[types.Playlist]{}, fmt.Errorf("cannot convert nil item to playlist")
 	}
 
-	playlist := types.MediaItem[types.Playlist]{
-		Data: types.Playlist{
-			Details: types.MediaMetadata{
-				Title:       item.Name,
-				Description: item.Overview,
-				Artwork:     e.getArtworkURLs(item),
-			},
-			ItemCount: int(item.ChildCount),
-			IsPublic:  true, // Assume public by default in Emby
+	playlist := types.Playlist{
+		Details: types.MediaMetadata{
+			Title:       item.Name,
+			Description: item.Overview,
+			Artwork:     e.getArtworkURLs(item),
 		},
-		Type: "playlist",
+		ItemCount: int(item.ChildCount),
+		IsPublic:  true, // Assume public by default in Emby
 	}
-	playlist.SetClientInfo(e.ClientID, e.ClientType, item.Id)
+	mediaItemPlaylist := types.MediaItem[types.Playlist]{
+		Data: playlist,
+		Type: playlist.GetMediaType(),
+	}
+	mediaItemPlaylist.SetClientInfo(e.ClientID, e.ClientType, item.Id)
 
-	return playlist, nil
+	return mediaItemPlaylist, nil
 }
 
 // Note: This is a duplicate of the first function and should be removed
@@ -305,7 +347,7 @@ func (e *EmbyClient) convertToSeason(item *embyclient.BaseItemDto, showID string
 				Description: item.Overview,
 				Artwork:     e.getArtworkURLs(item),
 			},
-			ParentID:     showID,
+			SeriesID:     showID,
 			Number:       int(item.IndexNumber),
 			EpisodeCount: int(item.ChildCount),
 		},
@@ -320,42 +362,44 @@ func (e *EmbyClient) convertToSeason(item *embyclient.BaseItemDto, showID string
 	return season, nil
 }
 
-func (e *EmbyClient) convertToEpisode(item *embyclient.BaseItemDto, showID string, seasonNumber int) (types.MediaItem[types.Episode], error) {
+func (e *EmbyClient) convertToEpisode(item *embyclient.BaseItemDto) (types.MediaItem[types.Episode], error) {
 	if item == nil {
 		return types.MediaItem[types.Episode]{}, fmt.Errorf("cannot convert nil item to episode")
 	}
 
-	episode := types.MediaItem[types.Episode]{
-		Data: types.Episode{
-			Details: types.MediaMetadata{
-				Title:       item.Name,
-				Description: item.Overview,
-				Artwork:     e.getArtworkURLs(item),
-				Duration:    time.Duration(item.RunTimeTicks/10000000) * time.Second,
-			},
-			Number:       int64(item.IndexNumber),
-			ShowID:       showID,
-			SeasonID:     item.SeasonId,
-			SeasonNumber: seasonNumber,
-			ShowTitle:    item.SeriesName,
+	episode := types.Episode{
+		Details: types.MediaMetadata{
+			Title:       item.Name,
+			Description: item.Overview,
+			Artwork:     e.getArtworkURLs(item),
+			Duration:    time.Duration(item.RunTimeTicks/10000000) * time.Second,
 		},
-		Type: "episode",
+		Number:       int64(item.IndexNumber),
+		ShowID:       item.SeriesId,
+		SeasonID:     item.SeasonId,
+		SeasonNumber: int(item.ParentIndexNumber),
+		ShowTitle:    item.SeriesName,
 	}
-	episode.SetClientInfo(e.ClientID, e.ClientType, item.Id)
+
+	mediaItemEpisde := types.MediaItem[types.Episode]{
+		Data: episode,
+		Type: episode.GetMediaType(),
+	}
+	mediaItemEpisde.SetClientInfo(e.ClientID, e.ClientType, item.Id)
 
 	// Add external IDs
 	if item.ProviderIds != nil {
 		ids := *item.ProviderIds
 		if imdbID, ok := ids["Imdb"]; ok {
-			episode.Data.Details.ExternalIDs.AddOrUpdate("imdb", imdbID)
+			episode.Details.ExternalIDs.AddOrUpdate("imdb", imdbID)
 		}
 		if tmdbID, ok := ids["Tmdb"]; ok {
-			episode.Data.Details.ExternalIDs.AddOrUpdate("tmdb", tmdbID)
+			episode.Details.ExternalIDs.AddOrUpdate("tmdb", tmdbID)
 		}
 		if tvdbID, ok := ids["Tvdb"]; ok {
-			episode.Data.Details.ExternalIDs.AddOrUpdate("tvdb", tvdbID)
+			episode.Details.ExternalIDs.AddOrUpdate("tvdb", tvdbID)
 		}
 	}
 
-	return episode, nil
+	return mediaItemEpisde, nil
 }

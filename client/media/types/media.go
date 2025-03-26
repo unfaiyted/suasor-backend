@@ -8,6 +8,7 @@ import (
 type Artist struct {
 	Details        MediaMetadata
 	Albums         []string `json:"albumIDs,omitempty"`
+	AlbumCount     int      `json:"albumCount"`
 	Biography      string   `json:"biography,omitempty"`
 	SimilarArtists []string `json:"similarArtists,omitempty"`
 }
@@ -44,7 +45,8 @@ type Season struct {
 	EpisodeCount int       `json:"episodeCount"`
 	Artwork      Artwork   `json:"artwork,omitempty"`
 	ReleaseDate  time.Time `json:"releaseDate,omitempty"`
-	ParentID     string    `json:"parentID,omitempty"`
+	SeriesName   string    `json:"seriesName,omitempty"`
+	SeriesID     string    `json:"seriesID"`
 }
 
 // Episode represents a TV episode
@@ -88,10 +90,10 @@ type Playlist struct {
 	IsPublic  bool     `json:"isPublic"`
 }
 
-// WatchHistoryItem represents an item in watch history
-type WatchHistoryItem[T MediaData] struct {
+// HistoryItem represents an item in watch history
+type MediaPlayHistory[T MediaData] struct {
 	Item             MediaItem[T]
-	ItemType         string    `json:"itemType"` // "movie", "episode" , "show","season"
+	Type             string    `json:"type"` // "movie", "episode" , "show","season"
 	WatchedAt        time.Time `json:"watchedAt"`
 	LastWatchedAt    time.Time `json:"lastWatchedAt"`
 	IsFavorite       bool      `json:"isFavorite,omitempty"`
@@ -100,9 +102,6 @@ type WatchHistoryItem[T MediaData] struct {
 	PositionSeconds  int       `json:"positionSeconds"`
 	DurationSeconds  int       `json:"durationSeconds"`
 	Completed        bool      `json:"completed"`
-	SeriesName       string    `json:"seriesName,omiempty"`
-	SeasonNumber     int       `json:"seasonNumber,omitempty"`
-	EpisodeNumber    int       `json:"episodeNumber,omitempty"`
 }
 
 // Movie represents a movie item
@@ -127,6 +126,91 @@ type MediaItem[T MediaData] struct {
 	StreamURL   string          `json:"streamUrl,omitempty"`
 	DownloadURL string          `json:"downloadUrl,omitempty"`
 	Data        T
+}
+
+func (m *MediaItem[T]) SetData(i *MediaItem[T], data T) {
+	i.Data = data
+}
+
+func (m *MediaItem[T]) AsEpisode() (MediaItem[Episode], bool) {
+	if m.Type != MEDIATYPE_EPISODE {
+		return MediaItem[Episode]{}, false
+	}
+	episode, ok := any(m).(MediaItem[Episode])
+
+	return episode, ok
+}
+
+func (m *MediaItem[T]) AsMovie() (MediaItem[Movie], bool) {
+	if m.Type != MEDIATYPE_MOVIE {
+		return MediaItem[Movie]{}, false
+	}
+	movie, ok := any(m).(MediaItem[Movie])
+
+	return movie, ok
+}
+
+func (m *MediaItem[T]) AsTVShow() (MediaItem[TVShow], bool) {
+	if m.Type != MEDIATYPE_SHOW {
+		return MediaItem[TVShow]{}, false
+	}
+	show, ok := any(m).(MediaItem[TVShow])
+
+	return show, ok
+}
+
+func (m *MediaItem[T]) AsSeason() (MediaItem[Season], bool) {
+	if m.Type != MEDIATYPE_SEASON {
+		return MediaItem[Season]{}, false
+	}
+	season, ok := any(m).(MediaItem[Season])
+
+	return season, ok
+}
+
+func (m *MediaItem[T]) AsTrack() (MediaItem[Track], bool) {
+	if m.Type != MEDIATYPE_TRACK {
+		return MediaItem[Track]{}, false
+	}
+	track, ok := any(m).(MediaItem[Track])
+
+	return track, ok
+}
+
+func (m *MediaItem[T]) AsAlbum() (MediaItem[Album], bool) {
+	if m.Type != MEDIATYPE_ALBUM {
+		return MediaItem[Album]{}, false
+	}
+	album, ok := any(m).(MediaItem[Album])
+
+	return album, ok
+}
+
+func (m *MediaItem[T]) AsArtist() (MediaItem[Artist], bool) {
+	if m.Type != MEDIATYPE_ARTIST {
+		return MediaItem[Artist]{}, false
+	}
+	artist, ok := any(m).(MediaItem[Artist])
+
+	return artist, ok
+}
+
+func (m *MediaItem[T]) AsCollection() (MediaItem[Collection], bool) {
+	if m.Type != MEDIATYPE_COLLECTION {
+		return MediaItem[Collection]{}, false
+	}
+	collection, ok := any(m).(MediaItem[Collection])
+
+	return collection, ok
+}
+
+func (m *MediaItem[T]) AsPlaylist() (MediaItem[Playlist], bool) {
+	if m.Type != MEDIATYPE_PLAYLIST {
+		return MediaItem[Playlist]{}, false
+	}
+	playlist, ok := any(m).(MediaItem[Playlist])
+
+	return playlist, ok
 }
 
 // Artwork holds different types of artwork
