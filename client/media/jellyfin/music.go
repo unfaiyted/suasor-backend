@@ -6,10 +6,11 @@ import (
 
 	jellyfin "github.com/sj14/jellyfin-go/api"
 	t "suasor/client/media/types"
+	"suasor/types/models"
 	"suasor/utils"
 )
 
-func (j *JellyfinClient) GetMusic(ctx context.Context, options *t.QueryOptions) ([]t.MediaItem[t.Track], error) {
+func (j *JellyfinClient) GetMusic(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[t.Track], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -54,10 +55,10 @@ func (j *JellyfinClient) GetMusic(ctx context.Context, options *t.QueryOptions) 
 		Msg("Successfully retrieved music tracks from Jellyfin")
 
 	// Convert results to expected format
-	tracks := make([]t.MediaItem[t.Track], 0)
+	tracks := make([]models.MediaItem[t.Track], 0)
 	for _, item := range result.Items {
 		if *item.Type == "Audio" {
-			track := t.MediaItem[t.Track]{
+			track := models.MediaItem[t.Track]{
 				Data: t.Track{
 					Details: t.MediaMetadata{
 						Title:       *item.Name.Get(),
@@ -99,7 +100,7 @@ func (j *JellyfinClient) GetMusic(ctx context.Context, options *t.QueryOptions) 
 	return tracks, nil
 }
 
-func (j *JellyfinClient) GetMusicArtists(ctx context.Context, options *t.QueryOptions) ([]t.MediaItem[t.Artist], error) {
+func (j *JellyfinClient) GetMusicArtists(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[t.Artist], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -139,10 +140,10 @@ func (j *JellyfinClient) GetMusicArtists(ctx context.Context, options *t.QueryOp
 		Msg("Successfully retrieved music artists from Jellyfin")
 
 	// Convert results to expected format
-	artists := make([]t.MediaItem[t.Artist], 0)
+	artists := make([]models.MediaItem[t.Artist], 0)
 
 	for _, item := range result.Items {
-		artist := t.MediaItem[t.Artist]{
+		artist := models.MediaItem[t.Artist]{
 			Data: t.Artist{
 				Details: t.MediaMetadata{
 					Title:       *item.Name.Get(),
@@ -168,7 +169,7 @@ func (j *JellyfinClient) GetMusicArtists(ctx context.Context, options *t.QueryOp
 	return artists, nil
 }
 
-func (j *JellyfinClient) GetMusicAlbums(ctx context.Context, options *t.QueryOptions) ([]t.MediaItem[t.Album], error) {
+func (j *JellyfinClient) GetMusicAlbums(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[t.Album], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -213,9 +214,9 @@ func (j *JellyfinClient) GetMusicAlbums(ctx context.Context, options *t.QueryOpt
 		Msg("Successfully retrieved music albums from Jellyfin")
 
 	// Convert results to expected format
-	albums := make([]t.MediaItem[t.Album], 0)
+	albums := make([]models.MediaItem[t.Album], 0)
 	for _, item := range result.Items {
-		album := t.MediaItem[t.Album]{
+		album := models.MediaItem[t.Album]{
 			Data: t.Album{
 				Details: t.MediaMetadata{
 					Title:       *item.Name.Get(),
@@ -248,7 +249,7 @@ func (j *JellyfinClient) GetMusicAlbums(ctx context.Context, options *t.QueryOpt
 	return albums, nil
 }
 
-func (j *JellyfinClient) GetMusicTrackByID(ctx context.Context, id string) (t.MediaItem[t.Track], error) {
+func (j *JellyfinClient) GetMusicTrackByID(ctx context.Context, id string) (models.MediaItem[t.Track], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -280,7 +281,7 @@ func (j *JellyfinClient) GetMusicTrackByID(ctx context.Context, id string) (t.Me
 			Str("trackID", id).
 			Int("statusCode", 0).
 			Msg("Failed to fetch music track from Jellyfin")
-		return t.MediaItem[t.Track]{}, fmt.Errorf("failed to fetch music track: %w", err)
+		return models.MediaItem[t.Track]{}, fmt.Errorf("failed to fetch music track: %w", err)
 	}
 
 	// Check if any items were returned
@@ -289,7 +290,7 @@ func (j *JellyfinClient) GetMusicTrackByID(ctx context.Context, id string) (t.Me
 			Str("trackID", id).
 			Int("statusCode", resp.StatusCode).
 			Msg("No music track found with the specified ID")
-		return t.MediaItem[t.Track]{}, fmt.Errorf("music track with ID %s not found", id)
+		return models.MediaItem[t.Track]{}, fmt.Errorf("music track with ID %s not found", id)
 	}
 
 	item := result.Items[0]
@@ -300,7 +301,7 @@ func (j *JellyfinClient) GetMusicTrackByID(ctx context.Context, id string) (t.Me
 			Str("trackID", id).
 			Str("actualType", baseItemKindToString(*item.Type)).
 			Msg("Item with specified ID is not a music track")
-		return t.MediaItem[t.Track]{}, fmt.Errorf("item with ID %s is not a music track", id)
+		return models.MediaItem[t.Track]{}, fmt.Errorf("item with ID %s is not a music track", id)
 	}
 
 	log.Info().
@@ -309,7 +310,7 @@ func (j *JellyfinClient) GetMusicTrackByID(ctx context.Context, id string) (t.Me
 		Str("trackName", *item.Name.Get()).
 		Msg("Successfully retrieved music track from Jellyfin")
 
-	track := t.MediaItem[t.Track]{
+	track := models.MediaItem[t.Track]{
 		Data: t.Track{
 			Details: t.MediaMetadata{
 				Title:       *item.Name.Get(),

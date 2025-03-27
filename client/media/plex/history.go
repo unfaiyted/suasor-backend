@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"suasor/client/media/types"
+	"suasor/types/models"
 	"suasor/utils"
 )
 
 // GetWatchHistory retrieves watch history from Plex
-func (c *PlexClient) GetPlayHistory(ctx context.Context, options *types.QueryOptions) ([]types.MediaPlayHistory[types.MediaData], error) {
+func (c *PlexClient) GetPlayHistory(ctx context.Context, options *types.QueryOptions) ([]models.MediaPlayHistory[types.MediaData], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -24,5 +25,5 @@ func (c *PlexClient) GetPlayHistory(ctx context.Context, options *types.QueryOpt
 		Msg("Watch history retrieval not yet implemented for Plex")
 
 	// This would require querying Plex for watch history
-	return []types.MediaPlayHistory[types.MediaData]{}, fmt.Errorf("Watch history retrieval not yet implemented for Plex")
+	return []models.MediaPlayHistory[types.MediaData]{}, fmt.Errorf("Watch history retrieval not yet implemented for Plex")
 }

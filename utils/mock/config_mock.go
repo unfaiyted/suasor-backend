@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"suasor/models"
+	"suasor/types/models"
 )
 
 // mock_utils/mock_config.go

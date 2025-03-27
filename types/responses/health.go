@@ -1,4 +1,4 @@
-package models
+package responses
 
 // HealthResponse contains information about system health
 type HealthResponse struct {

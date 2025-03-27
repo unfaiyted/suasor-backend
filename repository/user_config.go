@@ -4,7 +4,7 @@ package repository
 import (
 	"context"
 	"fmt"
-	"suasor/models"
+	"suasor/types/models"
 
 	"gorm.io/gorm"
 )

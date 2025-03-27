@@ -9,6 +9,7 @@ import (
 	base "suasor/client"
 	media "suasor/client/media"
 	t "suasor/client/media/types"
+	client "suasor/client/types"
 	"suasor/utils"
 )
 
@@ -16,12 +17,12 @@ import (
 type JellyfinClient struct {
 	base.BaseMediaClient
 	client *jellyfin.APIClient
-	config t.JellyfinConfig
+	config client.JellyfinConfig
 }
 
 // NewJellyfinClient creates a new Jellyfin client instance
-func NewJellyfinClient(ctx context.Context, clientID uint64, config t.ClientConfig) (media.MediaClient, error) {
-	cfg, ok := config.(t.JellyfinConfig)
+func NewJellyfinClient(ctx context.Context, clientID uint64, config client.ClientConfig) (media.MediaClient, error) {
+	cfg, ok := config.(client.JellyfinConfig)
 	if !ok {
 		return nil, fmt.Errorf("invalid configuration for Jellyfin client")
 	}
@@ -32,14 +33,14 @@ func NewJellyfinClient(ctx context.Context, clientID uint64, config t.ClientConf
 		DefaultHeader: map[string]string{"Authorization": fmt.Sprintf(`MediaBrowser Token="%s"`, cfg.APIKey)},
 	}
 
-	client := jellyfin.NewAPIClient(apiConfig)
+	jfClient := jellyfin.NewAPIClient(apiConfig)
 
 	jellyfinClient := &JellyfinClient{
 		BaseMediaClient: base.BaseMediaClient{
 			ClientID:   clientID,
-			ClientType: t.MediaClientTypeJellyfin,
+			ClientType: client.MediaClientTypeJellyfin,
 		},
-		client: client,
+		client: jfClient,
 		config: cfg,
 	}
 
@@ -59,7 +60,7 @@ func NewJellyfinClient(ctx context.Context, clientID uint64, config t.ClientConf
 
 // Register the provider factory
 func init() {
-	media.RegisterProvider(t.MediaClientTypeJellyfin, NewJellyfinClient)
+	media.RegisterProvider(client.MediaClientTypeJellyfin, NewJellyfinClient)
 }
 
 // Capability methods

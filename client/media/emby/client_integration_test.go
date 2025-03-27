@@ -15,6 +15,7 @@ import (
 	"suasor/client/media"
 	"suasor/client/media/providers"
 	"suasor/client/media/types"
+	client "suasor/client/types"
 
 	"github.com/joho/godotenv"
 )
@@ -56,7 +57,7 @@ func TestEmbyClientIntegration(t *testing.T) {
 	}
 
 	// Create client configuration
-	config := types.EmbyConfig{
+	config := client.EmbyConfig{
 		BaseURL:  baseURL,
 		APIKey:   apiKey,
 		Username: user,

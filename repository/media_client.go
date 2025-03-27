@@ -4,7 +4,9 @@ package repository
 import (
 	"context"
 	"fmt"
-	"suasor/models"
+	"suasor/client/types"
+	"suasor/types/models"
+	responses "suasor/types/responses"
 
 	"gorm.io/gorm"
 )
@@ -12,18 +14,18 @@ import (
 // MediaClientRepository defines the interface for media client database operations
 type MediaClientRepository interface {
 	// Typed operations
-	CreatePlex(ctx context.Context, client models.MediaClient[models.PlexConfig]) (*models.MediaClient[models.PlexConfig], error)
-	UpdatePlex(ctx context.Context, client models.MediaClient[models.PlexConfig]) (*models.MediaClient[models.PlexConfig], error)
-	CreateJellyfin(ctx context.Context, client models.MediaClient[models.JellyfinConfig]) (*models.MediaClient[models.JellyfinConfig], error)
-	UpdateJellyfin(ctx context.Context, client models.MediaClient[models.JellyfinConfig]) (*models.MediaClient[models.JellyfinConfig], error)
-	CreateEmby(ctx context.Context, client models.MediaClient[models.EmbyConfig]) (*models.MediaClient[models.EmbyConfig], error)
-	UpdateEmby(ctx context.Context, client models.MediaClient[models.EmbyConfig]) (*models.MediaClient[models.EmbyConfig], error)
-	CreateNavidrome(ctx context.Context, client models.MediaClient[models.SubsonicConfig]) (*models.MediaClient[models.SubsonicConfig], error)
-	UpdateNavidrome(ctx context.Context, client models.MediaClient[models.SubsonicConfig]) (*models.MediaClient[models.SubsonicConfig], error)
+	CreatePlex(ctx context.Context, client models.MediaClient[types.PlexConfig]) (*models.Client[types.PlexConfig], error)
+	UpdatePlex(ctx context.Context, client models.MediaClient[types.PlexConfig]) (*models.MediaClient[types.PlexConfig], error)
+	CreateJellyfin(ctx context.Context, client models.MediaClient[types.JellyfinConfig]) (*models.MediaClient[types.JellyfinConfig], error)
+	UpdateJellyfin(ctx context.Context, client models.MediaClient[types.JellyfinConfig]) (*models.MediaClient[types.JellyfinConfig], error)
+	CreateEmby(ctx context.Context, client models.MediaClient[types.EmbyConfig]) (*models.MediaClient[types.EmbyConfig], error)
+	UpdateEmby(ctx context.Context, client models.MediaClient[types.EmbyConfig]) (*models.MediaClient[types.EmbyConfig], error)
+	CreateNavidrome(ctx context.Context, client models.MediaClient[types.SubsonicConfig]) (*models.MediaClient[types.SubsonicConfig], error)
+	UpdateNavidrome(ctx context.Context, client models.MediaClient[types.SubsonicConfig]) (*models.MediaClient[types.SubsonicConfig], error)
 
 	// Common operations
-	GetByID(ctx context.Context, id, userID uint64) (models.MediaClientResponse, error)
-	GetByUserID(ctx context.Context, userID uint64) ([]models.MediaClientResponse, error)
+	GetByID(ctx context.Context, id, userID uint64) (responses.MediaClientResponse, error)
+	GetByUserID(ctx context.Context, userID uint64) ([]responses.MediaClientResponse, error)
 	Delete(ctx context.Context, id, userID uint64) error
 }
 
@@ -39,7 +41,7 @@ func NewMediaClientRepository(db *gorm.DB) MediaClientRepository {
 // Generic helper functions to reduce code duplication (as package-level functions)
 
 // createClient is a generic helper for creating any media client type
-func createClient[T models.ClientConfig](db *gorm.DB, ctx context.Context, client models.MediaClient[T], clientType string) (*models.MediaClient[T], error) {
+func createClient[T client.ClientConfig](db *gorm.DB, ctx context.Context, client models.MediaClient[T], clientType string) (*models.MediaClient[T], error) {
 	if err := db.WithContext(ctx).Create(&client).Error; err != nil {
 		return nil, fmt.Errorf("failed to create %s client: %w", clientType, err)
 	}

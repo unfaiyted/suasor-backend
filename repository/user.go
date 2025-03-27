@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"gorm.io/gorm"
-	"suasor/models"
+	"suasor/types/models"
 )
 
 // Common errors

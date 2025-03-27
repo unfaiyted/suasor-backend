@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"suasor/constants"
-	"suasor/models"
 	"suasor/repository"
+	"suasor/types"
+	"suasor/types/constants"
 	"suasor/utils"
 	"sync"
 
@@ -24,16 +24,16 @@ import (
 // ConfigService provides methods to interact with configuration
 type ConfigService interface {
 	InitConfig(ctx context.Context) error
-	GetConfig() *models.Configuration
-	SaveConfig(ctx context.Context, cfg models.Configuration) error
-	GetFileConfig(ctx context.Context) *models.Configuration
-	SaveFileConfig(ctx context.Context, cfg models.Configuration) error
+	GetConfig() *types.Configuration
+	SaveConfig(ctx context.Context, cfg types.Configuration) error
+	GetFileConfig(ctx context.Context) *types.Configuration
+	SaveFileConfig(ctx context.Context, cfg types.Configuration) error
 	ResetFileConfig(ctx context.Context) error
 }
 
 type configService struct {
 	configRepo repository.ConfigRepository
-	config     *models.Configuration
+	config     *types.Configuration
 	configLock sync.RWMutex
 	k          *koanf.Koanf
 	configPath string
@@ -80,7 +80,7 @@ func (s *configService) InitConfig(ctx context.Context) error {
 		// Create default config if file doesn't exist
 		if os.IsNotExist(err) {
 			log.Info().Msg("Config file doesn't exist, creating default")
-			defaultConfig := &models.Configuration{}
+			defaultConfig := &types.Configuration{}
 			if err := s.k.Unmarshal("", defaultConfig); err != nil {
 				log.Error().Err(err).Msg("Error unmarshaling default config")
 				return fmt.Errorf("error unmarshaling default config: %w", err)
@@ -194,7 +194,7 @@ func (s *configService) InitConfig(ctx context.Context) error {
 		log.Debug().Interface("final_merged_config", rawMergedConfig).Msg("Final merged configuration")
 	}
 
-	s.config = &models.Configuration{}
+	s.config = &types.Configuration{}
 	if err := s.k.UnmarshalWithConf("", s.config, koanf.UnmarshalConf{
 		Tag: "json",
 	}); err != nil {
@@ -231,14 +231,14 @@ func (s *configService) envKeyReplacer(key string) string {
 }
 
 // GetConfig returns the current configuration
-func (s *configService) GetConfig() *models.Configuration {
+func (s *configService) GetConfig() *types.Configuration {
 	s.configLock.RLock()
 	defer s.configLock.RUnlock()
 	return s.config
 }
 
 // SaveConfig saves and updates the configuration
-func (s *configService) SaveConfig(ctx context.Context, cfg models.Configuration) error {
+func (s *configService) SaveConfig(ctx context.Context, cfg types.Configuration) error {
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Saving configuration")
 
@@ -279,7 +279,7 @@ func (s *configService) SaveConfig(ctx context.Context, cfg models.Configuration
 }
 
 // GetFileConfig returns only the file-based configuration
-func (s *configService) GetFileConfig(ctx context.Context) *models.Configuration {
+func (s *configService) GetFileConfig(ctx context.Context) *types.Configuration {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().Msg("Reading configuration from file")
 
@@ -294,7 +294,7 @@ func (s *configService) GetFileConfig(ctx context.Context) *models.Configuration
 }
 
 // SaveFileConfig saves the configuration to file only
-func (s *configService) SaveFileConfig(ctx context.Context, cfg models.Configuration) error {
+func (s *configService) SaveFileConfig(ctx context.Context, cfg types.Configuration) error {
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Saving configuration to file only")
 
@@ -321,7 +321,7 @@ func (s *configService) ResetFileConfig(ctx context.Context) error {
 		return fmt.Errorf("error loading defaults: %w", err)
 	}
 
-	defaultConfig := &models.Configuration{}
+	defaultConfig := &types.Configuration{}
 	if err := k.Unmarshal("", defaultConfig); err != nil {
 		log.Error().Err(err).Msg("Error unmarshaling default config")
 		return fmt.Errorf("error unmarshaling default config: %w", err)

@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"suasor/client/media/types"
+	"suasor/types/models"
 	"suasor/utils"
 )
 
 // GetCollections retrieves collections from Plex
-func (c *PlexClient) GetCollections(ctx context.Context, options *types.QueryOptions) ([]types.MediaItem[types.Collection], error) {
+func (c *PlexClient) GetCollections(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[types.Collection], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -38,10 +39,10 @@ func (c *PlexClient) GetCollections(ctx context.Context, options *types.QueryOpt
 		Int("totalDirectories", len(directories)).
 		Msg("Successfully retrieved library directories from Plex")
 
-	collections := make([]types.MediaItem[types.Collection], 0, len(directories))
+	collections := make([]models.MediaItem[types.Collection], 0, len(directories))
 
 	for _, dir := range directories {
-		collection := types.MediaItem[types.Collection]{
+		collection := models.MediaItem[types.Collection]{
 			Data: types.Collection{
 				Details: types.MediaMetadata{
 					Title: dir.Title,

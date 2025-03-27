@@ -8,11 +8,12 @@ import (
 	"github.com/antihax/optional"
 	"suasor/client/media/types"
 	embyclient "suasor/internal/clients/embyAPI"
+	"suasor/types/models"
 	"suasor/utils"
 )
 
 // GetCollections retrieves collections from the Emby server
-func (e *EmbyClient) GetCollections(ctx context.Context, options *types.QueryOptions) ([]types.MediaItem[types.Collection], error) {
+func (e *EmbyClient) GetCollections(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[types.Collection], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -43,7 +44,7 @@ func (e *EmbyClient) GetCollections(ctx context.Context, options *types.QueryOpt
 		Int("totalRecordCount", int(items.TotalRecordCount)).
 		Msg("Successfully retrieved collections from Emby")
 
-	collections := make([]types.MediaItem[types.Collection], 0)
+	collections := make([]models.MediaItem[types.Collection], 0)
 	for _, item := range items.Items {
 		if item.Type_ == "BoxSet" {
 			collection, err := e.convertToCollection(&item)
@@ -67,12 +68,12 @@ func (e *EmbyClient) GetCollections(ctx context.Context, options *types.QueryOpt
 }
 
 // Add this converter method to converter.go
-func (e *EmbyClient) convertToCollection(item *embyclient.BaseItemDto) (types.MediaItem[types.Collection], error) {
+func (e *EmbyClient) convertToCollection(item *embyclient.BaseItemDto) (models.MediaItem[types.Collection], error) {
 	if item == nil {
-		return types.MediaItem[types.Collection]{}, fmt.Errorf("cannot convert nil item to collection")
+		return models.MediaItem[types.Collection]{}, fmt.Errorf("cannot convert nil item to collection")
 	}
 
-	collection := types.MediaItem[types.Collection]{
+	collection := models.MediaItem[types.Collection]{
 		Data: types.Collection{
 			Details: types.MediaMetadata{
 				Title:       item.Name,

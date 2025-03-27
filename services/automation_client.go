@@ -1,11 +1,14 @@
-// services/download_client.go
+// services/automation_client.go
 package services
 
 import (
 	"context"
 	"fmt"
-	"suasor/models"
+	client "suasor/client/types"
 	"suasor/repository"
+	"suasor/types/models"
+	"suasor/types/requests"
+	"suasor/types/responses"
 	"time"
 
 	lidarr "github.com/devopsarr/lidarr-go/lidarr"
@@ -13,25 +16,25 @@ import (
 	sonarr "github.com/devopsarr/sonarr-go/sonarr"
 )
 
-// DownloadClientService defines the interface for download client operations
-type DownloadClientService interface {
-	CreateClient(ctx context.Context, userID uint64, req models.DownloadClientRequest) (models.DownloadClient, error)
-	GetClientByID(ctx context.Context, userID, clientID uint64) (models.DownloadClient, error)
-	GetClientsByUserID(ctx context.Context, userID uint64) ([]models.DownloadClient, error)
-	UpdateClient(ctx context.Context, userID, clientID uint64, req models.DownloadClientRequest) (models.DownloadClient, error)
+// AutomationClientService defines the interface for automation client operations
+type AutomationClientService interface {
+	CreateClient(ctx context.Context, userID uint64, req requests.AutomationClientRequest) (client.AutomationClient, error)
+	GetClientByID(ctx context.Context, userID, clientID uint64) (models.AutomationClient, error)
+	GetClientsByUserID(ctx context.Context, userID uint64) ([]models.AutomationClient, error)
+	UpdateClient(ctx context.Context, userID, clientID uint64, req models.AutomationClientRequest) (models.AutomationClient, error)
 	DeleteClient(ctx context.Context, userID, clientID uint64) error
 	TestClientConnection(ctx context.Context, req models.ClientTestRequest) (models.ClientTestResponse, error)
 }
 
-type downloadClientService struct {
-	repo repository.DownloadClientRepository
+type automationClientService struct {
+	repo repository.AutomationClientRepository
 }
 
-func NewDownloadClientService(repo repository.DownloadClientRepository) DownloadClientService {
-	return &downloadClientService{repo: repo}
+func NewAutomationClientService(repo repository.AutomationClientRepository) AutomationClientService {
+	return &automationClientService{repo: repo}
 }
 
-func (s *downloadClientService) CreateClient(ctx context.Context, userID uint64, req models.DownloadClientRequest) (models.DownloadClient, error) {
+func (s *automationClientService) CreateClient(ctx context.Context, userID uint64, req models.AutomationClientRequest) (models.AutomationClient, error) {
 	// Test connection first
 	testReq := models.ClientTestRequest{
 		URL:        req.URL,
@@ -41,10 +44,10 @@ func (s *downloadClientService) CreateClient(ctx context.Context, userID uint64,
 
 	testResp, err := s.TestClientConnection(ctx, testReq)
 	if err != nil || !testResp.Success {
-		return models.DownloadClient{}, fmt.Errorf("failed to connect to client: %v", err)
+		return models.AutomationClient{}, fmt.Errorf("failed to connect to client: %v", err)
 	}
 
-	client := models.DownloadClient{
+	client := models.AutomationClient{
 		UserID:     userID,
 		Name:       req.Name,
 		ClientType: req.ClientType,
@@ -58,15 +61,15 @@ func (s *downloadClientService) CreateClient(ctx context.Context, userID uint64,
 	return s.repo.Create(ctx, client)
 }
 
-func (s *downloadClientService) GetClientByID(ctx context.Context, userID, clientID uint64) (models.DownloadClient, error) {
+func (s *automationClientService) GetClientByID(ctx context.Context, userID, clientID uint64) (models.AutomationClient, error) {
 	return s.repo.GetByID(ctx, clientID, userID)
 }
 
-func (s *downloadClientService) GetClientsByUserID(ctx context.Context, userID uint64) ([]models.DownloadClient, error) {
+func (s *automationClientService) GetClientsByUserID(ctx context.Context, userID uint64) ([]models.AutomationClient, error) {
 	return s.repo.GetByUserID(ctx, userID)
 }
 
-func (s *downloadClientService) UpdateClient(ctx context.Context, userID, clientID uint64, req models.DownloadClientRequest) (models.DownloadClient, error) {
+func (s *automationClientService) UpdateClient(ctx context.Context, userID, clientID uint64, req models.AutomationClientRequest) (models.AutomationClient, error) {
 	// Test connection with updated information
 	testReq := models.ClientTestRequest{
 		URL:        req.URL,
@@ -76,10 +79,10 @@ func (s *downloadClientService) UpdateClient(ctx context.Context, userID, client
 
 	testResp, err := s.TestClientConnection(ctx, testReq)
 	if err != nil || !testResp.Success {
-		return models.DownloadClient{}, fmt.Errorf("failed to connect to updated client: %v", err)
+		return models.AutomationClient{}, fmt.Errorf("failed to connect to updated client: %v", err)
 	}
 
-	client := models.DownloadClient{
+	client := models.AutomationClient{
 		ID:         clientID,
 		UserID:     userID,
 		Name:       req.Name,
@@ -91,17 +94,17 @@ func (s *downloadClientService) UpdateClient(ctx context.Context, userID, client
 	}
 
 	if err := s.repo.Update(ctx, client); err != nil {
-		return models.DownloadClient{}, err
+		return models.AutomationClient{}, err
 	}
 
 	return client, nil
 }
 
-func (s *downloadClientService) DeleteClient(ctx context.Context, userID, clientID uint64) error {
+func (s *automationClientService) DeleteClient(ctx context.Context, userID, clientID uint64) error {
 	return s.repo.Delete(ctx, clientID, userID)
 }
 
-func (s *downloadClientService) TestClientConnection(ctx context.Context, req models.ClientTestRequest) (models.ClientTestResponse, error) {
+func (s *automationClientService) TestClientConnection(ctx context.Context, req models.ClientTestRequest) (models.ClientTestResponse, error) {
 	switch req.ClientType {
 	case models.ClientTypeRadarr:
 		return s.testRadarrConnection(ctx, req.URL, req.APIKey)
@@ -119,7 +122,7 @@ func (s *downloadClientService) TestClientConnection(ctx context.Context, req mo
 
 // Client-specific test connection methods...
 
-func (s *downloadClientService) testRadarrConnection(ctx context.Context, url, apiKey string) (models.ClientTestResponse, error) {
+func (s *automationClientService) testRadarrConnection(ctx context.Context, url, apiKey string) (models.ClientTestResponse, error) {
 	// Configure the Radarr client
 	cfg := radarr.NewConfiguration()
 	cfg.AddDefaultHeader("X-Api-Key", apiKey)
@@ -153,7 +156,7 @@ func (s *downloadClientService) testRadarrConnection(ctx context.Context, url, a
 	}, nil
 }
 
-func (s *downloadClientService) testSonarrConnection(ctx context.Context, url, apiKey string) (models.ClientTestResponse, error) {
+func (s *automationClientService) testSonarrConnection(ctx context.Context, url, apiKey string) (models.ClientTestResponse, error) {
 	// Configure the Sonarr client
 	cfg := sonarr.NewConfiguration()
 	cfg.AddDefaultHeader("X-Api-Key", apiKey)
@@ -187,7 +190,7 @@ func (s *downloadClientService) testSonarrConnection(ctx context.Context, url, a
 	}, nil
 }
 
-func (s *downloadClientService) testLidarrConnection(ctx context.Context, url, apiKey string) (models.ClientTestResponse, error) {
+func (s *automationClientService) testLidarrConnection(ctx context.Context, url, apiKey string) (models.ClientTestResponse, error) {
 	// Configure the Lidarr client
 	cfg := lidarr.NewConfiguration()
 	cfg.AddDefaultHeader("X-Api-Key", apiKey)

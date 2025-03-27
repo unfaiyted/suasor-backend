@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"suasor/models"
+	"suasor/types"
 
 	kjson "github.com/knadh/koanf/parsers/json"
 	"github.com/knadh/koanf/providers/file"
@@ -14,8 +14,8 @@ import (
 
 // ConfigRepository handles configuration storage operations
 type ConfigRepository interface {
-	ReadConfigFile() (*models.Configuration, error)
-	WriteConfigFile(cfg *models.Configuration) error
+	ReadConfigFile() (*types.Configuration, error)
+	WriteConfigFile(cfg *types.Configuration) error
 	WatchConfigFile(onChange func()) error
 	EnsureConfigDir() error
 }
@@ -47,14 +47,14 @@ func (r *configRepository) EnsureConfigDir() error {
 }
 
 // ReadConfigFile reads the configuration file
-func (r *configRepository) ReadConfigFile() (*models.Configuration, error) {
+func (r *configRepository) ReadConfigFile() (*types.Configuration, error) {
 	k := koanf.New(".")
 
 	if err := k.Load(file.Provider(r.configPath), kjson.Parser()); err != nil {
 		return nil, fmt.Errorf("error reading config file: %w", err)
 	}
 
-	config := &models.Configuration{}
+	config := &types.Configuration{}
 	if err := k.Unmarshal("", config); err != nil {
 		return nil, fmt.Errorf("error unmarshaling config: %w", err)
 	}
@@ -63,7 +63,7 @@ func (r *configRepository) ReadConfigFile() (*models.Configuration, error) {
 }
 
 // WriteConfigFile writes the configuration to file
-func (r *configRepository) WriteConfigFile(cfg *models.Configuration) error {
+func (r *configRepository) WriteConfigFile(cfg *types.Configuration) error {
 	// Convert config struct to map
 	jsonBytes, err := json.Marshal(cfg)
 	if err != nil {

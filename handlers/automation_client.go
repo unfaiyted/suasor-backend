@@ -3,21 +3,22 @@ package handlers
 
 import (
 	"strconv"
-	"suasor/models"
 	"suasor/services"
+	requests "suasor/types/requests"
+	responses "suasor/types/responses"
 	"suasor/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
-// DownloadClientHandler handles download client API endpoints
-type DownloadClientHandler struct {
-	service services.DownloadClientService
+// AutomationClientHandler handles download client API endpoints
+type AutomationClientHandler struct {
+	service services.AutomationClientService
 }
 
-// NewDownloadClientHandler creates a new download client handler
-func NewDownloadClientHandler(service services.DownloadClientService) *DownloadClientHandler {
-	return &DownloadClientHandler{
+// NewAutomationClientHandler creates a new download client handler
+func NewAutomationClientHandler(service services.AutomationClientService) *AutomationClientHandler {
+	return &AutomationClientHandler{
 		service: service,
 	}
 }
@@ -29,13 +30,13 @@ func NewDownloadClientHandler(service services.DownloadClientService) *DownloadC
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body models.DownloadClientRequest true "Download client data"
-// @Success 201 {object} models.APIResponse[models.DownloadClient] "Download client created"
+// @Param request body models.AutomationClientRequest true "Automation client data"
+// @Success 201 {object} models.APIResponse[models.AutomationClient] "Automation client created"
 // @Failure 400 {object} models.ErrorResponse[error] "Invalid request"
 // @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} models.ErrorResponse[error] "Server error"
 // @Router /clients/download [post]
-func (h *DownloadClientHandler) CreateClient(c *gin.Context) {
+func (h *AutomationClientHandler) CreateClient(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -48,7 +49,7 @@ func (h *DownloadClientHandler) CreateClient(c *gin.Context) {
 
 	uid := userID.(uint64)
 
-	var req models.DownloadClientRequest
+	var req requests.AutomationClientRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.RespondValidationError(c, err)
 		return
@@ -66,7 +67,7 @@ func (h *DownloadClientHandler) CreateClient(c *gin.Context) {
 		return
 	}
 
-	utils.RespondCreated(c, client, "Download client created successfully")
+	utils.RespondCreated(c, client, "Automation client created successfully")
 }
 
 // GetClient godoc
@@ -77,13 +78,13 @@ func (h *DownloadClientHandler) CreateClient(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Client ID"
-// @Success 200 {object} models.APIResponse[models.DownloadClient] "Download client retrieved"
+// @Success 200 {object} models.APIResponse[models.AutomationClient] "Automation client retrieved"
 // @Failure 400 {object} models.ErrorResponse[error] "Invalid client ID"
 // @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
 // @Failure 404 {object} models.ErrorResponse[error] "Client not found"
 // @Failure 500 {object} models.ErrorResponse[error] "Server error"
 // @Router /clients/download/{id} [get]
-func (h *DownloadClientHandler) GetClient(c *gin.Context) {
+func (h *AutomationClientHandler) GetClient(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -113,14 +114,14 @@ func (h *DownloadClientHandler) GetClient(c *gin.Context) {
 	if err != nil {
 		// Check if it's a not found error
 		if err.Error() == "download client not found" {
-			utils.RespondNotFound(c, err, "Download client not found")
+			utils.RespondNotFound(c, err, "Automation client not found")
 			return
 		}
 		utils.RespondInternalError(c, err, "Failed to retrieve download client")
 		return
 	}
 
-	utils.RespondOK(c, client, "Download client retrieved successfully")
+	utils.RespondOK(c, client, "Automation client retrieved successfully")
 }
 
 // GetAllClients godoc
@@ -130,11 +131,11 @@ func (h *DownloadClientHandler) GetClient(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} models.APIResponse[[]models.DownloadClient] "Download clients retrieved"
+// @Success 200 {object} models.APIResponse[[]models.AutomationClient] "Automation clients retrieved"
 // @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} models.ErrorResponse[error] "Server error"
 // @Router /clients/download [get]
-func (h *DownloadClientHandler) GetAllClients(c *gin.Context) {
+func (h *AutomationClientHandler) GetAllClients(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -157,7 +158,7 @@ func (h *DownloadClientHandler) GetAllClients(c *gin.Context) {
 		return
 	}
 
-	utils.RespondOK(c, clients, "Download clients retrieved successfully")
+	utils.RespondOK(c, clients, "Automation clients retrieved successfully")
 }
 
 // UpdateClient godoc
@@ -168,14 +169,14 @@ func (h *DownloadClientHandler) GetAllClients(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Client ID"
-// @Param request body models.DownloadClientRequest true "Updated client data"
-// @Success 200 {object} models.APIResponse[models.DownloadClient] "Download client updated"
+// @Param request body models.AutomationClientRequest true "Updated client data"
+// @Success 200 {object} models.APIResponse[models.AutomationClient] "Automation client updated"
 // @Failure 400 {object} models.ErrorResponse[error] "Invalid request or client ID"
 // @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
 // @Failure 404 {object} models.ErrorResponse[error] "Client not found"
 // @Failure 500 {object} models.ErrorResponse[error] "Server error"
 // @Router /clients/download/{id} [put]
-func (h *DownloadClientHandler) UpdateClient(c *gin.Context) {
+func (h *AutomationClientHandler) UpdateClient(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -196,7 +197,7 @@ func (h *DownloadClientHandler) UpdateClient(c *gin.Context) {
 		return
 	}
 
-	var req models.DownloadClientRequest
+	var req requests.AutomationClientRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.RespondValidationError(c, err)
 		return
@@ -213,14 +214,14 @@ func (h *DownloadClientHandler) UpdateClient(c *gin.Context) {
 	if err != nil {
 		// Check if it's a not found error
 		if err.Error() == "download client not found" {
-			utils.RespondNotFound(c, err, "Download client not found")
+			utils.RespondNotFound(c, err, "Automation client not found")
 			return
 		}
 		utils.RespondInternalError(c, err, "Failed to update download client")
 		return
 	}
 
-	utils.RespondOK(c, client, "Download client updated successfully")
+	utils.RespondOK(c, client, "Automation client updated successfully")
 }
 
 // DeleteClient godoc
@@ -231,13 +232,13 @@ func (h *DownloadClientHandler) UpdateClient(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Client ID"
-// @Success 200 {object} models.APIResponse[any] "Download client deleted"
+// @Success 200 {object} models.APIResponse[any] "Automation client deleted"
 // @Failure 400 {object} models.ErrorResponse[error] "Invalid client ID"
 // @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
 // @Failure 404 {object} models.ErrorResponse[error] "Client not found"
 // @Failure 500 {object} models.ErrorResponse[error] "Server error"
 // @Router /clients/download/{id} [delete]
-func (h *DownloadClientHandler) DeleteClient(c *gin.Context) {
+func (h *AutomationClientHandler) DeleteClient(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -267,14 +268,14 @@ func (h *DownloadClientHandler) DeleteClient(c *gin.Context) {
 	if err != nil {
 		// Check if it's a not found error
 		if err.Error() == "download client not found" {
-			utils.RespondNotFound(c, err, "Download client not found")
+			utils.RespondNotFound(c, err, "Automation client not found")
 			return
 		}
 		utils.RespondInternalError(c, err, "Failed to delete download client")
 		return
 	}
 
-	utils.RespondOK(c, models.EmptyResponse{Success: true}, "Download client deleted successfully")
+	utils.RespondOK(c, responses.EmptyResponse{Success: true}, "Automation client deleted successfully")
 }
 
 // TestConnection godoc
@@ -290,7 +291,7 @@ func (h *DownloadClientHandler) DeleteClient(c *gin.Context) {
 // @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} models.ErrorResponse[error] "Server error"
 // @Router /clients/download/test [post]
-func (h *DownloadClientHandler) TestConnection(c *gin.Context) {
+func (h *AutomationClientHandler) TestConnection(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -306,7 +307,7 @@ func (h *DownloadClientHandler) TestConnection(c *gin.Context) {
 
 	uid := userID.(uint64)
 
-	var req models.ClientTestRequest
+	var req requests.ClientTestRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.RespondValidationError(c, err)
 		return

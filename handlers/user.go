@@ -3,8 +3,10 @@ package handlers
 import (
 	"net/http"
 	"strconv"
-	"suasor/models"
 	"suasor/services"
+	"suasor/types/models"
+	"suasor/types/requests"
+
 	"suasor/utils"
 
 	"github.com/gin-gonic/gin"
@@ -68,7 +70,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
-	var req models.RegisterRequest
+	var req requests.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request format for user registration")
 		utils.RespondValidationError(c, err)
@@ -215,7 +217,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 
 	id := userID.(uint64)
 
-	var req models.UpdateProfileRequest
+	var req requests.ProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request format for profile update")
 		utils.RespondValidationError(c, err)
@@ -309,7 +311,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 
 	id := userID.(uint64)
 
-	var req models.ChangePasswordRequest
+	var req requests.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request format for password change")
 		utils.RespondValidationError(c, err)
@@ -461,7 +463,7 @@ func (h *UserHandler) ChangeRole(c *gin.Context) {
 		return
 	}
 
-	var req models.ChangeRoleRequest
+	var req requests.ChangeRoleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request format for role change")
 		utils.RespondValidationError(c, err)

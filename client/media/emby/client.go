@@ -9,6 +9,7 @@ import (
 	base "suasor/client"
 	media "suasor/client/media"
 	types "suasor/client/media/types"
+	config "suasor/client/types"
 	embyclient "suasor/internal/clients/embyAPI"
 	"suasor/utils"
 )
@@ -17,12 +18,12 @@ import (
 type EmbyClient struct {
 	base.BaseMediaClient
 	client *embyclient.APIClient
-	config *types.EmbyConfig
+	config *config.EmbyConfig
 }
 
 // NewEmbyClient creates a new Emby client instance
-func NewEmbyClient(ctx context.Context, clientID uint64, cfg types.ClientConfig) (media.MediaClient, error) {
-	embyConfig, ok := cfg.(types.EmbyConfig)
+func NewEmbyClient(ctx context.Context, clientID uint64, cfg config.ClientConfig) (media.MediaClient, error) {
+	embyConfig, ok := cfg.(config.EmbyConfig)
 	if !ok {
 		return nil, fmt.Errorf("invalid configuration for Emby client")
 	}
@@ -41,7 +42,7 @@ func NewEmbyClient(ctx context.Context, clientID uint64, cfg types.ClientConfig)
 	embyClient := &EmbyClient{
 		BaseMediaClient: base.BaseMediaClient{
 			ClientID:   clientID,
-			ClientType: types.MediaClientTypeEmby,
+			ClientType: config.MediaClientTypeEmby,
 		},
 		client: client,
 		config: &embyConfig,
@@ -63,7 +64,7 @@ func NewEmbyClient(ctx context.Context, clientID uint64, cfg types.ClientConfig)
 
 // Register the provider factory
 func init() {
-	media.RegisterProvider(types.MediaClientTypeEmby, NewEmbyClient)
+	media.RegisterProvider(config.MediaClientTypeEmby, NewEmbyClient)
 }
 
 // Capability methods

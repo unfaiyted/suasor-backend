@@ -5,8 +5,10 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"suasor/models"
 	"suasor/services"
+	"suasor/types/models"
+	"suasor/types/requests"
+	"suasor/types/response"
 	"suasor/utils"
 )
 
@@ -76,7 +78,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
-	var req models.RegisterRequest
+	var req requests.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request format for user registration")
 		utils.RespondValidationError(c, err)

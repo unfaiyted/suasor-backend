@@ -3,11 +3,12 @@ package subsonic
 import (
 	"context"
 	t "suasor/client/media/types"
+	"suasor/models"
 	"suasor/utils"
 	"time"
 )
 
-func (c *SubsonicClient) GetPlaylists(ctx context.Context, options *t.QueryOptions) ([]t.MediaItem[t.Playlist], error) {
+func (c *SubsonicClient) GetPlaylists(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[t.Playlist], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -26,13 +27,13 @@ func (c *SubsonicClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 
 	if resp.Playlists == nil || len(resp.Playlists.Playlist) == 0 {
 		log.Info().Msg("No playlists returned from Subsonic")
-		return []t.MediaItem[t.Playlist]{}, nil
+		return []models.MediaItem[t.Playlist]{}, nil
 	}
 
-	playlists := make([]t.MediaItem[t.Playlist], 0, len(resp.Playlists.Playlist))
+	playlists := make([]models.MediaItem[t.Playlist], 0, len(resp.Playlists.Playlist))
 
 	for _, pl := range resp.Playlists.Playlist {
-		playlist := t.MediaItem[t.Playlist]{
+		playlist := models.MediaItem[t.Playlist]{
 			Type: "playlist",
 			Data: t.Playlist{
 				Details: t.MediaMetadata{
@@ -63,7 +64,7 @@ func (c *SubsonicClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 	return playlists, nil
 }
 
-func (c *SubsonicClient) GetPlaylistItems(ctx context.Context, playlistID string) ([]t.MediaItem[t.Track], error) {
+func (c *SubsonicClient) GetPlaylistItems(ctx context.Context, playlistID string) ([]models.MediaItem[t.Track], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -89,10 +90,10 @@ func (c *SubsonicClient) GetPlaylistItems(ctx context.Context, playlistID string
 		log.Info().
 			Str("playlistID", playlistID).
 			Msg("No tracks found in playlist")
-		return []t.MediaItem[t.Track]{}, nil
+		return []models.MediaItem[t.Track]{}, nil
 	}
 
-	tracks := make([]t.MediaItem[t.Track], 0, len(resp.Playlist.Entry))
+	tracks := make([]models.MediaItem[t.Track], 0, len(resp.Playlist.Entry))
 
 	for _, song := range resp.Playlist.Entry {
 		track := c.convertChildToTrack(*song)

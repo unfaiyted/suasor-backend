@@ -7,11 +7,12 @@ import (
 	"github.com/antihax/optional"
 	"suasor/client/media/types"
 	embyclient "suasor/internal/clients/embyAPI"
+	"suasor/types/models"
 	"suasor/utils"
 )
 
 // GetWatchHistory retrieves watch history from the Emby server
-func (e *EmbyClient) GetPlayHistory(ctx context.Context, options *types.QueryOptions) ([]types.MediaPlayHistory[types.MediaData], error) {
+func (e *EmbyClient) GetPlayHistory(ctx context.Context, options *types.QueryOptions) ([]models.MediaPlayHistory[types.MediaData], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -54,7 +55,7 @@ func (e *EmbyClient) GetPlayHistory(ctx context.Context, options *types.QueryOpt
 		Int("totalRecordCount", int(items.TotalRecordCount)).
 		Msg("Successfully retrieved watch history from Emby")
 
-	history := make([]types.MediaPlayHistory[types.MediaData], 0)
+	history := make([]models.MediaPlayHistory[types.MediaData], 0)
 	for _, item := range items.Items {
 		if item.UserData != nil && item.UserData.Played {
 			watchItem, err := e.convertToWatchHistoryItem(ctx, &item)

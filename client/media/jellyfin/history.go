@@ -6,10 +6,11 @@ import (
 
 	jellyfin "github.com/sj14/jellyfin-go/api"
 	t "suasor/client/media/types"
+	"suasor/types/models"
 	"suasor/utils"
 )
 
-func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOptions) ([]t.MediaPlayHistory[t.MediaData], error) {
+func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOptions) ([]models.MediaPlayHistory[t.MediaData], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -50,7 +51,7 @@ func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOpt
 		Msg("Successfully retrieved watch history from Jellyfin")
 
 	// Convert results to expected format
-	historyItems := make([]t.MediaPlayHistory[t.MediaData], 0)
+	historyItems := make([]models.MediaPlayHistory[t.MediaData], 0)
 	for _, item := range result.Items {
 
 		userDataReq := j.client.ItemsAPI.GetItemUserData(ctx, *item.Id)
@@ -65,7 +66,7 @@ func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOpt
 			Int32("playCount", userData.GetPlayCount()).
 			Msg("Successfully retrieved user item data from Jellyfin")
 
-		historyItem := t.MediaPlayHistory[t.MediaData]{
+		historyItem := models.MediaPlayHistory[t.MediaData]{
 			PlayedPercentage: *userData.PlayedPercentage.Get(),
 			LastWatchedAt:    *userData.LastPlayedDate.Get(), // Default to now if not available
 		}
@@ -84,7 +85,7 @@ func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOpt
 					Msg("Error converting Jellyfin item to movie format")
 				continue
 			}
-			historyItem.Item.SetData(&historyItem.Item, mediaItemMovie.Data)
+			historyItem.Item.SetData(historyItem.Item, mediaItemMovie.Data)
 		case jellyfin.BASEITEMKIND_SERIES:
 			historyItem.Item.Type = t.MEDIATYPE_SHOW
 			mediaItemTVShow, err := j.convertToTVShow(ctx, &item)
@@ -96,7 +97,7 @@ func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOpt
 					Msg("Error converting Jellyfin item to TV show format")
 				continue
 			}
-			historyItem.Item.SetData(&historyItem.Item, mediaItemTVShow.Data)
+			historyItem.Item.SetData(historyItem.Item, mediaItemTVShow.Data)
 		case jellyfin.BASEITEMKIND_EPISODE:
 			historyItem.Item.Type = t.MEDIATYPE_EPISODE
 			mediaItemEpisode, err := j.convertToEpisode(ctx, &item)
@@ -108,7 +109,7 @@ func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOpt
 					Msg("Error converting Jellyfin item to episode format")
 				continue
 			}
-			historyItem.Item.SetData(&historyItem.Item, mediaItemEpisode.Data)
+			historyItem.Item.SetData(historyItem.Item, mediaItemEpisode.Data)
 
 		}
 

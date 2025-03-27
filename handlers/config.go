@@ -2,8 +2,10 @@
 package handlers
 
 import (
-	"suasor/models"
 	"suasor/services"
+	"suasor/types"
+	"suasor/types/responses"
+
 	"suasor/utils"
 
 	"github.com/gin-gonic/gin"
@@ -99,7 +101,7 @@ func (h *ConfigHandler) UpdateConfig(c *gin.Context) {
 		return
 	}
 
-	var cfg models.Configuration
+	var cfg types.Configuration
 	if err := c.ShouldBindJSON(&cfg); err != nil {
 		log.Error().Err(err).Msg("Invalid configuration format")
 		utils.RespondValidationError(c, err)
@@ -120,7 +122,7 @@ func (h *ConfigHandler) UpdateConfig(c *gin.Context) {
 		Interface("userID", userID).
 		Msg("Application configuration updated successfully")
 
-	utils.RespondOK(c, models.EmptyResponse{Success: true}, "Configuration updated successfully")
+	utils.RespondOK(c, responses.EmptyResponse{Success: true}, "Configuration updated successfully")
 }
 
 // GetFileConfig godoc
@@ -187,7 +189,7 @@ func (h *ConfigHandler) SaveFileConfig(c *gin.Context) {
 		return
 	}
 
-	var cfg models.Configuration
+	var cfg types.Configuration
 	if err := c.ShouldBindJSON(&cfg); err != nil {
 		log.Error().Err(err).Msg("Invalid configuration format")
 		utils.RespondValidationError(c, err)
@@ -208,7 +210,7 @@ func (h *ConfigHandler) SaveFileConfig(c *gin.Context) {
 		Interface("userID", userID).
 		Msg("Configuration saved to file successfully")
 
-	utils.RespondOK(c, models.EmptyResponse{Success: true}, "Configuration saved to file successfully")
+	utils.RespondOK(c, responses.EmptyResponse{Success: true}, "Configuration saved to file successfully")
 }
 
 // ResetConfig godoc
@@ -245,5 +247,5 @@ func (h *ConfigHandler) ResetConfig(c *gin.Context) {
 		Interface("userID", userID).
 		Msg("Application configuration reset successfully")
 
-	utils.RespondOK(c, models.EmptyResponse{Success: true}, "Configuration reset successfully")
+	utils.RespondOK(c, responses.EmptyResponse{Success: true}, "Configuration reset successfully")
 }

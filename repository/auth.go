@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-	"suasor/models"
+	"suasor/types/models"
 )
 
 // SessionRepository defines the session repository interface

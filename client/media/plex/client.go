@@ -7,7 +7,7 @@ import (
 	"net/http"
 	base "suasor/client"
 	media "suasor/client/media"
-	"suasor/client/media/types"
+	client "suasor/client/types"
 	"suasor/utils"
 
 	"github.com/LukeHagar/plexgo"
@@ -15,33 +15,33 @@ import (
 
 // init is automatically called when package is imported
 func init() {
-	media.RegisterProvider(types.MediaClientTypePlex, NewPlexClient)
+	media.RegisterProvider(client.MediaClientTypePlex, NewPlexClient)
 }
 
 // PlexClient implements MediaContentProvider for Plex
 type PlexClient struct {
 	base.BaseMediaClient
-	config     types.PlexConfig
+	config     client.PlexConfig
 	httpClient *http.Client
 	baseURL    string
 	plexAPI    *plexgo.PlexAPI
 }
 
 // NewPlexClient creates a new Plex client
-func NewPlexClient(ctx context.Context, clientID uint64, config types.ClientConfig) (media.MediaClient, error) {
+func NewPlexClient(ctx context.Context, clientID uint64, config client.ClientConfig) (media.MediaClient, error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
 		Uint64("clientID", clientID).
-		Str("clientType", string(types.MediaClientTypePlex)).
+		Str("clientType", string(client.MediaClientTypePlex)).
 		Msg("Creating new Plex client")
 
-	plexConfig, ok := config.(types.PlexConfig)
+	plexConfig, ok := config.(client.PlexConfig)
 	if !ok {
 		log.Error().
 			Uint64("clientID", clientID).
-			Str("clientType", string(types.MediaClientTypePlex)).
+			Str("clientType", string(client.MediaClientTypePlex)).
 			Msg("Invalid Plex configuration")
 		return nil, fmt.Errorf("invalid Plex configuration")
 	}
@@ -57,10 +57,10 @@ func NewPlexClient(ctx context.Context, clientID uint64, config types.ClientConf
 		plexgo.WithServerURL(plexConfig.Host),
 	)
 
-	client := &PlexClient{
+	pClient := &PlexClient{
 		BaseMediaClient: base.BaseMediaClient{
 			ClientID:   clientID,
-			ClientType: types.MediaClientTypePlex,
+			ClientType: client.MediaClientTypePlex,
 		},
 		config:  plexConfig,
 		plexAPI: plexAPI,
@@ -69,11 +69,11 @@ func NewPlexClient(ctx context.Context, clientID uint64, config types.ClientConf
 
 	log.Info().
 		Uint64("clientID", clientID).
-		Str("clientType", string(types.MediaClientTypePlex)).
+		Str("clientType", string(client.MediaClientTypePlex)).
 		Str("host", plexConfig.Host).
 		Msg("Successfully created Plex client")
 
-	return client, nil
+	return pClient, nil
 }
 
 // Capability methods

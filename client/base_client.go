@@ -5,7 +5,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"suasor/client/media/types"
+	media "suasor/client/media/types"
+	client "suasor/client/types"
+	"suasor/types/models"
 )
 
 var ErrFeatureNotSupported = errors.New("feature not supported by this media client")
@@ -13,12 +15,12 @@ var ErrFeatureNotSupported = errors.New("feature not supported by this media cli
 // BaseMediaClient provides common behavior for all media clients
 type BaseMediaClient struct {
 	ClientID   uint64
-	ClientType types.MediaClientType
+	ClientType client.MediaClientType
 }
 
 // Get client information
-func (b *BaseMediaClient) GetClientID() uint64                  { return b.ClientID }
-func (b *BaseMediaClient) GetClientType() types.MediaClientType { return b.ClientType }
+func (b *BaseMediaClient) GetClientID() uint64                   { return b.ClientID }
+func (b *BaseMediaClient) GetClientType() client.MediaClientType { return b.ClientType }
 
 // Default capability implementations (all false by default)
 func (b *BaseMediaClient) SupportsMovies() bool      { return false }
@@ -30,36 +32,36 @@ func (b *BaseMediaClient) SupportsHistory() bool     { return false }
 
 // Default error implementation for unsupported features
 // Embed in your clients to provide default behavior
-func (b *BaseMediaClient) GetMovies(ctx context.Context, options *types.QueryOptions) ([]types.MediaItem[types.Movie], error) {
+func (b *BaseMediaClient) GetMovies(ctx context.Context, options *media.QueryOptions) ([]models.MediaItem[media.Movie], error) {
 	return nil, ErrFeatureNotSupported
 }
 
-func (b *BaseMediaClient) GetTVShows(ctx context.Context, options *types.QueryOptions) ([]types.MediaItem[types.TVShow], error) {
+func (b *BaseMediaClient) GetTVShows(ctx context.Context, options *media.QueryOptions) ([]models.MediaItem[media.TVShow], error) {
 	return nil, ErrFeatureNotSupported
 }
 
-func (b *BaseMediaClient) GetMusic(ctx context.Context, options *types.QueryOptions) ([]types.MediaItem[types.Track], error) {
+func (b *BaseMediaClient) GetMusic(ctx context.Context, options *media.QueryOptions) ([]models.MediaItem[media.Track], error) {
 	return nil, ErrFeatureNotSupported
 }
 
-func (b *BaseMediaClient) GetPlaylists(ctx context.Context, options *types.QueryOptions) ([]types.MediaItem[types.Playlist], error) {
+func (b *BaseMediaClient) GetPlaylists(ctx context.Context, options *media.QueryOptions) ([]models.MediaItem[media.Playlist], error) {
 	return nil, ErrFeatureNotSupported
 }
 
-func (b *BaseMediaClient) GetCollections(ctx context.Context, options *types.QueryOptions) ([]types.MediaItem[types.Collection], error) {
+func (b *BaseMediaClient) GetCollections(ctx context.Context, options *media.QueryOptions) ([]models.MediaItem[media.Collection], error) {
 	return nil, ErrFeatureNotSupported
 }
 
-func (b *BaseMediaClient) GetHistory(ctx context.Context, options *types.QueryOptions) ([]types.MediaPlayHistory[types.MediaData], error) {
+func (b *BaseMediaClient) GetHistory(ctx context.Context, options *media.QueryOptions) ([]models.MediaPlayHistory[media.MediaData], error) {
 	return nil, ErrFeatureNotSupported
 }
 
-func (b *BaseMediaClient) ToMediaItem(ctx context.Context, item types.MediaData, itemID string) (types.MediaItem[types.MediaData], error) {
+func (b *BaseMediaClient) ToMediaItem(ctx context.Context, item media.MediaData, itemID string) (models.MediaItem[media.MediaData], error) {
 	if item == nil {
-		return types.MediaItem[types.MediaData]{}, fmt.Errorf("cannot convert nil item to media item")
+		return models.MediaItem[media.MediaData]{}, fmt.Errorf("cannot convert nil item to media item")
 	}
 
-	mediaItem := types.MediaItem[types.MediaData]{
+	mediaItem := models.MediaItem[media.MediaData]{
 		Data: item,
 		Type: item.GetMediaType(),
 	}
@@ -68,8 +70,8 @@ func (b *BaseMediaClient) ToMediaItem(ctx context.Context, item types.MediaData,
 	return mediaItem, nil
 }
 
-func (b *BaseMediaClient) ToMediaItemEpisode(ctx context.Context, item types.Episode, itemID string) (types.MediaItem[types.Episode], error) {
-	mediaItem := types.MediaItem[types.Episode]{
+func (b *BaseMediaClient) ToMediaItemEpisode(ctx context.Context, item media.Episode, itemID string) (models.MediaItem[media.Episode], error) {
+	mediaItem := models.MediaItem[media.Episode]{
 		Data: item,
 		Type: item.GetMediaType(),
 	}
@@ -78,8 +80,8 @@ func (b *BaseMediaClient) ToMediaItemEpisode(ctx context.Context, item types.Epi
 	return mediaItem, nil
 }
 
-func (b *BaseMediaClient) ToMediaItemSeason(ctx context.Context, item types.Season, itemID string) (types.MediaItem[types.Season], error) {
-	mediaItem := types.MediaItem[types.Season]{
+func (b *BaseMediaClient) ToMediaItemSeason(ctx context.Context, item media.Season, itemID string) (models.MediaItem[media.Season], error) {
+	mediaItem := models.MediaItem[media.Season]{
 		Data: item,
 		Type: item.GetMediaType(),
 	}
@@ -88,8 +90,8 @@ func (b *BaseMediaClient) ToMediaItemSeason(ctx context.Context, item types.Seas
 	return mediaItem, nil
 }
 
-func (b *BaseMediaClient) ToMediaItemPlaylist(ctx context.Context, item types.Playlist, itemID string) (types.MediaItem[types.Playlist], error) {
-	mediaItem := types.MediaItem[types.Playlist]{
+func (b *BaseMediaClient) ToMediaItemPlaylist(ctx context.Context, item media.Playlist, itemID string) (models.MediaItem[media.Playlist], error) {
+	mediaItem := models.MediaItem[media.Playlist]{
 		Data: item,
 		Type: item.GetMediaType(),
 	}
@@ -98,8 +100,8 @@ func (b *BaseMediaClient) ToMediaItemPlaylist(ctx context.Context, item types.Pl
 	return mediaItem, nil
 }
 
-func (b *BaseMediaClient) ToMediaItemCollection(ctx context.Context, item types.Collection, itemID string) (types.MediaItem[types.Collection], error) {
-	mediaItem := types.MediaItem[types.Collection]{
+func (b *BaseMediaClient) ToMediaItemCollection(ctx context.Context, item media.Collection, itemID string) (models.MediaItem[media.Collection], error) {
+	mediaItem := models.MediaItem[media.Collection]{
 		Data: item,
 		Type: item.GetMediaType(),
 	}
@@ -108,8 +110,8 @@ func (b *BaseMediaClient) ToMediaItemCollection(ctx context.Context, item types.
 	return mediaItem, nil
 }
 
-func (b *BaseMediaClient) ToMediaItemMovie(ctx context.Context, item types.Movie, itemID string) (types.MediaItem[types.Movie], error) {
-	mediaItem := types.MediaItem[types.Movie]{
+func (b *BaseMediaClient) ToMediaItemMovie(ctx context.Context, item media.Movie, itemID string) (models.MediaItem[media.Movie], error) {
+	mediaItem := models.MediaItem[media.Movie]{
 		Data: item,
 		Type: item.GetMediaType(),
 	}
@@ -118,8 +120,8 @@ func (b *BaseMediaClient) ToMediaItemMovie(ctx context.Context, item types.Movie
 	return mediaItem, nil
 }
 
-func (b *BaseMediaClient) ToMediaItemSeries(ctx context.Context, item types.TVShow, itemID string) (types.MediaItem[types.TVShow], error) {
-	mediaItem := types.MediaItem[types.TVShow]{
+func (b *BaseMediaClient) ToMediaItemSeries(ctx context.Context, item media.TVShow, itemID string) (models.MediaItem[media.TVShow], error) {
+	mediaItem := models.MediaItem[media.TVShow]{
 		Data: item,
 		Type: item.GetMediaType(),
 	}
@@ -128,8 +130,8 @@ func (b *BaseMediaClient) ToMediaItemSeries(ctx context.Context, item types.TVSh
 	return mediaItem, nil
 }
 
-func (b *BaseMediaClient) ToMediaItemTrack(ctx context.Context, item types.Track, itemID string) (types.MediaItem[types.Track], error) {
-	mediaItem := types.MediaItem[types.Track]{
+func (b *BaseMediaClient) ToMediaItemTrack(ctx context.Context, item media.Track, itemID string) (models.MediaItem[media.Track], error) {
+	mediaItem := models.MediaItem[media.Track]{
 		Data: item,
 		Type: item.GetMediaType(),
 	}
@@ -138,8 +140,8 @@ func (b *BaseMediaClient) ToMediaItemTrack(ctx context.Context, item types.Track
 	return mediaItem, nil
 }
 
-func (b *BaseMediaClient) ToMediaItemAlbum(ctx context.Context, item types.Album, itemID string) (types.MediaItem[types.Album], error) {
-	mediaItem := types.MediaItem[types.Album]{
+func (b *BaseMediaClient) ToMediaItemAlbum(ctx context.Context, item media.Album, itemID string) (models.MediaItem[media.Album], error) {
+	mediaItem := models.MediaItem[media.Album]{
 		Data: item,
 		Type: item.GetMediaType(),
 	}
@@ -148,8 +150,8 @@ func (b *BaseMediaClient) ToMediaItemAlbum(ctx context.Context, item types.Album
 	return mediaItem, nil
 }
 
-func (b *BaseMediaClient) ToMediaItemArtist(ctx context.Context, item types.Artist, itemID string) (types.MediaItem[types.Artist], error) {
-	mediaItem := types.MediaItem[types.Artist]{
+func (b *BaseMediaClient) ToMediaItemArtist(ctx context.Context, item media.Artist, itemID string) (models.MediaItem[media.Artist], error) {
+	mediaItem := models.MediaItem[media.Artist]{
 		Data: item,
 		Type: item.GetMediaType(),
 	}

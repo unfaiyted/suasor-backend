@@ -90,20 +90,6 @@ type Playlist struct {
 	IsPublic  bool     `json:"isPublic"`
 }
 
-// HistoryItem represents an item in watch history
-type MediaPlayHistory[T MediaData] struct {
-	Item             MediaItem[T]
-	Type             string    `json:"type"` // "movie", "episode" , "show","season"
-	WatchedAt        time.Time `json:"watchedAt"`
-	LastWatchedAt    time.Time `json:"lastWatchedAt"`
-	IsFavorite       bool      `json:"isFavorite,omitempty"`
-	PlayedPercentage float64   `json:"playedPercentage,omitempty"`
-	PlayCount        int32     `json:"playCount,omitempty"`
-	PositionSeconds  int       `json:"positionSeconds"`
-	DurationSeconds  int       `json:"durationSeconds"`
-	Completed        bool      `json:"completed"`
-}
-
 // Movie represents a movie item
 type Movie struct {
 	Details      MediaMetadata
@@ -114,103 +100,6 @@ type Movie struct {
 	VideoCodec   string   `json:"videoCodec,omitempty"`
 	AudioCodec   string   `json:"audioCodec,omitempty"`
 	SubtitleURLs []string `json:"subtitleUrls,omitempty"`
-}
-
-// MediaItem is the base type for all media items
-type MediaItem[T MediaData] struct {
-	ID          uint64          `json:"ID" gorm:"primaryKey"` // internal ID
-	ExternalID  string          `json:"externalID" gorm:"index"`
-	ClientID    uint64          `json:"clientID"  gorm:"index"` // internal ClientID
-	ClientType  MediaClientType `json:"clientType"`             // internal Client Type "plex", "jellyfin", etc.
-	Type        MediaType       `json:"type"`                   // "movie", "tvshow", "episode", "music","playlist","artist"
-	StreamURL   string          `json:"streamUrl,omitempty"`
-	DownloadURL string          `json:"downloadUrl,omitempty"`
-	Data        T
-}
-
-func (m *MediaItem[T]) SetData(i *MediaItem[T], data T) {
-	i.Data = data
-}
-
-func (m *MediaItem[T]) AsEpisode() (MediaItem[Episode], bool) {
-	if m.Type != MEDIATYPE_EPISODE {
-		return MediaItem[Episode]{}, false
-	}
-	episode, ok := any(m).(MediaItem[Episode])
-
-	return episode, ok
-}
-
-func (m *MediaItem[T]) AsMovie() (MediaItem[Movie], bool) {
-	if m.Type != MEDIATYPE_MOVIE {
-		return MediaItem[Movie]{}, false
-	}
-	movie, ok := any(m).(MediaItem[Movie])
-
-	return movie, ok
-}
-
-func (m *MediaItem[T]) AsTVShow() (MediaItem[TVShow], bool) {
-	if m.Type != MEDIATYPE_SHOW {
-		return MediaItem[TVShow]{}, false
-	}
-	show, ok := any(m).(MediaItem[TVShow])
-
-	return show, ok
-}
-
-func (m *MediaItem[T]) AsSeason() (MediaItem[Season], bool) {
-	if m.Type != MEDIATYPE_SEASON {
-		return MediaItem[Season]{}, false
-	}
-	season, ok := any(m).(MediaItem[Season])
-
-	return season, ok
-}
-
-func (m *MediaItem[T]) AsTrack() (MediaItem[Track], bool) {
-	if m.Type != MEDIATYPE_TRACK {
-		return MediaItem[Track]{}, false
-	}
-	track, ok := any(m).(MediaItem[Track])
-
-	return track, ok
-}
-
-func (m *MediaItem[T]) AsAlbum() (MediaItem[Album], bool) {
-	if m.Type != MEDIATYPE_ALBUM {
-		return MediaItem[Album]{}, false
-	}
-	album, ok := any(m).(MediaItem[Album])
-
-	return album, ok
-}
-
-func (m *MediaItem[T]) AsArtist() (MediaItem[Artist], bool) {
-	if m.Type != MEDIATYPE_ARTIST {
-		return MediaItem[Artist]{}, false
-	}
-	artist, ok := any(m).(MediaItem[Artist])
-
-	return artist, ok
-}
-
-func (m *MediaItem[T]) AsCollection() (MediaItem[Collection], bool) {
-	if m.Type != MEDIATYPE_COLLECTION {
-		return MediaItem[Collection]{}, false
-	}
-	collection, ok := any(m).(MediaItem[Collection])
-
-	return collection, ok
-}
-
-func (m *MediaItem[T]) AsPlaylist() (MediaItem[Playlist], bool) {
-	if m.Type != MEDIATYPE_PLAYLIST {
-		return MediaItem[Playlist]{}, false
-	}
-	playlist, ok := any(m).(MediaItem[Playlist])
-
-	return playlist, ok
 }
 
 // Artwork holds different types of artwork
@@ -228,17 +117,6 @@ type Person struct {
 	Role      string `json:"role,omitempty"`      // e.g., "Director", "Actor"
 	Character string `json:"character,omitempty"` // For actors
 	Photo     string `json:"photo,omitempty"`
-}
-
-// Implement this interface for MediaItem[T]
-func (m *MediaItem[MediaData]) SetClientInfo(clientID uint64, clientType MediaClientType, clientItemKey string) {
-	m.ClientID = clientID
-	m.ClientType = clientType
-	m.ExternalID = clientItemKey
-}
-
-func (m *MediaItem[MediaData]) GetData() MediaData {
-	return m.Data
 }
 
 type MediaData interface {

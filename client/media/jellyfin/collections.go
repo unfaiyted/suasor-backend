@@ -6,10 +6,11 @@ import (
 
 	jellyfin "github.com/sj14/jellyfin-go/api"
 	t "suasor/client/media/types"
+	"suasor/types/models"
 	"suasor/utils"
 )
 
-func (j *JellyfinClient) GetCollections(ctx context.Context, options *t.QueryOptions) ([]t.MediaItem[t.Collection], error) {
+func (j *JellyfinClient) GetCollections(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[t.Collection], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -53,7 +54,7 @@ func (j *JellyfinClient) GetCollections(ctx context.Context, options *t.QueryOpt
 		Msg("Successfully retrieved collections from Jellyfin")
 
 	// Convert results to expected format
-	collections := make([]t.MediaItem[t.Collection], 0)
+	collections := make([]models.MediaItem[t.Collection], 0)
 	for _, item := range result.Items {
 		if *item.Type == "BoxSet" {
 			collection, err := j.convertToCollection(ctx, &item)

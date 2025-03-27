@@ -7,21 +7,22 @@ import (
 
 	jellyfin "github.com/sj14/jellyfin-go/api"
 	t "suasor/client/media/types"
+	"suasor/types/models"
 	"suasor/utils"
 )
 
 // Helper function to convert Jellyfin item to internal Collection type
-func (j *JellyfinClient) convertToCollection(ctx context.Context, item *jellyfin.BaseItemDto) (t.MediaItem[t.Collection], error) {
+func (j *JellyfinClient) convertToCollection(ctx context.Context, item *jellyfin.BaseItemDto) (models.MediaItem[t.Collection], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
 	// Validate required fields
 	if item == nil {
-		return t.MediaItem[t.Collection]{}, fmt.Errorf("cannot convert nil item to collection")
+		return models.MediaItem[t.Collection]{}, fmt.Errorf("cannot convert nil item to collection")
 	}
 
 	if item.Id == nil || *item.Id == "" {
-		return t.MediaItem[t.Collection]{}, fmt.Errorf("collection is missing required ID field")
+		return models.MediaItem[t.Collection]{}, fmt.Errorf("collection is missing required ID field")
 	}
 
 	// Safely get name or fallback to empty string
@@ -48,7 +49,7 @@ func (j *JellyfinClient) convertToCollection(ctx context.Context, item *jellyfin
 	}
 
 	// Build collection object
-	collection := t.MediaItem[t.Collection]{
+	collection := models.MediaItem[t.Collection]{
 		Data: t.Collection{
 			Details: t.MediaMetadata{
 				Title:       title,
@@ -97,17 +98,17 @@ func (j *JellyfinClient) convertToCollection(ctx context.Context, item *jellyfin
 }
 
 // Helper function to convert Jellyfin item to internal Episode type
-func (j *JellyfinClient) convertToEpisode(ctx context.Context, item *jellyfin.BaseItemDto) (t.MediaItem[t.Episode], error) {
+func (j *JellyfinClient) convertToEpisode(ctx context.Context, item *jellyfin.BaseItemDto) (models.MediaItem[t.Episode], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
 	// Validate required fields
 	if item == nil {
-		return t.MediaItem[t.Episode]{}, fmt.Errorf("cannot convert nil item to episode")
+		return models.MediaItem[t.Episode]{}, fmt.Errorf("cannot convert nil item to episode")
 	}
 
 	if item.Id == nil || *item.Id == "" {
-		return t.MediaItem[t.Episode]{}, fmt.Errorf("episode is missing required ID field")
+		return models.MediaItem[t.Episode]{}, fmt.Errorf("episode is missing required ID field")
 	}
 
 	// Safely get name or fallback to empty string
@@ -152,7 +153,7 @@ func (j *JellyfinClient) convertToEpisode(ctx context.Context, item *jellyfin.Ba
 	}
 
 	// Create the basic episode object
-	episode := t.MediaItem[t.Episode]{
+	episode := models.MediaItem[t.Episode]{
 		Data: t.Episode{
 			Details: t.MediaMetadata{
 				Title:       title,
@@ -209,17 +210,17 @@ func (j *JellyfinClient) convertToEpisode(ctx context.Context, item *jellyfin.Ba
 	return episode, nil
 }
 
-func (j *JellyfinClient) convertToTVShow(ctx context.Context, item *jellyfin.BaseItemDto) (t.MediaItem[t.TVShow], error) {
+func (j *JellyfinClient) convertToTVShow(ctx context.Context, item *jellyfin.BaseItemDto) (models.MediaItem[t.TVShow], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
 	// Validate required fields
 	if item == nil {
-		return t.MediaItem[t.TVShow]{}, fmt.Errorf("cannot convert nil item to TV show")
+		return models.MediaItem[t.TVShow]{}, fmt.Errorf("cannot convert nil item to TV show")
 	}
 
 	if item.Id == nil || *item.Id == "" {
-		return t.MediaItem[t.TVShow]{}, fmt.Errorf("TV show is missing required ID field")
+		return models.MediaItem[t.TVShow]{}, fmt.Errorf("TV show is missing required ID field")
 	}
 
 	// Safely get name or fallback to empty string
@@ -270,7 +271,7 @@ func (j *JellyfinClient) convertToTVShow(ctx context.Context, item *jellyfin.Bas
 	}
 
 	// Build TV show object
-	show := t.MediaItem[t.TVShow]{
+	show := models.MediaItem[t.TVShow]{
 		Data: t.TVShow{
 			Details: t.MediaMetadata{
 				Title:       title,
@@ -322,17 +323,17 @@ func (j *JellyfinClient) convertToTVShow(ctx context.Context, item *jellyfin.Bas
 }
 
 // Helper function to convert Jellyfin item to internal Movie type
-func (j *JellyfinClient) convertToMovie(ctx context.Context, item *jellyfin.BaseItemDto) (t.MediaItem[t.Movie], error) {
+func (j *JellyfinClient) convertToMovie(ctx context.Context, item *jellyfin.BaseItemDto) (models.MediaItem[t.Movie], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
 	// Validate required fields
 	if item == nil {
-		return t.MediaItem[t.Movie]{}, fmt.Errorf("cannot convert nil item to movie")
+		return models.MediaItem[t.Movie]{}, fmt.Errorf("cannot convert nil item to movie")
 	}
 
 	if item.Id == nil || *item.Id == "" {
-		return t.MediaItem[t.Movie]{}, fmt.Errorf("movie is missing required ID field")
+		return models.MediaItem[t.Movie]{}, fmt.Errorf("movie is missing required ID field")
 	}
 
 	// Safely get name or fallback to empty string
@@ -401,7 +402,7 @@ func (j *JellyfinClient) convertToMovie(ctx context.Context, item *jellyfin.Base
 	}
 
 	// Build movie object
-	movie := t.MediaItem[t.Movie]{
+	movie := models.MediaItem[t.Movie]{
 		Data: t.Movie{
 			Details: t.MediaMetadata{
 				Title:         title,
@@ -441,17 +442,17 @@ func (j *JellyfinClient) convertToMovie(ctx context.Context, item *jellyfin.Base
 	return movie, nil
 }
 
-func (j *JellyfinClient) convertToAlbum(ctx context.Context, item *jellyfin.BaseItemDto) (t.MediaItem[t.Album], error) {
+func (j *JellyfinClient) convertToAlbum(ctx context.Context, item *jellyfin.BaseItemDto) (models.MediaItem[t.Album], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
 	// Validate required fields
 	if item == nil {
-		return t.MediaItem[t.Album]{}, fmt.Errorf("cannot convert nil item to album")
+		return models.MediaItem[t.Album]{}, fmt.Errorf("cannot convert nil item to album")
 	}
 
 	if item.Id == nil || *item.Id == "" {
-		return t.MediaItem[t.Album]{}, fmt.Errorf("album is missing required ID field")
+		return models.MediaItem[t.Album]{}, fmt.Errorf("album is missing required ID field")
 	}
 
 	// Safely get name or fallback to empty string
@@ -490,7 +491,7 @@ func (j *JellyfinClient) convertToAlbum(ctx context.Context, item *jellyfin.Base
 	}
 
 	// Build album object
-	album := t.MediaItem[t.Album]{
+	album := models.MediaItem[t.Album]{
 		Data: t.Album{
 			Details: t.MediaMetadata{
 				Title:       title,
@@ -533,17 +534,17 @@ func (j *JellyfinClient) convertToAlbum(ctx context.Context, item *jellyfin.Base
 }
 
 // Helper function to convert Jellyfin item to internal Season type
-func (j *JellyfinClient) convertToSeason(ctx context.Context, item *jellyfin.BaseItemDto) (t.MediaItem[t.Season], error) {
+func (j *JellyfinClient) convertToSeason(ctx context.Context, item *jellyfin.BaseItemDto) (models.MediaItem[t.Season], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
 	// Validate required fields
 	if item == nil {
-		return t.MediaItem[t.Season]{}, fmt.Errorf("cannot convert nil item to season")
+		return models.MediaItem[t.Season]{}, fmt.Errorf("cannot convert nil item to season")
 	}
 
 	if item.Id == nil || *item.Id == "" {
-		return t.MediaItem[t.Season]{}, fmt.Errorf("season is missing required ID field")
+		return models.MediaItem[t.Season]{}, fmt.Errorf("season is missing required ID field")
 	}
 
 	// Safely get name or fallback to empty string
@@ -588,7 +589,7 @@ func (j *JellyfinClient) convertToSeason(ctx context.Context, item *jellyfin.Bas
 	}
 
 	// Build season object
-	season := t.MediaItem[t.Season]{
+	season := models.MediaItem[t.Season]{
 		Data: t.Season{
 			Details: t.MediaMetadata{
 				Title:       title,
@@ -641,20 +642,20 @@ func (j *JellyfinClient) convertToSeason(ctx context.Context, item *jellyfin.Bas
 	return season, nil
 }
 
-func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.BaseItemDto) (t.MediaItem[t.MediaData], error) {
+func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.BaseItemDto) (models.MediaItem[t.MediaData], error) {
 
 	if item == nil {
-		return t.MediaItem[t.MediaData]{}, fmt.Errorf("cannot convert nil item to item")
+		return models.MediaItem[t.MediaData]{}, fmt.Errorf("cannot convert nil item to item")
 	}
 
-	var result t.MediaItem[t.MediaData]
+	var result models.MediaItem[t.MediaData]
 	// var err error
 
 	switch *item.Type {
 	case jellyfin.BASEITEMKIND_MOVIE:
 		movie, convErr := j.convertToMovie(ctx, item)
 		if convErr != nil {
-			return t.MediaItem[t.MediaData]{}, convErr
+			return models.MediaItem[t.MediaData]{}, convErr
 		}
 		// Convert to generic MediaData
 		result.Type = movie.Type
@@ -666,7 +667,7 @@ func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.B
 	case jellyfin.BASEITEMKIND_EPISODE:
 		episode, convErr := j.convertToEpisode(ctx, item)
 		if convErr != nil {
-			return t.MediaItem[t.MediaData]{}, convErr
+			return models.MediaItem[t.MediaData]{}, convErr
 		}
 		result.Type = episode.Type
 		result.ClientID = episode.ClientID
@@ -676,7 +677,7 @@ func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.B
 	case jellyfin.BASEITEMKIND_MUSIC_ALBUM:
 		album, convErr := j.convertToAlbum(ctx, item)
 		if convErr != nil {
-			return t.MediaItem[t.MediaData]{}, convErr
+			return models.MediaItem[t.MediaData]{}, convErr
 		}
 		result.Type = album.Type
 		result.ClientID = album.ClientID
@@ -686,7 +687,7 @@ func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.B
 	case jellyfin.BASEITEMKIND_SERIES:
 		tvShow, convErr := j.convertToTVShow(ctx, item)
 		if convErr != nil {
-			return t.MediaItem[t.MediaData]{}, convErr
+			return models.MediaItem[t.MediaData]{}, convErr
 		}
 		result.Type = tvShow.Type
 		result.ClientID = tvShow.ClientID
@@ -696,7 +697,7 @@ func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.B
 	case jellyfin.BASEITEMKIND_SEASON:
 		season, convErr := j.convertToSeason(ctx, item)
 		if convErr != nil {
-			return t.MediaItem[t.MediaData]{}, convErr
+			return models.MediaItem[t.MediaData]{}, convErr
 		}
 		result.Type = season.Type
 		result.ClientID = season.ClientID
@@ -706,7 +707,7 @@ func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.B
 	case jellyfin.BASEITEMKIND_AUDIO:
 		artist, convErr := j.convertToArtist(ctx, item)
 		if convErr != nil {
-			return t.MediaItem[t.MediaData]{}, convErr
+			return models.MediaItem[t.MediaData]{}, convErr
 		}
 		result.Type = artist.Type
 		result.ClientID = artist.ClientID
@@ -716,7 +717,7 @@ func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.B
 	case jellyfin.BASEITEMKIND_PLAYLIST:
 		playlist, convErr := j.convertToPlaylist(ctx, item)
 		if convErr != nil {
-			return t.MediaItem[t.MediaData]{}, convErr
+			return models.MediaItem[t.MediaData]{}, convErr
 		}
 		result.Type = playlist.Type
 		result.ClientID = playlist.ClientID
@@ -726,7 +727,7 @@ func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.B
 	case jellyfin.BASEITEMKIND_COLLECTION_FOLDER:
 		collection, convErr := j.convertToCollection(ctx, item)
 		if convErr != nil {
-			return t.MediaItem[t.MediaData]{}, convErr
+			return models.MediaItem[t.MediaData]{}, convErr
 		}
 		result.Type = collection.Type
 		result.ClientID = collection.ClientID
@@ -734,7 +735,7 @@ func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.B
 		result.ClientType = collection.ClientType
 		result.Data = collection.Data
 	default:
-		return t.MediaItem[t.MediaData]{}, fmt.Errorf("item type not supported")
+		return models.MediaItem[t.MediaData]{}, fmt.Errorf("item type not supported")
 	}
 	return result, nil
 
@@ -742,17 +743,17 @@ func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.B
 
 //convertToArtist
 
-func (j *JellyfinClient) convertToArtist(ctx context.Context, item *jellyfin.BaseItemDto) (t.MediaItem[t.Artist], error) {
+func (j *JellyfinClient) convertToArtist(ctx context.Context, item *jellyfin.BaseItemDto) (models.MediaItem[t.Artist], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
 	// Validate required fields
 	if item == nil {
-		return t.MediaItem[t.Artist]{}, fmt.Errorf("cannot convert nil item to artist")
+		return models.MediaItem[t.Artist]{}, fmt.Errorf("cannot convert nil item to artist")
 	}
 
 	if item.Id == nil || *item.Id == "" {
-		return t.MediaItem[t.Artist]{}, fmt.Errorf("artist is missing required ID field")
+		return models.MediaItem[t.Artist]{}, fmt.Errorf("artist is missing required ID field")
 	}
 
 	// Safely get name or fallback to empty string
@@ -785,7 +786,7 @@ func (j *JellyfinClient) convertToArtist(ctx context.Context, item *jellyfin.Bas
 	}
 
 	// Build artist object
-	artist := t.MediaItem[t.Artist]{
+	artist := models.MediaItem[t.Artist]{
 		Data: t.Artist{
 			Details: t.MediaMetadata{
 				Title:       name,
@@ -825,17 +826,17 @@ func (j *JellyfinClient) convertToArtist(ctx context.Context, item *jellyfin.Bas
 	return artist, nil
 }
 
-func (j *JellyfinClient) convertToPlaylist(ctx context.Context, item *jellyfin.BaseItemDto) (t.MediaItem[t.Playlist], error) {
+func (j *JellyfinClient) convertToPlaylist(ctx context.Context, item *jellyfin.BaseItemDto) (models.MediaItem[t.Playlist], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
 	// Validate required fields
 	if item == nil {
-		return t.MediaItem[t.Playlist]{}, fmt.Errorf("cannot convert nil item to playlist")
+		return models.MediaItem[t.Playlist]{}, fmt.Errorf("cannot convert nil item to playlist")
 	}
 
 	if item.Id == nil || *item.Id == "" {
-		return t.MediaItem[t.Playlist]{}, fmt.Errorf("playlist is missing required ID field")
+		return models.MediaItem[t.Playlist]{}, fmt.Errorf("playlist is missing required ID field")
 	}
 
 	// Safely get name or fallback to empty string
@@ -862,7 +863,7 @@ func (j *JellyfinClient) convertToPlaylist(ctx context.Context, item *jellyfin.B
 	}
 
 	// Build playlist object
-	playlist := t.MediaItem[t.Playlist]{
+	playlist := models.MediaItem[t.Playlist]{
 		Data: t.Playlist{
 			Details: t.MediaMetadata{
 				Title:       title,
@@ -899,17 +900,17 @@ func (j *JellyfinClient) convertToPlaylist(ctx context.Context, item *jellyfin.B
 	return playlist, nil
 }
 
-// func (j *JellyfinClient) convertToSeason(ctx context.Context, item *jellyfin.BaseItemDto, showID string) (t.MediaItem[t.Season], error) {
+// func (j *JellyfinClient) convertToSeason(ctx context.Context, item *jellyfin.BaseItemDto, showID string) (models.MediaItem[t.Season], error) {
 // 	// Get logger from context
 // 	log := utils.LoggerFromContext(ctx)
 //
 // 	// Validate required fields
 // 	if item == nil {
-// 		return t.MediaItem[t.Season]{}, fmt.Errorf("cannot convert nil item to season")
+// 		return models.MediaItem[t.Season]{}, fmt.Errorf("cannot convert nil item to season")
 // 	}
 //
 // 	if item.Id == nil || *item.Id == "" {
-// 		return t.MediaItem[t.Season]{}, fmt.Errorf("season is missing required ID field")
+// 		return models.MediaItem[t.Season]{}, fmt.Errorf("season is missing required ID field")
 // 	}
 //
 // 	// Safely get name or fallback to empty string
@@ -943,7 +944,7 @@ func (j *JellyfinClient) convertToPlaylist(ctx context.Context, item *jellyfin.B
 // 	}
 //
 // 	// Create the basic season object
-// 	season := t.MediaItem[t.Season]{
+// 	season := models.MediaItem[t.Season]{
 // 		Data: t.Season{
 // 			Details: t.MediaMetadata{
 // 				Title:       title,

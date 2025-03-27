@@ -2,8 +2,9 @@
 package handlers
 
 import (
-	"suasor/models"
 	"suasor/services"
+	"suasor/types/models"
+	"suasor/types/responses"
 	"suasor/utils"
 
 	"github.com/gin-gonic/gin"
@@ -102,5 +103,5 @@ func (h *UserConfigHandler) UpdateUserConfig(c *gin.Context) {
 	}
 
 	log.Info().Uint64("userID", uid).Msg("User configuration updated successfully")
-	utils.RespondOK(c, models.EmptyResponse{Success: true}, "User configuration updated successfully")
+	utils.RespondOK(c, responses.EmptyResponse{Success: true}, "User configuration updated successfully")
 }

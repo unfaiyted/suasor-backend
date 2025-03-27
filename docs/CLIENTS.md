@@ -2,10 +2,10 @@
 
 
 ## Media Servers Integrations
-https://github.com/sj14/jellyfin-go
-https://github.com/MediaBrowser/Emby.Sdk
-https://github.com/LukeHagar/plexgo
-https://github.com/delucks/go-subsonic
+DONE https://github.com/sj14/jellyfin-go
+DONE https://github.com/MediaBrowser/Emby.Sdk
+DONE https://github.com/LukeHagar/plexgo
+DONE https://github.com/delucks/go-subsonic
 
 
 
@@ -21,8 +21,8 @@ https://github.com/teilomillet/gollm
 
 
 # Download Clients
-https://github.com/devopsarr/radarr-go
-https://github.com/devopsarr/sonarr-go
-https://github.com/devopsarr/lidarr-go
+DONE https://github.com/devopsarr/radarr-go
+DONE https://github.com/devopsarr/sonarr-go
+DONE https://github.com/devopsarr/lidarr-go
 
 

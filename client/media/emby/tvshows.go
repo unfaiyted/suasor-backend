@@ -8,11 +8,12 @@ import (
 	"github.com/antihax/optional"
 	"suasor/client/media/types"
 	embyclient "suasor/internal/clients/embyAPI"
+	"suasor/types/models"
 	"suasor/utils"
 )
 
 // GetTVShows retrieves TV shows from the Emby server
-func (e *EmbyClient) GetTVShows(ctx context.Context, options *types.QueryOptions) ([]types.MediaItem[types.TVShow], error) {
+func (e *EmbyClient) GetTVShows(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[types.TVShow], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -43,7 +44,7 @@ func (e *EmbyClient) GetTVShows(ctx context.Context, options *types.QueryOptions
 		Int("totalRecordCount", int(items.TotalRecordCount)).
 		Msg("Successfully retrieved TV shows from Emby")
 
-	shows := make([]types.MediaItem[types.TVShow], 0)
+	shows := make([]models.MediaItem[types.TVShow], 0)
 	for _, item := range items.Items {
 		if item.Type_ == "Series" {
 			show, err := e.convertToTVShow(&item)
@@ -63,7 +64,7 @@ func (e *EmbyClient) GetTVShows(ctx context.Context, options *types.QueryOptions
 }
 
 // GetTVShowByID retrieves a specific TV show by ID
-func (e *EmbyClient) GetTVShowByID(ctx context.Context, id string) (types.MediaItem[types.TVShow], error) {
+func (e *EmbyClient) GetTVShowByID(ctx context.Context, id string) (models.MediaItem[types.TVShow], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -85,7 +86,7 @@ func (e *EmbyClient) GetTVShowByID(ctx context.Context, id string) (types.MediaI
 			Str("apiEndpoint", "/Items").
 			Str("showID", id).
 			Msg("Failed to fetch TV show from Emby")
-		return types.MediaItem[types.TVShow]{}, fmt.Errorf("failed to fetch TV show: %w", err)
+		return models.MediaItem[types.TVShow]{}, fmt.Errorf("failed to fetch TV show: %w", err)
 	}
 
 	if len(items.Items) == 0 {
@@ -93,7 +94,7 @@ func (e *EmbyClient) GetTVShowByID(ctx context.Context, id string) (types.MediaI
 			Str("showID", id).
 			Int("statusCode", resp.StatusCode).
 			Msg("No TV show found with the specified ID")
-		return types.MediaItem[types.TVShow]{}, fmt.Errorf("TV show with ID %s not found", id)
+		return models.MediaItem[types.TVShow]{}, fmt.Errorf("TV show with ID %s not found", id)
 	}
 
 	item := items.Items[0]
@@ -102,14 +103,14 @@ func (e *EmbyClient) GetTVShowByID(ctx context.Context, id string) (types.MediaI
 			Str("showID", id).
 			Str("actualType", item.Type_).
 			Msg("Item with specified ID is not a TV show")
-		return types.MediaItem[types.TVShow]{}, fmt.Errorf("item with ID %s is not a TV show", id)
+		return models.MediaItem[types.TVShow]{}, fmt.Errorf("item with ID %s is not a TV show", id)
 	}
 
 	return e.convertToTVShow(&item)
 }
 
 // GetTVShowSeasons retrieves seasons for a TV show
-func (e *EmbyClient) GetTVShowSeasons(ctx context.Context, showID string) ([]types.MediaItem[types.Season], error) {
+func (e *EmbyClient) GetTVShowSeasons(ctx context.Context, showID string) ([]models.MediaItem[types.Season], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -140,7 +141,7 @@ func (e *EmbyClient) GetTVShowSeasons(ctx context.Context, showID string) ([]typ
 		Str("showID", showID).
 		Msg("Successfully retrieved seasons for TV show from Emby")
 
-	seasons := make([]types.MediaItem[types.Season], 0)
+	seasons := make([]models.MediaItem[types.Season], 0)
 	for _, item := range result.Items {
 		if item.Type_ == "Season" {
 			season, err := e.convertToSeason(&item, showID)
@@ -160,7 +161,7 @@ func (e *EmbyClient) GetTVShowSeasons(ctx context.Context, showID string) ([]typ
 }
 
 // GetTVShowEpisodes retrieves episodes for a season
-func (e *EmbyClient) GetTVShowEpisodes(ctx context.Context, showID string, seasonNumber int) ([]types.MediaItem[types.Episode], error) {
+func (e *EmbyClient) GetTVShowEpisodes(ctx context.Context, showID string, seasonNumber int) ([]models.MediaItem[types.Episode], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -187,7 +188,7 @@ func (e *EmbyClient) GetTVShowEpisodes(ctx context.Context, showID string, seaso
 		return nil, fmt.Errorf("failed to fetch episodes: %w", err)
 	}
 
-	mediaItemEpisodes := make([]types.MediaItem[types.Episode], 0)
+	mediaItemEpisodes := make([]models.MediaItem[types.Episode], 0)
 	for _, item := range items.Items {
 		if item.Type_ == "Episode" && int(item.ParentIndexNumber) == seasonNumber {
 			episode, err := e.convertToEpisode(&item)
@@ -215,7 +216,7 @@ func (e *EmbyClient) GetTVShowEpisodes(ctx context.Context, showID string, seaso
 }
 
 // GetEpisodeByID retrieves a specific episode by ID
-func (e *EmbyClient) GetEpisodeByID(ctx context.Context, id string) (types.MediaItem[types.Episode], error) {
+func (e *EmbyClient) GetEpisodeByID(ctx context.Context, id string) (models.MediaItem[types.Episode], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -237,7 +238,7 @@ func (e *EmbyClient) GetEpisodeByID(ctx context.Context, id string) (types.Media
 			Str("apiEndpoint", "/Items").
 			Str("episodeID", id).
 			Msg("Failed to fetch episode from Emby")
-		return types.MediaItem[types.Episode]{}, fmt.Errorf("failed to fetch episode: %w", err)
+		return models.MediaItem[types.Episode]{}, fmt.Errorf("failed to fetch episode: %w", err)
 	}
 
 	if len(items.Items) == 0 {
@@ -245,7 +246,7 @@ func (e *EmbyClient) GetEpisodeByID(ctx context.Context, id string) (types.Media
 			Str("episodeID", id).
 			Int("statusCode", resp.StatusCode).
 			Msg("No episode found with the specified ID")
-		return types.MediaItem[types.Episode]{}, fmt.Errorf("episode with ID %s not found", id)
+		return models.MediaItem[types.Episode]{}, fmt.Errorf("episode with ID %s not found", id)
 	}
 
 	item := items.Items[0]
@@ -254,7 +255,7 @@ func (e *EmbyClient) GetEpisodeByID(ctx context.Context, id string) (types.Media
 			Str("episodeID", id).
 			Str("actualType", item.Type_).
 			Msg("Item with specified ID is not an episode")
-		return types.MediaItem[types.Episode]{}, fmt.Errorf("item with ID %s is not an episode", id)
+		return models.MediaItem[types.Episode]{}, fmt.Errorf("item with ID %s is not an episode", id)
 	}
 
 	return e.convertToEpisode(&item)

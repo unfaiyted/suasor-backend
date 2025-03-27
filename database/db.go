@@ -6,20 +6,15 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"suasor/models"
+
+	media "suasor/client/media/types"
+	client "suasor/client/types"
+	"suasor/types"
+	"suasor/types/models"
 )
 
-// Config holds database configuration
-type Config struct {
-	Host     string
-	User     string
-	Password string
-	Name     string
-	Port     string
-}
-
 // Initialize sets up the database connection and migrations
-func Initialize(dbConfig Config) (*gorm.DB, error) {
+func Initialize(dbConfig types.DatabaseConfig) (*gorm.DB, error) {
 	postgresDSN := fmt.Sprintf("host=%s user=%s password=%s dbname=postgres port=%s sslmode=disable",
 		dbConfig.Host,
 		dbConfig.User,
@@ -55,7 +50,31 @@ func Initialize(dbConfig Config) (*gorm.DB, error) {
 
 	// Auto Migrate the schema
 	//&models.User{},
-	if err := db.AutoMigrate(&models.User{}, &models.UserConfig{}, &models.DownloadClient{}, &models.Session{}, &models.Shorten{}); err != nil {
+	if err := db.AutoMigrate(
+		&models.User{},
+		&models.UserConfig{},
+
+		&models.Client[client.EmbyConfig]{},
+		&models.Client[client.JellyfinConfig]{},
+		&models.Client[client.PlexConfig]{},
+		&models.Client[client.SubsonicConfig]{},
+
+		&models.Client[client.LidarrConfig]{},
+		&models.Client[client.RadarrConfig]{},
+		&models.Client[client.SonarrConfig]{},
+
+		&models.MediaItem[media.Movie]{},
+		&models.MediaItem[media.TVShow]{},
+		&models.MediaItem[media.Episode]{},
+		&models.MediaItem[media.Season]{},
+		&models.MediaItem[media.Track]{},
+		&models.MediaItem[media.Album]{},
+		&models.MediaItem[media.Artist]{},
+		&models.MediaItem[media.Collection]{},
+		&models.MediaItem[media.Playlist]{},
+
+		&models.Session{},
+	); err != nil {
 		return nil, fmt.Errorf("failed to migrate database schema: %w", err)
 	}
 

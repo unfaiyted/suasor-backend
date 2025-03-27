@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"suasor/client/media/providers"
+	"suasor/client/media/types"
 	"suasor/models"
 	"suasor/repository"
 	"time"
@@ -14,12 +16,12 @@ import (
 // MediaClientService defines the interface for media client operations
 type MediaClientService interface {
 	CreateClient(ctx context.Context, userID uint64, req models.MediaClientRequest) (models.MediaClientResponse, error)
-	GetClientByID(ctx context.Context, userID, clientID uint64) (models.MediaClientResponse, error)
-	GetClientsByUserID(ctx context.Context, userID uint64) ([]models.MediaClientResponse, error)
-	UpdateClient(ctx context.Context, userID, clientID uint64, req models.MediaClientRequest) (models.MediaClientResponse, error)
+	GetClientByID(ctx context.Context, userID, clientID uint64) (types.MediaClientResponse, error)
+	GetClientsByUserID(ctx context.Context, userID uint64) ([]types.MediaClientResponse, error)
+	UpdateClient(ctx context.Context, userID, clientID uint64, req types.MediaClientRequest) (types.MediaClientResponse, error)
 	DeleteClient(ctx context.Context, userID, clientID uint64) error
-	TestClientConnection(ctx context.Context, req models.MediaClientTestRequest) (models.MediaClientTestResponse, error)
-	GetContentProvider(ctx context.Context, userID, clientID uint64) (models.MediaContentProvider, error)
+	TestClientConnection(ctx context.Context, req types.MediaClientTestRequest) (types.MediaClientTestResponse, error)
+	GetContentProvider(ctx context.Context, userID, clientID uint64) (types.MediaContentProvider, error)
 }
 
 type mediaClientService struct {
@@ -32,27 +34,27 @@ func NewMediaClientService(repo repository.MediaClientRepository) MediaClientSer
 }
 
 // CreateClient creates a new media client configuration
-func (s *mediaClientService) CreateClient(ctx context.Context, userID uint64, req models.MediaClientRequest) (models.MediaClientResponse, error) {
+func (s *mediaClientService) CreateClient(ctx context.Context, userID uint64, req types.MediaClientRequest) (types.MediaClientResponse, error) {
 	// Test connection first
-	testReq := models.MediaClientTestRequest{
+	testReq := types.MediaClientTestRequest{
 		ClientType: req.ClientType,
 		Client:     req.Client,
 	}
 
 	testResp, err := s.TestClientConnection(ctx, testReq)
 	if err != nil || !testResp.Success {
-		return models.MediaClientResponse{}, fmt.Errorf("failed to connect to client: %v", err)
+		return types.MediaClientResponse{}, fmt.Errorf("failed to connect to client: %v", err)
 	}
 
 	var client interface{}
 
 	switch req.ClientType {
-	case models.MediaClientTypePlex:
+	case types.MediaClientTypePlex:
 		config, ok := req.Client.(models.PlexConfig)
 		if !ok {
-			return models.MediaClientResponse{}, fmt.Errorf("invalid Plex configuration")
+			return types.MediaClientResponse{}, fmt.Errorf("invalid Plex configuration")
 		}
-		mediaClient := models.MediaClient[models.PlexConfig]{
+		mediaClient := types.MediaClient[types.PlexConfig]{
 			UserID:     userID,
 			Name:       req.Name,
 			ClientType: req.ClientType,
@@ -62,12 +64,12 @@ func (s *mediaClientService) CreateClient(ctx context.Context, userID uint64, re
 		}
 		client, err = s.repo.CreatePlex(ctx, mediaClient)
 
-	case models.MediaClientTypeJellyfin:
+	case types.MediaClientTypeJellyfin:
 		config, ok := req.Client.(models.JellyfinConfig)
 		if !ok {
-			return models.MediaClientResponse{}, fmt.Errorf("invalid Jellyfin configuration")
+			return types.MediaClientResponse{}, fmt.Errorf("invalid Jellyfin configuration")
 		}
-		mediaClient := models.MediaClient[models.JellyfinConfig]{
+		mediaClient := types.MediaClient[types.JellyfinConfig]{
 			UserID:     userID,
 			Name:       req.Name,
 			ClientType: req.ClientType,
@@ -77,12 +79,12 @@ func (s *mediaClientService) CreateClient(ctx context.Context, userID uint64, re
 		}
 		client, err = s.repo.CreateJellyfin(ctx, mediaClient)
 
-	case models.MediaClientTypeEmby:
+	case types.MediaClientTypeEmby:
 		config, ok := req.Client.(models.EmbyConfig)
 		if !ok {
-			return models.MediaClientResponse{}, fmt.Errorf("invalid Emby configuration")
+			return types.MediaClientResponse{}, fmt.Errorf("invalid Emby configuration")
 		}
-		mediaClient := models.MediaClient[models.EmbyConfig]{
+		mediaClient := types.MediaClient[types.EmbyConfig]{
 			UserID:     userID,
 			Name:       req.Name,
 			ClientType: req.ClientType,
@@ -92,12 +94,12 @@ func (s *mediaClientService) CreateClient(ctx context.Context, userID uint64, re
 		}
 		client, err = s.repo.CreateEmby(ctx, mediaClient)
 
-	case models.MediaClientTypeSubsonic:
-		config, ok := req.Client.(models.NavidromeConfig)
+	case types.MediaClientTypeSubsonic:
+		config, ok := req.Client.(types.SubsonicConfig)
 		if !ok {
-			return models.MediaClientResponse{}, fmt.Errorf("invalid Subsonic configuration")
+			return types.MediaClientResponse{}, fmt.Errorf("invalid Subsonic configuration")
 		}
-		mediaClient := models.MediaClient[models.NavidromeConfig]{
+		mediaClient := types.MediaClient[types.SubsonicConfig]{
 			UserID:     userID,
 			Name:       req.Name,
 			ClientType: req.ClientType,
@@ -108,71 +110,71 @@ func (s *mediaClientService) CreateClient(ctx context.Context, userID uint64, re
 		client, err = s.repo.CreateNavidrome(ctx, mediaClient)
 
 	default:
-		return models.MediaClientResponse{}, fmt.Errorf("unsupported client type: %s", req.ClientType)
+		return types.MediaClientResponse{}, fmt.Errorf("unsupported client type: %s", req.ClientType)
 	}
 
 	if err != nil {
-		return models.MediaClientResponse{}, err
+		return types.MediaClientResponse{}, err
 	}
 
 	// Convert to response type based on the client type
 	switch req.ClientType {
-	case models.MediaClientTypePlex:
-		return models.ToResponse(client.(*models.MediaClient[models.PlexConfig])), nil
-	case models.MediaClientTypeJellyfin:
-		return models.ToResponse(client.(*models.MediaClient[models.JellyfinConfig])), nil
-	case models.MediaClientTypeEmby:
-		return models.ToResponse(client.(*models.MediaClient[models.EmbyConfig])), nil
-	case models.MediaClientTypeSubsonic:
-		return models.ToResponse(client.(*models.MediaClient[models.NavidromeConfig])), nil
+	case types.MediaClientTypePlex:
+		return models.ToResponse(client.(*types.MediaClient[models.PlexConfig])), nil
+	case types.MediaClientTypeJellyfin:
+		return models.ToResponse(client.(*types.MediaClient[models.JellyfinConfig])), nil
+	case types.MediaClientTypeEmby:
+		return models.ToResponse(client.(*types.MediaClient[models.EmbyConfig])), nil
+	case types.MediaClientTypeSubsonic:
+		return models.ToResponse(client.(*types.MediaClient[models.NavidromeConfig])), nil
 	default:
-		return models.MediaClientResponse{}, fmt.Errorf("unsupported client type: %s", req.ClientType)
+		return types.MediaClientResponse{}, fmt.Errorf("unsupported client type: %s", req.ClientType)
 	}
 }
 
 // GetClientByID retrieves a media client by ID
-func (s *mediaClientService) GetClientByID(ctx context.Context, userID, clientID uint64) (models.MediaClientResponse, error) {
+func (s *mediaClientService) GetClientByID(ctx context.Context, userID, clientID uint64) (types.MediaClientResponse, error) {
 	client, err := s.repo.GetByID(ctx, clientID, userID)
 	if err != nil {
-		return models.MediaClientResponse{}, err
+		return types.MediaClientResponse{}, err
 	}
 
 	return client, nil
 }
 
 // GetClientsByUserID retrieves all media clients for a user
-func (s *mediaClientService) GetClientsByUserID(ctx context.Context, userID uint64) ([]models.MediaClientResponse, error) {
+func (s *mediaClientService) GetClientsByUserID(ctx context.Context, userID uint64) ([]types.MediaClientResponse, error) {
 	return s.repo.GetByUserID(ctx, userID)
 }
 
 // UpdateClient updates an existing media client
-func (s *mediaClientService) UpdateClient(ctx context.Context, userID, clientID uint64, req models.MediaClientRequest) (models.MediaClientResponse, error) {
+func (s *mediaClientService) UpdateClient(ctx context.Context, userID, clientID uint64, req types.MediaClientRequest) (types.MediaClientResponse, error) {
 	// Test connection with updated information
-	testReq := models.MediaClientTestRequest{
+	testReq := types.MediaClientTestRequest{
 		ClientType: req.ClientType,
 		Client:     req.Client,
 	}
 
 	testResp, err := s.TestClientConnection(ctx, testReq)
 	if err != nil || !testResp.Success {
-		return models.MediaClientResponse{}, fmt.Errorf("failed to connect to updated client: %v", err)
+		return types.MediaClientResponse{}, fmt.Errorf("failed to connect to updated client: %v", err)
 	}
 
 	// Get existing client to verify it exists and belongs to user
 	_, err = s.GetClientByID(ctx, userID, clientID)
 	if err != nil {
-		return models.MediaClientResponse{}, err
+		return types.MediaClientResponse{}, err
 	}
 
 	var updatedClient interface{}
 
 	switch req.ClientType {
-	case models.MediaClientTypePlex:
+	case types.MediaClientTypePlex:
 		config, ok := req.Client.(models.PlexConfig)
 		if !ok {
-			return models.MediaClientResponse{}, fmt.Errorf("invalid Plex configuration")
+			return types.MediaClientResponse{}, fmt.Errorf("invalid Plex configuration")
 		}
-		mediaClient := models.MediaClient[models.PlexConfig]{
+		mediaClient := types.MediaClient[types.PlexConfig]{
 			ID:         clientID,
 			UserID:     userID,
 			Name:       req.Name,
@@ -182,12 +184,12 @@ func (s *mediaClientService) UpdateClient(ctx context.Context, userID, clientID 
 		}
 		updatedClient, err = s.repo.UpdatePlex(ctx, mediaClient)
 
-	case models.MediaClientTypeJellyfin:
+	case types.MediaClientTypeJellyfin:
 		config, ok := req.Client.(models.JellyfinConfig)
 		if !ok {
-			return models.MediaClientResponse{}, fmt.Errorf("invalid Jellyfin configuration")
+			return types.MediaClientResponse{}, fmt.Errorf("invalid Jellyfin configuration")
 		}
-		mediaClient := models.MediaClient[models.JellyfinConfig]{
+		mediaClient := types.MediaClient[types.JellyfinConfig]{
 			ID:         clientID,
 			UserID:     userID,
 			Name:       req.Name,
@@ -197,12 +199,12 @@ func (s *mediaClientService) UpdateClient(ctx context.Context, userID, clientID 
 		}
 		updatedClient, err = s.repo.UpdateJellyfin(ctx, mediaClient)
 
-	case models.MediaClientTypeEmby:
+	case types.MediaClientTypeEmby:
 		config, ok := req.Client.(models.EmbyConfig)
 		if !ok {
-			return models.MediaClientResponse{}, fmt.Errorf("invalid Emby configuration")
+			return types.MediaClientResponse{}, fmt.Errorf("invalid Emby configuration")
 		}
-		mediaClient := models.MediaClient[models.EmbyConfig]{
+		mediaClient := types.MediaClient[types.EmbyConfig]{
 			ID:         clientID,
 			UserID:     userID,
 			Name:       req.Name,
@@ -212,12 +214,12 @@ func (s *mediaClientService) UpdateClient(ctx context.Context, userID, clientID 
 		}
 		updatedClient, err = s.repo.UpdateEmby(ctx, mediaClient)
 
-	case models.MediaClientTypeSubsonic:
-		config, ok := req.Client.(models.NavidromeConfig)
+	case types.MediaClientTypeSubsonic:
+		config, ok := req.Client.(types.SubsonicConfig)
 		if !ok {
-			return models.MediaClientResponse{}, fmt.Errorf("invalid Subsonic configuration")
+			return types.MediaClientResponse{}, fmt.Errorf("invalid Subsonic configuration")
 		}
-		mediaClient := models.MediaClient[models.NavidromeConfig]{
+		mediaClient := types.MediaClient[types.SubsonicConfig]{
 			ID:         clientID,
 			UserID:     userID,
 			Name:       req.Name,
@@ -228,25 +230,25 @@ func (s *mediaClientService) UpdateClient(ctx context.Context, userID, clientID 
 		updatedClient, err = s.repo.UpdateNavidrome(ctx, mediaClient)
 
 	default:
-		return models.MediaClientResponse{}, fmt.Errorf("unsupported client type: %s", req.ClientType)
+		return types.MediaClientResponse{}, fmt.Errorf("unsupported client type: %s", req.ClientType)
 	}
 
 	if err != nil {
-		return models.MediaClientResponse{}, err
+		return types.MediaClientResponse{}, err
 	}
 
 	// Convert to response type based on the client type
 	switch req.ClientType {
-	case models.MediaClientTypePlex:
-		return models.ToResponse(updatedClient.(*models.MediaClient[models.PlexConfig])), nil
-	case models.MediaClientTypeJellyfin:
-		return models.ToResponse(updatedClient.(*models.MediaClient[models.JellyfinConfig])), nil
-	case models.MediaClientTypeEmby:
-		return models.ToResponse(updatedClient.(*models.MediaClient[models.EmbyConfig])), nil
-	case models.MediaClientTypeSubsonic:
-		return models.ToResponse(updatedClient.(*models.MediaClient[models.NavidromeConfig])), nil
+	case types.MediaClientTypePlex:
+		return models.ToResponse(updatedClient.(*types.MediaClient[models.PlexConfig])), nil
+	case types.MediaClientTypeJellyfin:
+		return models.ToResponse(updatedClient.(*types.MediaClient[models.JellyfinConfig])), nil
+	case types.MediaClientTypeEmby:
+		return models.ToResponse(updatedClient.(*types.MediaClient[models.EmbyConfig])), nil
+	case types.MediaClientTypeSubsonic:
+		return models.ToResponse(updatedClient.(*types.MediaClient[models.NavidromeConfig])), nil
 	default:
-		return models.MediaClientResponse{}, fmt.Errorf("unsupported client type: %s", req.ClientType)
+		return types.MediaClientResponse{}, fmt.Errorf("unsupported client type: %s", req.ClientType)
 	}
 }
 
@@ -256,18 +258,18 @@ func (s *mediaClientService) DeleteClient(ctx context.Context, userID, clientID 
 }
 
 // TestClientConnection tests the connection to a media client
-func (s *mediaClientService) TestClientConnection(ctx context.Context, req models.MediaClientTestRequest) (models.MediaClientTestResponse, error) {
+func (s *mediaClientService) TestClientConnection(ctx context.Context, req types.MediaClientTestRequest) (types.MediaClientTestResponse, error) {
 	switch req.ClientType {
-	case models.MediaClientTypePlex:
+	case types.MediaClientTypePlex:
 		return s.testPlexConnection(ctx, req.Client)
-	case models.MediaClientTypeJellyfin:
+	case types.MediaClientTypeJellyfin:
 		return s.testJellyfinConnection(ctx, req.Client)
-	case models.MediaClientTypeEmby:
+	case types.MediaClientTypeEmby:
 		return s.testEmbyConnection(ctx, req.Client)
-	case models.MediaClientTypeSubsonic:
+	case types.MediaClientTypeSubsonic:
 		return s.testSubsonicConnection(ctx, req.Client)
 	default:
-		return models.MediaClientTestResponse{
+		return types.MediaClientTestResponse{
 			Success: false,
 			Message: "Unsupported client type",
 		}, fmt.Errorf("unsupported client type: %s", req.ClientType)
@@ -275,10 +277,10 @@ func (s *mediaClientService) TestClientConnection(ctx context.Context, req model
 }
 
 // Client-specific test connection methods
-func (s *mediaClientService) testPlexConnection(ctx context.Context, clientConfig interface{}) (models.MediaClientTestResponse, error) {
+func (s *mediaClientService) testPlexConnection(ctx context.Context, clientConfig interface{}) (types.MediaClientTestResponse, error) {
 	config, ok := clientConfig.(models.PlexConfig)
 	if !ok {
-		return models.MediaClientTestResponse{
+		return types.MediaClientTestResponse{
 			Success: false,
 			Message: "Invalid Plex configuration",
 		}, fmt.Errorf("invalid plex configuration")
@@ -293,7 +295,7 @@ func (s *mediaClientService) testPlexConnection(ctx context.Context, clientConfi
 
 	req, err := http.NewRequestWithContext(ctx, "GET", serverURL+"/identity", nil)
 	if err != nil {
-		return models.MediaClientTestResponse{
+		return types.MediaClientTestResponse{
 			Success: false,
 			Message: fmt.Sprintf("Failed to create request: %v", err),
 		}, err
@@ -308,7 +310,7 @@ func (s *mediaClientService) testPlexConnection(ctx context.Context, clientConfi
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return models.MediaClientTestResponse{
+		return types.MediaClientTestResponse{
 			Success: false,
 			Message: fmt.Sprintf("Failed to connect to Plex server: %v", err),
 		}, err
@@ -316,23 +318,23 @@ func (s *mediaClientService) testPlexConnection(ctx context.Context, clientConfi
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return models.MediaClientTestResponse{
+		return types.MediaClientTestResponse{
 			Success: false,
 			Message: fmt.Sprintf("Plex server returned status code %d", resp.StatusCode),
 		}, fmt.Errorf("plex server returned status code %d", resp.StatusCode)
 	}
 
 	// Could parse the response for version info but keeping it simple
-	return models.MediaClientTestResponse{
+	return types.MediaClientTestResponse{
 		Success: true,
 		Message: "Successfully connected to Plex server",
 	}, nil
 }
 
-func (s *mediaClientService) testJellyfinConnection(ctx context.Context, clientConfig interface{}) (models.MediaClientTestResponse, error) {
+func (s *mediaClientService) testJellyfinConnection(ctx context.Context, clientConfig interface{}) (types.MediaClientTestResponse, error) {
 	config, ok := clientConfig.(models.JellyfinConfig)
 	if !ok {
-		return models.MediaClientTestResponse{
+		return types.MediaClientTestResponse{
 			Success: false,
 			Message: "Invalid Jellyfin configuration",
 		}, fmt.Errorf("invalid jellyfin configuration")
@@ -347,7 +349,7 @@ func (s *mediaClientService) testJellyfinConnection(ctx context.Context, clientC
 
 	req, err := http.NewRequestWithContext(ctx, "GET", serverURL+"/System/Info", nil)
 	if err != nil {
-		return models.MediaClientTestResponse{
+		return types.MediaClientTestResponse{
 			Success: false,
 			Message: fmt.Sprintf("Failed to create request: %v", err),
 		}, err
@@ -362,7 +364,7 @@ func (s *mediaClientService) testJellyfinConnection(ctx context.Context, clientC
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return models.MediaClientTestResponse{
+		return types.MediaClientTestResponse{
 			Success: false,
 			Message: fmt.Sprintf("Failed to connect to Jellyfin server: %v", err),
 		}, err
@@ -370,22 +372,22 @@ func (s *mediaClientService) testJellyfinConnection(ctx context.Context, clientC
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return models.MediaClientTestResponse{
+		return types.MediaClientTestResponse{
 			Success: false,
 			Message: fmt.Sprintf("Jellyfin server returned status code %d", resp.StatusCode),
 		}, fmt.Errorf("jellyfin server returned status code %d", resp.StatusCode)
 	}
 
-	return models.MediaClientTestResponse{
+	return types.MediaClientTestResponse{
 		Success: true,
 		Message: "Successfully connected to Jellyfin server",
 	}, nil
 }
 
-func (s *mediaClientService) testEmbyConnection(ctx context.Context, clientConfig interface{}) (models.MediaClientTestResponse, error) {
+func (s *mediaClientService) testEmbyConnection(ctx context.Context, clientConfig interface{}) (types.MediaClientTestResponse, error) {
 	config, ok := clientConfig.(models.EmbyConfig)
 	if !ok {
-		return models.MediaClientTestResponse{
+		return types.MediaClientTestResponse{
 			Success: false,
 			Message: "Invalid Emby configuration",
 		}, fmt.Errorf("invalid emby configuration")
@@ -400,7 +402,7 @@ func (s *mediaClientService) testEmbyConnection(ctx context.Context, clientConfi
 
 	req, err := http.NewRequestWithContext(ctx, "GET", serverURL+"/System/Info", nil)
 	if err != nil {
-		return models.MediaClientTestResponse{
+		return types.MediaClientTestResponse{
 			Success: false,
 			Message: fmt.Sprintf("Failed to create request: %v", err),
 		}, err
@@ -415,7 +417,7 @@ func (s *mediaClientService) testEmbyConnection(ctx context.Context, clientConfi
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return models.MediaClientTestResponse{
+		return types.MediaClientTestResponse{
 			Success: false,
 			Message: fmt.Sprintf("Failed to connect to Emby server: %v", err),
 		}, err
@@ -423,22 +425,22 @@ func (s *mediaClientService) testEmbyConnection(ctx context.Context, clientConfi
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return models.MediaClientTestResponse{
+		return types.MediaClientTestResponse{
 			Success: false,
 			Message: fmt.Sprintf("Emby server returned status code %d", resp.StatusCode),
 		}, fmt.Errorf("emby server returned status code %d", resp.StatusCode)
 	}
 
-	return models.MediaClientTestResponse{
+	return types.MediaClientTestResponse{
 		Success: true,
 		Message: "Successfully connected to Emby server",
 	}, nil
 }
 
-func (s *mediaClientService) testSubsonicConnection(ctx context.Context, clientConfig interface{}) (models.MediaClientTestResponse, error) {
+func (s *mediaClientService) testSubsonicConnection(ctx context.Context, clientConfig interface{}) (types.MediaClientTestResponse, error) {
 	config, ok := clientConfig.(models.NavidromeConfig)
 	if !ok {
-		return models.MediaClientTestResponse{
+		return types.MediaClientTestResponse{
 			Success: false,
 			Message: "Invalid Subsonic configuration",
 		}, fmt.Errorf("invalid subsonic configuration")
@@ -463,7 +465,7 @@ func (s *mediaClientService) testSubsonicConnection(ctx context.Context, clientC
 
 	req, err := http.NewRequestWithContext(ctx, "GET", pingURL, nil)
 	if err != nil {
-		return models.MediaClientTestResponse{
+		return types.MediaClientTestResponse{
 			Success: false,
 			Message: fmt.Sprintf("Failed to create request: %v", err),
 		}, err
@@ -477,7 +479,7 @@ func (s *mediaClientService) testSubsonicConnection(ctx context.Context, clientC
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return models.MediaClientTestResponse{
+		return types.MediaClientTestResponse{
 			Success: false,
 			Message: fmt.Sprintf("Failed to connect to Subsonic server: %v", err),
 		}, err
@@ -485,24 +487,24 @@ func (s *mediaClientService) testSubsonicConnection(ctx context.Context, clientC
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return models.MediaClientTestResponse{
+		return types.MediaClientTestResponse{
 			Success: false,
 			Message: fmt.Sprintf("Subsonic server returned status code %d", resp.StatusCode),
 		}, fmt.Errorf("subsonic server returned status code %d", resp.StatusCode)
 	}
 
-	return models.MediaClientTestResponse{
+	return types.MediaClientTestResponse{
 		Success: true,
 		Message: "Successfully connected to Subsonic server",
 	}, nil
 }
 
 // GetContentProvider returns a MediaContentProvider for the specified client
-func (s *mediaClientService) GetContentProvider(ctx context.Context, userID, clientID uint64) (models.MediaContentProvider, error) {
+func (s *mediaClientService) GetContentProvider(ctx context.Context, userID, clientID uint64) (providers.MediaContentProvider, error) {
 	clientResp, err := s.GetClientByID(ctx, userID, clientID)
 	if err != nil {
 		return nil, err
 	}
 
-	return models.NewMediaContentProvider(clientID, clientResp.ClientType, clientResp.Client)
+	return providers.NewMediaContentProvider(clientID, clientResp.ClientType, clientResp.Client)
 }

@@ -8,18 +8,21 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
-	"suasor/models"
 	"suasor/repository"
+	"suasor/types"
+	"suasor/types/models"
+	req "suasor/types/requests"
+	res "suasor/types/responses"
 )
 
 // AuthService defines the authentication service interface
 type AuthService interface {
-	Register(ctx context.Context, request models.RegisterRequest) (*models.AuthData, error)
-	Login(ctx context.Context, request models.LoginRequest) (*models.AuthData, error)
-	RefreshToken(ctx context.Context, refreshToken string) (*models.AuthData, error)
+	Register(ctx context.Context, request req.RegisterRequest) (*res.AuthDataResponse, error)
+	Login(ctx context.Context, request req.LoginRequest) (*res.AuthDataResponse, error)
+	RefreshToken(ctx context.Context, refreshToken string) (*res.AuthDataResponse, error)
 	Logout(ctx context.Context, refreshToken string) error
-	ValidateToken(ctx context.Context, token string) (*models.JWTClaim, error)
-	GetAuthorizedUser(ctx context.Context, token string) (*models.UserResponse, error)
+	ValidateToken(ctx context.Context, token string) (*types.JWTClaim, error)
+	GetAuthorizedUser(ctx context.Context, token string) (*res.UserResponse, error)
 }
 
 // authService implements the AuthService interface
@@ -55,7 +58,7 @@ func NewAuthService(
 }
 
 // Register registers a new user
-func (s *authService) Register(ctx context.Context, request models.RegisterRequest) (*models.AuthData, error) {
+func (s *authService) Register(ctx context.Context, request req.RegisterRequest) (*res.AuthDataResponse, error) {
 	// Check if email already exists
 	_, err := s.userRepo.FindByEmail(ctx, request.Email)
 	if err == nil {
@@ -116,8 +119,8 @@ func (s *authService) Register(ctx context.Context, request models.RegisterReque
 		return nil, fmt.Errorf("error updating user: %w", err)
 	}
 
-	return &models.AuthData{
-		User: models.UserResponse{
+	return &res.AuthDataResponse{
+		User: res.UserResponse{
 			ID:       uint64(user.ID),
 			Email:    user.Email,
 			Username: user.Username,
@@ -130,7 +133,7 @@ func (s *authService) Register(ctx context.Context, request models.RegisterReque
 }
 
 // Login authenticates a user
-func (s *authService) Login(ctx context.Context, request models.LoginRequest) (*models.AuthData, error) {
+func (s *authService) Login(ctx context.Context, request req.LoginRequest) (*res.AuthDataResponse, error) {
 	// Find user by email
 	user, err := s.userRepo.FindByEmail(ctx, request.Email)
 	if err != nil {
@@ -181,8 +184,8 @@ func (s *authService) Login(ctx context.Context, request models.LoginRequest) (*
 		return nil, fmt.Errorf("error updating user: %w", err)
 	}
 
-	return &models.AuthData{
-		User: models.UserResponse{
+	return &res.AuthDataResponse{
+		User: res.UserResponse{
 			ID:       uint64(user.ID),
 			Email:    user.Email,
 			Username: user.Username,
@@ -195,9 +198,9 @@ func (s *authService) Login(ctx context.Context, request models.LoginRequest) (*
 }
 
 // RefreshToken refreshes the access token
-func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (*models.AuthData, error) {
+func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (*res.AuthDataResponse, error) {
 	// Parse the refresh token
-	token, err := jwt.ParseWithClaims(refreshToken, &models.JWTClaim{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(refreshToken, &types.JWTClaim{}, func(token *jwt.Token) (interface{}, error) {
 		return s.jwtSecret, nil
 	})
 
@@ -205,7 +208,7 @@ func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (*m
 		return nil, errors.New("invalid refresh token")
 	}
 
-	claims, ok := token.Claims.(*models.JWTClaim)
+	claims, ok := token.Claims.(*types.JWTClaim)
 	if !ok || !token.Valid {
 		return nil, errors.New("invalid token claims")
 	}
@@ -249,8 +252,8 @@ func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (*m
 		return nil, fmt.Errorf("error updating session: %w", err)
 	}
 
-	return &models.AuthData{
-		User: models.UserResponse{
+	return &res.AuthDataResponse{
+		User: res.UserResponse{
 			ID:       uint64(user.ID),
 			Email:    user.Email,
 			Username: user.Username,
@@ -265,7 +268,7 @@ func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (*m
 // Logout invalidates the refresh token
 func (s *authService) Logout(ctx context.Context, refreshToken string) error {
 	// Parse the refresh token
-	token, err := jwt.ParseWithClaims(refreshToken, &models.JWTClaim{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(refreshToken, &types.JWTClaim{}, func(token *jwt.Token) (interface{}, error) {
 		return s.jwtSecret, nil
 	})
 
@@ -273,7 +276,7 @@ func (s *authService) Logout(ctx context.Context, refreshToken string) error {
 		return errors.New("invalid refresh token")
 	}
 
-	claims, ok := token.Claims.(*models.JWTClaim)
+	claims, ok := token.Claims.(*types.JWTClaim)
 	if !ok || !token.Valid {
 		return errors.New("invalid token claims")
 	}
@@ -295,8 +298,8 @@ func (s *authService) Logout(ctx context.Context, refreshToken string) error {
 }
 
 // ValidateToken validates the JWT token
-func (s *authService) ValidateToken(ctx context.Context, tokenString string) (*models.JWTClaim, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &models.JWTClaim{}, func(token *jwt.Token) (interface{}, error) {
+func (s *authService) ValidateToken(ctx context.Context, tokenString string) (*types.JWTClaim, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &types.JWTClaim{}, func(token *jwt.Token) (interface{}, error) {
 		return s.jwtSecret, nil
 	})
 
@@ -304,7 +307,7 @@ func (s *authService) ValidateToken(ctx context.Context, tokenString string) (*m
 		return nil, errors.New("invalid token")
 	}
 
-	claims, ok := token.Claims.(*models.JWTClaim)
+	claims, ok := token.Claims.(*types.JWTClaim)
 	if !ok || !token.Valid {
 		return nil, errors.New("invalid token claims")
 	}
@@ -313,8 +316,8 @@ func (s *authService) ValidateToken(ctx context.Context, tokenString string) (*m
 }
 
 // generateTokens generates access and refresh tokens
-func (s *authService) generateTokens(user *models.User) (*models.TokenDetails, error) {
-	td := &models.TokenDetails{
+func (s *authService) generateTokens(user *models.User) (*types.TokenDetails, error) {
+	td := &types.TokenDetails{
 		AccessUUID:  uuid.New().String(),
 		RefreshUUID: uuid.New().String(),
 		AtExpires:   time.Now().Add(s.accessExpiry).Unix(),
@@ -322,7 +325,7 @@ func (s *authService) generateTokens(user *models.User) (*models.TokenDetails, e
 	}
 
 	// Create access token
-	atClaims := models.JWTClaim{
+	atClaims := types.JWTClaim{
 		UserID: uint64(user.ID),
 		UUID:   td.AccessUUID,
 		Role:   user.Role,
@@ -345,7 +348,7 @@ func (s *authService) generateTokens(user *models.User) (*models.TokenDetails, e
 	td.AccessToken = accessToken
 
 	// Create refresh token
-	rtClaims := models.JWTClaim{
+	rtClaims := types.JWTClaim{
 		UserID: uint64(user.ID),
 		UUID:   td.RefreshUUID,
 		Role:   user.Role,
@@ -370,7 +373,7 @@ func (s *authService) generateTokens(user *models.User) (*models.TokenDetails, e
 	return td, nil
 }
 
-func (s *authService) GetAuthorizedUser(ctx context.Context, tokenString string) (*models.UserResponse, error) {
+func (s *authService) GetAuthorizedUser(ctx context.Context, tokenString string) (*res.UserResponse, error) {
 	var userID uint64
 
 	// Try to get and validate token from context
@@ -395,7 +398,7 @@ func (s *authService) GetAuthorizedUser(ctx context.Context, tokenString string)
 	}
 
 	// Return user response
-	return &models.UserResponse{
+	return &res.UserResponse{
 		ID:       uint64(user.ID),
 		Email:    user.Email,
 		Username: user.Username,

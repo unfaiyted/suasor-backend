@@ -3,8 +3,9 @@ package handlers
 
 import (
 	"net/http"
-	"suasor/models"
 	"suasor/services"
+	"suasor/types"
+	"suasor/types/responses"
 
 	"github.com/gin-gonic/gin"
 )
@@ -41,9 +42,9 @@ func (h *HealthHandler) CheckHealth(c *gin.Context) {
 		httpStatus = http.StatusInternalServerError
 
 		// Create error response
-		errorResponse := models.ErrorResponse[models.HealthResponse]{
-			Type: models.ErrorTypeFailedCheck,
-			Details: models.HealthResponse{
+		errorResponse := responses.ErrorResponse[responses.HealthResponse]{
+			Type: types.ErrorTypeFailedCheck,
+			Details: responses.HealthResponse{
 				Status:      "down",
 				Application: appStatus,
 				Database:    dbStatus,
@@ -55,7 +56,7 @@ func (h *HealthHandler) CheckHealth(c *gin.Context) {
 	}
 
 	// All components are healthy
-	response := models.HealthResponse{
+	response := responses.HealthResponse{
 		Status:      overallStatus,
 		Application: appStatus,
 		Database:    dbStatus,

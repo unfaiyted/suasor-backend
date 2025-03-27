@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"strconv"
-	"suasor/models"
 	"suasor/services"
+
+	"suasor/types/requests"
+	"suasor/types/responses"
 	"suasor/utils"
 
 	"github.com/gin-gonic/gin"
@@ -60,7 +62,7 @@ func (h *MediaClientHandler) CreateClient(c *gin.Context) {
 
 	uid := userID.(uint64)
 
-	var req models.MediaClientRequest
+	var req requests.MediaClientRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.RespondValidationError(c, err)
 		return
@@ -242,7 +244,7 @@ func (h *MediaClientHandler) UpdateClient(c *gin.Context) {
 		return
 	}
 
-	var req models.MediaClientRequest
+	var req requests.MediaClientRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.RespondValidationError(c, err)
 		return
@@ -320,7 +322,7 @@ func (h *MediaClientHandler) DeleteClient(c *gin.Context) {
 		return
 	}
 
-	utils.RespondOK(c, models.EmptyResponse{Success: true}, "Media client deleted successfully")
+	utils.RespondOK(c, responses.EmptyResponse{Success: true}, "Media client deleted successfully")
 }
 
 // TestConnection godoc
@@ -370,7 +372,7 @@ func (h *MediaClientHandler) TestConnection(c *gin.Context) {
 
 	uid := userID.(uint64)
 
-	var req models.MediaClientTestRequest
+	var req requests.MediaClientTestRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.RespondValidationError(c, err)
 		return

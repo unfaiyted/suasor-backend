@@ -3,14 +3,15 @@ package subsonic
 import (
 	gosonic "github.com/supersonic-app/go-subsonic/subsonic"
 	t "suasor/client/media/types"
+	"suasor/models"
 	"time"
 )
 
-func (c *SubsonicClient) convertChildToTrack(song gosonic.Child) t.MediaItem[t.Track] {
+func (c *SubsonicClient) convertChildToTrack(song gosonic.Child) models.MediaItem[t.Track] {
 	// Convert duration from seconds to time.Duration
 	duration := time.Duration(song.Duration) * time.Second
 
-	track := t.MediaItem[t.Track]{
+	track := models.MediaItem[t.Track]{
 		Type: "music",
 		Data: t.Track{
 			Details: t.MediaMetadata{

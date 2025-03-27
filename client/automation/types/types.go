@@ -4,15 +4,6 @@ import (
 	"time"
 )
 
-// ClientType represents different types of download clients
-type AutomationClientType string
-
-const (
-	ClientTypeRadarr AutomationClientType = "radarr"
-	ClientTypeSonarr AutomationClientType = "sonarr"
-	ClientTypeLidarr AutomationClientType = "lidarr"
-)
-
 // SystemStatus represents system information from the automation tool
 type SystemStatus struct {
 	Version     string
@@ -79,6 +70,7 @@ const (
 // AutomationData defines the allowed types for AutomationMediaItem's Data field
 type AutomationData interface {
 	isAutomationData()
+	GetMediaType() AutomationMediaType
 }
 
 // Implement the marker method for each allowed type
@@ -128,8 +120,6 @@ type AutomationEpisode struct {
 type AutomationTrack struct {
 	AlbumName  string
 	ArtistName string
-	// ArtistID
-	// AlbumID
 }
 
 type AutomationArtist struct {

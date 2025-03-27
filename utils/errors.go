@@ -2,7 +2,7 @@ package utils
 
 import (
 	"net/http"
-	"suasor/models"
+	"suasor/types/models"
 	"time"
 
 	"github.com/gin-gonic/gin"

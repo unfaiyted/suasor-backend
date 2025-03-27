@@ -5,22 +5,22 @@ import (
 	"fmt"
 
 	p "suasor/client/media/providers"
-	t "suasor/client/media/types"
+	client "suasor/client/types"
 )
 
 // Provider factory type definition
-type ProviderFactory func(ctx context.Context, clientID uint64, config t.ClientConfig) (MediaClient, error)
+type ProviderFactory func(ctx context.Context, clientID uint64, config client.ClientConfig) (MediaClient, error)
 
 // Registry to store provider factories
-var providerFactories = make(map[t.MediaClientType]ProviderFactory)
+var providerFactories = make(map[client.MediaClientType]ProviderFactory)
 
 // RegisterProvider adds a new provider factory to the registry
-func RegisterProvider(clientType t.MediaClientType, factory ProviderFactory) {
+func RegisterProvider(clientType client.MediaClientType, factory ProviderFactory) {
 	providerFactories[clientType] = factory
 }
 
 // NewMediaClient creates providers using the registry
-func NewMediaClient(ctx context.Context, clientID uint64, clientType t.MediaClientType, config t.ClientConfig) (MediaClient, error) {
+func NewMediaClient(ctx context.Context, clientID uint64, clientType client.MediaClientType, config client.ClientConfig) (MediaClient, error) {
 	factory, exists := providerFactories[clientType]
 	if !exists {
 		return nil, fmt.Errorf("unsupported client type: %s", clientType)

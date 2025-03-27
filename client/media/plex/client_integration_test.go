@@ -16,6 +16,7 @@ import (
 	"suasor/client/media"
 	"suasor/client/media/providers"
 	"suasor/client/media/types"
+	"suasor/models"
 
 	logger "suasor/utils"
 )
@@ -185,7 +186,7 @@ func testTVShowProvider(t *testing.T, ctx context.Context, provider providers.TV
 			// We need to use type assertion here because GetTVShowByID isn't in the TVShowProvider interface
 			// This is a good example of where your interface design is beneficial - we only test what's explicitly supported
 			fullClient, ok := provider.(interface {
-				GetTVShowByID(ctx context.Context, id string) (types.MediaItem[types.TVShow], error)
+				GetTVShowByID(ctx context.Context, id string) (models.MediaItem[types.TVShow], error)
 			})
 
 			if ok {
@@ -231,7 +232,7 @@ func testTVShowSeasons(t *testing.T, ctx context.Context, provider providers.TVS
 
 			// Test GetEpisodeByID if supported
 			fullClient, ok := provider.(interface {
-				GetEpisodeByID(ctx context.Context, id string) (types.MediaItem[types.Episode], error)
+				GetEpisodeByID(ctx context.Context, id string) (models.MediaItem[types.Episode], error)
 			})
 
 			if ok {
@@ -290,7 +291,7 @@ func testMusicProvider(t *testing.T, ctx context.Context, provider providers.Mus
 
 			// Test GetMusicTrackByID if supported
 			fullClient, ok := provider.(interface {
-				GetMusicTrackByID(ctx context.Context, id string) (types.MediaItem[types.Track], error)
+				GetMusicTrackByID(ctx context.Context, id string) (models.MediaItem[types.Track], error)
 			})
 
 			if ok {
