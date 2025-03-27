@@ -14,23 +14,23 @@ type ClientTestRequest struct {
 
 // AutomationClientRequest is used for creating/updating a download client
 
-type AutomationClientRequest struct {
-	Name       string                      `json:"name" binding:"required"`
-	ClientType client.AutomationClientType `json:"clientType" binding:"required,oneof=radarr sonarr lidarr"`
-	BaseURL    string                      `json:"baseUrl" binding:"required,url"`
-	APIKey     string                      `json:"apiKey" binding:"required"`
-	IsEnabled  bool                        `json:"isEnabled"`
-}
+// type AutomationClientRequest struct {
+// 	Name       string                      `json:"name" binding:"required"`
+// 	ClientType client.AutomationClientType `json:"clientType" binding:"required,oneof=radarr sonarr lidarr"`
+// 	BaseURL    string                      `json:"baseUrl" binding:"required,url"`
+// 	APIKey     string                      `json:"apiKey" binding:"required"`
+// 	IsEnabled  bool                        `json:"isEnabled"`
+// }
 
 // MediaClientRequest is used for creating/updating a media client
-type MediaClientRequest struct {
+type ClientRequest struct {
 	Name       string                 `json:"name" binding:"required"`
 	ClientType client.MediaClientType `json:"clientType" binding:"required,oneof=plex jellyfin emby subsonic"`
 	Client     any                    `json:"client" gorm:"serializer:json"`
 }
 
-// MediaClientTestRequest is used for testing a media client connection
-type MediaClientTestRequest struct {
-	ClientType client.MediaClientType `json:"clientType" binding:"required,oneof=plex jellyfin emby subsonic"`
-	Client     any                    `json:"client" gorm:"serializer:json"`
-}
+// // MediaClientTestRequest is used for testing a media client connection
+// type MediaClientTestRequest struct {
+// 	ClientType client.MediaClientType `json:"clientType" binding:"required,oneof=plex jellyfin emby subsonic"`
+// 	Client     any                    `json:"client" gorm:"serializer:json"`
+// }

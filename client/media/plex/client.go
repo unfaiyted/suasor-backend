@@ -15,12 +15,12 @@ import (
 
 // init is automatically called when package is imported
 func init() {
-	media.RegisterProvider(client.MediaClientTypePlex, NewPlexClient)
+	media.RegisterClient(client.MediaClientTypePlex, NewPlexClient)
 }
 
 // PlexClient implements MediaContentProvider for Plex
 type PlexClient struct {
-	base.BaseMediaClient
+	media.BaseMediaClient
 	config     client.PlexConfig
 	httpClient *http.Client
 	baseURL    string
@@ -58,9 +58,11 @@ func NewPlexClient(ctx context.Context, clientID uint64, config client.ClientCon
 	)
 
 	pClient := &PlexClient{
-		BaseMediaClient: base.BaseMediaClient{
-			ClientID:   clientID,
-			ClientType: client.MediaClientTypePlex,
+		BaseMediaClient: media.BaseMediaClient{
+			BaseClient: base.BaseClient{
+				ClientID:   clientID,
+				ClientType: client.MediaClientTypePlex.AsClientType(),
+			},
 		},
 		config:  plexConfig,
 		plexAPI: plexAPI,

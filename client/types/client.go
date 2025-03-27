@@ -4,13 +4,9 @@ package types
 type ClientType string
 
 const (
-	ClientTypeRadarr   ClientType = "radarr"
-	ClientTypeSonarr   ClientType = "sonarr"
-	ClientTypeLidarr   ClientType = "lidarr"
-	ClientTypeSubsonic ClientType = "subsonic"
-	ClientTypeEmby     ClientType = "emby"
-	ClientTypeJellyfin ClientType = "jellyfin"
-	ClientTypePlex     ClientType = "plex"
+	ClientTypeAutomation ClientType = "automation"
+	ClientTypeMedia      ClientType = "media"
+	ClientTypeAI         ClientType = "ai"
 )
 
 // MediaClientType represents different types of media clients
@@ -21,6 +17,7 @@ const (
 	MediaClientTypeJellyfin MediaClientType = "jellyfin"
 	MediaClientTypeEmby     MediaClientType = "emby"
 	MediaClientTypeSubsonic MediaClientType = "subsonic"
+	MediaClientTypeUnknown  MediaClientType = "unknown"
 )
 
 // ClientType represents different types of download clients
@@ -30,4 +27,38 @@ const (
 	AutomationClientTypeRadarr AutomationClientType = "radarr"
 	AutomationClientTypeSonarr AutomationClientType = "sonarr"
 	AutomationClientTypeLidarr AutomationClientType = "lidarr"
+	AutmationClientTypeUnknown AutomationClientType = "unknown"
 )
+
+type AIClientType string
+
+const (
+	AIClientTypeClaude  AIClientType = "claude"
+	AIClientTypeOpenAI  AIClientType = "openai"
+	AIClientTypeOllama  AIClientType = "ollama"
+	AIClientTypeUnknown AIClientType = "unknown"
+)
+
+func (c ClientType) String() string {
+	return string(c)
+}
+
+func (c MediaClientType) String() string {
+	return string(c)
+}
+
+func (c AutomationClientType) String() string {
+	return string(c)
+}
+
+func (c MediaClientType) AsClientType() ClientType {
+	return ClientTypeMedia
+}
+
+func (c AutomationClientType) AsClientType() ClientType {
+	return ClientTypeAutomation
+}
+
+func (c AIClientType) AsClientType() ClientType {
+	return ClientTypeAI
+}

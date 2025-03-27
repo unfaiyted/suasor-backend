@@ -6,7 +6,7 @@ import (
 	"net/http"
 	base "suasor/client"
 	media "suasor/client/media"
-	t "suasor/client/media/types"
+	types "suasor/client/types"
 	"suasor/utils"
 	"time"
 
@@ -15,16 +15,15 @@ import (
 
 // SubsonicClient implements MediaContentProvider for Subsonic
 type SubsonicClient struct {
-	base.BaseMediaClient
-	config     t.SubsonicConfig
+	media.BaseMediaClient
+	config     types.SubsonicConfig
 	httpClient *http.Client
 	client     *gosonic.Client
-	baseURL    string
 }
 
 // NewSubsonicClient creates a new Subsonic client
-func NewSubsonicClient(ctx context.Context, clientID uint64, config t.ClientConfig) (media.MediaClient, error) {
-	cfg, ok := config.(t.SubsonicConfig)
+func NewSubsonicClient(ctx context.Context, clientID uint64, config types.ClientConfig) (media.MediaClient, error) {
+	cfg, ok := config.(types.SubsonicConfig)
 	if !ok {
 		return nil, fmt.Errorf("invalid configuration for Subsonic client")
 	}
@@ -67,20 +66,22 @@ func NewSubsonicClient(ctx context.Context, clientID uint64, config t.ClientConf
 	}
 
 	return &SubsonicClient{
-		BaseMediaClient: base.BaseMediaClient{
-			ClientID:   clientID,
-			ClientType: t.MediaClientTypeSubsonic,
+		BaseMediaClient: media.BaseMediaClient{
+			BaseClient: base.BaseClient{
+				ClientID:   clientID,
+				ClientType: types.MediaClientTypeSubsonic.AsClientType(),
+			},
+			ClientType: types.MediaClientTypeSubsonic,
 		},
 		config:     cfg,
 		httpClient: httpClient,
 		client:     client,
-		baseURL:    baseURL,
 	}, nil
 }
 
 // Register the provider factory
 func init() {
-	media.RegisterProvider(t.MediaClientTypeSubsonic, NewSubsonicClient)
+	media.RegisterClient(types.MediaClientTypeSubsonic, NewSubsonicClient)
 }
 
 // Capability methods - Subsonic only supports music

@@ -5,15 +5,8 @@ import (
 	"time"
 )
 
-// ClientTestResponse is the response for a client connection test
-type ClientTestResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	Version string `json:"version,omitempty"`
-}
-
 // MediaClientResponse is a non-generic representation of MediaClient for API responses
-type MediaClientResponse struct {
+type ClientResponse struct {
 	ID         uint64                `json:"id"`
 	UserID     uint64                `json:"userId"`
 	Name       string                `json:"name"`
@@ -24,7 +17,7 @@ type MediaClientResponse struct {
 }
 
 // MediaClientTestResponse is the response for a media client connection test
-type MediaClientTestResponse struct {
+type ClientTestResponse struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
 	Version string `json:"version,omitempty"`

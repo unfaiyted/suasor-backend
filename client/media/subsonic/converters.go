@@ -3,7 +3,7 @@ package subsonic
 import (
 	gosonic "github.com/supersonic-app/go-subsonic/subsonic"
 	t "suasor/client/media/types"
-	"suasor/models"
+	"suasor/types/models"
 	"time"
 )
 

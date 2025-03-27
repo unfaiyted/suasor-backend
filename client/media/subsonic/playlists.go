@@ -3,7 +3,7 @@ package subsonic
 import (
 	"context"
 	t "suasor/client/media/types"
-	"suasor/models"
+	"suasor/types/models"
 	"suasor/utils"
 	"time"
 )

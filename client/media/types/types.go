@@ -122,13 +122,3 @@ type QueryOptions struct {
 	Filters              map[string]string `json:"filters,omitempty"`
 	IncludeWatchProgress bool              `json:"includeWatchProgress,omitempty"`
 }
-
-// MediaClientType represents different types of media clients
-type MediaClientType string
-
-const (
-	MediaClientTypePlex     MediaClientType = "plex"
-	MediaClientTypeJellyfin MediaClientType = "jellyfin"
-	MediaClientTypeEmby     MediaClientType = "emby"
-	MediaClientTypeSubsonic MediaClientType = "subsonic"
-)

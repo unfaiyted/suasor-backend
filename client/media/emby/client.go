@@ -16,9 +16,10 @@ import (
 
 // EmbyClient implements the MediaContentProvider interface
 type EmbyClient struct {
-	base.BaseMediaClient
-	client *embyclient.APIClient
-	config *config.EmbyConfig
+	media.BaseMediaClient
+	clientType config.MediaClientType
+	client     *embyclient.APIClient
+	config     *config.EmbyConfig
 }
 
 // NewEmbyClient creates a new Emby client instance
@@ -40,8 +41,11 @@ func NewEmbyClient(ctx context.Context, clientID uint64, cfg config.ClientConfig
 	client := embyclient.NewAPIClient(apiConfig)
 
 	embyClient := &EmbyClient{
-		BaseMediaClient: base.BaseMediaClient{
-			ClientID:   clientID,
+		BaseMediaClient: media.BaseMediaClient{
+			BaseClient: base.BaseClient{
+				ClientID:   clientID,
+				ClientType: config.MediaClientTypeEmby.AsClientType(),
+			},
 			ClientType: config.MediaClientTypeEmby,
 		},
 		client: client,
@@ -64,7 +68,7 @@ func NewEmbyClient(ctx context.Context, clientID uint64, cfg config.ClientConfig
 
 // Register the provider factory
 func init() {
-	media.RegisterProvider(config.MediaClientTypeEmby, NewEmbyClient)
+	media.RegisterClient(config.MediaClientTypeEmby, NewEmbyClient)
 }
 
 // Capability methods
@@ -73,6 +77,7 @@ func (e *EmbyClient) SupportsTVShows() bool     { return true }
 func (e *EmbyClient) SupportsMusic() bool       { return true }
 func (e *EmbyClient) SupportsPlaylists() bool   { return true }
 func (e *EmbyClient) SupportsCollections() bool { return true }
+func (e *EmbyClient) SupportsHistory() bool     { return true }
 
 // resolveUserID resolves the Emby user ID from username
 func (e *EmbyClient) resolveUserID(ctx context.Context) error {

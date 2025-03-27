@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	t "suasor/client/media/types"
-	"suasor/models"
+	"suasor/types/models"
 	"suasor/utils"
 	"time"
 )

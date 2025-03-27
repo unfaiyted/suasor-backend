@@ -18,6 +18,7 @@ import (
 	"suasor/client/media"
 	"suasor/client/media/providers"
 	"suasor/client/media/types"
+	client "suasor/client/types"
 )
 
 func init() {
@@ -75,7 +76,7 @@ func TestSubsonicClientIntegration(t *testing.T) {
 	}
 
 	// Create client configuration
-	config := types.SubsonicConfig{
+	config := client.SubsonicConfig{
 		Host:     host,
 		Port:     portNum,
 		Username: username,

@@ -16,7 +16,9 @@ import (
 	"suasor/client/media"
 	"suasor/client/media/providers"
 	"suasor/client/media/types"
-	"suasor/models"
+
+	config "suasor/client/types"
+	"suasor/types/models"
 
 	logger "suasor/utils"
 )
@@ -57,7 +59,7 @@ func TestPlexClientIntegration(t *testing.T) {
 	}
 
 	// Create client configuration
-	config := types.PlexConfig{
+	config := config.PlexConfig{
 		Host:  host,
 		Token: token,
 	}

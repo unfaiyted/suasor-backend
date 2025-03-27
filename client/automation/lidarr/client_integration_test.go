@@ -12,7 +12,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/joho/godotenv"
-	"suasor/client/automation/interfaces"
+	"suasor/client/automation/providers"
+	auto "suasor/client/automation/types"
+	"suasor/client/types"
+	"suasor/types/models"
+	"suasor/types/requests"
+
 	logger "suasor/utils"
 )
 
@@ -52,7 +57,7 @@ func TestLidarrClientIntegration(t *testing.T) {
 	}
 
 	// Create client configuration
-	config := Configuration{
+	config := types.JellyfinConfig{
 		BaseURL: baseURL,
 		APIKey:  apiKey,
 	}
@@ -69,50 +74,53 @@ func TestLidarrClientIntegration(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	provider, ok := client.(providers.AutomationProvider)
+	require.True(t, ok)
+
 	// Run all test cases
 	t.Run("TestGetSystemStatus", func(t *testing.T) {
-		testGetSystemStatus(t, ctx, client)
+		testGetSystemStatus(t, ctx, provider)
 	})
 
 	t.Run("TestGetLibraryItems", func(t *testing.T) {
-		testGetLibraryItems(t, ctx, client)
+		testGetLibraryItems(t, ctx, provider)
 	})
 
 	t.Run("TestGetAndSearchMedia", func(t *testing.T) {
-		testGetAndSearchMedia(t, ctx, client)
+		testGetAndSearchMedia(t, ctx, provider)
 	})
 
 	t.Run("TestQualityProfiles", func(t *testing.T) {
-		testGetQualityProfiles(t, ctx, client)
+		testGetQualityProfiles(t, ctx, provider)
 	})
 
 	t.Run("TestMetadataProfiles", func(t *testing.T) {
-		testGetMetadataProfiles(t, ctx, client)
+		testGetMetadataProfiles(t, ctx, provider)
 	})
 
 	t.Run("TestTags", func(t *testing.T) {
-		testGetAndCreateTags(t, ctx, client)
+		testGetAndCreateTags(t, ctx, provider)
 	})
 
 	t.Run("TestCalendar", func(t *testing.T) {
-		testGetCalendar(t, ctx, client)
+		testGetCalendar(t, ctx, provider)
 	})
 
 	t.Run("TestCommands", func(t *testing.T) {
-		testExecuteCommand(t, ctx, client)
+		testExecuteCommand(t, ctx, provider)
 	})
 
 	// Add/Update/Delete operations should be in a specific test
 	// that can be run separately to avoid modifying data
 	if os.Getenv("TEST_MODIFICATIONS") == "true" {
 		t.Run("TestAddUpdateDeleteMedia", func(t *testing.T) {
-			testAddUpdateDeleteMedia(t, ctx, client)
+			testAddUpdateDeleteMedia(t, ctx, provider)
 		})
 	}
 }
 
 // Test getting system status from Lidarr
-func testGetSystemStatus(t *testing.T, ctx context.Context, client interfaces.AutomationProvider) {
+func testGetSystemStatus(t *testing.T, ctx context.Context, client providers.AutomationProvider) {
 	status, err := client.GetSystemStatus(ctx)
 	require.NoError(t, err)
 
@@ -123,9 +131,9 @@ func testGetSystemStatus(t *testing.T, ctx context.Context, client interfaces.Au
 }
 
 // Test getting library items from Lidarr
-func testGetLibraryItems(t *testing.T, ctx context.Context, client interfaces.AutomationProvider) {
+func testGetLibraryItems(t *testing.T, ctx context.Context, client providers.AutomationProvider) {
 	// Get library items with limit
-	options := &interfaces.LibraryQueryOptions{
+	options := &auto.LibraryQueryOptions{
 		Limit: 10,
 	}
 
@@ -147,9 +155,9 @@ func testGetLibraryItems(t *testing.T, ctx context.Context, client interfaces.Au
 }
 
 // Test getting and searching for media
-func testGetAndSearchMedia(t *testing.T, ctx context.Context, client interfaces.AutomationProvider) {
+func testGetAndSearchMedia(t *testing.T, ctx context.Context, client providers.AutomationProvider) {
 	// First, check if we have any artists in the library
-	artists, err := client.GetLibraryItems(ctx, &interfaces.LibraryQueryOptions{Limit: 1})
+	artists, err := client.GetLibraryItems(ctx, &auto.LibraryQueryOptions{Limit: 1})
 	require.NoError(t, err)
 
 	if len(artists) > 0 {
@@ -178,7 +186,7 @@ func testGetAndSearchMedia(t *testing.T, ctx context.Context, client interfaces.
 }
 
 // Test getting quality profiles
-func testGetQualityProfiles(t *testing.T, ctx context.Context, client interfaces.AutomationProvider) {
+func testGetQualityProfiles(t *testing.T, ctx context.Context, client providers.AutomationProvider) {
 	profiles, err := client.GetQualityProfiles(ctx)
 	require.NoError(t, err)
 
@@ -195,7 +203,7 @@ func testGetQualityProfiles(t *testing.T, ctx context.Context, client interfaces
 }
 
 // Test getting metadata profiles (specific to Lidarr)
-func testGetMetadataProfiles(t *testing.T, ctx context.Context, client interfaces.AutomationProvider) {
+func testGetMetadataProfiles(t *testing.T, ctx context.Context, client providers.AutomationProvider) {
 	profiles, err := client.GetMetadataProfiles(ctx)
 	require.NoError(t, err)
 
@@ -212,7 +220,7 @@ func testGetMetadataProfiles(t *testing.T, ctx context.Context, client interface
 }
 
 // Test getting and creating tags
-func testGetAndCreateTags(t *testing.T, ctx context.Context, client interfaces.AutomationProvider) {
+func testGetAndCreateTags(t *testing.T, ctx context.Context, client providers.AutomationProvider) {
 	// Get existing tags
 	tags, err := client.GetTags(ctx)
 	require.NoError(t, err)
@@ -238,7 +246,7 @@ func testGetAndCreateTags(t *testing.T, ctx context.Context, client interfaces.A
 }
 
 // Test getting calendar
-func testGetCalendar(t *testing.T, ctx context.Context, client interfaces.AutomationProvider) {
+func testGetCalendar(t *testing.T, ctx context.Context, client providers.AutomationProvider) {
 	// Get calendar for the next 30 days
 	now := time.Now()
 	end := now.AddDate(0, 0, 30) // 30 days from now
@@ -256,7 +264,7 @@ func testGetCalendar(t *testing.T, ctx context.Context, client interfaces.Automa
 }
 
 // Test executing a command
-func testExecuteCommand(t *testing.T, ctx context.Context, client interfaces.AutomationProvider) {
+func testExecuteCommand(t *testing.T, ctx context.Context, client providers.AutomationProvider) {
 	// Only run if explicitly enabled
 	if os.Getenv("TEST_COMMANDS") != "true" {
 		t.Skip("Skipping command execution. Set TEST_COMMANDS=true to run")
@@ -264,7 +272,7 @@ func testExecuteCommand(t *testing.T, ctx context.Context, client interfaces.Aut
 	}
 
 	// Execute a simple command like RefreshMonitoredDownloads
-	command := interfaces.Command{
+	command := auto.Command{
 		Name: "RefreshMonitoredDownloads",
 	}
 
@@ -279,7 +287,7 @@ func testExecuteCommand(t *testing.T, ctx context.Context, client interfaces.Aut
 
 // Test adding, updating, and deleting media
 // This test is potentially destructive and should be run with caution
-func testAddUpdateDeleteMedia(t *testing.T, ctx context.Context, client interfaces.AutomationProvider) {
+func testAddUpdateDeleteMedia(t *testing.T, ctx context.Context, client providers.AutomationProvider) {
 	// First, get quality profiles to use a valid profile ID
 	profiles, err := client.GetQualityProfiles(ctx)
 	require.NoError(t, err)
@@ -296,7 +304,7 @@ func testAddUpdateDeleteMedia(t *testing.T, ctx context.Context, client interfac
 	require.NotEmpty(t, searchResults, "Need at least one search result")
 
 	// Find a result that has a MusicBrainzID
-	var searchItem interfaces.AutomationMediaItem[interfaces.AutomationData]
+	var searchItem models.AutomationMediaItem[auto.AutomationData]
 	// for _, result := range searchResults {
 	// if result.Data.MusicBrainzID != "" {
 	// searchItem = result
@@ -306,7 +314,7 @@ func testAddUpdateDeleteMedia(t *testing.T, ctx context.Context, client interfac
 	// require.NotEmpty(t, searchItem.Data.MusicBrainzID, "Need a search result with MusicBrainzID")
 
 	// Prepare add request
-	addRequest := interfaces.AutomationMediaAddRequest{
+	addRequest := requests.AutomationMediaAddRequest{
 		Title:             searchItem.Title,
 		QualityProfileID:  profiles[0].ID,
 		MetadataProfileID: metadataProfiles[0].ID,
@@ -322,7 +330,7 @@ func testAddUpdateDeleteMedia(t *testing.T, ctx context.Context, client interfac
 	t.Logf("Added artist: %s (ID: %d)", addedArtist.Title, addedArtist.ID)
 
 	// Update the artist
-	updateRequest := interfaces.AutomationMediaUpdateRequest{
+	updateRequest := requests.AutomationMediaUpdateRequest{
 		Monitored: false,
 	}
 

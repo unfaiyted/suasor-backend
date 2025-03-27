@@ -16,6 +16,7 @@ import (
 	"suasor/client/media"
 	"suasor/client/media/providers"
 	"suasor/client/media/types"
+	client "suasor/client/types"
 
 	logger "suasor/utils"
 )
@@ -57,7 +58,7 @@ func TestJellyfinClientIntegration(t *testing.T) {
 	}
 
 	// Create client configuration
-	config := types.JellyfinConfig{
+	config := client.JellyfinConfig{
 		BaseURL:  baseURL,
 		APIKey:   apiKey,
 		Username: username,

@@ -9,19 +9,19 @@ import (
 )
 
 // Provider factory type definition
-type ProviderFactory func(ctx context.Context, clientID uint64, config client.ClientConfig) (MediaClient, error)
+type ClientFactory func(ctx context.Context, clientID uint64, config client.ClientConfig) (MediaClient, error)
 
 // Registry to store provider factories
-var providerFactories = make(map[client.MediaClientType]ProviderFactory)
+var clientFactories = make(map[client.MediaClientType]ClientFactory)
 
 // RegisterProvider adds a new provider factory to the registry
-func RegisterProvider(clientType client.MediaClientType, factory ProviderFactory) {
-	providerFactories[clientType] = factory
+func RegisterClient(clientType client.MediaClientType, factory ClientFactory) {
+	clientFactories[clientType] = factory
 }
 
 // NewMediaClient creates providers using the registry
 func NewMediaClient(ctx context.Context, clientID uint64, clientType client.MediaClientType, config client.ClientConfig) (MediaClient, error) {
-	factory, exists := providerFactories[clientType]
+	factory, exists := clientFactories[clientType]
 	if !exists {
 		return nil, fmt.Errorf("unsupported client type: %s", clientType)
 	}
