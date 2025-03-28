@@ -8,7 +8,6 @@ import (
 	"suasor/repository"
 	"suasor/types/models"
 	"suasor/types/requests"
-	"suasor/types/responses"
 	"time"
 
 	lidarr "github.com/devopsarr/lidarr-go/lidarr"

@@ -58,7 +58,7 @@ func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
-		utils.RespondUnauthorized(c, nil, "Authentication required")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
 
@@ -66,7 +66,7 @@ func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 
 	var req requests.ClientRequest[T]
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.RespondValidationError(c, err)
+		responses.RespondValidationError(c, err)
 		return
 	}
 
@@ -85,11 +85,11 @@ func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 
 	client, err := h.service.Create(ctx, client)
 	if err != nil {
-		utils.RespondInternalError(c, err, err.Error())
+		responses.RespondInternalError(c, err, err.Error())
 		return
 	}
 
-	utils.RespondCreated(c, client, "Media client created successfully")
+	responses.RespondCreated(c, client, "Media client created successfully")
 }
 
 // GetClient godoc
@@ -133,7 +133,7 @@ func (h *ClientHandler[T]) GetClient(c *gin.Context) {
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
-		utils.RespondUnauthorized(c, nil, "Authentication required")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
 
@@ -143,7 +143,7 @@ func (h *ClientHandler[T]) GetClient(c *gin.Context) {
 	clientID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		log.Error().Err(err).Str("clientID", c.Param("id")).Msg("Invalid client ID format")
-		utils.RespondBadRequest(c, err, "Invalid client ID")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
@@ -156,14 +156,14 @@ func (h *ClientHandler[T]) GetClient(c *gin.Context) {
 	if err != nil {
 		// Check if it's a not found error
 		if err.Error() == "media client not found" {
-			utils.RespondNotFound(c, err, "Media client not found")
+			responses.RespondNotFound(c, err, "Media client not found")
 			return
 		}
-		utils.RespondInternalError(c, err, "Failed to retrieve media client")
+		responses.RespondInternalError(c, err, "Failed to retrieve media client")
 		return
 	}
 
-	utils.RespondOK(c, client, "Media client retrieved successfully")
+	responses.RespondOK(c, client, "Media client retrieved successfully")
 }
 
 // GetAllClients godoc
@@ -184,7 +184,7 @@ func (h *ClientHandler[T]) GetAllClients(c *gin.Context) {
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
-		utils.RespondUnauthorized(c, nil, "Authentication required")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
 
@@ -196,11 +196,11 @@ func (h *ClientHandler[T]) GetAllClients(c *gin.Context) {
 
 	clients, err := h.service.GetByUserID(ctx, uid)
 	if err != nil {
-		utils.RespondInternalError(c, err, "Failed to retrieve media clients")
+		responses.RespondInternalError(c, err, "Failed to retrieve media clients")
 		return
 	}
 
-	utils.RespondOK(c, clients, "Media clients retrieved successfully")
+	responses.RespondOK(c, clients, "Media clients retrieved successfully")
 }
 
 // UpdateClient godoc
@@ -239,7 +239,7 @@ func (h *ClientHandler[T]) UpdateClient(c *gin.Context) {
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
-		utils.RespondUnauthorized(c, nil, "Authentication required")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
 
@@ -249,13 +249,13 @@ func (h *ClientHandler[T]) UpdateClient(c *gin.Context) {
 	clientID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		log.Error().Err(err).Str("clientID", c.Param("id")).Msg("Invalid client ID format")
-		utils.RespondBadRequest(c, err, "Invalid client ID")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
 	var req requests.ClientRequest[T]
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.RespondValidationError(c, err)
+		responses.RespondValidationError(c, err)
 		return
 	}
 
@@ -270,14 +270,14 @@ func (h *ClientHandler[T]) UpdateClient(c *gin.Context) {
 	if err != nil {
 		// Check if it's a not found error
 		if err.Error() == "media client not found" {
-			utils.RespondNotFound(c, err, "Media client not found")
+			responses.RespondNotFound(c, err, "Media client not found")
 			return
 		}
-		utils.RespondInternalError(c, err, "Failed to update media client")
+		responses.RespondInternalError(c, err, "Failed to update media client")
 		return
 	}
 
-	utils.RespondOK(c, client, "Media client updated successfully")
+	responses.RespondOK(c, client, "Media client updated successfully")
 }
 
 // DeleteClient godoc
@@ -301,7 +301,7 @@ func (h *ClientHandler[T]) DeleteClient(c *gin.Context) {
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
-		utils.RespondUnauthorized(c, nil, "Authentication required")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
 
@@ -311,7 +311,7 @@ func (h *ClientHandler[T]) DeleteClient(c *gin.Context) {
 	clientID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		log.Error().Err(err).Str("clientID", c.Param("id")).Msg("Invalid client ID format")
-		utils.RespondBadRequest(c, err, "Invalid client ID")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
@@ -324,14 +324,14 @@ func (h *ClientHandler[T]) DeleteClient(c *gin.Context) {
 	if err != nil {
 		// Check if it's a not found error
 		if err.Error() == "media client not found" {
-			utils.RespondNotFound(c, err, "Media client not found")
+			responses.RespondNotFound(c, err, "Media client not found")
 			return
 		}
-		utils.RespondInternalError(c, err, "Failed to delete media client")
+		responses.RespondInternalError(c, err, "Failed to delete media client")
 		return
 	}
 
-	utils.RespondOK(c, responses.EmptyResponse{Success: true}, "Media client deleted successfully")
+	responses.RespondOK(c, responses.EmptyResponse{Success: true}, "Media client deleted successfully")
 }
 
 // TestConnection godoc
@@ -375,7 +375,7 @@ func (h *ClientHandler[T]) TestConnection(c *gin.Context) {
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
-		utils.RespondUnauthorized(c, nil, "Authentication required")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
 
@@ -383,7 +383,7 @@ func (h *ClientHandler[T]) TestConnection(c *gin.Context) {
 
 	var req requests.ClientRequest[T]
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.RespondValidationError(c, err)
+		responses.RespondValidationError(c, err)
 		return
 	}
 
@@ -394,9 +394,9 @@ func (h *ClientHandler[T]) TestConnection(c *gin.Context) {
 
 	result, err := h.service.TestConnection(ctx, req.Client)
 	if err != nil {
-		utils.RespondInternalError(c, err, "Failed to test media client connection")
+		responses.RespondInternalError(c, err, "Failed to test media client connection")
 		return
 	}
 
-	utils.RespondOK(c, result, "Connection test completed")
+	responses.RespondOK(c, result, "Connection test completed")
 }

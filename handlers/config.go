@@ -32,7 +32,7 @@ func (h *ConfigHandler) checkAdminAccess(c *gin.Context) (uint64, bool) {
 	userID, exists := c.Get("userID")
 	if !exists {
 		log.Warn().Msg("Unauthorized access attempt")
-		utils.RespondUnauthorized(c, nil, "Authentication required")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return 0, false
 	}
 
@@ -42,7 +42,7 @@ func (h *ConfigHandler) checkAdminAccess(c *gin.Context) (uint64, bool) {
 		log.Warn().
 			Interface("userID", userID).
 			Msg("Forbidden access attempt - admin required")
-		utils.RespondForbidden(c, nil, "Admin privileges required")
+		responses.RespondForbidden(c, nil, "Admin privileges required")
 		return 0, false
 	}
 
@@ -75,7 +75,7 @@ func (h *ConfigHandler) GetConfig(c *gin.Context) {
 	config := h.configService.GetConfig()
 
 	log.Info().Msg("Configuration retrieved successfully")
-	utils.RespondOK(c, config, "Configuration retrieved successfully")
+	responses.RespondOK(c, config, "Configuration retrieved successfully")
 }
 
 // UpdateConfig godoc
@@ -104,7 +104,7 @@ func (h *ConfigHandler) UpdateConfig(c *gin.Context) {
 	var cfg types.Configuration
 	if err := c.ShouldBindJSON(&cfg); err != nil {
 		log.Error().Err(err).Msg("Invalid configuration format")
-		utils.RespondValidationError(c, err)
+		responses.RespondValidationError(c, err)
 		return
 	}
 
@@ -114,7 +114,7 @@ func (h *ConfigHandler) UpdateConfig(c *gin.Context) {
 
 	if err := h.configService.SaveConfig(ctx, cfg); err != nil {
 		log.Error().Err(err).Msg("Failed to update configuration")
-		utils.RespondInternalError(c, err, "Failed to update configuration")
+		responses.RespondInternalError(c, err, "Failed to update configuration")
 		return
 	}
 
@@ -122,7 +122,7 @@ func (h *ConfigHandler) UpdateConfig(c *gin.Context) {
 		Interface("userID", userID).
 		Msg("Application configuration updated successfully")
 
-	utils.RespondOK(c, responses.EmptyResponse{Success: true}, "Configuration updated successfully")
+	responses.RespondOK(c, responses.EmptyResponse{Success: true}, "Configuration updated successfully")
 }
 
 // GetFileConfig godoc
@@ -153,7 +153,7 @@ func (h *ConfigHandler) GetFileConfig(c *gin.Context) {
 	config := h.configService.GetFileConfig(ctx)
 	if config == nil {
 		log.Error().Msg("Failed to retrieve file configuration")
-		utils.RespondInternalError(c, nil, "Failed to retrieve file configuration")
+		responses.RespondInternalError(c, nil, "Failed to retrieve file configuration")
 		return
 	}
 
@@ -161,7 +161,7 @@ func (h *ConfigHandler) GetFileConfig(c *gin.Context) {
 		Uint64("userID", userID).
 		Msg("File configuration retrieved successfully")
 
-	utils.RespondOK(c, config, "File configuration retrieved successfully")
+	responses.RespondOK(c, config, "File configuration retrieved successfully")
 }
 
 // Similar refactoring should be applied to SaveFileConfig, UpdateConfig, and ResetConfig
@@ -192,7 +192,7 @@ func (h *ConfigHandler) SaveFileConfig(c *gin.Context) {
 	var cfg types.Configuration
 	if err := c.ShouldBindJSON(&cfg); err != nil {
 		log.Error().Err(err).Msg("Invalid configuration format")
-		utils.RespondValidationError(c, err)
+		responses.RespondValidationError(c, err)
 		return
 	}
 
@@ -202,7 +202,7 @@ func (h *ConfigHandler) SaveFileConfig(c *gin.Context) {
 
 	if err := h.configService.SaveFileConfig(ctx, cfg); err != nil {
 		log.Error().Err(err).Msg("Failed to save configuration to file")
-		utils.RespondInternalError(c, err, "Failed to save configuration to file")
+		responses.RespondInternalError(c, err, "Failed to save configuration to file")
 		return
 	}
 
@@ -210,7 +210,7 @@ func (h *ConfigHandler) SaveFileConfig(c *gin.Context) {
 		Interface("userID", userID).
 		Msg("Configuration saved to file successfully")
 
-	utils.RespondOK(c, responses.EmptyResponse{Success: true}, "Configuration saved to file successfully")
+	responses.RespondOK(c, responses.EmptyResponse{Success: true}, "Configuration saved to file successfully")
 }
 
 // ResetConfig godoc
@@ -239,7 +239,7 @@ func (h *ConfigHandler) ResetConfig(c *gin.Context) {
 
 	if err := h.configService.ResetFileConfig(ctx); err != nil {
 		log.Error().Err(err).Msg("Failed to reset configuration")
-		utils.RespondInternalError(c, err, "Failed to reset configuration")
+		responses.RespondInternalError(c, err, "Failed to reset configuration")
 		return
 	}
 
@@ -247,5 +247,5 @@ func (h *ConfigHandler) ResetConfig(c *gin.Context) {
 		Interface("userID", userID).
 		Msg("Application configuration reset successfully")
 
-	utils.RespondOK(c, responses.EmptyResponse{Success: true}, "Configuration reset successfully")
+	responses.RespondOK(c, responses.EmptyResponse{Success: true}, "Configuration reset successfully")
 }

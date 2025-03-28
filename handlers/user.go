@@ -6,6 +6,7 @@ import (
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/requests"
+	"suasor/types/responses"
 
 	"suasor/utils"
 
@@ -73,7 +74,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	var req requests.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request format for user registration")
-		utils.RespondValidationError(c, err)
+		responses.RespondValidationError(c, err)
 		return
 	}
 
@@ -90,17 +91,17 @@ func (h *UserHandler) Register(c *gin.Context) {
 	if err := h.service.Create(ctx, user); err != nil {
 		if err.Error() == "email already exists" {
 			log.Warn().Err(err).Str("email", req.Email).Msg("Email already exists")
-			utils.RespondBadRequest(c, err, "Email already exists")
+			responses.RespondBadRequest(c, err, "Email already exists")
 			return
 		}
 		if err.Error() == "username already exists" {
 			log.Warn().Err(err).Str("username", req.Username).Msg("Username already exists")
-			utils.RespondBadRequest(c, err, "Username already exists")
+			responses.RespondBadRequest(c, err, "Username already exists")
 			return
 		}
 
 		log.Error().Err(err).Str("email", req.Email).Msg("Failed to register user")
-		utils.RespondInternalError(c, err, "Failed to register user")
+		responses.RespondInternalError(c, err, "Failed to register user")
 		return
 	}
 
@@ -108,12 +109,12 @@ func (h *UserHandler) Register(c *gin.Context) {
 	userResponse, err := h.service.GetByEmail(ctx, req.Email)
 	if err != nil {
 		log.Error().Err(err).Str("email", req.Email).Msg("Failed to retrieve registered user")
-		utils.RespondInternalError(c, err, "Failed to retrieve registered user")
+		responses.RespondInternalError(c, err, "Failed to retrieve registered user")
 		return
 	}
 
 	log.Info().Uint64("id", userResponse.ID).Str("email", userResponse.Email).Msg("Successfully registered user")
-	utils.RespondCreated(c, userResponse, "User registered successfully")
+	responses.RespondCreated(c, userResponse, "User registered successfully")
 }
 
 // GetProfile godoc
@@ -147,7 +148,7 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
 		log.Warn().Msg("User ID not found in context")
-		utils.RespondUnauthorized(c, nil, "Not authenticated")
+		responses.RespondUnauthorized(c, nil, "Not authenticated")
 		return
 	}
 
@@ -158,16 +159,16 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	if err != nil {
 		if err.Error() == "user not found" {
 			log.Warn().Uint64("id", id).Msg("User not found")
-			utils.RespondNotFound(c, err, "User not found")
+			responses.RespondNotFound(c, err, "User not found")
 			return
 		}
 		log.Error().Err(err).Uint64("id", id).Msg("Failed to retrieve user profile")
-		utils.RespondInternalError(c, err, "Failed to retrieve user profile")
+		responses.RespondInternalError(c, err, "Failed to retrieve user profile")
 		return
 	}
 
 	log.Info().Uint64("id", id).Msg("Successfully retrieved user profile")
-	utils.RespondOK(c, userResponse, "Profile retrieved successfully")
+	responses.RespondOK(c, userResponse, "Profile retrieved successfully")
 }
 
 // UpdateProfile godoc
@@ -211,7 +212,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
 		log.Warn().Msg("User ID not found in context")
-		utils.RespondUnauthorized(c, nil, "Not authenticated")
+		responses.RespondUnauthorized(c, nil, "Not authenticated")
 		return
 	}
 
@@ -220,7 +221,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	var req requests.ProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request format for profile update")
-		utils.RespondValidationError(c, err)
+		responses.RespondValidationError(c, err)
 		return
 	}
 
@@ -238,22 +239,22 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	if err := h.service.UpdateProfile(ctx, id, updateData); err != nil {
 		if err.Error() == "email already exists" {
 			log.Warn().Err(err).Str("email", req.Email).Msg("Email already exists")
-			utils.RespondBadRequest(c, err, "Email already exists")
+			responses.RespondBadRequest(c, err, "Email already exists")
 			return
 		}
 		if err.Error() == "username already exists" {
 			log.Warn().Err(err).Str("username", req.Username).Msg("Username already exists")
-			utils.RespondBadRequest(c, err, "Username already exists")
+			responses.RespondBadRequest(c, err, "Username already exists")
 			return
 		}
 		if err.Error() == "user not found" {
 			log.Warn().Uint64("id", id).Msg("User not found")
-			utils.RespondNotFound(c, err, "User not found")
+			responses.RespondNotFound(c, err, "User not found")
 			return
 		}
 
 		log.Error().Err(err).Uint64("id", id).Msg("Failed to update user profile")
-		utils.RespondInternalError(c, err, "Failed to update user profile")
+		responses.RespondInternalError(c, err, "Failed to update user profile")
 		return
 	}
 
@@ -261,12 +262,12 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	userResponse, err := h.service.GetByID(ctx, id)
 	if err != nil {
 		log.Error().Err(err).Uint64("id", id).Msg("Failed to retrieve updated user profile")
-		utils.RespondInternalError(c, err, "Failed to retrieve updated user profile")
+		responses.RespondInternalError(c, err, "Failed to retrieve updated user profile")
 		return
 	}
 
 	log.Info().Uint64("id", id).Msg("Successfully updated user profile")
-	utils.RespondOK(c, userResponse, "Profile updated successfully")
+	responses.RespondOK(c, userResponse, "Profile updated successfully")
 }
 
 // ChangePassword godoc
@@ -305,7 +306,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
 		log.Warn().Msg("User ID not found in context")
-		utils.RespondUnauthorized(c, nil, "Not authenticated")
+		responses.RespondUnauthorized(c, nil, "Not authenticated")
 		return
 	}
 
@@ -314,7 +315,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 	var req requests.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request format for password change")
-		utils.RespondValidationError(c, err)
+		responses.RespondValidationError(c, err)
 		return
 	}
 
@@ -323,22 +324,22 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 	if err := h.service.UpdatePassword(ctx, id, req.CurrentPassword, req.NewPassword); err != nil {
 		if err.Error() == "invalid credentials" {
 			log.Warn().Uint64("id", id).Msg("Invalid current password")
-			utils.RespondBadRequest(c, err, "Current password is incorrect")
+			responses.RespondBadRequest(c, err, "Current password is incorrect")
 			return
 		}
 		if err.Error() == "user not found" {
 			log.Warn().Uint64("id", id).Msg("User not found")
-			utils.RespondNotFound(c, err, "User not found")
+			responses.RespondNotFound(c, err, "User not found")
 			return
 		}
 
 		log.Error().Err(err).Uint64("id", id).Msg("Failed to change password")
-		utils.RespondInternalError(c, err, "Failed to change password")
+		responses.RespondInternalError(c, err, "Failed to change password")
 		return
 	}
 
 	log.Info().Uint64("id", id).Msg("Successfully changed password")
-	utils.RespondOK(c, http.StatusOK, "Password changed successfully")
+	responses.RespondOK(c, http.StatusOK, "Password changed successfully")
 }
 
 // GetByID godoc
@@ -376,7 +377,7 @@ func (h *UserHandler) GetByID(c *gin.Context) {
 	role, exists := c.Get("userRole")
 	if !exists || role.(string) != "admin" {
 		log.Warn().Msg("Non-admin attempted to access user by ID")
-		utils.RespondForbidden(c, nil, "Admin access required")
+		responses.RespondForbidden(c, nil, "Admin access required")
 		return
 	}
 
@@ -385,7 +386,7 @@ func (h *UserHandler) GetByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
 		log.Warn().Str("id", idStr).Msg("Invalid user ID format")
-		utils.RespondBadRequest(c, err, "Invalid user ID format")
+		responses.RespondBadRequest(c, err, "Invalid user ID format")
 		return
 	}
 
@@ -395,16 +396,16 @@ func (h *UserHandler) GetByID(c *gin.Context) {
 	if err != nil {
 		if err.Error() == "user not found" {
 			log.Warn().Uint64("id", id).Msg("User not found")
-			utils.RespondNotFound(c, err, "User not found")
+			responses.RespondNotFound(c, err, "User not found")
 			return
 		}
 		log.Error().Err(err).Uint64("id", id).Msg("Failed to retrieve user")
-		utils.RespondInternalError(c, err, "Failed to retrieve user")
+		responses.RespondInternalError(c, err, "Failed to retrieve user")
 		return
 	}
 
 	log.Info().Uint64("id", id).Msg("Successfully retrieved user")
-	utils.RespondOK(c, userResponse, "User retrieved successfully")
+	responses.RespondOK(c, userResponse, "User retrieved successfully")
 }
 
 // ChangeRole godoc
@@ -450,7 +451,7 @@ func (h *UserHandler) ChangeRole(c *gin.Context) {
 	role, exists := c.Get("userRole")
 	if !exists || role.(string) != "admin" {
 		log.Warn().Msg("Non-admin attempted to change user role")
-		utils.RespondForbidden(c, nil, "Admin access required")
+		responses.RespondForbidden(c, nil, "Admin access required")
 		return
 	}
 
@@ -459,14 +460,14 @@ func (h *UserHandler) ChangeRole(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
 		log.Warn().Str("id", idStr).Msg("Invalid user ID format")
-		utils.RespondBadRequest(c, err, "Invalid user ID format")
+		responses.RespondBadRequest(c, err, "Invalid user ID format")
 		return
 	}
 
 	var req requests.ChangeRoleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request format for role change")
-		utils.RespondValidationError(c, err)
+		responses.RespondValidationError(c, err)
 		return
 	}
 
@@ -475,17 +476,17 @@ func (h *UserHandler) ChangeRole(c *gin.Context) {
 	if err := h.service.ChangeRole(ctx, id, req.Role); err != nil {
 		if err.Error() == "invalid role" {
 			log.Warn().Uint64("id", id).Str("role", req.Role).Msg("Invalid role specified")
-			utils.RespondBadRequest(c, err, "Invalid role specified")
+			responses.RespondBadRequest(c, err, "Invalid role specified")
 			return
 		}
 		if err.Error() == "user not found" {
 			log.Warn().Uint64("id", id).Msg("User not found")
-			utils.RespondNotFound(c, err, "User not found")
+			responses.RespondNotFound(c, err, "User not found")
 			return
 		}
 
 		log.Error().Err(err).Uint64("id", id).Msg("Failed to change user role")
-		utils.RespondInternalError(c, err, "Failed to change user role")
+		responses.RespondInternalError(c, err, "Failed to change user role")
 		return
 	}
 
@@ -493,12 +494,12 @@ func (h *UserHandler) ChangeRole(c *gin.Context) {
 	userResponse, err := h.service.GetByID(ctx, id)
 	if err != nil {
 		log.Error().Err(err).Uint64("id", id).Msg("Failed to retrieve updated user")
-		utils.RespondInternalError(c, err, "Failed to retrieve updated user")
+		responses.RespondInternalError(c, err, "Failed to retrieve updated user")
 		return
 	}
 
 	log.Info().Uint64("id", id).Str("newRole", req.Role).Msg("Successfully changed user role")
-	utils.RespondOK(c, userResponse, "User role changed successfully")
+	responses.RespondOK(c, userResponse, "User role changed successfully")
 }
 
 // ActivateUser godoc
@@ -536,7 +537,7 @@ func (h *UserHandler) ActivateUser(c *gin.Context) {
 	role, exists := c.Get("userRole")
 	if !exists || role.(string) != "admin" {
 		log.Warn().Msg("Non-admin attempted to activate user account")
-		utils.RespondForbidden(c, nil, "Admin access required")
+		responses.RespondForbidden(c, nil, "Admin access required")
 		return
 	}
 
@@ -545,7 +546,7 @@ func (h *UserHandler) ActivateUser(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
 		log.Warn().Str("id", idStr).Msg("Invalid user ID format")
-		utils.RespondBadRequest(c, err, "Invalid user ID format")
+		responses.RespondBadRequest(c, err, "Invalid user ID format")
 		return
 	}
 
@@ -554,12 +555,12 @@ func (h *UserHandler) ActivateUser(c *gin.Context) {
 	if err := h.service.ActivateUser(ctx, id); err != nil {
 		if err.Error() == "user not found" {
 			log.Warn().Uint64("id", id).Msg("User not found")
-			utils.RespondNotFound(c, err, "User not found")
+			responses.RespondNotFound(c, err, "User not found")
 			return
 		}
 
 		log.Error().Err(err).Uint64("id", id).Msg("Failed to activate user account")
-		utils.RespondInternalError(c, err, "Failed to activate user account")
+		responses.RespondInternalError(c, err, "Failed to activate user account")
 		return
 	}
 
@@ -567,12 +568,12 @@ func (h *UserHandler) ActivateUser(c *gin.Context) {
 	userResponse, err := h.service.GetByID(ctx, id)
 	if err != nil {
 		log.Error().Err(err).Uint64("id", id).Msg("Failed to retrieve updated user")
-		utils.RespondInternalError(c, err, "Failed to retrieve updated user")
+		responses.RespondInternalError(c, err, "Failed to retrieve updated user")
 		return
 	}
 
 	log.Info().Uint64("id", id).Msg("Successfully activated user account")
-	utils.RespondOK(c, userResponse, "User account activated successfully")
+	responses.RespondOK(c, userResponse, "User account activated successfully")
 }
 
 // DeactivateUser godoc
@@ -610,7 +611,7 @@ func (h *UserHandler) DeactivateUser(c *gin.Context) {
 	role, exists := c.Get("userRole")
 	if !exists || role.(string) != "admin" {
 		log.Warn().Msg("Non-admin attempted to deactivate user account")
-		utils.RespondForbidden(c, nil, "Admin access required")
+		responses.RespondForbidden(c, nil, "Admin access required")
 		return
 	}
 
@@ -619,7 +620,7 @@ func (h *UserHandler) DeactivateUser(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
 		log.Warn().Str("id", idStr).Msg("Invalid user ID format")
-		utils.RespondBadRequest(c, err, "Invalid user ID format")
+		responses.RespondBadRequest(c, err, "Invalid user ID format")
 		return
 	}
 
@@ -628,12 +629,12 @@ func (h *UserHandler) DeactivateUser(c *gin.Context) {
 	if err := h.service.DeactivateUser(ctx, id); err != nil {
 		if err.Error() == "user not found" {
 			log.Warn().Uint64("id", id).Msg("User not found")
-			utils.RespondNotFound(c, err, "User not found")
+			responses.RespondNotFound(c, err, "User not found")
 			return
 		}
 
 		log.Error().Err(err).Uint64("id", id).Msg("Failed to deactivate user account")
-		utils.RespondInternalError(c, err, "Failed to deactivate user account")
+		responses.RespondInternalError(c, err, "Failed to deactivate user account")
 		return
 	}
 
@@ -641,12 +642,12 @@ func (h *UserHandler) DeactivateUser(c *gin.Context) {
 	userResponse, err := h.service.GetByID(ctx, id)
 	if err != nil {
 		log.Error().Err(err).Uint64("id", id).Msg("Failed to retrieve updated user")
-		utils.RespondInternalError(c, err, "Failed to retrieve updated user")
+		responses.RespondInternalError(c, err, "Failed to retrieve updated user")
 		return
 	}
 
 	log.Info().Uint64("id", id).Msg("Successfully deactivated user account")
-	utils.RespondOK(c, userResponse, "User account deactivated successfully")
+	responses.RespondOK(c, userResponse, "User account deactivated successfully")
 }
 
 // Delete godoc
@@ -670,7 +671,7 @@ func (h *UserHandler) Delete(c *gin.Context) {
 	role, exists := c.Get("userRole")
 	if !exists || role.(string) != "admin" {
 		log.Warn().Msg("Non-admin attempted to delete user account")
-		utils.RespondForbidden(c, nil, "Admin access required")
+		responses.RespondForbidden(c, nil, "Admin access required")
 		return
 	}
 
@@ -679,7 +680,7 @@ func (h *UserHandler) Delete(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
 		log.Warn().Str("id", idStr).Msg("Invalid user ID format")
-		utils.RespondBadRequest(c, err, "Invalid user ID format")
+		responses.RespondBadRequest(c, err, "Invalid user ID format")
 		return
 	}
 
@@ -688,12 +689,12 @@ func (h *UserHandler) Delete(c *gin.Context) {
 	if err := h.service.Delete(ctx, id); err != nil {
 		if err.Error() == "user not found" {
 			log.Warn().Uint64("id", id).Msg("User not found")
-			utils.RespondNotFound(c, err, "User not found")
+			responses.RespondNotFound(c, err, "User not found")
 			return
 		}
 
 		log.Error().Err(err).Uint64("id", id).Msg("Failed to delete user account")
-		utils.RespondInternalError(c, err, "Failed to delete user account")
+		responses.RespondInternalError(c, err, "Failed to delete user account")
 		return
 	}
 

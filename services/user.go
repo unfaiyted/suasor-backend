@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
-	"suasor/models"
 	"suasor/repository"
+	"suasor/types/models"
+	"suasor/types/responses"
 )
 
 // Service errors
@@ -24,9 +25,9 @@ type UserService interface {
 	Create(ctx context.Context, user *models.User) error
 	Update(ctx context.Context, user *models.User) error
 	Delete(ctx context.Context, id uint64) error
-	GetByID(ctx context.Context, id uint64) (*models.UserResponse, error)
-	GetByEmail(ctx context.Context, email string) (*models.UserResponse, error)
-	GetByUsername(ctx context.Context, username string) (*models.UserResponse, error)
+	GetByID(ctx context.Context, id uint64) (*responses.UserResponse, error)
+	GetByEmail(ctx context.Context, email string) (*responses.UserResponse, error)
+	GetByUsername(ctx context.Context, username string) (*responses.UserResponse, error)
 	UpdatePassword(ctx context.Context, id uint64, currentPassword, newPassword string) error
 	UpdateProfile(ctx context.Context, id uint64, updateData map[string]interface{}) error
 	ChangeRole(ctx context.Context, id uint64, newRole string) error
@@ -85,7 +86,7 @@ func (s *userService) Delete(ctx context.Context, id uint64) error {
 }
 
 // GetByID retrieves a user by ID and returns a UserResponse
-func (s *userService) GetByID(ctx context.Context, id uint64) (*models.UserResponse, error) {
+func (s *userService) GetByID(ctx context.Context, id uint64) (*responses.UserResponse, error) {
 	user, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -94,7 +95,7 @@ func (s *userService) GetByID(ctx context.Context, id uint64) (*models.UserRespo
 		return nil, err
 	}
 
-	return &models.UserResponse{
+	return &responses.UserResponse{
 		ID:       uint64(user.ID),
 		Email:    user.Email,
 		Username: user.Username,
@@ -103,7 +104,7 @@ func (s *userService) GetByID(ctx context.Context, id uint64) (*models.UserRespo
 }
 
 // GetByEmail retrieves a user by email and returns a UserResponse
-func (s *userService) GetByEmail(ctx context.Context, email string) (*models.UserResponse, error) {
+func (s *userService) GetByEmail(ctx context.Context, email string) (*responses.UserResponse, error) {
 	user, err := s.userRepo.FindByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -112,7 +113,7 @@ func (s *userService) GetByEmail(ctx context.Context, email string) (*models.Use
 		return nil, err
 	}
 
-	return &models.UserResponse{
+	return &responses.UserResponse{
 		ID:       uint64(user.ID),
 		Email:    user.Email,
 		Username: user.Username,
@@ -121,7 +122,7 @@ func (s *userService) GetByEmail(ctx context.Context, email string) (*models.Use
 }
 
 // GetByUsername retrieves a user by username and returns a UserResponse
-func (s *userService) GetByUsername(ctx context.Context, username string) (*models.UserResponse, error) {
+func (s *userService) GetByUsername(ctx context.Context, username string) (*responses.UserResponse, error) {
 	user, err := s.userRepo.FindByUsername(ctx, username)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -130,7 +131,7 @@ func (s *userService) GetByUsername(ctx context.Context, username string) (*mode
 		return nil, err
 	}
 
-	return &models.UserResponse{
+	return &responses.UserResponse{
 		ID:       uint64(user.ID),
 		Email:    user.Email,
 		Username: user.Username,

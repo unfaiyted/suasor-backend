@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"fmt"
-	"suasor/models"
 	"suasor/repository"
+	"suasor/types/models"
 	"suasor/utils"
 )
 

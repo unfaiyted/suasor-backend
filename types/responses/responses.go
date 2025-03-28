@@ -1,19 +1,9 @@
 package responses
 
 import (
-	"suasor/types"
-	"time"
+	"github.com/gin-gonic/gin"
+	"net/http"
 )
-
-// ErrorResponse represents an error response
-type ErrorResponse[T any] struct {
-	Type       types.ErrorType `json:"type" example:"FAILED_CHECK"`
-	Message    string          `json:"message" example:"This is a pretty message"`
-	StatusCode uint16          `json:"statusCode" example:"201"`
-	Details    T               `json:"details,omitempty"`
-	Timestamp  time.Time       `json:"timestamp"`
-	RequestID  string          `json:"request_id,omitempty"`
-}
 
 // APIResponse represents a generic API response
 type APIResponse[T any] struct {
@@ -22,54 +12,35 @@ type APIResponse[T any] struct {
 	Data    T      `json:"data,omitempty"`
 }
 
-// Common error detail types
-type ValidationErrorDetails struct {
-	FieldErrors map[string]string `json:"fieldErrors,omitempty"`
-}
-
-type NotFoundErrorDetails struct {
-	Resource string `json:"resource,omitempty"`
-	ID       string `json:"id,omitempty"`
-}
-
-// EmptyErrorDetails for errors without specific details
-type EmptyErrorDetails struct{}
-
-// Error response constructors
-func NewValidationError(message string, fieldErrors map[string]string, requestID string) ErrorResponse[ValidationErrorDetails] {
-	return ErrorResponse[ValidationErrorDetails]{
-		Type:       types.ErrorTypeValidation,
-		Message:    message,
-		StatusCode: 422,
-		Details:    ValidationErrorDetails{FieldErrors: fieldErrors},
-		Timestamp:  time.Now(),
-		RequestID:  requestID,
-	}
-}
-
-func NewNotFoundError(message string, resource, id, requestID string) ErrorResponse[NotFoundErrorDetails] {
-	return ErrorResponse[NotFoundErrorDetails]{
-		Type:       types.ErrorTypeNotFound,
-		Message:    message,
-		StatusCode: 404,
-		Details:    NotFoundErrorDetails{Resource: resource, ID: id},
-		Timestamp:  time.Now(),
-		RequestID:  requestID,
-	}
-}
-
-func NewGenericError(errorType types.ErrorType, message string, statusCode uint16, requestID string) ErrorResponse[EmptyErrorDetails] {
-	return ErrorResponse[EmptyErrorDetails]{
-		Type:       errorType,
-		Message:    message,
-		StatusCode: statusCode,
-		Details:    EmptyErrorDetails{},
-		Timestamp:  time.Now(),
-		RequestID:  requestID,
-	}
-}
-
 // Type-specific response creators
 type EmptyResponse struct {
 	Success bool `json:"success"`
+}
+
+// RespondSuccess creates a standardized success response
+func RespondSuccess[T any](c *gin.Context, statusCode int, data T, message string) {
+	response := APIResponse[T]{
+		Success: true,
+		Data:    data,
+		Message: message,
+	}
+
+	c.JSON(statusCode, response)
+}
+
+// Convenience functions for success responses
+func RespondOK[T any](c *gin.Context, data T, message ...string) {
+	msg := "Success"
+	if len(message) > 0 && message[0] != "" {
+		msg = message[0]
+	}
+	RespondSuccess(c, http.StatusOK, data, msg)
+}
+
+func RespondCreated[T any](c *gin.Context, data T, message ...string) {
+	msg := "Resource created successfully"
+	if len(message) > 0 && message[0] != "" {
+		msg = message[0]
+	}
+	RespondSuccess(c, http.StatusCreated, data, msg)
 }

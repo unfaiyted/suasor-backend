@@ -40,7 +40,7 @@ func (h *UserConfigHandler) GetUserConfig(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
 		log.Warn().Msg("Unauthorized attempt to get user configuration")
-		utils.RespondUnauthorized(c, nil, "Authentication required")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
 
@@ -50,12 +50,12 @@ func (h *UserConfigHandler) GetUserConfig(c *gin.Context) {
 	config, err := h.userConfigService.GetUserConfig(ctx, uid)
 	if err != nil {
 		log.Error().Err(err).Uint64("userID", uid).Msg("Failed to retrieve user configuration")
-		utils.RespondInternalError(c, err, "Failed to retrieve user configuration")
+		responses.RespondInternalError(c, err, "Failed to retrieve user configuration")
 		return
 	}
 
 	log.Info().Uint64("userID", uid).Msg("User configuration retrieved successfully")
-	utils.RespondOK(c, config, "User configuration retrieved successfully")
+	responses.RespondOK(c, config, "User configuration retrieved successfully")
 }
 
 // UpdateUserConfig godoc
@@ -78,7 +78,7 @@ func (h *UserConfigHandler) UpdateUserConfig(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
 		log.Warn().Msg("Unauthorized attempt to update user configuration")
-		utils.RespondUnauthorized(c, nil, "Authentication required")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
 
@@ -87,7 +87,7 @@ func (h *UserConfigHandler) UpdateUserConfig(c *gin.Context) {
 	var cfg models.UserConfig
 	if err := c.ShouldBindJSON(&cfg); err != nil {
 		log.Error().Err(err).Msg("Invalid user configuration format")
-		utils.RespondValidationError(c, err)
+		responses.RespondValidationError(c, err)
 		return
 	}
 
@@ -98,10 +98,10 @@ func (h *UserConfigHandler) UpdateUserConfig(c *gin.Context) {
 
 	if err := h.userConfigService.SaveUserConfig(ctx, cfg); err != nil {
 		log.Error().Err(err).Uint64("userID", uid).Msg("Failed to update user configuration")
-		utils.RespondInternalError(c, err, "Failed to update user configuration")
+		responses.RespondInternalError(c, err, "Failed to update user configuration")
 		return
 	}
 
 	log.Info().Uint64("userID", uid).Msg("User configuration updated successfully")
-	utils.RespondOK(c, responses.EmptyResponse{Success: true}, "User configuration updated successfully")
+	responses.RespondOK(c, responses.EmptyResponse{Success: true}, "User configuration updated successfully")
 }

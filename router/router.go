@@ -3,8 +3,8 @@ package router
 
 import (
 	"context"
-	"suasor/middleware"
 	"suasor/repository"
+	"suasor/router/middleware"
 	"suasor/services"
 	"suasor/utils"
 	"time"
@@ -53,12 +53,6 @@ func Setup(ctx context.Context, db *gorm.DB, configService services.ConfigServic
 		appConfig.Auth.TokenAudience,
 	)
 
-	downloadClientRepo := repository.NewDownloadClientRepository(db)
-	downloadClientService := services.NewDownloadClientService(downloadClientRepo)
-
-	mediaClientRepo := repository.NewMediaClientRepository(db)
-	mediaClientService := services.NewMediaClientService(mediaClientRepo)
-
 	RegisterHealthRoutes(v1, healthService)
 	RegisterAuthRoutes(v1, authService)
 
@@ -69,7 +63,7 @@ func Setup(ctx context.Context, db *gorm.DB, configService services.ConfigServic
 		// Register all routes
 		RegisterUserRoutes(authenticated, userService)
 		RegisterUserConfigRoutes(authenticated, userConfigService)
-		RegisterClientRoutes(authenticated, downloadClientService, mediaClientService)
+		RegisterClientRoutes(authenticated, db)
 	}
 
 	//Admin Routes

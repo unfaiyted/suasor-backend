@@ -6,11 +6,17 @@ import (
 	"suasor/services"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+	"suasor/client/types"
 )
 
 // SetupClientRoutes configures routes for client endpoints
-func RegisterClientRoutes(r *gin.RouterGroup, downloadService services.DownloadClientService, mediaService services.MediaClientService) {
-	downloadClientHandler := handlers.NewDownloadClientHandler(downloadService)
+func RegisterClientRoutes(r *gin.RouterGroup, db *gorm.DB) {
+
+	downloadService := services.NewClientService[types.AutomationClientConfig](db)
+	mediaService := services.NewClientService[types.MediaClientConfig](db)
+
+	downloadClientHandler := handlers.NewClientHandler[types.AutomationClientConfig](downloadService)
 
 	clients := r.Group("/clients")
 
@@ -25,7 +31,7 @@ func RegisterClientRoutes(r *gin.RouterGroup, downloadService services.DownloadC
 		download.POST("/test", downloadClientHandler.TestConnection)
 	}
 
-	mediaClientHandler := handlers.NewMediaClientHandler(mediaService)
+	mediaClientHandler := handlers.NewClientHandler(mediaService)
 
 	media := clients.Group("/media")
 	{

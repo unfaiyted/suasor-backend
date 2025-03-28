@@ -15,11 +15,11 @@ import (
 // }
 
 type ClientService[T types.ClientConfig] interface {
-	Create(ctx context.Context, client models.Client[T]) (models.Client[T], error)
-	Update(ctx context.Context, client types.ClientConfig) (models.Client[T], error)
+	Create(ctx context.Context, client models.Client[T]) (*models.Client[T], error)
+	Update(ctx context.Context, client models.Client[T]) (*models.Client[T], error)
 	GetByID(ctx context.Context, id uint64, userID uint64) (*models.Client[T], error)
-	GetByUserID(ctx context.Context, userID uint64) ([]models.Client[T], error)
-	GetByType(ctx context.Context, clientType types.ClientType, userID uint64) ([]models.Client[T], error)
+	GetByUserID(ctx context.Context, userID uint64) ([]*models.Client[T], error)
+	GetByType(ctx context.Context, clientType types.ClientType, userID uint64) ([]*models.Client[T], error)
 	Delete(ctx context.Context, id uint64, userID uint64) error
 	TestConnection(ctx context.Context, config T) (responses.ClientTestResponse, error)
 }
@@ -48,6 +48,10 @@ func (s *clientService[T]) GetByID(ctx context.Context, id uint64, userID uint64
 
 func (s *clientService[T]) GetByUserID(ctx context.Context, userID uint64) ([]*models.Client[T], error) {
 	return s.repo.GetByUserID(ctx, userID)
+}
+
+func (s *clientService[T]) GetByType(ctx context.Context, clientType types.ClientType, userID uint64) ([]*models.Client[T], error) {
+	return s.repo.GetByType(ctx, clientType, userID)
 }
 
 func (s *clientService[T]) Update(ctx context.Context, client models.Client[T]) (*models.Client[T], error) {

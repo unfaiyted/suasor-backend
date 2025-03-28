@@ -5,11 +5,13 @@ type ClientConfig interface {
 }
 
 type MediaClientConfig interface {
+	ClientConfig
 	isMediaClientConfig()
 	GetClientType() MediaClientType
 }
 
 type AutomationClientConfig interface {
+	ClientConfig
 	isAutomationClientConfig()
 	GetClientType() AutomationClientType
 }
