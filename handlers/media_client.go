@@ -4,21 +4,23 @@ import (
 	"strconv"
 	"suasor/services"
 
+	"github.com/gin-gonic/gin"
+	"suasor/client/types"
+	client "suasor/client/types"
+	"suasor/types/models"
 	"suasor/types/requests"
 	"suasor/types/responses"
 	"suasor/utils"
-
-	"github.com/gin-gonic/gin"
 )
 
 // MediaClientHandler handles media client API endpoints
-type MediaClientHandler struct {
-	service services.MediaClientService
+type ClientHandler[T client.ClientConfig] struct {
+	service services.ClientService[T]
 }
 
 // NewMediaClientHandler creates a new media client handler
-func NewMediaClientHandler(service services.MediaClientService) *MediaClientHandler {
-	return &MediaClientHandler{
+func NewClientHandler[T types.ClientConfig](service services.ClientService[T]) *ClientHandler[T] {
+	return &ClientHandler[T]{
 		service: service,
 	}
 }
@@ -49,7 +51,7 @@ func NewMediaClientHandler(service services.MediaClientService) *MediaClientHand
 //	    "ssl": false
 //	  }
 //	}
-func (h *MediaClientHandler) CreateClient(c *gin.Context) {
+func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -62,7 +64,7 @@ func (h *MediaClientHandler) CreateClient(c *gin.Context) {
 
 	uid := userID.(uint64)
 
-	var req requests.MediaClientRequest
+	var req requests.ClientRequest[T]
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.RespondValidationError(c, err)
 		return
@@ -74,7 +76,14 @@ func (h *MediaClientHandler) CreateClient(c *gin.Context) {
 		Str("type", string(req.ClientType)).
 		Msg("Creating new media client")
 
-	client, err := h.service.CreateClient(ctx, uid, req)
+	client := models.Client[T]{
+		UserID:   uid,
+		Name:     req.Name,
+		Category: req.ClientType.AsCategory(),
+		Config:   models.ClientConfigWrapper[T]{Data: req.Client},
+	}
+
+	client, err := h.service.Create(ctx, client)
 	if err != nil {
 		utils.RespondInternalError(c, err, err.Error())
 		return
@@ -117,7 +126,7 @@ func (h *MediaClientHandler) CreateClient(c *gin.Context) {
 //   "message": "Media client retrieved successfully"
 // }
 
-func (h *MediaClientHandler) GetClient(c *gin.Context) {
+func (h *ClientHandler[T]) GetClient(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -143,7 +152,7 @@ func (h *MediaClientHandler) GetClient(c *gin.Context) {
 		Uint64("clientID", clientID).
 		Msg("Retrieving media client")
 
-	client, err := h.service.GetClientByID(ctx, uid, clientID)
+	client, err := h.service.GetByID(ctx, uid, clientID)
 	if err != nil {
 		// Check if it's a not found error
 		if err.Error() == "media client not found" {
@@ -168,7 +177,7 @@ func (h *MediaClientHandler) GetClient(c *gin.Context) {
 // @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} models.ErrorResponse[error] "Server error"
 // @Router /clients/media [get]
-func (h *MediaClientHandler) GetAllClients(c *gin.Context) {
+func (h *ClientHandler[T]) GetAllClients(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -185,7 +194,7 @@ func (h *MediaClientHandler) GetAllClients(c *gin.Context) {
 		Uint64("userID", uid).
 		Msg("Retrieving all media clients")
 
-	clients, err := h.service.GetClientsByUserID(ctx, uid)
+	clients, err := h.service.GetByUserID(ctx, uid)
 	if err != nil {
 		utils.RespondInternalError(c, err, "Failed to retrieve media clients")
 		return
@@ -223,7 +232,7 @@ func (h *MediaClientHandler) GetAllClients(c *gin.Context) {
 //   }
 // }
 
-func (h *MediaClientHandler) UpdateClient(c *gin.Context) {
+func (h *ClientHandler[T]) UpdateClient(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -244,7 +253,7 @@ func (h *MediaClientHandler) UpdateClient(c *gin.Context) {
 		return
 	}
 
-	var req requests.MediaClientRequest
+	var req requests.ClientRequest[T]
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.RespondValidationError(c, err)
 		return
@@ -257,7 +266,7 @@ func (h *MediaClientHandler) UpdateClient(c *gin.Context) {
 		Str("type", string(req.ClientType)).
 		Msg("Updating media client")
 
-	client, err := h.service.UpdateClient(ctx, uid, clientID, req)
+	client, err := h.service.Update(ctx, req.Client)
 	if err != nil {
 		// Check if it's a not found error
 		if err.Error() == "media client not found" {
@@ -285,7 +294,7 @@ func (h *MediaClientHandler) UpdateClient(c *gin.Context) {
 // @Failure 404 {object} models.ErrorResponse[error] "Client not found"
 // @Failure 500 {object} models.ErrorResponse[error] "Server error"
 // @Router /clients/media/{id} [delete]
-func (h *MediaClientHandler) DeleteClient(c *gin.Context) {
+func (h *ClientHandler[T]) DeleteClient(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -311,7 +320,7 @@ func (h *MediaClientHandler) DeleteClient(c *gin.Context) {
 		Uint64("clientID", clientID).
 		Msg("Deleting media client")
 
-	err = h.service.DeleteClient(ctx, uid, clientID)
+	err = h.service.Delete(ctx, uid, clientID)
 	if err != nil {
 		// Check if it's a not found error
 		if err.Error() == "media client not found" {
@@ -359,7 +368,7 @@ func (h *MediaClientHandler) DeleteClient(c *gin.Context) {
 //	  },
 //	  "message": "Connection test completed"
 //	}
-func (h *MediaClientHandler) TestConnection(c *gin.Context) {
+func (h *ClientHandler[T]) TestConnection(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -372,7 +381,7 @@ func (h *MediaClientHandler) TestConnection(c *gin.Context) {
 
 	uid := userID.(uint64)
 
-	var req requests.MediaClientTestRequest
+	var req requests.ClientRequest[T]
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.RespondValidationError(c, err)
 		return
@@ -383,7 +392,7 @@ func (h *MediaClientHandler) TestConnection(c *gin.Context) {
 		Str("type", string(req.ClientType)).
 		Msg("Testing media client connection")
 
-	result, err := h.service.TestClientConnection(ctx, req)
+	result, err := h.service.TestConnection(ctx, req.Client)
 	if err != nil {
 		utils.RespondInternalError(c, err, "Failed to test media client connection")
 		return

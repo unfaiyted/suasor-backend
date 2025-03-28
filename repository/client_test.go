@@ -38,9 +38,9 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func createTestClient(t *testing.T, db *gorm.DB, userID uint64, clientType types.ClientType) *models.Client[types.JellyfinConfig] {
 	client := models.Client[types.JellyfinConfig]{
-		UserID: userID,
-		Name:   "Test Client",
-		Type:   clientType,
+		UserID:   userID,
+		Name:     "Test Client",
+		Category: types.ClientCategoryMedia,
 		Config: models.ClientConfigWrapper[types.JellyfinConfig]{Data: types.JellyfinConfig{Enabled: true, BaseURL: "http://local", APIKey: "11",
 			Username: "admin"},
 		}}
@@ -64,10 +64,10 @@ func TestClientRepository_Create(t *testing.T) {
 	}
 
 	client := models.Client[types.JellyfinConfig]{
-		UserID: 1,
-		Name:   "Test Client",
-		Type:   types.ClientTypeAutomation,
-		Config: models.ClientConfigWrapper[types.JellyfinConfig]{Data: clientConfig},
+		UserID:   1,
+		Name:     "Test Client",
+		Category: types.ClientCategoryMedia,
+		Config:   models.ClientConfigWrapper[types.JellyfinConfig]{Data: clientConfig},
 	}
 
 	result, err := repo.Create(ctx, client)
@@ -76,7 +76,7 @@ func TestClientRepository_Create(t *testing.T) {
 	assert.NotZero(t, result.ID)
 	assert.Equal(t, client.Name, result.Name)
 	assert.Equal(t, client.UserID, result.UserID)
-	assert.Equal(t, client.Type, result.Type)
+	assert.Equal(t, client.Category, result.Category)
 }
 
 func TestClientRepository_Update(t *testing.T) {
@@ -86,10 +86,10 @@ func TestClientRepository_Update(t *testing.T) {
 
 	// Create a client first
 	originalClient := models.Client[types.EmbyConfig]{
-		UserID: 1,
-		Name:   "Original Name",
-		Type:   types.ClientTypeMedia,
-		Config: models.ClientConfigWrapper[types.EmbyConfig]{Data: types.NewEmbyConfig()},
+		UserID:   1,
+		Name:     "Original Name",
+		Category: types.ClientCategoryMedia,
+		Config:   models.ClientConfigWrapper[types.EmbyConfig]{Data: types.NewEmbyConfig()},
 	}
 
 	created, err := repo.Create(ctx, originalClient)
@@ -117,10 +117,10 @@ func TestClientRepository_GetByID(t *testing.T) {
 
 	// Create a client
 	originalClient := models.Client[types.PlexConfig]{
-		UserID: 1,
-		Name:   "Test Client",
-		Type:   types.ClientTypeMedia,
-		Config: models.ClientConfigWrapper[types.PlexConfig]{Data: types.NewPlexConfig()},
+		UserID:   1,
+		Name:     "Test Client",
+		Category: types.ClientCategoryMedia,
+		Config:   models.ClientConfigWrapper[types.PlexConfig]{Data: types.NewPlexConfig()},
 	}
 
 	created, err := repo.Create(ctx, originalClient)
@@ -148,25 +148,25 @@ func TestClientRepository_GetByUserID(t *testing.T) {
 
 	// Create clients for our test user
 	client1 := models.Client[types.SubsonicConfig]{
-		UserID: userID,
-		Name:   "Client 1",
-		Type:   types.ClientTypeMedia,
-		Config: models.ClientConfigWrapper[types.SubsonicConfig]{Data: types.NewSubsonicConfig()},
+		UserID:   userID,
+		Name:     "Client 1",
+		Category: types.ClientCategoryMedia,
+		Config:   models.ClientConfigWrapper[types.SubsonicConfig]{Data: types.NewSubsonicConfig()},
 	}
 
 	client2 := models.Client[types.SubsonicConfig]{
-		UserID: userID,
-		Name:   "Client 2",
-		Type:   types.ClientTypeAutomation,
-		Config: models.ClientConfigWrapper[types.SubsonicConfig]{Data: types.NewSubsonicConfig()},
+		UserID:   userID,
+		Name:     "Client 2",
+		Category: types.ClientCategoryMedia,
+		Config:   models.ClientConfigWrapper[types.SubsonicConfig]{Data: types.NewSubsonicConfig()},
 	}
 
 	// Create a client for another user
 	otherClient := models.Client[types.SubsonicConfig]{
-		UserID: otherUserID,
-		Name:   "Other Client",
-		Type:   types.ClientTypeAutomation,
-		Config: models.ClientConfigWrapper[types.SubsonicConfig]{Data: types.NewSubsonicConfig()},
+		UserID:   otherUserID,
+		Name:     "Other Client",
+		Category: types.ClientCategoryMedia,
+		Config:   models.ClientConfigWrapper[types.SubsonicConfig]{Data: types.NewSubsonicConfig()},
 	}
 
 	// Add clients to the database
@@ -205,17 +205,17 @@ func TestClientRepository_GetByType(t *testing.T) {
 
 	// Create different types of clients
 	twitterClient := models.Client[types.RadarrConfig]{
-		UserID: userID,
-		Name:   "Twitter Client",
-		Type:   types.ClientTypeAutomation,
-		Config: models.ClientConfigWrapper[types.RadarrConfig]{Data: types.NewRadarrConfig()},
+		UserID:   userID,
+		Name:     "Twitter Client",
+		Category: types.ClientCategoryMedia,
+		Config:   models.ClientConfigWrapper[types.RadarrConfig]{Data: types.NewRadarrConfig()},
 	}
 
 	youtubeClient := models.Client[types.RadarrConfig]{
-		UserID: userID,
-		Name:   "YouTube Client",
-		Type:   types.ClientTypeAI,
-		Config: models.ClientConfigWrapper[types.RadarrConfig]{Data: types.NewRadarrConfig()},
+		UserID:   userID,
+		Name:     "YouTube Client",
+		Category: types.ClientCategoryMedia,
+		Config:   models.ClientConfigWrapper[types.RadarrConfig]{Data: types.NewRadarrConfig()},
 	}
 
 	// Add clients to the database
@@ -226,12 +226,12 @@ func TestClientRepository_GetByType(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get clients by type
-	twitterResults, err := repo.GetByType(ctx, types.ClientTypeAutomation, userID)
+	twitterResults, err := repo.GetByType(ctx, types.ClientTypeEmby, userID)
 	require.NoError(t, err)
 	assert.Len(t, twitterResults, 1)
 	assert.Equal(t, "Twitter Client", twitterResults[0].Name)
 
-	youtubeResults, err := repo.GetByType(ctx, types.ClientTypeAI, userID)
+	youtubeResults, err := repo.GetByType(ctx, types.ClientTypeEmby, userID)
 	require.NoError(t, err)
 	assert.Len(t, youtubeResults, 1)
 	assert.Equal(t, "YouTube Client", youtubeResults[0].Name)
@@ -245,10 +245,10 @@ func TestClientRepository_Delete(t *testing.T) {
 
 	// Create a client
 	client := models.Client[types.EmbyConfig]{
-		UserID: 1,
-		Name:   "Test Client",
-		Type:   types.ClientTypeAutomation,
-		Config: models.ClientConfigWrapper[types.EmbyConfig]{Data: types.NewEmbyConfig()},
+		UserID:   1,
+		Name:     "Test Client",
+		Category: types.ClientCategoryMedia,
+		Config:   models.ClientConfigWrapper[types.EmbyConfig]{Data: types.NewEmbyConfig()},
 	}
 
 	created, err := repo.Create(ctx, client)

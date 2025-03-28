@@ -49,7 +49,7 @@ func (h *AutomationClientHandler) CreateClient(c *gin.Context) {
 
 	uid := userID.(uint64)
 
-	var req requests.AutomationClientRequest
+	var req requests.AutomationClientRequest[T]
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.RespondValidationError(c, err)
 		return

@@ -43,8 +43,8 @@ func NewEmbyClient(ctx context.Context, clientID uint64, cfg config.ClientConfig
 	embyClient := &EmbyClient{
 		BaseMediaClient: media.BaseMediaClient{
 			BaseClient: base.BaseClient{
-				ClientID:   clientID,
-				ClientType: config.MediaClientTypeEmby.AsClientType(),
+				ClientID: clientID,
+				Category: config.MediaClientTypeEmby.AsCategory(),
 			},
 			ClientType: config.MediaClientTypeEmby,
 		},

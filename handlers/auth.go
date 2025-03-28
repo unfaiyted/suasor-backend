@@ -6,9 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"suasor/services"
-	"suasor/types/models"
 	"suasor/types/requests"
-	"suasor/types/response"
 	"suasor/utils"
 )
 
@@ -159,7 +157,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
-	var req models.LoginRequest
+	var req requests.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request format for user login")
 		utils.RespondValidationError(c, err)
@@ -236,7 +234,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
-	var req models.RefreshTokenRequest
+	var req requests.RefreshTokenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request format for token refresh")
 		utils.RespondValidationError(c, err)
@@ -292,7 +290,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
-	var req models.LogoutRequest
+	var req requests.LogoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request format for logout")
 		utils.RespondValidationError(c, err)
@@ -316,7 +314,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 
 	log.Info().Msg("User successfully logged out")
 
-	c.JSON(http.StatusOK, models.APIResponse[any]{
+	c.JSON(http.StatusOK, requests.APIResponse[any]{
 		Success: true,
 		Message: "Successfully logged out",
 	})

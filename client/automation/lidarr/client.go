@@ -43,8 +43,8 @@ func NewLidarrClient(ctx context.Context, clientID uint64, cfg config.ClientConf
 	lidarrClient := &LidarrClient{
 		BaseAutomationClient: auto.BaseAutomationClient{
 			BaseClient: base.BaseClient{
-				ClientID:   clientID,
-				ClientType: config.AutomationClientTypeLidarr.AsClientType(),
+				ClientID: clientID,
+				Category: config.AutomationClientTypeLidarr.AsCategory(),
 			},
 			ClientType: config.AutomationClientTypeLidarr,
 		},

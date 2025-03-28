@@ -35,7 +35,7 @@ func NewClientRepository[T types.ClientConfig](db *gorm.DB) ClientRepository[T] 
 func (r *clientRepository[T]) Create(ctx context.Context, client models.Client[T]) (*models.Client[T], error) {
 
 	if err := r.db.WithContext(ctx).Create(&client).Error; err != nil {
-		clientType := client.GetConfig().GetSpecificType()
+		clientType := client.GetConfig()
 		return nil, fmt.Errorf("failed to create %s client: %w", clientType, err)
 	}
 	return &client, nil
@@ -46,12 +46,12 @@ func (r *clientRepository[T]) Update(ctx context.Context, client models.Client[T
 	// Get existing record first to check if it exists and preserve createdAt
 	var existing models.Client[T]
 
-	clientType := client.GetConfig().GetSpecificType()
+	category := client.GetCategory()
 	if err := r.db.WithContext(ctx).Where("id = ? AND user_id = ?", client.ID, client.UserID).First(&existing).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("media client not found")
 		}
-		return nil, fmt.Errorf("failed to find %s client: %w", clientType, err)
+		return nil, fmt.Errorf("failed to find %s client: %w", category, err)
 	}
 
 	// Preserve createdAt
@@ -59,7 +59,7 @@ func (r *clientRepository[T]) Update(ctx context.Context, client models.Client[T
 
 	// Update the record
 	if err := r.db.WithContext(ctx).Save(&client).Error; err != nil {
-		return nil, fmt.Errorf("failed to update %s client: %w", clientType, err)
+		return nil, fmt.Errorf("failed to update %s client: %w", category, err)
 	}
 	return &client, nil
 

@@ -38,8 +38,8 @@ func NewJellyfinClient(ctx context.Context, clientID uint64, config client.Clien
 	jellyfinClient := &JellyfinClient{
 		BaseMediaClient: media.BaseMediaClient{
 			BaseClient: base.BaseClient{
-				ClientID:   clientID,
-				ClientType: client.MediaClientTypeJellyfin.AsClientType(),
+				ClientID: clientID,
+				Category: client.MediaClientTypeJellyfin.AsCategory(),
 			},
 			ClientType: client.MediaClientTypeJellyfin,
 		},

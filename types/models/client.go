@@ -10,11 +10,11 @@ import (
 	"time"
 )
 
-// AutomationClient represents a download client configuration
+// Client represents a download client configuration
 type Client[T client.ClientConfig] struct {
 	BaseModel
 	UserID    uint64                 `json:"userId" gorm:"not null"`
-	Type      client.ClientType      `json:"type" gorm:"not null"`
+	Category  client.ClientCategory  `json:"category" gorm:"not null"`
 	Config    ClientConfigWrapper[T] `json:"config" gorm:"jsonb"`
 	Name      string                 `json:"name" gorm:"not null"`
 	IsEnabled bool                   `json:"isEnabled" gorm:"default:true"`
@@ -48,10 +48,10 @@ func (m *ClientConfigWrapper[T]) Scan(value any) error {
 }
 
 // NewAutomationClient creates a new AutomationClient instance
-func (*Client[T]) NewAutomationClient(userID uint64, clientType client.ClientType, config client.ClientConfig, name string, url string, isEnabled bool) *Client[T] {
+func (*Client[T]) NewAutomationClient(userID uint64, clientType client.AutomationClientType, config client.ClientConfig, name string, url string, isEnabled bool) *Client[T] {
 	return &Client[T]{
 		UserID:    userID,
-		Type:      clientType,
+		Category:  clientType.AsCategory(),
 		Config:    ClientConfigWrapper[T]{config.(T)},
 		Name:      name,
 		IsEnabled: isEnabled,
@@ -66,8 +66,8 @@ func (c *Client[T]) GetUserID() uint64 {
 	return c.UserID
 }
 
-func (c *Client[T]) GetClientType() client.ClientType {
-	return c.Type
+func (c *Client[T]) GetCategory() client.ClientCategory {
+	return c.Category
 }
 
 func (c *Client[T]) GetConfig() client.ClientConfig {

@@ -1,12 +1,13 @@
 package types
 
 // ClientType represents different types of clients
-type ClientType string
+type ClientCategory string
 
 const (
-	ClientTypeAutomation ClientType = "automation"
-	ClientTypeMedia      ClientType = "media"
-	ClientTypeAI         ClientType = "ai"
+	ClientCategoryAutomation ClientCategory = "automation"
+	ClientCategoryMedia      ClientCategory = "media"
+	ClientCategoryAI         ClientCategory = "ai"
+	ClientCategoryUnknown    ClientCategory = "unknown"
 )
 
 // MediaClientType represents different types of media clients
@@ -24,10 +25,10 @@ const (
 type AutomationClientType string
 
 const (
-	AutomationClientTypeRadarr AutomationClientType = "radarr"
-	AutomationClientTypeSonarr AutomationClientType = "sonarr"
-	AutomationClientTypeLidarr AutomationClientType = "lidarr"
-	AutmationClientTypeUnknown AutomationClientType = "unknown"
+	AutomationClientTypeRadarr  AutomationClientType = "radarr"
+	AutomationClientTypeSonarr  AutomationClientType = "sonarr"
+	AutomationClientTypeLidarr  AutomationClientType = "lidarr"
+	AutomationClientTypeUnknown AutomationClientType = "unknown"
 )
 
 type AIClientType string
@@ -39,7 +40,48 @@ const (
 	AIClientTypeUnknown AIClientType = "unknown"
 )
 
-func (c ClientType) String() string {
+type ClientType string
+
+const (
+	ClientTypeEmby     ClientType = "emby"
+	ClientTypeJellyfin ClientType = "jellyfin"
+	ClientTypePlex     ClientType = "plex"
+	ClientTypeSubsonic ClientType = "subsonic"
+
+	ClientTypeRadarr ClientType = "radarr"
+	ClientTypeSonarr ClientType = "sonarr"
+	ClientTypeLidarr ClientType = "lidarr"
+
+	ClientTypeUnknown ClientType = "unknown"
+
+	ClientTypeClaude ClientType = "claude"
+	ClientTypeOpenAI ClientType = "openai"
+	ClientTypeOllama ClientType = "ollama"
+)
+
+func (c ClientType) AsCategory() ClientCategory {
+
+	switch c {
+	case ClientTypeEmby:
+	case ClientTypeJellyfin:
+	case ClientTypePlex:
+	case ClientTypeSubsonic:
+		return ClientCategoryMedia
+	case ClientTypeRadarr:
+	case ClientTypeSonarr:
+	case ClientTypeLidarr:
+		return ClientCategoryAutomation
+	case ClientTypeClaude:
+	case ClientTypeOpenAI:
+	case ClientTypeOllama:
+		return ClientCategoryAI
+	default:
+		return ClientCategoryUnknown
+	}
+	return ClientCategoryUnknown
+}
+
+func (c ClientCategory) String() string {
 	return string(c)
 }
 
@@ -51,14 +93,14 @@ func (c AutomationClientType) String() string {
 	return string(c)
 }
 
-func (c MediaClientType) AsClientType() ClientType {
-	return ClientTypeMedia
+func (c MediaClientType) AsCategory() ClientCategory {
+	return ClientCategoryMedia
 }
 
-func (c AutomationClientType) AsClientType() ClientType {
-	return ClientTypeAutomation
+func (c AutomationClientType) AsCategory() ClientCategory {
+	return ClientCategoryAutomation
 }
 
-func (c AIClientType) AsClientType() ClientType {
-	return ClientTypeAI
+func (c AIClientType) AsCategory() ClientCategory {
+	return ClientCategoryAI
 }

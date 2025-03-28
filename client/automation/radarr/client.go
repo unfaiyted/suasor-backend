@@ -41,8 +41,8 @@ func NewRadarrClient(ctx context.Context, clientID uint64, c config.ClientConfig
 	radarrClient := &RadarrClient{
 		BaseAutomationClient: auto.BaseAutomationClient{
 			BaseClient: base.BaseClient{
-				ClientID:   clientID,
-				ClientType: config.AutomationClientTypeRadarr.AsClientType(),
+				ClientID: clientID,
+				Category: config.AutomationClientTypeRadarr.AsCategory(),
 			},
 			ClientType: config.AutomationClientTypeRadarr,
 		},

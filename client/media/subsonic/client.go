@@ -68,8 +68,8 @@ func NewSubsonicClient(ctx context.Context, clientID uint64, config types.Client
 	return &SubsonicClient{
 		BaseMediaClient: media.BaseMediaClient{
 			BaseClient: base.BaseClient{
-				ClientID:   clientID,
-				ClientType: types.MediaClientTypeSubsonic.AsClientType(),
+				ClientID: clientID,
+				Category: types.MediaClientTypeSubsonic.AsCategory(),
 			},
 			ClientType: types.MediaClientTypeSubsonic,
 		},

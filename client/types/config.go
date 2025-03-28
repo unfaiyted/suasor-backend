@@ -2,7 +2,6 @@ package types
 
 type ClientConfig interface {
 	isClientConfig()
-	GetSpecificType() string
 }
 
 type MediaClientConfig interface {
@@ -13,33 +12,6 @@ type MediaClientConfig interface {
 type AutomationClientConfig interface {
 	isAutomationClientConfig()
 	GetClientType() AutomationClientType
-}
-
-func (PlexConfig) GetSpecificType() string {
-	return MediaClientTypePlex.String()
-}
-
-func (JellyfinConfig) GetSpecificType() string {
-	return MediaClientTypeJellyfin.String()
-}
-
-func (EmbyConfig) GetSpecificType() string {
-	return MediaClientTypeEmby.String()
-}
-
-func (SubsonicConfig) GetSpecificType() string {
-	return MediaClientTypeSubsonic.String()
-}
-
-func (RadarrConfig) GetSpecificType() string {
-	return AutomationClientTypeRadarr.String()
-}
-
-func (LidarrConfig) GetSpecificType() string {
-	return AutomationClientTypeLidarr.String()
-}
-func (SonarrConfig) GetSpecificType() string {
-	return AutomationClientTypeSonarr.String()
 }
 
 func (EmbyConfig) isClientConfig()     {}

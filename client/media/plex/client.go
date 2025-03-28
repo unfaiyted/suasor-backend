@@ -60,8 +60,8 @@ func NewPlexClient(ctx context.Context, clientID uint64, config client.ClientCon
 	pClient := &PlexClient{
 		BaseMediaClient: media.BaseMediaClient{
 			BaseClient: base.BaseClient{
-				ClientID:   clientID,
-				ClientType: client.MediaClientTypePlex.AsClientType(),
+				ClientID: clientID,
+				Category: client.MediaClientTypePlex.AsCategory(),
 			},
 		},
 		config:  plexConfig,

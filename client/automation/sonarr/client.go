@@ -40,8 +40,8 @@ func NewSonarrClient(ctx context.Context, clientID uint64, c config.ClientConfig
 	sonarrClient := &SonarrClient{
 		BaseAutomationClient: auto.BaseAutomationClient{
 			BaseClient: base.BaseClient{
-				ClientID:   clientID,
-				ClientType: config.AutomationClientTypeSonarr.AsClientType(),
+				ClientID: clientID,
+				Category: config.AutomationClientTypeSonarr.AsCategory(),
 			},
 			ClientType: config.AutomationClientTypeSonarr,
 		},
