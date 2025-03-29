@@ -67,9 +67,9 @@ func NewEmbyClient(ctx context.Context, clientID uint64, cfg config.ClientConfig
 }
 
 // Register the provider factory
-func init() {
-	media.RegisterClient(config.MediaClientTypeEmby, NewEmbyClient)
-}
+// func init() {
+// 	media.RegisterClient(config.MediaClientTypeEmby, NewEmbyClient)
+// }
 
 // Capability methods
 func (e *EmbyClient) SupportsMovies() bool      { return true }
@@ -157,4 +157,15 @@ func (e *EmbyClient) getArtworkURLs(item *embyclient.BaseItemDto) types.Artwork 
 	}
 
 	return imageURLs
+}
+
+func (c *EmbyClient) TestConnection(ctx context.Context) (bool, error) {
+	sysInfo, _, err := c.client.SystemServiceApi.GetSystemInfo(ctx)
+	if err != nil {
+		return false, err
+	}
+	if sysInfo.Version == "" {
+		return false, fmt.Errorf("failed to retrieve Emby server version")
+	}
+	return true, nil
 }

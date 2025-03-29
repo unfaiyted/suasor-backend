@@ -136,29 +136,29 @@ func (Collection) isMediaData() {}
 func (Playlist) isMediaData()   {}
 
 func (t Track) GetDetails() MediaDetails { return t.Details }
-func (t Track) GetMediaType() MediaType  { return MEDIATYPE_TRACK }
+func (t Track) GetMediaType() MediaType  { return MediaTypeTrack }
 
 func (a Album) GetDetails() MediaDetails { return a.Details }
-func (a Album) GetMediaType() MediaType  { return MEDIATYPE_ALBUM }
+func (a Album) GetMediaType() MediaType  { return MediaTypeAlbum }
 
 func (a Artist) GetDetails() MediaDetails { return a.Details }
-func (a Artist) GetMediaType() MediaType  { return MEDIATYPE_ARTIST }
+func (a Artist) GetMediaType() MediaType  { return MediaTypeArtist }
 
 // Then in each media type
 func (m Movie) GetDetails() MediaDetails { return m.Details }
-func (m Movie) GetMediaType() MediaType  { return MEDIATYPE_MOVIE }
+func (m Movie) GetMediaType() MediaType  { return MediaTypeMovie }
 
 func (c Collection) GetDetails() MediaDetails { return c.Details }
-func (c Collection) GetMediaType() MediaType  { return MEDIATYPE_COLLECTION }
+func (c Collection) GetMediaType() MediaType  { return MediaTypeCollection }
 
 func (p Playlist) GetDetails() MediaDetails { return p.Details }
-func (p Playlist) GetMediaType() MediaType  { return MEDIATYPE_PLAYLIST }
+func (p Playlist) GetMediaType() MediaType  { return MediaTypePlaylist }
 
 func (t Series) GetDetails() MediaDetails { return t.Details }
-func (t Series) GetMediaType() MediaType  { return MEDIATYPE_SHOW }
+func (t Series) GetMediaType() MediaType  { return MediaTypeSeries }
 
 func (s Season) GetDetails() MediaDetails { return s.Details }
-func (s Season) GetMediaType() MediaType  { return MEDIATYPE_SEASON }
+func (s Season) GetMediaType() MediaType  { return MediaTypeSeason }
 
 func (e Episode) GetDetails() MediaDetails { return e.Details }
-func (e Episode) GetMediaType() MediaType  { return MEDIATYPE_EPISODE }
+func (e Episode) GetMediaType() MediaType  { return MediaTypeEpisode }

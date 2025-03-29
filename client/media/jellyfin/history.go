@@ -75,7 +75,7 @@ func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOpt
 		// Set type based on item type
 		switch *item.Type {
 		case jellyfin.BASEITEMKIND_MOVIE:
-			historyItem.Item.Type = t.MEDIATYPE_MOVIE
+			historyItem.Item.Type = t.MediaTypeMovie
 			mediaItemMovie, err := j.convertToMovie(ctx, &item)
 			if err != nil {
 				log.Warn().
@@ -87,7 +87,7 @@ func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOpt
 			}
 			historyItem.Item.SetData(historyItem.Item, mediaItemMovie.Data)
 		case jellyfin.BASEITEMKIND_SERIES:
-			historyItem.Item.Type = t.MEDIATYPE_SHOW
+			historyItem.Item.Type = t.MediaTypeSeries
 			mediaItemSeries, err := j.convertToSeries(ctx, &item)
 			if err != nil {
 				log.Warn().
@@ -99,7 +99,7 @@ func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOpt
 			}
 			historyItem.Item.SetData(historyItem.Item, mediaItemSeries.Data)
 		case jellyfin.BASEITEMKIND_EPISODE:
-			historyItem.Item.Type = t.MEDIATYPE_EPISODE
+			historyItem.Item.Type = t.MediaTypeEpisode
 			mediaItemEpisode, err := j.convertToEpisode(ctx, &item)
 			if err != nil {
 				log.Warn().

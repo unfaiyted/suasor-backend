@@ -1,7 +1,7 @@
 package automation
 
 import (
-	// "context"
+	"context"
 	"errors"
 	// "fmt"
 	base "suasor/client"
@@ -16,6 +16,7 @@ type AutomationClient interface {
 	SupportsMovies() bool
 	SupportsTVShows() bool
 	SupportsMusic() bool
+	TestConnection(ctx context.Context) (bool, error)
 }
 
 type BaseAutomationClient struct {

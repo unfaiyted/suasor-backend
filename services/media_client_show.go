@@ -12,8 +12,8 @@ import (
 	"suasor/types/models"
 )
 
-// MediaSeriesService defines operations for interacting with TV show clients
-type MediaSeriesService interface {
+// MediaClientSeriesService defines operations for interacting with TV show clients
+type MediaClientSeriesService interface {
 	GetSeriesByID(ctx context.Context, userID uint64, clientID uint64, seriesID string) (*models.MediaItem[mediatypes.Series], error)
 	GetSeriesByName(ctx context.Context, userID uint64, name string) ([]models.MediaItem[mediatypes.Series], error)
 	GetSeasonsBySeriesID(ctx context.Context, userID uint64, clientID uint64, seriesID string) ([]models.MediaItem[mediatypes.Season], error)
@@ -33,11 +33,11 @@ type mediaSeriesService struct {
 	clientFactory media.ClientFactory
 }
 
-// NewMediaSeriesService creates a new media TV show service
-func NewMediaSeriesService(
+// NewMediaClientSeriesService creates a new media TV show service
+func NewMediaClientSeriesService(
 	clientRepo repository.ClientRepository[types.MediaClientConfig],
 	clientFactory media.ClientFactory,
-) MediaSeriesService {
+) MediaClientSeriesService {
 	return &mediaSeriesService{
 		clientRepo:    clientRepo,
 		clientFactory: clientFactory,
@@ -58,7 +58,7 @@ func (s *mediaSeriesService) getSeriesClients(ctx context.Context, userID uint64
 	for _, clientConfig := range clients {
 		if clientConfig.Config.Data.SupportsSeries() {
 			clientId := clientConfig.GetID()
-			client, err := s.clientFactory.CreateMediaClient(ctx, clientId, clientConfig.Config.Data)
+			client, err := s.clientFactory.GetMediaClient(ctx, clientId, clientConfig.Config.Data)
 			if err != nil {
 				// Log error but continue with other clients
 				continue
@@ -81,7 +81,7 @@ func (s *mediaSeriesService) getSpecificSeriesClient(ctx context.Context, userID
 		return nil, ErrUnsupportedFeature
 	}
 
-	return s.clientFactory.CreateMediaClient(ctx, clientID, clientConfig.Config.Data)
+	return s.clientFactory.GetMediaClient(ctx, clientID, clientConfig.Config.Data)
 }
 
 func (s *mediaSeriesService) GetSeriesByID(ctx context.Context, userID uint64, clientID uint64, seriesID string) (*models.MediaItem[mediatypes.Series], error) {

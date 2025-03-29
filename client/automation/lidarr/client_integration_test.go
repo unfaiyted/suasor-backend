@@ -79,11 +79,11 @@ func TestLidarrClientIntegration(t *testing.T) {
 
 	// Run all test cases
 	t.Run("TestGetSystemStatus", func(t *testing.T) {
-		testGetSystemStatus(t, ctx, provider)
+		testGetSystemStatus(t, ctx, provider.(providers.SystemProvider))
 	})
 
 	t.Run("TestGetLibraryItems", func(t *testing.T) {
-		testGetLibraryItems(t, ctx, provider)
+		testGetLibraryItems(t, ctx, provider.(providers.LibraryProvider))
 	})
 
 	t.Run("TestGetAndSearchMedia", func(t *testing.T) {
@@ -91,19 +91,19 @@ func TestLidarrClientIntegration(t *testing.T) {
 	})
 
 	t.Run("TestQualityProfiles", func(t *testing.T) {
-		testGetQualityProfiles(t, ctx, provider)
+		testGetQualityProfiles(t, ctx, provider.(providers.ProfileProvider))
 	})
 
 	t.Run("TestMetadataProfiles", func(t *testing.T) {
-		testGetMetadataProfiles(t, ctx, provider)
+		testGetMetadataProfiles(t, ctx, provider.(providers.ProfileProvider))
 	})
 
 	t.Run("TestTags", func(t *testing.T) {
-		testGetAndCreateTags(t, ctx, provider)
+		testGetAndCreateTags(t, ctx, provider.(providers.TagProvider))
 	})
 
 	t.Run("TestCalendar", func(t *testing.T) {
-		testGetCalendar(t, ctx, provider)
+		testGetCalendar(t, ctx, provider.(providers.CalendarProvider))
 	})
 
 	t.Run("TestCommands", func(t *testing.T) {
@@ -120,7 +120,7 @@ func TestLidarrClientIntegration(t *testing.T) {
 }
 
 // Test getting system status from Lidarr
-func testGetSystemStatus(t *testing.T, ctx context.Context, client providers.AutomationProvider) {
+func testGetSystemStatus(t *testing.T, ctx context.Context, client providers.SystemProvider) {
 	status, err := client.GetSystemStatus(ctx)
 	require.NoError(t, err)
 
@@ -131,7 +131,7 @@ func testGetSystemStatus(t *testing.T, ctx context.Context, client providers.Aut
 }
 
 // Test getting library items from Lidarr
-func testGetLibraryItems(t *testing.T, ctx context.Context, client providers.AutomationProvider) {
+func testGetLibraryItems(t *testing.T, ctx context.Context, client providers.LibraryProvider) {
 	// Get library items with limit
 	options := &auto.LibraryQueryOptions{
 		Limit: 10,
@@ -157,25 +157,36 @@ func testGetLibraryItems(t *testing.T, ctx context.Context, client providers.Aut
 // Test getting and searching for media
 func testGetAndSearchMedia(t *testing.T, ctx context.Context, client providers.AutomationProvider) {
 	// First, check if we have any artists in the library
-	artists, err := client.GetLibraryItems(ctx, &auto.LibraryQueryOptions{Limit: 1})
+
+	// convert to library provider
+	libraryClient, ok := client.(providers.LibraryProvider)
+	require.True(t, ok)
+
+	artists, err := libraryClient.GetLibraryItems(ctx, &auto.LibraryQueryOptions{Limit: 1})
 	require.NoError(t, err)
 
 	if len(artists) > 0 {
 		// Test getting a specific artist by ID
-		artistID := int64(artists[0].ID)
-		artist, err := client.GetMediaByID(ctx, artistID)
+		artistID := artists[0].ExternalID
+		require.NoError(t, err)
+		// conver to media provider
+		mediaClient, ok := client.(providers.MediaProvider)
+		require.True(t, ok)
+		artist, err := mediaClient.GetMediaByID(ctx, artistID)
 		require.NoError(t, err)
 
 		// Validate the result
-		assert.Equal(t, artistID, int64(artist.ID))
+		assert.Equal(t, artistID, artist.ExternalID)
 		assert.NotEmpty(t, artist.Title)
 	} else {
 		t.Log("No artists in library to test GetMediaByID")
 	}
 
+	searchClient, ok := client.(providers.SearchProvider)
+	require.True(t, ok)
 	// Test search functionality
 	searchTerm := "Taylor Swift" // A commonly available artist
-	searchResults, err := client.SearchMedia(ctx, searchTerm, nil)
+	searchResults, err := searchClient.SearchMedia(ctx, searchTerm, nil)
 	require.NoError(t, err)
 
 	t.Logf("Search for '%s' returned %d results", searchTerm, len(searchResults))
@@ -186,7 +197,8 @@ func testGetAndSearchMedia(t *testing.T, ctx context.Context, client providers.A
 }
 
 // Test getting quality profiles
-func testGetQualityProfiles(t *testing.T, ctx context.Context, client providers.AutomationProvider) {
+func testGetQualityProfiles(t *testing.T, ctx context.Context, client providers.ProfileProvider) {
+
 	profiles, err := client.GetQualityProfiles(ctx)
 	require.NoError(t, err)
 
@@ -203,7 +215,7 @@ func testGetQualityProfiles(t *testing.T, ctx context.Context, client providers.
 }
 
 // Test getting metadata profiles (specific to Lidarr)
-func testGetMetadataProfiles(t *testing.T, ctx context.Context, client providers.AutomationProvider) {
+func testGetMetadataProfiles(t *testing.T, ctx context.Context, client providers.ProfileProvider) {
 	profiles, err := client.GetMetadataProfiles(ctx)
 	require.NoError(t, err)
 
@@ -220,7 +232,7 @@ func testGetMetadataProfiles(t *testing.T, ctx context.Context, client providers
 }
 
 // Test getting and creating tags
-func testGetAndCreateTags(t *testing.T, ctx context.Context, client providers.AutomationProvider) {
+func testGetAndCreateTags(t *testing.T, ctx context.Context, client providers.TagProvider) {
 	// Get existing tags
 	tags, err := client.GetTags(ctx)
 	require.NoError(t, err)
@@ -246,7 +258,7 @@ func testGetAndCreateTags(t *testing.T, ctx context.Context, client providers.Au
 }
 
 // Test getting calendar
-func testGetCalendar(t *testing.T, ctx context.Context, client providers.AutomationProvider) {
+func testGetCalendar(t *testing.T, ctx context.Context, client providers.CalendarProvider) {
 	// Get calendar for the next 30 days
 	now := time.Now()
 	end := now.AddDate(0, 0, 30) // 30 days from now
@@ -258,8 +270,8 @@ func testGetCalendar(t *testing.T, ctx context.Context, client providers.Automat
 
 	if len(calendar) > 0 {
 		item := calendar[0]
-		assert.NotEmpty(t, item.Title)
-		assert.NotZero(t, item.ID)
+		assert.NotEmpty(t, item.Type)
+		assert.NotZero(t, item.ExternalID)
 	}
 }
 
@@ -276,7 +288,9 @@ func testExecuteCommand(t *testing.T, ctx context.Context, client providers.Auto
 		Name: "RefreshMonitoredDownloads",
 	}
 
-	result, err := client.ExecuteCommand(ctx, command)
+	commandClient, ok := client.(providers.CommandProvider)
+	require.True(t, ok)
+	result, err := commandClient.ExecuteCommand(ctx, command)
 	require.NoError(t, err)
 
 	assert.Equal(t, command.Name, result.Name)
@@ -289,17 +303,21 @@ func testExecuteCommand(t *testing.T, ctx context.Context, client providers.Auto
 // This test is potentially destructive and should be run with caution
 func testAddUpdateDeleteMedia(t *testing.T, ctx context.Context, client providers.AutomationProvider) {
 	// First, get quality profiles to use a valid profile ID
-	profiles, err := client.GetQualityProfiles(ctx)
+	profileClient, ok := client.(providers.ProfileProvider)
+	require.True(t, ok)
+	profiles, err := profileClient.GetQualityProfiles(ctx)
 	require.NoError(t, err)
 	require.NotEmpty(t, profiles, "Need at least one quality profile")
 
 	// Get metadata profiles
-	metadataProfiles, err := client.GetMetadataProfiles(ctx)
+	metadataProfiles, err := profileClient.GetMetadataProfiles(ctx)
 	require.NoError(t, err)
 	require.NotEmpty(t, metadataProfiles, "Need at least one metadata profile")
 
 	// Search for an artist to add
-	searchResults, err := client.SearchMedia(ctx, "Coldplay", nil)
+	searchClient, ok := client.(providers.SearchProvider)
+	require.True(t, ok)
+	searchResults, err := searchClient.SearchMedia(ctx, "Coldplay", nil)
 	require.NoError(t, err)
 	require.NotEmpty(t, searchResults, "Need at least one search result")
 
@@ -325,23 +343,24 @@ func testAddUpdateDeleteMedia(t *testing.T, ctx context.Context, client provider
 	}
 
 	// Add the artist
-	addedArtist, err := client.AddMedia(ctx, addRequest)
+	mediaClient, ok := client.(providers.MediaProvider)
+	addedArtist, err := mediaClient.AddMedia(ctx, addRequest)
 	require.NoError(t, err)
-	t.Logf("Added artist: %s (ID: %d)", addedArtist.Title, addedArtist.ID)
+	t.Logf("Added artist: %s (ID: %d)", addedArtist.Title, addedArtist.ExternalID)
 
 	// Update the artist
 	updateRequest := requests.AutomationMediaUpdateRequest{
 		Monitored: false,
 	}
 
-	updatedArtist, err := client.UpdateMedia(ctx, int64(addedArtist.ID), updateRequest)
+	updatedArtist, err := mediaClient.UpdateMedia(ctx, addedArtist.ExternalID, updateRequest)
 	require.NoError(t, err)
-	assert.Equal(t, addedArtist.ID, updatedArtist.ID)
+	assert.Equal(t, addedArtist.ExternalID, updatedArtist.ExternalID)
 	assert.False(t, updatedArtist.Monitored)
 	t.Logf("Updated artist monitoring status to: %v", updatedArtist.Monitored)
 
 	// Delete the artist
-	err = client.DeleteMedia(ctx, int64(addedArtist.ID))
+	err = mediaClient.DeleteMedia(ctx, addedArtist.ExternalID)
 	require.NoError(t, err)
-	t.Logf("Deleted artist with ID: %d", addedArtist.ID)
+	t.Logf("Deleted artist with ID: %d", addedArtist.ExternalID)
 }

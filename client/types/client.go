@@ -21,6 +21,10 @@ const (
 	MediaClientTypeUnknown  MediaClientType = "unknown"
 )
 
+func (c MediaClientType) AsCategory() ClientCategory {
+	return ClientCategoryMedia
+}
+
 // ClientType represents different types of download clients
 type AutomationClientType string
 
@@ -121,9 +125,9 @@ func (c AutomationClientType) String() string {
 	return string(c)
 }
 
-func (c MediaClientType) AsCategory() ClientCategory {
-	return ClientCategoryMedia
-}
+// func (c MediaClientType) AsCategory() ClientCategory {
+// 	return ClientCategoryMedia
+// }
 
 func (c AutomationClientType) AsCategory() ClientCategory {
 	return ClientCategoryAutomation

@@ -7,9 +7,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterMediaRoutes(rg *gin.RouterGroup, movieService services.MediaMovieService) {
-	movieHandlers := handlers.NewMediaMovieHandler(movieService)
-	movies := rg.Group("/movies")
+func RegisterMediaClientRoutes(rg *gin.RouterGroup, movieService services.MediaClientMovieService) {
+	movieHandlers := handlers.NewMediaClientMovieHandler(movieService)
+
+	client := rg.Group("/client")
+
+	movies := client.Group("/movie")
 	{
 		movies.GET("/:clientID/:movieID", movieHandlers.GetMovieByID)
 		movies.GET("/genre/:genre", movieHandlers.GetMoviesByGenre)
@@ -22,8 +25,8 @@ func RegisterMediaRoutes(rg *gin.RouterGroup, movieService services.MediaMovieSe
 		movies.GET("/top-rated/:count", movieHandlers.GetTopRatedMovies)
 		movies.GET("/search", movieHandlers.SearchMovies)
 	}
-	showHandlers := handlers.NewMediaShowHandler(movieService)
-	shows := rg.Group("/shows")
+	showHandlers := handlers.NewMediaClientSeriesHandler(movieService)
+	shows := client.Group("/shows")
 	{
 		shows.GET("/:clientID/:showID", showHandlers.GetShowByID)
 		shows.GET("/genre/:genre", showHandlers.GetShowsByGenre)

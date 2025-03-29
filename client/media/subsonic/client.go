@@ -80,9 +80,9 @@ func NewSubsonicClient(ctx context.Context, clientID uint64, config types.Client
 }
 
 // Register the provider factory
-func init() {
-	media.RegisterClient(types.MediaClientTypeSubsonic, NewSubsonicClient)
-}
+// func init() {
+// 	media.RegisterClient(types.MediaClientTypeSubsonic, NewSubsonicClient)
+// }
 
 // Capability methods - Subsonic only supports music
 func (c *SubsonicClient) SupportsMusic() bool       { return true }
@@ -91,3 +91,8 @@ func (c *SubsonicClient) SupportsMovies() bool      { return false }
 func (c *SubsonicClient) SupportsTVShows() bool     { return false }
 func (c *SubsonicClient) SupportsBooks() bool       { return false }
 func (c *SubsonicClient) SupportsCollections() bool { return false }
+
+func (c *SubsonicClient) TestConnection(ctx context.Context) (bool, error) {
+	isUp := c.client.Ping()
+	return isUp, nil
+}

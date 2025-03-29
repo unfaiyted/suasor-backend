@@ -102,15 +102,15 @@ type MediaDetails struct {
 type MediaType string
 
 const (
-	MEDIATYPE_MOVIE      MediaType = "movie"
-	MEDIATYPE_SHOW       MediaType = "show"
-	MEDIATYPE_SEASON     MediaType = "season"
-	MEDIATYPE_EPISODE    MediaType = "episode"
-	MEDIATYPE_ARTIST     MediaType = "artist"
-	MEDIATYPE_ALBUM      MediaType = "album"
-	MEDIATYPE_TRACK      MediaType = "track"
-	MEDIATYPE_PLAYLIST   MediaType = "playlist"
-	MEDIATYPE_COLLECTION MediaType = "collection"
+	MediaTypeMovie      MediaType = "movie"
+	MediaTypeSeries     MediaType = "series"
+	MediaTypeSeason     MediaType = "season"
+	MediaTypeEpisode    MediaType = "episode"
+	MediaTypeArtist     MediaType = "artist"
+	MediaTypeAlbum      MediaType = "album"
+	MediaTypeTrack      MediaType = "track"
+	MediaTypePlaylist   MediaType = "playlist"
+	MediaTypeCollection MediaType = "collection"
 )
 
 type SortOrder string

@@ -98,7 +98,7 @@ func (m *MediaItem[T]) SetData(i *MediaItem[T], data T) {
 }
 
 func (m *MediaItem[T]) AsEpisode() (MediaItem[types.Episode], bool) {
-	if m.Type != types.MEDIATYPE_EPISODE {
+	if m.Type != types.MediaTypeEpisode {
 		return MediaItem[types.Episode]{}, false
 	}
 	episode, ok := any(m).(MediaItem[types.Episode])
@@ -107,7 +107,7 @@ func (m *MediaItem[T]) AsEpisode() (MediaItem[types.Episode], bool) {
 }
 
 func (m *MediaItem[T]) AsMovie() (MediaItem[types.Movie], bool) {
-	if m.Type != types.MEDIATYPE_MOVIE {
+	if m.Type != types.MediaTypeMovie {
 		return MediaItem[types.Movie]{}, false
 	}
 	movie, ok := any(m).(MediaItem[types.Movie])
@@ -116,7 +116,7 @@ func (m *MediaItem[T]) AsMovie() (MediaItem[types.Movie], bool) {
 }
 
 func (m *MediaItem[T]) AsSeries() (MediaItem[types.Series], bool) {
-	if m.Type != types.MEDIATYPE_SHOW {
+	if m.Type != types.MediaTypeSeries {
 		return MediaItem[types.Series]{}, false
 	}
 	show, ok := any(m).(MediaItem[types.Series])
@@ -125,7 +125,7 @@ func (m *MediaItem[T]) AsSeries() (MediaItem[types.Series], bool) {
 }
 
 func (m *MediaItem[T]) AsSeason() (MediaItem[types.Season], bool) {
-	if m.Type != types.MEDIATYPE_SEASON {
+	if m.Type != types.MediaTypeSeason {
 		return MediaItem[types.Season]{}, false
 	}
 	season, ok := any(m).(MediaItem[types.Season])
@@ -134,7 +134,7 @@ func (m *MediaItem[T]) AsSeason() (MediaItem[types.Season], bool) {
 }
 
 func (m *MediaItem[T]) AsTrack() (MediaItem[types.Track], bool) {
-	if m.Type != types.MEDIATYPE_TRACK {
+	if m.Type != types.MediaTypeTrack {
 		return MediaItem[types.Track]{}, false
 	}
 	track, ok := any(m).(MediaItem[types.Track])
@@ -143,7 +143,7 @@ func (m *MediaItem[T]) AsTrack() (MediaItem[types.Track], bool) {
 }
 
 func (m *MediaItem[T]) AsAlbum() (MediaItem[types.Album], bool) {
-	if m.Type != types.MEDIATYPE_ALBUM {
+	if m.Type != types.MediaTypeAlbum {
 		return MediaItem[types.Album]{}, false
 	}
 	album, ok := any(m).(MediaItem[types.Album])
@@ -152,7 +152,7 @@ func (m *MediaItem[T]) AsAlbum() (MediaItem[types.Album], bool) {
 }
 
 func (m *MediaItem[T]) AsArtist() (MediaItem[types.Artist], bool) {
-	if m.Type != types.MEDIATYPE_ARTIST {
+	if m.Type != types.MediaTypeArtist {
 		return MediaItem[types.Artist]{}, false
 	}
 	artist, ok := any(m).(MediaItem[types.Artist])
@@ -161,7 +161,7 @@ func (m *MediaItem[T]) AsArtist() (MediaItem[types.Artist], bool) {
 }
 
 func (m *MediaItem[T]) AsCollection() (MediaItem[types.Collection], bool) {
-	if m.Type != types.MEDIATYPE_COLLECTION {
+	if m.Type != types.MediaTypeCollection {
 		return MediaItem[types.Collection]{}, false
 	}
 	collection, ok := any(m).(MediaItem[types.Collection])
@@ -170,7 +170,7 @@ func (m *MediaItem[T]) AsCollection() (MediaItem[types.Collection], bool) {
 }
 
 func (m *MediaItem[T]) AsPlaylist() (MediaItem[types.Playlist], bool) {
-	if m.Type != types.MEDIATYPE_PLAYLIST {
+	if m.Type != types.MediaTypePlaylist {
 		return MediaItem[types.Playlist]{}, false
 	}
 	playlist, ok := any(m).(MediaItem[types.Playlist])
@@ -181,23 +181,23 @@ func (m *MediaItem[T]) AsPlaylist() (MediaItem[types.Playlist], bool) {
 // CreateMediaItem creates a new MediaItem of the appropriate type
 func CreateMediaItem(mediaType types.MediaType) (any, error) {
 	switch mediaType {
-	case types.MEDIATYPE_MOVIE:
+	case types.MediaTypeMovie:
 		return &MediaItem[types.Movie]{Type: mediaType}, nil
-	case types.MEDIATYPE_SHOW:
+	case types.MediaTypeSeries:
 		return &MediaItem[types.Series]{Type: mediaType}, nil
-	case types.MEDIATYPE_EPISODE:
+	case types.MediaTypeEpisode:
 		return &MediaItem[types.Episode]{Type: mediaType}, nil
-	case types.MEDIATYPE_SEASON:
+	case types.MediaTypeSeason:
 		return &MediaItem[types.Season]{Type: mediaType}, nil
-	case types.MEDIATYPE_TRACK:
+	case types.MediaTypeTrack:
 		return &MediaItem[types.Track]{Type: mediaType}, nil
-	case types.MEDIATYPE_ALBUM:
+	case types.MediaTypeAlbum:
 		return &MediaItem[types.Album]{Type: mediaType}, nil
-	case types.MEDIATYPE_ARTIST:
+	case types.MediaTypeArtist:
 		return &MediaItem[types.Artist]{Type: mediaType}, nil
-	case types.MEDIATYPE_COLLECTION:
+	case types.MediaTypeCollection:
 		return &MediaItem[types.Collection]{Type: mediaType}, nil
-	case types.MEDIATYPE_PLAYLIST:
+	case types.MediaTypePlaylist:
 		return &MediaItem[types.Playlist]{Type: mediaType}, nil
 	default:
 		return nil, fmt.Errorf("unknown media type: %s", mediaType)

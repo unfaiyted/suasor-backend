@@ -15,10 +15,13 @@ func RegisterClientRoutes(r *gin.RouterGroup, db *gorm.DB) {
 
 	downloadService := services.NewClientService[types.AutomationClientConfig](db)
 	mediaService := services.NewClientService[types.MediaClientConfig](db)
+	aiService := services.NewClientService[types.AIClientConfig](db)
 
 	downloadClientHandler := handlers.NewClientHandler[types.AutomationClientConfig](downloadService)
+	aiClientHandler := handlers.NewClientHandler[types.AIClientConfig](aiService)
+	mediaClientHandler := handlers.NewClientHandler[types.MediaClientConfig](mediaService)
 
-	clients := r.Group("/clients")
+	clients := r.Group("/client")
 
 	// Download client routes
 	download := clients.Group("/download")
@@ -31,8 +34,6 @@ func RegisterClientRoutes(r *gin.RouterGroup, db *gorm.DB) {
 		download.POST("/test", downloadClientHandler.TestConnection)
 	}
 
-	mediaClientHandler := handlers.NewClientHandler(mediaService)
-
 	media := clients.Group("/media")
 	{
 
@@ -43,6 +44,15 @@ func RegisterClientRoutes(r *gin.RouterGroup, db *gorm.DB) {
 		media.PUT("/:id", mediaClientHandler.UpdateClient)
 		media.POST("/test", mediaClientHandler.TestConnection)
 
+	}
+	ai := clients.Group("/ai")
+	{
+		ai.POST("", aiClientHandler.CreateClient)
+		ai.GET("", aiClientHandler.GetAllClients)
+		ai.GET("/:id", aiClientHandler.GetClient)
+		ai.DELETE("/:id", aiClientHandler.DeleteClient)
+		ai.PUT("/:id", aiClientHandler.UpdateClient)
+		ai.POST("/test", aiClientHandler.TestConnection)
 	}
 
 }

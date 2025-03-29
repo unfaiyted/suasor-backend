@@ -1,10 +1,11 @@
 package router
 
 import (
-	"suasor/handlers"
 	"suasor/services"
 
 	"github.com/gin-gonic/gin"
+
+	"suasor/handlers"
 )
 
 func RegisterAuthRoutes(rg *gin.RouterGroup, service services.AuthService) {

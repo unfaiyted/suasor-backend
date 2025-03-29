@@ -22,6 +22,8 @@ type MediaClient interface {
 	SupportsPlaylists() bool
 	SupportsCollections() bool
 	SupportsHistory() bool
+
+	TestConnection(ctx context.Context) (bool, error)
 }
 
 type BaseMediaClient struct {

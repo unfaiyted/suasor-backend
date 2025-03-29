@@ -53,9 +53,9 @@ func NewSonarrClient(ctx context.Context, clientID uint64, c config.ClientConfig
 }
 
 // Register the provider factory
-func init() {
-	auto.RegisterAutomationClient(config.AutomationClientTypeSonarr, NewSonarrClient)
-}
+// func init() {
+// 	auto.RegisterAutomationClient(config.AutomationClientTypeSonarr, NewSonarrClient)
+// }
 
 // Capability methods
 func (s *SonarrClient) SupportsMovies() bool  { return false }
@@ -88,4 +88,16 @@ func (s *SonarrClient) SupportsMusic() bool   { return false }
 
 func (r *SonarrClient) GetMetadataProfiles(ctx context.Context) ([]types.MetadataProfile, error) {
 	return nil, types.ErrAutomationFeatureNotSupported
+}
+
+func (l *SonarrClient) TestConnection(ctx context.Context) (bool, error) {
+	req := l.client.SystemAPI.GetSystemStatus(ctx)
+	_, resp, err := req.Execute()
+	if err != nil {
+		return false, err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return false, fmt.Errorf("Sonarr returned status code %d", resp.StatusCode)
+	}
+	return true, nil
 }

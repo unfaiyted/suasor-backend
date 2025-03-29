@@ -54,9 +54,9 @@ func NewRadarrClient(ctx context.Context, clientID uint64, c config.ClientConfig
 }
 
 // Register the provider factory
-func init() {
-	auto.RegisterAutomationClient(config.AutomationClientTypeRadarr, NewRadarrClient)
-}
+// func init() {
+// 	auto.RegisterAutomationClient(config.AutomationClientTypeRadarr, NewRadarrClient)
+// }
 
 // Capability methods
 func (r *RadarrClient) SupportsMovies() bool  { return true }
@@ -65,4 +65,16 @@ func (r *RadarrClient) SupportsMusic() bool   { return false }
 
 func (r *RadarrClient) GetMetadataProfiles(ctx context.Context) ([]types.MetadataProfile, error) {
 	return nil, types.ErrAutomationFeatureNotSupported
+}
+
+func (l *RadarrClient) TestConnection(ctx context.Context) (bool, error) {
+	req := l.client.SystemAPI.GetSystemStatus(ctx)
+	_, resp, err := req.Execute()
+	if err != nil {
+		return false, err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return false, fmt.Errorf("Radarr returned status code %d", resp.StatusCode)
+	}
+	return true, nil
 }

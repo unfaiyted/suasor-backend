@@ -8,30 +8,38 @@ import (
 	client "suasor/client/types"
 )
 
+type ClientKey struct {
+	Type client.MediaClientType
+	ID   uint64
+}
+
 // Provider factory type definition
-type ClientFactory func(ctx context.Context, clientID uint64, config client.ClientConfig) (MediaClient, error)
+type ClientFactory func(ctx context.Context, clientID uint64, config client.MediaClientConfig) (MediaClient, error)
 
 // Registry to store provider factories
-var clientFactories = make(map[client.MediaClientType]ClientFactory)
+var clientFactories = make(map[ClientKey]ClientFactory)
 
 // RegisterProvider adds a new provider factory to the registry
-func RegisterClient(clientType client.MediaClientType, factory ClientFactory) {
-	clientFactories[clientType] = factory
+func RegisterClient(clientType client.MediaClientType, clientID uint64, factory ClientFactory) {
+	key := ClientKey{Type: clientType, ID: clientID}
+	clientFactories[key] = factory
 }
 
 // NewMediaClient creates providers using the registry
-func NewMediaClient(ctx context.Context, clientID uint64, clientType client.MediaClientType, config client.ClientConfig) (MediaClient, error) {
-	factory, exists := clientFactories[clientType]
+func NewMediaClient(ctx context.Context, clientID uint64, clientType client.MediaClientType, config client.MediaClientConfig) (MediaClient, error) {
+	key := ClientKey{Type: clientType, ID: clientID}
+	factory, exists := clientFactories[key]
 	if !exists {
 		return nil, fmt.Errorf("unsupported client type: %s", clientType)
 	}
 	return factory(ctx, clientID, config)
 }
 
-func (c *ClientFactory) CreateMediaClient(ctx context.Context, clientID uint64, config client.MediaClientConfig) (MediaClient, error) {
-	factory, exists := clientFactories[config.GetClientType()]
+func (ClientFactory) GetMediaClient(ctx context.Context, clientID uint64, config client.MediaClientConfig) (MediaClient, error) {
+	key := ClientKey{Type: config.GetClientType(), ID: clientID}
+	factory, exists := clientFactories[key]
 	if !exists {
-		return nil, fmt.Errorf("unsupported client type: %s", config.GetClientType())
+		return NewMediaClient(ctx, clientID, config.GetClientType(), config)
 	}
 	return factory(ctx, clientID, config)
 }

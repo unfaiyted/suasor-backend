@@ -62,9 +62,9 @@ func NewJellyfinClient(ctx context.Context, clientID uint64, config client.Clien
 }
 
 // Register the client factory
-func init() {
-	media.RegisterClient(client.MediaClientTypeJellyfin, NewJellyfinClient)
-}
+// func init() {
+// 	media.RegisterClient(client.MediaClientTypeJellyfin, NewJellyfinClient)
+// }
 
 // Capability methods
 func (j *JellyfinClient) SupportsMovies() bool      { return true }
@@ -191,4 +191,15 @@ func (j *JellyfinClient) getArtworkURLs(item *jellyfin.BaseItemDto) t.Artwork {
 	}
 
 	return imageURLs
+}
+
+func (j *JellyfinClient) TestConnection(ctx context.Context) (bool, error) {
+	sysInfo, _, err := j.client.SystemAPI.GetSystemInfo(ctx).Execute()
+	if err != nil {
+		return false, err
+	}
+	if *sysInfo.Version.Get() == "" {
+		return false, fmt.Errorf("failed to retrieve Jellyfin server version")
+	}
+	return true, nil
 }

@@ -96,6 +96,10 @@ func RespondServiceUnavailable(c *gin.Context, err error, customMessage ...strin
 	RespondWithError(c, http.StatusServiceUnavailable, err, customMessage...)
 }
 
+func RespondNotImplemented(c *gin.Context, err error, customMessage ...string) {
+	RespondWithError(c, http.StatusNotImplemented, err, customMessage...)
+}
+
 // Common error detail types
 type ValidationErrorDetails struct {
 	FieldErrors map[string]string `json:"fieldErrors,omitempty"`

@@ -416,7 +416,7 @@ func (j *JellyfinClient) convertToMovie(ctx context.Context, item *jellyfin.Base
 				Ratings:       ratings,
 			},
 		},
-		Type: t.MEDIATYPE_MOVIE,
+		Type: t.MediaTypeMovie,
 	}
 
 	movie.SetClientInfo(j.ClientID, j.ClientType, *item.Id)

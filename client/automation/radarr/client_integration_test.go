@@ -115,7 +115,7 @@ func TestRadarrClientIntegration(t *testing.T) {
 }
 
 // Test getting system status from Radarr
-func testGetSystemStatus(t *testing.T, ctx context.Context, client providers.AutomationProvider) {
+func testGetSystemStatus(t *testing.T, ctx context.Context, client providers.SystemProvider) {
 	status, err := client.GetSystemStatus(ctx)
 	require.NoError(t, err)
 
@@ -126,7 +126,7 @@ func testGetSystemStatus(t *testing.T, ctx context.Context, client providers.Aut
 }
 
 // Test getting library items from Radarr
-func testGetLibraryItems(t *testing.T, ctx context.Context, client providers.AutomationProvider) {
+func testGetLibraryItems(t *testing.T, ctx context.Context, client providers.LibraryProvider) {
 	// Get library items with limit
 	options := &types.LibraryQueryOptions{
 		Limit: 10,

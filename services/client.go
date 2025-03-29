@@ -15,7 +15,7 @@ import (
 // }
 
 type ClientService[T types.ClientConfig] interface {
-	Create(ctx context.Context, client models.Client[T]) (models.Client[T], error)
+	Create(ctx context.Context, client models.Client[T]) (*models.Client[T], error)
 	Update(ctx context.Context, client models.Client[T]) (*models.Client[T], error)
 	GetByID(ctx context.Context, id uint64, userID uint64) (*models.Client[T], error)
 	GetByUserID(ctx context.Context, userID uint64) ([]*models.Client[T], error)

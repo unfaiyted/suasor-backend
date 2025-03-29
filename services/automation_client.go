@@ -3,222 +3,280 @@ package services
 
 import (
 	"context"
-	"fmt"
-	client "suasor/client/types"
+	"errors"
+	"suasor/client/automation"
+	"suasor/client/automation/providers"
+	automationtypes "suasor/client/automation/types"
+	"suasor/client/types"
 	"suasor/repository"
 	"suasor/types/models"
 	"suasor/types/requests"
 	"time"
-
-	lidarr "github.com/devopsarr/lidarr-go/lidarr"
-	radarr "github.com/devopsarr/radarr-go/radarr"
-	sonarr "github.com/devopsarr/sonarr-go/sonarr"
 )
 
-// AutomationClientService defines the interface for automation client operations
+var ErrAutomationUnsupportedFeature = errors.New("feature not supported by this automation client")
+
+// AutomationClientService defines operations for interacting with automation clients
 type AutomationClientService interface {
-	CreateClient(ctx context.Context, userID uint64, req requests.AutomationClientRequest) (client.AutomationClient, error)
-	GetClientByID(ctx context.Context, userID, clientID uint64) (models.AutomationClient, error)
-	GetClientsByUserID(ctx context.Context, userID uint64) ([]models.AutomationClient, error)
-	UpdateClient(ctx context.Context, userID, clientID uint64, req models.AutomationClientRequest) (models.AutomationClient, error)
-	DeleteClient(ctx context.Context, userID, clientID uint64) error
-	TestClientConnection(ctx context.Context, req models.ClientTestRequest) (models.ClientTestResponse, error)
+	GetSystemStatus(ctx context.Context, userID uint64, clientID uint64) (*automationtypes.SystemStatus, error)
+	GetLibraryItems(ctx context.Context, userID uint64, clientID uint64, options *automationtypes.LibraryQueryOptions) ([]*models.AutomationMediaItem[automationtypes.AutomationData], error)
+	GetMediaByID(ctx context.Context, userID uint64, clientID uint64, mediaID string) (*models.AutomationMediaItem[automationtypes.AutomationData], error)
+	AddMedia(ctx context.Context, userID uint64, clientID uint64, req requests.AutomationMediaAddRequest) (*models.AutomationMediaItem[automationtypes.AutomationData], error)
+	UpdateMedia(ctx context.Context, userID uint64, clientID uint64, mediaID string, req requests.AutomationMediaUpdateRequest) (*models.AutomationMediaItem[automationtypes.AutomationData], error)
+	DeleteMedia(ctx context.Context, userID uint64, clientID uint64, mediaID string) error
+	SearchMedia(ctx context.Context, userID uint64, clientID uint64, query string) ([]*models.AutomationMediaItem[automationtypes.AutomationData], error)
+	GetQualityProfiles(ctx context.Context, userID uint64, clientID uint64) ([]automationtypes.QualityProfile, error)
+	GetMetadataProfiles(ctx context.Context, userID uint64, clientID uint64) ([]automationtypes.MetadataProfile, error)
+	GetTags(ctx context.Context, userID uint64, clientID uint64) ([]automationtypes.Tag, error)
+	CreateTag(ctx context.Context, userID uint64, clientID uint64, req requests.AutomationCreateTagRequest) (*automationtypes.Tag, error)
+	GetCalendar(ctx context.Context, userID uint64, clientID uint64, startDate, endDate time.Time) ([]*models.AutomationCalendarItem[automationtypes.AutomationData], error)
+	ExecuteCommand(ctx context.Context, userID uint64, clientID uint64, req requests.AutomationExecuteCommandRequest) (*automationtypes.CommandResult, error)
 }
 
 type automationClientService struct {
-	repo repository.AutomationClientRepository
+	clientRepo    repository.ClientRepository[types.AutomationClientConfig]
+	clientFactory automation.ClientFactory
 }
 
-func NewAutomationClientService(repo repository.AutomationClientRepository) AutomationClientService {
-	return &automationClientService{repo: repo}
-}
-
-func (s *automationClientService) CreateClient(ctx context.Context, userID uint64, req models.AutomationClientRequest) (models.AutomationClient, error) {
-	// Test connection first
-	testReq := models.ClientTestRequest{
-		URL:        req.URL,
-		APIKey:     req.APIKey,
-		ClientType: req.ClientType,
-	}
-
-	testResp, err := s.TestClientConnection(ctx, testReq)
-	if err != nil || !testResp.Success {
-		return models.AutomationClient{}, fmt.Errorf("failed to connect to client: %v", err)
-	}
-
-	client := models.AutomationClient{
-		UserID:     userID,
-		Name:       req.Name,
-		ClientType: req.ClientType,
-		URL:        req.URL,
-		APIKey:     req.APIKey,
-		IsEnabled:  req.IsEnabled,
-		CreatedAt:  time.Now(),
-		UpdatedAt:  time.Now(),
-	}
-
-	return s.repo.Create(ctx, client)
-}
-
-func (s *automationClientService) GetClientByID(ctx context.Context, userID, clientID uint64) (models.AutomationClient, error) {
-	return s.repo.GetByID(ctx, clientID, userID)
-}
-
-func (s *automationClientService) GetClientsByUserID(ctx context.Context, userID uint64) ([]models.AutomationClient, error) {
-	return s.repo.GetByUserID(ctx, userID)
-}
-
-func (s *automationClientService) UpdateClient(ctx context.Context, userID, clientID uint64, req models.AutomationClientRequest) (models.AutomationClient, error) {
-	// Test connection with updated information
-	testReq := models.ClientTestRequest{
-		URL:        req.URL,
-		APIKey:     req.APIKey,
-		ClientType: req.ClientType,
-	}
-
-	testResp, err := s.TestClientConnection(ctx, testReq)
-	if err != nil || !testResp.Success {
-		return models.AutomationClient{}, fmt.Errorf("failed to connect to updated client: %v", err)
-	}
-
-	client := models.AutomationClient{
-		ID:         clientID,
-		UserID:     userID,
-		Name:       req.Name,
-		ClientType: req.ClientType,
-		URL:        req.URL,
-		APIKey:     req.APIKey,
-		IsEnabled:  req.IsEnabled,
-		UpdatedAt:  time.Now(),
-	}
-
-	if err := s.repo.Update(ctx, client); err != nil {
-		return models.AutomationClient{}, err
-	}
-
-	return client, nil
-}
-
-func (s *automationClientService) DeleteClient(ctx context.Context, userID, clientID uint64) error {
-	return s.repo.Delete(ctx, clientID, userID)
-}
-
-func (s *automationClientService) TestClientConnection(ctx context.Context, req models.ClientTestRequest) (models.ClientTestResponse, error) {
-	switch req.ClientType {
-	case models.ClientTypeRadarr:
-		return s.testRadarrConnection(ctx, req.URL, req.APIKey)
-	case models.ClientTypeSonarr:
-		return s.testSonarrConnection(ctx, req.URL, req.APIKey)
-	case models.ClientTypeLidarr:
-		return s.testLidarrConnection(ctx, req.URL, req.APIKey)
-	default:
-		return models.ClientTestResponse{
-			Success: false,
-			Message: "Unsupported client type",
-		}, fmt.Errorf("unsupported client type: %s", req.ClientType)
+// NewAutomationClientService creates a new automation client service
+func NewAutomationClientService(
+	clientRepo repository.ClientRepository[types.AutomationClientConfig],
+	clientFactory automation.ClientFactory,
+) AutomationClientService {
+	return &automationClientService{
+		clientRepo:    clientRepo,
+		clientFactory: clientFactory,
 	}
 }
 
-// Client-specific test connection methods...
-
-func (s *automationClientService) testRadarrConnection(ctx context.Context, url, apiKey string) (models.ClientTestResponse, error) {
-	// Configure the Radarr client
-	cfg := radarr.NewConfiguration()
-	cfg.AddDefaultHeader("X-Api-Key", apiKey)
-	cfg.Servers = radarr.ServerConfigurations{
-		{
-			URL: url,
-		},
-	}
-
-	// Create client and test connection by checking system status
-	client := radarr.NewAPIClient(cfg)
-	_, resp, err := client.SystemAPI.GetSystemStatus(ctx).Execute()
-
+// getAutomationClient gets a specific automation client for a user
+func (s *automationClientService) getAutomationClient(ctx context.Context, userID, clientID uint64) (automation.AutomationClient, error) {
+	clientConfig, err := s.clientRepo.GetByID(ctx, clientID, userID)
 	if err != nil {
-		return models.ClientTestResponse{
-			Success: false,
-			Message: fmt.Sprintf("Failed to connect to Radarr: %v", err),
-		}, err
+		return nil, err
 	}
 
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return models.ClientTestResponse{
-			Success: false,
-			Message: fmt.Sprintf("Radarr returned status code %d", resp.StatusCode),
-		}, fmt.Errorf("radarr returned status code %d", resp.StatusCode)
-	}
-
-	return models.ClientTestResponse{
-		Success: true,
-		Message: "Successfully connected to Radarr",
-	}, nil
+	return s.clientFactory.GetAutomationClient(ctx, clientID, clientConfig.Config.Data)
 }
 
-func (s *automationClientService) testSonarrConnection(ctx context.Context, url, apiKey string) (models.ClientTestResponse, error) {
-	// Configure the Sonarr client
-	cfg := sonarr.NewConfiguration()
-	cfg.AddDefaultHeader("X-Api-Key", apiKey)
-	cfg.Servers = sonarr.ServerConfigurations{
-		{
-			URL: url,
-		},
-	}
-
-	// Create client and test connection by checking system status
-	client := sonarr.NewAPIClient(cfg)
-	_, resp, err := client.SystemAPI.GetSystemStatus(ctx).Execute()
-
+func (s *automationClientService) GetSystemStatus(ctx context.Context, userID uint64, clientID uint64) (*automationtypes.SystemStatus, error) {
+	client, err := s.getAutomationClient(ctx, userID, clientID)
 	if err != nil {
-		return models.ClientTestResponse{
-			Success: false,
-			Message: fmt.Sprintf("Failed to connect to Sonarr: %v", err),
-		}, err
+		return nil, err
 	}
 
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return models.ClientTestResponse{
-			Success: false,
-			Message: fmt.Sprintf("Sonarr returned status code %d", resp.StatusCode),
-		}, fmt.Errorf("sonarr returned status code %d", resp.StatusCode)
+	systemProvider, ok := client.(providers.SystemProvider)
+	if !ok {
+		return nil, ErrAutomationUnsupportedFeature
 	}
 
-	return models.ClientTestResponse{
-		Success: true,
-		Message: "Successfully connected to Sonarr",
-	}, nil
+	return systemProvider.GetSystemStatus(ctx)
 }
 
-func (s *automationClientService) testLidarrConnection(ctx context.Context, url, apiKey string) (models.ClientTestResponse, error) {
-	// Configure the Lidarr client
-	cfg := lidarr.NewConfiguration()
-	cfg.AddDefaultHeader("X-Api-Key", apiKey)
-	cfg.Servers = lidarr.ServerConfigurations{
-		{
-			URL: url,
-		},
-	}
-
-	// Create client and test connection by checking system status
-	client := lidarr.NewAPIClient(cfg)
-	_, resp, err := client.SystemAPI.GetSystemStatus(ctx).Execute()
-
+func (s *automationClientService) GetLibraryItems(ctx context.Context, userID uint64, clientID uint64, options *automationtypes.LibraryQueryOptions) ([]*models.AutomationMediaItem[automationtypes.AutomationData], error) {
+	client, err := s.getAutomationClient(ctx, userID, clientID)
 	if err != nil {
-		return models.ClientTestResponse{
-			Success: false,
-			Message: fmt.Sprintf("Failed to connect to Lidarr: %v", err),
-		}, err
+		return nil, err
 	}
 
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return models.ClientTestResponse{
-			Success: false,
-			Message: fmt.Sprintf("Lidarr returned status code %d", resp.StatusCode),
-		}, fmt.Errorf("lidarr returned status code %d", resp.StatusCode)
+	libraryProvider, ok := client.(providers.LibraryProvider)
+	if !ok {
+		return nil, ErrAutomationUnsupportedFeature
 	}
 
-	return models.ClientTestResponse{
-		Success: true,
-		Message: "Successfully connected to Lidarr",
-	}, nil
+	library, err := libraryProvider.GetLibraryItems(ctx, options)
+	if err != nil {
+		return nil, err
+	}
+	return library, nil
 }
+
+func (s *automationClientService) GetMediaByID(ctx context.Context, userID uint64, clientID uint64, mediaID string) (*models.AutomationMediaItem[automationtypes.AutomationData], error) {
+	client, err := s.getAutomationClient(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	mediaProvider, ok := client.(providers.MediaProvider)
+	if !ok {
+		return nil, ErrAutomationUnsupportedFeature
+	}
+
+	media, err := mediaProvider.GetMediaByID(ctx, mediaID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &media, nil
+}
+
+func (s *automationClientService) AddMedia(ctx context.Context, userID uint64, clientID uint64, req requests.AutomationMediaAddRequest) (*models.AutomationMediaItem[automationtypes.AutomationData], error) {
+	client, err := s.getAutomationClient(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	mediaProvider, ok := client.(providers.MediaProvider)
+	if !ok {
+		return nil, ErrAutomationUnsupportedFeature
+	}
+
+	media, err := mediaProvider.AddMedia(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &media, nil
+}
+
+func (s *automationClientService) UpdateMedia(ctx context.Context, userID uint64, clientID uint64, mediaID string, req requests.AutomationMediaUpdateRequest) (*models.AutomationMediaItem[automationtypes.AutomationData], error) {
+	client, err := s.getAutomationClient(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	mediaProvider, ok := client.(providers.MediaProvider)
+	if !ok {
+		return nil, ErrAutomationUnsupportedFeature
+	}
+
+	media, err := mediaProvider.UpdateMedia(ctx, mediaID, req)
+	return &media, nil
+}
+
+func (s *automationClientService) DeleteMedia(ctx context.Context, userID uint64, clientID uint64, mediaID string) error {
+	client, err := s.getAutomationClient(ctx, userID, clientID)
+	if err != nil {
+		return err
+	}
+
+	mediaProvider, ok := client.(providers.MediaProvider)
+	if !ok {
+		return ErrAutomationUnsupportedFeature
+	}
+
+	return mediaProvider.DeleteMedia(ctx, mediaID)
+}
+
+func (s *automationClientService) SearchMedia(ctx context.Context, userID uint64, clientID uint64, query string) ([]*models.AutomationMediaItem[automationtypes.AutomationData], error) {
+	client, err := s.getAutomationClient(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	searchProvider, ok := client.(providers.SearchProvider)
+	if !ok {
+		return nil, ErrAutomationUnsupportedFeature
+	}
+
+	options := &automationtypes.SearchOptions{
+		Limit:  10,
+		Offset: 0,
+	}
+	search, err := searchProvider.SearchMedia(ctx, query, options)
+	if err != nil {
+		return nil, err
+	}
+	return search, nil
+}
+
+func (s *automationClientService) GetQualityProfiles(ctx context.Context, userID uint64, clientID uint64) ([]automationtypes.QualityProfile, error) {
+	client, err := s.getAutomationClient(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	profileProvider, ok := client.(providers.ProfileProvider)
+	if !ok {
+		return nil, ErrAutomationUnsupportedFeature
+	}
+
+	return profileProvider.GetQualityProfiles(ctx)
+}
+
+func (s *automationClientService) GetMetadataProfiles(ctx context.Context, userID uint64, clientID uint64) ([]automationtypes.MetadataProfile, error) {
+	client, err := s.getAutomationClient(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	profileProvider, ok := client.(providers.ProfileProvider)
+	if !ok {
+		return nil, ErrAutomationUnsupportedFeature
+	}
+
+	return profileProvider.GetMetadataProfiles(ctx)
+}
+
+func (s *automationClientService) GetTags(ctx context.Context, userID uint64, clientID uint64) ([]automationtypes.Tag, error) {
+	client, err := s.getAutomationClient(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	tagProvider, ok := client.(providers.TagProvider)
+	if !ok {
+		return nil, ErrAutomationUnsupportedFeature
+	}
+
+	return tagProvider.GetTags(ctx)
+}
+
+func (s *automationClientService) CreateTag(ctx context.Context, userID uint64, clientID uint64, req requests.AutomationCreateTagRequest) (*automationtypes.Tag, error) {
+	client, err := s.getAutomationClient(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	tagProvider, ok := client.(providers.TagProvider)
+	if !ok {
+		return nil, ErrAutomationUnsupportedFeature
+	}
+
+	tag, err := tagProvider.CreateTag(ctx, req.Name)
+	if err != nil {
+		return nil, err
+	}
+	return &tag, nil
+}
+
+func (s *automationClientService) GetCalendar(ctx context.Context, userID uint64, clientID uint64, startDate, endDate time.Time) ([]*models.AutomationCalendarItem[automationtypes.AutomationData], error) {
+	client, err := s.getAutomationClient(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	calendarProvider, ok := client.(providers.CalendarProvider)
+	if !ok {
+		return nil, ErrAutomationUnsupportedFeature
+	}
+
+	calendar, err := calendarProvider.GetCalendar(ctx, startDate, endDate)
+	if err != nil {
+		return nil, err
+	}
+	return calendar, nil
+}
+
+func (s *automationClientService) ExecuteCommand(ctx context.Context, userID uint64, clientID uint64, req requests.AutomationExecuteCommandRequest) (*automationtypes.CommandResult, error) {
+	client, err := s.getAutomationClient(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	commandProvider, ok := client.(providers.CommandProvider)
+	if !ok {
+		return nil, ErrAutomationUnsupportedFeature
+	}
+
+	command := automationtypes.Command{
+		Name:       req.Command,
+		Parameters: req.Parameters,
+	}
+
+	result, err := commandProvider.ExecuteCommand(ctx, command)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+

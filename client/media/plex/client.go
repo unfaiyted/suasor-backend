@@ -14,9 +14,9 @@ import (
 )
 
 // init is automatically called when package is imported
-func init() {
-	media.RegisterClient(client.MediaClientTypePlex, NewPlexClient)
-}
+// func init() {
+// 	media.RegisterClient(client.MediaClientTypePlex, NewPlexClient)
+// }
 
 // PlexClient implements MediaContentProvider for Plex
 type PlexClient struct {
@@ -84,3 +84,15 @@ func (c *PlexClient) SupportsTVShows() bool     { return true }
 func (c *PlexClient) SupportsMusic() bool       { return true }
 func (c *PlexClient) SupportsPlaylists() bool   { return true }
 func (c *PlexClient) SupportsCollections() bool { return true }
+
+func (c *PlexClient) TestConnection(ctx context.Context) (bool, error) {
+
+	sysInfo, err := c.plexAPI.Server.GetServerCapabilities(ctx)
+	if err != nil {
+		return false, err
+	}
+	if sysInfo.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("failed to retrieve Plex server version, Response code: %i", sysInfo.StatusCode)
+	}
+	return true, nil
+}

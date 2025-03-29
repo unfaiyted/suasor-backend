@@ -15,8 +15,8 @@ import (
 
 var ErrUnsupportedFeature = errors.New("feature not supported by this media client")
 
-// MediaMovieService defines operations for interacting with movie clients
-type MediaMovieService interface {
+// MediaClientMovieService defines operations for interacting with movie clients
+type MediaClientMovieService interface {
 	GetMovieByID(ctx context.Context, userID uint64, clientID uint64, movieID string) (*models.MediaItem[mediatypes.Movie], error)
 	GetMoviesByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[mediatypes.Movie], error)
 	GetMoviesByYear(ctx context.Context, userID uint64, year int) ([]models.MediaItem[mediatypes.Movie], error)
@@ -34,11 +34,11 @@ type mediaMovieService struct {
 	clientFactory media.ClientFactory
 }
 
-// NewMediaMovieService creates a new media movie service
-func NewMediaMovieService(
+// NewMediaClientMovieService creates a new media movie service
+func NewMediaClientMovieService(
 	clientRepo repository.ClientRepository[types.MediaClientConfig],
 	clientFactory media.ClientFactory,
-) MediaMovieService {
+) MediaClientMovieService {
 	return &mediaMovieService{
 		clientRepo:    clientRepo,
 		clientFactory: clientFactory,
@@ -59,7 +59,7 @@ func (s *mediaMovieService) getMovieClients(ctx context.Context, userID uint64) 
 	for _, clientConfig := range clients {
 		if clientConfig.Config.Data.SupportsMovies() {
 			clientId := clientConfig.GetID()
-			client, err := s.clientFactory.CreateMediaClient(ctx, clientId, clientConfig.Config.Data)
+			client, err := s.clientFactory.GetMediaClient(ctx, clientId, clientConfig.Config.Data)
 			if err != nil {
 				// Log error but continue with other clients
 				continue
@@ -82,7 +82,7 @@ func (s *mediaMovieService) getSpecificMovieClient(ctx context.Context, userID, 
 		return nil, ErrUnsupportedFeature
 	}
 
-	return s.clientFactory.CreateMediaClient(ctx, clientID, clientConfig.Config.Data)
+	return s.clientFactory.GetMediaClient(ctx, clientID, clientConfig.Config.Data)
 }
 
 func (s *mediaMovieService) GetMovieByID(ctx context.Context, userID uint64, clientID uint64, movieID string) (*models.MediaItem[mediatypes.Movie], error) {
