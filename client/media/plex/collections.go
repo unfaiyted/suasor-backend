@@ -44,7 +44,7 @@ func (c *PlexClient) GetCollections(ctx context.Context, options *types.QueryOpt
 	for _, dir := range directories {
 		collection := models.MediaItem[types.Collection]{
 			Data: types.Collection{
-				Details: types.MediaMetadata{
+				Details: types.MediaDetails{
 					Title: dir.Title,
 					Artwork: types.Artwork{
 						Thumbnail: c.makeFullURL(dir.Thumb),

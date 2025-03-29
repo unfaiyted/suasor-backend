@@ -501,7 +501,7 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (models.M
 			ArtistID:   artistID,
 			AlbumID:    *item.ParentRatingKey,
 			Number:     int(*item.Index),
-			Details:    c.createMediaMetadataFromPlexItem(&item),
+			Details:    c.createMediaDetailsFromPlexItem(&item),
 		},
 	}
 

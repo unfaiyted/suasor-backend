@@ -51,7 +51,7 @@ func (j *JellyfinClient) convertToCollection(ctx context.Context, item *jellyfin
 	// Build collection object
 	collection := models.MediaItem[t.Collection]{
 		Data: t.Collection{
-			Details: t.MediaMetadata{
+			Details: t.MediaDetails{
 				Title:       title,
 				Description: description,
 				Artwork:     j.getArtworkURLs(item),
@@ -155,7 +155,7 @@ func (j *JellyfinClient) convertToEpisode(ctx context.Context, item *jellyfin.Ba
 	// Create the basic episode object
 	episode := models.MediaItem[t.Episode]{
 		Data: t.Episode{
-			Details: t.MediaMetadata{
+			Details: t.MediaDetails{
 				Title:       title,
 				Description: description,
 				Artwork:     j.getArtworkURLs(item),
@@ -210,17 +210,17 @@ func (j *JellyfinClient) convertToEpisode(ctx context.Context, item *jellyfin.Ba
 	return episode, nil
 }
 
-func (j *JellyfinClient) convertToTVShow(ctx context.Context, item *jellyfin.BaseItemDto) (models.MediaItem[t.TVShow], error) {
+func (j *JellyfinClient) convertToSeries(ctx context.Context, item *jellyfin.BaseItemDto) (models.MediaItem[t.Series], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
 	// Validate required fields
 	if item == nil {
-		return models.MediaItem[t.TVShow]{}, fmt.Errorf("cannot convert nil item to TV show")
+		return models.MediaItem[t.Series]{}, fmt.Errorf("cannot convert nil item to TV show")
 	}
 
 	if item.Id == nil || *item.Id == "" {
-		return models.MediaItem[t.TVShow]{}, fmt.Errorf("TV show is missing required ID field")
+		return models.MediaItem[t.Series]{}, fmt.Errorf("TV show is missing required ID field")
 	}
 
 	// Safely get name or fallback to empty string
@@ -271,9 +271,9 @@ func (j *JellyfinClient) convertToTVShow(ctx context.Context, item *jellyfin.Bas
 	}
 
 	// Build TV show object
-	show := models.MediaItem[t.TVShow]{
-		Data: t.TVShow{
-			Details: t.MediaMetadata{
+	show := models.MediaItem[t.Series]{
+		Data: t.Series{
+			Details: t.MediaDetails{
 				Title:       title,
 				Description: description,
 				ReleaseYear: releaseYear,
@@ -404,7 +404,7 @@ func (j *JellyfinClient) convertToMovie(ctx context.Context, item *jellyfin.Base
 	// Build movie object
 	movie := models.MediaItem[t.Movie]{
 		Data: t.Movie{
-			Details: t.MediaMetadata{
+			Details: t.MediaDetails{
 				Title:         title,
 				Description:   description,
 				ReleaseDate:   releaseDate,
@@ -493,7 +493,7 @@ func (j *JellyfinClient) convertToAlbum(ctx context.Context, item *jellyfin.Base
 	// Build album object
 	album := models.MediaItem[t.Album]{
 		Data: t.Album{
-			Details: t.MediaMetadata{
+			Details: t.MediaDetails{
 				Title:       title,
 				Description: description,
 				ReleaseYear: releaseYear,
@@ -591,7 +591,7 @@ func (j *JellyfinClient) convertToSeason(ctx context.Context, item *jellyfin.Bas
 	// Build season object
 	season := models.MediaItem[t.Season]{
 		Data: t.Season{
-			Details: t.MediaMetadata{
+			Details: t.MediaDetails{
 				Title:       title,
 				Description: description,
 				Artwork:     j.getArtworkURLs(item),
@@ -685,7 +685,7 @@ func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.B
 		result.ClientType = album.ClientType
 		result.Data = album.Data
 	case jellyfin.BASEITEMKIND_SERIES:
-		tvShow, convErr := j.convertToTVShow(ctx, item)
+		tvShow, convErr := j.convertToSeries(ctx, item)
 		if convErr != nil {
 			return models.MediaItem[t.MediaData]{}, convErr
 		}
@@ -788,7 +788,7 @@ func (j *JellyfinClient) convertToArtist(ctx context.Context, item *jellyfin.Bas
 	// Build artist object
 	artist := models.MediaItem[t.Artist]{
 		Data: t.Artist{
-			Details: t.MediaMetadata{
+			Details: t.MediaDetails{
 				Title:       name,
 				Description: description,
 				Genres:      genres,
@@ -865,7 +865,7 @@ func (j *JellyfinClient) convertToPlaylist(ctx context.Context, item *jellyfin.B
 	// Build playlist object
 	playlist := models.MediaItem[t.Playlist]{
 		Data: t.Playlist{
-			Details: t.MediaMetadata{
+			Details: t.MediaDetails{
 				Title:       title,
 				Description: description,
 				Artwork:     j.getArtworkURLs(item),

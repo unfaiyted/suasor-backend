@@ -4,7 +4,7 @@ package providers
 // This is useful for clients that implement multiple provider types
 type MediaContentProvider interface {
 	MovieProvider
-	TVShowProvider
+	SeriesProvider
 	MusicProvider
 	PlaylistProvider
 	CollectionProvider

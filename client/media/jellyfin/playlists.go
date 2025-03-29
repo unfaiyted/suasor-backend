@@ -61,7 +61,7 @@ func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 		if *item.Type == "Playlist" {
 			playlist := models.MediaItem[t.Playlist]{
 				Data: t.Playlist{
-					Details: t.MediaMetadata{
+					Details: t.MediaDetails{
 						Title:       *item.Name.Get(),
 						Description: *item.Overview.Get(),
 						Artwork:     j.getArtworkURLs(&item),

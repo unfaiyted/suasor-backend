@@ -7,8 +7,8 @@ import (
 	"github.com/LukeHagar/plexgo/models/operations"
 )
 
-func (c *PlexClient) createChildMetadataFromPlexItem(item *operations.GetMetadataChildrenMetadata) types.MediaMetadata {
-	metadata := types.MediaMetadata{
+func (c *PlexClient) createChildMetadataFromPlexItem(item *operations.GetMetadataChildrenMetadata) types.MediaDetails {
+	metadata := types.MediaDetails{
 		Title:       *item.Title,
 		Description: *item.Summary,
 		Artwork: types.Artwork{
@@ -34,9 +34,9 @@ func (c *PlexClient) createChildMetadataFromPlexItem(item *operations.GetMetadat
 	return metadata
 }
 
-// createMetadataFromPlexItem creates a MediaMetadata from a Plex item
-func (c *PlexClient) createMetadataFromPlexItem(item *operations.GetLibraryItemsMetadata) types.MediaMetadata {
-	metadata := types.MediaMetadata{
+// createMetadataFromPlexItem creates a MediaDetails from a Plex item
+func (c *PlexClient) createMetadataFromPlexItem(item *operations.GetLibraryItemsMetadata) types.MediaDetails {
+	metadata := types.MediaDetails{
 		Title:       item.Title,
 		Description: item.Summary,
 		Artwork: types.Artwork{
@@ -89,9 +89,9 @@ func (c *PlexClient) createMetadataFromPlexItem(item *operations.GetLibraryItems
 	return metadata
 }
 
-// createMediaMetadataFromPlexItem creates a MediaMetadata from a Plex item
-func (c *PlexClient) createMediaMetadataFromPlexItem(item *operations.GetMediaMetaDataMetadata) types.MediaMetadata {
-	metadata := types.MediaMetadata{
+// createMediaDetailsFromPlexItem creates a MediaDetails from a Plex item
+func (c *PlexClient) createMediaDetailsFromPlexItem(item *operations.GetMediaMetaDataMetadata) types.MediaDetails {
+	metadata := types.MediaDetails{
 		Title:       item.Title,
 		Description: item.Summary,
 		Artwork:     types.Artwork{

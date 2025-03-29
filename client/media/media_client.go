@@ -17,7 +17,7 @@ var ErrFeatureNotSupported = errors.New("feature not supported by this media cli
 
 type MediaClient interface {
 	SupportsMovies() bool
-	SupportsTVShows() bool
+	SupportsSeries() bool
 	SupportsMusic() bool
 	SupportsPlaylists() bool
 	SupportsCollections() bool
@@ -31,7 +31,7 @@ type BaseMediaClient struct {
 
 // Default caity implementations (all false by default)
 func (m *BaseMediaClient) SupportsMovies() bool      { return false }
-func (m *BaseMediaClient) SupportsTVShows() bool     { return false }
+func (m *BaseMediaClient) SupportsSeries() bool      { return false }
 func (m *BaseMediaClient) SupportsMusic() bool       { return false }
 func (m *BaseMediaClient) SupportsPlaylists() bool   { return false }
 func (m *BaseMediaClient) SupportsCollections() bool { return false }
@@ -42,7 +42,7 @@ func (b *BaseMediaClient) GetMovies(ctx context.Context, options *media.QueryOpt
 	return nil, ErrFeatureNotSupported
 }
 
-func (b *BaseMediaClient) GetTVShows(ctx context.Context, options *media.QueryOptions) ([]models.MediaItem[media.TVShow], error) {
+func (b *BaseMediaClient) GetSeries(ctx context.Context, options *media.QueryOptions) ([]models.MediaItem[media.Series], error) {
 	return nil, ErrFeatureNotSupported
 }
 
@@ -128,8 +128,8 @@ func (b *BaseMediaClient) ToMediaItemMovie(ctx context.Context, item media.Movie
 	return mediaItem, nil
 }
 
-func (b *BaseMediaClient) ToMediaItemSeries(ctx context.Context, item media.TVShow, itemID string) (models.MediaItem[media.TVShow], error) {
-	mediaItem := models.MediaItem[media.TVShow]{
+func (b *BaseMediaClient) ToMediaItemSeries(ctx context.Context, item media.Series, itemID string) (models.MediaItem[media.Series], error) {
+	mediaItem := models.MediaItem[media.Series]{
 		Data:       item,
 		ClientType: b.ClientType,
 		Type:       item.GetMediaType(),

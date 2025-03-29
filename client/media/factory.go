@@ -28,15 +28,23 @@ func NewMediaClient(ctx context.Context, clientID uint64, clientType client.Medi
 	return factory(ctx, clientID, config)
 }
 
+func (c *ClientFactory) CreateMediaClient(ctx context.Context, clientID uint64, config client.MediaClientConfig) (MediaClient, error) {
+	factory, exists := clientFactories[config.GetClientType()]
+	if !exists {
+		return nil, fmt.Errorf("unsupported client type: %s", config.GetClientType())
+	}
+	return factory(ctx, clientID, config)
+}
+
 // Helper functions to safely cast providers
 func AsMovieProvider(client MediaClient) (p.MovieProvider, bool) {
 	provider, ok := client.(p.MovieProvider)
 	return provider, ok && provider.SupportsMovies()
 }
 
-func AsTVShowProvider(client MediaClient) (p.TVShowProvider, bool) {
-	provider, ok := client.(p.TVShowProvider)
-	return provider, ok && provider.SupportsTVShows()
+func AsSeriesProvider(client MediaClient) (p.SeriesProvider, bool) {
+	provider, ok := client.(p.SeriesProvider)
+	return provider, ok && provider.SupportsSeries()
 }
 
 func AsMusicProvider(client MediaClient) (p.MusicProvider, bool) {

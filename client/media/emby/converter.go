@@ -45,11 +45,11 @@ func (e *EmbyClient) convertToWatchHistoryItem(ctx context.Context, item *embycl
 		}
 		watchData.SetData(&watchData, mediaItemPlaylist.GetData())
 	} else if item.Type_ == "Series" {
-		mediaItemTVShow, err := e.convertToTVShow(item)
+		mediaItemSeries, err := e.convertToSeries(item)
 		if err != nil {
 			return models.MediaPlayHistory[types.MediaData]{}, err
 		}
-		watchData.SetData(&watchData, mediaItemTVShow.GetData())
+		watchData.SetData(&watchData, mediaItemSeries.GetData())
 	} else if item.Type_ == "Season" {
 		mediaItemSeason, err := e.convertToSeason(item, item.ParentId)
 		if err != nil {
@@ -120,7 +120,7 @@ func (e *EmbyClient) convertToMovie(ctx context.Context, item *embyclient.BaseIt
 
 	// Build movie object with safe handling of optional fields
 	movie := types.Movie{
-		Details: types.MediaMetadata{
+		Details: types.MediaDetails{
 			Title:       item.Name,
 			Description: item.Overview,
 			ReleaseDate: item.PremiereDate,
@@ -179,7 +179,7 @@ func (e *EmbyClient) convertToTrack(item *embyclient.BaseItemDto) (models.MediaI
 
 	track := models.MediaItem[types.Track]{
 		Data: types.Track{
-			Details: types.MediaMetadata{
+			Details: types.MediaDetails{
 				Title:       item.Name,
 				Description: item.Overview,
 				Duration:    time.Duration(item.RunTimeTicks/10000000) * time.Second,
@@ -217,7 +217,7 @@ func (e *EmbyClient) convertToMusicArtist(item *embyclient.BaseItemDto) (models.
 
 	artist := models.MediaItem[types.Artist]{
 		Data: types.Artist{
-			Details: types.MediaMetadata{
+			Details: types.MediaDetails{
 				Title:       item.Name,
 				Description: item.Overview,
 				Artwork:     e.getArtworkURLs(item),
@@ -246,7 +246,7 @@ func (e *EmbyClient) convertToAlbum(item *embyclient.BaseItemDto) (models.MediaI
 
 	album := models.MediaItem[types.Album]{
 		Data: types.Album{
-			Details: types.MediaMetadata{
+			Details: types.MediaDetails{
 				Title:       item.Name,
 				Description: item.Overview,
 				ReleaseYear: int(item.ProductionYear),
@@ -277,7 +277,7 @@ func (e *EmbyClient) convertToPlaylist(item *embyclient.BaseItemDto) (models.Med
 	}
 
 	playlist := types.Playlist{
-		Details: types.MediaMetadata{
+		Details: types.MediaDetails{
 			Title:       item.Name,
 			Description: item.Overview,
 			Artwork:     e.getArtworkURLs(item),
@@ -296,14 +296,14 @@ func (e *EmbyClient) convertToPlaylist(item *embyclient.BaseItemDto) (models.Med
 
 // Note: This is a duplicate of the first function and should be removed
 
-func (e *EmbyClient) convertToTVShow(item *embyclient.BaseItemDto) (models.MediaItem[types.TVShow], error) {
+func (e *EmbyClient) convertToSeries(item *embyclient.BaseItemDto) (models.MediaItem[types.Series], error) {
 	if item == nil {
-		return models.MediaItem[types.TVShow]{}, fmt.Errorf("cannot convert nil item to TV show")
+		return models.MediaItem[types.Series]{}, fmt.Errorf("cannot convert nil item to TV show")
 	}
 
-	show := models.MediaItem[types.TVShow]{
-		Data: types.TVShow{
-			Details: types.MediaMetadata{
+	show := models.MediaItem[types.Series]{
+		Data: types.Series{
+			Details: types.MediaDetails{
 				Title:       item.Name,
 				Description: item.Overview,
 				ReleaseYear: int(item.ProductionYear),
@@ -343,7 +343,7 @@ func (e *EmbyClient) convertToSeason(item *embyclient.BaseItemDto, showID string
 
 	season := models.MediaItem[types.Season]{
 		Data: types.Season{
-			Details: types.MediaMetadata{
+			Details: types.MediaDetails{
 				Title:       item.Name,
 				Description: item.Overview,
 				Artwork:     e.getArtworkURLs(item),
@@ -369,7 +369,7 @@ func (e *EmbyClient) convertToEpisode(item *embyclient.BaseItemDto) (models.Medi
 	}
 
 	episode := types.Episode{
-		Details: types.MediaMetadata{
+		Details: types.MediaDetails{
 			Title:       item.Name,
 			Description: item.Overview,
 			Artwork:     e.getArtworkURLs(item),

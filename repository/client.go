@@ -1,4 +1,4 @@
-// repository/media_client.go
+// repository/client.go
 package repository
 
 import (
@@ -19,6 +19,7 @@ type ClientRepository[T types.ClientConfig] interface {
 	// Common operations
 	GetByID(ctx context.Context, id, userID uint64) (*models.Client[T], error)
 	GetByUserID(ctx context.Context, userID uint64) ([]*models.Client[T], error)
+	GetByCategory(ctx context.Context, clientType types.ClientCategory, userID uint64) ([]*models.Client[T], error)
 	GetByType(ctx context.Context, clientType types.ClientType, userID uint64) ([]*models.Client[T], error)
 	Delete(ctx context.Context, id, userID uint64) error
 }
@@ -114,11 +115,23 @@ func (r *clientRepository[T]) Delete(ctx context.Context, id, userID uint64) err
 	return nil
 }
 
+func (r *clientRepository[T]) GetByCategory(ctx context.Context, category types.ClientCategory, userID uint64) ([]*models.Client[T], error) {
+	var clients []*models.Client[T]
+
+	if err := r.db.WithContext(ctx).
+		Where("user_id = ? AND category = ?", userID, category).
+		Find(&clients).Error; err != nil {
+		return nil, fmt.Errorf("failed to get clients by type: %w", err)
+	}
+
+	return clients, nil
+}
+
 func (r *clientRepository[T]) GetByType(ctx context.Context, clientType types.ClientType, userID uint64) ([]*models.Client[T], error) {
 	var clients []*models.Client[T]
 
 	if err := r.db.WithContext(ctx).
-		Where("user_id = ? AND type = ?", userID, clientType).
+		Where("user_id = ? AND  config ->> 'type' = ?", userID, clientType).
 		Find(&clients).Error; err != nil {
 		return nil, fmt.Errorf("failed to get clients by type: %w", err)
 	}

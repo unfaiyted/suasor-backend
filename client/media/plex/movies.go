@@ -173,7 +173,7 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (models.MediaI
 
 	movie := models.MediaItem[types.Movie]{
 		Data: types.Movie{
-			Details: c.createMediaMetadataFromPlexItem(&item),
+			Details: c.createMediaDetailsFromPlexItem(&item),
 		},
 	}
 	movie.SetClientInfo(c.ClientID, c.ClientType, item.RatingKey)

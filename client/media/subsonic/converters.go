@@ -14,7 +14,7 @@ func (c *SubsonicClient) convertChildToTrack(song gosonic.Child) models.MediaIte
 	track := models.MediaItem[t.Track]{
 		Type: "music",
 		Data: t.Track{
-			Details: t.MediaMetadata{
+			Details: t.MediaDetails{
 				Title:       song.Title,
 				Duration:    duration,
 				ReleaseYear: song.Year, // Use ReleaseYear instead of Year

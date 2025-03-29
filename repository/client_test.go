@@ -196,7 +196,7 @@ func TestClientRepository_GetByUserID(t *testing.T) {
 	assert.Equal(t, "Other Client", otherResults[0].Name)
 }
 
-func TestClientRepository_GetByType(t *testing.T) {
+func TestClientRepository_GetByCategory(t *testing.T) {
 	db := setupTestDB(t)
 	repo := repository.NewClientRepository[types.RadarrConfig](db)
 	ctx := context.Background()
@@ -204,37 +204,35 @@ func TestClientRepository_GetByType(t *testing.T) {
 	userID := uint64(1)
 
 	// Create different types of clients
-	twitterClient := models.Client[types.RadarrConfig]{
+	radarrClient := models.Client[types.RadarrConfig]{
 		UserID:   userID,
-		Name:     "Twitter Client",
-		Category: types.ClientCategoryMedia,
+		Name:     "Radarr Client",
+		Category: types.ClientCategoryAutomation,
 		Config:   models.ClientConfigWrapper[types.RadarrConfig]{Data: types.NewRadarrConfig()},
 	}
 
-	youtubeClient := models.Client[types.RadarrConfig]{
+	radarrClient2 := models.Client[types.RadarrConfig]{
 		UserID:   userID,
-		Name:     "YouTube Client",
-		Category: types.ClientCategoryMedia,
+		Name:     "Second Radarr Client",
+		Category: types.ClientCategoryAutomation,
 		Config:   models.ClientConfigWrapper[types.RadarrConfig]{Data: types.NewRadarrConfig()},
 	}
 
 	// Add clients to the database
-	_, err := repo.Create(ctx, twitterClient)
+	_, err := repo.Create(ctx, radarrClient)
 	require.NoError(t, err)
 
-	_, err = repo.Create(ctx, youtubeClient)
+	_, err = repo.Create(ctx, radarrClient2)
 	require.NoError(t, err)
 
 	// Get clients by type
-	twitterResults, err := repo.GetByType(ctx, types.ClientTypeEmby, userID)
+	radarrResults, err := repo.GetByCategory(ctx, types.ClientCategoryAutomation, userID)
 	require.NoError(t, err)
-	assert.Len(t, twitterResults, 1)
-	assert.Equal(t, "Twitter Client", twitterResults[0].Name)
+	assert.Len(t, radarrResults, 2)
+	assert.Equal(t, "Radarr Client", radarrResults[0].Name)
 
-	youtubeResults, err := repo.GetByType(ctx, types.ClientTypeEmby, userID)
-	require.NoError(t, err)
-	assert.Len(t, youtubeResults, 1)
-	assert.Equal(t, "YouTube Client", youtubeResults[0].Name)
+	assert.Len(t, radarrResults, 2)
+	assert.Equal(t, "Second Radarr Client", radarrResults[1].Name)
 }
 
 func TestClientRepository_Delete(t *testing.T) {

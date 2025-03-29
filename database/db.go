@@ -64,7 +64,7 @@ func Initialize(dbConfig types.DatabaseConfig) (*gorm.DB, error) {
 		&models.Client[client.SonarrConfig]{},
 
 		&models.MediaItem[media.Movie]{},
-		&models.MediaItem[media.TVShow]{},
+		&models.MediaItem[media.Series]{},
 		&models.MediaItem[media.Episode]{},
 		&models.MediaItem[media.Season]{},
 		&models.MediaItem[media.Track]{},

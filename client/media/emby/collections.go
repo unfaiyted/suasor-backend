@@ -75,7 +75,7 @@ func (e *EmbyClient) convertToCollection(item *embyclient.BaseItemDto) (models.M
 
 	collection := models.MediaItem[types.Collection]{
 		Data: types.Collection{
-			Details: types.MediaMetadata{
+			Details: types.MediaDetails{
 				Title:       item.Name,
 				Description: item.Overview,
 				Artwork:     e.getArtworkURLs(item),

@@ -88,7 +88,7 @@ func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOpt
 			historyItem.Item.SetData(historyItem.Item, mediaItemMovie.Data)
 		case jellyfin.BASEITEMKIND_SERIES:
 			historyItem.Item.Type = t.MEDIATYPE_SHOW
-			mediaItemTVShow, err := j.convertToTVShow(ctx, &item)
+			mediaItemSeries, err := j.convertToSeries(ctx, &item)
 			if err != nil {
 				log.Warn().
 					Err(err).
@@ -97,7 +97,7 @@ func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOpt
 					Msg("Error converting Jellyfin item to TV show format")
 				continue
 			}
-			historyItem.Item.SetData(historyItem.Item, mediaItemTVShow.Data)
+			historyItem.Item.SetData(historyItem.Item, mediaItemSeries.Data)
 		case jellyfin.BASEITEMKIND_EPISODE:
 			historyItem.Item.Type = t.MEDIATYPE_EPISODE
 			mediaItemEpisode, err := j.convertToEpisode(ctx, &item)

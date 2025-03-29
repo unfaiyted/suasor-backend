@@ -115,11 +115,11 @@ func (m *MediaItem[T]) AsMovie() (MediaItem[types.Movie], bool) {
 	return movie, ok
 }
 
-func (m *MediaItem[T]) AsTVShow() (MediaItem[types.TVShow], bool) {
+func (m *MediaItem[T]) AsSeries() (MediaItem[types.Series], bool) {
 	if m.Type != types.MEDIATYPE_SHOW {
-		return MediaItem[types.TVShow]{}, false
+		return MediaItem[types.Series]{}, false
 	}
-	show, ok := any(m).(MediaItem[types.TVShow])
+	show, ok := any(m).(MediaItem[types.Series])
 
 	return show, ok
 }
@@ -184,7 +184,7 @@ func CreateMediaItem(mediaType types.MediaType) (any, error) {
 	case types.MEDIATYPE_MOVIE:
 		return &MediaItem[types.Movie]{Type: mediaType}, nil
 	case types.MEDIATYPE_SHOW:
-		return &MediaItem[types.TVShow]{Type: mediaType}, nil
+		return &MediaItem[types.Series]{Type: mediaType}, nil
 	case types.MEDIATYPE_EPISODE:
 		return &MediaItem[types.Episode]{Type: mediaType}, nil
 	case types.MEDIATYPE_SEASON:

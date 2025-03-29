@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"strconv"
+	"suasor/client/types"
 	"suasor/services"
 	requests "suasor/types/requests"
 	responses "suasor/types/responses"
@@ -12,7 +13,7 @@ import (
 )
 
 // AutomationClientHandler handles download client API endpoints
-type AutomationClientHandler struct {
+type AutomationClientHandler[T types.AutomationClientConfig] struct {
 	service services.AutomationClientService
 }
 
@@ -36,14 +37,14 @@ func NewAutomationClientHandler(service services.AutomationClientService) *Autom
 // @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} models.ErrorResponse[error] "Server error"
 // @Router /clients/download [post]
-func (h *AutomationClientHandler) CreateClient(c *gin.Context) {
+func (h *AutomationClientHandler[T]) CreateClient(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
-		utils.RespondUnauthorized(c, nil, "Authentication required")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
 
@@ -51,7 +52,7 @@ func (h *AutomationClientHandler) CreateClient(c *gin.Context) {
 
 	var req requests.AutomationClientRequest[T]
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.RespondValidationError(c, err)
+		responses.RespondValidationError(c, err)
 		return
 	}
 
@@ -63,11 +64,11 @@ func (h *AutomationClientHandler) CreateClient(c *gin.Context) {
 
 	client, err := h.service.CreateClient(ctx, uid, req)
 	if err != nil {
-		utils.RespondInternalError(c, err, err.Error())
+		responses.RespondInternalError(c, err, err.Error())
 		return
 	}
 
-	utils.RespondCreated(c, client, "Automation client created successfully")
+	responses.RespondCreated(c, client, "Automation client created successfully")
 }
 
 // GetClient godoc
@@ -91,7 +92,7 @@ func (h *AutomationClientHandler) GetClient(c *gin.Context) {
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
-		utils.RespondUnauthorized(c, nil, "Authentication required")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
 
@@ -101,7 +102,7 @@ func (h *AutomationClientHandler) GetClient(c *gin.Context) {
 	clientID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		log.Error().Err(err).Str("clientID", c.Param("id")).Msg("Invalid client ID format")
-		utils.RespondBadRequest(c, err, "Invalid client ID")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
@@ -114,14 +115,14 @@ func (h *AutomationClientHandler) GetClient(c *gin.Context) {
 	if err != nil {
 		// Check if it's a not found error
 		if err.Error() == "download client not found" {
-			utils.RespondNotFound(c, err, "Automation client not found")
+			responses.RespondNotFound(c, err, "Automation client not found")
 			return
 		}
-		utils.RespondInternalError(c, err, "Failed to retrieve download client")
+		responses.RespondInternalError(c, err, "Failed to retrieve download client")
 		return
 	}
 
-	utils.RespondOK(c, client, "Automation client retrieved successfully")
+	responses.RespondOK(c, client, "Automation client retrieved successfully")
 }
 
 // GetAllClients godoc
@@ -142,7 +143,7 @@ func (h *AutomationClientHandler) GetAllClients(c *gin.Context) {
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
-		utils.RespondUnauthorized(c, nil, "Authentication required")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
 
@@ -154,11 +155,11 @@ func (h *AutomationClientHandler) GetAllClients(c *gin.Context) {
 
 	clients, err := h.service.GetClientsByUserID(ctx, uid)
 	if err != nil {
-		utils.RespondInternalError(c, err, "Failed to retrieve download clients")
+		responses.RespondInternalError(c, err, "Failed to retrieve download clients")
 		return
 	}
 
-	utils.RespondOK(c, clients, "Automation clients retrieved successfully")
+	responses.RespondOK(c, clients, "Automation clients retrieved successfully")
 }
 
 // UpdateClient godoc
@@ -176,14 +177,14 @@ func (h *AutomationClientHandler) GetAllClients(c *gin.Context) {
 // @Failure 404 {object} models.ErrorResponse[error] "Client not found"
 // @Failure 500 {object} models.ErrorResponse[error] "Server error"
 // @Router /clients/download/{id} [put]
-func (h *AutomationClientHandler) UpdateClient(c *gin.Context) {
+func (h *AutomationClientHandler[T]) UpdateClient(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
-		utils.RespondUnauthorized(c, nil, "Authentication required")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
 
@@ -193,13 +194,13 @@ func (h *AutomationClientHandler) UpdateClient(c *gin.Context) {
 	clientID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		log.Error().Err(err).Str("clientID", c.Param("id")).Msg("Invalid client ID format")
-		utils.RespondBadRequest(c, err, "Invalid client ID")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
-	var req requests.AutomationClientRequest
+	var req requests.AutomationClientRequest[T]
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.RespondValidationError(c, err)
+		responses.RespondValidationError(c, err)
 		return
 	}
 
@@ -214,14 +215,14 @@ func (h *AutomationClientHandler) UpdateClient(c *gin.Context) {
 	if err != nil {
 		// Check if it's a not found error
 		if err.Error() == "download client not found" {
-			utils.RespondNotFound(c, err, "Automation client not found")
+			responses.RespondNotFound(c, err, "Automation client not found")
 			return
 		}
-		utils.RespondInternalError(c, err, "Failed to update download client")
+		responses.RespondInternalError(c, err, "Failed to update download client")
 		return
 	}
 
-	utils.RespondOK(c, client, "Automation client updated successfully")
+	responses.RespondOK(c, client, "Automation client updated successfully")
 }
 
 // DeleteClient godoc
@@ -245,7 +246,7 @@ func (h *AutomationClientHandler) DeleteClient(c *gin.Context) {
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
-		utils.RespondUnauthorized(c, nil, "Authentication required")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
 
@@ -255,7 +256,7 @@ func (h *AutomationClientHandler) DeleteClient(c *gin.Context) {
 	clientID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		log.Error().Err(err).Str("clientID", c.Param("id")).Msg("Invalid client ID format")
-		utils.RespondBadRequest(c, err, "Invalid client ID")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
@@ -268,14 +269,14 @@ func (h *AutomationClientHandler) DeleteClient(c *gin.Context) {
 	if err != nil {
 		// Check if it's a not found error
 		if err.Error() == "download client not found" {
-			utils.RespondNotFound(c, err, "Automation client not found")
+			responses.RespondNotFound(c, err, "Automation client not found")
 			return
 		}
-		utils.RespondInternalError(c, err, "Failed to delete download client")
+		responses.RespondInternalError(c, err, "Failed to delete download client")
 		return
 	}
 
-	utils.RespondOK(c, responses.EmptyResponse{Success: true}, "Automation client deleted successfully")
+	responses.RespondOK(c, responses.EmptyResponse{Success: true}, "Automation client deleted successfully")
 }
 
 // TestConnection godoc
@@ -297,7 +298,7 @@ func (h *AutomationClientHandler) TestConnection(c *gin.Context) {
 
 	userID, exists := c.Get("userID")
 	if !exists {
-		utils.RespondUnauthorized(c, nil, "Authentication required")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
 
@@ -309,7 +310,7 @@ func (h *AutomationClientHandler) TestConnection(c *gin.Context) {
 
 	var req requests.ClientTestRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.RespondValidationError(c, err)
+		responses.RespondValidationError(c, err)
 		return
 	}
 
@@ -320,9 +321,9 @@ func (h *AutomationClientHandler) TestConnection(c *gin.Context) {
 
 	result, err := h.service.TestClientConnection(ctx, req)
 	if err != nil {
-		utils.RespondInternalError(c, err, "Failed to test download client connection")
+		responses.RespondInternalError(c, err, "Failed to test download client connection")
 		return
 	}
 
-	utils.RespondOK(c, result, "Connection test completed")
+	responses.RespondOK(c, result, "Connection test completed")
 }

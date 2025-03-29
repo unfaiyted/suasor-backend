@@ -31,6 +31,34 @@ const (
 	AutomationClientTypeUnknown AutomationClientType = "unknown"
 )
 
+func (c MediaClientType) AsGenericClient() ClientType {
+	switch c {
+	case MediaClientTypePlex:
+		return ClientTypePlex
+	case MediaClientTypeJellyfin:
+		return ClientTypeJellyfin
+	case MediaClientTypeEmby:
+		return ClientTypeEmby
+	case MediaClientTypeSubsonic:
+		return ClientTypeSubsonic
+	default:
+		return ClientTypeUnknown
+	}
+}
+
+func (c AutomationClientType) AsGenericClient() ClientType {
+	switch c {
+	case AutomationClientTypeRadarr:
+		return ClientTypeRadarr
+	case AutomationClientTypeSonarr:
+		return ClientTypeSonarr
+	case AutomationClientTypeLidarr:
+		return ClientTypeLidarr
+	default:
+		return ClientTypeUnknown
+	}
+}
+
 type AIClientType string
 
 const (

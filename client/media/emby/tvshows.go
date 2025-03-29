@@ -12,8 +12,8 @@ import (
 	"suasor/utils"
 )
 
-// GetTVShows retrieves TV shows from the Emby server
-func (e *EmbyClient) GetTVShows(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[types.TVShow], error) {
+// GetSeriess retrieves TV shows from the Emby server
+func (e *EmbyClient) GetSeriess(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[types.Series], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -44,10 +44,10 @@ func (e *EmbyClient) GetTVShows(ctx context.Context, options *types.QueryOptions
 		Int("totalRecordCount", int(items.TotalRecordCount)).
 		Msg("Successfully retrieved TV shows from Emby")
 
-	shows := make([]models.MediaItem[types.TVShow], 0)
+	shows := make([]models.MediaItem[types.Series], 0)
 	for _, item := range items.Items {
 		if item.Type_ == "Series" {
-			show, err := e.convertToTVShow(&item)
+			show, err := e.convertToSeries(&item)
 			if err != nil {
 				log.Warn().
 					Err(err).
@@ -63,8 +63,8 @@ func (e *EmbyClient) GetTVShows(ctx context.Context, options *types.QueryOptions
 	return shows, nil
 }
 
-// GetTVShowByID retrieves a specific TV show by ID
-func (e *EmbyClient) GetTVShowByID(ctx context.Context, id string) (models.MediaItem[types.TVShow], error) {
+// GetSeriesByID retrieves a specific TV show by ID
+func (e *EmbyClient) GetSeriesByID(ctx context.Context, id string) (models.MediaItem[types.Series], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -86,7 +86,7 @@ func (e *EmbyClient) GetTVShowByID(ctx context.Context, id string) (models.Media
 			Str("apiEndpoint", "/Items").
 			Str("showID", id).
 			Msg("Failed to fetch TV show from Emby")
-		return models.MediaItem[types.TVShow]{}, fmt.Errorf("failed to fetch TV show: %w", err)
+		return models.MediaItem[types.Series]{}, fmt.Errorf("failed to fetch TV show: %w", err)
 	}
 
 	if len(items.Items) == 0 {
@@ -94,7 +94,7 @@ func (e *EmbyClient) GetTVShowByID(ctx context.Context, id string) (models.Media
 			Str("showID", id).
 			Int("statusCode", resp.StatusCode).
 			Msg("No TV show found with the specified ID")
-		return models.MediaItem[types.TVShow]{}, fmt.Errorf("TV show with ID %s not found", id)
+		return models.MediaItem[types.Series]{}, fmt.Errorf("TV show with ID %s not found", id)
 	}
 
 	item := items.Items[0]
@@ -103,14 +103,14 @@ func (e *EmbyClient) GetTVShowByID(ctx context.Context, id string) (models.Media
 			Str("showID", id).
 			Str("actualType", item.Type_).
 			Msg("Item with specified ID is not a TV show")
-		return models.MediaItem[types.TVShow]{}, fmt.Errorf("item with ID %s is not a TV show", id)
+		return models.MediaItem[types.Series]{}, fmt.Errorf("item with ID %s is not a TV show", id)
 	}
 
-	return e.convertToTVShow(&item)
+	return e.convertToSeries(&item)
 }
 
-// GetTVShowSeasons retrieves seasons for a TV show
-func (e *EmbyClient) GetTVShowSeasons(ctx context.Context, showID string) ([]models.MediaItem[types.Season], error) {
+// GetSeriesSeasons retrieves seasons for a TV show
+func (e *EmbyClient) GetSeriesSeasons(ctx context.Context, showID string) ([]models.MediaItem[types.Season], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -160,8 +160,8 @@ func (e *EmbyClient) GetTVShowSeasons(ctx context.Context, showID string) ([]mod
 	return seasons, nil
 }
 
-// GetTVShowEpisodes retrieves episodes for a season
-func (e *EmbyClient) GetTVShowEpisodes(ctx context.Context, showID string, seasonNumber int) ([]models.MediaItem[types.Episode], error) {
+// GetSeriesEpisodes retrieves episodes for a season
+func (e *EmbyClient) GetSeriesEpisodes(ctx context.Context, showID string, seasonNumber int) ([]models.MediaItem[types.Episode], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().

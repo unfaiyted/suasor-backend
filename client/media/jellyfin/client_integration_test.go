@@ -86,14 +86,14 @@ func TestJellyfinClientIntegration(t *testing.T) {
 		t.Log("Client does not support MovieProvider interface")
 	}
 
-	if tvProvider, ok := media.AsTVShowProvider(client); ok {
-		t.Run("TestTVShowProvider", func(t *testing.T) {
-			testGetTVShows(t, ctx, tvProvider)
-			testGetTVShowSeasons(t, ctx, tvProvider)
-			testGetTVShowEpisodes(t, ctx, tvProvider)
+	if tvProvider, ok := media.AsSeriesProvider(client); ok {
+		t.Run("TestSeriesProvider", func(t *testing.T) {
+			testGetSeries(t, ctx, tvProvider)
+			testGetSeriesSeasons(t, ctx, tvProvider)
+			testGetSeriesEpisodes(t, ctx, tvProvider)
 		})
 	} else {
-		t.Log("Client does not support TVShowProvider interface")
+		t.Log("Client does not support SeriesProvider interface")
 	}
 
 	if musicProvider, ok := media.AsMusicProvider(client); ok {
@@ -177,8 +177,8 @@ func testGetSpecificMovie(t *testing.T, ctx context.Context, client providers.Mo
 }
 
 // Test getting TV shows
-func testGetTVShows(t *testing.T, ctx context.Context, client providers.TVShowProvider) {
-	shows, err := client.GetTVShows(ctx, &types.QueryOptions{Limit: 5})
+func testGetSeries(t *testing.T, ctx context.Context, client providers.SeriesProvider) {
+	shows, err := client.GetSeries(ctx, &types.QueryOptions{Limit: 5})
 	require.NoError(t, err)
 
 	if len(shows) > 0 {
@@ -188,8 +188,8 @@ func testGetTVShows(t *testing.T, ctx context.Context, client providers.TVShowPr
 		assert.NotEmpty(t, show.Data.Details.Title)
 		assert.NotEmpty(t, show.Data.Details.Artwork.Poster, "Expected TV show to have a poster image")
 
-		// Test GetTVShowByID with the first show
-		showByID, err := client.GetTVShowByID(ctx, show.ExternalID)
+		// Test GetSeriesByID with the first show
+		showByID, err := client.GetSeriesByID(ctx, show.ExternalID)
 		require.NoError(t, err)
 		assert.Equal(t, show.ExternalID, showByID.ExternalID)
 	} else {
@@ -198,9 +198,9 @@ func testGetTVShows(t *testing.T, ctx context.Context, client providers.TVShowPr
 }
 
 // Test getting TV show seasons
-func testGetTVShowSeasons(t *testing.T, ctx context.Context, client providers.TVShowProvider) {
+func testGetSeriesSeasons(t *testing.T, ctx context.Context, client providers.SeriesProvider) {
 	// Get a TV show first
-	shows, err := client.GetTVShows(ctx, &types.QueryOptions{Limit: 1})
+	shows, err := client.GetSeries(ctx, &types.QueryOptions{Limit: 1})
 	if err != nil || len(shows) == 0 {
 		t.Skip("No TV shows available to test seasons")
 	}
@@ -208,7 +208,7 @@ func testGetTVShowSeasons(t *testing.T, ctx context.Context, client providers.TV
 	showID := shows[0].ExternalID
 
 	// Get seasons for the show
-	seasons, err := client.GetTVShowSeasons(ctx, showID)
+	seasons, err := client.GetSeriesSeasons(ctx, showID)
 	require.NoError(t, err)
 
 	if len(seasons) > 0 {
@@ -223,9 +223,9 @@ func testGetTVShowSeasons(t *testing.T, ctx context.Context, client providers.TV
 }
 
 // Test getting TV show episodes
-func testGetTVShowEpisodes(t *testing.T, ctx context.Context, client providers.TVShowProvider) {
+func testGetSeriesEpisodes(t *testing.T, ctx context.Context, client providers.SeriesProvider) {
 	// Get a TV show first
-	shows, err := client.GetTVShows(ctx, &types.QueryOptions{Limit: 1})
+	shows, err := client.GetSeries(ctx, &types.QueryOptions{Limit: 1})
 	if err != nil || len(shows) == 0 {
 		t.Skip("No TV shows available to test episodes")
 	}
@@ -233,13 +233,13 @@ func testGetTVShowEpisodes(t *testing.T, ctx context.Context, client providers.T
 	showID := shows[0].ExternalID
 
 	// Get seasons
-	seasons, err := client.GetTVShowSeasons(ctx, showID)
+	seasons, err := client.GetSeriesSeasons(ctx, showID)
 	if err != nil || len(seasons) == 0 {
 		t.Skip("No seasons available to test episodes")
 	}
 
 	// Get episodes for the first season
-	episodes, err := client.GetTVShowEpisodes(ctx, showID, seasons[0].Data.Number)
+	episodes, err := client.GetSeriesEpisodes(ctx, showID, seasons[0].Data.Number)
 	require.NoError(t, err)
 
 	if len(episodes) > 0 {

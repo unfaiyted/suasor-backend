@@ -20,7 +20,9 @@ type AutomationClientRequest[T types.AutomationClientConfig] struct {
 
 // ClientRequest is used for creating/updating a media client
 type ClientRequest[T types.ClientConfig] struct {
-	Name       string            `json:"name" binding:"required"`
+	Name     string `json:"name" binding:"required"`
+	ClientID uint64 `json:"clientID"`
+
 	ClientType client.ClientType `json:"clientType" binding:"required,oneof=automation media ai"`
 	Client     T                 `json:"client" gorm:"serializer:json"`
 }

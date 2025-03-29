@@ -80,8 +80,8 @@ func (ratings *Ratings) AddOrUpdateRating(source string, value float32, votes in
 	*ratings = append(*ratings, Rating{Source: source, Value: value, Votes: votes})
 }
 
-// MediaMetadata contains common metadata fields for all media types
-type MediaMetadata struct {
+// MediaDetails contains common metadata fields for all media types
+type MediaDetails struct {
 	Title         string        `json:"title"`
 	Description   string        `json:"description,omitempty"`
 	ReleaseDate   time.Time     `json:"releaseDate,omitempty"`
@@ -113,12 +113,21 @@ const (
 	MEDIATYPE_COLLECTION MediaType = "collection"
 )
 
-// QueryOptions provides parameters for filtering and pagination
+type SortOrder string
+
+const (
+	SortOrderAsc  SortOrder = "asc"
+	SortOrderDesc SortOrder = "desc"
+	SortOrderNone SortOrder = ""
+)
+
+// Quer}yOptions provides parameters for filtering and pagination
 type QueryOptions struct {
 	Limit                int               `json:"limit,omitempty"`
 	Offset               int               `json:"offset,omitempty"`
 	Sort                 string            `json:"sort,omitempty"`
-	SortOrder            string            `json:"sortOrder,omitempty"` // "asc" or "desc"
+	SortOrder            SortOrder         `json:"sortOrder,omitempty"` // "asc" or "desc"
 	Filters              map[string]string `json:"filters,omitempty"`
+	Query                string            `json:"query,omitempty"`
 	IncludeWatchProgress bool              `json:"includeWatchProgress,omitempty"`
 }

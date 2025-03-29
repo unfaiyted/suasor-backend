@@ -6,7 +6,7 @@ import (
 
 // MusicArtist represents a music artist
 type Artist struct {
-	Details        MediaMetadata
+	Details        MediaDetails
 	Albums         []string `json:"albumIDs,omitempty"`
 	AlbumCount     int      `json:"albumCount"`
 	Biography      string   `json:"biography,omitempty"`
@@ -15,7 +15,7 @@ type Artist struct {
 
 // MusicAlbum represents a music album
 type Album struct {
-	Details    MediaMetadata
+	Details    MediaDetails
 	ArtistID   string `json:"artistID"`
 	ArtistName string `json:"artistName"`
 	TrackCount int    `json:"trackCount"`
@@ -23,7 +23,7 @@ type Album struct {
 
 // MusicTrack represents a music track
 type Track struct {
-	Details    MediaMetadata
+	Details    MediaDetails
 	AlbumID    string `json:"albumID"`
 	ArtistID   string `json:"artistID"`
 	AlbumName  string `json:"albumName"`
@@ -38,7 +38,7 @@ type Track struct {
 
 // Season represents a TV season
 type Season struct {
-	Details      MediaMetadata
+	Details      MediaDetails
 	Number       int       `json:"seasonNumber"`
 	Title        string    `json:"title,omitempty"`
 	Overview     string    `json:"overview,omitempty"`
@@ -51,7 +51,7 @@ type Season struct {
 
 // Episode represents a TV episode
 type Episode struct {
-	Details      MediaMetadata
+	Details      MediaDetails
 	Number       int64  `json:"number"`
 	ShowID       string `json:"showID"`
 	SeasonID     string `json:"seasonID"`
@@ -59,9 +59,9 @@ type Episode struct {
 	ShowTitle    string `json:"showTitle,omitempty"`
 }
 
-// TVShow represents a TV series
-type TVShow struct {
-	Details       MediaMetadata
+// Series represents a TV series
+type Series struct {
+	Details       MediaDetails
 	Seasons       []Season `json:"seasons,omitempty"`
 	EpisodeCount  int      `json:"episodeCount"`
 	SeasonCount   int      `json:"seasonCount"`
@@ -75,7 +75,7 @@ type TVShow struct {
 
 // Collection represents a collection of media items
 type Collection struct {
-	Details        MediaMetadata
+	Details        MediaDetails
 	ItemIDs        []string `json:"itemIDs"`
 	ItemCount      int      `json:"itemCount"`
 	CollectionType string   `json:"collectionType"` // e.g., "movie", "tvshow"
@@ -83,7 +83,7 @@ type Collection struct {
 
 // Playlist represents a user-created playlist of media items
 type Playlist struct {
-	Details   MediaMetadata
+	Details   MediaDetails
 	ItemIDs   []string `json:"itemIDs"`
 	ItemCount int      `json:"itemCount"`
 	Owner     string   `json:"owner,omitempty"`
@@ -92,7 +92,7 @@ type Playlist struct {
 
 // Movie represents a movie item
 type Movie struct {
-	Details      MediaMetadata
+	Details      MediaDetails
 	Cast         []Person `json:"cast,omitempty"`
 	Crew         []Person `json:"crew,omitempty"`
 	TrailerURL   string   `json:"trailerUrl,omitempty"`
@@ -121,12 +121,12 @@ type Person struct {
 
 type MediaData interface {
 	isMediaData()
-	GetDetails() MediaMetadata
+	GetDetails() MediaDetails
 	GetMediaType() MediaType
 }
 
 func (Movie) isMediaData()      {}
-func (TVShow) isMediaData()     {}
+func (Series) isMediaData()     {}
 func (Episode) isMediaData()    {}
 func (Track) isMediaData()      {}
 func (Artist) isMediaData()     {}
@@ -135,30 +135,30 @@ func (Season) isMediaData()     {}
 func (Collection) isMediaData() {}
 func (Playlist) isMediaData()   {}
 
-func (t Track) GetDetails() MediaMetadata { return t.Details }
-func (t Track) GetMediaType() MediaType   { return MEDIATYPE_TRACK }
+func (t Track) GetDetails() MediaDetails { return t.Details }
+func (t Track) GetMediaType() MediaType  { return MEDIATYPE_TRACK }
 
-func (a Album) GetDetails() MediaMetadata { return a.Details }
-func (a Album) GetMediaType() MediaType   { return MEDIATYPE_ALBUM }
+func (a Album) GetDetails() MediaDetails { return a.Details }
+func (a Album) GetMediaType() MediaType  { return MEDIATYPE_ALBUM }
 
-func (a Artist) GetDetails() MediaMetadata { return a.Details }
-func (a Artist) GetMediaType() MediaType   { return MEDIATYPE_ARTIST }
+func (a Artist) GetDetails() MediaDetails { return a.Details }
+func (a Artist) GetMediaType() MediaType  { return MEDIATYPE_ARTIST }
 
 // Then in each media type
-func (m Movie) GetDetails() MediaMetadata { return m.Details }
-func (m Movie) GetMediaType() MediaType   { return MEDIATYPE_MOVIE }
+func (m Movie) GetDetails() MediaDetails { return m.Details }
+func (m Movie) GetMediaType() MediaType  { return MEDIATYPE_MOVIE }
 
-func (c Collection) GetDetails() MediaMetadata { return c.Details }
-func (c Collection) GetMediaType() MediaType   { return MEDIATYPE_COLLECTION }
+func (c Collection) GetDetails() MediaDetails { return c.Details }
+func (c Collection) GetMediaType() MediaType  { return MEDIATYPE_COLLECTION }
 
-func (p Playlist) GetDetails() MediaMetadata { return p.Details }
-func (p Playlist) GetMediaType() MediaType   { return MEDIATYPE_PLAYLIST }
+func (p Playlist) GetDetails() MediaDetails { return p.Details }
+func (p Playlist) GetMediaType() MediaType  { return MEDIATYPE_PLAYLIST }
 
-func (t TVShow) GetDetails() MediaMetadata { return t.Details }
-func (t TVShow) GetMediaType() MediaType   { return MEDIATYPE_SHOW }
+func (t Series) GetDetails() MediaDetails { return t.Details }
+func (t Series) GetMediaType() MediaType  { return MEDIATYPE_SHOW }
 
-func (s Season) GetDetails() MediaMetadata { return s.Details }
-func (s Season) GetMediaType() MediaType   { return MEDIATYPE_SEASON }
+func (s Season) GetDetails() MediaDetails { return s.Details }
+func (s Season) GetMediaType() MediaType  { return MEDIATYPE_SEASON }
 
-func (e Episode) GetDetails() MediaMetadata { return e.Details }
-func (e Episode) GetMediaType() MediaType   { return MEDIATYPE_EPISODE }
+func (e Episode) GetDetails() MediaDetails { return e.Details }
+func (e Episode) GetMediaType() MediaType  { return MEDIATYPE_EPISODE }

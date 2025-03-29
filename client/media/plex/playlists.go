@@ -53,7 +53,7 @@ func (c *PlexClient) GetPlaylists(ctx context.Context, options *types.QueryOptio
 		playlist := models.MediaItem[types.Playlist]{
 			ExternalID: *item.RatingKey,
 			Data: types.Playlist{
-				Details: types.MediaMetadata{
+				Details: types.MediaDetails{
 					Description: *item.Summary,
 					Title:       *item.Title,
 					Artwork:     types.Artwork{

@@ -266,7 +266,17 @@ func (h *ClientHandler[T]) UpdateClient(c *gin.Context) {
 		Str("type", string(req.ClientType)).
 		Msg("Updating media client")
 
-	client, err := h.service.Update(ctx, req.Client)
+	client := models.Client[T]{
+		BaseModel: models.BaseModel{
+			ID: clientID,
+		},
+		UserID:   uid,
+		Name:     req.Name,
+		Category: req.ClientType.AsCategory(),
+		Config:   models.ClientConfigWrapper[T]{Data: req.Client},
+	}
+
+	updatedClient, err := h.service.Update(ctx, client)
 	if err != nil {
 		// Check if it's a not found error
 		if err.Error() == "media client not found" {
@@ -277,7 +287,7 @@ func (h *ClientHandler[T]) UpdateClient(c *gin.Context) {
 		return
 	}
 
-	responses.RespondOK(c, client, "Media client updated successfully")
+	responses.RespondOK(c, updatedClient, "Media client updated successfully")
 }
 
 // DeleteClient godoc

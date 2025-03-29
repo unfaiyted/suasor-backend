@@ -36,7 +36,7 @@ func (c *SubsonicClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 		playlist := models.MediaItem[t.Playlist]{
 			Type: "playlist",
 			Data: t.Playlist{
-				Details: t.MediaMetadata{
+				Details: t.MediaDetails{
 					Title:       pl.Name,
 					Description: pl.Comment,
 					Duration:    time.Duration(pl.Duration) * time.Second,

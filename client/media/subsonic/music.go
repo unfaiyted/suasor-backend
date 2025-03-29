@@ -88,7 +88,7 @@ func (c *SubsonicClient) GetMusicArtists(ctx context.Context, options *t.QueryOp
 			musicArtist := models.MediaItem[t.Artist]{
 				Type: "artist",
 				Data: t.Artist{
-					Details: t.MediaMetadata{
+					Details: t.MediaDetails{
 						Title: artist.Name,
 					},
 				},
@@ -192,7 +192,7 @@ func (c *SubsonicClient) GetMusicAlbums(ctx context.Context, options *t.QueryOpt
 		musicAlbum := models.MediaItem[t.Album]{
 			Type: "album",
 			Data: t.Album{
-				Details: t.MediaMetadata{
+				Details: t.MediaDetails{
 					Title:       album.Name,
 					ReleaseYear: album.Year,
 					Duration:    time.Duration(album.Duration) * time.Second,

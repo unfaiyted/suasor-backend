@@ -85,12 +85,12 @@ func TestPlexClientIntegration(t *testing.T) {
 		t.Log("Client does not support MovieProvider interface")
 	}
 
-	if tvProvider, ok := media.AsTVShowProvider(client); ok {
-		t.Run("TestTVShowProvider", func(t *testing.T) {
-			testTVShowProvider(t, ctx, tvProvider)
+	if tvProvider, ok := media.AsSeriesProvider(client); ok {
+		t.Run("TestSeriesProvider", func(t *testing.T) {
+			testSeriesProvider(t, ctx, tvProvider)
 		})
 	} else {
-		t.Log("Client does not support TVShowProvider interface")
+		t.Log("Client does not support SeriesProvider interface")
 	}
 
 	if musicProvider, ok := media.AsMusicProvider(client); ok {
@@ -169,10 +169,10 @@ func testMovieProvider(t *testing.T, ctx context.Context, provider providers.Mov
 }
 
 // Test TV show functionality
-func testTVShowProvider(t *testing.T, ctx context.Context, provider providers.TVShowProvider) {
+func testSeriesProvider(t *testing.T, ctx context.Context, provider providers.SeriesProvider) {
 	// Test getting TV shows
-	t.Run("TestGetTVShows", func(t *testing.T) {
-		shows, err := provider.GetTVShows(ctx, &types.QueryOptions{Limit: 5})
+	t.Run("TestGetSeries", func(t *testing.T) {
+		shows, err := provider.GetSeries(ctx, &types.QueryOptions{Limit: 5})
 		require.NoError(t, err)
 
 		if len(shows) > 0 {
@@ -185,22 +185,22 @@ func testTVShowProvider(t *testing.T, ctx context.Context, provider providers.TV
 			// Test getting a specific TV show
 			showID := show.ExternalID
 
-			// We need to use type assertion here because GetTVShowByID isn't in the TVShowProvider interface
+			// We need to use type assertion here because GetSeriesByID isn't in the SeriesProvider interface
 			// This is a good example of where your interface design is beneficial - we only test what's explicitly supported
 			fullClient, ok := provider.(interface {
-				GetTVShowByID(ctx context.Context, id string) (models.MediaItem[types.TVShow], error)
+				GetSeriesByID(ctx context.Context, id string) (models.MediaItem[types.Series], error)
 			})
 
 			if ok {
-				showByID, err := fullClient.GetTVShowByID(ctx, showID)
+				showByID, err := fullClient.GetSeriesByID(ctx, showID)
 				require.NoError(t, err)
 				assert.Equal(t, showID, showByID.ExternalID)
 			} else {
-				t.Log("Provider doesn't support GetTVShowByID")
+				t.Log("Provider doesn't support GetSeriesByID")
 			}
 
 			// Test getting seasons
-			testTVShowSeasons(t, ctx, provider, showID)
+			testSeriesSeasons(t, ctx, provider, showID)
 		} else {
 			t.Log("No TV shows found in library to test")
 		}
@@ -208,9 +208,9 @@ func testTVShowProvider(t *testing.T, ctx context.Context, provider providers.TV
 }
 
 // Test TV show seasons and episodes
-func testTVShowSeasons(t *testing.T, ctx context.Context, provider providers.TVShowProvider, showID string) {
+func testSeriesSeasons(t *testing.T, ctx context.Context, provider providers.SeriesProvider, showID string) {
 	// Get seasons for the show
-	seasons, err := provider.GetTVShowSeasons(ctx, showID)
+	seasons, err := provider.GetSeriesSeasons(ctx, showID)
 	require.NoError(t, err)
 
 	if len(seasons) > 0 {
@@ -221,7 +221,7 @@ func testTVShowSeasons(t *testing.T, ctx context.Context, provider providers.TVS
 		assert.Greater(t, season.Data.Number, 0, "Season number should be greater than 0")
 
 		// Test getting episodes for a season
-		episodes, err := provider.GetTVShowEpisodes(ctx, showID, season.Data.Number)
+		episodes, err := provider.GetSeriesEpisodes(ctx, showID, season.Data.Number)
 		require.NoError(t, err)
 
 		if len(episodes) > 0 {
