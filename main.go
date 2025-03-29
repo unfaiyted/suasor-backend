@@ -1,12 +1,13 @@
-package project
+package main
 
 import (
 	"context"
 	"suasor/database"
-	"suasor/middleware"
 	"suasor/repository"
 	"suasor/router"
+	"suasor/router/middleware"
 	"suasor/services"
+	"suasor/types"
 	logger "suasor/utils"
 
 	_ "suasor/docs"
@@ -45,7 +46,7 @@ func main() {
 
 	appConfig := configService.GetConfig()
 
-	dbConfig := database.Config{
+	dbConfig := types.DatabaseConfig{
 		Host:     appConfig.Db.Host,
 		User:     appConfig.Db.User,
 		Password: appConfig.Db.Password,

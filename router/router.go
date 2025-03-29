@@ -64,6 +64,7 @@ func Setup(ctx context.Context, db *gorm.DB, configService services.ConfigServic
 		RegisterUserRoutes(authenticated, userService)
 		RegisterUserConfigRoutes(authenticated, userConfigService)
 		RegisterClientRoutes(authenticated, db)
+		RegisterMediaItemRoutes(authenticated, db)
 	}
 
 	//Admin Routes

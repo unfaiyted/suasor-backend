@@ -23,3 +23,14 @@ type AutomationMediaUpdateRequest struct {
 	Tags              []int64
 	Monitored         bool
 }
+
+// CreateTagRequest represents a request to create a tag in an automation client
+type AutomationCreateTagRequest struct {
+	Name string `json:"name" binding:"required"`
+}
+
+// ExecuteCommandRequest represents a request to execute a command in an automation client
+type AutomationExecuteCommandRequest struct {
+	Command    string                 `json:"command" binding:"required"`
+	Parameters map[string]interface{} `json:"parameters"`
+}

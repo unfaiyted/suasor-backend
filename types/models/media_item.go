@@ -24,6 +24,10 @@ type MediaItem[T types.MediaData] struct {
 	UpdatedAt   time.Time              `json:"updatedAt" gorm:"autoUpdateTime"`
 }
 
+func (MediaItem[T]) TableName() string {
+	return "mediaItems"
+}
+
 // Custom serialization for GORM and JSON
 
 // Value implements driver.Valuer for database storage

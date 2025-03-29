@@ -30,7 +30,7 @@ func RegisterMediaItemRoutes(r *gin.RouterGroup, db *gorm.DB) {
 		mediaItem.DELETE("/:id", mediaItemHandler.DeleteMediaItem)
 		mediaItem.GET("/search", mediaItemHandler.SearchMediaItems)
 		mediaItem.GET("/recent", mediaItemHandler.GetRecentMediaItems)
-		mediaItem.GET("/:clientId", mediaItemHandler.GetMediaItemsByClient)
+		mediaItem.GET("/client/:clientId", mediaItemHandler.GetMediaItemsByClient)
 		//mediaItem.GET("/:clientId/search", mediaItemHandler.SearchMediaItemsByClient)
 	}
 
