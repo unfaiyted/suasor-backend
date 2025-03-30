@@ -1,24 +1,46 @@
 package types
 
+import "encoding/json"
+
 // @Description Jellyfin media server configuration
 type JellyfinConfig struct {
-	Enabled  bool            `json:"enabled" mapstructure:"enabled" example:"false"`
-	BaseURL  string          `json:"baseURL" mapstructure:"host" example:"http://localhost:8096" binding:"required_if=Enabled true"`
-	APIKey   string          `json:"apiKey" mapstructure:"apiKey" example:"your-api-key" binding:"required_if=Enabled true"`
-	Username string          `json:"username" mapstructure:"username" example:"admin"`
-	UserID   string          `json:"userID,omitempty" mapstructure:"userID" example:"your-internal-user-id"`
-	SSL      bool            `json:"ssl" mapstructure:"ssl" example:"false"`
-	Type     MediaClientType `json:"type" mapstructure:"type" default:"jellyfin"`
+	BaseMediaClientConfig
+	UserID   string `json:"userID,omitempty" mapstructure:"userID" example:"your-internal-user-id"`
+	Username string `json:"username" mapstructure:"username" example:"admin"`
+}
+
+// func (c *JellyfinConfig) GetName() string {
+// 	return c.Name
+// }
+
+func (c *JellyfinConfig) UnmarshalJSON(data []byte) error {
+	// Create a temporary type to avoid recursion
+	type Alias JellyfinConfig
+	aux := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(c),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	// Ensure Type is always the correct constant
+	c.Type = MediaClientTypeJellyfin
+	return nil
 }
 
 func NewJellyfinConfig() JellyfinConfig {
 	return JellyfinConfig{
-		Type: MediaClientTypeJellyfin,
+		BaseMediaClientConfig: BaseMediaClientConfig{
+			BaseClientConfig: BaseClientConfig{
+				Type: ClientTypeJellyfin,
+			},
+			Type: MediaClientTypeJellyfin,
+		},
 	}
 }
-
-func (JellyfinConfig) isMediaClientConfig() {}
-func (JellyfinConfig) isClientConfig()      {}
 
 func (JellyfinConfig) GetClientType() MediaClientType {
 	return MediaClientTypeJellyfin
@@ -45,4 +67,8 @@ func (JellyfinConfig) SupportsCollections() bool {
 }
 func (JellyfinConfig) SupportsHistory() bool {
 	return true
+}
+
+func (j *JellyfinConfig) GetBaseURL() string {
+	return j.BaseURL
 }

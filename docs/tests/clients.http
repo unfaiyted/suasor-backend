@@ -1,0 +1,141 @@
+###
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "testpassword"
+}
+
+### Validate session
+GET http://localhost:8080/api/v1/auth/validate
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+
+# @name createEmbyClient
+POST http://localhost:8080/api/v1/client/emby
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Emby",
+  "clientType": "emby",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "http://192.168.1.100:8096",
+    "apiKey": "your-emby-apikey",
+    "username": "admin",
+    "ssl": false
+  }
+}
+
+
+###  "userID": "{{login.response.body.$.data.user.id}}",
+###
+# @name createJellyfinClient
+POST http://localhost:8080/api/v1/client/jellyfin
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Jellyfin",
+  "clientType": "jellyfin",
+  "client": {
+    "enabled": true,
+    "baseURL": "http://192.168.1.101:9097",
+    "apiKey": "your-jellyfin-apikey",
+    "username": "admin",
+    "ssl": false
+  }
+}
+
+###
+# @name createLidarrClient
+POST http://localhost:8080/api/v1/client/lidarr
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Lidarr",
+  "clientType": "lidarr",
+  "client": {
+    "baseURL": "http://192.168.1.102:8686",
+    "apiKey": "your-lidarr-apikey",
+    "username": "admin",
+    "ssl": false
+  }
+}
+
+
+###  "userID": "{{login.response.body.$.data.user.id}}",
+###
+# @name createRadarrClient
+POST http://localhost:8080/api/v1/client/radarr
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Radarr",
+  "clientType": "radarr",
+  "client": {
+    "baseURL": "http://192.168.1.103:7878",
+    "apiKey": "your-radarr-apikey",
+    "username": "admin",
+    "ssl": false
+  }
+}
+
+###
+# @name createSonarrClient
+POST http://localhost:8080/api/v1/client/sonarr
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Sonarr",
+  "clientType": "sonarr",
+  "client": {
+    "baseURL": "http://192.168.1.104:8989",
+    "apiKey": "your-sonarr-apikey",
+    "username": "admin",
+    "ssl": false
+  }
+}
+
+###
+# @name createSubsonicClient
+POST http://localhost:8080/api/v1/client/subsonic
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Subsonic",
+  "clientType": "subsonic",
+  "client": {
+    "host": "192.168.1.105",
+    "port": 4533,
+    "username": "admin",
+    "password": "your-password",
+    "ssl": false
+  }
+}
+
+###
+# @name createEmbyClient
+POST http://localhost:8080/api/v1/client/emby
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Emby",
+  "clientType": "emby",
+  "client": {
+    "baseURL": "http://192.168.1.100:8096",
+    "apiKey": "your-emby-apikey",
+    "username": "admin",
+    "ssl": false
+  }
+}

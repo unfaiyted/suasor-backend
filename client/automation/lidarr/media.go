@@ -21,7 +21,6 @@ func (l *LidarrClient) GetLibraryItems(ctx context.Context, options *types.Libra
 	log.Info().
 		Uint64("clientID", l.ClientID).
 		Str("clientType", string(l.ClientType)).
-		Str("baseURL", l.config.BaseURL).
 		Msg("Retrieving library items from Lidarr server")
 
 	// Call the Lidarr API
@@ -31,7 +30,6 @@ func (l *LidarrClient) GetLibraryItems(ctx context.Context, options *types.Libra
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", l.config.BaseURL).
 			Str("apiEndpoint", "/artist").
 			Int("statusCode", 0).
 			Msg("Failed to fetch artists from Lidarr")
@@ -99,7 +97,6 @@ func (l *LidarrClient) GetMediaByID(ctx context.Context, id int64) (models.Autom
 		Uint64("clientID", l.ClientID).
 		Str("clientType", string(l.ClientType)).
 		Int64("artistID", id).
-		Str("baseURL", l.config.BaseURL).
 		Msg("Retrieving specific artist from Lidarr server")
 
 	// Call the Lidarr API
@@ -111,7 +108,6 @@ func (l *LidarrClient) GetMediaByID(ctx context.Context, id int64) (models.Autom
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", l.config.BaseURL).
 			Str("apiEndpoint", fmt.Sprintf("/artist/%d", id)).
 			Int("statusCode", 0).
 			Msg("Failed to fetch artist from Lidarr")
@@ -168,7 +164,6 @@ func (l *LidarrClient) AddMedia(ctx context.Context, req requests.AutomationMedi
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", l.config.BaseURL).
 			Str("title", req.Title).
 			Msg("Failed to add artist to Lidarr")
 		return models.AutomationMediaItem[types.AutomationData]{}, fmt.Errorf("failed to add artist: %w", err)

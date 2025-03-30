@@ -39,7 +39,12 @@ func (r *clientRepository[T]) Create(ctx context.Context, client models.Client[T
 		clientType := client.GetConfig()
 		return nil, fmt.Errorf("failed to create %s client: %w", clientType, err)
 	}
-	return &client, nil
+
+	updatedClient, err := r.GetByID(ctx, client.ID, client.UserID)
+	if err != nil {
+		return nil, err
+	}
+	return updatedClient, nil
 
 }
 

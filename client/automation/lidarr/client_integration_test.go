@@ -57,9 +57,15 @@ func TestLidarrClientIntegration(t *testing.T) {
 	}
 
 	// Create client configuration
-	config := types.JellyfinConfig{
-		BaseURL: baseURL,
-		APIKey:  apiKey,
+	config := types.LidarrConfig{
+		BaseAutomationClientConfig: types.BaseAutomationClientConfig{
+			BaseClientConfig: types.BaseClientConfig{
+				Type: types.ClientTypeLidarr,
+			},
+			BaseURL: baseURL,
+			APIKey:  apiKey,
+			Type:    types.AutomationClientTypeLidarr,
+		},
 	}
 
 	logger.Initialize()

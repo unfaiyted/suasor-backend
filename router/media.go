@@ -2,12 +2,21 @@ package router
 
 import (
 	"suasor/handlers"
+	"suasor/repository"
 	"suasor/services"
 
+	"suasor/client"
+	"suasor/client/types"
+
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func RegisterMediaClientRoutes(rg *gin.RouterGroup, movieService services.MediaClientMovieService) {
+func RegisterMediaClientRoutes(rg *gin.RouterGroup, db *gorm.DB) {
+
+	clientRepo := repository.NewClientRepository[types.MediaClientConfig](db)
+	clientFactory := client.NewClientFactoryService()
+	movieService := services.NewMediaClientMovieService(clientRepo, *clientFactory)
 	movieHandlers := handlers.NewMediaClientMovieHandler(movieService)
 
 	client := rg.Group("/client")

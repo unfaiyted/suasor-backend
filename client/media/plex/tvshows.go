@@ -21,7 +21,6 @@ func (c *PlexClient) GetSeries(ctx context.Context, options *types.QueryOptions)
 	log.Info().
 		Uint64("clientID", c.ClientID).
 		Str("clientType", string(c.ClientType)).
-		Str("baseURL", c.baseURL).
 		Msg("Retrieving TV shows from Plex server")
 
 	// First, find the TV show library section
@@ -144,7 +143,6 @@ func (c *PlexClient) GetSeriesSeasons(ctx context.Context, showID string) ([]mod
 		Uint64("clientID", c.ClientID).
 		Str("clientType", string(c.ClientType)).
 		Str("showID", showID).
-		Str("baseURL", c.baseURL).
 		Msg("Retrieving seasons for TV show from Plex server")
 
 	ratingKey, _ := strconv.Atoi(showID)
@@ -241,7 +239,6 @@ func (c *PlexClient) GetSeriesEpisodes(ctx context.Context, showID string, seaso
 		Str("clientType", string(c.ClientType)).
 		Str("showID", showID).
 		Int("seasonNumber", seasonNumber).
-		Str("baseURL", c.baseURL).
 		Msg("Retrieving episodes for TV show season from Plex server")
 
 	// First get all seasons
@@ -386,7 +383,6 @@ func (c *PlexClient) GetSeriesByID(ctx context.Context, id string) (models.Media
 		Uint64("clientID", c.ClientID).
 		Str("clientType", string(c.ClientType)).
 		Str("showID", id).
-		Str("baseURL", c.baseURL).
 		Msg("Retrieving specific TV show from Plex server")
 
 	ratingKey, _ := strconv.Atoi(id)

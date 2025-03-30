@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"suasor/client/types"
 	"suasor/utils"
 )
 
@@ -13,11 +14,13 @@ func (c *PlexClient) makeFullURL(resourcePath string) string {
 		return ""
 	}
 
+	plexConfig := c.Config.(*types.PlexConfig)
+
 	if strings.HasPrefix(resourcePath, "http") {
 		return resourcePath
 	}
 
-	return fmt.Sprintf("%s%s", c.baseURL, resourcePath)
+	return fmt.Sprintf("%s%s", plexConfig.BaseURL, resourcePath)
 }
 
 // findLibrarySectionByType returns the section key for the specified type

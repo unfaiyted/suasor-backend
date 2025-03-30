@@ -54,14 +54,14 @@ func Initialize(dbConfig types.DatabaseConfig) (*gorm.DB, error) {
 		&models.User{},
 		&models.UserConfig{},
 
-		&models.Client[client.EmbyConfig]{},
-		&models.Client[client.JellyfinConfig]{},
-		&models.Client[client.PlexConfig]{},
-		&models.Client[client.SubsonicConfig]{},
+		&models.Client[*client.EmbyConfig]{},
+		&models.Client[*client.JellyfinConfig]{},
+		&models.Client[*client.PlexConfig]{},
+		&models.Client[*client.SubsonicConfig]{},
 
-		&models.Client[client.LidarrConfig]{},
-		&models.Client[client.RadarrConfig]{},
-		&models.Client[client.SonarrConfig]{},
+		&models.Client[*client.LidarrConfig]{},
+		&models.Client[*client.RadarrConfig]{},
+		&models.Client[*client.SonarrConfig]{},
 
 		&models.MediaItem[media.Movie]{},
 		&models.MediaItem[media.Series]{},

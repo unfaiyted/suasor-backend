@@ -1,0 +1,40 @@
+###
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "testpassword"
+}
+
+###
+
+# @name checkHealth
+GET http://localhost:8080/api/v1/health
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name createClientEmby
+POST http://localhost:8080/api/v1/client/emby
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Emby",
+  "clientType": "emby",
+  "client": {
+    "baseURL": "http://192.168.1.100:8096",
+    "apiKey": "your-emby-apikey",
+    "username": "admin",
+    "ssl": false
+  }
+}
+
+
+###
+# @name GetMovieByID
+GET http://localhost:8080/api/v1/client/movie/1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

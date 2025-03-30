@@ -17,25 +17,20 @@ import (
 // EmbyClient implements the MediaContentProvider interface
 type EmbyClient struct {
 	media.BaseMediaClient
-	clientType config.MediaClientType
-	client     *embyclient.APIClient
-	config     *config.EmbyConfig
+	client *embyclient.APIClient
+	config *config.EmbyConfig
 }
 
 // NewEmbyClient creates a new Emby client instance
-func NewEmbyClient(ctx context.Context, clientID uint64, cfg config.ClientConfig) (media.MediaClient, error) {
-	embyConfig, ok := cfg.(config.EmbyConfig)
-	if !ok {
-		return nil, fmt.Errorf("invalid configuration for Emby client")
-	}
+func NewEmbyClient(ctx context.Context, clientID uint64, cfg config.EmbyConfig) (media.MediaClient, error) {
 
 	// Create API client configuration
 	apiConfig := embyclient.NewConfiguration()
-	apiConfig.BasePath = embyConfig.BaseURL
+	apiConfig.BasePath = cfg.BaseURL
 
 	// Set up API key in default headers
 	apiConfig.DefaultHeader = map[string]string{
-		"X-Emby-Token": embyConfig.APIKey,
+		"X-Emby-Token": cfg.APIKey,
 	}
 
 	client := embyclient.NewAPIClient(apiConfig)
@@ -44,22 +39,21 @@ func NewEmbyClient(ctx context.Context, clientID uint64, cfg config.ClientConfig
 		BaseMediaClient: media.BaseMediaClient{
 			BaseClient: base.BaseClient{
 				ClientID: clientID,
-				Category: config.MediaClientTypeEmby.AsCategory(),
+				Category: config.ClientTypeEmby.AsCategory(),
+				Type:     config.ClientTypeEmby,
+				Config:   &cfg,
 			},
-			ClientType: config.MediaClientTypeEmby,
 		},
 		client: client,
-		config: &embyConfig,
 	}
-
 	// Resolve user ID if username is provided
-	if embyConfig.Username != "" && embyConfig.UserID == "" {
+	if cfg.Username != "" && cfg.UserID == "" {
 		if err := embyClient.resolveUserID(ctx); err != nil {
 			// Log but don't fail - some operations might work without a user ID
 			log := utils.LoggerFromContext(ctx)
 			log.Warn().
 				Err(err).
-				Str("username", embyConfig.Username).
+				Str("username", cfg.Username).
 				Msg("Failed to resolve Emby user ID, some operations may be limited")
 		}
 	}

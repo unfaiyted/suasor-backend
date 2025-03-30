@@ -1,24 +1,36 @@
 package types
 
+import "encoding/json"
+
 // @Description Emby media server configuration
 type EmbyConfig struct {
-	Enabled  bool            `json:"enabled" mapstructure:"enabled" example:"false"`
-	BaseURL  string          `json:"baseURL" mapstructure:"baseURL" example:"http://localhost:8096"`
-	APIKey   string          `json:"apiKey" mapstructure:"apiKey" example:"your-api-key" binding:"required_if=Enabled true"`
-	Username string          `json:"username" mapstructure:"username" example:"admin"`
-	UserID   string          `json:"userID,omitempty" mapstructure:"userID" example:"your-internal-user-id"`
-	SSL      bool            `json:"ssl" mapstructure:"ssl" example:"false"`
-	Type     MediaClientType `json:"type" mapstructure:"type" default:"emby"`
+	BaseMediaClientConfig
+	UserID   string `json:"userID,omitempty" mapstructure:"userID" example:"your-internal-user-id"`
+	Username string `json:"username" mapstructure:"username" example:"admin"`
 }
 
 func NewEmbyConfig() EmbyConfig {
 	return EmbyConfig{
-		Type: MediaClientTypeEmby,
+		BaseMediaClientConfig: BaseMediaClientConfig{
+			BaseClientConfig: BaseClientConfig{
+				Type: ClientTypeEmby,
+			},
+			Type: MediaClientTypeEmby,
+		},
 	}
 }
 
-func (EmbyConfig) isClientConfig()      {}
-func (EmbyConfig) isMediaClientConfig() {}
+func (c *EmbyConfig) GetUsername() string {
+	return c.Username
+}
+
+func (c *EmbyConfig) GetUserID() string {
+	return c.UserID
+}
+
+func (e *EmbyConfig) GetName() string {
+	return e.Name
+}
 
 func (EmbyConfig) GetClientType() MediaClientType {
 	return MediaClientTypeEmby
@@ -44,4 +56,22 @@ func (EmbyConfig) SupportsCollections() bool {
 }
 func (EmbyConfig) SupportsHistory() bool {
 	return true
+}
+
+func (c *EmbyConfig) UnmarshalJSON(data []byte) error {
+	// Create a temporary type to avoid recursion
+	type Alias EmbyConfig
+	aux := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(c),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	// Ensure Type is always the correct constant
+	c.Type = MediaClientTypeEmby
+	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	types "suasor/client/types"
 	"suasor/utils"
 )
 
@@ -18,11 +19,7 @@ func (c *SubsonicClient) GetStreamURL(ctx context.Context, trackID string) (stri
 		Str("trackID", trackID).
 		Msg("Generating stream URL for track")
 
-	// We can't access the unexported setupRequest method, so build the URL manually
-	protocol := "http"
-	if c.config.SSL {
-		protocol = "https"
-	}
+	subsonicConfig := c.Config.(*types.SubsonicConfig)
 
 	// Create query parameters
 	params := url.Values{}
@@ -30,11 +27,11 @@ func (c *SubsonicClient) GetStreamURL(ctx context.Context, trackID string) (stri
 	params.Add("f", "xml")
 	params.Add("v", "1.15.0")
 	params.Add("c", "suasor")
-	params.Add("u", c.config.Username)
-	params.Add("p", c.config.Password)
+	params.Add("u", subsonicConfig.Username)
+	params.Add("p", subsonicConfig.Password)
 
-	streamURL := fmt.Sprintf("%s://%s:%d/rest/stream.view?%s",
-		protocol, c.config.Host, c.config.Port, params.Encode())
+	streamURL := fmt.Sprintf("%s/rest/stream.view?%s",
+		subsonicConfig.BaseURL, params.Encode())
 
 	log.Debug().
 		Str("trackID", trackID).
@@ -50,11 +47,7 @@ func (c *SubsonicClient) GetCoverArtURL(coverArtID string) string {
 		return ""
 	}
 
-	// We can't access the unexported setupRequest method, so build the URL manually
-	protocol := "http"
-	if c.config.SSL {
-		protocol = "https"
-	}
+	subsonicConfig := c.Config.(*types.SubsonicConfig)
 
 	// Create query parameters
 	params := url.Values{}
@@ -62,9 +55,9 @@ func (c *SubsonicClient) GetCoverArtURL(coverArtID string) string {
 	params.Add("f", "xml")
 	params.Add("v", "1.15.0")
 	params.Add("c", "suasor")
-	params.Add("u", c.config.Username)
-	params.Add("p", c.config.Password)
+	params.Add("u", subsonicConfig.Username)
+	params.Add("p", subsonicConfig.Password)
 
-	return fmt.Sprintf("%s://%s:%d/rest/getCoverArt.view?%s",
-		protocol, c.config.Host, c.config.Port, params.Encode())
+	return fmt.Sprintf("%s/rest/getCoverArt.view?%s",
+		subsonicConfig.BaseURL, params.Encode())
 }

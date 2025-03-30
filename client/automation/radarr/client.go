@@ -20,19 +20,14 @@ type RadarrClient struct {
 }
 
 // NewRadarrClient creates a new Radarr client instance
-func NewRadarrClient(ctx context.Context, clientID uint64, c config.ClientConfig) (auto.AutomationClient, error) {
-	// Extract config
-	cfg, ok := c.(config.RadarrConfig)
-	if !ok {
-		return nil, fmt.Errorf("invalid configuration for Radarr client")
-	}
+func NewRadarrClient(ctx context.Context, clientID uint64, c config.RadarrConfig) (auto.AutomationClient, error) {
 
 	// Create API client configuration
 	apiConfig := radarr.NewConfiguration()
-	apiConfig.AddDefaultHeader("X-Api-Key", cfg.APIKey)
+	apiConfig.AddDefaultHeader("X-Api-Key", c.APIKey)
 	apiConfig.Servers = radarr.ServerConfigurations{
 		{
-			URL: cfg.BaseURL,
+			URL: c.BaseURL,
 		},
 	}
 
@@ -47,7 +42,7 @@ func NewRadarrClient(ctx context.Context, clientID uint64, c config.ClientConfig
 			ClientType: config.AutomationClientTypeRadarr,
 		},
 		client: client,
-		config: cfg,
+		config: c,
 	}
 
 	return radarrClient, nil

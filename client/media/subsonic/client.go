@@ -2,7 +2,6 @@ package subsonic
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	base "suasor/client"
 	media "suasor/client/media"
@@ -16,47 +15,40 @@ import (
 // SubsonicClient implements MediaContentProvider for Subsonic
 type SubsonicClient struct {
 	media.BaseMediaClient
-	config     types.SubsonicConfig
 	httpClient *http.Client
 	client     *gosonic.Client
 }
 
 // NewSubsonicClient creates a new Subsonic client
-func NewSubsonicClient(ctx context.Context, clientID uint64, config types.ClientConfig) (media.MediaClient, error) {
-	cfg, ok := config.(types.SubsonicConfig)
-	if !ok {
-		return nil, fmt.Errorf("invalid configuration for Subsonic client")
-	}
+func NewSubsonicClient(ctx context.Context, clientID uint64, config types.SubsonicConfig) (media.MediaClient, error) {
 
 	log := utils.LoggerFromContext(context.Background())
 
 	log.Info().
 		Uint64("clientID", clientID).
-		Str("host", cfg.Host).
-		Int("port", cfg.Port).
-		Bool("ssl", cfg.SSL).
+		Str("baseURL", config.BaseURL).
+		Bool("ssl", config.SSL).
 		Msg("Creating new Subsonic client")
 
-	protocol := "http"
-	if cfg.SSL {
-		protocol = "https"
-	}
-	baseURL := fmt.Sprintf("%s://%s:%d", protocol, cfg.Host, cfg.Port)
+	// protocol := "http"
+	// if cfg.SSL {
+	// 	protocol = "https"
+	// }
 
 	httpClient := &http.Client{Timeout: 30 * time.Second}
 
 	// Create the go-subsonic client
 	client := &gosonic.Client{
 		Client:       httpClient,
-		BaseUrl:      baseURL,
-		User:         cfg.Username,
+		BaseUrl:      config.BaseURL,
+		User:         config.Username,
 		ClientName:   "suasor",
 		UserAgent:    "Suasor/1.0",
 		PasswordAuth: true, // Using plain password auth for simplicity
 	}
 
 	// Authenticate with the Subsonic server
-	err := client.Authenticate(cfg.Password)
+	err := client.Authenticate(config.Password)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -70,10 +62,10 @@ func NewSubsonicClient(ctx context.Context, clientID uint64, config types.Client
 			BaseClient: base.BaseClient{
 				ClientID: clientID,
 				Category: types.MediaClientTypeSubsonic.AsCategory(),
+				Config:   &config,
 			},
 			ClientType: types.MediaClientTypeSubsonic,
 		},
-		config:     cfg,
 		httpClient: httpClient,
 		client:     client,
 	}, nil

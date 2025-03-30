@@ -91,6 +91,10 @@ const (
 	ClientTypeOllama ClientType = "ollama"
 )
 
+func (c ClientType) String() string {
+	return string(c)
+}
+
 func (c ClientType) AsCategory() ClientCategory {
 
 	switch c {

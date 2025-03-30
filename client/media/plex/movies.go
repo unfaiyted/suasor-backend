@@ -19,7 +19,6 @@ func (c *PlexClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 	log.Info().
 		Uint64("clientID", c.ClientID).
 		Str("clientType", string(c.ClientType)).
-		Str("baseURL", c.baseURL).
 		Msg("Retrieving movies from Plex server")
 
 	// First, find the movie library section
@@ -120,7 +119,6 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (models.MediaI
 		Uint64("clientID", c.ClientID).
 		Str("clientType", string(c.ClientType)).
 		Str("movieID", id).
-		Str("baseURL", c.baseURL).
 		Msg("Retrieving specific movie from Plex server")
 
 	ratingKey, _ := strconv.Atoi(id)
@@ -196,7 +194,6 @@ func (c *PlexClient) GetMovieGenres(ctx context.Context) ([]string, error) {
 	log.Info().
 		Uint64("clientID", c.ClientID).
 		Str("clientType", string(c.ClientType)).
-		Str("baseURL", c.baseURL).
 		Msg("Retrieving movie genres from Plex server")
 
 	// Find the movie library section

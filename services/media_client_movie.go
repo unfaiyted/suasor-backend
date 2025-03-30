@@ -5,6 +5,7 @@ import (
 	"errors"
 	"sort"
 	"strconv"
+	"suasor/client"
 	"suasor/client/media"
 	"suasor/client/media/providers"
 	mediatypes "suasor/client/media/types"
@@ -31,13 +32,13 @@ type MediaClientMovieService interface {
 
 type mediaMovieService struct {
 	clientRepo    repository.ClientRepository[types.MediaClientConfig]
-	clientFactory media.ClientFactory
+	clientFactory client.ClientFactoryService
 }
 
 // NewMediaClientMovieService creates a new media movie service
 func NewMediaClientMovieService(
 	clientRepo repository.ClientRepository[types.MediaClientConfig],
-	clientFactory media.ClientFactory,
+	clientFactory client.ClientFactoryService,
 ) MediaClientMovieService {
 	return &mediaMovieService{
 		clientRepo:    clientRepo,
@@ -59,12 +60,12 @@ func (s *mediaMovieService) getMovieClients(ctx context.Context, userID uint64) 
 	for _, clientConfig := range clients {
 		if clientConfig.Config.Data.SupportsMovies() {
 			clientId := clientConfig.GetID()
-			client, err := s.clientFactory.GetMediaClient(ctx, clientId, clientConfig.Config.Data)
+			client, err := s.clientFactory.GetClient(ctx, clientId, clientConfig.Config.Data)
 			if err != nil {
 				// Log error but continue with other clients
 				continue
 			}
-			movieClients = append(movieClients, client)
+			movieClients = append(movieClients, client.(media.MediaClient))
 		}
 	}
 
@@ -82,7 +83,11 @@ func (s *mediaMovieService) getSpecificMovieClient(ctx context.Context, userID, 
 		return nil, ErrUnsupportedFeature
 	}
 
-	return s.clientFactory.GetMediaClient(ctx, clientID, clientConfig.Config.Data)
+	client, err := s.clientFactory.GetClient(ctx, clientID, clientConfig.Config.Data)
+	if err != nil {
+		return nil, err
+	}
+	return client.(media.MediaClient), nil
 }
 
 func (s *mediaMovieService) GetMovieByID(ctx context.Context, userID uint64, clientID uint64, movieID string) (*models.MediaItem[mediatypes.Movie], error) {

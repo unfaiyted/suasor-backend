@@ -1,19 +1,22 @@
 package types
 
+import "encoding/json"
+
 // @Description Supersonic music server configuration
 type SubsonicConfig struct {
-	Enabled  bool            `json:"enabled" mapstructure:"enabled" example:"false"`
-	Host     string          `json:"host" mapstructure:"host" example:"localhost" binding:"required_if=Enabled true"`
-	Port     int             `json:"port" mapstructure:"port" example:"4533" binding:"required_if=Enabled true"`
-	Username string          `json:"username" mapstructure:"username" example:"admin" binding:"required_if=Enabled true"`
-	Password string          `json:"password" mapstructure:"password" example:"your-password" binding:"required_if=Enabled true"`
-	SSL      bool            `json:"ssl" mapstructure:"ssl" example:"false"`
-	Type     MediaClientType `json:"type" mapstructure:"type" default:"subsonic"`
+	BaseMediaClientConfig
+	Username string `json:"username" mapstructure:"username" example:"admin" binding:"required_if=Enabled true"`
+	Password string `json:"password" mapstructure:"password" example:"your-password" binding:"required_if=Enabled true"`
 }
 
 func NewSubsonicConfig() SubsonicConfig {
 	return SubsonicConfig{
-		Type: MediaClientTypeSubsonic,
+		BaseMediaClientConfig: BaseMediaClientConfig{
+			BaseClientConfig: BaseClientConfig{
+				Type: ClientTypeSubsonic,
+			},
+			Type: MediaClientTypeSubsonic,
+		},
 	}
 }
 
@@ -43,4 +46,22 @@ func (SubsonicConfig) SupportsCollections() bool {
 }
 func (SubsonicConfig) SupportsHistory() bool {
 	return true
+}
+
+func (c *SubsonicConfig) UnmarshalJSON(data []byte) error {
+	// Create a temporary type to avoid recursion
+	type Alias SubsonicConfig
+	aux := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(c),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	// Ensure Type is always the correct constant
+	c.Type = MediaClientTypeSubsonic
+	return nil
 }

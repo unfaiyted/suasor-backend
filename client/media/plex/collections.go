@@ -16,7 +16,6 @@ func (c *PlexClient) GetCollections(ctx context.Context, options *types.QueryOpt
 	log.Info().
 		Uint64("clientID", c.ClientID).
 		Str("clientType", string(c.ClientType)).
-		Str("baseURL", c.baseURL).
 		Msg("Retrieving collections from Plex server")
 
 	log.Debug().Msg("Making API request to Plex server for collections")
@@ -26,7 +25,6 @@ func (c *PlexClient) GetCollections(ctx context.Context, options *types.QueryOpt
 			Err(err).
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
-			Str("baseURL", c.baseURL).
 			Msg("Failed to get collections from Plex")
 		return nil, fmt.Errorf("failed to get collections: %w", err)
 	}

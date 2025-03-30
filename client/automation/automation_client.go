@@ -3,25 +3,34 @@ package automation
 import (
 	"context"
 	"errors"
-	// "fmt"
-	base "suasor/client"
-	// media "suasor/client/media/types"
+	client "suasor/client"
 	types "suasor/client/types"
-	// "suasor/types/models"
 )
 
 var ErrFeatureNotSupported = errors.New("feature not supported by this automation client")
 
 type AutomationClient interface {
+	client.Client
 	SupportsMovies() bool
 	SupportsTVShows() bool
 	SupportsMusic() bool
-	TestConnection(ctx context.Context) (bool, error)
 }
 
 type BaseAutomationClient struct {
-	base.BaseClient
+	client.BaseClient
 	ClientType types.AutomationClientType
+	Config     types.AutomationClientConfig
+}
+
+func NewAutomationClient(ctx context.Context, clientID uint64, clientType types.AutomationClientType, config types.AutomationClientConfig) (AutomationClient, error) {
+	return &BaseAutomationClient{
+		BaseClient: client.BaseClient{
+			ClientID: clientID,
+			Category: clientType.AsCategory(),
+			Config:   config,
+		},
+		ClientType: clientType,
+	}, nil
 }
 
 // Default caity implementations (all false by default)

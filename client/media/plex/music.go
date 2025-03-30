@@ -20,7 +20,6 @@ func (c *PlexClient) GetMusic(ctx context.Context, options *types.QueryOptions) 
 	log.Info().
 		Uint64("clientID", c.ClientID).
 		Str("clientType", string(c.ClientType)).
-		Str("baseURL", c.baseURL).
 		Msg("Retrieving music tracks from Plex server")
 
 	// Find the music library section
@@ -178,7 +177,6 @@ func (c *PlexClient) GetMusicArtists(ctx context.Context, options *types.QueryOp
 	log.Info().
 		Uint64("clientID", c.ClientID).
 		Str("clientType", string(c.ClientType)).
-		Str("baseURL", c.baseURL).
 		Msg("Retrieving music artists from Plex server")
 
 	// Find the music library section
@@ -271,7 +269,6 @@ func (c *PlexClient) GetMusicAlbums(ctx context.Context, options *types.QueryOpt
 	log.Info().
 		Uint64("clientID", c.ClientID).
 		Str("clientType", string(c.ClientType)).
-		Str("baseURL", c.baseURL).
 		Msg("Retrieving music albums from Plex server")
 
 	// Find the music library section
@@ -391,7 +388,6 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (models.M
 		Uint64("clientID", c.ClientID).
 		Str("clientType", string(c.ClientType)).
 		Str("trackID", id).
-		Str("baseURL", c.baseURL).
 		Msg("Retrieving specific music track from Plex server")
 
 	ratingKey, _ := strconv.Atoi(id)
@@ -526,7 +522,6 @@ func (c *PlexClient) GetMusicGenres(ctx context.Context) ([]string, error) {
 	log.Info().
 		Uint64("clientID", c.ClientID).
 		Str("clientType", string(c.ClientType)).
-		Str("baseURL", c.baseURL).
 		Msg("Retrieving music genres from Plex server")
 
 	// Find the music library section

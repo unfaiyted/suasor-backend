@@ -20,15 +20,16 @@ type AutomationClientRequest[T types.AutomationClientConfig] struct {
 
 // ClientRequest is used for creating/updating a media client
 type ClientRequest[T types.ClientConfig] struct {
-	Name     string `json:"name" binding:"required"`
-	ClientID uint64 `json:"clientID"`
-
-	ClientType client.ClientType `json:"clientType" binding:"required,oneof=automation media ai"`
+	Name       string            `json:"name" binding:"required"`
+	ClientID   uint64            `json:"clientID,omitempty"`
+	ClientType client.ClientType `json:"clientType" binding:"required"`
+	IsEnabled  bool              `json:"isEnabled"`
 	Client     T                 `json:"client" gorm:"serializer:json"`
 }
 
 // // MediaClientTestRequest is used for testing a media client connection
 type MediaClientRequest[T types.MediaClientConfig] struct {
+	Name       string                 `json:"name" binding:"required"`
 	ClientType client.MediaClientType `json:"clientType" binding:"required,oneof=plex jellyfin emby subsonic"`
 	Client     T                      `json:"client" gorm:"serializer:json"`
 }

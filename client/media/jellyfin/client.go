@@ -21,16 +21,12 @@ type JellyfinClient struct {
 }
 
 // NewJellyfinClient creates a new Jellyfin client instance
-func NewJellyfinClient(ctx context.Context, clientID uint64, config client.ClientConfig) (media.MediaClient, error) {
-	cfg, ok := config.(client.JellyfinConfig)
-	if !ok {
-		return nil, fmt.Errorf("invalid configuration for Jellyfin client")
-	}
+func NewJellyfinClient(ctx context.Context, clientID uint64, config client.JellyfinConfig) (media.MediaClient, error) {
 
 	// Create API client configuration
 	apiConfig := &jellyfin.Configuration{
-		Servers:       jellyfin.ServerConfigurations{{URL: cfg.BaseURL}},
-		DefaultHeader: map[string]string{"Authorization": fmt.Sprintf(`MediaBrowser Token="%s"`, cfg.APIKey)},
+		Servers:       jellyfin.ServerConfigurations{{URL: config.BaseURL}},
+		DefaultHeader: map[string]string{"Authorization": fmt.Sprintf(`MediaBrowser Token="%s"`, config.APIKey)},
 	}
 
 	jfClient := jellyfin.NewAPIClient(apiConfig)
@@ -40,21 +36,21 @@ func NewJellyfinClient(ctx context.Context, clientID uint64, config client.Clien
 			BaseClient: base.BaseClient{
 				ClientID: clientID,
 				Category: client.MediaClientTypeJellyfin.AsCategory(),
+				Type:     client.ClientTypeJellyfin,
+				Config:   &config,
 			},
-			ClientType: client.MediaClientTypeJellyfin,
 		},
 		client: jfClient,
-		config: cfg,
 	}
 
 	// Resolve user ID if username is provided
-	if cfg.Username != "" && cfg.UserID == "" {
+	if config.Username != "" && config.UserID == "" {
 		if err := jellyfinClient.resolveUserID(ctx); err != nil {
 			// Log but don't fail - some operations might work without a user ID
 			log := utils.LoggerFromContext(ctx)
 			log.Warn().
 				Err(err).
-				Str("username", cfg.Username).
+				Str("username", config.Username).
 				Msg("Failed to resolve Jellyfin user ID, some operations may be limited")
 		}
 	}

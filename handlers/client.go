@@ -5,6 +5,7 @@ import (
 	"suasor/services"
 
 	"github.com/gin-gonic/gin"
+	// "io"
 	"suasor/client/types"
 	client "suasor/client/types"
 	"suasor/types/models"
@@ -54,6 +55,8 @@ func NewClientHandler[T types.ClientConfig](service services.ClientService[T]) *
 func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
+	log.Info().
+		Msg("Creating new media client")
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -64,8 +67,19 @@ func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 
 	uid := userID.(uint64)
 
+	// requestBody, err := io.ReadAll(c.Request.Body)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("Failed to read request body")
+	// 	responses.RespondInternalError(c, err, "Failed to read request body")
+	// 	return
+	// }
+	// log.Debug().
+	// 	Str("requestBody", string(requestBody)).
+	// 	Msg("Received request body")
+
 	var req requests.ClientRequest[T]
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Error().Err(err).Msg("Failed to parse request body")
 		responses.RespondValidationError(c, err)
 		return
 	}
@@ -79,7 +93,7 @@ func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 	clientType := models.Client[T]{
 		UserID:   uid,
 		Name:     req.Name,
-		Category: req.ClientType.AsCategory(),
+		Category: client.ClientType(req.ClientType).AsCategory(),
 		Config:   models.ClientConfigWrapper[T]{Data: req.Client},
 	}
 

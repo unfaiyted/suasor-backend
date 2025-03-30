@@ -1,18 +1,21 @@
 package types
 
+import "encoding/json"
+
 // @Description Plex media server configuration
 type PlexConfig struct {
-	Enabled bool            `json:"enabled" mapstructure:"enabled" example:"false"`
-	Host    string          `json:"host" mapstructure:"host" example:"localhost" binding:"required_if=Enabled true"`
-	Port    int             `json:"port" mapstructure:"port" example:"32400" binding:"required_if=Enabled true"`
-	Token   string          `json:"token" mapstructure:"token" example:"your-plex-token" binding:"required_if=Enabled true"`
-	SSL     bool            `json:"ssl" mapstructure:"ssl" example:"false"`
-	Type    MediaClientType `json:"type" mapstructure:"type" default:"plex"`
+	BaseMediaClientConfig
+	Token string `json:"token" mapstructure:"token" example:"your-plex-token" binding:"required_if=Enabled true"`
 }
 
 func NewPlexConfig() PlexConfig {
 	return PlexConfig{
-		Type: MediaClientTypePlex,
+		BaseMediaClientConfig: BaseMediaClientConfig{
+			BaseClientConfig: BaseClientConfig{
+				Type: ClientTypePlex,
+			},
+			Type: MediaClientTypePlex,
+		},
 	}
 }
 
@@ -43,4 +46,22 @@ func (PlexConfig) SupportsCollections() bool {
 }
 func (PlexConfig) SupportsHistory() bool {
 	return true
+}
+
+func (c *PlexConfig) UnmarshalJSON(data []byte) error {
+	// Create a temporary type to avoid recursion
+	type Alias PlexConfig
+	aux := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(c),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	// Ensure Type is always the correct constant
+	c.Type = MediaClientTypePlex
+	return nil
 }

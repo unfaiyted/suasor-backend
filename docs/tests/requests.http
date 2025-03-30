@@ -1,0 +1,49 @@
+POST http://localhost:8080/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "username": "testuser",
+  "password": "testpassword"
+}
+
+###
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "testpassword"
+}
+### use access token from previousy request
+
+###
+GET http://localhost:8080/api/v1/auth/validate
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+
+###
+GET http://localhost:8080/api/v1/user/me
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+GET http://localhost:8080/api/v1/user/config
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+
+
+###
+PUT http://localhost:8080/api/v1/user/config
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "accessExpiryMinutes": 15,
+  "refreshExpiryDays": 7,
+  "tokenIssuer": "suasor-api",
+  "tokenAudience": "suasor-client"
+}

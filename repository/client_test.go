@@ -21,14 +21,14 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	// Auto migrate the Client model
 	err = db.AutoMigrate(
 		&models.Client[types.ClientConfig]{},
-		&models.Client[types.JellyfinConfig]{},
-		&models.Client[types.SonarrConfig]{},
-		&models.Client[types.RadarrConfig]{},
-		&models.Client[types.LidarrConfig]{},
-		&models.Client[types.EmbyConfig]{},
-		&models.Client[types.JellyfinConfig]{},
-		&models.Client[types.PlexConfig]{},
-		&models.Client[types.SubsonicConfig]{},
+		&models.Client[*types.JellyfinConfig]{},
+		&models.Client[*types.SonarrConfig]{},
+		&models.Client[*types.RadarrConfig]{},
+		&models.Client[*types.LidarrConfig]{},
+		&models.Client[*types.EmbyConfig]{},
+		&models.Client[*types.JellyfinConfig]{},
+		&models.Client[*types.PlexConfig]{},
+		&models.Client[*types.SubsonicConfig]{},
 	)
 
 	require.NoError(t, err)

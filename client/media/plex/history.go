@@ -16,7 +16,6 @@ func (c *PlexClient) GetPlayHistory(ctx context.Context, options *types.QueryOpt
 	log.Info().
 		Uint64("clientID", c.ClientID).
 		Str("clientType", string(c.ClientType)).
-		Str("baseURL", c.baseURL).
 		Msg("Retrieving watch history from Plex server")
 
 	log.Warn().

@@ -18,23 +18,17 @@ func (l *LidarrClient) SupportsMusic() bool { return true }
 type LidarrClient struct {
 	auto.BaseAutomationClient
 	client *lidarr.APIClient
-	config config.LidarrConfig
 }
 
 // NewLidarrClient creates a new Lidarr client instance
-func NewLidarrClient(ctx context.Context, clientID uint64, cfg config.ClientConfig) (auto.AutomationClient, error) {
-	// Extract config
-	lidarrCfg, ok := cfg.(config.LidarrConfig)
-	if !ok {
-		return nil, fmt.Errorf("invalid configuration for Lidarr client")
-	}
+func NewLidarrClient(ctx context.Context, clientID uint64, cfg config.LidarrConfig) (auto.AutomationClient, error) {
 
 	// Create API client configuration
 	apiConfig := lidarr.NewConfiguration()
-	apiConfig.AddDefaultHeader("X-Api-Key", lidarrCfg.APIKey)
+	apiConfig.AddDefaultHeader("X-Api-Key", cfg.APIKey)
 	apiConfig.Servers = lidarr.ServerConfigurations{
 		{
-			URL: lidarrCfg.BaseURL,
+			URL: cfg.BaseURL,
 		},
 	}
 
@@ -45,11 +39,11 @@ func NewLidarrClient(ctx context.Context, clientID uint64, cfg config.ClientConf
 			BaseClient: base.BaseClient{
 				ClientID: clientID,
 				Category: config.AutomationClientTypeLidarr.AsCategory(),
+				Config:   &cfg,
 			},
 			ClientType: config.AutomationClientTypeLidarr,
 		},
 		client: client,
-		config: lidarrCfg,
 	}
 
 	return lidarrClient, nil

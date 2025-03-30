@@ -4,6 +4,7 @@ import (
 	"context"
 	"sort"
 	"strconv"
+	"suasor/client"
 	"suasor/client/media"
 	"suasor/client/media/providers"
 	mediatypes "suasor/client/media/types"
@@ -30,13 +31,13 @@ type MediaClientSeriesService interface {
 
 type mediaSeriesService struct {
 	clientRepo    repository.ClientRepository[types.MediaClientConfig]
-	clientFactory media.ClientFactory
+	clientFactory client.ClientFactoryService
 }
 
 // NewMediaClientSeriesService creates a new media TV show service
 func NewMediaClientSeriesService(
 	clientRepo repository.ClientRepository[types.MediaClientConfig],
-	clientFactory media.ClientFactory,
+	clientFactory client.ClientFactoryService,
 ) MediaClientSeriesService {
 	return &mediaSeriesService{
 		clientRepo:    clientRepo,
@@ -58,12 +59,13 @@ func (s *mediaSeriesService) getSeriesClients(ctx context.Context, userID uint64
 	for _, clientConfig := range clients {
 		if clientConfig.Config.Data.SupportsSeries() {
 			clientId := clientConfig.GetID()
-			client, err := s.clientFactory.GetMediaClient(ctx, clientId, clientConfig.Config.Data)
+			client, err := s.clientFactory.GetClient(ctx, clientId, clientConfig.Config.Data)
 			if err != nil {
 				// Log error but continue with other clients
 				continue
 			}
-			showClients = append(showClients, client)
+
+			showClients = append(showClients, client.(media.MediaClient))
 		}
 	}
 
@@ -81,7 +83,16 @@ func (s *mediaSeriesService) getSpecificSeriesClient(ctx context.Context, userID
 		return nil, ErrUnsupportedFeature
 	}
 
-	return s.clientFactory.GetMediaClient(ctx, clientID, clientConfig.Config.Data)
+	client, err := s.clientFactory.GetClient(ctx, clientID, clientConfig.Config.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	showClient, ok := client.(media.MediaClient)
+	if !ok {
+		return nil, ErrUnsupportedFeature
+	}
+	return showClient, nil
 }
 
 func (s *mediaSeriesService) GetSeriesByID(ctx context.Context, userID uint64, clientID uint64, seriesID string) (*models.MediaItem[mediatypes.Series], error) {

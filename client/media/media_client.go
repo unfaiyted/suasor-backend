@@ -5,7 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	base "suasor/client"
+	"suasor/client"
 	media "suasor/client/media/types"
 	types "suasor/client/types"
 	models "suasor/types/models"
@@ -16,6 +16,7 @@ var ErrFeatureNotSupported = errors.New("feature not supported by this media cli
 // MediaClient defines basic client information that all providers must implement
 
 type MediaClient interface {
+	client.Client
 	SupportsMovies() bool
 	SupportsSeries() bool
 	SupportsMusic() bool
@@ -27,8 +28,20 @@ type MediaClient interface {
 }
 
 type BaseMediaClient struct {
-	base.BaseClient
+	client.BaseClient
 	ClientType types.MediaClientType
+	config     *types.MediaClientConfig
+}
+
+func NewMediaClient(ctx context.Context, clientID uint64, clientType types.MediaClientType, config types.MediaClientConfig) (MediaClient, error) {
+	return &BaseMediaClient{
+		BaseClient: client.BaseClient{
+			ClientID: clientID,
+			Category: clientType.AsCategory(),
+		},
+		config:     &config,
+		ClientType: clientType,
+	}, nil
 }
 
 // Default caity implementations (all false by default)
@@ -173,4 +186,8 @@ func (b *BaseMediaClient) ToMediaItemArtist(ctx context.Context, item media.Arti
 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
 
 	return mediaItem, nil
+}
+
+func (b *BaseMediaClient) TestConnection(ctx context.Context) (bool, error) {
+	return false, nil
 }

@@ -19,7 +19,6 @@ func (c *PlexClient) GetPlaylists(ctx context.Context, options *types.QueryOptio
 	log.Info().
 		Uint64("clientID", c.ClientID).
 		Str("clientType", string(c.ClientType)).
-		Str("baseURL", c.baseURL).
 		Msg("Retrieving playlists from Plex server")
 
 	log.Debug().Msg("Making API request to Plex server for playlists")
@@ -29,7 +28,6 @@ func (c *PlexClient) GetPlaylists(ctx context.Context, options *types.QueryOptio
 			Err(err).
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
-			Str("baseURL", c.baseURL).
 			Msg("Failed to get playlists from Plex")
 		return nil, fmt.Errorf("failed to get playlists: %w", err)
 	}

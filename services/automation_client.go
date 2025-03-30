@@ -4,6 +4,7 @@ package services
 import (
 	"context"
 	"errors"
+	"suasor/client"
 	"suasor/client/automation"
 	"suasor/client/automation/providers"
 	automationtypes "suasor/client/automation/types"
@@ -35,13 +36,13 @@ type AutomationClientService interface {
 
 type automationClientService struct {
 	clientRepo    repository.ClientRepository[types.AutomationClientConfig]
-	clientFactory automation.ClientFactory
+	clientFactory client.ClientFactoryService
 }
 
 // NewAutomationClientService creates a new automation client service
 func NewAutomationClientService(
 	clientRepo repository.ClientRepository[types.AutomationClientConfig],
-	clientFactory automation.ClientFactory,
+	clientFactory client.ClientFactoryService,
 ) AutomationClientService {
 	return &automationClientService{
 		clientRepo:    clientRepo,
@@ -56,7 +57,16 @@ func (s *automationClientService) getAutomationClient(ctx context.Context, userI
 		return nil, err
 	}
 
-	return s.clientFactory.GetAutomationClient(ctx, clientID, clientConfig.Config.Data)
+	autoClient, err := s.clientFactory.GetClient(ctx, clientID, clientConfig.Config.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	client, ok := autoClient.(automation.AutomationClient)
+	if !ok {
+		return nil, ErrAutomationUnsupportedFeature
+	}
+	return client, err
 }
 
 func (s *automationClientService) GetSystemStatus(ctx context.Context, userID uint64, clientID uint64) (*automationtypes.SystemStatus, error) {
@@ -279,4 +289,3 @@ func (s *automationClientService) ExecuteCommand(ctx context.Context, userID uin
 	}
 	return &result, nil
 }
-

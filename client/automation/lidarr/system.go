@@ -16,7 +16,6 @@ func (l *LidarrClient) GetSystemStatus(ctx context.Context) (types.SystemStatus,
 	log.Info().
 		Uint64("clientID", l.ClientID).
 		Str("clientType", string(l.ClientType)).
-		Str("baseURL", l.config.BaseURL).
 		Msg("Retrieving system status from Lidarr server")
 
 	// Call the Lidarr API
@@ -26,7 +25,6 @@ func (l *LidarrClient) GetSystemStatus(ctx context.Context) (types.SystemStatus,
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", l.config.BaseURL).
 			Str("apiEndpoint", "/system/status").
 			Int("statusCode", 0).
 			Msg("Failed to fetch system status from Lidarr")

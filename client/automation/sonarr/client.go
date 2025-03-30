@@ -19,19 +19,14 @@ type SonarrClient struct {
 }
 
 // NewSonarrClient creates a new Sonarr client instance
-func NewSonarrClient(ctx context.Context, clientID uint64, c config.ClientConfig) (auto.AutomationClient, error) {
-	// Extract config
-	cfg, ok := c.(config.SonarrConfig)
-	if !ok {
-		return nil, fmt.Errorf("invalid configuration for Sonarr client")
-	}
+func NewSonarrClient(ctx context.Context, clientID uint64, c config.SonarrConfig) (auto.AutomationClient, error) {
 
 	// Create API client configuration
 	apiConfig := sonarr.NewConfiguration()
-	apiConfig.AddDefaultHeader("X-Api-Key", cfg.APIKey)
+	apiConfig.AddDefaultHeader("X-Api-Key", c.APIKey)
 	apiConfig.Servers = sonarr.ServerConfigurations{
 		{
-			URL: cfg.BaseURL,
+			URL: c.BaseURL,
 		},
 	}
 
@@ -46,7 +41,7 @@ func NewSonarrClient(ctx context.Context, clientID uint64, c config.ClientConfig
 			ClientType: config.AutomationClientTypeSonarr,
 		},
 		client: client,
-		config: cfg,
+		config: c,
 	}
 
 	return sonarrClient, nil
