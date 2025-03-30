@@ -2,91 +2,107 @@
 package router
 
 import (
+	"fmt"
+	"suasor/client/types"
 	"suasor/handlers"
 	"suasor/services"
+	"suasor/types/responses"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"suasor/client/types"
 )
+
+// ClientHandlerInterface defines the common operations for all client handlers
+type ClientHandlerInterface interface {
+	CreateClient(c *gin.Context)
+	GetAllClients(c *gin.Context)
+	GetClient(c *gin.Context)
+	UpdateClient(c *gin.Context)
+	DeleteClient(c *gin.Context)
+	TestConnection(c *gin.Context)
+}
 
 // SetupClientRoutes configures routes for client endpoints
 func RegisterClientRoutes(r *gin.RouterGroup, db *gorm.DB) {
-
-	downloadService := services.NewClientService[types.AutomationClientConfig](db)
-	mediaService := services.NewClientService[types.MediaClientConfig](db)
-	aiService := services.NewClientService[types.AIClientConfig](db)
 	embyService := services.NewClientService[*types.EmbyConfig](db)
 	jellyfinService := services.NewClientService[*types.JellyfinConfig](db)
+	subsonicService := services.NewClientService[*types.SubsonicConfig](db)
+	plexService := services.NewClientService[*types.PlexConfig](db)
+
+	sonarrService := services.NewClientService[*types.SonarrConfig](db)
 	lidarrService := services.NewClientService[*types.LidarrConfig](db)
+	radarrService := services.NewClientService[*types.RadarrConfig](db)
 
-	downloadClientHandler := handlers.NewClientHandler[types.AutomationClientConfig](downloadService)
-	aiClientHandler := handlers.NewClientHandler[types.AIClientConfig](aiService)
-	mediaClientHandler := handlers.NewClientHandler[types.MediaClientConfig](mediaService)
-
+	// Initialize all handlers
 	embyClientHandler := handlers.NewClientHandler[*types.EmbyConfig](embyService)
 	jellyfinClientHandler := handlers.NewClientHandler[*types.JellyfinConfig](jellyfinService)
 	lidarrClientHandler := handlers.NewClientHandler[*types.LidarrConfig](lidarrService)
+	subsonicClientHandler := handlers.NewClientHandler[*types.SubsonicConfig](subsonicService)
+	plexClientHandler := handlers.NewClientHandler[*types.PlexConfig](plexService)
+	sonarrClientHandler := handlers.NewClientHandler[*types.SonarrConfig](sonarrService)
+	radarrClientHandler := handlers.NewClientHandler[*types.RadarrConfig](radarrService)
+
+	// Create a map of client type to handler using the interface
+	handlerMap := map[string]ClientHandlerInterface{
+		"emby":     embyClientHandler,
+		"jellyfin": jellyfinClientHandler,
+		"subsonic": subsonicClientHandler,
+		"plex":     plexClientHandler,
+
+		"sonarr": sonarrClientHandler,
+		"radarr": radarrClientHandler,
+		"lidarr": lidarrClientHandler,
+	}
+
+	// Helper function to get the appropriate handler
+	getHandler := func(c *gin.Context) ClientHandlerInterface {
+		clientType := c.Param("clientType")
+		handler, exists := handlerMap[clientType]
+		if !exists {
+			err := fmt.Errorf("unsupported client type: %s", clientType)
+			responses.RespondBadRequest(c, err, "Unsupported client type")
+			return nil
+		}
+		return handler
+	}
 
 	clients := r.Group("/client")
+	client := clients.Group("/:clientType")
+	{
+		client.POST("", func(c *gin.Context) {
+			if handler := getHandler(c); handler != nil {
+				handler.CreateClient(c)
+			}
+		})
 
-	// Download client routes
-	download := clients.Group("/download")
-	{
-		download.POST("", downloadClientHandler.CreateClient)
-		download.GET("", downloadClientHandler.GetAllClients)
-		download.GET("/:id", downloadClientHandler.GetClient)
-		download.PUT("/:id", downloadClientHandler.UpdateClient)
-		download.DELETE("/:id", downloadClientHandler.DeleteClient)
-		download.POST("/test", downloadClientHandler.TestConnection)
-	}
+		client.GET("", func(c *gin.Context) {
+			if handler := getHandler(c); handler != nil {
+				handler.GetAllClients(c)
+			}
+		})
 
-	media := clients.Group("/media")
-	{
+		client.GET("/:id", func(c *gin.Context) {
+			if handler := getHandler(c); handler != nil {
+				handler.GetClient(c)
+			}
+		})
 
-		media.POST("", mediaClientHandler.CreateClient)
-		media.GET("", mediaClientHandler.GetAllClients)
-		media.GET("/:id", mediaClientHandler.GetClient)
-		media.DELETE("/:id", mediaClientHandler.DeleteClient)
-		media.PUT("/:id", mediaClientHandler.UpdateClient)
-		media.POST("/test", mediaClientHandler.TestConnection)
+		client.PUT("/:id", func(c *gin.Context) {
+			if handler := getHandler(c); handler != nil {
+				handler.UpdateClient(c)
+			}
+		})
 
-	}
-	ai := clients.Group("/ai")
-	{
-		ai.POST("", aiClientHandler.CreateClient)
-		ai.GET("", aiClientHandler.GetAllClients)
-		ai.GET("/:id", aiClientHandler.GetClient)
-		ai.DELETE("/:id", aiClientHandler.DeleteClient)
-		ai.PUT("/:id", aiClientHandler.UpdateClient)
-		ai.POST("/test", aiClientHandler.TestConnection)
-	}
-	emby := clients.Group("/emby")
-	{
-		emby.POST("", embyClientHandler.CreateClient)
-		emby.GET("", embyClientHandler.GetAllClients)
-		emby.GET("/:id", embyClientHandler.GetClient)
-		emby.DELETE("/:id", embyClientHandler.DeleteClient)
-		emby.PUT("/:id", embyClientHandler.UpdateClient)
-		emby.POST("/test", embyClientHandler.TestConnection)
-	}
-	jellyfin := clients.Group("/jellyfin")
-	{
-		jellyfin.POST("", jellyfinClientHandler.CreateClient)
-		jellyfin.GET("", jellyfinClientHandler.GetAllClients)
-		jellyfin.GET("/:id", jellyfinClientHandler.GetClient)
-		jellyfin.DELETE("/:id", jellyfinClientHandler.DeleteClient)
-		jellyfin.PUT("/:id", jellyfinClientHandler.UpdateClient)
-		jellyfin.POST("/test", jellyfinClientHandler.TestConnection)
-	}
-	lidarr := clients.Group("/lidarr")
-	{
-		lidarr.POST("", lidarrClientHandler.CreateClient)
-		lidarr.GET("", lidarrClientHandler.GetAllClients)
-		lidarr.GET("/:id", lidarrClientHandler.GetClient)
-		lidarr.DELETE("/:id", lidarrClientHandler.DeleteClient)
-		lidarr.PUT("/:id", lidarrClientHandler.UpdateClient)
-		lidarr.POST("/test", lidarrClientHandler.TestConnection)
-	}
+		client.DELETE("/:id", func(c *gin.Context) {
+			if handler := getHandler(c); handler != nil {
+				handler.DeleteClient(c)
+			}
+		})
 
+		client.POST("/test", func(c *gin.Context) {
+			if handler := getHandler(c); handler != nil {
+				handler.TestConnection(c)
+			}
+		})
+	}
 }

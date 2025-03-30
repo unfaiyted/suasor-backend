@@ -46,3 +46,4 @@ Thumbs.db
 .env
 .env.local
 
+http-client.private.env.json

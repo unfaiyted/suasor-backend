@@ -2,19 +2,69 @@
 package database
 
 import (
-	"fmt"
-
+	"context"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
+	"fmt"
+	"os"
 	media "suasor/client/media/types"
 	client "suasor/client/types"
 	"suasor/types"
 	"suasor/types/models"
+	"suasor/utils"
 )
 
+// CreateTestAdminUser checks if this is a test environment and creates a default admin user if needed
+func CreateTestAdminUser(ctx context.Context, db *gorm.DB) error {
+	// Check if we're in a test environment
+	log := utils.LoggerFromContext(ctx)
+	isDevEnv := os.Getenv("GO_ENV") == "dev"
+
+	log.Info().
+		Str("environment", os.Getenv("GO_ENV")).
+		Msg("Checking if we're in a test environment")
+
+	if !isDevEnv {
+		log.Info().
+			Str("environment", os.Getenv("GO_ENV")).
+			Msg("Not in a test environment, skipping admin creation")
+		return nil // Not a test environment, do nothing
+	}
+
+	var count int64
+
+	// Check if admin user already exists
+	result := db.Model(&models.User{}).Where("email = ?", "admin@dev.com").Count(&count)
+	if result.Error != nil {
+		return fmt.Errorf("failed to check for existing admin: %w", result.Error)
+	}
+
+	if count > 0 {
+		fmt.Println("Admin user already exists in test environment")
+		return nil
+	}
+
+	// Create default admin user
+	adminUser := models.User{
+		Username: "devAdmin",
+		Email:    "admin@dev.com",
+		Role:     "admin",
+		// Note: You should use your app's password hashing mechanism
+		// Add any other required fields for your User model
+	}
+	adminUser.SetPassword("TestPassword123")
+
+	if err := db.Create(&adminUser).Error; err != nil {
+		return fmt.Errorf("failed to create test admin user: %w", err)
+	}
+
+	fmt.Println("Default admin user created for test environment")
+	return nil
+}
+
 // Initialize sets up the database connection and migrations
-func Initialize(dbConfig types.DatabaseConfig) (*gorm.DB, error) {
+func Initialize(ctx context.Context, dbConfig types.DatabaseConfig) (*gorm.DB, error) {
 	postgresDSN := fmt.Sprintf("host=%s user=%s password=%s dbname=postgres port=%s sslmode=disable",
 		dbConfig.Host,
 		dbConfig.User,
@@ -76,6 +126,11 @@ func Initialize(dbConfig types.DatabaseConfig) (*gorm.DB, error) {
 		&models.Session{},
 	); err != nil {
 		return nil, fmt.Errorf("failed to migrate database schema: %w", err)
+	}
+
+	if err := CreateTestAdminUser(ctx, db); err != nil {
+		fmt.Printf("Warning: %v\n", err)
+		// We don't return the error to avoid breaking the app initialization
 	}
 
 	return db, nil

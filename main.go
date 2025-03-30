@@ -54,7 +54,7 @@ func main() {
 		Port:     appConfig.Db.Port,
 	}
 
-	db, err := database.Initialize(dbConfig)
+	db, err := database.Initialize(ctx, dbConfig)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to connect to database:")
 	}

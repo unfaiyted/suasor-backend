@@ -63,15 +63,18 @@ func Setup(ctx context.Context, db *gorm.DB, configService services.ConfigServic
 		// Register all routes
 		RegisterUserRoutes(authenticated, userService)
 		RegisterUserConfigRoutes(authenticated, userConfigService)
-		RegisterClientRoutes(authenticated, db)
+
 		RegisterMediaItemRoutes(authenticated, db)
+
+		RegisterMediaClientRoutes(authenticated, db)
 	}
 
 	//Admin Routes
-	adminRoutes := v1.Group("")
+	adminRoutes := v1.Group("/admin")
 	adminRoutes.Use(middleware.VerifyToken(authService), middleware.RequireRole("admin"))
 	{
 		RegisterConfigRoutes(adminRoutes, configService)
+		RegisterClientRoutes(adminRoutes, db)
 	}
 
 	return r

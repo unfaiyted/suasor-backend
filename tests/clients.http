@@ -4,8 +4,8 @@ POST http://localhost:8080/api/v1/auth/login
 Content-Type: application/json
 
 {
-  "email": "test@example.com",
-  "password": "testpassword"
+  "email": "admin@dev.com",
+  "password": "TestPassword123"
 }
 
 ### Validate session
@@ -16,7 +16,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 ###
 
 # @name createEmbyClient
-POST http://localhost:8080/api/v1/client/emby
+POST http://localhost:8080/api/v1/admin/client/emby
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
