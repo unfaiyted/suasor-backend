@@ -2,8 +2,8 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"gorm.io/gorm"
+	"suasor/client"
 	"suasor/client/types"
 	"suasor/repository"
 	"suasor/types/models"
@@ -21,19 +21,21 @@ type ClientService[T types.ClientConfig] interface {
 	GetByUserID(ctx context.Context, userID uint64) ([]*models.Client[T], error)
 	GetByType(ctx context.Context, clientType types.ClientType, userID uint64) ([]*models.Client[T], error)
 	Delete(ctx context.Context, id uint64, userID uint64) error
-	TestConnection(ctx context.Context, config T) (responses.ClientTestResponse, error)
+	TestConnection(ctx context.Context, clientID uint64, config *T) (responses.ClientTestResponse, error)
 }
 
 // ClientService handles business logic for clients with specific config types
 type clientService[T types.ClientConfig] struct {
-	repo repository.ClientRepository[T]
+	repo    repository.ClientRepository[T]
+	factory client.ClientFactoryService
 	// Other dependencies like validators, API clients, etc.
 }
 
 // NewClientService creates a service for a specific client type
-func NewClientService[T types.ClientConfig](db *gorm.DB) *clientService[T] {
+func NewClientService[T types.ClientConfig](factory *client.ClientFactoryService, db *gorm.DB) *clientService[T] {
 	return &clientService[T]{
-		repo: repository.NewClientRepository[T](db),
+		repo:    repository.NewClientRepository[T](db),
+		factory: *factory,
 	}
 }
 
@@ -62,37 +64,26 @@ func (s *clientService[T]) Delete(ctx context.Context, id uint64, userID uint64)
 	return s.repo.Delete(ctx, id, userID)
 }
 
-func (s *clientService[T]) TestConnection(ctx context.Context, config T) (responses.ClientTestResponse, error) {
-	switch any(config).(type) {
-	case types.JellyfinConfig:
-		// return testJellyfinConnection(ctx, config)
-	case types.EmbyConfig:
-		// return testEmbyConnection(ctx, config)
-	case types.SubsonicConfig:
-		//		return testSubsonicConnection(ctx, config)
-	default:
+func (s *clientService[T]) TestConnection(ctx context.Context, clientID uint64, config *T) (responses.ClientTestResponse, error) {
+	// Get client from factory
+	c, err := s.factory.GetClient(ctx, clientID, *config)
+	if err != nil {
 		return responses.ClientTestResponse{
 			Success: false,
-			Message: "Unsupported client type",
-		}, fmt.Errorf("unsupported client type: %s", config)
+			Message: "Failed to create client",
+		}, err
+	}
+
+	testResult, err := c.TestConnection(ctx)
+	if err != nil {
+		return responses.ClientTestResponse{
+			Success: false,
+			Message: "Failed to test connection",
+		}, err
 	}
 	return responses.ClientTestResponse{
-		Success: false,
-		Message: "Error processing client type",
+		Success: testResult,
+		Message: "Successfully connected to " + c.GetType().String(),
 	}, nil
-}
 
-// switch config.Data.GetClientType() {
-// case types.ClientTypePlex:
-// 	return s.testPlexConnection(ctx, config.Data)
-// case types.ClientTypeJellyfin:
-// 	return s.testJellyfinConnection(ctx, config.Data)
-// case types.ClientTypeEmby:
-// 	return s.testEmbyConnection(ctx, config.Data)
-// case types.ClientTypeSubsonic:
-// 	return s.testSubsonicConnection(ctx, config.Data)
-// default:
-// 	return types.ClientTestResponse{
-// 		Success: false,
-// 		Message: "Unsupported client type",
-// 	}, fmt.Errorf("unsupported client type: %s", config.Data.GetClientType())
+}

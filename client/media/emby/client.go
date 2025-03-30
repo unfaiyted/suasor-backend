@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"suasor/client"
 	base "suasor/client"
 	media "suasor/client/media"
 	types "suasor/client/media/types"
@@ -14,11 +15,33 @@ import (
 	"suasor/utils"
 )
 
+// Add this init function to register the Emby client factory
+func init() {
+
+	fmt.Printf("Registering factory for client type: %s (value: %v)\n",
+		config.ClientTypeEmby.String(), config.ClientTypeEmby)
+
+	fmt.Println("Registering Emby client factory...")
+	client.GetClientFactoryService().RegisterClientFactory(config.ClientTypeEmby,
+		func(ctx context.Context, clientID uint64, cfg config.ClientConfig) (base.Client, error) {
+			// Type assert to EmbyConfig
+
+			fmt.Printf("Factory called for Emby client with ID: %d\n", clientID)
+			embyConfig, ok := cfg.(*config.EmbyConfig)
+			if !ok {
+				return nil, fmt.Errorf("invalid config type for Emby client, expected *EmbyConfig, got %T", cfg)
+			}
+
+			// Use your existing constructor
+			return NewEmbyClient(ctx, clientID, *embyConfig)
+		})
+}
+
 // EmbyClient implements the MediaContentProvider interface
 type EmbyClient struct {
 	media.BaseMediaClient
 	client *embyclient.APIClient
-	config *config.EmbyConfig
+	// config *config.EmbyConfig
 }
 
 // NewEmbyClient creates a new Emby client instance
@@ -45,6 +68,7 @@ func NewEmbyClient(ctx context.Context, clientID uint64, cfg config.EmbyConfig) 
 			},
 		},
 		client: client,
+		// config: &cfg,
 	}
 	// Resolve user ID if username is provided
 	if cfg.Username != "" && cfg.UserID == "" {
@@ -73,12 +97,17 @@ func (e *EmbyClient) SupportsPlaylists() bool   { return true }
 func (e *EmbyClient) SupportsCollections() bool { return true }
 func (e *EmbyClient) SupportsHistory() bool     { return true }
 
+func (e *EmbyClient) embyConfig() *config.EmbyConfig {
+	cfg, _ := e.Config.(*config.EmbyConfig)
+	return cfg
+}
+
 // resolveUserID resolves the Emby user ID from username
 func (e *EmbyClient) resolveUserID(ctx context.Context) error {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
-		Str("username", e.config.Username).
+		Str("username", e.embyConfig().Username).
 		Msg("Resolving Emby user ID from username")
 
 	// Get the list of public users
@@ -86,7 +115,7 @@ func (e *EmbyClient) resolveUserID(ctx context.Context) error {
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("username", e.config.Username).
+			Str("username", e.embyConfig().Username).
 			Msg("Failed to fetch Emby users")
 		return fmt.Errorf("failed to fetch users: %w", err)
 	}
@@ -98,20 +127,20 @@ func (e *EmbyClient) resolveUserID(ctx context.Context) error {
 
 	// Find the user with matching username
 	for _, user := range users {
-		if strings.EqualFold(user.Name, e.config.Username) {
-			e.config.UserID = user.Id
+		if strings.EqualFold(user.Name, e.embyConfig().Username) {
+			e.embyConfig().UserID = user.Id
 			log.Info().
-				Str("username", e.config.Username).
-				Str("userID", e.config.UserID).
+				Str("username", e.embyConfig().Username).
+				Str("userID", e.embyConfig().UserID).
 				Msg("Successfully resolved Emby user ID")
 			return nil
 		}
 	}
 
 	log.Warn().
-		Str("username", e.config.Username).
+		Str("username", e.embyConfig().Username).
 		Msg("Could not find matching user in Emby")
-	return fmt.Errorf("user '%s' not found in Emby", e.config.Username)
+	return fmt.Errorf("user '%s' not found in Emby", e.embyConfig().Username)
 }
 
 func (e *EmbyClient) getArtworkURLs(item *embyclient.BaseItemDto) types.Artwork {
@@ -121,7 +150,7 @@ func (e *EmbyClient) getArtworkURLs(item *embyclient.BaseItemDto) types.Artwork 
 		return imageURLs
 	}
 
-	baseURL := strings.TrimSuffix(e.config.BaseURL, "/")
+	baseURL := strings.TrimSuffix(e.embyConfig().BaseURL, "/")
 
 	// Primary image (poster) - with nil check
 	if item.ImageTags != nil {

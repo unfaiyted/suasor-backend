@@ -15,7 +15,7 @@ func NewSubsonicConfig() SubsonicConfig {
 			BaseClientConfig: BaseClientConfig{
 				Type: ClientTypeSubsonic,
 			},
-			Type: MediaClientTypeSubsonic,
+			ClientType: MediaClientTypeSubsonic,
 		},
 	}
 }
@@ -62,6 +62,7 @@ func (c *SubsonicConfig) UnmarshalJSON(data []byte) error {
 	}
 
 	// Ensure Type is always the correct constant
-	c.Type = MediaClientTypeSubsonic
+	c.ClientType = MediaClientTypeSubsonic
+	c.Type = ClientTypeSubsonic
 	return nil
 }

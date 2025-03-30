@@ -98,6 +98,7 @@ func Initialize(ctx context.Context, dbConfig types.DatabaseConfig) (*gorm.DB, e
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
+	// db.Exec("DELETE FROM clients")
 	// Auto Migrate the schema
 	//&models.User{},
 	if err := db.AutoMigrate(

@@ -32,7 +32,7 @@ func (e *EmbyClient) GetMusic(ctx context.Context, options *types.QueryOptions) 
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.config.BaseURL).
+			Str("baseURL", e.embyConfig().BaseURL).
 			Str("apiEndpoint", "/Items").
 			Msg("Failed to fetch music tracks from Emby")
 		return nil, fmt.Errorf("failed to fetch music tracks: %w", err)
@@ -96,7 +96,7 @@ func (e *EmbyClient) GetMusicArtists(ctx context.Context, options *types.QueryOp
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.config.BaseURL).
+			Str("baseURL", e.embyConfig().BaseURL).
 			Str("apiEndpoint", "/Artists").
 			Msg("Failed to fetch music artists from Emby")
 		return nil, fmt.Errorf("failed to fetch music artists: %w", err)
@@ -145,7 +145,7 @@ func (e *EmbyClient) GetMusicAlbums(ctx context.Context, options *types.QueryOpt
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.config.BaseURL).
+			Str("baseURL", e.embyConfig().BaseURL).
 			Str("apiEndpoint", "/Items").
 			Msg("Failed to fetch music albums from Emby")
 		return nil, fmt.Errorf("failed to fetch music albums: %w", err)
@@ -193,7 +193,7 @@ func (e *EmbyClient) GetMusicTrackByID(ctx context.Context, id string) (models.M
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.config.BaseURL).
+			Str("baseURL", e.embyConfig().BaseURL).
 			Str("apiEndpoint", "/Items").
 			Str("trackID", id).
 			Msg("Failed to fetch music track from Emby")
@@ -235,7 +235,7 @@ func (e *EmbyClient) GetMusicGenres(ctx context.Context) ([]string, error) {
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.config.BaseURL).
+			Str("baseURL", e.embyConfig().BaseURL).
 			Str("apiEndpoint", "/MusicGenres").
 			Msg("Failed to fetch music genres from Emby")
 		return nil, fmt.Errorf("failed to fetch music genres: %w", err)

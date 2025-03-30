@@ -7,6 +7,7 @@ import (
 	"suasor/client/types"
 
 	"suasor/types/models"
+	"suasor/utils"
 
 	"gorm.io/gorm"
 )
@@ -74,6 +75,7 @@ func (r *clientRepository[T]) Update(ctx context.Context, client models.Client[T
 // GetByID retrieves a media client by ID
 // GetByID retrieves a media client by ID
 func (r *clientRepository[T]) GetByID(ctx context.Context, id, userID uint64) (*models.Client[T], error) {
+	log := utils.LoggerFromContext(ctx)
 	var client models.Client[T]
 
 	if err := r.db.WithContext(ctx).
@@ -84,6 +86,11 @@ func (r *clientRepository[T]) GetByID(ctx context.Context, id, userID uint64) (*
 		}
 		return nil, fmt.Errorf("failed to get client: %w", err)
 	}
+
+	log.Debug().
+		Str("clientType", client.GetType().String()).
+		Uint64("clientID", client.ID).
+		Msg("Retrieved client")
 
 	return &client, nil
 }

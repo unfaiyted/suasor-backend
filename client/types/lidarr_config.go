@@ -13,7 +13,7 @@ func NewLidarrConfig() LidarrConfig {
 			BaseClientConfig: BaseClientConfig{
 				Type: ClientTypeLidarr,
 			},
-			Type: AutomationClientTypeLidarr,
+			ClientType: AutomationClientTypeLidarr,
 		},
 	}
 }
@@ -52,6 +52,7 @@ func (c *LidarrConfig) UnmarshalJSON(data []byte) error {
 	}
 
 	// Ensure Type is always the correct constant
-	c.Type = AutomationClientTypeLidarr
+	c.ClientType = AutomationClientTypeLidarr
+	c.Type = ClientTypeLidarr
 	return nil
 }

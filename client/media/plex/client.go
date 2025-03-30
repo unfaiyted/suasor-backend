@@ -11,12 +11,23 @@ import (
 	"suasor/utils"
 
 	"github.com/LukeHagar/plexgo"
+	c "suasor/client"
 )
 
-// init is automatically called when package is imported
-// func init() {
-// 	media.RegisterClient(client.MediaClientTypePlex, NewPlexClient)
-// }
+// Add this init function to register the plex client factory
+func init() {
+	c.GetClientFactoryService().RegisterClientFactory(client.ClientTypePlex,
+		func(ctx context.Context, clientID uint64, cfg client.ClientConfig) (base.Client, error) {
+			// Type assert to plexConfig
+			plexConfig, ok := cfg.(*client.PlexConfig)
+			if !ok {
+				return nil, fmt.Errorf("invalid config type for plex client, expected *EmbyConfig, got %T", cfg)
+			}
+
+			// Use your existing constructor
+			return NewPlexClient(ctx, clientID, *plexConfig)
+		})
+}
 
 // PlexClient implements MediaContentProvider for Plex
 type PlexClient struct {

@@ -10,7 +10,24 @@ import (
 	auto "suasor/client/automation"
 	"suasor/client/automation/types"
 	config "suasor/client/types"
+
+	c "suasor/client"
 )
+
+// Add this init function to register the plex client factory
+func init() {
+	c.GetClientFactoryService().RegisterClientFactory(config.ClientTypeSonarr,
+		func(ctx context.Context, clientID uint64, cfg config.ClientConfig) (base.Client, error) {
+			// Type assert to plexConfig
+			plexConfig, ok := cfg.(*config.SonarrConfig)
+			if !ok {
+				return nil, fmt.Errorf("invalid config type for plex client, expected *EmbyConfig, got %T", cfg)
+			}
+
+			// Use your existing constructor
+			return NewSonarrClient(ctx, clientID, *plexConfig)
+		})
+}
 
 type SonarrClient struct {
 	auto.BaseAutomationClient

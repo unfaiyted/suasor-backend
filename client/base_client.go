@@ -2,6 +2,7 @@
 package client
 
 import (
+	"context"
 	client "suasor/client/types"
 )
 
@@ -10,6 +11,7 @@ type Client interface {
 	GetCategory() client.ClientCategory
 	GetType() client.ClientType
 	GetConfig() client.ClientConfig
+	TestConnection(ctx context.Context) (bool, error)
 }
 
 // BaseClient provides common behavior for all media clients
@@ -33,4 +35,8 @@ func (b *BaseClient) GetType() client.ClientType {
 
 func (b *BaseClient) GetConfig() client.ClientConfig {
 	return b.Config
+}
+
+func (b *BaseClient) TestConnection(ctx context.Context) (bool, error) {
+	return false, nil
 }

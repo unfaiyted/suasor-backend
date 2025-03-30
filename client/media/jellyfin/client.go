@@ -7,11 +7,26 @@ import (
 
 	jellyfin "github.com/sj14/jellyfin-go/api"
 	base "suasor/client"
+	c "suasor/client"
 	media "suasor/client/media"
 	t "suasor/client/media/types"
 	client "suasor/client/types"
 	"suasor/utils"
 )
+
+func init() {
+	c.GetClientFactoryService().RegisterClientFactory(client.ClientTypeEmby,
+		func(ctx context.Context, clientID uint64, cfg client.ClientConfig) (base.Client, error) {
+			// Type assert
+			jellyfinConfig, ok := cfg.(*client.JellyfinConfig)
+			if !ok {
+				return nil, fmt.Errorf("invalid config type for Emby client, expected *EmbyConfig, got %T", cfg)
+			}
+
+			// Use your existing constructor
+			return NewJellyfinClient(ctx, clientID, *jellyfinConfig)
+		})
+}
 
 // JellyfinClient implements the MediaContentProvider interface
 type JellyfinClient struct {

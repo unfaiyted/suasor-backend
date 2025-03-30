@@ -3,6 +3,7 @@ package router
 
 import (
 	"context"
+	factory "suasor/client"
 	"suasor/repository"
 	"suasor/router/middleware"
 	"suasor/services"
@@ -53,6 +54,8 @@ func Setup(ctx context.Context, db *gorm.DB, configService services.ConfigServic
 		appConfig.Auth.TokenAudience,
 	)
 
+	clientFactoryService := factory.GetClientFactoryService()
+
 	RegisterHealthRoutes(v1, healthService)
 	RegisterAuthRoutes(v1, authService)
 
@@ -66,7 +69,7 @@ func Setup(ctx context.Context, db *gorm.DB, configService services.ConfigServic
 
 		RegisterMediaItemRoutes(authenticated, db)
 
-		RegisterMediaClientRoutes(authenticated, db)
+		RegisterMediaClientRoutes(authenticated, clientFactoryService, db)
 	}
 
 	//Admin Routes
@@ -74,7 +77,7 @@ func Setup(ctx context.Context, db *gorm.DB, configService services.ConfigServic
 	adminRoutes.Use(middleware.VerifyToken(authService), middleware.RequireRole("admin"))
 	{
 		RegisterConfigRoutes(adminRoutes, configService)
-		RegisterClientRoutes(adminRoutes, db)
+		RegisterClientRoutes(adminRoutes, clientFactoryService, db)
 	}
 
 	return r

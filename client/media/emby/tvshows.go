@@ -32,7 +32,7 @@ func (e *EmbyClient) GetSeriess(ctx context.Context, options *types.QueryOptions
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.config.BaseURL).
+			Str("baseURL", e.embyConfig().BaseURL).
 			Str("apiEndpoint", "/Items").
 			Msg("Failed to fetch TV shows from Emby")
 		return nil, fmt.Errorf("failed to fetch TV shows: %w", err)
@@ -82,7 +82,7 @@ func (e *EmbyClient) GetSeriesByID(ctx context.Context, id string) (models.Media
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.config.BaseURL).
+			Str("baseURL", e.embyConfig().BaseURL).
 			Str("apiEndpoint", "/Items").
 			Str("showID", id).
 			Msg("Failed to fetch TV show from Emby")
@@ -124,11 +124,11 @@ func (e *EmbyClient) GetSeriesSeasons(ctx context.Context, showID string) ([]mod
 		EnableUserData: optional.NewBool(true),
 	}
 
-	result, resp, err := e.client.TvShowsServiceApi.GetShowsByIdSeasons(ctx, e.config.UserID, showID, &opts)
+	result, resp, err := e.client.TvShowsServiceApi.GetShowsByIdSeasons(ctx, e.embyConfig().UserID, showID, &opts)
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.config.BaseURL).
+			Str("baseURL", e.embyConfig().BaseURL).
 			Str("apiEndpoint", "/Shows/"+showID+"/Seasons").
 			Str("showID", showID).
 			Msg("Failed to fetch seasons for TV show from Emby")
@@ -180,7 +180,7 @@ func (e *EmbyClient) GetSeriesEpisodes(ctx context.Context, showID string, seaso
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.config.BaseURL).
+			Str("baseURL", e.embyConfig().BaseURL).
 			Str("apiEndpoint", "/Shows/"+showID+"/Episodes").
 			Str("showID", showID).
 			Int("seasonNumber", seasonNumber).
@@ -234,7 +234,7 @@ func (e *EmbyClient) GetEpisodeByID(ctx context.Context, id string) (models.Medi
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.config.BaseURL).
+			Str("baseURL", e.embyConfig().BaseURL).
 			Str("apiEndpoint", "/Items").
 			Str("episodeID", id).
 			Msg("Failed to fetch episode from Emby")

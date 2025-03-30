@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"suasor/client/types"
+	"suasor/utils"
+	"sync"
 )
 
 type ClientKey struct {
@@ -11,82 +13,98 @@ type ClientKey struct {
 	ID   uint64
 }
 
-// Provider factory type definition
+// Factory function type
 type ClientFactory func(ctx context.Context, clientID uint64, config types.ClientConfig) (Client, error)
 
-// Registry to store client factories
-var clientFactories = make(map[ClientKey]ClientFactory)
-
-// RegisterProvider adds a new provider factory to the registry
-func RegisterClient(clientType types.ClientType, clientID uint64, factory ClientFactory) {
-	key := ClientKey{Type: clientType, ID: clientID}
-	clientFactories[key] = factory
+// ClientFactoryService provides client creation functionality as a singleton
+type ClientFactoryService struct {
+	factories map[types.ClientType]ClientFactory
+	instances map[ClientKey]Client
+	mu        sync.RWMutex
 }
 
-func NewClient(ctx context.Context, clientID uint64, clientType types.ClientType, config types.ClientConfig) (Client, error) {
-	key := ClientKey{Type: clientType, ID: clientID}
-	factory, exists := clientFactories[key]
-	if !exists {
-		return nil, fmt.Errorf("unsupported client type: %s", clientType)
-	}
-	return factory(ctx, clientID, config)
+// Singleton instance with thread-safe initialization
+var (
+	instance *ClientFactoryService
+	once     sync.Once
+)
+
+// GetClientFactoryService returns the singleton instance
+func GetClientFactoryService() *ClientFactoryService {
+	once.Do(func() {
+		instance = &ClientFactoryService{
+			factories: make(map[types.ClientType]ClientFactory),
+			instances: make(map[ClientKey]Client),
+		}
+	})
+	return instance
 }
 
-func (ClientFactory) GetClient(ctx context.Context, clientID uint64, config types.ClientConfig) (Client, error) {
-	key := ClientKey{Type: config.GetType(), ID: clientID}
-	factory, exists := clientFactories[key]
-	if !exists {
-		return NewClient(ctx, clientID, config.GetType(), config)
-	}
-	return factory(ctx, clientID, config)
-
+// RegisterClientFactory registers a factory function for a specific client type
+func (s *ClientFactoryService) RegisterClientFactory(clientType types.ClientType, factory ClientFactory) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.factories[clientType] = factory
 }
 
-// // Helper functions to safely cast providers
-// func AsMovieProvider(client MediaClient) (p.MovieProvider, bool) {
-// 	provider, ok := client.(p.MovieProvider)
-// 	return provider, ok && provider.SupportsMovies()
-// }
-//
-// func AsSeriesProvider(client MediaClient) (p.SeriesProvider, bool) {
-// 	provider, ok := client.(p.SeriesProvider)
-// 	return provider, ok && provider.SupportsSeries()
-// }
-//
-// func AsMusicProvider(client MediaClient) (p.MusicProvider, bool) {
-// 	provider, ok := client.(p.MusicProvider)
-// 	return provider, ok && provider.SupportsMusic()
-// }
-//
-// func AsPlaylistProvider(client MediaClient) (p.PlaylistProvider, bool) {
-// 	provider, ok := client.(p.PlaylistProvider)
-// 	return provider, ok && provider.SupportsPlaylists()
-// }
-//
-// func AsCollectionProvider(client MediaClient) (p.CollectionProvider, bool) {
-// 	provider, ok := client.(p.CollectionProvider)
-// 	return provider, ok && provider.SupportsCollections()
-// }
-//
-// func AsHistoryProvider(client MediaClient) (p.HistoryProvider, bool) {
-// 	provider, ok := client.(p.HistoryProvider)
-// 	return provider, ok && provider.SupportsHistory()
-// }
-
-// ClientFactoryService provides client creation functionality
-type ClientFactoryService struct{}
-
-// NewClientFactoryService creates a new factory service
-func NewClientFactoryService() *ClientFactoryService {
-	return &ClientFactoryService{}
-}
-
-// GetClient retrieves or creates a client based on ID and config
+// GetClient returns an existing client or creates a new one
 func (s *ClientFactoryService) GetClient(ctx context.Context, clientID uint64, config types.ClientConfig) (Client, error) {
-	key := ClientKey{Type: config.GetType(), ID: clientID}
-	factory, exists := clientFactories[key]
-	if !exists {
-		return NewClient(ctx, clientID, config.GetType(), config)
+	log := utils.LoggerFromContext(ctx)
+	clientType := config.GetType()
+	key := ClientKey{Type: clientType, ID: clientID}
+
+	// Try to get existing client first (read lock)
+	s.mu.RLock()
+	client, exists := s.instances[key]
+	s.mu.RUnlock()
+
+	if exists {
+		log.Info().
+			Str("clientType", clientType.String()).
+			Uint64("clientID", clientID).
+			Msg("Returning existing client instance")
+		return client, nil
 	}
-	return factory(ctx, clientID, config)
+
+	// Need to create a new client (write lock)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	// Double-check after acquiring lock
+	if client, exists := s.instances[key]; exists {
+		return client, nil
+	}
+
+	// Get factory for the client type
+	factory, exists := s.factories[clientType]
+	if !exists {
+		return nil, fmt.Errorf("no factory registered for client type: %s", clientType)
+	}
+
+	// Create and cache new client
+	client, err := factory(ctx, clientID, config)
+	if err != nil {
+		return nil, err
+	}
+
+	s.instances[key] = client
+	log.Info().
+		Str("clientType", clientType.String()).
+		Uint64("clientID", clientID).
+		Msg("Created and cached new client instance")
+
+	return client, nil
 }
+
+// Convenience package-level functions for working with the singleton
+
+// RegisterClientFactory registers a factory at the package level
+func RegisterClientFactory(clientType types.ClientType, factory ClientFactory) {
+	GetClientFactoryService().RegisterClientFactory(clientType, factory)
+}
+
+// GetClient gets or creates a client at the package level
+func GetClient(ctx context.Context, clientID uint64, config types.ClientConfig) (Client, error) {
+	return GetClientFactoryService().GetClient(ctx, clientID, config)
+}
+

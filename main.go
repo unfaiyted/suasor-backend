@@ -10,6 +10,7 @@ import (
 	"suasor/types"
 	logger "suasor/utils"
 
+	_ "suasor/client/media/emby" // Force init() to run
 	_ "suasor/docs"
 
 	swaggerFiles "github.com/swaggo/files"

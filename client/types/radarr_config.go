@@ -13,7 +13,7 @@ func NewRadarrConfig() RadarrConfig {
 			BaseClientConfig: BaseClientConfig{
 				Type: ClientTypeRadarr,
 			},
-			Type: AutomationClientTypeRadarr,
+			ClientType: AutomationClientTypeRadarr,
 		},
 	}
 }
@@ -44,6 +44,7 @@ func (c *RadarrConfig) UnmarshalJSON(data []byte) error {
 	}
 
 	// Ensure Type is always the correct constant
-	c.Type = AutomationClientTypeRadarr
+	c.ClientType = AutomationClientTypeRadarr
+	c.Type = ClientTypeRadarr
 	return nil
 }

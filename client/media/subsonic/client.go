@@ -2,6 +2,7 @@ package subsonic
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	base "suasor/client"
 	media "suasor/client/media"
@@ -10,7 +11,24 @@ import (
 	"time"
 
 	gosonic "github.com/supersonic-app/go-subsonic/subsonic"
+
+	c "suasor/client"
 )
+
+// Add this init function to register the subsonic client factory
+func init() {
+	c.GetClientFactoryService().RegisterClientFactory(types.ClientTypeSubsonic,
+		func(ctx context.Context, clientID uint64, cfg types.ClientConfig) (base.Client, error) {
+			// Type assert to subsonicConfig
+			subsonicConfig, ok := cfg.(*types.SubsonicConfig)
+			if !ok {
+				return nil, fmt.Errorf("invalid config type for subsonic client, expected *EmbyConfig, got %T", cfg)
+			}
+
+			// Use your existing constructor
+			return NewSubsonicClient(ctx, clientID, *subsonicConfig)
+		})
+}
 
 // SubsonicClient implements MediaContentProvider for Subsonic
 type SubsonicClient struct {

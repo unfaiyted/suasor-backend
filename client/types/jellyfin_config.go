@@ -27,7 +27,8 @@ func (c *JellyfinConfig) UnmarshalJSON(data []byte) error {
 	}
 
 	// Ensure Type is always the correct constant
-	c.Type = MediaClientTypeJellyfin
+	c.ClientType = MediaClientTypeJellyfin
+	c.Type = ClientTypeJellyfin
 	return nil
 }
 
@@ -37,7 +38,7 @@ func NewJellyfinConfig() JellyfinConfig {
 			BaseClientConfig: BaseClientConfig{
 				Type: ClientTypeJellyfin,
 			},
-			Type: MediaClientTypeJellyfin,
+			ClientType: MediaClientTypeJellyfin,
 		},
 	}
 }

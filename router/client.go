@@ -3,6 +3,7 @@ package router
 
 import (
 	"fmt"
+	factory "suasor/client"
 	"suasor/client/types"
 	"suasor/handlers"
 	"suasor/services"
@@ -23,15 +24,15 @@ type ClientHandlerInterface interface {
 }
 
 // SetupClientRoutes configures routes for client endpoints
-func RegisterClientRoutes(r *gin.RouterGroup, db *gorm.DB) {
-	embyService := services.NewClientService[*types.EmbyConfig](db)
-	jellyfinService := services.NewClientService[*types.JellyfinConfig](db)
-	subsonicService := services.NewClientService[*types.SubsonicConfig](db)
-	plexService := services.NewClientService[*types.PlexConfig](db)
+func RegisterClientRoutes(r *gin.RouterGroup, factory *factory.ClientFactoryService, db *gorm.DB) {
+	embyService := services.NewClientService[*types.EmbyConfig](factory, db)
+	jellyfinService := services.NewClientService[*types.JellyfinConfig](factory, db)
+	subsonicService := services.NewClientService[*types.SubsonicConfig](factory, db)
+	plexService := services.NewClientService[*types.PlexConfig](factory, db)
 
-	sonarrService := services.NewClientService[*types.SonarrConfig](db)
-	lidarrService := services.NewClientService[*types.LidarrConfig](db)
-	radarrService := services.NewClientService[*types.RadarrConfig](db)
+	sonarrService := services.NewClientService[*types.SonarrConfig](factory, db)
+	lidarrService := services.NewClientService[*types.LidarrConfig](factory, db)
+	radarrService := services.NewClientService[*types.RadarrConfig](factory, db)
 
 	// Initialize all handlers
 	embyClientHandler := handlers.NewClientHandler[*types.EmbyConfig](embyService)
@@ -99,7 +100,7 @@ func RegisterClientRoutes(r *gin.RouterGroup, db *gorm.DB) {
 			}
 		})
 
-		client.POST("/test", func(c *gin.Context) {
+		client.GET("/:id/test", func(c *gin.Context) {
 			if handler := getHandler(c); handler != nil {
 				handler.TestConnection(c)
 			}

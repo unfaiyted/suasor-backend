@@ -15,6 +15,7 @@ type Client[T client.ClientConfig] struct {
 	BaseModel
 	UserID    uint64                 `json:"userId" gorm:"not null"`
 	Category  client.ClientCategory  `json:"category" gorm:"not null"`
+	Type      client.ClientType      `json:"type" gorm:"not null"`
 	Config    ClientConfigWrapper[T] `json:"config" gorm:"jsonb"`
 	Name      string                 `json:"name" gorm:"not null"`
 	IsEnabled bool                   `json:"isEnabled" gorm:"default:true"`
@@ -76,7 +77,7 @@ func (Client[T]) TableName() string {
 
 // ClientConfigWrapper wraps generic client configuration with database serialization
 type ClientConfigWrapper[T client.ClientConfig] struct {
-	Data T
+	Data T `json:"data"`
 }
 
 // Value implements driver.Valuer for database storage
@@ -124,4 +125,8 @@ func (c *Client[T]) GetConfig() client.ClientConfig {
 
 func (c *Client[T]) GetName() string {
 	return c.Name
+}
+
+func (c *Client[T]) GetType() client.ClientType {
+	return c.Type
 }

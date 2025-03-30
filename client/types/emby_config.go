@@ -15,7 +15,7 @@ func NewEmbyConfig() EmbyConfig {
 			BaseClientConfig: BaseClientConfig{
 				Type: ClientTypeEmby,
 			},
-			Type: MediaClientTypeEmby,
+			ClientType: MediaClientTypeEmby,
 		},
 	}
 }
@@ -26,10 +26,6 @@ func (c *EmbyConfig) GetUsername() string {
 
 func (c *EmbyConfig) GetUserID() string {
 	return c.UserID
-}
-
-func (e *EmbyConfig) GetName() string {
-	return e.Name
 }
 
 func (EmbyConfig) GetClientType() MediaClientType {
@@ -72,6 +68,7 @@ func (c *EmbyConfig) UnmarshalJSON(data []byte) error {
 	}
 
 	// Ensure Type is always the correct constant
-	c.Type = MediaClientTypeEmby
+	c.ClientType = MediaClientTypeEmby
+	c.Type = ClientTypeEmby
 	return nil
 }

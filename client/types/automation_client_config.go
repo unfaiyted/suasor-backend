@@ -16,15 +16,11 @@ type BaseAutomationClientConfig struct {
 	APIKey  string `json:"apiKey" mapstructure:"apiKey" example:"your-api-key" binding:"required_if=Enabled true"`
 	SSL     bool   `json:"ssl" mapstructure:"ssl" example:"false"`
 
-	Type AutomationClientType
+	ClientType AutomationClientType `json:"clientType"`
 }
 
 func (c *BaseAutomationClientConfig) GetClientType() AutomationClientType {
-	return c.Type
-}
-
-func (c *BaseAutomationClientConfig) GetName() string {
-	return c.Name
+	return c.ClientType
 }
 
 func (c *BaseAutomationClientConfig) GetCategory() ClientCategory {

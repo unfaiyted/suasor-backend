@@ -1,15 +1,13 @@
 package types
 
 type ClientConfig interface {
-	GetName() string
 	isClientConfig()
 	GetCategory() ClientCategory
 	GetType() ClientType
 }
 
 type BaseClientConfig struct {
-	Type ClientType
-	Name string
+	Type ClientType `json:"type"`
 }
 
 func (c *BaseClientConfig) GetType() ClientType {
@@ -21,7 +19,3 @@ func (c *BaseClientConfig) GetCategory() ClientCategory {
 }
 
 func (BaseClientConfig) isClientConfig() {}
-
-func (c *BaseClientConfig) GetName() string {
-	return c.Name
-}

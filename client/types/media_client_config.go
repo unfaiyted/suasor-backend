@@ -15,17 +15,17 @@ type MediaClientConfig interface {
 
 type BaseMediaClientConfig struct {
 	BaseClientConfig
-	Type    MediaClientType
-	BaseURL string `json:"baseURL" mapstructure:"baseURL" example:"http://localhost:8096"`
-	APIKey  string `json:"apiKey" mapstructure:"apiKey" example:"your-api-key" binding:"required_if=Enabled true"`
-	SSL     bool   `json:"ssl" mapstructure:"ssl" example:"false"`
+	ClientType MediaClientType `json:"clientType"`
+	BaseURL    string          `json:"baseURL" mapstructure:"baseURL" example:"http://localhost:8096"`
+	APIKey     string          `json:"apiKey" mapstructure:"apiKey" example:"your-api-key" binding:"required_if=Enabled true"`
+	SSL        bool            `json:"ssl" mapstructure:"ssl" example:"false"`
 }
 
 func (BaseMediaClientConfig) isMediaClientConfig() {}
 
-func (c *BaseMediaClientConfig) GetName() string {
-	return c.Name
-}
+// func (c *BaseMediaClientConfig) GetType() ClientType {
+// 	return c.BaseClientConfig.Type
+// }
 
 func (c *BaseMediaClientConfig) GetBaseURL() string {
 	return c.BaseURL
@@ -36,7 +36,7 @@ func (c *BaseMediaClientConfig) GetAPIKey() string {
 }
 
 func (c *BaseMediaClientConfig) GetClientType() MediaClientType {
-	return c.Type
+	return c.ClientType
 }
 
 func (c *BaseMediaClientConfig) GetCategory() ClientCategory {

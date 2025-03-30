@@ -45,10 +45,10 @@ func RespondWithError(c *gin.Context, statusCode int, err error, customMessage .
 	}
 
 	// Create response with error details
-	errorResponse := ErrorResponse[error]{
+	errorResponse := ErrorResponse[ErrorDetails]{
 		Type:      errorType,
 		Message:   message,
-		Details:   err,
+		Details:   CreateErrorDetails(err),
 		Timestamp: time.Now(),
 		RequestID: requestID,
 	}
@@ -145,4 +145,38 @@ func NewGenericError(errorType errors.ErrorType, message string, statusCode uint
 		Timestamp:  time.Now(),
 		RequestID:  requestID,
 	}
+}
+
+// ErrorDetails captures all information from Go error objects
+type ErrorDetails struct {
+	Error     string                 `json:"error"`
+	StackInfo string                 `json:"stackInfo,omitempty"`
+	Metadata  map[string]interface{} `json:"metadata,omitempty"`
+}
+
+// CreateErrorDetails extracts all available information from an error
+func CreateErrorDetails(err error) ErrorDetails {
+	if err == nil {
+		return ErrorDetails{}
+	}
+
+	details := ErrorDetails{
+		Error:    err.Error(),
+		Metadata: make(map[string]interface{}),
+	}
+
+	// Extract additional info based on error type
+	switch typedErr := err.(type) {
+	case interface{ StackTrace() string }:
+		details.StackInfo = typedErr.StackTrace()
+	case interface{ Fields() map[string]interface{} }:
+		details.Metadata = typedErr.Fields()
+	case interface{ Unwrap() error }:
+		// Handle wrapped errors if needed
+		if unwrapped := typedErr.Unwrap(); unwrapped != nil {
+			details.Metadata["wrapped"] = unwrapped.Error()
+		}
+	}
+
+	return details
 }

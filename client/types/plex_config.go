@@ -14,7 +14,7 @@ func NewPlexConfig() PlexConfig {
 			BaseClientConfig: BaseClientConfig{
 				Type: ClientTypePlex,
 			},
-			Type: MediaClientTypePlex,
+			ClientType: MediaClientTypePlex,
 		},
 	}
 }
@@ -62,6 +62,7 @@ func (c *PlexConfig) UnmarshalJSON(data []byte) error {
 	}
 
 	// Ensure Type is always the correct constant
-	c.Type = MediaClientTypePlex
+	c.ClientType = MediaClientTypePlex
+	c.Type = ClientTypePlex
 	return nil
 }

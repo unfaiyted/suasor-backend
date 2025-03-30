@@ -13,7 +13,7 @@ func NewSonarrConfig() SonarrConfig {
 			BaseClientConfig: BaseClientConfig{
 				Type: ClientTypeSonarr,
 			},
-			Type: AutomationClientTypeSonarr,
+			ClientType: AutomationClientTypeSonarr,
 		},
 	}
 }
@@ -44,6 +44,7 @@ func (c *SonarrConfig) UnmarshalJSON(data []byte) error {
 	}
 
 	// Ensure Type is always the correct constant
-	c.Type = AutomationClientTypeSonarr
+	c.ClientType = AutomationClientTypeSonarr
+	c.Type = ClientTypeSonarr
 	return nil
 }

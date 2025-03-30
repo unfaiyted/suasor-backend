@@ -93,6 +93,7 @@ func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 	clientType := models.Client[T]{
 		UserID:   uid,
 		Name:     req.Name,
+		Type:     client.ClientType(req.ClientType),
 		Category: client.ClientType(req.ClientType).AsCategory(),
 		Config:   models.ClientConfigWrapper[T]{Data: req.Client},
 	}
@@ -365,23 +366,13 @@ func (h *ClientHandler[T]) DeleteClient(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body models.MediaClientTestRequest true "Client configuration to test"
+// @Param clientType path string true "Client type"
+// @Param id path uint64 true "Client ID"
 // @Success 200 {object} models.APIResponse[models.MediaClientTestResponse] "Connection test result"
 // @Failure 400 {object} models.ErrorResponse[error] "Invalid request"
 // @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} models.ErrorResponse[error] "Server error"
-// @Router /clients/media/test [post]
-// @Example request - Emby client test
-//
-//	{
-//	  "url": "http://192.168.1.102:8096",
-//	  "clientType": "emby",
-//	  "client": {
-//	    "apiKey": "your-emby-apikey",
-//	    "username": "admin"
-//	  }
-//	}
-//
+// @Router /admin/client/:clientType/:clientId/test [get]
 // @Example response
 //
 //	{
@@ -402,23 +393,41 @@ func (h *ClientHandler[T]) TestConnection(c *gin.Context) {
 		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
-
+	clientID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		log.Error().Err(err).Str("clientID", c.Param("id")).Msg("Invalid client ID format")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
+		return
+	}
+	clientType := c.Param("clientType")
 	uid := userID.(uint64)
+	cid := uint64(clientID)
 
-	var req requests.ClientRequest[T]
-	if err := c.ShouldBindJSON(&req); err != nil {
-		responses.RespondValidationError(c, err)
+	log.Info().
+		Uint64("userID", uid).
+		Str("clientType", clientType).
+		Int("clientID", clientID).
+		Msg("Testing media client connection")
+
+	client, err := h.service.GetByID(ctx, cid, uid)
+	if err != nil {
+		// Check if it's a not found error
+		if err.Error() == "media client not found" {
+			responses.RespondNotFound(c, err, "Media client not found")
+			return
+		}
+		responses.RespondInternalError(c, err, "Failed to retrieve media client")
 		return
 	}
 
 	log.Info().
 		Uint64("userID", uid).
-		Str("type", string(req.ClientType)).
+		Str("type", string(client.GetClientType())).
 		Msg("Testing media client connection")
 
-	result, err := h.service.TestConnection(ctx, req.Client)
+	result, err := h.service.TestConnection(ctx, cid, &client.Config.Data)
 	if err != nil {
-		responses.RespondInternalError(c, err, "Failed to test media client connection")
+		responses.RespondInternalError(c, err, result.Message)
 		return
 	}
 

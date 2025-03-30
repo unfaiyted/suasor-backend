@@ -12,11 +12,10 @@ import (
 	"gorm.io/gorm"
 )
 
-func RegisterMediaClientRoutes(rg *gin.RouterGroup, db *gorm.DB) {
+func RegisterMediaClientRoutes(rg *gin.RouterGroup, factory *client.ClientFactoryService, db *gorm.DB) {
 
 	clientRepo := repository.NewClientRepository[types.MediaClientConfig](db)
-	clientFactory := client.NewClientFactoryService()
-	movieService := services.NewMediaClientMovieService(clientRepo, *clientFactory)
+	movieService := services.NewMediaClientMovieService(clientRepo, *factory)
 	movieHandlers := handlers.NewMediaClientMovieHandler(movieService)
 
 	clientGroup := rg.Group("/client")

@@ -32,7 +32,7 @@ func (e *EmbyClient) GetCollections(ctx context.Context, options *types.QueryOpt
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.config.BaseURL).
+			Str("baseURL", e.embyConfig().BaseURL).
 			Str("apiEndpoint", "/Items").
 			Msg("Failed to fetch collections from Emby")
 		return nil, fmt.Errorf("failed to fetch collections: %w", err)
