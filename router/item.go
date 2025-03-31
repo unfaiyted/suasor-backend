@@ -9,7 +9,7 @@ import (
 // SetupClientRoutes configures routes for client endpoints
 func RegisterMediaItemRoutes(r *gin.RouterGroup, deps *app.AppDependencies) {
 
-	mediaItemHandler := deps.MediaHandlers.MovieHandler()
+	mediaItemHandler := deps.MediaItemHandlers.MovieHandler()
 
 	clients := r.Group("/item")
 

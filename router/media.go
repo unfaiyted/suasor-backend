@@ -25,11 +25,13 @@ type MediaHandlerInterface interface {
 func RegisterMediaClientRoutes(rg *gin.RouterGroup, deps *app.AppDependencies) {
 
 	// Initialize handlers
-	movieHandler := deps.MediaHandlers.MovieHandler()
+	movieHandler := deps.ClientMediaHandlers
 
 	// Create a map of media types to handlers
 	handlerMap := map[string]MediaHandlerInterface{
-		"movie": movieHandler,
+		"jellyfin": movieHandler.JellyfinMovieHandler(),
+		"emby":     movieHandler.EmbyMovieHandler(),
+		"plex":     movieHandler.PlexMovieHandler(),
 		// Add more handlers for different media types if needed
 		// "tv": tvShowHandler,
 		// "music": musicHandler,

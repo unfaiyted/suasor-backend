@@ -12,10 +12,17 @@ import (
 	"time"
 )
 
-func InitializeDependencies(db *gorm.DB, configService services.ConfigService, factory *client.ClientFactoryService) *AppDependencies {
+func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *AppDependencies {
 	deps := &AppDependencies{}
 
+	// NOTE: The Config Service represents the file configuration for the app itself. Not the user configuraiton.
 	appConfig := configService.GetConfig()
+
+	clientFactory := client.GetClientFactoryService()
+
+	deps.SystemRepositories = &systemRepositoriesImpl{
+		configRepo: configService.GetRepo(),
+	}
 
 	// Initialize repositories
 	deps.UserRepositories = &userRepositoriesImpl{
@@ -46,25 +53,25 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService, f
 	}
 
 	// Store the client factory service
-	deps.ClientFactoryService = factory
+	deps.ClientFactoryService = clientFactory
 
 	// Initialize client services
 	deps.ClientServices = &clientServicesImpl{
-		embyService:     services.NewClientService[*types.EmbyConfig](factory, deps.ClientRepositories.EmbyRepo()),
-		jellyfinService: services.NewClientService[*types.JellyfinConfig](factory, deps.ClientRepositories.JellyfinRepo()),
-		plexService:     services.NewClientService[*types.PlexConfig](factory, deps.ClientRepositories.PlexRepo()),
-		subsonicService: services.NewClientService[*types.SubsonicConfig](factory, deps.ClientRepositories.SubsonicRepo()),
-		sonarrService:   services.NewClientService[*types.SonarrConfig](factory, deps.ClientRepositories.SonarrRepo()),
-		radarrService:   services.NewClientService[*types.RadarrConfig](factory, deps.ClientRepositories.RadarrRepo()),
-		lidarrService:   services.NewClientService[*types.LidarrConfig](factory, deps.ClientRepositories.LidarrRepo()),
+		embyService:     services.NewClientService[*types.EmbyConfig](deps.ClientFactoryService, deps.ClientRepositories.EmbyRepo()),
+		jellyfinService: services.NewClientService[*types.JellyfinConfig](deps.ClientFactoryService, deps.ClientRepositories.JellyfinRepo()),
+		plexService:     services.NewClientService[*types.PlexConfig](deps.ClientFactoryService, deps.ClientRepositories.PlexRepo()),
+		subsonicService: services.NewClientService[*types.SubsonicConfig](deps.ClientFactoryService, deps.ClientRepositories.SubsonicRepo()),
+		sonarrService:   services.NewClientService[*types.SonarrConfig](deps.ClientFactoryService, deps.ClientRepositories.SonarrRepo()),
+		radarrService:   services.NewClientService[*types.RadarrConfig](deps.ClientFactoryService, deps.ClientRepositories.RadarrRepo()),
+		lidarrService:   services.NewClientService[*types.LidarrConfig](deps.ClientFactoryService, deps.ClientRepositories.LidarrRepo()),
 	}
 
 	// Initialize media client services
 	deps.ClientMediaServices = &clientMediaServicesImpl{
 		movieServices: clientMovieServicesImpl{
-			embyMovieService:     services.NewMediaClientMovieService[*types.EmbyConfig](deps.ClientRepositories.EmbyRepo(), factory),
-			jellyfinMovieService: services.NewMediaClientMovieService[*types.JellyfinConfig](deps.ClientRepositories.JellyfinRepo(), factory),
-			plexMovieService:     services.NewMediaClientMovieService[*types.PlexConfig](deps.ClientRepositories.PlexRepo(), factory),
+			embyMovieService:     services.NewMediaClientMovieService[*types.EmbyConfig](deps.ClientRepositories.EmbyRepo(), deps.ClientFactoryService),
+			jellyfinMovieService: services.NewMediaClientMovieService[*types.JellyfinConfig](deps.ClientRepositories.JellyfinRepo(), deps.ClientFactoryService),
+			plexMovieService:     services.NewMediaClientMovieService[*types.PlexConfig](deps.ClientRepositories.PlexRepo(), deps.ClientFactoryService),
 		},
 		seriesServices:   clientSeriesServicesImpl{},
 		episodeServices:  clientEpisodeServicesImpl{},
@@ -73,7 +80,7 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService, f
 
 	deps.SystemServices = &systemServicesImpl{
 		healthService: services.NewHealthService(db),
-		configService: services.NewConfigService(deps.ConfigRepo()),
+		configService: configService,
 	}
 
 	// Initialize media item services
@@ -99,7 +106,7 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService, f
 		sonarrHandler:   handlers.NewClientHandler[*types.SonarrConfig](deps.ClientServices.SonarrService()),
 	}
 
-	deps.MediaHandlers = &mediaHandlersImpl{
+	deps.MediaItemHandlers = &mediaItemHandlersImpl{
 		movieHandler:      handlers.NewMediaItemHandler[*mediatypes.Movie](deps.MediaItemServices.MovieService()),
 		seriesHandler:     handlers.NewMediaItemHandler[*mediatypes.Series](deps.MediaItemServices.SeriesService()),
 		episodeHandler:    handlers.NewMediaItemHandler[*mediatypes.Episode](deps.MediaItemServices.EpisodeService()),
@@ -143,6 +150,17 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService, f
 		radarrHandler:   handlers.NewClientHandler[*types.RadarrConfig](deps.ClientServices.RadarrService()),
 		lidarrHandler:   handlers.NewClientHandler[*types.LidarrConfig](deps.ClientServices.LidarrService()),
 		sonarrHandler:   handlers.NewClientHandler[*types.SonarrConfig](deps.ClientServices.SonarrService()),
+	}
+
+	clientMovieHandlers := &clientMediaMovieHandlersImpl{
+		embyMovieHandler:     handlers.NewMediaClientMovieHandler[*types.EmbyConfig](deps.ClientMediaServices.EmbyMovieService()),
+		jellyfinMovieHandler: handlers.NewMediaClientMovieHandler[*types.JellyfinConfig](deps.ClientMediaServices.JellyfinMovieService()),
+		plexMovieHandler:     handlers.NewMediaClientMovieHandler[*types.PlexConfig](deps.ClientMediaServices.PlexMovieService()),
+	}
+
+	deps.ClientMediaHandlers = &clientMediaHandlersImpl{
+		movieHandlers: clientMovieHandlers,
+		// TODO: implement other handlers
 	}
 
 	return deps

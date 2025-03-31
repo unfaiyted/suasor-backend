@@ -49,7 +49,7 @@ func (r *mediaItemRepositoriesImpl) TrackRepo() repository.MediaItemRepository[*
 	return r.trackRepo
 }
 
-type mediaHandlersImpl struct {
+type mediaItemHandlersImpl struct {
 	movieHandler      *handlers.MediaItemHandler[*mediatypes.Movie]
 	seriesHandler     *handlers.MediaItemHandler[*mediatypes.Series]
 	episodeHandler    *handlers.MediaItemHandler[*mediatypes.Episode]
@@ -60,34 +60,34 @@ type mediaHandlersImpl struct {
 	playlistHandler   *handlers.MediaItemHandler[*mediatypes.Playlist]
 }
 
-func (h *mediaHandlersImpl) MovieHandler() *handlers.MediaItemHandler[*mediatypes.Movie] {
+func (h *mediaItemHandlersImpl) MovieHandler() *handlers.MediaItemHandler[*mediatypes.Movie] {
 	return h.movieHandler
 }
 
-func (h *mediaHandlersImpl) SeriesHandler() *handlers.MediaItemHandler[*mediatypes.Series] {
+func (h *mediaItemHandlersImpl) SeriesHandler() *handlers.MediaItemHandler[*mediatypes.Series] {
 	return h.seriesHandler
 }
 
-func (h *mediaHandlersImpl) EpisodeHandler() *handlers.MediaItemHandler[*mediatypes.Episode] {
+func (h *mediaItemHandlersImpl) EpisodeHandler() *handlers.MediaItemHandler[*mediatypes.Episode] {
 	return h.episodeHandler
 }
 
-func (h *mediaHandlersImpl) TrackHandler() *handlers.MediaItemHandler[*mediatypes.Track] {
+func (h *mediaItemHandlersImpl) TrackHandler() *handlers.MediaItemHandler[*mediatypes.Track] {
 	return h.trackHandler
 }
 
-func (h *mediaHandlersImpl) AlbumHandler() *handlers.MediaItemHandler[*mediatypes.Album] {
+func (h *mediaItemHandlersImpl) AlbumHandler() *handlers.MediaItemHandler[*mediatypes.Album] {
 	return h.albumHandler
 }
 
-func (h *mediaHandlersImpl) ArtistHandler() *handlers.MediaItemHandler[*mediatypes.Artist] {
+func (h *mediaItemHandlersImpl) ArtistHandler() *handlers.MediaItemHandler[*mediatypes.Artist] {
 	return h.artistHandler
 }
 
-func (h *mediaHandlersImpl) CollectionHandler() *handlers.MediaItemHandler[*mediatypes.Collection] {
+func (h *mediaItemHandlersImpl) CollectionHandler() *handlers.MediaItemHandler[*mediatypes.Collection] {
 	return h.collectionHandler
 }
 
-func (h *mediaHandlersImpl) PlaylistHandler() *handlers.MediaItemHandler[*mediatypes.Playlist] {
+func (h *mediaItemHandlersImpl) PlaylistHandler() *handlers.MediaItemHandler[*mediatypes.Playlist] {
 	return h.playlistHandler
 }

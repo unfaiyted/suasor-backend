@@ -9,10 +9,6 @@ import (
 	"suasor/services"
 )
 
-type AppRepositories interface {
-	ConfigRepo() repository.ConfigRepository
-}
-
 // Interface definitions (unchanged)
 type ClientServices interface {
 	EmbyService() services.ClientService[*types.EmbyConfig]
@@ -46,10 +42,10 @@ type ClientAutomationServices interface {
 }
 
 type ClientMovieServies interface {
-	EmbyMovieService() *services.MediaClientMovieService[*types.EmbyConfig]
-	JellyfinMovieService() *services.MediaClientMovieService[*types.JellyfinConfig]
-	PlexMovieService() *services.MediaClientMovieService[*types.PlexConfig]
-	SubsonicMovieService() *services.MediaClientMovieService[*types.SubsonicConfig]
+	EmbyMovieService() services.MediaClientMovieService[*types.EmbyConfig]
+	JellyfinMovieService() services.MediaClientMovieService[*types.JellyfinConfig]
+	PlexMovieService() services.MediaClientMovieService[*types.PlexConfig]
+	SubsonicMovieService() services.MediaClientMovieService[*types.SubsonicConfig]
 }
 
 type ClientSeriesServices interface {
@@ -98,11 +94,6 @@ type UserServices interface {
 	AuthService() services.AuthService
 }
 
-type AppServices interface {
-	HealthService() services.HealthService
-	ConfigService() services.ConfigService
-}
-
 type ClientHandlers interface {
 	EmbyHandler() *handlers.ClientHandler[*types.EmbyConfig]
 	JellyfinHandler() *handlers.ClientHandler[*types.JellyfinConfig]
@@ -124,15 +115,28 @@ type MediaItemHandlers interface {
 	PlaylistHandler() *handlers.MediaItemHandler[*mediatypes.Playlist]
 }
 
-type MediaHandlers interface {
-	MovieHandler() *handlers.MediaItemHandler[*mediatypes.Movie]
-	SeriesHandler() *handlers.MediaItemHandler[*mediatypes.Series]
-	EpisodeHandler() *handlers.MediaItemHandler[*mediatypes.Episode]
-	TrackHandler() *handlers.MediaItemHandler[*mediatypes.Track]
-	AlbumHandler() *handlers.MediaItemHandler[*mediatypes.Album]
-	ArtistHandler() *handlers.MediaItemHandler[*mediatypes.Artist]
-	CollectionHandler() *handlers.MediaItemHandler[*mediatypes.Collection]
-	PlaylistHandler() *handlers.MediaItemHandler[*mediatypes.Playlist]
+type ClientMediaHandlers interface {
+	ClientMediaMovieHandlers
+	ClientMediaSeriesHandlers
+	ClientMediaEpisodeHandlers
+}
+
+type ClientMediaMovieHandlers interface {
+	EmbyMovieHandler() *handlers.MediaClientMovieHandler[*types.EmbyConfig]
+	JellyfinMovieHandler() *handlers.MediaClientMovieHandler[*types.JellyfinConfig]
+	PlexMovieHandler() *handlers.MediaClientMovieHandler[*types.PlexConfig]
+}
+
+type ClientMediaSeriesHandlers interface {
+	// EmbySeriesHandler() *handlers.MediaClientSeriesHandler[*types.EmbyConfig]
+	// JellyfinSeriesHandler() *handlers.MediaClientSeriesHandler[*types.JellyfinConfig]
+	// PlexSeriesHandler() *handlers.MediaClientSeriesHandler[*types.PlexConfig]
+}
+
+type ClientMediaEpisodeHandlers interface {
+	// EmbyEpisodeHandler() *handlers.MediaClientEpisodeHandler[*types.EmbyConfig]
+	// JellyfinEpisodeHandler() *handlers.MediaClientEpisodeHandler[*types.JellyfinConfig]
+	// PlexEpisodeHandler() *handlers.MediaClientEpisodeHandler[*types.PlexConfig]
 }
 
 type UserHandlers interface {
@@ -149,4 +153,8 @@ type SystemHandlers interface {
 type SystemServices interface {
 	HealthService() services.HealthService
 	ConfigService() services.ConfigService
+}
+
+type SystemRepositories interface {
+	ConfigRepo() repository.ConfigRepository
 }

@@ -29,6 +29,7 @@ type ConfigService interface {
 	GetFileConfig(ctx context.Context) *types.Configuration
 	SaveFileConfig(ctx context.Context, cfg types.Configuration) error
 	ResetFileConfig(ctx context.Context) error
+	GetRepo() repository.ConfigRepository
 }
 
 type configService struct {
@@ -341,4 +342,8 @@ func (s *configService) ResetFileConfig(ctx context.Context) error {
 	// Reload the main configuration
 	log.Info().Msg("Reloading main configuration")
 	return s.InitConfig(ctx)
+}
+
+func (s *configService) GetRepo() repository.ConfigRepository {
+	return s.configRepo
 }

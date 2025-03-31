@@ -41,8 +41,8 @@ func Setup(ctx context.Context, deps *app.AppDependencies) *gin.Engine {
 	authenticated.Use(middleware.VerifyToken(deps.AuthService()))
 	{
 		// Register all routes
-		RegisterUserRoutes(authenticated, deps.UserService())
-		RegisterUserConfigRoutes(authenticated, deps.UserConfigService())
+		RegisterUserRoutes(authenticated, deps)
+		RegisterUserConfigRoutes(authenticated, deps)
 		RegisterMediaItemRoutes(authenticated, deps)
 		RegisterMediaClientRoutes(authenticated, deps)
 	}

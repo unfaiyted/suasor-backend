@@ -2,10 +2,18 @@
 package app
 
 import (
-	mediatypes "suasor/client/media/types"
 	"suasor/handlers"
+	"suasor/repository"
 	"suasor/services"
 )
+
+type systemRepositoriesImpl struct {
+	configRepo repository.ConfigRepository
+}
+
+func (r *systemRepositoriesImpl) ConfigRepo() repository.ConfigRepository {
+	return r.configRepo
+}
 
 type systemHandlersImpl struct {
 	configHandler *handlers.ConfigHandler

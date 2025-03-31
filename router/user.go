@@ -1,14 +1,12 @@
 package router
 
 import (
-	"suasor/handlers"
-	"suasor/services"
-
 	"github.com/gin-gonic/gin"
+	"suasor/app"
 )
 
-func RegisterUserRoutes(rg *gin.RouterGroup, service services.UserService) {
-	userHandlers := handlers.NewUserHandler(service)
+func RegisterUserRoutes(rg *gin.RouterGroup, deps *app.AppDependencies) {
+	userHandlers := deps.UserHandlers.UserHandler()
 	users := rg.Group("/users")
 	{
 		// Public routes

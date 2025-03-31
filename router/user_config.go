@@ -2,13 +2,13 @@ package router
 
 import (
 	"suasor/handlers"
-	"suasor/services"
 
 	"github.com/gin-gonic/gin"
+	"suasor/app"
 )
 
-func RegisterUserConfigRoutes(rg *gin.RouterGroup, service services.UserConfigService) {
-	configHandlers := handlers.NewUserConfigHandler(service)
+func RegisterUserConfigRoutes(rg *gin.RouterGroup, deps *app.AppDependencies) {
+	configHandlers := handlers.NewUserConfigHandler(deps.UserConfigService())
 	configs := rg.Group("/config/user")
 	{
 

@@ -4,9 +4,6 @@ package router
 import (
 	"fmt"
 	"suasor/app"
-	"suasor/client/types"
-	"suasor/handlers"
-	"suasor/services"
 	"suasor/types/responses"
 
 	"github.com/gin-gonic/gin"
@@ -25,34 +22,17 @@ type ClientHandlerInterface interface {
 
 // SetupClientRoutes configures routes for client endpoints
 func RegisterClientRoutes(r *gin.RouterGroup, deps *app.AppDependencies) {
-	embyService := services.NewClientService[*types.EmbyConfig](factory, db)
-	jellyfinService := services.NewClientService[*types.JellyfinConfig](factory, db)
-	subsonicService := services.NewClientService[*types.SubsonicConfig](factory, db)
-	plexService := services.NewClientService[*types.PlexConfig](factory, db)
-
-	sonarrService := services.NewClientService[*types.SonarrConfig](factory, db)
-	lidarrService := services.NewClientService[*types.LidarrConfig](factory, db)
-	radarrService := services.NewClientService[*types.RadarrConfig](factory, db)
-
-	// Initialize all handlers
-	embyClientHandler := handlers.NewClientHandler[*types.EmbyConfig](&embyService)
-	jellyfinClientHandler := handlers.NewClientHandler[*types.JellyfinConfig](&jellyfinService)
-	lidarrClientHandler := handlers.NewClientHandler[*types.LidarrConfig](&lidarrService)
-	subsonicClientHandler := handlers.NewClientHandler[*types.SubsonicConfig](&subsonicService)
-	plexClientHandler := handlers.NewClientHandler[*types.PlexConfig](&plexService)
-	sonarrClientHandler := handlers.NewClientHandler[*types.SonarrConfig](&sonarrService)
-	radarrClientHandler := handlers.NewClientHandler[*types.RadarrConfig](&radarrService)
 
 	// Create a map of client type to handler using the interface
 	handlerMap := map[string]ClientHandlerInterface{
-		"emby":     embyClientHandler,
-		"jellyfin": jellyfinClientHandler,
-		"subsonic": subsonicClientHandler,
-		"plex":     plexClientHandler,
+		"emby":     deps.ClientHandlers.EmbyHandler(),
+		"jellyfin": deps.ClientHandlers.JellyfinHandler(),
+		"subsonic": deps.ClientHandlers.SubsonicHandler(),
+		"plex":     deps.ClientHandlers.PlexHandler(),
 
-		"sonarr": sonarrClientHandler,
-		"radarr": radarrClientHandler,
-		"lidarr": lidarrClientHandler,
+		"sonarr": deps.ClientHandlers.SonarrHandler(),
+		"radarr": deps.ClientHandlers.RadarrHandler(),
+		"lidarr": deps.ClientHandlers.LidarrHandler(),
 	}
 
 	// Helper function to get the appropriate handler

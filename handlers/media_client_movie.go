@@ -24,13 +24,13 @@ func createMovieMediaItem[T mediatypes.Movie](clientID uint64, clientType client
 }
 
 // MediaClientMovieHandler handles movie-related operations for media clients
-type MediaClientMovieHandler struct {
-	movieService services.MediaClientMovieService
+type MediaClientMovieHandler[T clienttypes.MediaClientConfig] struct {
+	movieService services.MediaClientMovieService[T]
 }
 
 // NewMediaClientMovieHandler creates a new media client movie handler
-func NewMediaClientMovieHandler(movieService services.MediaClientMovieService) *MediaClientMovieHandler {
-	return &MediaClientMovieHandler{
+func NewMediaClientMovieHandler[T clienttypes.MediaClientConfig](movieService services.MediaClientMovieService[T]) *MediaClientMovieHandler[T] {
+	return &MediaClientMovieHandler[T]{
 		movieService: movieService,
 	}
 }
@@ -49,7 +49,7 @@ func NewMediaClientMovieHandler(movieService services.MediaClientMovieService) *
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/movies/{movieID} [get]
-func (h *MediaClientMovieHandler) GetMovieByID(c *gin.Context) {
+func (h *MediaClientMovieHandler[T]) GetMovieByID(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	log := utils.LoggerFromContext(ctx)
@@ -105,7 +105,7 @@ func (h *MediaClientMovieHandler) GetMovieByID(c *gin.Context) {
 // @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} models.ErrorResponse[error] "Server error"
 // @Router /movies/genre/{genre} [get]
-func (h *MediaClientMovieHandler) GetMoviesByGenre(c *gin.Context) {
+func (h *MediaClientMovieHandler[T]) GetMoviesByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -150,7 +150,7 @@ func (h *MediaClientMovieHandler) GetMoviesByGenre(c *gin.Context) {
 // @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} models.ErrorResponse[error] "Server error"
 // @Router /movies/year/{year} [get]
-func (h *MediaClientMovieHandler) GetMoviesByYear(c *gin.Context) {
+func (h *MediaClientMovieHandler[T]) GetMoviesByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -188,7 +188,7 @@ func (h *MediaClientMovieHandler) GetMoviesByYear(c *gin.Context) {
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }
 
-func (h *MediaClientMovieHandler) GetMoviesByActor(c *gin.Context) {
+func (h *MediaClientMovieHandler[T]) GetMoviesByActor(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -220,7 +220,7 @@ func (h *MediaClientMovieHandler) GetMoviesByActor(c *gin.Context) {
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }
 
-func (h *MediaClientMovieHandler) GetMoviesByDirector(c *gin.Context) {
+func (h *MediaClientMovieHandler[T]) GetMoviesByDirector(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -252,7 +252,7 @@ func (h *MediaClientMovieHandler) GetMoviesByDirector(c *gin.Context) {
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }
 
-func (h *MediaClientMovieHandler) GetMoviesByRating(c *gin.Context) {
+func (h *MediaClientMovieHandler[T]) GetMoviesByRating(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -299,7 +299,7 @@ func (h *MediaClientMovieHandler) GetMoviesByRating(c *gin.Context) {
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }
 
-func (h *MediaClientMovieHandler) GetLatestMoviesByAdded(c *gin.Context) {
+func (h *MediaClientMovieHandler[T]) GetLatestMoviesByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -337,7 +337,7 @@ func (h *MediaClientMovieHandler) GetLatestMoviesByAdded(c *gin.Context) {
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }
 
-func (h *MediaClientMovieHandler) GetPopularMovies(c *gin.Context) {
+func (h *MediaClientMovieHandler[T]) GetPopularMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -375,7 +375,7 @@ func (h *MediaClientMovieHandler) GetPopularMovies(c *gin.Context) {
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }
 
-func (h *MediaClientMovieHandler) GetTopRatedMovies(c *gin.Context) {
+func (h *MediaClientMovieHandler[T]) GetTopRatedMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -413,7 +413,7 @@ func (h *MediaClientMovieHandler) GetTopRatedMovies(c *gin.Context) {
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }
 
-func (h *MediaClientMovieHandler) SearchMovies(c *gin.Context) {
+func (h *MediaClientMovieHandler[T]) SearchMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -450,4 +450,3 @@ func (h *MediaClientMovieHandler) SearchMovies(c *gin.Context) {
 
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }
-

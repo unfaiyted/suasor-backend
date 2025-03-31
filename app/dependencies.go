@@ -7,13 +7,12 @@ import (
 
 type AppDependencies struct {
 	// Repositories
-	AppRepository
+	SystemRepositories
 	UserRepositories
 	MediaItemRepositories
 	ClientRepositories
 
 	// Services
-	AppServices
 	UserServices
 	SystemServices
 	ClientServices
@@ -25,7 +24,7 @@ type AppDependencies struct {
 
 	// Handlers
 	ClientHandlers
-	MediaHandlers
+	ClientMediaHandlers
 	MediaItemHandlers
 	UserHandlers
 	SystemHandlers
