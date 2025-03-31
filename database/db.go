@@ -99,12 +99,12 @@ func Initialize(ctx context.Context, dbConfig types.DatabaseConfig) (*gorm.DB, e
 	}
 
 	// db.Exec("DELETE FROM clients")
+	// db.Exec("DROP TABLE clients")
 	// Auto Migrate the schema
 	//&models.User{},
 	if err := db.AutoMigrate(
 		&models.User{},
 		&models.UserConfig{},
-
 		&models.Client[*client.EmbyConfig]{},
 		&models.Client[*client.JellyfinConfig]{},
 		&models.Client[*client.PlexConfig]{},

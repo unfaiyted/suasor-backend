@@ -3,20 +3,20 @@ package router
 
 import (
 	"fmt"
-	factory "suasor/client"
+	"suasor/app"
 	"suasor/client/types"
 	"suasor/handlers"
 	"suasor/services"
 	"suasor/types/responses"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 // ClientHandlerInterface defines the common operations for all client handlers
 type ClientHandlerInterface interface {
 	CreateClient(c *gin.Context)
 	GetAllClients(c *gin.Context)
+	GetClientsByType(c *gin.Context)
 	GetClient(c *gin.Context)
 	UpdateClient(c *gin.Context)
 	DeleteClient(c *gin.Context)
@@ -24,7 +24,7 @@ type ClientHandlerInterface interface {
 }
 
 // SetupClientRoutes configures routes for client endpoints
-func RegisterClientRoutes(r *gin.RouterGroup, factory *factory.ClientFactoryService, db *gorm.DB) {
+func RegisterClientRoutes(r *gin.RouterGroup, deps *app.AppDependencies) {
 	embyService := services.NewClientService[*types.EmbyConfig](factory, db)
 	jellyfinService := services.NewClientService[*types.JellyfinConfig](factory, db)
 	subsonicService := services.NewClientService[*types.SubsonicConfig](factory, db)
@@ -35,13 +35,13 @@ func RegisterClientRoutes(r *gin.RouterGroup, factory *factory.ClientFactoryServ
 	radarrService := services.NewClientService[*types.RadarrConfig](factory, db)
 
 	// Initialize all handlers
-	embyClientHandler := handlers.NewClientHandler[*types.EmbyConfig](embyService)
-	jellyfinClientHandler := handlers.NewClientHandler[*types.JellyfinConfig](jellyfinService)
-	lidarrClientHandler := handlers.NewClientHandler[*types.LidarrConfig](lidarrService)
-	subsonicClientHandler := handlers.NewClientHandler[*types.SubsonicConfig](subsonicService)
-	plexClientHandler := handlers.NewClientHandler[*types.PlexConfig](plexService)
-	sonarrClientHandler := handlers.NewClientHandler[*types.SonarrConfig](sonarrService)
-	radarrClientHandler := handlers.NewClientHandler[*types.RadarrConfig](radarrService)
+	embyClientHandler := handlers.NewClientHandler[*types.EmbyConfig](&embyService)
+	jellyfinClientHandler := handlers.NewClientHandler[*types.JellyfinConfig](&jellyfinService)
+	lidarrClientHandler := handlers.NewClientHandler[*types.LidarrConfig](&lidarrService)
+	subsonicClientHandler := handlers.NewClientHandler[*types.SubsonicConfig](&subsonicService)
+	plexClientHandler := handlers.NewClientHandler[*types.PlexConfig](&plexService)
+	sonarrClientHandler := handlers.NewClientHandler[*types.SonarrConfig](&sonarrService)
+	radarrClientHandler := handlers.NewClientHandler[*types.RadarrConfig](&radarrService)
 
 	// Create a map of client type to handler using the interface
 	handlerMap := map[string]ClientHandlerInterface{
@@ -68,6 +68,9 @@ func RegisterClientRoutes(r *gin.RouterGroup, factory *factory.ClientFactoryServ
 	}
 
 	clients := r.Group("/client")
+
+	// clients.GET("", hander.GetAllClients)
+
 	client := clients.Group("/:clientType")
 	{
 		client.POST("", func(c *gin.Context) {
@@ -78,7 +81,7 @@ func RegisterClientRoutes(r *gin.RouterGroup, factory *factory.ClientFactoryServ
 
 		client.GET("", func(c *gin.Context) {
 			if handler := getHandler(c); handler != nil {
-				handler.GetAllClients(c)
+				handler.GetClientsByType(c)
 			}
 		})
 

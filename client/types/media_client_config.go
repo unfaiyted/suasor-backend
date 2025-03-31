@@ -40,7 +40,8 @@ func (c *BaseMediaClientConfig) GetClientType() MediaClientType {
 }
 
 func (c *BaseMediaClientConfig) GetCategory() ClientCategory {
-	return ClientCategoryMedia
+	c.Category = ClientCategoryMedia
+	return c.Category
 }
 
 func (c *BaseMediaClientConfig) SupportsMovies() bool {

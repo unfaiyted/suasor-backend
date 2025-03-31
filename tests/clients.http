@@ -8,13 +8,7 @@ Content-Type: application/json
   "password": "TestPassword123"
 }
 
-### Validate session
-GET http://localhost:8080/api/v1/auth/validate
-Content-Type: application/json
-Authorization: Bearer {{login.response.body.$.data.accessToken}}
-
 ###
-
 # @name createEmbyClient
 POST http://localhost:8080/api/v1/admin/client/emby
 Content-Type: application/json
@@ -31,6 +25,23 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
     "ssl": false
   }
 }
+###
+# @name GetEmbyClients
+GET http://localhost:8080/api/v1/admin/client/emby
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+
+###
+# @name GetMovieByID
+# @require embyClient
+# @after embyClient
+GET http://localhost:8080/api/v1/client/{{embyClient.response.body.$.data.id}}/movie/1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+
+
 
 
 ###  "userID": "{{login.response.body.$.data.user.id}}",

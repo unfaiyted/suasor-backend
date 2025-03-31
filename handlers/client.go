@@ -345,7 +345,7 @@ func (h *ClientHandler[T]) DeleteClient(c *gin.Context) {
 		Uint64("clientID", clientID).
 		Msg("Deleting media client")
 
-	err = h.service.Delete(ctx, uid, clientID)
+	err = h.service.Delete(ctx, clientID, uid)
 	if err != nil {
 		// Check if it's a not found error
 		if err.Error() == "media client not found" {
@@ -432,4 +432,26 @@ func (h *ClientHandler[T]) TestConnection(c *gin.Context) {
 	}
 
 	responses.RespondOK(c, result, "Connection test completed")
+}
+
+func (h *ClientHandler[T]) GetClientsByType(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	// Get authenticated user ID
+	userID, exists := c.Get("userID")
+	if !exists {
+		responses.RespondUnauthorized(c, nil, "Authentication required")
+		return
+	}
+	clientType := client.ClientType(c.Param("clientType"))
+	log.Info().
+		Str("clientType", clientType.String()).
+		Msg("Retrieving media clients")
+	clients, err := h.service.GetByType(ctx, clientType, userID.(uint64))
+	if err != nil {
+		responses.RespondInternalError(c, err, "Failed to retrieve media clients")
+		return
+	}
+	responses.RespondOK(c, clients, "Media clients retrieved successfully")
 }

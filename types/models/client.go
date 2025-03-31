@@ -7,7 +7,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	"time"
 )
 
 // Client represents a download client configuration
@@ -16,11 +15,9 @@ type Client[T client.ClientConfig] struct {
 	UserID    uint64                 `json:"userId" gorm:"not null"`
 	Category  client.ClientCategory  `json:"category" gorm:"not null"`
 	Type      client.ClientType      `json:"type" gorm:"not null"`
-	Config    ClientConfigWrapper[T] `json:"config" gorm:"jsonb"`
+	Config    ClientConfigWrapper[T] `json:"config" gorm:"type:jsonb"`
 	Name      string                 `json:"name" gorm:"not null"`
 	IsEnabled bool                   `json:"isEnabled" gorm:"default:true"`
-	CreatedAt time.Time              `json:"createdAt"`
-	UpdatedAt time.Time              `json:"updatedAt"`
 }
 
 func (c Client[T]) SupportsMovies() bool {
@@ -77,7 +74,7 @@ func (Client[T]) TableName() string {
 
 // ClientConfigWrapper wraps generic client configuration with database serialization
 type ClientConfigWrapper[T client.ClientConfig] struct {
-	Data T `json:"data"`
+	Data T `json:"data" gorm:"type:jsonb"`
 }
 
 // Value implements driver.Valuer for database storage
@@ -93,7 +90,20 @@ func (m *ClientConfigWrapper[T]) Scan(value any) error {
 		return errors.New("type assertion to []byte failed")
 	}
 
-	return json.Unmarshal(bytes, &m)
+	// First try to unmarshal into the wrapper structure
+	err := json.Unmarshal(bytes, &m)
+	if err == nil {
+		return nil
+	}
+
+	// If that fails, try to unmarshal directly into the Data field
+	var data T
+	if err := json.Unmarshal(bytes, &data); err != nil {
+		return err
+	}
+
+	m.Data = data
+	return nil
 }
 
 // NewAutomationClient creates a new AutomationClient instance

@@ -3,23 +3,19 @@ package router
 
 import (
 	"context"
-	factory "suasor/client"
-	"suasor/repository"
+	"suasor/app"
 	"suasor/router/middleware"
-	"suasor/services"
 	"suasor/utils"
-	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-func Setup(ctx context.Context, db *gorm.DB, configService services.ConfigService) *gin.Engine {
+func Setup(ctx context.Context, deps *app.AppDependencies) *gin.Engine {
 	r := gin.Default()
 	log := utils.LoggerFromContext(ctx)
 
-	appConfig := configService.GetConfig()
+	appConfig := deps.SystemServices.ConfigService().GetConfig()
 	// CORS config
 	config := cors.DefaultConfig()
 	config.AllowOrigins = appConfig.Auth.AllowedOrigins
@@ -36,48 +32,27 @@ func Setup(ctx context.Context, db *gorm.DB, configService services.ConfigServic
 	v1 := r.Group("/api/v1")
 
 	// TODO: should I fix this? It doesent technically need a repo, but ti does interact with the database?
-	healthService := services.NewHealthService(db)
 
-	userRepo := repository.NewUserRepository(db)
-	userConfigRepo := repository.NewUserConfigRepository(db)
-	sessionRepo := repository.NewSessionRepository(db)
-
-	userService := services.NewUserService(userRepo)
-	userConfigService := services.NewUserConfigService(userConfigRepo)
-
-	authService := services.NewAuthService(userRepo,
-		sessionRepo,
-		appConfig.Auth.JWTSecret,
-		time.Duration(appConfig.Auth.AccessExpiryMinutes)*time.Minute,
-		time.Duration(appConfig.Auth.RefreshExpiryDays)*24*time.Hour,
-		appConfig.Auth.TokenIssuer,
-		appConfig.Auth.TokenAudience,
-	)
-
-	clientFactoryService := factory.GetClientFactoryService()
-
-	RegisterHealthRoutes(v1, healthService)
-	RegisterAuthRoutes(v1, authService)
+	RegisterHealthRoutes(v1, deps.SystemServices.HealthService())
+	RegisterAuthRoutes(v1, deps.AuthService())
 
 	// Protected Routes
 	authenticated := v1.Group("")
-	authenticated.Use(middleware.VerifyToken(authService))
+	authenticated.Use(middleware.VerifyToken(deps.AuthService()))
 	{
 		// Register all routes
-		RegisterUserRoutes(authenticated, userService)
-		RegisterUserConfigRoutes(authenticated, userConfigService)
-
-		RegisterMediaItemRoutes(authenticated, db)
-
-		RegisterMediaClientRoutes(authenticated, clientFactoryService, db)
+		RegisterUserRoutes(authenticated, deps.UserService())
+		RegisterUserConfigRoutes(authenticated, deps.UserConfigService())
+		RegisterMediaItemRoutes(authenticated, deps)
+		RegisterMediaClientRoutes(authenticated, deps)
 	}
 
 	//Admin Routes
 	adminRoutes := v1.Group("/admin")
-	adminRoutes.Use(middleware.VerifyToken(authService), middleware.RequireRole("admin"))
+	adminRoutes.Use(middleware.VerifyToken(deps.AuthService()), middleware.RequireRole("admin"))
 	{
-		RegisterConfigRoutes(adminRoutes, configService)
-		RegisterClientRoutes(adminRoutes, clientFactoryService, db)
+		RegisterConfigRoutes(adminRoutes, deps.SystemServices.ConfigService())
+		RegisterClientRoutes(adminRoutes, deps)
 	}
 
 	return r

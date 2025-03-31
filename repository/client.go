@@ -73,17 +73,32 @@ func (r *clientRepository[T]) Update(ctx context.Context, client models.Client[T
 }
 
 // GetByID retrieves a media client by ID
-// GetByID retrieves a media client by ID
 func (r *clientRepository[T]) GetByID(ctx context.Context, id, userID uint64) (*models.Client[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	var client models.Client[T]
+	log.Debug().
+		Uint64("userID", userID).
+		Uint64("clientID", id).
+		Str("clientType", client.GetType().String()).
+		Msg("Retrieving client")
 
 	if err := r.db.WithContext(ctx).
-		Where("id = ? AND user_id = ?", id, userID).
+		Where("id = ?", id).
 		First(&client).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
+			log.Warn().
+				Uint64("userID", userID).
+				Uint64("clientID", id).
+				Str("clientType", client.GetType().String()).
+				Msg("Client not found")
 			return nil, fmt.Errorf("client not found")
 		}
+		log.Error().
+			Uint64("userID", userID).
+			Uint64("clientID", id).
+			Str("clientType", client.GetType().String()).
+			Err(err).
+			Msg("Failed to retrieve client")
 		return nil, fmt.Errorf("failed to get client: %w", err)
 	}
 
@@ -112,6 +127,11 @@ func (r *clientRepository[T]) GetByUserID(ctx context.Context, userID uint64) ([
 // Delete deletes a media client
 // Delete deletes a media client
 func (r *clientRepository[T]) Delete(ctx context.Context, id, userID uint64) error {
+	log := utils.LoggerFromContext(ctx)
+	log.Info().
+		Uint64("userID", userID).
+		Uint64("clientID", id).
+		Msg("Deleting media client")
 	result := r.db.WithContext(ctx).
 		Where("id = ? AND user_id = ?", id, userID).
 		Delete(&models.Client[T]{})
@@ -119,6 +139,11 @@ func (r *clientRepository[T]) Delete(ctx context.Context, id, userID uint64) err
 	if err := result.Error; err != nil {
 		return fmt.Errorf("failed to delete client: %w", err)
 	}
+
+	log.Info().
+		Uint64("userID", userID).
+		Uint64("clientID", id).
+		Msg("Deleted media client")
 
 	if result.RowsAffected == 0 {
 		return fmt.Errorf("client not found")
@@ -143,7 +168,7 @@ func (r *clientRepository[T]) GetByType(ctx context.Context, clientType types.Cl
 	var clients []*models.Client[T]
 
 	if err := r.db.WithContext(ctx).
-		Where("user_id = ? AND  config ->> 'type' = ?", userID, clientType).
+		Where("user_id = ? AND config -> 'data' ->> 'type' = ?", userID, clientType).
 		Find(&clients).Error; err != nil {
 		return nil, fmt.Errorf("failed to get clients by type: %w", err)
 	}

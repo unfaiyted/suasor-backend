@@ -24,7 +24,8 @@ func (c *BaseAutomationClientConfig) GetClientType() AutomationClientType {
 }
 
 func (c *BaseAutomationClientConfig) GetCategory() ClientCategory {
-	return ClientCategoryAutomation
+	c.Category = ClientCategoryAutomation
+	return c.Category
 }
 
 func (c *BaseAutomationClientConfig) SupportsMovies() bool {

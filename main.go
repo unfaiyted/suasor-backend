@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"suasor/app"
+	"suasor/client"
 	"suasor/database"
 	"suasor/repository"
 	"suasor/router"
@@ -60,7 +62,9 @@ func main() {
 		log.Fatal().Err(err).Msg("Failed to connect to database:")
 	}
 
-	r := router.Setup(ctx, db, configService)
+	factory := client.GetClientFactoryService()
+	deps := app.InitializeDependencies(db, configService, factory)
+	r := router.Setup(ctx, deps, configService)
 
 	r.Use(middleware.LoggerMiddleware())
 

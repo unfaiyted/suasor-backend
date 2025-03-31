@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"gorm.io/gorm"
 	"suasor/client"
 	"suasor/client/types"
 	"suasor/repository"
@@ -27,15 +26,15 @@ type ClientService[T types.ClientConfig] interface {
 // ClientService handles business logic for clients with specific config types
 type clientService[T types.ClientConfig] struct {
 	repo    repository.ClientRepository[T]
-	factory client.ClientFactoryService
+	factory *client.ClientFactoryService
 	// Other dependencies like validators, API clients, etc.
 }
 
 // NewClientService creates a service for a specific client type
-func NewClientService[T types.ClientConfig](factory *client.ClientFactoryService, db *gorm.DB) *clientService[T] {
+func NewClientService[T types.ClientConfig](factory *client.ClientFactoryService, repo repository.ClientRepository[T]) *clientService[T] {
 	return &clientService[T]{
-		repo:    repository.NewClientRepository[T](db),
-		factory: *factory,
+		repo:    repo,
+		factory: factory,
 	}
 }
 

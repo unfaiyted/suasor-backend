@@ -7,7 +7,8 @@ type ClientConfig interface {
 }
 
 type BaseClientConfig struct {
-	Type ClientType `json:"type"`
+	Type     ClientType     `json:"type"`
+	Category ClientCategory `json:"category"`
 }
 
 func (c *BaseClientConfig) GetType() ClientType {
@@ -15,7 +16,7 @@ func (c *BaseClientConfig) GetType() ClientType {
 }
 
 func (c *BaseClientConfig) GetCategory() ClientCategory {
-	return ClientCategoryUnknown
+	return c.Category
 }
 
 func (BaseClientConfig) isClientConfig() {}
