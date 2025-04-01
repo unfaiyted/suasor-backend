@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// MediaHandlerInterface defines common operations for all media handlers
-type MediaHandlerInterface interface {
+// movieHandlerInterface defines common operations for all media handlers
+type movieHandlerInterface interface {
 	GetMovieByID(c *gin.Context)
 	GetMoviesByGenre(c *gin.Context)
 	GetMoviesByYear(c *gin.Context)
@@ -25,94 +25,160 @@ type MediaHandlerInterface interface {
 func RegisterMediaClientRoutes(rg *gin.RouterGroup, deps *app.AppDependencies) {
 
 	// Initialize handlers
-	movieHandler := deps.ClientMediaHandlers
+	mediaHandler := deps.ClientMediaHandlers
 
-	// Create a map of media types to handlers
-	handlerMap := map[string]MediaHandlerInterface{
-		"jellyfin": movieHandler.JellyfinMovieHandler(),
-		"emby":     movieHandler.EmbyMovieHandler(),
-		"plex":     movieHandler.PlexMovieHandler(),
-		// Add more handlers for different media types if needed
-		// "tv": tvShowHandler,
-		// "music": musicHandler,
+	// Create a map of movie types to handlers
+	movieHandlerMap := map[string]movieHandlerInterface{
+		"jellyfin": mediaHandler.JellyfinMovieHandler(),
+		"emby":     mediaHandler.EmbyMovieHandler(),
+		"plex":     mediaHandler.PlexMovieHandler(),
 	}
 
+	// seriesHandlerMap := map[string]seriesHandlerInterface{
+	// "jellyfin": mediaHandler.JellyfinSeriesHandler(),
+	// "emby":     mediaHandler.EmbySeriesHandler(),
+	// "plex":     mediaHandler.PlexSeriesHandler(),
+	// }
+
 	// Helper function to get the appropriate handler
-	getHandler := func(c *gin.Context) MediaHandlerInterface {
-		mediaType := c.Param("mediaType")
-		handler, exists := handlerMap[mediaType]
+	getMovieHandler := func(c *gin.Context) movieHandlerInterface {
+		clientType := c.Param("clientType")
+		handler, exists := movieHandlerMap[clientType]
 		if !exists {
-			err := fmt.Errorf("unsupported media type: %s", mediaType)
-			responses.RespondBadRequest(c, err, "Unsupported media type")
+			err := fmt.Errorf("unsupported movie type: %s", clientType)
+			responses.RespondBadRequest(c, err, "Unsupported movie type")
 			return nil
 		}
 		return handler
 	}
 
+	// client/emby/1/movie/10
 	clientGroup := rg.Group("/client/:clientType")
 	client := clientGroup.Group("/:clientID")
 
-	// Add mediaType parameter to enable handler selection
-	media := client.Group("/:mediaType")
+	// Add movieType parameter to enable handler selection
+	movie := client.Group("/movie")
 	{
-		media.GET("/:movieID", func(c *gin.Context) {
-			if handler := getHandler(c); handler != nil {
+		movie.GET("/:id", func(c *gin.Context) {
+			if handler := getMovieHandler(c); handler != nil {
 				handler.GetMovieByID(c)
 			}
 		})
 
-		media.GET("/genre/:genre", func(c *gin.Context) {
-			if handler := getHandler(c); handler != nil {
+		movie.GET("/genre/:genre", func(c *gin.Context) {
+			if handler := getMovieHandler(c); handler != nil {
 				handler.GetMoviesByGenre(c)
 			}
 		})
 
-		media.GET("/year/:year", func(c *gin.Context) {
-			if handler := getHandler(c); handler != nil {
+		movie.GET("/year/:year", func(c *gin.Context) {
+			if handler := getMovieHandler(c); handler != nil {
 				handler.GetMoviesByYear(c)
 			}
 		})
 
-		media.GET("/actor/:actor", func(c *gin.Context) {
-			if handler := getHandler(c); handler != nil {
+		movie.GET("/actor/:actor", func(c *gin.Context) {
+			if handler := getMovieHandler(c); handler != nil {
 				handler.GetMoviesByActor(c)
 			}
 		})
 
-		media.GET("/director/:director", func(c *gin.Context) {
-			if handler := getHandler(c); handler != nil {
+		movie.GET("/director/:director", func(c *gin.Context) {
+			if handler := getMovieHandler(c); handler != nil {
 				handler.GetMoviesByDirector(c)
 			}
 		})
 
-		media.GET("/rating", func(c *gin.Context) {
-			if handler := getHandler(c); handler != nil {
+		movie.GET("/rating", func(c *gin.Context) {
+			if handler := getMovieHandler(c); handler != nil {
 				handler.GetMoviesByRating(c)
 			}
 		})
 
-		media.GET("/latest/:count", func(c *gin.Context) {
-			if handler := getHandler(c); handler != nil {
+		movie.GET("/latest/:count", func(c *gin.Context) {
+			if handler := getMovieHandler(c); handler != nil {
 				handler.GetLatestMoviesByAdded(c)
 			}
 		})
 
-		media.GET("/popular/:count", func(c *gin.Context) {
-			if handler := getHandler(c); handler != nil {
+		movie.GET("/popular/:count", func(c *gin.Context) {
+			if handler := getMovieHandler(c); handler != nil {
 				handler.GetPopularMovies(c)
 			}
 		})
 
-		media.GET("/top-rated/:count", func(c *gin.Context) {
-			if handler := getHandler(c); handler != nil {
+		movie.GET("/top-rated/:count", func(c *gin.Context) {
+			if handler := getMovieHandler(c); handler != nil {
 				handler.GetTopRatedMovies(c)
 			}
 		})
 
-		media.GET("/search", func(c *gin.Context) {
-			if handler := getHandler(c); handler != nil {
+		movie.GET("/search", func(c *gin.Context) {
+			if handler := getMovieHandler(c); handler != nil {
 				handler.SearchMovies(c)
 			}
 		})
 	}
+
+	// series := client.Group("/series")
+	// {
+	// series.GET("/:id", func(c *gin.Context) {
+	// 	if handler := getSeriesHandler(c); handler != nil {
+	// 		handler.GetSeriesByID(c)
+	// 	}
+	// })
+	//
+	// series.GET("/genre/:genre", func(c *gin.Context) {
+	// 	if handler := getSeriesHandler(c); handler != nil {
+	// 		handler.GetSeriesByGenre(c)
+	// 	}
+	// })
+	//
+	// series.GET("/year/:year", func(c *gin.Context) {
+	// 	if handler := getSeriesHandler(c); handler != nil {
+	// 		handler.GetSeriesByYear(c)
+	// 	}
+	// })
+	//
+	// series.GET("/actor/:actor", func(c *gin.Context) {
+	// 	if handler := getSeriesHandler(c); handler != nil {
+	// 		handler.GetSeriesByActor(c)
+	// 	}
+	// })
+	//
+	// series.GET("/director/:director", func(c *gin.Context) {
+	// 	if handler := getSeriesHandler(c); handler != nil {
+	// 		handler.GetSeriesByDirector(c)
+	// 	}
+	// })
+	//
+	// series.GET("/rating", func(c *gin.Context) {
+	// 	if handler := getSeriesHandler(c); handler != nil {
+	// 		handler.GetSeriesByRating(c)
+	// 	}
+	// })
+	// series.GET("/latest/:count", func(c *gin.Context) {
+	// 	if handler := getSeriesHandler(c); handler != nil {
+	// 		handler.GetLatestSeriesByAdded(c)
+	// 	}
+	// })
+	//
+	// series.GET("/popular/:count", func(c *gin.Context) {
+	// 	if handler := getSeriesHandler(c); handler != nil {
+	// 		handler.GetPopularSeries(c)
+	// 	}
+	// })
+	//
+	// series.GET("/top-rated/:count", func(c *gin.Context) {
+	// 	if handler := getSeriesHandler(c); handler != nil {
+	// 		handler.GetTopRatedSeries(c)
+	// 	}
+	// })
+	//
+	// series.GET("/search", func(c *gin.Context) {
+	// 	if handler := getSeriesHandler(c); handler != nil {
+	// 		handler.SearchSeries(c)
+	// 	}
+	// })
+	// }
 }

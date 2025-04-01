@@ -51,12 +51,13 @@ func NewMediaClientMovieHandler[T clienttypes.MediaClientConfig](movieService se
 // @Router /clients/media/{clientID}/movies/{movieID} [get]
 func (h *MediaClientMovieHandler[T]) GetMovieByID(c *gin.Context) {
 	ctx := c.Request.Context()
-
 	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Getting movie by ID")
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
+		log.Warn().Msg("Attempt to access movie without authentication")
 		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
@@ -71,7 +72,7 @@ func (h *MediaClientMovieHandler[T]) GetMovieByID(c *gin.Context) {
 		return
 	}
 
-	movieID := c.Param("movieID")
+	movieID := c.Param("id")
 
 	log.Info().
 		Uint64("userID", uid).
@@ -90,6 +91,11 @@ func (h *MediaClientMovieHandler[T]) GetMovieByID(c *gin.Context) {
 		return
 	}
 
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Str("movieID", movieID).
+		Msg("Movie retrieved successfully")
 	responses.RespondOK(c, movie, "Movie retrieved successfully")
 }
 
@@ -108,10 +114,12 @@ func (h *MediaClientMovieHandler[T]) GetMovieByID(c *gin.Context) {
 func (h *MediaClientMovieHandler[T]) GetMoviesByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Getting movies by genre")
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
+		log.Warn().Msg("Attempt to access movies without authentication")
 		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
@@ -134,6 +142,11 @@ func (h *MediaClientMovieHandler[T]) GetMoviesByGenre(c *gin.Context) {
 		return
 	}
 
+	log.Info().
+		Uint64("userID", uid).
+		Str("genre", genre).
+		Int("count", len(movies)).
+		Msg("Movies retrieved successfully")
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }
 
@@ -153,10 +166,12 @@ func (h *MediaClientMovieHandler[T]) GetMoviesByGenre(c *gin.Context) {
 func (h *MediaClientMovieHandler[T]) GetMoviesByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Getting movies by year")
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
+		log.Warn().Msg("Attempt to access movies without authentication")
 		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
@@ -185,16 +200,23 @@ func (h *MediaClientMovieHandler[T]) GetMoviesByYear(c *gin.Context) {
 		return
 	}
 
+	log.Info().
+		Uint64("userID", uid).
+		Int("year", year).
+		Int("count", len(movies)).
+		Msg("Movies retrieved successfully")
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }
 
 func (h *MediaClientMovieHandler[T]) GetMoviesByActor(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Getting movies by actor")
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
+		log.Warn().Msg("Attempt to access movies without authentication")
 		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
@@ -217,16 +239,23 @@ func (h *MediaClientMovieHandler[T]) GetMoviesByActor(c *gin.Context) {
 		return
 	}
 
+	log.Info().
+		Uint64("userID", uid).
+		Str("actor", actor).
+		Int("count", len(movies)).
+		Msg("Movies retrieved successfully")
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }
 
 func (h *MediaClientMovieHandler[T]) GetMoviesByDirector(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Getting movies by director")
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
+		log.Warn().Msg("Attempt to access movies without authentication")
 		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
@@ -249,16 +278,23 @@ func (h *MediaClientMovieHandler[T]) GetMoviesByDirector(c *gin.Context) {
 		return
 	}
 
+	log.Info().
+		Uint64("userID", uid).
+		Str("director", director).
+		Int("count", len(movies)).
+		Msg("Movies retrieved successfully")
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }
 
 func (h *MediaClientMovieHandler[T]) GetMoviesByRating(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Getting movies by rating")
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
+		log.Warn().Msg("Attempt to access movies without authentication")
 		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
@@ -296,16 +332,24 @@ func (h *MediaClientMovieHandler[T]) GetMoviesByRating(c *gin.Context) {
 		return
 	}
 
+	log.Info().
+		Uint64("userID", uid).
+		Float64("minRating", minRating).
+		Float64("maxRating", maxRating).
+		Int("count", len(movies)).
+		Msg("Movies retrieved successfully")
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }
 
 func (h *MediaClientMovieHandler[T]) GetLatestMoviesByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Getting latest movies by added date")
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
+		log.Warn().Msg("Attempt to access movies without authentication")
 		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
@@ -334,16 +378,23 @@ func (h *MediaClientMovieHandler[T]) GetLatestMoviesByAdded(c *gin.Context) {
 		return
 	}
 
+	log.Info().
+		Uint64("userID", uid).
+		Int("count", count).
+		Int("moviesReturned", len(movies)).
+		Msg("Latest movies retrieved successfully")
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }
 
 func (h *MediaClientMovieHandler[T]) GetPopularMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Getting popular movies")
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
+		log.Warn().Msg("Attempt to access movies without authentication")
 		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
@@ -372,16 +423,23 @@ func (h *MediaClientMovieHandler[T]) GetPopularMovies(c *gin.Context) {
 		return
 	}
 
+	log.Info().
+		Uint64("userID", uid).
+		Int("count", count).
+		Int("moviesReturned", len(movies)).
+		Msg("Popular movies retrieved successfully")
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }
 
 func (h *MediaClientMovieHandler[T]) GetTopRatedMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Getting top rated movies")
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
+		log.Warn().Msg("Attempt to access movies without authentication")
 		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
@@ -410,16 +468,23 @@ func (h *MediaClientMovieHandler[T]) GetTopRatedMovies(c *gin.Context) {
 		return
 	}
 
+	log.Info().
+		Uint64("userID", uid).
+		Int("count", count).
+		Int("moviesReturned", len(movies)).
+		Msg("Top rated movies retrieved successfully")
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }
 
 func (h *MediaClientMovieHandler[T]) SearchMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Searching movies")
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
+		log.Warn().Msg("Attempt to search movies without authentication")
 		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
@@ -448,5 +513,10 @@ func (h *MediaClientMovieHandler[T]) SearchMovies(c *gin.Context) {
 		return
 	}
 
+	log.Info().
+		Uint64("userID", uid).
+		Str("query", query).
+		Int("resultsCount", len(movies)).
+		Msg("Movie search completed successfully")
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }

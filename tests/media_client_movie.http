@@ -35,7 +35,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 # @name GetMovieByID
 # @require embyClient
 # @after embyClient
-GET http://localhost:8080/api/v1/client/{{embyClient.response.body.$.data.id}}/movie/1
+GET http://localhost:8080/api/v1/client/emby/{{embyClient.response.body.$.data.id}}/movie/1595695
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
