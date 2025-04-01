@@ -39,6 +39,7 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		sonarrRepo:   repository.NewClientRepository[*types.SonarrConfig](db),
 		radarrRepo:   repository.NewClientRepository[*types.RadarrConfig](db),
 		lidarrRepo:   repository.NewClientRepository[*types.LidarrConfig](db),
+		claudeRepo:   repository.NewClientRepository[*types.ClaudeConfig](db),
 	}
 
 	deps.MediaItemRepositories = &mediaItemRepositoriesImpl{
@@ -64,6 +65,7 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		sonarrService:   services.NewClientService[*types.SonarrConfig](deps.ClientFactoryService, deps.ClientRepositories.SonarrRepo()),
 		radarrService:   services.NewClientService[*types.RadarrConfig](deps.ClientFactoryService, deps.ClientRepositories.RadarrRepo()),
 		lidarrService:   services.NewClientService[*types.LidarrConfig](deps.ClientFactoryService, deps.ClientRepositories.LidarrRepo()),
+		claudeService:   services.NewClientService[*types.ClaudeConfig](deps.ClientFactoryService, deps.ClientRepositories.ClaudeRepo()),
 	}
 
 	// Initialize media client services
@@ -104,6 +106,7 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		radarrHandler:   handlers.NewClientHandler[*types.RadarrConfig](deps.ClientServices.RadarrService()),
 		lidarrHandler:   handlers.NewClientHandler[*types.LidarrConfig](deps.ClientServices.LidarrService()),
 		sonarrHandler:   handlers.NewClientHandler[*types.SonarrConfig](deps.ClientServices.SonarrService()),
+		claudeHandler:   handlers.NewClientHandler[*types.ClaudeConfig](deps.ClientServices.ClaudeService()),
 	}
 
 	deps.MediaItemHandlers = &mediaItemHandlersImpl{
@@ -140,16 +143,6 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		authHandler:       handlers.NewAuthHandler(deps.AuthService()),
 		userHandler:       handlers.NewUserHandler(deps.UserService()),
 		userConfigHandler: handlers.NewUserConfigHandler(deps.UserConfigService()),
-	}
-	// Client Handlers
-	deps.ClientHandlers = &clientHandlersImpl{
-		embyHandler:     handlers.NewClientHandler[*types.EmbyConfig](deps.ClientServices.EmbyService()),
-		jellyfinHandler: handlers.NewClientHandler[*types.JellyfinConfig](deps.ClientServices.JellyfinService()),
-		plexHandler:     handlers.NewClientHandler[*types.PlexConfig](deps.ClientServices.PlexService()),
-		subsonicHandler: handlers.NewClientHandler[*types.SubsonicConfig](deps.ClientServices.SubsonicService()),
-		radarrHandler:   handlers.NewClientHandler[*types.RadarrConfig](deps.ClientServices.RadarrService()),
-		lidarrHandler:   handlers.NewClientHandler[*types.LidarrConfig](deps.ClientServices.LidarrService()),
-		sonarrHandler:   handlers.NewClientHandler[*types.SonarrConfig](deps.ClientServices.SonarrService()),
 	}
 
 	clientMovieHandlers := &clientMediaMovieHandlersImpl{

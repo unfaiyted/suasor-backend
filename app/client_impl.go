@@ -19,6 +19,11 @@ type clientServicesImpl struct {
 	sonarrService   services.ClientService[*types.SonarrConfig]
 	radarrService   services.ClientService[*types.RadarrConfig]
 	lidarrService   services.ClientService[*types.LidarrConfig]
+	claudeService   services.ClientService[*types.ClaudeConfig]
+}
+
+func (s *clientServicesImpl) ClaudeService() services.ClientService[*types.ClaudeConfig] {
+	return s.claudeService
 }
 
 func (s *clientServicesImpl) EmbyService() services.ClientService[*types.EmbyConfig] {
@@ -105,6 +110,11 @@ type clientHandlersImpl struct {
 	radarrHandler   *handlers.ClientHandler[*types.RadarrConfig]
 	lidarrHandler   *handlers.ClientHandler[*types.LidarrConfig]
 	sonarrHandler   *handlers.ClientHandler[*types.SonarrConfig]
+	claudeHandler   *handlers.ClientHandler[*types.ClaudeConfig]
+}
+
+func (h *clientHandlersImpl) ClaudeHandler() *handlers.ClientHandler[*types.ClaudeConfig] {
+	return h.claudeHandler
 }
 
 func (h *clientHandlersImpl) EmbyHandler() *handlers.ClientHandler[*types.EmbyConfig] {
@@ -143,6 +153,11 @@ type clientRepositoriesImpl struct {
 	sonarrRepo   repository.ClientRepository[*types.SonarrConfig]
 	radarrRepo   repository.ClientRepository[*types.RadarrConfig]
 	lidarrRepo   repository.ClientRepository[*types.LidarrConfig]
+	claudeRepo   repository.ClientRepository[*types.ClaudeConfig]
+}
+
+func (r *clientRepositoriesImpl) ClaudeRepo() repository.ClientRepository[*types.ClaudeConfig] {
+	return r.claudeRepo
 }
 
 func (r *clientRepositoriesImpl) EmbyRepo() repository.ClientRepository[*types.EmbyConfig] {

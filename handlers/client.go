@@ -90,21 +90,42 @@ func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 		Str("type", string(req.ClientType)).
 		Msg("Creating new media client")
 
-	clientType := models.Client[T]{
+	clientType := client.ClientType(req.ClientType)
+	category := clientType.AsCategory()
+	log.Debug().
+		Uint64("userID", uid).
+		Str("name", req.Name).
+		Str("type", string(req.ClientType)).
+		Str("category", category.String()).
+		Msg("Creating new media client")
+
+	clientOfType := models.Client[T]{
 		UserID:   uid,
 		Name:     req.Name,
-		Type:     client.ClientType(req.ClientType),
-		Category: client.ClientType(req.ClientType).AsCategory(),
+		Type:     clientType,
+		Category: category,
 		Config:   models.ClientConfigWrapper[T]{Data: req.Client},
 	}
+	log.Debug().
+		Uint64("userID", uid).
+		Str("name", req.Name).
+		Str("type", string(req.ClientType)).
+		Str("category", clientOfType.GetCategory().String()).
+		Msg("Creating new media client")
 
-	client, err := h.service.Create(ctx, clientType)
+	if h.service == nil {
+		log.Error().Msg("Client service is not initialized")
+		responses.RespondInternalError(c, nil, "Internal server error: service not initialized")
+		return
+	}
+
+	clnt, err := h.service.Create(ctx, clientOfType)
 	if err != nil {
 		responses.RespondInternalError(c, err, err.Error())
 		return
 	}
 
-	responses.RespondCreated(c, client, "Media client created successfully")
+	responses.RespondCreated(c, clnt, "Media client created successfully")
 }
 
 // GetClient godoc

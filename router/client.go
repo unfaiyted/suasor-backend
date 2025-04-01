@@ -3,10 +3,10 @@ package router
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"suasor/app"
 	"suasor/types/responses"
-
-	"github.com/gin-gonic/gin"
+	"suasor/utils"
 )
 
 // ClientHandlerInterface defines the common operations for all client handlers
@@ -33,6 +33,8 @@ func RegisterClientRoutes(r *gin.RouterGroup, deps *app.AppDependencies) {
 		"sonarr": deps.ClientHandlers.SonarrHandler(),
 		"radarr": deps.ClientHandlers.RadarrHandler(),
 		"lidarr": deps.ClientHandlers.LidarrHandler(),
+
+		"claude": deps.ClientHandlers.ClaudeHandler(),
 	}
 
 	// Helper function to get the appropriate handler
@@ -54,6 +56,8 @@ func RegisterClientRoutes(r *gin.RouterGroup, deps *app.AppDependencies) {
 	client := clients.Group("/:clientType")
 	{
 		client.POST("", func(c *gin.Context) {
+			log := utils.LoggerFromContext(c.Request.Context())
+			log.Info().Msg("Creating new media client")
 			if handler := getHandler(c); handler != nil {
 				handler.CreateClient(c)
 			}

@@ -18,6 +18,7 @@ type ClientServices interface {
 	SonarrService() services.ClientService[*types.SonarrConfig]
 	RadarrService() services.ClientService[*types.RadarrConfig]
 	LidarrService() services.ClientService[*types.LidarrConfig]
+	ClaudeService() services.ClientService[*types.ClaudeConfig]
 }
 
 type ClientRepositories interface {
@@ -28,6 +29,7 @@ type ClientRepositories interface {
 	SonarrRepo() repository.ClientRepository[*types.SonarrConfig]
 	RadarrRepo() repository.ClientRepository[*types.RadarrConfig]
 	LidarrRepo() repository.ClientRepository[*types.LidarrConfig]
+	ClaudeRepo() repository.ClientRepository[*types.ClaudeConfig]
 }
 
 type ClientMediaServices interface {
@@ -102,6 +104,7 @@ type ClientHandlers interface {
 	RadarrHandler() *handlers.ClientHandler[*types.RadarrConfig]
 	LidarrHandler() *handlers.ClientHandler[*types.LidarrConfig]
 	SonarrHandler() *handlers.ClientHandler[*types.SonarrConfig]
+	ClaudeHandler() *handlers.ClientHandler[*types.ClaudeConfig]
 }
 
 type MediaItemHandlers interface {
