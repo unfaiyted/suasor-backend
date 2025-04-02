@@ -1,4 +1,4 @@
-.PHONY: swag build run docker-build docker-run test pretty-test claude-example movie-recommendations
+.PHONY: swag build run docker-build docker-run test integration-test pretty-test claude-example movie-recommendations
 
 # Variables
 DOCKER_IMAGE := suasor 
@@ -7,16 +7,19 @@ ALPINE_VERSION := 3.19
 
 # Local development commands
 swag:
-	swag init
+	swag init --exclude ./internal/**
 
 build: swag
-	CGO_ENABLED=0 go build -o main main.go
+	CGO_ENABLED=0 go build -o suasor main.go
 
 run: swag
 	go run main.go
 
 test:
 	go test ./... -v
+
+integration-test:
+	INTEGRATION=true go test ./... -v
 
 pretty-test:
 	gotestsome ./...

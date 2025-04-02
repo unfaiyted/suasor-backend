@@ -1,27 +1,42 @@
-# suasor
+# Suasor Backend
 
-A Self-Hostable micro RESTful API service that produces a valid short URL that can be used to redirect to other content.
+Suasor is a comprehensive media management and AI integration platform that provides a unified interface for interacting with various media clients and AI services.
+
+## Features
+
+- **Media Client Integration**: Connect to Plex, Jellyfin, Emby, and Subsonic media servers
+- **Automation Integration**: Support for Radarr, Sonarr, and Lidarr
+- **AI Integration**: Connect to Claude AI, OpenAI, and Ollama for media recommendations and analysis
+- **REST API**: Comprehensive API for all operations with Swagger documentation
+- **User Management**: Authentication, roles, and user-specific configurations
 
 ## Prerequisites
 
 - Go 1.20 or higher
+- PostgreSQL database
 - Docker (optional)
 - Make (optional)
 
 ## Project Structure
 
 ```
-├── cmd/
-│ └── api/ # Application entrypoint
-├── internal/
-│ ├── api/ # API handlers and routes
-│ ├── config/ # Configuration management
-│ ├── middleware/ # HTTP middleware
-│ ├── models/ # Data models
-│ └── service/ # Business logic
-├── pkg/ # Public packages
-├── docs/ # Swagger documentation
-└── scripts/ # Build and deployment scripts
+├── app/          # Application components and dependency injection
+├── client/       # Client implementations for external services
+│   ├── ai/       # AI service clients (Claude, OpenAI, etc.)
+│   ├── automation/ # Automation clients (Radarr, Sonarr, etc.)
+│   ├── media/    # Media server clients (Plex, Jellyfin, etc.)
+├── config/       # Configuration files
+├── database/     # Database connection and models
+├── docs/         # Swagger documentation
+├── handlers/     # HTTP request handlers
+├── repository/   # Data access layer
+├── router/       # HTTP routing and middleware
+├── services/     # Business logic layer
+├── types/        # Type definitions
+│   ├── models/   # Data models
+│   ├── requests/ # Request types
+│   ├── responses/ # Response types
+├── utils/        # Utility functions
 ```
 
 ## Getting Started
@@ -32,7 +47,7 @@ A Self-Hostable micro RESTful API service that produces a valid short URL that c
 
 ```bash
 git clone https://github.com/unfaiyted/suasor.git
-cd suasor
+cd suasor/backend
 ```
 
 2. Install dependencies
@@ -41,10 +56,14 @@ cd suasor
 go mod download
 ```
 
-3. Run the application
+3. Set up environment variables or config file
+
+The application uses a configuration file located at `config/app.config.json`.
+
+4. Run the application
 
 ```bash
-go run cmd/api/main.go
+make run
 ```
 
 The API will be available at `http://localhost:8080`
@@ -53,10 +72,10 @@ The API will be available at `http://localhost:8080`
 
 ```bash
 # Build the Docker image
-docker build -t suasor .
+make docker-build
 
 # Run the container
-docker run -p 8080:8080 suasor
+make docker-run
 ```
 
 ## API Documentation
@@ -70,34 +89,60 @@ http://localhost:8080/swagger/index.html
 ### Key Endpoints
 
 - `GET /api/v1/health` - Health check endpoint
-- `GET /api/v1/docs` - API documentation (Swagger UI)
-
-## Configuration
-
-The application can be configured using environment variables or a configuration file. See `.env.example` for available options.
+- `GET /api/v1/auth/login` - User authentication
+- `GET /api/v1/clients/{clientType}` - Get clients by type
+- `GET /api/v1/swagger/index.html` - API documentation (Swagger UI)
 
 ## Development
 
-### Adding New Endpoints
-
-1. Define the route in `internal/api/routes.go`
-2. Create handler in `internal/api/handlers/`
-3. Update Swagger documentation using comments
-4. Generate new Swagger docs:
+### Generate Swagger Documentation
 
 ```bash
-swag init -g cmd/api/main.go
+make swag
 ```
+
+This runs `swag init --exclude ./internal/**` to generate Swagger documentation while excluding the internal API client files.
+
+### Adding New Endpoints
+
+1. Define the route in `router/router.go` or respective router file
+2. Create handler in `handlers/`
+3. Update Swagger documentation using comments
+4. Generate new Swagger docs with `make swag`
 
 ### Running Tests
 
 ```bash
 # Run all tests
-go test ./...
+make test
 
-# Run tests with coverage
-go test -cover ./...
+# Run pretty tests (requires gotestsome)
+make pretty-test
+
+# Run integration tests (requires configured clients)
+INTEGRATION=true make test
 ```
+
+### Running Examples
+
+```bash
+# Run Claude AI client example
+CLAUDE_API_KEY=your-api-key make claude-example
+
+# Run movie recommendations example
+make movie-recommendations
+```
+
+## Architecture
+
+The application follows a clean architecture with:
+
+- HTTP handlers in the `handlers` package
+- Business logic in the `services` package
+- Data access in the `repository` package
+- External clients in the `client` package
+
+Dependency injection is used to ensure loose coupling and testability.
 
 ## Contributing
 
