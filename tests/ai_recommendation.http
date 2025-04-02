@@ -1,0 +1,148 @@
+###
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@dev.com",
+  "password": "TestPassword123"
+}
+
+###
+# @name createClaudeClient
+POST http://localhost:8080/api/v1/admin/client/claude
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Claude Movie Recommendations",
+  "clientType": "claude",
+  "client": {
+    "enabled": true,
+    "baseURL": "https://api.anthropic.com",
+    "apiKey": "{{$processEnv CLAUDE_API_KEY}}",
+    "model": "claude-3-5-sonnet-20240620",
+    "temperature": 0.7,
+    "maxTokens": 2000,
+    "maxContextTokens": 100000
+  }
+}
+
+###
+# @name getMovieRecommendations
+POST http://localhost:8080/api/v1/ai/generate-structured/{{createClaudeClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "prompt": "Based on my enjoyment of the movies 'The Matrix', 'Inception', and 'Interstellar', recommend 5 similar movies I might enjoy watching. For each movie, provide title, year, director, a brief plot synopsis, and why I might enjoy it.",
+  "temperature": 0.7,
+  "maxTokens": 1500,
+  "systemInstructions": "You are a helpful film critic with expertise in recommending movies based on a user's tastes. Your recommendations should be thoughtful and tailored to the user's preferences."
+}
+
+###
+# @name getCustomTVSeriesRecommendations
+POST http://localhost:8080/api/v1/ai/generate-structured/{{createClaudeClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "prompt": "Based on my enjoyment of the TV series 'Breaking Bad', 'Better Call Saul', and 'The Sopranos', recommend 3 TV series I might enjoy watching. For each series, provide title, initial year, creator, number of seasons, a brief synopsis, and explain why I might enjoy it.",
+  "temperature": 0.7,
+  "maxTokens": 1500,
+  "systemInstructions": "You are a helpful TV critic with expertise in recommending TV series based on a user's tastes. Your recommendations should be thoughtful and tailored to the user's preferences."
+}
+
+###
+# @name getMusicRecommendations
+POST http://localhost:8080/api/v1/ai/generate-structured/{{createClaudeClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "prompt": "Based on my enjoyment of music by 'Pink Floyd', 'Radiohead', and 'Tool', recommend 5 bands or artists I might enjoy listening to. For each recommendation, provide the name, primary genre, most notable album, and a brief explanation of why I might enjoy their music.",
+  "temperature": 0.7, 
+  "maxTokens": 1500,
+  "systemInstructions": "You are a helpful music critic with expertise in recommending music based on a user's tastes. Your recommendations should be thoughtful and tailored to the user's preferences."
+}
+
+###
+# @name getCustomPlaylistSuggestion
+POST http://localhost:8080/api/v1/ai/generate/{{createClaudeClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "prompt": "Create a thoughtful playlist of 10 songs with the theme 'Late Night Coding Session'. For each song, provide the title, artist, and a brief explanation of why it fits the theme.",
+  "temperature": 0.8,
+  "maxTokens": 1500,
+  "systemInstructions": "You are a music curator with expertise in creating playlists that match specific themes or moods. Your playlist suggestions should be cohesive and thoughtfully constructed."
+}
+
+### Get Movie Recommendations (API Endpoint)
+# @name getRecommendations
+POST http://localhost:8080/api/v1/ai/recommendations
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "contentType": "movie",
+  "count": 5,
+  "filters": {
+    "genre": "sci-fi",
+    "year": "2020-2023"
+  }
+}
+
+### Analyze Movie Content
+# @name analyzeContent
+POST http://localhost:8080/api/v1/ai/analyze
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "contentType": "movie",
+  "content": "Interstellar is a 2014 epic science fiction film directed and produced by Christopher Nolan. It stars Matthew McConaughey, Anne Hathaway, Jessica Chastain, and Michael Caine. Set in a dystopian future where humanity is struggling to survive, the film follows a group of astronauts who travel through a wormhole near Saturn in search of a new home for mankind.",
+  "options": {
+    "includeThemes": true,
+    "includeSentiment": true
+  }
+}
+
+### Start Conversational Recommendation
+# @name startConversation
+POST http://localhost:8080/api/v1/ai/conversation/start
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "contentType": "movie",
+  "preferences": {
+    "favoriteGenres": ["sci-fi", "thriller", "drama"],
+    "recentlyWatched": ["Interstellar", "Tenet", "Inception"]
+  }
+}
+
+### Send Message in Conversation
+# Replace the conversationId with one from the response to the previous request
+# @name sendMessage
+POST http://localhost:8080/api/v1/ai/conversation/message
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "conversationId": "{{startConversation.response.body.$.data.conversationId}}",
+  "message": "I'm looking for sci-fi movies with mind-bending plots, similar to Inception but more recent."
+}
+
+### Continue Conversation
+# This continues the same conversation from the previous request
+POST http://localhost:8080/api/v1/ai/conversation/message
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "conversationId": "{{startConversation.response.body.$.data.conversationId}}",
+  "message": "I'd like something with time travel elements too."
+}

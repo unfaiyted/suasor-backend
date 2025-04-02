@@ -1,9 +1,24 @@
 package types
 
+import (
+	"context"
+)
+
 type AIClientConfig interface {
 	ClientConfig
 	GetClientType() AIClientType
 	GetAPIKey() string
+}
+
+// AiClient interface for interacting with AI services
+type AiClient interface {
+	// Basic recommendation and analysis
+	GetRecommendations(ctx context.Context, contentType string, filters map[string]interface{}, count int) ([]map[string]interface{}, error)
+	AnalyzeContent(ctx context.Context, contentType string, content string, options map[string]interface{}) (map[string]interface{}, error)
+	
+	// Conversational recommendation
+	StartRecommendationConversation(ctx context.Context, contentType string, preferences map[string]interface{}, systemInstructions string) (string, string, error)
+	ContinueRecommendationConversation(ctx context.Context, conversationID string, message string, context map[string]interface{}) (string, []map[string]interface{}, error)
 }
 
 type BaseAIClientConfig struct {

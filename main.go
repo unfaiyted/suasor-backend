@@ -11,6 +11,7 @@ import (
 	"suasor/types"
 	logger "suasor/utils"
 
+	_ "suasor/client/ai/claude"  // Force init() to run
 	_ "suasor/client/media/emby" // Force init() to run
 	_ "suasor/docs"
 

@@ -19,6 +19,9 @@ type ErrorResponse[T any] struct {
 	RequestID  string           `json:"request_id,omitempty"`
 }
 
+// BasicErrorResponse is a concrete error response type used for Swagger docs
+type BasicErrorResponse = ErrorResponse[ErrorDetails]
+
 // RespondWithError creates a standardized error response using models.ErrorResponse
 func RespondWithError(c *gin.Context, statusCode int, err error, customMessage ...string) {
 	// Get error type based on status code or default to internal error

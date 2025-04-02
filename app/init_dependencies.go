@@ -40,6 +40,8 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		radarrRepo:   repository.NewClientRepository[*types.RadarrConfig](db),
 		lidarrRepo:   repository.NewClientRepository[*types.LidarrConfig](db),
 		claudeRepo:   repository.NewClientRepository[*types.ClaudeConfig](db),
+		openaiRepo:   repository.NewClientRepository[*types.OpenAIConfig](db),
+		ollamaRepo:   repository.NewClientRepository[*types.OllamaConfig](db),
 	}
 
 	deps.MediaItemRepositories = &mediaItemRepositoriesImpl{
@@ -66,6 +68,8 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		radarrService:   services.NewClientService[*types.RadarrConfig](deps.ClientFactoryService, deps.ClientRepositories.RadarrRepo()),
 		lidarrService:   services.NewClientService[*types.LidarrConfig](deps.ClientFactoryService, deps.ClientRepositories.LidarrRepo()),
 		claudeService:   services.NewClientService[*types.ClaudeConfig](deps.ClientFactoryService, deps.ClientRepositories.ClaudeRepo()),
+		openaiService:   services.NewClientService[*types.OpenAIConfig](deps.ClientFactoryService, deps.ClientRepositories.OpenAIRepo()),
+		ollamaService:   services.NewClientService[*types.OllamaConfig](deps.ClientFactoryService, deps.ClientRepositories.OllamaRepo()),
 	}
 
 	// Initialize media client services
@@ -119,6 +123,8 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		lidarrHandler:   handlers.NewClientHandler[*types.LidarrConfig](deps.ClientServices.LidarrService()),
 		sonarrHandler:   handlers.NewClientHandler[*types.SonarrConfig](deps.ClientServices.SonarrService()),
 		claudeHandler:   handlers.NewClientHandler[*types.ClaudeConfig](deps.ClientServices.ClaudeService()),
+		openaiHandler:   handlers.NewClientHandler[*types.OpenAIConfig](deps.ClientServices.OpenAIService()),
+		ollamaHandler:   handlers.NewClientHandler[*types.OllamaConfig](deps.ClientServices.OllamaService()),
 	}
 
 	deps.MediaItemHandlers = &mediaItemHandlersImpl{
@@ -136,6 +142,34 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 	deps.SystemHandlers = &systemHandlersImpl{
 		configHandler: handlers.NewConfigHandler(deps.SystemServices.ConfigService()),
 		healthHandler: handlers.NewHealthHandler(deps.SystemServices.HealthService()),
+
+		clientsHandler: handlers.NewClientsHandler(
+			deps.ClientServices.EmbyService(),
+			deps.ClientServices.JellyfinService(),
+			deps.ClientServices.PlexService(),
+			deps.ClientServices.SubsonicService(),
+			deps.ClientServices.SonarrService(),
+			deps.ClientServices.RadarrService(),
+			deps.ClientServices.LidarrService(),
+			deps.ClientServices.ClaudeService(),
+			deps.ClientServices.OpenAIService(),
+			deps.ClientServices.OllamaService(),
+		),
+	}
+
+	deps.AIHandlers = &aiHandlersImpl{
+		claudeAIHandler: *handlers.NewAIHandler(
+			deps.ClientFactoryService,
+			deps.ClientServices.ClaudeService(),
+		),
+		openaiAIHandler: *handlers.NewAIHandler(
+			deps.ClientFactoryService,
+			deps.ClientServices.OpenAIService(),
+		),
+		ollamaAIHandler: *handlers.NewAIHandler(
+			deps.ClientFactoryService,
+			deps.ClientServices.OllamaService(),
+		),
 	}
 
 	deps.UserServices = &userServicesImpl{

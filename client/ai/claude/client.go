@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/teilomillet/gollm"
 	"suasor/client"
@@ -13,12 +14,46 @@ import (
 	"suasor/utils"
 )
 
+// Add init function to register the Claude client factory
+func init() {
+	fmt.Printf("Registering factory for client type: %s (value: %v)\n",
+		types.ClientTypeClaude.String(), types.ClientTypeClaude)
+
+	fmt.Println("Registering Claude client factory...")
+	client.RegisterClientFactory(types.ClientTypeClaude,
+		func(ctx context.Context, clientID uint64, cfg types.ClientConfig) (client.Client, error) {
+			// Type assert to ClaudeConfig
+			claudeConfig, ok := cfg.(*types.ClaudeConfig)
+			if !ok {
+				return nil, fmt.Errorf("invalid config type for Claude client, expected *ClaudeConfig, got %T", cfg)
+			}
+
+			// Use existing constructor
+			return NewClaudeClient(ctx, clientID, *claudeConfig)
+		})
+}
+
 // ClaudeClient implements the AI client interface
 type ClaudeClient struct {
 	client.BaseClient
-	llm      gollm.LLM
-	config   types.ClaudeConfig
-	memoryID string // For conversation tracking
+	llm             gollm.LLM
+	config          types.ClaudeConfig
+	memoryID        string // For conversation tracking
+	conversations   map[string]ConversationContext
+}
+
+// ConversationContext tracks the state of a conversation
+type ConversationContext struct {
+	ContentType        string
+	UserPreferences    map[string]interface{}
+	SystemInstructions string
+	History            []ChatMessage
+}
+
+// ChatMessage represents a message in the conversation
+type ChatMessage struct {
+	Role    string // "user" or "assistant"
+	Content string
 }
 
 // NewClaudeClient creates a new Claude client instance using gollm
@@ -50,8 +85,9 @@ func NewClaudeClient(ctx context.Context, clientID uint64, cfg types.ClaudeConfi
 			Type:     types.ClientTypeClaude,
 			Config:   &cfg,
 		},
-		llm:    llm,
-		config: cfg,
+		llm:           llm,
+		config:        cfg,
+		conversations: make(map[string]ConversationContext),
 	}, nil
 }
 
@@ -231,4 +267,287 @@ func (c *ClaudeClient) GetCapabilities() *aitypes.AICapabilities {
 		MaxContextTokens:         c.config.MaxContextTokens,
 		DefaultMaxTokens:         c.config.MaxTokens,
 	}
+}
+
+// GetRecommendations implements the AiClient interface to get content recommendations
+func (c *ClaudeClient) GetRecommendations(ctx context.Context, contentType string, filters map[string]interface{}, count int) ([]map[string]interface{}, error) {
+	log := utils.LoggerFromContext(ctx)
+	log.Info().
+		Str("contentType", contentType).
+		Interface("filters", filters).
+		Int("count", count).
+		Msg("Getting recommendations from Claude")
+
+	// Build the prompt based on content type and filters
+	prompt := fmt.Sprintf("Please recommend %d %s items", count, contentType)
+	
+	// Add filter information
+	if len(filters) > 0 {
+		filterInfo := "\nConsider these preferences:\n"
+		for k, v := range filters {
+			filterInfo += fmt.Sprintf("- %s: %v\n", k, v)
+		}
+		prompt += filterInfo
+	}
+
+	// Add output format instructions
+	prompt += "\nPlease return the recommendations as a JSON array of objects. Each object should include relevant fields for the content type."
+	
+	// Create the output schema to receive the data
+	var recommendations []map[string]interface{}
+	
+	// Generate the structured response
+	err := c.GenerateStructured(ctx, prompt, &recommendations, &aitypes.GenerationOptions{
+		Temperature:       0.4,
+		MaxTokens:         2000,
+		SystemInstructions: fmt.Sprintf("You are a helpful recommendation system specialized in %s. Provide detailed and personalized recommendations based on the user's preferences.", contentType),
+	})
+	
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to get recommendations from Claude")
+		return nil, err
+	}
+	
+	// Ensure we have the requested number of recommendations if possible
+	if len(recommendations) > count {
+		recommendations = recommendations[:count]
+	}
+	
+	return recommendations, nil
+}
+
+// AnalyzeContent implements the AiClient interface to analyze content
+func (c *ClaudeClient) AnalyzeContent(ctx context.Context, contentType string, content string, options map[string]interface{}) (map[string]interface{}, error) {
+	log := utils.LoggerFromContext(ctx)
+	log.Info().
+		Str("contentType", contentType).
+		Int("contentLength", len(content)).
+		Interface("options", options).
+		Msg("Analyzing content with Claude")
+
+	// Build the prompt based on content type and options
+	prompt := fmt.Sprintf("Please analyze the following %s content:\n\n%s\n\n", contentType, content)
+	
+	// Add specific analysis instructions based on options
+	if options != nil {
+		if include, ok := options["includeThemes"].(bool); ok && include {
+			prompt += "Include main themes and motifs. "
+		}
+		if include, ok := options["includeSentiment"].(bool); ok && include {
+			prompt += "Analyze the sentiment. "
+		}
+		if include, ok := options["includeStyleAnalysis"].(bool); ok && include {
+			prompt += "Analyze the stylistic elements. "
+		}
+	}
+
+	// Add output format instructions
+	prompt += "\nPlease return the analysis as a JSON object with appropriate fields for the requested analysis."
+	
+	// Create the output schema to receive the data
+	var analysis map[string]interface{}
+	
+	// Generate the structured response
+	err := c.GenerateStructured(ctx, prompt, &analysis, &aitypes.GenerationOptions{
+		Temperature:       0.3,
+		MaxTokens:         2000,
+		SystemInstructions: fmt.Sprintf("You are an expert at analyzing %s content. Provide detailed, insightful analysis.", contentType),
+	})
+	
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to analyze content with Claude")
+		return nil, err
+	}
+	
+	return analysis, nil
+}
+
+// StartRecommendationConversation starts a conversational recommendation session
+func (c *ClaudeClient) StartRecommendationConversation(ctx context.Context, contentType string, preferences map[string]interface{}, systemInstructions string) (string, string, error) {
+	log := utils.LoggerFromContext(ctx)
+	log.Info().
+		Str("contentType", contentType).
+		Interface("preferences", preferences).
+		Msg("Starting recommendation conversation with Claude")
+
+	// Generate a unique conversation ID
+	conversationID := fmt.Sprintf("rec-%d-%s", c.ClientID, utils.GenerateRandomID(8))
+	
+	// Build system instructions if not provided
+	if systemInstructions == "" {
+		systemInstructions = fmt.Sprintf(
+			"You are an expert %s recommendation assistant. Your goal is to help the user discover %s they'll love based on their preferences and interests. "+
+			"Maintain a friendly, conversational tone. Ask questions to understand their preferences better. "+
+			"When recommending items, provide a brief explanation of why you're recommending them based on the user's preferences.",
+			contentType, contentType)
+	}
+	
+	// Create a personalized welcome message based on content type and preferences
+	welcomeMessage := fmt.Sprintf("Hi there! I'm your %s recommendation assistant. ", contentType)
+	
+	// Add information about preferences if provided
+	if len(preferences) > 0 {
+		welcomeMessage += "Based on your preferences, "
+		
+		if genres, ok := preferences["favoriteGenres"].([]interface{}); ok && len(genres) > 0 {
+			welcomeMessage += fmt.Sprintf("I see you enjoy %s like ", contentType)
+			for i, genre := range genres {
+				if i > 0 {
+					if i == len(genres)-1 {
+						welcomeMessage += " and "
+					} else {
+						welcomeMessage += ", "
+					}
+				}
+				welcomeMessage += fmt.Sprintf("%v", genre)
+			}
+			welcomeMessage += ". "
+		}
+		
+		if recent, ok := preferences["recentlyWatched"].([]interface{}); ok && len(recent) > 0 {
+			welcomeMessage += "You've recently enjoyed "
+			for i, item := range recent {
+				if i > 0 {
+					if i == len(recent)-1 {
+						welcomeMessage += " and "
+					} else {
+						welcomeMessage += ", "
+					}
+				}
+				welcomeMessage += fmt.Sprintf("%v", item)
+			}
+			welcomeMessage += ". "
+		}
+	}
+	
+	welcomeMessage += fmt.Sprintf("What kind of %s are you in the mood for today?", contentType)
+	
+	// Initialize the conversation context
+	c.conversations[conversationID] = ConversationContext{
+		ContentType:        contentType,
+		UserPreferences:    preferences,
+		SystemInstructions: systemInstructions,
+		History: []ChatMessage{
+			{
+				Role:    "assistant",
+				Content: welcomeMessage,
+			},
+		},
+	}
+	
+	return conversationID, welcomeMessage, nil
+}
+
+// ContinueRecommendationConversation continues an existing conversation with a new message
+func (c *ClaudeClient) ContinueRecommendationConversation(ctx context.Context, conversationID string, message string, context map[string]interface{}) (string, []map[string]interface{}, error) {
+	log := utils.LoggerFromContext(ctx)
+	log.Info().
+		Str("conversationID", conversationID).
+		Str("message", message).
+		Msg("Continuing recommendation conversation with Claude")
+
+	// Check if the conversation exists
+	conversation, exists := c.conversations[conversationID]
+	if !exists {
+		return "", nil, fmt.Errorf("conversation not found: %s", conversationID)
+	}
+	
+	// Add the user message to history
+	conversation.History = append(conversation.History, ChatMessage{
+		Role:    "user",
+		Content: message,
+	})
+	
+	// Build a prompt that includes the conversation history and context
+	var promptBuilder strings.Builder
+	
+	// Add system instructions
+	promptBuilder.WriteString(conversation.SystemInstructions)
+	promptBuilder.WriteString("\n\n")
+	
+	// Add user preferences
+	if len(conversation.UserPreferences) > 0 {
+		promptBuilder.WriteString("User preferences:\n")
+		for k, v := range conversation.UserPreferences {
+			promptBuilder.WriteString(fmt.Sprintf("- %s: %v\n", k, v))
+		}
+		promptBuilder.WriteString("\n")
+	}
+	
+	// Add the conversation history
+	promptBuilder.WriteString("Conversation history:\n")
+	for _, msg := range conversation.History {
+		promptBuilder.WriteString(fmt.Sprintf("%s: %s\n", msg.Role, msg.Content))
+	}
+	
+	// Check if we should extract recommendations
+	shouldExtractRecommendations := false
+	if context != nil {
+		if extract, ok := context["extractRecommendations"].(bool); ok {
+			shouldExtractRecommendations = extract
+		}
+	}
+	
+	// Add special instructions for recommendations if needed
+	if shouldExtractRecommendations {
+		promptBuilder.WriteString("\nPlease include specific recommendations in your response. Format each recommendation as a clear item with relevant details.\n")
+	}
+	
+	// Generate the AI response
+	aiResponse, err := c.GenerateText(ctx, promptBuilder.String(), &aitypes.GenerationOptions{
+		Temperature:       0.7,
+		MaxTokens:         1000,
+	})
+	
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to continue conversation with Claude")
+		return "", nil, err
+	}
+	
+	// Add the AI response to the conversation history
+	conversation.History = append(conversation.History, ChatMessage{
+		Role:    "assistant",
+		Content: aiResponse,
+	})
+	
+	// Update the conversation in the map
+	c.conversations[conversationID] = conversation
+	
+	// Extract recommendations if requested
+	var recommendations []map[string]interface{}
+	
+	if shouldExtractRecommendations {
+		// Extract recommendations from the response text
+		recommendations = c.extractRecommendationsFromText(ctx, aiResponse, conversation.ContentType)
+	}
+	
+	return aiResponse, recommendations, nil
+}
+
+// extractRecommendationsFromText parses the AI response to extract structured recommendations
+func (c *ClaudeClient) extractRecommendationsFromText(ctx context.Context, text string, contentType string) []map[string]interface{} {
+	log := utils.LoggerFromContext(ctx)
+	
+	// Create a prompt to extract recommendations
+	extractPrompt := fmt.Sprintf(
+		"From the following assistant response, extract a list of %s recommendations as structured data:\n\n%s\n\n"+
+		"Return ONLY a JSON array of recommendation objects. Each object should have appropriate fields for %s items.",
+		contentType, text, contentType)
+		
+	// Create the output schema to receive the data
+	var recommendations []map[string]interface{}
+	
+	// Generate the structured response
+	err := c.GenerateStructured(ctx, extractPrompt, &recommendations, &aitypes.GenerationOptions{
+		Temperature:       0.1, // Low temperature for deterministic extraction
+		MaxTokens:         1000,
+		SystemInstructions: "You are a helpful data extraction assistant. Your job is to extract structured recommendations from text.",
+	})
+	
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to extract recommendations from text")
+		return []map[string]interface{}{}
+	}
+	
+	return recommendations
 }

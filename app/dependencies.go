@@ -26,6 +26,7 @@ type AppDependencies struct {
 	ClientHandlers
 	ClientMediaHandlers
 	MediaItemHandlers
+	AIHandlers
 	UserHandlers
 	SystemHandlers
 }

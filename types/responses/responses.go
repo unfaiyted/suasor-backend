@@ -24,6 +24,9 @@ type HealthCheckResponse = APIResponse[HealthResponse]
 // UserProfileResponse is the API response for user profile
 type UserProfileResponse = APIResponse[UserResponse]
 
+// ClientsResponse is the API response for clients
+type ClientsResponse = APIResponse[[]ClientResponse]
+
 // EmptyAPIResponse is the APIResponse for empty data
 type EmptyAPIResponse = APIResponse[any]
 

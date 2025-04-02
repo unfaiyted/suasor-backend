@@ -28,6 +28,33 @@ definitions:
     - ErrorTypeTimeout
     - ErrorTypeServiceUnavailable
     - ErrorTypeUnprocessableEntity
+  models.Client-types_ClientConfig:
+    properties:
+      category:
+        $ref: '#/definitions/types.ClientCategory'
+      config:
+        $ref: '#/definitions/models.ClientConfigWrapper-types_ClientConfig'
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      isEnabled:
+        type: boolean
+      name:
+        type: string
+      type:
+        $ref: '#/definitions/types.ClientType'
+      updatedAt:
+        type: string
+      userId:
+        type: integer
+    type: object
+  models.ClientConfigWrapper-types_ClientConfig:
+    properties:
+      data: {}
+    type: object
   models.MediaItem-types_Album:
     properties:
       clientId:
@@ -325,6 +352,54 @@ definitions:
       year:
         type: integer
     type: object
+  requests.AiContentAnalysisRequest:
+    description: Request for AI-powered content analysis
+    properties:
+      content:
+        description: |-
+          The content to analyze
+          required: true
+          example: This is a sample text that needs analysis for sentiment and themes.
+        type: string
+      contentType:
+        description: |-
+          Type of content being analyzed (text, movie, etc)
+          required: true
+          example: text
+        type: string
+      options:
+        additionalProperties: true
+        description: |-
+          Optional analysis options
+          example: {"includeThemes": true, "includeSentiment": true}
+        type: object
+    required:
+    - content
+    - contentType
+    type: object
+  requests.AiRecommendationRequest:
+    description: Request for AI-powered content recommendations
+    properties:
+      contentType:
+        description: |-
+          Type of content to recommend (movie, tv, music, etc)
+          required: true
+          example: movie
+        type: string
+      count:
+        description: |-
+          Number of recommendations to return
+          example: 5
+        type: integer
+      filters:
+        additionalProperties: true
+        description: |-
+          Optional filters to apply to recommendations
+          example: {"genre": "sci-fi", "year": "2020-2023"}
+        type: object
+    required:
+    - contentType
+    type: object
   requests.ChangePasswordRequest:
     description: Request payload for changing user password
     properties:
@@ -509,6 +584,19 @@ definitions:
         example: true
         type: boolean
     type: object
+  responses.APIResponse-array_models_Client-types_ClientConfig:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Client-types_ClientConfig'
+        type: array
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   responses.APIResponse-array_models_MediaItem-types_Album:
     properties:
       data:
@@ -561,11 +649,11 @@ definitions:
         example: true
         type: boolean
     type: object
-  responses.APIResponse-array_responses_ClientResponse:
+  responses.APIResponse-array_responses_MediaItemResponse:
     properties:
       data:
         items:
-          $ref: '#/definitions/responses.ClientResponse'
+          $ref: '#/definitions/responses.MediaItemResponse'
         type: array
       message:
         example: Operation successful
@@ -574,12 +662,10 @@ definitions:
         example: true
         type: boolean
     type: object
-  responses.APIResponse-array_responses_MediaItemResponse:
+  responses.APIResponse-models_Client-types_ClientConfig:
     properties:
       data:
-        items:
-          $ref: '#/definitions/responses.MediaItemResponse'
-        type: array
+        $ref: '#/definitions/models.Client-types_ClientConfig'
       message:
         example: Operation successful
         type: string
@@ -642,10 +728,10 @@ definitions:
         example: true
         type: boolean
     type: object
-  responses.APIResponse-responses_AuthDataResponse:
+  responses.APIResponse-responses_AiContentAnalysisResponse:
     properties:
       data:
-        $ref: '#/definitions/responses.AuthDataResponse'
+        $ref: '#/definitions/responses.AiContentAnalysisResponse'
       message:
         example: Operation successful
         type: string
@@ -653,10 +739,21 @@ definitions:
         example: true
         type: boolean
     type: object
-  responses.APIResponse-responses_ClientResponse:
+  responses.APIResponse-responses_AiRecommendationResponse:
     properties:
       data:
-        $ref: '#/definitions/responses.ClientResponse'
+        $ref: '#/definitions/responses.AiRecommendationResponse'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.APIResponse-responses_AuthDataResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.AuthDataResponse'
       message:
         example: Operation successful
         type: string
@@ -730,6 +827,24 @@ definitions:
         example: true
         type: boolean
     type: object
+  responses.AiContentAnalysisResponse:
+    description: Response containing AI-powered content analysis
+    properties:
+      analysis:
+        additionalProperties: true
+        description: Analysis results
+        type: object
+    type: object
+  responses.AiRecommendationResponse:
+    description: Response containing AI-powered content recommendations
+    properties:
+      items:
+        description: List of recommended items
+        items:
+          additionalProperties: true
+          type: object
+        type: array
+    type: object
   responses.AuthDataResponse:
     description: Authentication data returned to client after successful authentication
     properties:
@@ -758,21 +873,61 @@ definitions:
           User contains the user profile information
           @Description User profile data
     type: object
+  responses.BasicErrorResponse:
+    properties:
+      details:
+        $ref: '#/definitions/responses.ErrorDetails'
+      message:
+        example: This is a pretty message
+        type: string
+      request_id:
+        type: string
+      statusCode:
+        example: 201
+        type: integer
+      timestamp:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/errors.ErrorType'
+        example: FAILED_CHECK
+    type: object
   responses.ClientResponse:
     properties:
-      client: {}
+      client:
+        description: Can be any of the config types
       clientType:
-        $ref: '#/definitions/types.MediaClientType'
+        allOf:
+        - $ref: '#/definitions/types.MediaClientType'
+        example: plex
       createdAt:
+        example: "2023-01-01T12:00:00Z"
         type: string
       id:
+        example: 1
         type: integer
       name:
+        example: My Plex Server
         type: string
       updatedAt:
+        example: "2023-01-01T12:00:00Z"
         type: string
       userId:
+        example: 123
         type: integer
+    type: object
+  responses.ClientsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/responses.ClientResponse'
+        type: array
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
     type: object
   responses.EmptyAPIResponse:
     properties:
@@ -934,6 +1089,18 @@ definitions:
         description: For sources that might have how many people voted on an item
         type: integer
     type: object
+  types.AIClientType:
+    enum:
+    - claude
+    - openai
+    - ollama
+    - unknown
+    type: string
+    x-enum-varnames:
+    - AIClientTypeClaude
+    - AIClientTypeOpenAI
+    - AIClientTypeOllama
+    - AIClientTypeUnknown
   types.Album:
     properties:
       artistID:
@@ -975,6 +1142,58 @@ definitions:
       thumbnail:
         type: string
     type: object
+  types.AutomationClientType:
+    enum:
+    - radarr
+    - sonarr
+    - lidarr
+    - unknown
+    type: string
+    x-enum-varnames:
+    - AutomationClientTypeRadarr
+    - AutomationClientTypeSonarr
+    - AutomationClientTypeLidarr
+    - AutomationClientTypeUnknown
+  types.ClaudeConfig:
+    description: Claude media server configuration
+    properties:
+      apiKey:
+        example: your-api-key
+        type: string
+      baseURL:
+        example: http://localhost:8096
+        type: string
+      category:
+        $ref: '#/definitions/types.ClientCategory'
+      clientType:
+        $ref: '#/definitions/types.AIClientType'
+      maxContextTokens:
+        example: 1000
+        type: integer
+      maxTokens:
+        example: 100
+        type: integer
+      model:
+        example: claude-2
+        type: string
+      temperature:
+        example: 0.5
+        type: number
+      type:
+        $ref: '#/definitions/types.ClientType'
+    type: object
+  types.ClientCategory:
+    enum:
+    - automation
+    - media
+    - ai
+    - unknown
+    type: string
+    x-enum-varnames:
+    - ClientCategoryAutomation
+    - ClientCategoryMedia
+    - ClientCategoryAI
+    - ClientCategoryUnknown
   types.ClientType:
     enum:
     - emby
@@ -1176,6 +1395,75 @@ definitions:
         - writeTimeout
         type: object
     type: object
+  types.EmbyConfig:
+    description: Emby media server configuration
+    properties:
+      apiKey:
+        example: your-api-key
+        type: string
+      baseURL:
+        example: http://localhost:8096
+        type: string
+      category:
+        $ref: '#/definitions/types.ClientCategory'
+      clientType:
+        $ref: '#/definitions/types.MediaClientType'
+      ssl:
+        example: false
+        type: boolean
+      type:
+        $ref: '#/definitions/types.ClientType'
+      userID:
+        example: your-internal-user-id
+        type: string
+      username:
+        example: admin
+        type: string
+    type: object
+  types.JellyfinConfig:
+    description: Jellyfin media server configuration
+    properties:
+      apiKey:
+        example: your-api-key
+        type: string
+      baseURL:
+        example: http://localhost:8096
+        type: string
+      category:
+        $ref: '#/definitions/types.ClientCategory'
+      clientType:
+        $ref: '#/definitions/types.MediaClientType'
+      ssl:
+        example: false
+        type: boolean
+      type:
+        $ref: '#/definitions/types.ClientType'
+      userID:
+        example: your-internal-user-id
+        type: string
+      username:
+        example: admin
+        type: string
+    type: object
+  types.LidarrConfig:
+    description: Jellyfin media server configuration
+    properties:
+      apiKey:
+        example: your-api-key
+        type: string
+      baseURL:
+        example: http://localhost:8096
+        type: string
+      category:
+        $ref: '#/definitions/types.ClientCategory'
+      clientType:
+        $ref: '#/definitions/types.AutomationClientType'
+      ssl:
+        example: false
+        type: boolean
+      type:
+        $ref: '#/definitions/types.ClientType'
+    type: object
   types.MediaClientType:
     enum:
     - plex
@@ -1273,6 +1561,91 @@ definitions:
       owner:
         type: string
     type: object
+  types.PlexConfig:
+    description: Plex media server configuration
+    properties:
+      apiKey:
+        example: your-api-key
+        type: string
+      baseURL:
+        example: http://localhost:8096
+        type: string
+      category:
+        $ref: '#/definitions/types.ClientCategory'
+      clientType:
+        $ref: '#/definitions/types.MediaClientType'
+      ssl:
+        example: false
+        type: boolean
+      token:
+        example: your-plex-token
+        type: string
+      type:
+        $ref: '#/definitions/types.ClientType'
+    type: object
+  types.RadarrConfig:
+    description: Emby media server configuration
+    properties:
+      apiKey:
+        example: your-api-key
+        type: string
+      baseURL:
+        example: http://localhost:8096
+        type: string
+      category:
+        $ref: '#/definitions/types.ClientCategory'
+      clientType:
+        $ref: '#/definitions/types.AutomationClientType'
+      ssl:
+        example: false
+        type: boolean
+      type:
+        $ref: '#/definitions/types.ClientType'
+    type: object
+  types.SonarrConfig:
+    description: Emby media server configuration
+    properties:
+      apiKey:
+        example: your-api-key
+        type: string
+      baseURL:
+        example: http://localhost:8096
+        type: string
+      category:
+        $ref: '#/definitions/types.ClientCategory'
+      clientType:
+        $ref: '#/definitions/types.AutomationClientType'
+      ssl:
+        example: false
+        type: boolean
+      type:
+        $ref: '#/definitions/types.ClientType'
+    type: object
+  types.SubsonicConfig:
+    description: Supersonic music server configuration
+    properties:
+      apiKey:
+        example: your-api-key
+        type: string
+      baseURL:
+        example: http://localhost:8096
+        type: string
+      category:
+        $ref: '#/definitions/types.ClientCategory'
+      clientType:
+        $ref: '#/definitions/types.MediaClientType'
+      password:
+        example: your-password
+        type: string
+      ssl:
+        example: false
+        type: boolean
+      type:
+        $ref: '#/definitions/types.ClientType'
+      username:
+        example: admin
+        type: string
+    type: object
   types.Track:
     properties:
       albumID:
@@ -1350,6 +1723,78 @@ paths:
       summary: Test media client connection
       tags:
       - clients
+  /ai/analyze:
+    post:
+      consumes:
+      - application/json
+      description: Use AI to analyze provided content
+      parameters:
+      - description: Content analysis request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.AiContentAnalysisRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Analysis response
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_AiContentAnalysisResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Analyze content with AI
+      tags:
+      - ai
+  /ai/recommendations:
+    post:
+      consumes:
+      - application/json
+      description: Get content recommendations from an AI service
+      parameters:
+      - description: Recommendation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.AiRecommendationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Recommendation response
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_AiRecommendationResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get AI-powered content recommendations
+      tags:
+      - ai
   /auth/login:
     post:
       consumes:
@@ -1509,6 +1954,32 @@ paths:
       summary: Validate user session
       tags:
       - auth
+  /clients:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all configured clients across different types for the
+        user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: All user clients with various config types
+          schema:
+            $ref: '#/definitions/responses.ClientsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.BasicErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.BasicErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all clients
+      tags:
+      - clients
   /clients/automation/{clientID}/calendar:
     get:
       consumes:
@@ -2040,7 +2511,7 @@ paths:
         "200":
           description: Media clients retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_responses_ClientResponse'
+            $ref: '#/definitions/responses.APIResponse-array_models_Client-types_ClientConfig'
         "401":
           description: Unauthorized
           schema:
@@ -2071,7 +2542,7 @@ paths:
         "201":
           description: Media client created
           schema:
-            $ref: '#/definitions/responses.APIResponse-responses_ClientResponse'
+            $ref: '#/definitions/responses.APIResponse-models_Client-types_ClientConfig'
         "400":
           description: Invalid request
           schema:
@@ -3032,6 +3503,22 @@ paths:
       summary: Update user configuration
       tags:
       - config
+  /docs/client-types:
+    get:
+      consumes:
+      - application/json
+      description: This endpoint doesn't exist but serves as a reference for all client
+        config types
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Claude client config
+          schema:
+            $ref: '#/definitions/types.ClaudeConfig'
+      summary: Reference for all client config types
+      tags:
+      - swagger-reference
   /health:
     get:
       description: returns JSON object with health statuses.

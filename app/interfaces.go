@@ -19,6 +19,8 @@ type ClientServices interface {
 	RadarrService() services.ClientService[*types.RadarrConfig]
 	LidarrService() services.ClientService[*types.LidarrConfig]
 	ClaudeService() services.ClientService[*types.ClaudeConfig]
+	OpenAIService() services.ClientService[*types.OpenAIConfig]
+	OllamaService() services.ClientService[*types.OllamaConfig]
 }
 
 type ClientRepositories interface {
@@ -30,6 +32,8 @@ type ClientRepositories interface {
 	RadarrRepo() repository.ClientRepository[*types.RadarrConfig]
 	LidarrRepo() repository.ClientRepository[*types.LidarrConfig]
 	ClaudeRepo() repository.ClientRepository[*types.ClaudeConfig]
+	OpenAIRepo() repository.ClientRepository[*types.OpenAIConfig]
+	OllamaRepo() repository.ClientRepository[*types.OllamaConfig]
 }
 
 type ClientMediaServices interface {
@@ -111,14 +115,19 @@ type UserServices interface {
 }
 
 type ClientHandlers interface {
+	// Media
 	EmbyHandler() *handlers.ClientHandler[*types.EmbyConfig]
 	JellyfinHandler() *handlers.ClientHandler[*types.JellyfinConfig]
 	PlexHandler() *handlers.ClientHandler[*types.PlexConfig]
 	SubsonicHandler() *handlers.ClientHandler[*types.SubsonicConfig]
+	// Automation
 	RadarrHandler() *handlers.ClientHandler[*types.RadarrConfig]
 	LidarrHandler() *handlers.ClientHandler[*types.LidarrConfig]
 	SonarrHandler() *handlers.ClientHandler[*types.SonarrConfig]
+	// AI
 	ClaudeHandler() *handlers.ClientHandler[*types.ClaudeConfig]
+	OpenAIHandler() *handlers.ClientHandler[*types.OpenAIConfig]
+	OllamaHandler() *handlers.ClientHandler[*types.OllamaConfig]
 }
 
 type MediaItemHandlers interface {
@@ -181,6 +190,7 @@ type UserHandlers interface {
 type SystemHandlers interface {
 	ConfigHandler() *handlers.ConfigHandler
 	HealthHandler() *handlers.HealthHandler
+	ClientsHandler() *handlers.ClientsHandler
 }
 
 type SystemServices interface {
@@ -190,4 +200,10 @@ type SystemServices interface {
 
 type SystemRepositories interface {
 	ConfigRepo() repository.ConfigRepository
+}
+
+type AIHandlers interface {
+	ClaudeAIHandler() *handlers.AIHandler[*types.ClaudeConfig]
+	OpenAIHandler() *handlers.AIHandler[*types.OpenAIConfig]
+	OllamaHandler() *handlers.AIHandler[*types.OllamaConfig]
 }

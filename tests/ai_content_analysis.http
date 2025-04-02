@@ -1,0 +1,81 @@
+###
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@dev.com",
+  "password": "TestPassword123"
+}
+
+###
+# @name createClaudeClient
+POST http://localhost:8080/api/v1/admin/client/claude
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Claude Content Analysis",
+  "clientType": "claude",
+  "client": {
+    "enabled": true,
+    "baseURL": "https://api.anthropic.com",
+    "apiKey": "{{$processEnv CLAUDE_API_KEY}}",
+    "model": "claude-3-5-sonnet-20240620",
+    "temperature": 0.2,
+    "maxTokens": 2000,
+    "maxContextTokens": 100000
+  }
+}
+
+###
+# @name analyzeMoviePlot
+POST http://localhost:8080/api/v1/ai/generate-structured/{{createClaudeClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "prompt": "Analyze the following movie plot and provide insights on themes, character motivations, and possible interpretations: 'A young programmer named Neo discovers that the world he lives in is actually a simulation called the Matrix, created by intelligent machines to subdue humanity. With the help of Morpheus and Trinity, he embarks on a journey to free humanity from this digital prison while confronting the powerful Agent Smith.'",
+  "temperature": 0.2,
+  "maxTokens": 1500,
+  "systemInstructions": "You are a film critic and cultural analyst with expertise in identifying themes, symbols, and deeper meanings in film narratives. Provide insightful and nuanced analysis."
+}
+
+###
+# @name extractTVSeriesMetadata
+POST http://localhost:8080/api/v1/ai/generate-structured/{{createClaudeClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "prompt": "Extract structured information from this TV series description: 'Breaking Bad is an American neo-Western crime drama television series created and produced by Vince Gilligan. The show aired on AMC from January 20, 2008, to September 29, 2013, consisting of five seasons for a total of 62 episodes. It stars Bryan Cranston as Walter White, a struggling and depressed high school chemistry teacher who is diagnosed with lung cancer. Together with his former student Jesse Pinkman (Aaron Paul), White turns to a life of crime by producing and selling crystallized methamphetamine to secure his family's financial future before he dies, while navigating the dangers of the criminal underworld.'",
+  "temperature": 0.1,
+  "maxTokens": 1000,
+  "systemInstructions": "You are a data extraction specialist. Extract and organize metadata from TV series descriptions into a structured format with fields for title, creator, air dates, number of seasons, number of episodes, main cast, and plot summary."
+}
+
+###
+# @name analyzeMediaTrends
+POST http://localhost:8080/api/v1/ai/generate/{{createClaudeClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "prompt": "Based on current media consumption trends, analyze how streaming platforms like Netflix, Disney+, and HBO Max have changed audience viewing habits and expectations. Focus on aspects like binge-watching, content discovery, and the shift from weekly episode releases to full-season drops.",
+  "temperature": 0.5,
+  "maxTokens": 2000,
+  "systemInstructions": "You are a media analyst with expertise in digital media consumption patterns and streaming platform business models. Provide insightful analysis backed by general trends."
+}
+
+###
+# @name generateContentTags
+POST http://localhost:8080/api/v1/ai/generate-structured/{{createClaudeClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "prompt": "Generate appropriate tags and categories for the following content: 'Inception is a 2010 science fiction action film written and directed by Christopher Nolan, who also produced the film with Emma Thomas. The film stars Leonardo DiCaprio as a professional thief who steals information by infiltrating the subconscious of his targets. He is offered a chance to have his criminal history erased as payment for the implantation of another person's idea into a target's subconscious.'",
+  "temperature": 0.3,
+  "maxTokens": 1000,
+  "systemInstructions": "You are a media cataloging expert. Generate appropriate tags, genres, themes, moods, and keywords that would help organize this content in a media database system."
+}

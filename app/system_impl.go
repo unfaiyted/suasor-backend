@@ -16,8 +16,9 @@ func (r *systemRepositoriesImpl) ConfigRepo() repository.ConfigRepository {
 }
 
 type systemHandlersImpl struct {
-	configHandler *handlers.ConfigHandler
-	healthHandler *handlers.HealthHandler
+	configHandler  *handlers.ConfigHandler
+	healthHandler  *handlers.HealthHandler
+	clientsHandler *handlers.ClientsHandler
 }
 
 func (h *systemHandlersImpl) ConfigHandler() *handlers.ConfigHandler {
@@ -26,6 +27,10 @@ func (h *systemHandlersImpl) ConfigHandler() *handlers.ConfigHandler {
 
 func (h *systemHandlersImpl) HealthHandler() *handlers.HealthHandler {
 	return h.healthHandler
+}
+
+func (h *systemHandlersImpl) ClientsHandler() *handlers.ClientsHandler {
+	return h.clientsHandler
 }
 
 type systemServicesImpl struct {

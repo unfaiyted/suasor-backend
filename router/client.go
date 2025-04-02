@@ -49,11 +49,9 @@ func RegisterClientRoutes(r *gin.RouterGroup, deps *app.AppDependencies) {
 		return handler
 	}
 
-	clients := r.Group("/client")
+	clientGroup := r.Group("/client")
 
-	// clients.GET("", hander.GetAllClients)
-
-	client := clients.Group("/:clientType")
+	client := clientGroup.Group("/:clientType")
 	{
 		client.POST("", func(c *gin.Context) {
 			log := utils.LoggerFromContext(c.Request.Context())

@@ -34,7 +34,7 @@ func NewClientHandler[T types.ClientConfig](service services.ClientService[T]) *
 // @Produce json
 // @Security BearerAuth
 // @Param request body requests.SwaggerClientRequest true "Media client data"
-// @Success 201 {object} responses.APIResponse[responses.ClientResponse] "Media client created"
+// @Success 201 {object} responses.APIResponse[models.Client[client.ClientConfig]] "Media client created"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
@@ -136,7 +136,7 @@ func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Client ID"
-// @Success 200 {object} responses.APIResponse[responses.ClientResponse] "Media client retrieved"
+// @Success 200 {object} responses.APIResponse[models.Client[client.ClientConfig]] "Media client retrieved"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Client not found"
@@ -209,7 +209,7 @@ func (h *ClientHandler[T]) GetClient(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} responses.APIResponse[[]responses.ClientResponse] "Media clients retrieved"
+// @Success 200 {object} responses.APIResponse[[]models.Client[client.ClientConfig]] "Media clients retrieved"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/media [get]
@@ -248,7 +248,7 @@ func (h *ClientHandler[T]) GetAllClients(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path int true "Client ID"
 // @Param request body requests.ClientRequest true "Updated client data"
-// @Success 200 {object} responses.APIResponse[responses.ClientResponse] "Media client updated"
+// @Success 200 {object} responses.APIResponse[models.Client[client.ClientConfig]] "Media clients updated"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request or client ID"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Client not found"

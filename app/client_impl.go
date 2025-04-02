@@ -20,6 +20,8 @@ type clientServicesImpl struct {
 	radarrService   services.ClientService[*types.RadarrConfig]
 	lidarrService   services.ClientService[*types.LidarrConfig]
 	claudeService   services.ClientService[*types.ClaudeConfig]
+	openaiService   services.ClientService[*types.OpenAIConfig]
+	ollamaService   services.ClientService[*types.OllamaConfig]
 }
 
 func (s *clientServicesImpl) ClaudeService() services.ClientService[*types.ClaudeConfig] {
@@ -54,8 +56,16 @@ func (s *clientServicesImpl) LidarrService() services.ClientService[*types.Lidar
 	return s.lidarrService
 }
 
+func (s *clientServicesImpl) OpenAIService() services.ClientService[*types.OpenAIConfig] {
+	return s.openaiService
+}
+
+func (s *clientServicesImpl) OllamaService() services.ClientService[*types.OllamaConfig] {
+	return s.ollamaService
+}
+
 // Concrete implementation of ClientSeriesServices
-type clientSeriesServicesImpl struct{
+type clientSeriesServicesImpl struct {
 	embySeriesService     services.MediaClientSeriesService[*types.EmbyConfig]
 	jellyfinSeriesService services.MediaClientSeriesService[*types.JellyfinConfig]
 	plexSeriesService     services.MediaClientSeriesService[*types.PlexConfig]
@@ -132,6 +142,16 @@ type clientHandlersImpl struct {
 	lidarrHandler   *handlers.ClientHandler[*types.LidarrConfig]
 	sonarrHandler   *handlers.ClientHandler[*types.SonarrConfig]
 	claudeHandler   *handlers.ClientHandler[*types.ClaudeConfig]
+	openaiHandler   *handlers.ClientHandler[*types.OpenAIConfig]
+	ollamaHandler   *handlers.ClientHandler[*types.OllamaConfig]
+}
+
+func (h *clientHandlersImpl) OpenAIHandler() *handlers.ClientHandler[*types.OpenAIConfig] {
+	return h.openaiHandler
+}
+
+func (h *clientHandlersImpl) OllamaHandler() *handlers.ClientHandler[*types.OllamaConfig] {
+	return h.ollamaHandler
 }
 
 func (h *clientHandlersImpl) ClaudeHandler() *handlers.ClientHandler[*types.ClaudeConfig] {
@@ -175,6 +195,8 @@ type clientRepositoriesImpl struct {
 	radarrRepo   repository.ClientRepository[*types.RadarrConfig]
 	lidarrRepo   repository.ClientRepository[*types.LidarrConfig]
 	claudeRepo   repository.ClientRepository[*types.ClaudeConfig]
+	openaiRepo   repository.ClientRepository[*types.OpenAIConfig]
+	ollamaRepo   repository.ClientRepository[*types.OllamaConfig]
 }
 
 func (r *clientRepositoriesImpl) ClaudeRepo() repository.ClientRepository[*types.ClaudeConfig] {
@@ -207,6 +229,14 @@ func (r *clientRepositoriesImpl) RadarrRepo() repository.ClientRepository[*types
 
 func (r *clientRepositoriesImpl) LidarrRepo() repository.ClientRepository[*types.LidarrConfig] {
 	return r.lidarrRepo
+}
+
+func (r *clientRepositoriesImpl) OpenAIRepo() repository.ClientRepository[*types.OpenAIConfig] {
+	return r.openaiRepo
+}
+
+func (r *clientRepositoriesImpl) OllamaRepo() repository.ClientRepository[*types.OllamaConfig] {
+	return r.ollamaRepo
 }
 
 type clientMediaServicesImpl struct {
@@ -331,6 +361,7 @@ func (s *clientMusicServicesImpl) PlexMusicService() services.MediaClientMusicSe
 func (s *clientMusicServicesImpl) SubsonicMusicService() services.MediaClientMusicService[*types.SubsonicConfig] {
 	return s.subsonicMusicService
 }
+
 type clientMovieServicesImpl struct {
 	embyMovieService     services.MediaClientMovieService[*types.EmbyConfig]
 	jellyfinMovieService services.MediaClientMovieService[*types.JellyfinConfig]

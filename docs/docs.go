@@ -86,6 +86,120 @@ const docTemplate = `{
                 }
             }
         },
+        "/ai/analyze": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Use AI to analyze provided content",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ai"
+                ],
+                "summary": "Analyze content with AI",
+                "parameters": [
+                    {
+                        "description": "Content analysis request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.AiContentAnalysisRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Analysis response",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-responses_AiContentAnalysisResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/ai/recommendations": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get content recommendations from an AI service",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ai"
+                ],
+                "summary": "Get AI-powered content recommendations",
+                "parameters": [
+                    {
+                        "description": "Recommendation request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.AiRecommendationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Recommendation response",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-responses_AiRecommendationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "Authenticates a user with email and password",
@@ -326,6 +440,46 @@ const docTemplate = `{
                         "description": "Server error",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/clients": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all configured clients across different types for the user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Get all clients",
+                "responses": {
+                    "200": {
+                        "description": "All user clients with various config types",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ClientsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.BasicErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.BasicErrorResponse"
                         }
                     }
                 }
@@ -1162,7 +1316,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Media clients retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_responses_ClientResponse"
+                            "$ref": "#/definitions/responses.APIResponse-array_models_Client-types_ClientConfig"
                         }
                     },
                     "401": {
@@ -1211,7 +1365,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Media client created",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-responses_ClientResponse"
+                            "$ref": "#/definitions/responses.APIResponse-models_Client-types_ClientConfig"
                         }
                     },
                     "400": {
@@ -2684,6 +2838,29 @@ const docTemplate = `{
                         "description": "Server error",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/docs/client-types": {
+            "get": {
+                "description": "This endpoint doesn't exist but serves as a reference for all client config types",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "swagger-reference"
+                ],
+                "summary": "Reference for all client config types",
+                "responses": {
+                    "200": {
+                        "description": "Claude client config",
+                        "schema": {
+                            "$ref": "#/definitions/types.ClaudeConfig"
                         }
                     }
                 }
@@ -4332,6 +4509,47 @@ const docTemplate = `{
                 "ErrorTypeUnprocessableEntity"
             ]
         },
+        "models.Client-types_ClientConfig": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "$ref": "#/definitions/types.ClientCategory"
+                },
+                "config": {
+                    "$ref": "#/definitions/models.ClientConfigWrapper-types_ClientConfig"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "isEnabled": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/types.ClientType"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.ClientConfigWrapper-types_ClientConfig": {
+            "type": "object",
+            "properties": {
+                "data": {}
+            }
+        },
         "models.MediaItem-types_Album": {
             "type": "object",
             "properties": {
@@ -4768,6 +4986,51 @@ const docTemplate = `{
                 }
             }
         },
+        "requests.AiContentAnalysisRequest": {
+            "description": "Request for AI-powered content analysis",
+            "type": "object",
+            "required": [
+                "content",
+                "contentType"
+            ],
+            "properties": {
+                "content": {
+                    "description": "The content to analyze\nrequired: true\nexample: This is a sample text that needs analysis for sentiment and themes.",
+                    "type": "string"
+                },
+                "contentType": {
+                    "description": "Type of content being analyzed (text, movie, etc)\nrequired: true\nexample: text",
+                    "type": "string"
+                },
+                "options": {
+                    "description": "Optional analysis options\nexample: {\"includeThemes\": true, \"includeSentiment\": true}",
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
+        "requests.AiRecommendationRequest": {
+            "description": "Request for AI-powered content recommendations",
+            "type": "object",
+            "required": [
+                "contentType"
+            ],
+            "properties": {
+                "contentType": {
+                    "description": "Type of content to recommend (movie, tv, music, etc)\nrequired: true\nexample: movie",
+                    "type": "string"
+                },
+                "count": {
+                    "description": "Number of recommendations to return\nexample: 5",
+                    "type": "integer"
+                },
+                "filters": {
+                    "description": "Optional filters to apply to recommendations\nexample: {\"genre\": \"sci-fi\", \"year\": \"2020-2023\"}",
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
         "requests.ChangePasswordRequest": {
             "description": "Request payload for changing user password",
             "type": "object",
@@ -4980,6 +5243,25 @@ const docTemplate = `{
                 }
             }
         },
+        "responses.APIResponse-array_models_Client-types_ClientConfig": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Client-types_ClientConfig"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "responses.APIResponse-array_models_MediaItem-types_Album": {
             "type": "object",
             "properties": {
@@ -5056,13 +5338,13 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.APIResponse-array_responses_ClientResponse": {
+        "responses.APIResponse-array_responses_MediaItemResponse": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/responses.ClientResponse"
+                        "$ref": "#/definitions/responses.MediaItemResponse"
                     }
                 },
                 "message": {
@@ -5075,14 +5357,11 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.APIResponse-array_responses_MediaItemResponse": {
+        "responses.APIResponse-models_Client-types_ClientConfig": {
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/responses.MediaItemResponse"
-                    }
+                    "$ref": "#/definitions/models.Client-types_ClientConfig"
                 },
                 "message": {
                     "type": "string",
@@ -5174,11 +5453,11 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.APIResponse-responses_AuthDataResponse": {
+        "responses.APIResponse-responses_AiContentAnalysisResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/responses.AuthDataResponse"
+                    "$ref": "#/definitions/responses.AiContentAnalysisResponse"
                 },
                 "message": {
                     "type": "string",
@@ -5190,11 +5469,27 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.APIResponse-responses_ClientResponse": {
+        "responses.APIResponse-responses_AiRecommendationResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/responses.ClientResponse"
+                    "$ref": "#/definitions/responses.AiRecommendationResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.APIResponse-responses_AuthDataResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.AuthDataResponse"
                 },
                 "message": {
                     "type": "string",
@@ -5302,6 +5597,31 @@ const docTemplate = `{
                 }
             }
         },
+        "responses.AiContentAnalysisResponse": {
+            "description": "Response containing AI-powered content analysis",
+            "type": "object",
+            "properties": {
+                "analysis": {
+                    "description": "Analysis results",
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
+        "responses.AiRecommendationResponse": {
+            "description": "Response containing AI-powered content recommendations",
+            "type": "object",
+            "properties": {
+                "items": {
+                    "description": "List of recommended items",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": true
+                    }
+                }
+            }
+        },
         "responses.AuthDataResponse": {
             "description": "Authentication data returned to client after successful authentication",
             "type": "object",
@@ -5328,27 +5648,88 @@ const docTemplate = `{
                 }
             }
         },
+        "responses.BasicErrorResponse": {
+            "type": "object",
+            "properties": {
+                "details": {
+                    "$ref": "#/definitions/responses.ErrorDetails"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "This is a pretty message"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "statusCode": {
+                    "type": "integer",
+                    "example": 201
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "type": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/errors.ErrorType"
+                        }
+                    ],
+                    "example": "FAILED_CHECK"
+                }
+            }
+        },
         "responses.ClientResponse": {
             "type": "object",
             "properties": {
-                "client": {},
+                "client": {
+                    "description": "Can be any of the config types"
+                },
                 "clientType": {
-                    "$ref": "#/definitions/types.MediaClientType"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.MediaClientType"
+                        }
+                    ],
+                    "example": "plex"
                 },
                 "createdAt": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2023-01-01T12:00:00Z"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "My Plex Server"
                 },
                 "updatedAt": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2023-01-01T12:00:00Z"
                 },
                 "userId": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 123
+                }
+            }
+        },
+        "responses.ClientsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/responses.ClientResponse"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -5568,6 +5949,21 @@ const docTemplate = `{
                 }
             }
         },
+        "types.AIClientType": {
+            "type": "string",
+            "enum": [
+                "claude",
+                "openai",
+                "ollama",
+                "unknown"
+            ],
+            "x-enum-varnames": [
+                "AIClientTypeClaude",
+                "AIClientTypeOpenAI",
+                "AIClientTypeOllama",
+                "AIClientTypeUnknown"
+            ]
+        },
         "types.Album": {
             "type": "object",
             "properties": {
@@ -5630,6 +6026,75 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "types.AutomationClientType": {
+            "type": "string",
+            "enum": [
+                "radarr",
+                "sonarr",
+                "lidarr",
+                "unknown"
+            ],
+            "x-enum-varnames": [
+                "AutomationClientTypeRadarr",
+                "AutomationClientTypeSonarr",
+                "AutomationClientTypeLidarr",
+                "AutomationClientTypeUnknown"
+            ]
+        },
+        "types.ClaudeConfig": {
+            "description": "Claude media server configuration",
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "type": "string",
+                    "example": "your-api-key"
+                },
+                "baseURL": {
+                    "type": "string",
+                    "example": "http://localhost:8096"
+                },
+                "category": {
+                    "$ref": "#/definitions/types.ClientCategory"
+                },
+                "clientType": {
+                    "$ref": "#/definitions/types.AIClientType"
+                },
+                "maxContextTokens": {
+                    "type": "integer",
+                    "example": 1000
+                },
+                "maxTokens": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "model": {
+                    "type": "string",
+                    "example": "claude-2"
+                },
+                "temperature": {
+                    "type": "number",
+                    "example": 0.5
+                },
+                "type": {
+                    "$ref": "#/definitions/types.ClientType"
+                }
+            }
+        },
+        "types.ClientCategory": {
+            "type": "string",
+            "enum": [
+                "automation",
+                "media",
+                "ai",
+                "unknown"
+            ],
+            "x-enum-varnames": [
+                "ClientCategoryAutomation",
+                "ClientCategoryMedia",
+                "ClientCategoryAI",
+                "ClientCategoryUnknown"
+            ]
         },
         "types.ClientType": {
             "type": "string",
@@ -5887,6 +6352,103 @@ const docTemplate = `{
                 }
             }
         },
+        "types.EmbyConfig": {
+            "description": "Emby media server configuration",
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "type": "string",
+                    "example": "your-api-key"
+                },
+                "baseURL": {
+                    "type": "string",
+                    "example": "http://localhost:8096"
+                },
+                "category": {
+                    "$ref": "#/definitions/types.ClientCategory"
+                },
+                "clientType": {
+                    "$ref": "#/definitions/types.MediaClientType"
+                },
+                "ssl": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "type": {
+                    "$ref": "#/definitions/types.ClientType"
+                },
+                "userID": {
+                    "type": "string",
+                    "example": "your-internal-user-id"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "admin"
+                }
+            }
+        },
+        "types.JellyfinConfig": {
+            "description": "Jellyfin media server configuration",
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "type": "string",
+                    "example": "your-api-key"
+                },
+                "baseURL": {
+                    "type": "string",
+                    "example": "http://localhost:8096"
+                },
+                "category": {
+                    "$ref": "#/definitions/types.ClientCategory"
+                },
+                "clientType": {
+                    "$ref": "#/definitions/types.MediaClientType"
+                },
+                "ssl": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "type": {
+                    "$ref": "#/definitions/types.ClientType"
+                },
+                "userID": {
+                    "type": "string",
+                    "example": "your-internal-user-id"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "admin"
+                }
+            }
+        },
+        "types.LidarrConfig": {
+            "description": "Jellyfin media server configuration",
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "type": "string",
+                    "example": "your-api-key"
+                },
+                "baseURL": {
+                    "type": "string",
+                    "example": "http://localhost:8096"
+                },
+                "category": {
+                    "$ref": "#/definitions/types.ClientCategory"
+                },
+                "clientType": {
+                    "$ref": "#/definitions/types.AutomationClientType"
+                },
+                "ssl": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "type": {
+                    "$ref": "#/definitions/types.ClientType"
+                }
+            }
+        },
         "types.MediaClientType": {
             "type": "string",
             "enum": [
@@ -6018,6 +6580,126 @@ const docTemplate = `{
                 },
                 "owner": {
                     "type": "string"
+                }
+            }
+        },
+        "types.PlexConfig": {
+            "description": "Plex media server configuration",
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "type": "string",
+                    "example": "your-api-key"
+                },
+                "baseURL": {
+                    "type": "string",
+                    "example": "http://localhost:8096"
+                },
+                "category": {
+                    "$ref": "#/definitions/types.ClientCategory"
+                },
+                "clientType": {
+                    "$ref": "#/definitions/types.MediaClientType"
+                },
+                "ssl": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "token": {
+                    "type": "string",
+                    "example": "your-plex-token"
+                },
+                "type": {
+                    "$ref": "#/definitions/types.ClientType"
+                }
+            }
+        },
+        "types.RadarrConfig": {
+            "description": "Emby media server configuration",
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "type": "string",
+                    "example": "your-api-key"
+                },
+                "baseURL": {
+                    "type": "string",
+                    "example": "http://localhost:8096"
+                },
+                "category": {
+                    "$ref": "#/definitions/types.ClientCategory"
+                },
+                "clientType": {
+                    "$ref": "#/definitions/types.AutomationClientType"
+                },
+                "ssl": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "type": {
+                    "$ref": "#/definitions/types.ClientType"
+                }
+            }
+        },
+        "types.SonarrConfig": {
+            "description": "Emby media server configuration",
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "type": "string",
+                    "example": "your-api-key"
+                },
+                "baseURL": {
+                    "type": "string",
+                    "example": "http://localhost:8096"
+                },
+                "category": {
+                    "$ref": "#/definitions/types.ClientCategory"
+                },
+                "clientType": {
+                    "$ref": "#/definitions/types.AutomationClientType"
+                },
+                "ssl": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "type": {
+                    "$ref": "#/definitions/types.ClientType"
+                }
+            }
+        },
+        "types.SubsonicConfig": {
+            "description": "Supersonic music server configuration",
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "type": "string",
+                    "example": "your-api-key"
+                },
+                "baseURL": {
+                    "type": "string",
+                    "example": "http://localhost:8096"
+                },
+                "category": {
+                    "$ref": "#/definitions/types.ClientCategory"
+                },
+                "clientType": {
+                    "$ref": "#/definitions/types.MediaClientType"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "your-password"
+                },
+                "ssl": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "type": {
+                    "$ref": "#/definitions/types.ClientType"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "admin"
                 }
             }
         },
