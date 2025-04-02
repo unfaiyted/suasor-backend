@@ -97,6 +97,7 @@ type MediaDetails struct {
 	UserRating    float32       `json:"userRating,omitempty"`
 	Artwork       Artwork       `json:"artwork,omitempty"`
 	Duration      time.Duration `json:"durationSeconds,omitempty"`
+	IsFavorite    bool          `json:"isFavorite,omitempty"`
 }
 
 type MediaType string

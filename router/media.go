@@ -34,19 +34,82 @@ func RegisterMediaClientRoutes(rg *gin.RouterGroup, deps *app.AppDependencies) {
 		"plex":     mediaHandler.PlexMovieHandler(),
 	}
 
-	// seriesHandlerMap := map[string]seriesHandlerInterface{
-	// "jellyfin": mediaHandler.JellyfinSeriesHandler(),
-	// "emby":     mediaHandler.EmbySeriesHandler(),
-	// "plex":     mediaHandler.PlexSeriesHandler(),
-	// }
+	// Define series handler interface
+	type seriesHandlerInterface interface {
+		GetSeriesByID(c *gin.Context)
+		GetSeriesByGenre(c *gin.Context)
+		GetSeriesByYear(c *gin.Context)
+		GetSeriesByActor(c *gin.Context)
+		GetSeriesByCreator(c *gin.Context)
+		GetSeriesByRating(c *gin.Context)
+		GetLatestSeriesByAdded(c *gin.Context)
+		GetPopularSeries(c *gin.Context)
+		GetTopRatedSeries(c *gin.Context)
+		SearchSeries(c *gin.Context)
+		GetSeasonsBySeriesID(c *gin.Context)
+	}
 
-	// Helper function to get the appropriate handler
+	seriesHandlerMap := map[string]seriesHandlerInterface{
+		"jellyfin": mediaHandler.JellyfinSeriesHandler(),
+		"emby":     mediaHandler.EmbySeriesHandler(),
+		"plex":     mediaHandler.PlexSeriesHandler(),
+	}
+
+	// Define music handler interface
+	type musicHandlerInterface interface {
+		GetTrackByID(c *gin.Context)
+		GetAlbumByID(c *gin.Context)
+		GetArtistByID(c *gin.Context)
+		GetTracksByAlbum(c *gin.Context)
+		GetAlbumsByArtist(c *gin.Context)
+		GetArtistsByGenre(c *gin.Context)
+		GetAlbumsByGenre(c *gin.Context)
+		GetTracksByGenre(c *gin.Context)
+		GetAlbumsByYear(c *gin.Context)
+		GetLatestAlbumsByAdded(c *gin.Context)
+		GetPopularAlbums(c *gin.Context)
+		GetPopularArtists(c *gin.Context)
+		SearchMusic(c *gin.Context)
+	}
+
+	musicHandlerMap := map[string]musicHandlerInterface{
+		"jellyfin":  mediaHandler.JellyfinMusicHandler(),
+		"emby":      mediaHandler.EmbyMusicHandler(),
+		"plex":      mediaHandler.PlexMusicHandler(),
+		"subsonic":  mediaHandler.SubsonicMusicHandler(),
+	}
+
+	// Helper function to get the appropriate movie handler
 	getMovieHandler := func(c *gin.Context) movieHandlerInterface {
 		clientType := c.Param("clientType")
 		handler, exists := movieHandlerMap[clientType]
 		if !exists {
-			err := fmt.Errorf("unsupported movie type: %s", clientType)
-			responses.RespondBadRequest(c, err, "Unsupported movie type")
+			err := fmt.Errorf("unsupported client type: %s", clientType)
+			responses.RespondBadRequest(c, err, "Unsupported client type")
+			return nil
+		}
+		return handler
+	}
+	
+	// Helper function to get the appropriate series handler
+	getSeriesHandler := func(c *gin.Context) seriesHandlerInterface {
+		clientType := c.Param("clientType")
+		handler, exists := seriesHandlerMap[clientType]
+		if !exists {
+			err := fmt.Errorf("unsupported client type: %s", clientType)
+			responses.RespondBadRequest(c, err, "Unsupported client type")
+			return nil
+		}
+		return handler
+	}
+	
+	// Helper function to get the appropriate music handler
+	getMusicHandler := func(c *gin.Context) musicHandlerInterface {
+		clientType := c.Param("clientType")
+		handler, exists := musicHandlerMap[clientType]
+		if !exists {
+			err := fmt.Errorf("unsupported client type: %s", clientType)
+			responses.RespondBadRequest(c, err, "Unsupported client type")
 			return nil
 		}
 		return handler
@@ -120,65 +183,167 @@ func RegisterMediaClientRoutes(rg *gin.RouterGroup, deps *app.AppDependencies) {
 		})
 	}
 
-	// series := client.Group("/series")
-	// {
-	// series.GET("/:id", func(c *gin.Context) {
-	// 	if handler := getSeriesHandler(c); handler != nil {
-	// 		handler.GetSeriesByID(c)
-	// 	}
-	// })
-	//
-	// series.GET("/genre/:genre", func(c *gin.Context) {
-	// 	if handler := getSeriesHandler(c); handler != nil {
-	// 		handler.GetSeriesByGenre(c)
-	// 	}
-	// })
-	//
-	// series.GET("/year/:year", func(c *gin.Context) {
-	// 	if handler := getSeriesHandler(c); handler != nil {
-	// 		handler.GetSeriesByYear(c)
-	// 	}
-	// })
-	//
-	// series.GET("/actor/:actor", func(c *gin.Context) {
-	// 	if handler := getSeriesHandler(c); handler != nil {
-	// 		handler.GetSeriesByActor(c)
-	// 	}
-	// })
-	//
-	// series.GET("/director/:director", func(c *gin.Context) {
-	// 	if handler := getSeriesHandler(c); handler != nil {
-	// 		handler.GetSeriesByDirector(c)
-	// 	}
-	// })
-	//
-	// series.GET("/rating", func(c *gin.Context) {
-	// 	if handler := getSeriesHandler(c); handler != nil {
-	// 		handler.GetSeriesByRating(c)
-	// 	}
-	// })
-	// series.GET("/latest/:count", func(c *gin.Context) {
-	// 	if handler := getSeriesHandler(c); handler != nil {
-	// 		handler.GetLatestSeriesByAdded(c)
-	// 	}
-	// })
-	//
-	// series.GET("/popular/:count", func(c *gin.Context) {
-	// 	if handler := getSeriesHandler(c); handler != nil {
-	// 		handler.GetPopularSeries(c)
-	// 	}
-	// })
-	//
-	// series.GET("/top-rated/:count", func(c *gin.Context) {
-	// 	if handler := getSeriesHandler(c); handler != nil {
-	// 		handler.GetTopRatedSeries(c)
-	// 	}
-	// })
-	//
-	// series.GET("/search", func(c *gin.Context) {
-	// 	if handler := getSeriesHandler(c); handler != nil {
-	// 		handler.SearchSeries(c)
-	// 	}
-	// })
-	// }
+	series := client.Group("/series")
+	{
+		series.GET("/:seriesID", func(c *gin.Context) {
+			if handler := getSeriesHandler(c); handler != nil {
+				handler.GetSeriesByID(c)
+			}
+		})
+
+		series.GET("/:seriesID/seasons", func(c *gin.Context) {
+			if handler := getSeriesHandler(c); handler != nil {
+				handler.GetSeasonsBySeriesID(c)
+			}
+		})
+
+		series.GET("/genre/:genre", func(c *gin.Context) {
+			if handler := getSeriesHandler(c); handler != nil {
+				handler.GetSeriesByGenre(c)
+			}
+		})
+
+		series.GET("/year/:year", func(c *gin.Context) {
+			if handler := getSeriesHandler(c); handler != nil {
+				handler.GetSeriesByYear(c)
+			}
+		})
+
+		series.GET("/actor/:actor", func(c *gin.Context) {
+			if handler := getSeriesHandler(c); handler != nil {
+				handler.GetSeriesByActor(c)
+			}
+		})
+
+		series.GET("/creator/:creator", func(c *gin.Context) {
+			if handler := getSeriesHandler(c); handler != nil {
+				handler.GetSeriesByCreator(c)
+			}
+		})
+
+		series.GET("/rating", func(c *gin.Context) {
+			if handler := getSeriesHandler(c); handler != nil {
+				handler.GetSeriesByRating(c)
+			}
+		})
+
+		series.GET("/latest/:count", func(c *gin.Context) {
+			if handler := getSeriesHandler(c); handler != nil {
+				handler.GetLatestSeriesByAdded(c)
+			}
+		})
+
+		series.GET("/popular/:count", func(c *gin.Context) {
+			if handler := getSeriesHandler(c); handler != nil {
+				handler.GetPopularSeries(c)
+			}
+		})
+
+		series.GET("/top-rated/:count", func(c *gin.Context) {
+			if handler := getSeriesHandler(c); handler != nil {
+				handler.GetTopRatedSeries(c)
+			}
+		})
+
+		series.GET("/search", func(c *gin.Context) {
+			if handler := getSeriesHandler(c); handler != nil {
+				handler.SearchSeries(c)
+			}
+		})
+	}
+
+	// Music routes
+	music := client.Group("/music")
+	{
+		// Track routes
+		tracks := music.Group("/tracks")
+		{
+			tracks.GET("/:trackID", func(c *gin.Context) {
+				if handler := getMusicHandler(c); handler != nil {
+					handler.GetTrackByID(c)
+				}
+			})
+
+			tracks.GET("/genre/:genre", func(c *gin.Context) {
+				if handler := getMusicHandler(c); handler != nil {
+					handler.GetTracksByGenre(c)
+				}
+			})
+		}
+
+		// Album routes
+		albums := music.Group("/albums")
+		{
+			albums.GET("/:albumID", func(c *gin.Context) {
+				if handler := getMusicHandler(c); handler != nil {
+					handler.GetAlbumByID(c)
+				}
+			})
+
+			albums.GET("/:albumID/tracks", func(c *gin.Context) {
+				if handler := getMusicHandler(c); handler != nil {
+					handler.GetTracksByAlbum(c)
+				}
+			})
+
+			albums.GET("/genre/:genre", func(c *gin.Context) {
+				if handler := getMusicHandler(c); handler != nil {
+					handler.GetAlbumsByGenre(c)
+				}
+			})
+
+			albums.GET("/year/:year", func(c *gin.Context) {
+				if handler := getMusicHandler(c); handler != nil {
+					handler.GetAlbumsByYear(c)
+				}
+			})
+
+			albums.GET("/latest/:count", func(c *gin.Context) {
+				if handler := getMusicHandler(c); handler != nil {
+					handler.GetLatestAlbumsByAdded(c)
+				}
+			})
+
+			albums.GET("/popular/:count", func(c *gin.Context) {
+				if handler := getMusicHandler(c); handler != nil {
+					handler.GetPopularAlbums(c)
+				}
+			})
+		}
+
+		// Artist routes
+		artists := music.Group("/artists")
+		{
+			artists.GET("/:artistID", func(c *gin.Context) {
+				if handler := getMusicHandler(c); handler != nil {
+					handler.GetArtistByID(c)
+				}
+			})
+
+			artists.GET("/:artistID/albums", func(c *gin.Context) {
+				if handler := getMusicHandler(c); handler != nil {
+					handler.GetAlbumsByArtist(c)
+				}
+			})
+
+			artists.GET("/genre/:genre", func(c *gin.Context) {
+				if handler := getMusicHandler(c); handler != nil {
+					handler.GetArtistsByGenre(c)
+				}
+			})
+
+			artists.GET("/popular/:count", func(c *gin.Context) {
+				if handler := getMusicHandler(c); handler != nil {
+					handler.GetPopularArtists(c)
+				}
+			})
+		}
+
+		// General music search
+		music.GET("/search", func(c *gin.Context) {
+			if handler := getMusicHandler(c); handler != nil {
+				handler.SearchMusic(c)
+			}
+		})
+	}
 }

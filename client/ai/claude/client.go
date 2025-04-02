@@ -7,6 +7,7 @@ import (
 
 	"github.com/teilomillet/gollm"
 	"suasor/client"
+	"suasor/client/ai"
 	aitypes "suasor/client/ai/types"
 	"suasor/client/types"
 	"suasor/utils"
@@ -21,7 +22,7 @@ type ClaudeClient struct {
 }
 
 // NewClaudeClient creates a new Claude client instance using gollm
-func NewClaudeClient(ctx context.Context, clientID uint64, cfg types.ClaudeConfig) (client.Client, error) {
+func NewClaudeClient(ctx context.Context, clientID uint64, cfg types.ClaudeConfig) (ai.AIClient, error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("clientID", clientID).
@@ -110,25 +111,69 @@ func (c *ClaudeClient) GenerateStructured(ctx context.Context, promptText string
 	log := utils.LoggerFromContext(ctx)
 
 	// Add instructions for structured output
-	structuredPrompt := promptText + "\n\nRespond only with valid JSON matching the required schema."
+	structuredPrompt := promptText + "\n\nRespond ONLY with valid JSON matching the required schema, with no additional text before or after."
 
-	prompt := gollm.NewPrompt(structuredPrompt,
-		gollm.WithOutput("Respond with valid JSON that can be parsed into the required structure."))
+	// Set specific options for JSON generation
+	jsonOptions := &aitypes.GenerationOptions{
+		Temperature: 0.2, // Lower temperature for more predictable output
+		MaxTokens:   500,
+	}
+	if options != nil {
+		if options.MaxTokens > 0 {
+			jsonOptions.MaxTokens = options.MaxTokens
+		}
+		if options.Temperature > 0 {
+			jsonOptions.Temperature = options.Temperature
+		}
+		jsonOptions.SystemInstructions = options.SystemInstructions
+	}
 
-	// Generate with JSON validation
-	response, err := c.llm.Generate(ctx, prompt, gollm.WithJSONSchemaValidation())
+	// Add system instructions specifically for JSON if not provided
+	if jsonOptions.SystemInstructions == "" {
+		jsonOptions.SystemInstructions = "You are a helpful assistant that responds only with valid JSON. Do not include any explanations, markdown formatting, or text outside of the JSON structure."
+	}
+
+	// Generate the JSON response
+	response, err := c.GenerateText(ctx, structuredPrompt, jsonOptions)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to generate structured output with Claude")
 		return fmt.Errorf("claude structured generation failed: %w", err)
 	}
 
+	// Clean the response to ensure it only contains JSON
+	response = cleanJSONResponse(response)
+
 	// Parse the JSON response into the provided schema
 	if err := json.Unmarshal([]byte(response), outputSchema); err != nil {
-		log.Error().Err(err).Msg("Failed to parse Claude response as JSON")
+		log.Error().Err(err).Str("response", response).Msg("Failed to parse Claude response as JSON")
 		return fmt.Errorf("failed to parse Claude JSON response: %w", err)
 	}
 
 	return nil
+}
+
+// cleanJSONResponse removes any text before the first { or [ and after the last } or ]
+func cleanJSONResponse(input string) string {
+	startIdx := 0
+	for i, char := range input {
+		if char == '{' || char == '[' {
+			startIdx = i
+			break
+		}
+	}
+
+	endIdx := len(input)
+	for i := len(input) - 1; i >= 0; i-- {
+		if input[i] == '}' || input[i] == ']' {
+			endIdx = i + 1
+			break
+		}
+	}
+
+	if startIdx < endIdx {
+		return input[startIdx:endIdx]
+	}
+	return input
 }
 
 // StartConversation begins a new conversation with Claude
@@ -136,12 +181,9 @@ func (c *ClaudeClient) StartConversation(ctx context.Context, systemInstructions
 	// Generate a unique conversation ID
 	c.memoryID = fmt.Sprintf("conv-%d-%s", c.ClientID, utils.GenerateRandomID(8))
 
-	// Enable memory context for this conversation
-	c.llm.SetOption("memory_id", c.memoryID)
-
 	// Set system instructions if provided
 	if systemInstructions != "" {
-		c.llm.SetOption("system_instructions", systemInstructions)
+		c.llm.SetOption("system", systemInstructions)
 	}
 
 	return c.memoryID, nil
@@ -151,12 +193,13 @@ func (c *ClaudeClient) StartConversation(ctx context.Context, systemInstructions
 func (c *ClaudeClient) SendMessage(ctx context.Context, conversationID string, message string) (string, error) {
 	log := utils.LoggerFromContext(ctx)
 
-	// Verify this is the active conversation
+	// Store conversation ID for future reference
 	if c.memoryID != conversationID {
-		c.llm.SetOption("memory_id", conversationID)
 		c.memoryID = conversationID
 	}
 
+	// In this implementation we don't use a stateful conversation API
+	// Instead we rely on the model's ability to follow the conversation
 	prompt := gollm.NewPrompt(message)
 
 	response, err := c.llm.Generate(ctx, prompt)
@@ -189,4 +232,3 @@ func (c *ClaudeClient) GetCapabilities() *aitypes.AICapabilities {
 		DefaultMaxTokens:         c.config.MaxTokens,
 	}
 }
-

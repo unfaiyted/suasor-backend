@@ -8,13 +8,15 @@ import (
 	"suasor/client/media"
 	"suasor/client/media/providers"
 	mediatypes "suasor/client/media/types"
-	"suasor/client/types"
+	clienttypes "suasor/client/types"
 	"suasor/repository"
 	"suasor/types/models"
 )
 
 // MediaClientSeriesService defines operations for interacting with TV show clients
-type MediaClientSeriesService interface {
+type MediaClientSeriesService[T interface {
+	clienttypes.MediaClientConfig
+}] interface {
 	GetSeriesByID(ctx context.Context, userID uint64, clientID uint64, seriesID string) (*models.MediaItem[mediatypes.Series], error)
 	GetSeriesByName(ctx context.Context, userID uint64, name string) ([]models.MediaItem[mediatypes.Series], error)
 	GetSeasonsBySeriesID(ctx context.Context, userID uint64, clientID uint64, seriesID string) ([]models.MediaItem[mediatypes.Season], error)
@@ -29,26 +31,30 @@ type MediaClientSeriesService interface {
 	SearchSeries(ctx context.Context, userID uint64, query string) ([]models.MediaItem[mediatypes.Series], error)
 }
 
-type mediaSeriesService struct {
-	clientRepo    repository.ClientRepository[types.MediaClientConfig]
-	clientFactory client.ClientFactoryService
+type mediaSeriesService[T interface {
+	clienttypes.MediaClientConfig
+}] struct {
+	clientRepo    repository.ClientRepository[T]
+	clientFactory *client.ClientFactoryService
 }
 
 // NewMediaClientSeriesService creates a new media TV show service
-func NewMediaClientSeriesService(
-	clientRepo repository.ClientRepository[types.MediaClientConfig],
-	clientFactory client.ClientFactoryService,
-) MediaClientSeriesService {
-	return &mediaSeriesService{
+func NewMediaClientSeriesService[T interface {
+	clienttypes.MediaClientConfig
+}](
+	clientRepo repository.ClientRepository[T],
+	clientFactory *client.ClientFactoryService,
+) MediaClientSeriesService[T] {
+	return &mediaSeriesService[T]{
 		clientRepo:    clientRepo,
 		clientFactory: clientFactory,
 	}
 }
 
 // getSeriesClients gets all TV show clients for a user
-func (s *mediaSeriesService) getSeriesClients(ctx context.Context, userID uint64) ([]media.MediaClient, error) {
+func (s *mediaSeriesService[T]) getSeriesClients(ctx context.Context, userID uint64) ([]media.MediaClient, error) {
 	// Get all media clients for the user
-	clients, err := s.clientRepo.GetByCategory(ctx, types.ClientCategoryMedia, userID)
+	clients, err := s.clientRepo.GetByCategory(ctx, clienttypes.ClientCategoryMedia, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +63,8 @@ func (s *mediaSeriesService) getSeriesClients(ctx context.Context, userID uint64
 
 	// Filter and instantiate clients that support TV shows
 	for _, clientConfig := range clients {
-		if clientConfig.Config.Data.SupportsSeries() {
+		// Check if the config supports series
+		if config, ok := any(clientConfig.Config.Data).(clienttypes.MediaClientConfig); ok && config.SupportsSeries() {
 			clientId := clientConfig.GetID()
 			client, err := s.clientFactory.GetClient(ctx, clientId, clientConfig.Config.Data)
 			if err != nil {
@@ -65,7 +72,9 @@ func (s *mediaSeriesService) getSeriesClients(ctx context.Context, userID uint64
 				continue
 			}
 
-			showClients = append(showClients, client.(media.MediaClient))
+			if mediaClient, ok := client.(media.MediaClient); ok {
+				showClients = append(showClients, mediaClient)
+			}
 		}
 	}
 
@@ -73,13 +82,15 @@ func (s *mediaSeriesService) getSeriesClients(ctx context.Context, userID uint64
 }
 
 // getSpecificSeriesClient gets a specific TV show client
-func (s *mediaSeriesService) getSpecificSeriesClient(ctx context.Context, userID, clientID uint64) (media.MediaClient, error) {
+func (s *mediaSeriesService[T]) getSpecificSeriesClient(ctx context.Context, userID, clientID uint64) (media.MediaClient, error) {
 	clientConfig, err := s.clientRepo.GetByID(ctx, clientID, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	if !clientConfig.Config.Data.SupportsSeries() {
+	// Check if the config supports series
+	mediaConfig, ok := any(clientConfig.Config.Data).(clienttypes.MediaClientConfig)
+	if !ok || !mediaConfig.SupportsSeries() {
 		return nil, ErrUnsupportedFeature
 	}
 
@@ -95,7 +106,7 @@ func (s *mediaSeriesService) getSpecificSeriesClient(ctx context.Context, userID
 	return showClient, nil
 }
 
-func (s *mediaSeriesService) GetSeriesByID(ctx context.Context, userID uint64, clientID uint64, seriesID string) (*models.MediaItem[mediatypes.Series], error) {
+func (s *mediaSeriesService[T]) GetSeriesByID(ctx context.Context, userID uint64, clientID uint64, seriesID string) (*models.MediaItem[mediatypes.Series], error) {
 	client, err := s.getSpecificSeriesClient(ctx, userID, clientID)
 	if err != nil {
 		return nil, err
@@ -113,7 +124,7 @@ func (s *mediaSeriesService) GetSeriesByID(ctx context.Context, userID uint64, c
 	return &series, nil
 }
 
-func (s *mediaSeriesService) GetSeriesByName(ctx context.Context, userID uint64, name string) ([]models.MediaItem[mediatypes.Series], error) {
+func (s *mediaSeriesService[T]) GetSeriesByName(ctx context.Context, userID uint64, name string) ([]models.MediaItem[mediatypes.Series], error) {
 	clients, err := s.getSeriesClients(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -144,7 +155,7 @@ func (s *mediaSeriesService) GetSeriesByName(ctx context.Context, userID uint64,
 	return allSeries, nil
 }
 
-func (s *mediaSeriesService) GetSeasonsBySeriesID(ctx context.Context, userID uint64, clientID uint64, seriesID string) ([]models.MediaItem[mediatypes.Season], error) {
+func (s *mediaSeriesService[T]) GetSeasonsBySeriesID(ctx context.Context, userID uint64, clientID uint64, seriesID string) ([]models.MediaItem[mediatypes.Season], error) {
 	client, err := s.getSpecificSeriesClient(ctx, userID, clientID)
 	if err != nil {
 		return nil, err
@@ -163,7 +174,7 @@ func (s *mediaSeriesService) GetSeasonsBySeriesID(ctx context.Context, userID ui
 	return seasons, nil
 }
 
-func (s *mediaSeriesService) GetSeriesByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[mediatypes.Series], error) {
+func (s *mediaSeriesService[T]) GetSeriesByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[mediatypes.Series], error) {
 	clients, err := s.getSeriesClients(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -194,7 +205,7 @@ func (s *mediaSeriesService) GetSeriesByGenre(ctx context.Context, userID uint64
 	return allSeries, nil
 }
 
-func (s *mediaSeriesService) GetSeriesByYear(ctx context.Context, userID uint64, year int) ([]models.MediaItem[mediatypes.Series], error) {
+func (s *mediaSeriesService[T]) GetSeriesByYear(ctx context.Context, userID uint64, year int) ([]models.MediaItem[mediatypes.Series], error) {
 	clients, err := s.getSeriesClients(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -225,7 +236,7 @@ func (s *mediaSeriesService) GetSeriesByYear(ctx context.Context, userID uint64,
 	return allSeries, nil
 }
 
-func (s *mediaSeriesService) GetSeriesByActor(ctx context.Context, userID uint64, actor string) ([]models.MediaItem[mediatypes.Series], error) {
+func (s *mediaSeriesService[T]) GetSeriesByActor(ctx context.Context, userID uint64, actor string) ([]models.MediaItem[mediatypes.Series], error) {
 	clients, err := s.getSeriesClients(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -256,7 +267,7 @@ func (s *mediaSeriesService) GetSeriesByActor(ctx context.Context, userID uint64
 	return allSeries, nil
 }
 
-func (s *mediaSeriesService) GetSeriesByCreator(ctx context.Context, userID uint64, creator string) ([]models.MediaItem[mediatypes.Series], error) {
+func (s *mediaSeriesService[T]) GetSeriesByCreator(ctx context.Context, userID uint64, creator string) ([]models.MediaItem[mediatypes.Series], error) {
 	clients, err := s.getSeriesClients(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -287,7 +298,7 @@ func (s *mediaSeriesService) GetSeriesByCreator(ctx context.Context, userID uint
 	return allSeries, nil
 }
 
-func (s *mediaSeriesService) GetSeriesByRating(ctx context.Context, userID uint64, minRating, maxRating float64) ([]models.MediaItem[mediatypes.Series], error) {
+func (s *mediaSeriesService[T]) GetSeriesByRating(ctx context.Context, userID uint64, minRating, maxRating float64) ([]models.MediaItem[mediatypes.Series], error) {
 	clients, err := s.getSeriesClients(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -319,7 +330,7 @@ func (s *mediaSeriesService) GetSeriesByRating(ctx context.Context, userID uint6
 	return allSeries, nil
 }
 
-func (s *mediaSeriesService) GetLatestSeriesByAdded(ctx context.Context, userID uint64, count int) ([]models.MediaItem[mediatypes.Series], error) {
+func (s *mediaSeriesService[T]) GetLatestSeriesByAdded(ctx context.Context, userID uint64, count int) ([]models.MediaItem[mediatypes.Series], error) {
 	clients, err := s.getSeriesClients(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -360,7 +371,7 @@ func (s *mediaSeriesService) GetLatestSeriesByAdded(ctx context.Context, userID 
 	return allSeries, nil
 }
 
-func (s *mediaSeriesService) GetPopularSeries(ctx context.Context, userID uint64, count int) ([]models.MediaItem[mediatypes.Series], error) {
+func (s *mediaSeriesService[T]) GetPopularSeries(ctx context.Context, userID uint64, count int) ([]models.MediaItem[mediatypes.Series], error) {
 	clients, err := s.getSeriesClients(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -396,7 +407,7 @@ func (s *mediaSeriesService) GetPopularSeries(ctx context.Context, userID uint64
 	return allSeries, nil
 }
 
-func (s *mediaSeriesService) GetTopRatedSeries(ctx context.Context, userID uint64, count int) ([]models.MediaItem[mediatypes.Series], error) {
+func (s *mediaSeriesService[T]) GetTopRatedSeries(ctx context.Context, userID uint64, count int) ([]models.MediaItem[mediatypes.Series], error) {
 	clients, err := s.getSeriesClients(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -432,7 +443,7 @@ func (s *mediaSeriesService) GetTopRatedSeries(ctx context.Context, userID uint6
 	return allSeries, nil
 }
 
-func (s *mediaSeriesService) SearchSeries(ctx context.Context, userID uint64, query string) ([]models.MediaItem[mediatypes.Series], error) {
+func (s *mediaSeriesService[T]) SearchSeries(ctx context.Context, userID uint64, query string) ([]models.MediaItem[mediatypes.Series], error) {
 	clients, err := s.getSeriesClients(ctx, userID)
 	if err != nil {
 		return nil, err

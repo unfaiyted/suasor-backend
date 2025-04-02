@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"suasor/client/media"
 	"suasor/client/media/providers"
 	"suasor/client/media/types"
 	client "suasor/client/types"
@@ -58,8 +57,10 @@ func TestEmbyClientIntegration(t *testing.T) {
 
 	// Create client configuration
 	config := client.EmbyConfig{
-		BaseURL:  baseURL,
-		APIKey:   apiKey,
+		BaseMediaClientConfig: client.BaseMediaClientConfig{
+			BaseURL: baseURL,
+			APIKey: apiKey,
+		},
 		Username: user,
 	}
 
@@ -74,7 +75,7 @@ func TestEmbyClientIntegration(t *testing.T) {
 	defer cancel()
 
 	// Run all test cases
-	if movieProvider, ok := media.AsMovieProvider(client); ok {
+	if movieProvider, ok := client.(providers.MovieProvider); ok {
 		t.Run("TestMovieProvider", func(t *testing.T) {
 			testGetMovies(t, ctx, movieProvider)
 		})
@@ -82,7 +83,7 @@ func TestEmbyClientIntegration(t *testing.T) {
 		t.Log("Client does not support MovieProvider interface")
 	}
 
-	if tvProvider, ok := media.AsSeriesProvider(client); ok {
+	if tvProvider, ok := client.(providers.SeriesProvider); ok {
 		t.Run("TestSeriesProvider", func(t *testing.T) {
 			testGetSeriesEpisodes(t, ctx, tvProvider)
 			testGetSeries(t, ctx, tvProvider)
@@ -92,7 +93,7 @@ func TestEmbyClientIntegration(t *testing.T) {
 		t.Log("Client does not support SeriesProvider interface")
 	}
 
-	if musicProvider, ok := media.AsMusicProvider(client); ok {
+	if musicProvider, ok := client.(providers.MusicProvider); ok {
 		t.Run("TestMusicProvider", func(t *testing.T) {
 			testGetMusicContent(t, ctx, musicProvider)
 		})
@@ -100,7 +101,7 @@ func TestEmbyClientIntegration(t *testing.T) {
 		t.Log("Client does not support MusicProvider interface")
 	}
 
-	if playlistProvider, ok := media.AsPlaylistProvider(client); ok {
+	if playlistProvider, ok := client.(providers.PlaylistProvider); ok {
 		t.Run("TestPlaylistProvider", func(t *testing.T) {
 			testGetPlaylists(t, ctx, playlistProvider)
 		})
@@ -108,7 +109,7 @@ func TestEmbyClientIntegration(t *testing.T) {
 		t.Log("Client does not support PlaylistProvider interface")
 	}
 
-	if collectionProvider, ok := media.AsCollectionProvider(client); ok {
+	if collectionProvider, ok := client.(providers.CollectionProvider); ok {
 		t.Run("TestCollectionProvider", func(t *testing.T) {
 			testGetCollections(t, ctx, collectionProvider)
 		})
@@ -116,7 +117,7 @@ func TestEmbyClientIntegration(t *testing.T) {
 		t.Log("Client does not support CollectionProvider interface")
 	}
 
-	if watchHistoryProvider, ok := media.AsHistoryProvider(client); ok {
+	if watchHistoryProvider, ok := client.(providers.HistoryProvider); ok {
 		t.Run("TestWatchHistoryProvider", func(t *testing.T) {
 			testGetWatchHistory(t, ctx, watchHistoryProvider)
 		})

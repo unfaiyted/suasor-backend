@@ -1,0 +1,75 @@
+{
+  "recommendations": [
+    {
+      "title": "The Fabelmans",
+      "year": 2022,
+      "reasons": [
+        "Coming-of-age drama with a focus on family dynamics and personal growth",
+        "Explores the power of cinema and storytelling"
+      ],
+      "genreMatch": [
+        "Drama"
+      ],
+      "directorRef": "Directed by Steven Spielberg, known for his emotionally resonant and visually striking films"
+    },
+    {
+      "title": "The Banshees of Inisherin",
+      "year": 2022,
+      "reasons": [
+        "Blend of dark comedy and drama",
+        "Showcases complex character relationships and emotional depth"
+      ],
+      "genreMatch": [
+        "Comedy",
+        "Drama"
+      ]
+    },
+    {
+      "title": "Knives Out",
+      "year": 2019,
+      "reasons": [
+        "Engaging mystery with elements of comedy and drama",
+        "Ensemble cast with strong performances"
+      ],
+      "genreMatch": [
+        "Comedy",
+        "Drama",
+        "Thriller"
+      ],
+      "directorRef": "Directed by Rian Johnson, known for subverting genre expectations"
+    },
+    {
+      "title": "The Perks of Being a Wallflower",
+      "year": 2012,
+      "reasons": [
+        "Coming-of-age drama exploring themes of friendship, love, and self-discovery",
+        "Based on a beloved novel"
+      ],
+      "genreMatch": [
+        "Drama"
+      ],
+      "actorRef": "Stars Emma Watson, who voices a character in the user's favorite film 'The Tale of Despereaux'"
+    },
+    {
+      "title": "Ratatouille",
+      "year": 2007,
+      "reasons": [
+        "Heartwarming and imaginative animated film",
+        "Celebrates the joy of pursuing one's passions"
+      ],
+      "genreMatch": [
+        "Animation",
+        "Comedy",
+        "Family"
+      ]
+    }
+  ],
+  "basedOn": [
+    "The Truman Show",
+    "Running with Scissors",
+    "Jojo Rabbit",
+    "The Disaster Artist",
+    "Boyhood"
+  ],
+  "generatedAt": "2025-04-01T19:39:29.247562943-05:00"
+}

@@ -146,6 +146,7 @@ func (e *EmbyClient) convertToMovie(ctx context.Context, item *embyclient.BaseIt
 	// Only set UserRating if UserData is not nil
 	if item.UserData != nil {
 		movie.Details.UserRating = float32(item.UserData.Rating)
+		movie.Details.IsFavorite = item.UserData.IsFavorite // Add favorite flag
 	} else {
 		log.Debug().
 			Str("movieID", item.Id).

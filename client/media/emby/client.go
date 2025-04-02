@@ -102,6 +102,23 @@ func (e *EmbyClient) embyConfig() *config.EmbyConfig {
 	return cfg
 }
 
+// getUserID returns the Emby user ID - either directly from config or resolved from username
+func (e *EmbyClient) getUserID() string {
+	if e.embyConfig() == nil {
+		return ""
+	}
+	
+	// Return existing user ID if available
+	if e.embyConfig().UserID != "" {
+		return e.embyConfig().UserID
+	}
+	
+	// Try to infer it from username, but this won't work in this context
+	// since we'd need to make API call which requires context
+	// log error and return empty
+	return ""
+}
+
 // resolveUserID resolves the Emby user ID from username
 func (e *EmbyClient) resolveUserID(ctx context.Context) error {
 	log := utils.LoggerFromContext(ctx)

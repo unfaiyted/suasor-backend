@@ -21,10 +21,19 @@ func (e *EmbyClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 		Str("clientType", string(e.ClientType)).
 		Msg("Retrieving movies from Emby server")
 
+	// Get user ID
+	userID := e.getUserID()
+	if userID == "" {
+		log.Error().Msg("User ID is required for Emby queries but was not provided or resolved")
+		return nil, fmt.Errorf("failed to fetch movies: missing user ID")
+	}
+
 	// Create query parameters
 	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
 		IncludeItemTypes: optional.NewString("Movie"),
 		Recursive:        optional.NewBool(true),
+		UserId:           optional.NewString(userID),
+		Fields:           optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines"),
 	}
 
 	// Apply options
@@ -82,10 +91,18 @@ func (e *EmbyClient) GetMovieByID(ctx context.Context, id string) (models.MediaI
 		Str("movieID", id).
 		Msg("Retrieving specific movie from Emby server")
 
+	// Get user ID
+	userID := e.getUserID()
+	if userID == "" {
+		log.Error().Msg("User ID is required for Emby queries but was not provided or resolved")
+		return models.MediaItem[types.Movie]{}, fmt.Errorf("failed to fetch movie: missing user ID")
+	}
+
 	// Create query parameters
 	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
 		Ids:              optional.NewString(id),
 		IncludeItemTypes: optional.NewString("Movie"),
+		UserId:           optional.NewString(userID),
 		Fields:           optional.NewString("ProductionYear,PremiereDate,ChannelMappingInfo,DateCreated,Genres,IndexOptions,HomePageUrl,Overview,ParentId,Path,ProviderIds,Studios,SortName"),
 	}
 

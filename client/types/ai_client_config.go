@@ -2,7 +2,6 @@ package types
 
 type AIClientConfig interface {
 	ClientConfig
-	isAutomationClientConfig()
 	GetClientType() AIClientType
 	GetAPIKey() string
 }

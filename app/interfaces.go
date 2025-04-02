@@ -36,6 +36,7 @@ type ClientMediaServices interface {
 	ClientMovieServies
 	ClientSeriesServices
 	ClientEpisodeServices
+	ClientMusicServices
 	ClientPlaylistServices
 }
 
@@ -51,11 +52,21 @@ type ClientMovieServies interface {
 }
 
 type ClientSeriesServices interface {
-	// TODO: implement
+	EmbySeriesService() services.MediaClientSeriesService[*types.EmbyConfig]
+	JellyfinSeriesService() services.MediaClientSeriesService[*types.JellyfinConfig]
+	PlexSeriesService() services.MediaClientSeriesService[*types.PlexConfig]
+	SubsonicSeriesService() services.MediaClientSeriesService[*types.SubsonicConfig]
 }
 
 type ClientEpisodeServices interface {
 	// TODO: implement
+}
+
+type ClientMusicServices interface {
+	EmbyMusicService() services.MediaClientMusicService[*types.EmbyConfig]
+	JellyfinMusicService() services.MediaClientMusicService[*types.JellyfinConfig]
+	PlexMusicService() services.MediaClientMusicService[*types.PlexConfig]
+	SubsonicMusicService() services.MediaClientMusicService[*types.SubsonicConfig]
 }
 
 type ClientPlaylistServices interface {
@@ -122,6 +133,7 @@ type ClientMediaHandlers interface {
 	ClientMediaMovieHandlers
 	ClientMediaSeriesHandlers
 	ClientMediaEpisodeHandlers
+	ClientMediaMusicHandlers
 }
 
 type ClientMediaMovieHandlers interface {
@@ -131,15 +143,22 @@ type ClientMediaMovieHandlers interface {
 }
 
 type ClientMediaSeriesHandlers interface {
-	// EmbySeriesHandler() *handlers.MediaClientSeriesHandler[*types.EmbyConfig]
-	// JellyfinSeriesHandler() *handlers.MediaClientSeriesHandler[*types.JellyfinConfig]
-	// PlexSeriesHandler() *handlers.MediaClientSeriesHandler[*types.PlexConfig]
+	EmbySeriesHandler() *handlers.MediaClientSeriesHandler[*types.EmbyConfig]
+	JellyfinSeriesHandler() *handlers.MediaClientSeriesHandler[*types.JellyfinConfig]
+	PlexSeriesHandler() *handlers.MediaClientSeriesHandler[*types.PlexConfig]
 }
 
 type ClientMediaEpisodeHandlers interface {
 	// EmbyEpisodeHandler() *handlers.MediaClientEpisodeHandler[*types.EmbyConfig]
 	// JellyfinEpisodeHandler() *handlers.MediaClientEpisodeHandler[*types.JellyfinConfig]
 	// PlexEpisodeHandler() *handlers.MediaClientEpisodeHandler[*types.PlexConfig]
+}
+
+type ClientMediaMusicHandlers interface {
+	EmbyMusicHandler() *handlers.MediaClientMusicHandler[*types.EmbyConfig]
+	JellyfinMusicHandler() *handlers.MediaClientMusicHandler[*types.JellyfinConfig]
+	PlexMusicHandler() *handlers.MediaClientMusicHandler[*types.PlexConfig]
+	SubsonicMusicHandler() *handlers.MediaClientMusicHandler[*types.SubsonicConfig]
 }
 
 type UserHandlers interface {

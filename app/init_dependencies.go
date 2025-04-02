@@ -74,8 +74,20 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 			embyMovieService:     services.NewMediaClientMovieService[*types.EmbyConfig](deps.ClientRepositories.EmbyRepo(), deps.ClientFactoryService),
 			jellyfinMovieService: services.NewMediaClientMovieService[*types.JellyfinConfig](deps.ClientRepositories.JellyfinRepo(), deps.ClientFactoryService),
 			plexMovieService:     services.NewMediaClientMovieService[*types.PlexConfig](deps.ClientRepositories.PlexRepo(), deps.ClientFactoryService),
+			subsonicMovieService: services.NewMediaClientMovieService[*types.SubsonicConfig](deps.ClientRepositories.SubsonicRepo(), deps.ClientFactoryService),
 		},
-		seriesServices:   clientSeriesServicesImpl{},
+		seriesServices: clientSeriesServicesImpl{
+			embySeriesService:     services.NewMediaClientSeriesService[*types.EmbyConfig](deps.ClientRepositories.EmbyRepo(), deps.ClientFactoryService),
+			jellyfinSeriesService: services.NewMediaClientSeriesService[*types.JellyfinConfig](deps.ClientRepositories.JellyfinRepo(), deps.ClientFactoryService),
+			plexSeriesService:     services.NewMediaClientSeriesService[*types.PlexConfig](deps.ClientRepositories.PlexRepo(), deps.ClientFactoryService),
+			subsonicSeriesService: services.NewMediaClientSeriesService[*types.SubsonicConfig](deps.ClientRepositories.SubsonicRepo(), deps.ClientFactoryService),
+		},
+		musicServices: clientMusicServicesImpl{
+			embyMusicService:     services.NewMediaClientMusicService[*types.EmbyConfig](deps.ClientRepositories.EmbyRepo(), deps.ClientFactoryService),
+			jellyfinMusicService: services.NewMediaClientMusicService[*types.JellyfinConfig](deps.ClientRepositories.JellyfinRepo(), deps.ClientFactoryService),
+			plexMusicService:     services.NewMediaClientMusicService[*types.PlexConfig](deps.ClientRepositories.PlexRepo(), deps.ClientFactoryService),
+			subsonicMusicService: services.NewMediaClientMusicService[*types.SubsonicConfig](deps.ClientRepositories.SubsonicRepo(), deps.ClientFactoryService),
+		},
 		episodeServices:  clientEpisodeServicesImpl{},
 		playlistServices: clientPlaylistServicesImpl{},
 	}
@@ -151,9 +163,23 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		plexMovieHandler:     handlers.NewMediaClientMovieHandler[*types.PlexConfig](deps.ClientMediaServices.PlexMovieService()),
 	}
 
+	clientSeriesHandlers := &clientMediaSeriesHandlersImpl{
+		embySeriesHandler:     handlers.NewMediaClientSeriesHandler[*types.EmbyConfig](deps.ClientMediaServices.EmbySeriesService()),
+		jellyfinSeriesHandler: handlers.NewMediaClientSeriesHandler[*types.JellyfinConfig](deps.ClientMediaServices.JellyfinSeriesService()),
+		plexSeriesHandler:     handlers.NewMediaClientSeriesHandler[*types.PlexConfig](deps.ClientMediaServices.PlexSeriesService()),
+	}
+
+	clientMusicHandlers := &clientMediaMusicHandlersImpl{
+		embyMusicHandler:     handlers.NewMediaClientMusicHandler[*types.EmbyConfig](deps.ClientMediaServices.EmbyMusicService()),
+		jellyfinMusicHandler: handlers.NewMediaClientMusicHandler[*types.JellyfinConfig](deps.ClientMediaServices.JellyfinMusicService()),
+		plexMusicHandler:     handlers.NewMediaClientMusicHandler[*types.PlexConfig](deps.ClientMediaServices.PlexMusicService()),
+		subsonicMusicHandler: handlers.NewMediaClientMusicHandler[*types.SubsonicConfig](deps.ClientMediaServices.SubsonicMusicService()),
+	}
+
 	deps.ClientMediaHandlers = &clientMediaHandlersImpl{
-		movieHandlers: clientMovieHandlers,
-		// TODO: implement other handlers
+		movieHandlers:  clientMovieHandlers,
+		seriesHandlers: clientSeriesHandlers,
+		musicHandlers:  clientMusicHandlers,
 	}
 
 	return deps

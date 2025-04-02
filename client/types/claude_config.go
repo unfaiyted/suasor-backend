@@ -22,7 +22,7 @@ func (ClaudeConfig) GetClientType() AIClientType {
 	return AIClientTypeClaude
 }
 func (ClaudeConfig) GetCategory() ClientCategory {
-	return ClientCategoryMedia
+	return ClientCategoryAI
 }
 
 func (c *ClaudeConfig) UnmarshalJSON(data []byte) error {

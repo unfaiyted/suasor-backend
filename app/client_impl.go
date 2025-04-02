@@ -54,8 +54,29 @@ func (s *clientServicesImpl) LidarrService() services.ClientService[*types.Lidar
 	return s.lidarrService
 }
 
-// Concrete implementation of ClientSeriesServices (placeholder)
-type clientSeriesServicesImpl struct{}
+// Concrete implementation of ClientSeriesServices
+type clientSeriesServicesImpl struct{
+	embySeriesService     services.MediaClientSeriesService[*types.EmbyConfig]
+	jellyfinSeriesService services.MediaClientSeriesService[*types.JellyfinConfig]
+	plexSeriesService     services.MediaClientSeriesService[*types.PlexConfig]
+	subsonicSeriesService services.MediaClientSeriesService[*types.SubsonicConfig]
+}
+
+func (s *clientSeriesServicesImpl) EmbySeriesService() services.MediaClientSeriesService[*types.EmbyConfig] {
+	return s.embySeriesService
+}
+
+func (s *clientSeriesServicesImpl) JellyfinSeriesService() services.MediaClientSeriesService[*types.JellyfinConfig] {
+	return s.jellyfinSeriesService
+}
+
+func (s *clientSeriesServicesImpl) PlexSeriesService() services.MediaClientSeriesService[*types.PlexConfig] {
+	return s.plexSeriesService
+}
+
+func (s *clientSeriesServicesImpl) SubsonicSeriesService() services.MediaClientSeriesService[*types.SubsonicConfig] {
+	return s.subsonicSeriesService
+}
 
 // Concrete implementation of MediaItemServices
 type mediaItemServicesImpl struct {
@@ -192,6 +213,7 @@ type clientMediaServicesImpl struct {
 	movieServices    clientMovieServicesImpl
 	seriesServices   clientSeriesServicesImpl
 	episodeServices  clientEpisodeServicesImpl
+	musicServices    clientMusicServicesImpl
 	playlistServices clientPlaylistServicesImpl
 }
 
@@ -211,6 +233,38 @@ func (cms *clientMediaServicesImpl) SubsonicMovieService() services.MediaClientM
 	return cms.movieServices.SubsonicMovieService()
 }
 
+func (cms *clientMediaServicesImpl) EmbySeriesService() services.MediaClientSeriesService[*types.EmbyConfig] {
+	return cms.seriesServices.EmbySeriesService()
+}
+
+func (cms *clientMediaServicesImpl) JellyfinSeriesService() services.MediaClientSeriesService[*types.JellyfinConfig] {
+	return cms.seriesServices.JellyfinSeriesService()
+}
+
+func (cms *clientMediaServicesImpl) PlexSeriesService() services.MediaClientSeriesService[*types.PlexConfig] {
+	return cms.seriesServices.PlexSeriesService()
+}
+
+func (cms *clientMediaServicesImpl) SubsonicSeriesService() services.MediaClientSeriesService[*types.SubsonicConfig] {
+	return cms.seriesServices.SubsonicSeriesService()
+}
+
+func (cms *clientMediaServicesImpl) EmbyMusicService() services.MediaClientMusicService[*types.EmbyConfig] {
+	return cms.musicServices.EmbyMusicService()
+}
+
+func (cms *clientMediaServicesImpl) JellyfinMusicService() services.MediaClientMusicService[*types.JellyfinConfig] {
+	return cms.musicServices.JellyfinMusicService()
+}
+
+func (cms *clientMediaServicesImpl) PlexMusicService() services.MediaClientMusicService[*types.PlexConfig] {
+	return cms.musicServices.PlexMusicService()
+}
+
+func (cms *clientMediaServicesImpl) SubsonicMusicService() services.MediaClientMusicService[*types.SubsonicConfig] {
+	return cms.musicServices.SubsonicMusicService()
+}
+
 type clientEpisodeServicesImpl struct {
 	// embyEpisodeService     services.MediaClientEpisodeService[*types.EmbyConfig]
 	// jellyfinEpisodeService services.MediaClientEpisodeService[*types.JellyfinConfig]
@@ -220,6 +274,29 @@ type clientPlaylistServicesImpl struct {
 	// embyPlaylistService     services.MediaClientPlaylistService[*types.EmbyConfig]
 	// jellyfinPlaylistService services.MediaClientPlaylistService[*types.JellyfinConfig]
 	// plexPlaylistService     services.MediaClientPlaylistService[*types.PlexConfig]
+}
+
+type clientMusicServicesImpl struct {
+	embyMusicService     services.MediaClientMusicService[*types.EmbyConfig]
+	jellyfinMusicService services.MediaClientMusicService[*types.JellyfinConfig]
+	plexMusicService     services.MediaClientMusicService[*types.PlexConfig]
+	subsonicMusicService services.MediaClientMusicService[*types.SubsonicConfig]
+}
+
+func (s *clientMusicServicesImpl) EmbyMusicService() services.MediaClientMusicService[*types.EmbyConfig] {
+	return s.embyMusicService
+}
+
+func (s *clientMusicServicesImpl) JellyfinMusicService() services.MediaClientMusicService[*types.JellyfinConfig] {
+	return s.jellyfinMusicService
+}
+
+func (s *clientMusicServicesImpl) PlexMusicService() services.MediaClientMusicService[*types.PlexConfig] {
+	return s.plexMusicService
+}
+
+func (s *clientMusicServicesImpl) SubsonicMusicService() services.MediaClientMusicService[*types.SubsonicConfig] {
+	return s.subsonicMusicService
 }
 type clientMovieServicesImpl struct {
 	embyMovieService     services.MediaClientMovieService[*types.EmbyConfig]
@@ -248,6 +325,7 @@ type clientMediaHandlersImpl struct {
 	movieHandlers   *clientMediaMovieHandlersImpl
 	seriesHandlers  *clientMediaSeriesHandlersImpl
 	episodeHandlers *clientMediaEpisodeHandlersImpl
+	musicHandlers   *clientMediaMusicHandlersImpl
 }
 
 func (h *clientMediaHandlersImpl) MovieHandlers() *clientMediaMovieHandlersImpl {
@@ -262,6 +340,10 @@ func (h *clientMediaHandlersImpl) EpisodeHandlers() *clientMediaEpisodeHandlersI
 	return h.episodeHandlers
 }
 
+func (h *clientMediaHandlersImpl) MusicHandlers() *clientMediaMusicHandlersImpl {
+	return h.musicHandlers
+}
+
 func (h *clientMediaHandlersImpl) EmbyMovieHandler() *handlers.MediaClientMovieHandler[*types.EmbyConfig] {
 	return h.movieHandlers.embyMovieHandler
 }
@@ -274,16 +356,79 @@ func (h *clientMediaHandlersImpl) PlexMovieHandler() *handlers.MediaClientMovieH
 	return h.movieHandlers.plexMovieHandler
 }
 
+func (h *clientMediaHandlersImpl) EmbySeriesHandler() *handlers.MediaClientSeriesHandler[*types.EmbyConfig] {
+	return h.seriesHandlers.embySeriesHandler
+}
+
+func (h *clientMediaHandlersImpl) JellyfinSeriesHandler() *handlers.MediaClientSeriesHandler[*types.JellyfinConfig] {
+	return h.seriesHandlers.jellyfinSeriesHandler
+}
+
+func (h *clientMediaHandlersImpl) PlexSeriesHandler() *handlers.MediaClientSeriesHandler[*types.PlexConfig] {
+	return h.seriesHandlers.plexSeriesHandler
+}
+
+func (h *clientMediaHandlersImpl) EmbyMusicHandler() *handlers.MediaClientMusicHandler[*types.EmbyConfig] {
+	return h.musicHandlers.embyMusicHandler
+}
+
+func (h *clientMediaHandlersImpl) JellyfinMusicHandler() *handlers.MediaClientMusicHandler[*types.JellyfinConfig] {
+	return h.musicHandlers.jellyfinMusicHandler
+}
+
+func (h *clientMediaHandlersImpl) PlexMusicHandler() *handlers.MediaClientMusicHandler[*types.PlexConfig] {
+	return h.musicHandlers.plexMusicHandler
+}
+
+func (h *clientMediaHandlersImpl) SubsonicMusicHandler() *handlers.MediaClientMusicHandler[*types.SubsonicConfig] {
+	return h.musicHandlers.subsonicMusicHandler
+}
+
 type clientMediaSeriesHandlersImpl struct {
-	// embySeriesHandler     *handlers.MediaClientSeriesHandler[*types.EmbyConfig]
-	// jellyfinSeriesHandler *handlers.MediaClientSeriesHandler[*types.JellyfinConfig]
-	// plexSeriesHandler     *handlers.MediaClientSeriesHandler[*types.PlexConfig]
+	embySeriesHandler     *handlers.MediaClientSeriesHandler[*types.EmbyConfig]
+	jellyfinSeriesHandler *handlers.MediaClientSeriesHandler[*types.JellyfinConfig]
+	plexSeriesHandler     *handlers.MediaClientSeriesHandler[*types.PlexConfig]
+}
+
+func (h *clientMediaSeriesHandlersImpl) EmbySeriesHandler() *handlers.MediaClientSeriesHandler[*types.EmbyConfig] {
+	return h.embySeriesHandler
+}
+
+func (h *clientMediaSeriesHandlersImpl) JellyfinSeriesHandler() *handlers.MediaClientSeriesHandler[*types.JellyfinConfig] {
+	return h.jellyfinSeriesHandler
+}
+
+func (h *clientMediaSeriesHandlersImpl) PlexSeriesHandler() *handlers.MediaClientSeriesHandler[*types.PlexConfig] {
+	return h.plexSeriesHandler
 }
 
 type clientMediaEpisodeHandlersImpl struct {
 	// embyEpisodeHandler     *handlers.MediaClientEpisodeHandler[*types.EmbyConfig]
 	// jellyfinEpisodeHandler *handlers.MediaClientEpisodeHandler[*types.JellyfinConfig]
 	// plexEpisodeHandler     *handlers.MediaClientEpisodeHandler[*types.PlexConfig]
+}
+
+type clientMediaMusicHandlersImpl struct {
+	embyMusicHandler     *handlers.MediaClientMusicHandler[*types.EmbyConfig]
+	jellyfinMusicHandler *handlers.MediaClientMusicHandler[*types.JellyfinConfig]
+	plexMusicHandler     *handlers.MediaClientMusicHandler[*types.PlexConfig]
+	subsonicMusicHandler *handlers.MediaClientMusicHandler[*types.SubsonicConfig]
+}
+
+func (h *clientMediaMusicHandlersImpl) EmbyMusicHandler() *handlers.MediaClientMusicHandler[*types.EmbyConfig] {
+	return h.embyMusicHandler
+}
+
+func (h *clientMediaMusicHandlersImpl) JellyfinMusicHandler() *handlers.MediaClientMusicHandler[*types.JellyfinConfig] {
+	return h.jellyfinMusicHandler
+}
+
+func (h *clientMediaMusicHandlersImpl) PlexMusicHandler() *handlers.MediaClientMusicHandler[*types.PlexConfig] {
+	return h.plexMusicHandler
+}
+
+func (h *clientMediaMusicHandlersImpl) SubsonicMusicHandler() *handlers.MediaClientMusicHandler[*types.SubsonicConfig] {
+	return h.subsonicMusicHandler
 }
 
 type clientMediaMovieHandlersImpl struct {
