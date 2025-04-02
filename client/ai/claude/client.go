@@ -21,15 +21,20 @@ func init() {
 
 	fmt.Println("Registering Claude client factory...")
 	client.RegisterClientFactory(types.ClientTypeClaude,
-		func(ctx context.Context, clientID uint64, cfg types.ClientConfig) (client.Client, error) {
-			// Type assert to ClaudeConfig
-			claudeConfig, ok := cfg.(*types.ClaudeConfig)
-			if !ok {
-				return nil, fmt.Errorf("invalid config type for Claude client, expected *ClaudeConfig, got %T", cfg)
-			}
-
-			// Use existing constructor
-			return NewClaudeClient(ctx, clientID, *claudeConfig)
+		func(ctx context.Context, clientID uint64, clientType types.ClientType) (client.Client, error) {
+			// Get client config from the service
+			return NewClaudeClient(ctx, clientID, types.ClaudeConfig{
+				BaseAIClientConfig: types.BaseAIClientConfig{
+					BaseClientConfig: types.BaseClientConfig{
+						Type:     clientType,
+						Category: types.ClientCategoryAI,
+					},
+					ClientType:  types.AIClientTypeClaude,
+					Model:       "claude-3-5-sonnet-20240620",
+					MaxTokens:   1000,
+					Temperature: 0.7,
+				},
+			})
 		})
 }
 

@@ -14,7 +14,7 @@ type ClientKey struct {
 }
 
 // Factory function type
-type ClientFactory func(ctx context.Context, clientID uint64, config types.ClientConfig) (Client, error)
+type ClientFactory func(ctx context.Context, clientID uint64, clientType types.ClientType) (Client, error)
 
 // ClientFactoryService provides client creation functionality as a singleton
 type ClientFactoryService struct {
@@ -48,9 +48,8 @@ func (s *ClientFactoryService) RegisterClientFactory(clientType types.ClientType
 }
 
 // GetClient returns an existing client or creates a new one
-func (s *ClientFactoryService) GetClient(ctx context.Context, clientID uint64, config types.ClientConfig) (Client, error) {
+func (s *ClientFactoryService) GetClient(ctx context.Context, clientID uint64, clientType types.ClientType) (Client, error) {
 	log := utils.LoggerFromContext(ctx)
-	clientType := config.GetType()
 	key := ClientKey{Type: clientType, ID: clientID}
 
 	// Try to get existing client first (read lock)
@@ -82,7 +81,7 @@ func (s *ClientFactoryService) GetClient(ctx context.Context, clientID uint64, c
 	}
 
 	// Create and cache new client
-	client, err := factory(ctx, clientID, config)
+	client, err := factory(ctx, clientID, clientType)
 	if err != nil {
 		return nil, err
 	}
@@ -105,6 +104,5 @@ func RegisterClientFactory(clientType types.ClientType, factory ClientFactory) {
 
 // GetClient gets or creates a client at the package level
 func GetClient(ctx context.Context, clientID uint64, config types.ClientConfig) (Client, error) {
-	return GetClientFactoryService().GetClient(ctx, clientID, config)
+	return GetClientFactoryService().GetClient(ctx, clientID, config.GetType())
 }
-

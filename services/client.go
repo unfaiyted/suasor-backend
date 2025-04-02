@@ -65,7 +65,7 @@ func (s *clientService[T]) Delete(ctx context.Context, id uint64, userID uint64)
 
 func (s *clientService[T]) TestConnection(ctx context.Context, clientID uint64, config *T) (responses.ClientTestResponse, error) {
 	// Get client from factory
-	c, err := s.factory.GetClient(ctx, clientID, *config)
+	c, err := s.factory.GetClient(ctx, clientID, (*config).GetType())
 	if err != nil {
 		return responses.ClientTestResponse{
 			Success: false,

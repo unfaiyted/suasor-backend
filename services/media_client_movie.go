@@ -63,7 +63,7 @@ func (s *mediaMovieService[T]) getMovieClients(ctx context.Context, userID uint6
 	for _, clientConfig := range clients {
 		if clientConfig.Config.Data.SupportsMovies() {
 			clientId := clientConfig.GetID()
-			client, err := s.factory.GetClient(ctx, clientId, clientConfig.Config.Data)
+			client, err := s.factory.GetClient(ctx, clientId, clientConfig.Config.Data.GetType())
 			if err != nil {
 				// Log error but continue with other clients
 				continue
@@ -87,14 +87,14 @@ func (s *mediaMovieService[T]) getSpecificMovieClient(ctx context.Context, userI
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).
-		Str("clientType", clientConfig.Config.Data.GetClientType().String()).
+		Str("clientType", clientConfig.Config.Data.GetType().String()).
 		Msg("Retrieved client config")
 
 	if !clientConfig.Config.Data.SupportsMovies() {
 		log.Warn().
 			Uint64("userID", userID).
 			Uint64("clientID", clientID).
-			Str("clientType", clientConfig.Config.Data.GetClientType().String()).
+			Str("clientType", clientConfig.Config.Data.GetType().String()).
 			Msg("Client does not support movies")
 		return nil, ErrUnsupportedFeature
 	}
@@ -102,17 +102,17 @@ func (s *mediaMovieService[T]) getSpecificMovieClient(ctx context.Context, userI
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).
-		Str("clientType", clientConfig.Config.Data.GetClientType().String()).
+		Str("clientType", clientConfig.Config.Data.GetType().String()).
 		Msg("Client supports movies")
 
-	client, err := s.factory.GetClient(ctx, clientID, clientConfig.Config.Data)
+	client, err := s.factory.GetClient(ctx, clientID, clientConfig.Config.Data.GetType())
 	if err != nil {
 		return nil, err
 	}
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).
-		Str("clientType", clientConfig.Config.Data.GetClientType().String()).
+		Str("clientType", clientConfig.Config.Data.GetType().String()).
 		Msg("Retrieved client")
 	return client.(media.MediaClient), nil
 }

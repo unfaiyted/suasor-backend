@@ -70,7 +70,7 @@ func (s *MediaClientMusicServiceImpl[T]) getMusicClients(ctx context.Context, us
 	for _, clientConfig := range clients {
 		if clientConfig.Config.Data.SupportsMusic() {
 			clientId := clientConfig.GetID()
-			client, err := s.factory.GetClient(ctx, clientId, clientConfig.Config.Data)
+			client, err := s.factory.GetClient(ctx, clientId, clientConfig.Config.Data.GetType())
 			if err != nil {
 				// Log error but continue with other clients
 				continue
@@ -93,25 +93,25 @@ func (s *MediaClientMusicServiceImpl[T]) getSpecificMusicClient(ctx context.Cont
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).
-		Str("clientType", clientConfig.Config.Data.GetClientType().String()).
+		Str("clientType", clientConfig.Config.Data.GetType().String()).
 		Msg("Retrieved client config")
 
 	if !clientConfig.Config.Data.SupportsMusic() {
 		log.Warn().
 			Uint64("userID", userID).
 			Uint64("clientID", clientID).
-			Str("clientType", clientConfig.Config.Data.GetClientType().String()).
+			Str("clientType", clientConfig.Config.Data.GetType().String()).
 			Msg("Client does not support music")
 		return nil, fmt.Errorf("client %d does not support music", clientID)
 	}
 
-	client, err := s.factory.GetClient(ctx, clientID, clientConfig.Config.Data)
+	client, err := s.factory.GetClient(ctx, clientID, clientConfig.Config.Data.GetType())
 	if err != nil {
 		log.Error().
 			Err(err).
 			Uint64("userID", userID).
 			Uint64("clientID", clientID).
-			Str("clientType", clientConfig.Config.Data.GetClientType().String()).
+			Str("clientType", clientConfig.Config.Data.GetType().String()).
 			Msg("Failed to get client")
 		return nil, fmt.Errorf("failed to get client: %w", err)
 	}

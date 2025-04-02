@@ -53,7 +53,7 @@ func (s *mediaCollectionService[T]) getCollectionClients(ctx context.Context, us
 	for _, clientConfig := range clients {
 		if clientConfig.Config.Data.SupportsCollections() {
 			clientId := clientConfig.GetID()
-			client, err := s.factory.GetClient(ctx, clientId, clientConfig.Config.Data)
+			client, err := s.factory.GetClient(ctx, clientId, clientConfig.Config.Data.GetType())
 			if err != nil {
 				// Log error but continue with other clients
 				continue
@@ -76,14 +76,14 @@ func (s *mediaCollectionService[T]) getSpecificCollectionClient(ctx context.Cont
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).
-		Str("clientType", clientConfig.Config.Data.GetClientType().String()).
+		Str("clientType", clientConfig.Config.Data.GetType().String()).
 		Msg("Retrieved client config")
 
 	if !clientConfig.Config.Data.SupportsCollections() {
 		log.Warn().
 			Uint64("userID", userID).
 			Uint64("clientID", clientID).
-			Str("clientType", clientConfig.Config.Data.GetClientType().String()).
+			Str("clientType", clientConfig.Config.Data.GetType().String()).
 			Msg("Client does not support collections")
 		return nil, ErrUnsupportedFeature
 	}
@@ -91,17 +91,17 @@ func (s *mediaCollectionService[T]) getSpecificCollectionClient(ctx context.Cont
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).
-		Str("clientType", clientConfig.Config.Data.GetClientType().String()).
+		Str("clientType", clientConfig.Config.Data.GetType().String()).
 		Msg("Client supports collections")
 
-	client, err := s.factory.GetClient(ctx, clientID, clientConfig.Config.Data)
+	client, err := s.factory.GetClient(ctx, clientID, clientConfig.Config.Data.GetType())
 	if err != nil {
 		return nil, err
 	}
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).
-		Str("clientType", clientConfig.Config.Data.GetClientType().String()).
+		Str("clientType", clientConfig.Config.Data.GetType().String()).
 		Msg("Retrieved client")
 	return client.(media.MediaClient), nil
 }

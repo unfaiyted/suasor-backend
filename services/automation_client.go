@@ -57,7 +57,7 @@ func (s *automationClientService) getAutomationClient(ctx context.Context, userI
 		return nil, err
 	}
 
-	autoClient, err := s.clientFactory.GetClient(ctx, clientID, clientConfig.Config.Data)
+	autoClient, err := s.clientFactory.GetClient(ctx, clientID, clientConfig.Config.Data.GetType())
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (s *automationClientService) getAutomationClient(ctx context.Context, userI
 	if !ok {
 		return nil, ErrAutomationUnsupportedFeature
 	}
-	return client, err
+	return client, nil
 }
 
 func (s *automationClientService) GetSystemStatus(ctx context.Context, userID uint64, clientID uint64) (*automationtypes.SystemStatus, error) {

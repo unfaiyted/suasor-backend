@@ -1,0 +1,151 @@
+###
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@dev.com",
+  "password": "TestPassword123"
+}
+
+###
+# @name createClaudeClient
+POST http://localhost:8080/api/v1/admin/client/claude
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Claude AI Routes Test",
+  "clientType": "claude",
+  "client": {
+    "enabled": true,
+    "baseURL": "https://api.anthropic.com",
+    "apiKey": "{{$processEnv CLAUDE_API_KEY}}",
+    "model": "claude-3-haiku-20240307",
+    "temperature": 0.7,
+    "maxTokens": 1000,
+    "maxContextTokens": 100000
+  }
+}
+
+###
+# Test the /ai/:clientType/recommendations endpoint
+# @name clientTypeRecommendations
+POST http://localhost:8080/api/v1/ai/claude/recommendations
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "contentType": "movie",
+  "count": 3,
+  "filters": {
+    "genre": "sci-fi",
+    "releaseYear": "2010-2023"
+  }
+}
+
+###
+# Test the /ai/:clientType/analyze endpoint
+# @name clientTypeAnalyze
+POST http://localhost:8080/api/v1/ai/claude/analyze
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "contentType": "movie",
+  "content": "Blade Runner 2049 is a 2017 American neo-noir science fiction film directed by Denis Villeneuve. A sequel to the 1982 film Blade Runner, it stars Ryan Gosling as K, a Nexus-9 replicant 'blade runner' who discovers a secret that threatens to destabilize society.",
+  "options": {
+    "includeThemes": true,
+    "includeSentiment": true,
+    "includeStyleAnalysis": true
+  }
+}
+
+###
+# Test the /ai/:clientType/conversation/start endpoint
+# @name clientTypeStartConversation
+POST http://localhost:8080/api/v1/ai/claude/conversation/start
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "contentType": "movie",
+  "preferences": {
+    "favoriteGenres": ["sci-fi", "thriller", "dystopian"],
+    "recentlyWatched": ["Blade Runner 2049", "Dune", "Arrival"]
+  },
+  "systemInstructions": "You are a knowledgeable film critic specializing in science fiction. Your recommendations should be thoughtful and tailored to the user's preferences, with a focus on thematic depth and visual storytelling."
+}
+
+###
+# Test the /ai/:clientType/conversation/message endpoint
+# @name clientTypeSendMessage
+POST http://localhost:8080/api/v1/ai/claude/conversation/message
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "conversationId": "{{clientTypeStartConversation.response.body.$.data.conversationId}}",
+  "message": "I'm looking for cerebral sci-fi films with themes of identity and memory, similar to Blade Runner.",
+  "context": {
+    "extractRecommendations": true,
+    "maxResults": 5 
+  }
+}
+
+###
+# Test sending a follow-up message in the same conversation
+POST http://localhost:8080/api/v1/ai/claude/conversation/message
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "conversationId": "{{clientTypeStartConversation.response.body.$.data.conversationId}}",
+  "message": "I prefer movies from the last 20 years with strong female characters."
+}
+
+###
+# Test error handling with invalid client type
+# @name invalidClientType
+POST http://localhost:8080/api/v1/ai/invalidtype/recommendations
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "contentType": "movie",
+  "count": 3,
+  "filters": {
+    "genre": "sci-fi"
+  }
+}
+
+###
+# Test error handling with missing required fields
+# @name missingRequiredFields
+POST http://localhost:8080/api/v1/ai/claude/analyze
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "contentType": "movie"
+  // Missing the required "content" field
+}
+
+###
+# Test error handling with invalid conversation ID
+# @name invalidConversationID
+POST http://localhost:8080/api/v1/ai/claude/conversation/message
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "conversationId": "non-existent-conversation-id",
+  "message": "This should return a 404 error since the conversation ID doesn't exist."
+}
+
+###
+# Clean up created client
+# @name deleteClient
+DELETE http://localhost:8080/api/v1/admin/client/claude/{{createClaudeClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

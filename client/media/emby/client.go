@@ -23,17 +23,19 @@ func init() {
 
 	fmt.Println("Registering Emby client factory...")
 	client.GetClientFactoryService().RegisterClientFactory(config.ClientTypeEmby,
-		func(ctx context.Context, clientID uint64, cfg config.ClientConfig) (base.Client, error) {
-			// Type assert to EmbyConfig
-
+		func(ctx context.Context, clientID uint64, clientType config.ClientType) (base.Client, error) {
+			// Create a default config that will be overridden during initialization
 			fmt.Printf("Factory called for Emby client with ID: %d\n", clientID)
-			embyConfig, ok := cfg.(*config.EmbyConfig)
-			if !ok {
-				return nil, fmt.Errorf("invalid config type for Emby client, expected *EmbyConfig, got %T", cfg)
-			}
-
-			// Use your existing constructor
-			return NewEmbyClient(ctx, clientID, *embyConfig)
+			
+			return NewEmbyClient(ctx, clientID, config.EmbyConfig{
+				BaseMediaClientConfig: config.BaseMediaClientConfig{
+					BaseClientConfig: config.BaseClientConfig{
+						Type:     clientType,
+						Category: config.ClientCategoryMedia,
+					},
+					ClientType: config.MediaClientTypeEmby,
+				},
+			})
 		})
 }
 

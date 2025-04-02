@@ -58,7 +58,7 @@ func (s *mediaPlaylistService[T]) getPlaylistClients(ctx context.Context, userID
 	for _, clientConfig := range clients {
 		if clientConfig.Config.Data.SupportsPlaylists() {
 			clientId := clientConfig.GetID()
-			client, err := s.factory.GetClient(ctx, clientId, clientConfig.Config.Data)
+			client, err := s.factory.GetClient(ctx, clientId, clientConfig.Config.Data.GetType())
 			if err != nil {
 				// Log error but continue with other clients
 				continue
@@ -81,14 +81,14 @@ func (s *mediaPlaylistService[T]) getSpecificPlaylistClient(ctx context.Context,
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).
-		Str("clientType", clientConfig.Config.Data.GetClientType().String()).
+		Str("clientType", clientConfig.Config.Data.GetType().String()).
 		Msg("Retrieved client config")
 
 	if !clientConfig.Config.Data.SupportsPlaylists() {
 		log.Warn().
 			Uint64("userID", userID).
 			Uint64("clientID", clientID).
-			Str("clientType", clientConfig.Config.Data.GetClientType().String()).
+			Str("clientType", clientConfig.Config.Data.GetType().String()).
 			Msg("Client does not support playlists")
 		return nil, ErrUnsupportedFeature
 	}
@@ -96,17 +96,17 @@ func (s *mediaPlaylistService[T]) getSpecificPlaylistClient(ctx context.Context,
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).
-		Str("clientType", clientConfig.Config.Data.GetClientType().String()).
+		Str("clientType", clientConfig.Config.Data.GetType().String()).
 		Msg("Client supports playlists")
 
-	client, err := s.factory.GetClient(ctx, clientID, clientConfig.Config.Data)
+	client, err := s.factory.GetClient(ctx, clientID, clientConfig.Config.Data.GetType())
 	if err != nil {
 		return nil, err
 	}
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).
-		Str("clientType", clientConfig.Config.Data.GetClientType().String()).
+		Str("clientType", clientConfig.Config.Data.GetType().String()).
 		Msg("Retrieved client")
 	return client.(media.MediaClient), nil
 }

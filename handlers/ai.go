@@ -28,6 +28,7 @@ func NewAIHandler[T types.AIClientConfig](
 ) *AIHandler[T] {
 	return &AIHandler[T]{
 		factory:             factory,
+		service:             service,
 		activeConversations: make(map[string]uint64),
 	}
 }
@@ -68,8 +69,10 @@ func (h *AIHandler[T]) RequestRecommendation(c *gin.Context) {
 		Interface("filters", req.Filters).
 		Msg("Requesting AI recommendations")
 
+	clientType := types.ClientType(req.ClientType)
+
 	// Get available AI client based on specified type or default
-	aiClient, err := h.getAIClient(ctx, userID.(uint64))
+	aiClient, err := h.getAIClient(ctx, userID.(uint64), clientType, req.ClientID)
 	if err != nil {
 		responses.RespondInternalError(c, err, "Failed to initialize AI client")
 		return
@@ -125,8 +128,10 @@ func (h *AIHandler[T]) AnalyzeContent(c *gin.Context) {
 		Int("contentLength", len(req.Content)).
 		Msg("Requesting AI content analysis")
 
+	clientType := types.ClientType(req.ClientType)
+
 	// Get available AI client based on specified type or default
-	aiClient, err := h.getAIClient(ctx, userID.(uint64))
+	aiClient, err := h.getAIClient(ctx, userID.(uint64), clientType, req.ClientID)
 	if err != nil {
 		responses.RespondInternalError(c, err, "Failed to initialize AI client")
 		return
@@ -176,13 +181,17 @@ func (h *AIHandler[T]) StartConversation(c *gin.Context) {
 		return
 	}
 
+	clientType := types.ClientType(c.Query("clientType"))
+
 	log.Info().
 		Uint64("userID", userID.(uint64)).
 		Str("contentType", req.ContentType).
+		Uint64("clientID", req.ClientID).
+		Str("clientType", clientType.String()).
 		Msg("Starting AI recommendation conversation")
 
 	// Get available AI client based on specified type or default
-	aiClient, err := h.getAIClient(ctx, userID.(uint64))
+	aiClient, err := h.getAIClient(ctx, userID.(uint64), clientType, req.ClientID)
 	if err != nil {
 		responses.RespondInternalError(c, err, "Failed to initialize AI client")
 		return
@@ -215,14 +224,27 @@ func (h *AIHandler[T]) StartConversation(c *gin.Context) {
 	responses.RespondOK(c, response, "Conversation started successfully")
 }
 
-// Helper method to get an AI client based on type preference
-func (h *AIHandler[T]) getAIClient(ctx context.Context, userID uint64) (types.AiClient, error) {
-	// log := utils.LoggerFromContext(ctx)
+func (h *AIHandler[T]) getAIClient(ctx context.Context, userID uint64, clientType types.ClientType, clientID uint64) (types.AiClient, error) {
+	log := utils.LoggerFromContext(ctx)
 
-	// aiClient, err := h.factory.GetClient(ctx, client.ID, client.Config.Data)
+	// Get all AI clients for the user
+	clientModel, err := h.service.GetByID(ctx, clientID, userID)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to get AI client")
+		return nil, err
+	}
+	// from factory
+	client, err := h.factory.GetClient(ctx, clientModel.ID, clientModel.GetType())
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to get AI client")
+		return nil, err
+	}
+	aiApiClient, ok := client.(types.AiClient)
+	if !ok {
+		return nil, fmt.Errorf("client is not an AI client")
+	}
 
-	// If we got here, no clients were found or couldn't be initialized
-	return nil, fmt.Errorf("no AI client available")
+	return aiApiClient, nil
 
 }
 
@@ -275,11 +297,12 @@ func (h *AIHandler[T]) SendConversationMessage(c *gin.Context) {
 		responses.RespondForbidden(c, nil, "You do not have access to this conversation")
 		return
 	}
+	clientType := types.ClientType(c.Query("clientType"))
 
 	// Get available AI client
 	// Note: We don't need to specify a client type here as the conversation is already
 	// associated with a specific AI client from the start conversation request
-	aiClient, err := h.getAIClient(ctx, userID.(uint64))
+	aiClient, err := h.getAIClient(ctx, userID.(uint64), clientType, req.ClientID)
 	if err != nil {
 		responses.RespondInternalError(c, err, "Failed to initialize AI client")
 		return
