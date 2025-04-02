@@ -1,6 +1,505 @@
 basePath: /api/v1
 definitions:
-  models.APIResponse-any:
+  errors.ErrorType:
+    enum:
+    - FAILED_CHECK
+    - UNAUTHORIZED
+    - NOT_FOUND
+    - BAD_REQUEST
+    - INTERNAL_ERROR
+    - FORBIDDEN
+    - CONFLICT
+    - VALIDATION_ERROR
+    - RATE_LIMITED
+    - TIMEOUT
+    - SERVICE_UNAVAILABLE
+    - UNPROCESSABLE_ENTITY
+    type: string
+    x-enum-varnames:
+    - ErrorTypeFailedCheck
+    - ErrorTypeUnauthorized
+    - ErrorTypeNotFound
+    - ErrorTypeBadRequest
+    - ErrorTypeInternalError
+    - ErrorTypeForbidden
+    - ErrorTypeConflict
+    - ErrorTypeValidation
+    - ErrorTypeRateLimited
+    - ErrorTypeTimeout
+    - ErrorTypeServiceUnavailable
+    - ErrorTypeUnprocessableEntity
+  models.MediaItem-types_Album:
+    properties:
+      clientId:
+        description: Reference to the media client
+        type: integer
+      clientType:
+        allOf:
+        - $ref: '#/definitions/types.MediaClientType'
+        description: Type of client (plex, jellyfin, etc.)
+      createdAt:
+        type: string
+      data:
+        allOf:
+        - $ref: '#/definitions/types.Album'
+        description: Type-specific media data
+      downloadUrl:
+        type: string
+      externalId:
+        description: ID from external media client
+        type: string
+      id:
+        description: Internal ID
+        type: integer
+      streamUrl:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/types.MediaType'
+        description: Type of media (movie, show, episode, etc.)
+      updatedAt:
+        type: string
+    type: object
+  models.MediaItem-types_Artist:
+    properties:
+      clientId:
+        description: Reference to the media client
+        type: integer
+      clientType:
+        allOf:
+        - $ref: '#/definitions/types.MediaClientType'
+        description: Type of client (plex, jellyfin, etc.)
+      createdAt:
+        type: string
+      data:
+        allOf:
+        - $ref: '#/definitions/types.Artist'
+        description: Type-specific media data
+      downloadUrl:
+        type: string
+      externalId:
+        description: ID from external media client
+        type: string
+      id:
+        description: Internal ID
+        type: integer
+      streamUrl:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/types.MediaType'
+        description: Type of media (movie, show, episode, etc.)
+      updatedAt:
+        type: string
+    type: object
+  models.MediaItem-types_Playlist:
+    properties:
+      clientId:
+        description: Reference to the media client
+        type: integer
+      clientType:
+        allOf:
+        - $ref: '#/definitions/types.MediaClientType'
+        description: Type of client (plex, jellyfin, etc.)
+      createdAt:
+        type: string
+      data:
+        allOf:
+        - $ref: '#/definitions/types.Playlist'
+        description: Type-specific media data
+      downloadUrl:
+        type: string
+      externalId:
+        description: ID from external media client
+        type: string
+      id:
+        description: Internal ID
+        type: integer
+      streamUrl:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/types.MediaType'
+        description: Type of media (movie, show, episode, etc.)
+      updatedAt:
+        type: string
+    type: object
+  models.MediaItem-types_Track:
+    properties:
+      clientId:
+        description: Reference to the media client
+        type: integer
+      clientType:
+        allOf:
+        - $ref: '#/definitions/types.MediaClientType'
+        description: Type of client (plex, jellyfin, etc.)
+      createdAt:
+        type: string
+      data:
+        allOf:
+        - $ref: '#/definitions/types.Track'
+        description: Type-specific media data
+      downloadUrl:
+        type: string
+      externalId:
+        description: ID from external media client
+        type: string
+      id:
+        description: Internal ID
+        type: integer
+      streamUrl:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/types.MediaType'
+        description: Type of media (movie, show, episode, etc.)
+      updatedAt:
+        type: string
+    type: object
+  models.UserConfig:
+    description: User-specific configuration stored in the database
+    properties:
+      autoSyncRecommendations:
+        example: true
+        type: boolean
+      contentLanguages:
+        example: en,es,fr
+        type: string
+      createServerPlaylists:
+        example: true
+        type: boolean
+      createdAt:
+        type: string
+      defaultCollection:
+        example: AI Picks
+        type: string
+      defaultMediaServer:
+        description: Sync Preferences
+        enum:
+        - emby
+        - jellyfin
+        - plex
+        example: plex
+        type: string
+      deletedAt:
+        type: string
+      digestFrequency:
+        enum:
+        - never
+        - daily
+        - weekly
+        example: weekly
+        type: string
+      emailNotifications:
+        example: true
+        type: boolean
+      enableAnimations:
+        example: true
+        type: boolean
+      enableExperimentalAI:
+        example: false
+        type: boolean
+      excludedGenres:
+        example: horror,war
+        type: string
+      id:
+        type: integer
+      includeUnratedContent:
+        example: false
+        type: boolean
+      itemsPerPage:
+        example: 20
+        maximum: 100
+        minimum: 5
+        type: integer
+      language:
+        example: en-US
+        type: string
+      maxContentRating:
+        example: R
+        type: string
+      maxRecommendations:
+        example: 20
+        maximum: 100
+        minimum: 5
+        type: integer
+      minContentRating:
+        example: PG-13
+        type: string
+      newContentWeight:
+        example: 0.7
+        maximum: 1
+        minimum: 0
+        type: number
+      notificationsEnabled:
+        description: Notification Settings
+        example: true
+        type: boolean
+      notifyOnNewRecommendations:
+        example: true
+        type: boolean
+      notifyOnSync:
+        example: false
+        type: boolean
+      personalHistoryWeight:
+        example: 0.8
+        maximum: 1
+        minimum: 0
+        type: number
+      popularityWeight:
+        example: 0.3
+        maximum: 1
+        minimum: 0
+        type: number
+      preferredGenres:
+        example: action,comedy,drama
+        type: string
+      recommendationFrequency:
+        description: Recommendation Preferences
+        enum:
+        - daily
+        - weekly
+        - monthly
+        example: daily
+        type: string
+      recommendationStrategy:
+        description: AI Algorithm Settings
+        enum:
+        - similar
+        - diverse
+        - balanced
+        example: diverse
+        type: string
+      syncFrequency:
+        enum:
+        - manual
+        - daily
+        - weekly
+        example: daily
+        type: string
+      theme:
+        description: UI Preferences
+        enum:
+        - light
+        - dark
+        - system
+        example: dark
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        description: UserID links this config to a specific user
+        type: integer
+    required:
+    - language
+    type: object
+  requests.AddMediaRequest:
+    properties:
+      metadataProfileID:
+        description: For Lidarr
+        type: integer
+      monitored:
+        type: boolean
+      musicBrainzID:
+        description: For Lidarr (music)
+        type: string
+      path:
+        type: string
+      qualityProfileID:
+        type: integer
+      searchForMedia:
+        description: Whether to search for the media after adding
+        type: boolean
+      tags:
+        items:
+          type: integer
+        type: array
+      title:
+        type: string
+      tmdbid:
+        description: For Radarr (movies)
+        type: integer
+      tvdbid:
+        description: For Sonarr (TV shows)
+        type: integer
+      year:
+        type: integer
+    type: object
+  requests.ChangePasswordRequest:
+    description: Request payload for changing user password
+    properties:
+      currentPassword:
+        description: |-
+          CurrentPassword is the user's existing password for verification
+          @Description User's current password for verification
+          @Example "oldpassword123"
+        example: oldpassword123
+        type: string
+      newPassword:
+        description: |-
+          NewPassword is the password to change to
+          @Description New password to set for the user
+          @Example "newpassword456"
+        example: newpassword456
+        type: string
+    required:
+    - currentPassword
+    - newPassword
+    type: object
+  requests.ChangeRoleRequest:
+    description: Request payload for changing user role
+    properties:
+      role:
+        description: |-
+          Role is the new role to assign to the user
+          @Description New role to assign to the user
+          @Enum "user" "admin"
+          @Example "admin"
+        enum:
+        - user
+        - admin
+        example: admin
+        type: string
+    required:
+    - role
+    type: object
+  requests.CreateTagRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  requests.ExecuteCommandRequest:
+    properties:
+      command:
+        type: string
+      parameters:
+        additionalProperties: true
+        type: object
+    required:
+    - command
+    type: object
+  requests.LoginRequest:
+    description: Request payload for user login
+    properties:
+      email:
+        description: |-
+          Email is the user's email address
+          @Description User's email address
+          @Example "user@example.com"
+        example: user@example.com
+        type: string
+      password:
+        description: |-
+          Password is the user's chosen password
+          @Description User's password (plain text in request)
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  requests.LogoutRequest:
+    description: Request payload for user logout
+    properties:
+      refreshToken:
+        description: |-
+          RefreshToken identifies the session to terminate
+          @Description JWT refresh token to invalidate
+        type: string
+    required:
+    - refreshToken
+    type: object
+  requests.ProfileRequest:
+    description: Request payload for updating user profile
+    properties:
+      email:
+        description: |-
+          Email is the new email address
+          @Description Updated email address for the user
+          @Example "newemail@example.com"
+        example: newemail@example.com
+        type: string
+      username:
+        description: |-
+          Username is the new username
+          @Description Updated username for the user
+          @Example "newusername"
+        example: newusername
+        type: string
+    type: object
+  requests.RefreshTokenRequest:
+    description: Request payload for refreshing access tokens
+    properties:
+      refreshToken:
+        description: |-
+          RefreshToken is used to generate a new access token
+          @Description JWT refresh token to use for generating new access token
+        type: string
+    required:
+    - refreshToken
+    type: object
+  requests.RegisterRequest:
+    description: Request payload for user registration
+    properties:
+      email:
+        description: |-
+          Email is the user's email address
+          @Description User's email address
+          @Example "user@example.com"
+        example: user@example.com
+        type: string
+      password:
+        description: |-
+          Password is the user's chosen password
+          @Description User's password (plain text in request)
+        minLength: 8
+        type: string
+      username:
+        description: |-
+          Username is the user's desired username
+          @Description User's chosen username
+          @Example "johndoe"
+        example: johndoe
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  requests.SwaggerClientRequest:
+    properties:
+      client: {}
+      clientID:
+        type: integer
+      clientType:
+        $ref: '#/definitions/types.ClientType'
+      isEnabled:
+        type: boolean
+      name:
+        type: string
+    required:
+    - clientType
+    - name
+    type: object
+  requests.UpdateMediaRequest:
+    properties:
+      metadataProfileID:
+        description: For Lidarr
+        type: integer
+      monitored:
+        type: boolean
+      path:
+        type: string
+      qualityProfileID:
+        type: integer
+      tags:
+        items:
+          type: integer
+        type: array
+    type: object
+  responses.APIResponse-any:
     properties:
       data: {}
       message:
@@ -10,11 +509,11 @@ definitions:
         example: true
         type: boolean
     type: object
-  models.APIResponse-array_models_DownloadClient:
+  responses.APIResponse-array_models_MediaItem-types_Album:
     properties:
       data:
         items:
-          $ref: '#/definitions/models.DownloadClient'
+          $ref: '#/definitions/models.MediaItem-types_Album'
         type: array
       message:
         example: Operation successful
@@ -23,11 +522,11 @@ definitions:
         example: true
         type: boolean
     type: object
-  models.APIResponse-array_models_MediaClient-models_ClientConfig:
+  responses.APIResponse-array_models_MediaItem-types_Artist:
     properties:
       data:
         items:
-          $ref: '#/definitions/models.MediaClient-models_ClientConfig'
+          $ref: '#/definitions/models.MediaItem-types_Artist'
         type: array
       message:
         example: Operation successful
@@ -36,10 +535,12 @@ definitions:
         example: true
         type: boolean
     type: object
-  models.APIResponse-models_AuthData:
+  responses.APIResponse-array_models_MediaItem-types_Playlist:
     properties:
       data:
-        $ref: '#/definitions/models.AuthData'
+        items:
+          $ref: '#/definitions/models.MediaItem-types_Playlist'
+        type: array
       message:
         example: Operation successful
         type: string
@@ -47,10 +548,12 @@ definitions:
         example: true
         type: boolean
     type: object
-  models.APIResponse-models_ClientTestResponse:
+  responses.APIResponse-array_models_MediaItem-types_Track:
     properties:
       data:
-        $ref: '#/definitions/models.ClientTestResponse'
+        items:
+          $ref: '#/definitions/models.MediaItem-types_Track'
+        type: array
       message:
         example: Operation successful
         type: string
@@ -58,10 +561,12 @@ definitions:
         example: true
         type: boolean
     type: object
-  models.APIResponse-models_Configuration:
+  responses.APIResponse-array_responses_ClientResponse:
     properties:
       data:
-        $ref: '#/definitions/models.Configuration'
+        items:
+          $ref: '#/definitions/responses.ClientResponse'
+        type: array
       message:
         example: Operation successful
         type: string
@@ -69,10 +574,12 @@ definitions:
         example: true
         type: boolean
     type: object
-  models.APIResponse-models_DownloadClient:
+  responses.APIResponse-array_responses_MediaItemResponse:
     properties:
       data:
-        $ref: '#/definitions/models.DownloadClient'
+        items:
+          $ref: '#/definitions/responses.MediaItemResponse'
+        type: array
       message:
         example: Operation successful
         type: string
@@ -80,10 +587,10 @@ definitions:
         example: true
         type: boolean
     type: object
-  models.APIResponse-models_EmptyResponse:
+  responses.APIResponse-models_MediaItem-types_Album:
     properties:
       data:
-        $ref: '#/definitions/models.EmptyResponse'
+        $ref: '#/definitions/models.MediaItem-types_Album'
       message:
         example: Operation successful
         type: string
@@ -91,10 +598,10 @@ definitions:
         example: true
         type: boolean
     type: object
-  models.APIResponse-models_MediaClientResponse:
+  responses.APIResponse-models_MediaItem-types_Artist:
     properties:
       data:
-        $ref: '#/definitions/models.MediaClientResponse'
+        $ref: '#/definitions/models.MediaItem-types_Artist'
       message:
         example: Operation successful
         type: string
@@ -102,10 +609,10 @@ definitions:
         example: true
         type: boolean
     type: object
-  models.APIResponse-models_MediaClientTestResponse:
+  responses.APIResponse-models_MediaItem-types_Playlist:
     properties:
       data:
-        $ref: '#/definitions/models.MediaClientTestResponse'
+        $ref: '#/definitions/models.MediaItem-types_Playlist'
       message:
         example: Operation successful
         type: string
@@ -113,10 +620,10 @@ definitions:
         example: true
         type: boolean
     type: object
-  models.APIResponse-models_ShortenData:
+  responses.APIResponse-models_MediaItem-types_Track:
     properties:
       data:
-        $ref: '#/definitions/models.ShortenData'
+        $ref: '#/definitions/models.MediaItem-types_Track'
       message:
         example: Operation successful
         type: string
@@ -124,7 +631,7 @@ definitions:
         example: true
         type: boolean
     type: object
-  models.APIResponse-models_UserConfig:
+  responses.APIResponse-models_UserConfig:
     properties:
       data:
         $ref: '#/definitions/models.UserConfig'
@@ -135,10 +642,10 @@ definitions:
         example: true
         type: boolean
     type: object
-  models.APIResponse-models_UserResponse:
+  responses.APIResponse-responses_AuthDataResponse:
     properties:
       data:
-        $ref: '#/definitions/models.UserResponse'
+        $ref: '#/definitions/responses.AuthDataResponse'
       message:
         example: Operation successful
         type: string
@@ -146,7 +653,62 @@ definitions:
         example: true
         type: boolean
     type: object
-  models.APIResponse-string:
+  responses.APIResponse-responses_ClientResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.ClientResponse'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.APIResponse-responses_EmptyResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.EmptyResponse'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.APIResponse-responses_MediaItemResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.MediaItemResponse'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.APIResponse-responses_TestConnectionResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.TestConnectionResponse'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.APIResponse-responses_UserResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.UserResponse'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.APIResponse-string:
     properties:
       data:
         type: string
@@ -157,7 +719,18 @@ definitions:
         example: true
         type: boolean
     type: object
-  models.AuthData:
+  responses.APIResponse-types_Configuration:
+    properties:
+      data:
+        $ref: '#/definitions/types.Configuration'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.AuthDataResponse:
     description: Authentication data returned to client after successful authentication
     properties:
       accessToken:
@@ -180,68 +753,129 @@ definitions:
         type: string
       user:
         allOf:
-        - $ref: '#/definitions/models.UserResponse'
+        - $ref: '#/definitions/responses.UserResponse'
         description: |-
           User contains the user profile information
           @Description User profile data
     type: object
-  models.ChangePasswordRequest:
-    description: Request payload for changing user password
+  responses.ClientResponse:
     properties:
-      currentPassword:
-        description: |-
-          CurrentPassword is the user's existing password for verification
-          @Description User's current password for verification
-          @Example "oldpassword123"
-        example: oldpassword123
-        type: string
-      newPassword:
-        description: |-
-          NewPassword is the password to change to
-          @Description New password to set for the user
-          @Example "newpassword456"
-        example: newpassword456
-        type: string
-    required:
-    - currentPassword
-    - newPassword
-    type: object
-  models.ChangeRoleRequest:
-    description: Request payload for changing user role
-    properties:
-      role:
-        description: |-
-          Role is the new role to assign to the user
-          @Description New role to assign to the user
-          @Enum "user" "admin"
-          @Example "admin"
-        enum:
-        - user
-        - admin
-        example: admin
-        type: string
-    required:
-    - role
-    type: object
-  models.ClientTestRequest:
-    properties:
-      apiKey:
-        type: string
+      client: {}
       clientType:
+        $ref: '#/definitions/types.MediaClientType'
+      createdAt:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: integer
+    type: object
+  responses.EmptyAPIResponse:
+    properties:
+      data: {}
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.EmptyResponse:
+    properties:
+      success:
+        type: boolean
+    type: object
+  responses.ErrorDetails:
+    properties:
+      error:
+        type: string
+      metadata:
+        additionalProperties: true
+        type: object
+      stackInfo:
+        type: string
+    type: object
+  responses.ErrorResponse-error:
+    properties:
+      details: {}
+      message:
+        example: This is a pretty message
+        type: string
+      request_id:
+        type: string
+      statusCode:
+        example: 201
+        type: integer
+      timestamp:
+        type: string
+      type:
         allOf:
-        - $ref: '#/definitions/models.ClientType'
+        - $ref: '#/definitions/errors.ErrorType'
+        example: FAILED_CHECK
+    type: object
+  responses.ErrorResponse-responses_ErrorDetails:
+    properties:
+      details:
+        $ref: '#/definitions/responses.ErrorDetails'
+      message:
+        example: This is a pretty message
+        type: string
+      request_id:
+        type: string
+      statusCode:
+        example: 201
+        type: integer
+      timestamp:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/errors.ErrorType'
+        example: FAILED_CHECK
+    type: object
+  responses.HealthResponse:
+    properties:
+      application:
+        example: true
+        type: boolean
+      database:
+        example: true
+        type: boolean
+      status:
+        description: Overall status of the system
         enum:
-        - radarr
-        - sonarr
-        - lidarr
-      url:
+        - up
+        - down
+        - degraded
+        example: up
         type: string
     required:
-    - apiKey
-    - clientType
-    - url
+    - application
+    - database
+    - status
     type: object
-  models.ClientTestResponse:
+  responses.MediaItemResponse:
+    properties:
+      clientId:
+        type: integer
+      clientType:
+        type: string
+      createdAt:
+        type: string
+      data: {}
+      externalId:
+        type: string
+      id:
+        type: integer
+      type:
+        $ref: '#/definitions/types.MediaType'
+      updatedAt:
+        type: string
+    type: object
+  responses.TestConnectionResponse:
     properties:
       message:
         type: string
@@ -250,17 +884,124 @@ definitions:
       version:
         type: string
     type: object
-  models.ClientType:
+  responses.UserResponse:
+    description: User information returned in API responses
+    properties:
+      email:
+        description: |-
+          Email is the unique email address of the user
+          @Description User's email address
+          @Example "user@example.com"
+        type: string
+      id:
+        description: |-
+          ID is the unique identifier for the user
+          @Description User's unique identifier
+          @Example 1
+        type: integer
+      role:
+        description: |-
+          Role defines the user's permission level
+          @Description User's role in the system
+          @Enum "user" "admin"
+          @Example "user"
+        type: string
+      username:
+        description: |-
+          Username is the display name chosen by the user
+          @Description User's chosen username
+          @Example "johndoe"
+        type: string
+    type: object
+  suasor_client_media_types.ExternalID:
+    properties:
+      id:
+        description: The actual ID
+        type: string
+      source:
+        description: e.g., "tmdb", "imdb", "trakt", "tvdb"
+        type: string
+    type: object
+  suasor_client_media_types.Rating:
+    properties:
+      source:
+        description: e.g., "tmdb", "imdb", "trakt", "tvdb"
+        type: string
+      value:
+        description: The actual ID
+        type: number
+      votes:
+        description: For sources that might have how many people voted on an item
+        type: integer
+    type: object
+  types.Album:
+    properties:
+      artistID:
+        type: string
+      artistName:
+        type: string
+      details:
+        $ref: '#/definitions/types.MediaDetails'
+      trackCount:
+        type: integer
+    type: object
+  types.Artist:
+    properties:
+      albumCount:
+        type: integer
+      albumIDs:
+        items:
+          type: string
+        type: array
+      biography:
+        type: string
+      details:
+        $ref: '#/definitions/types.MediaDetails'
+      similarArtists:
+        items:
+          type: string
+        type: array
+    type: object
+  types.Artwork:
+    properties:
+      background:
+        type: string
+      banner:
+        type: string
+      logo:
+        type: string
+      poster:
+        type: string
+      thumbnail:
+        type: string
+    type: object
+  types.ClientType:
     enum:
+    - emby
+    - jellyfin
+    - plex
+    - subsonic
     - radarr
     - sonarr
     - lidarr
+    - unknown
+    - claude
+    - openai
+    - ollama
     type: string
     x-enum-varnames:
+    - ClientTypeEmby
+    - ClientTypeJellyfin
+    - ClientTypePlex
+    - ClientTypeSubsonic
     - ClientTypeRadarr
     - ClientTypeSonarr
     - ClientTypeLidarr
-  models.Configuration:
+    - ClientTypeUnknown
+    - ClientTypeClaude
+    - ClientTypeOpenAI
+    - ClientTypeOllama
+  types.Configuration:
     description: Complete application configuration settings
     properties:
       app:
@@ -435,514 +1176,125 @@ definitions:
         - writeTimeout
         type: object
     type: object
-  models.DownloadClient:
-    properties:
-      apiKey:
-        type: string
-      clientType:
-        $ref: '#/definitions/models.ClientType'
-      createdAt:
-        type: string
-      id:
-        type: integer
-      isEnabled:
-        type: boolean
-      name:
-        type: string
-      updatedAt:
-        type: string
-      url:
-        type: string
-      userId:
-        type: integer
-    type: object
-  models.DownloadClientRequest:
-    properties:
-      apiKey:
-        type: string
-      clientType:
-        allOf:
-        - $ref: '#/definitions/models.ClientType'
-        enum:
-        - radarr
-        - sonarr
-        - lidarr
-      isEnabled:
-        type: boolean
-      name:
-        type: string
-      url:
-        type: string
-    required:
-    - apiKey
-    - clientType
-    - name
-    - url
-    type: object
-  models.EmptyResponse:
-    properties:
-      success:
-        type: boolean
-    type: object
-  models.ErrorResponse-error:
-    properties:
-      details: {}
-      message:
-        example: This is a pretty message
-        type: string
-      request_id:
-        type: string
-      statusCode:
-        example: 201
-        type: integer
-      timestamp:
-        type: string
-      type:
-        allOf:
-        - $ref: '#/definitions/models.ErrorType'
-        example: FAILED_CHECK
-    type: object
-  models.ErrorType:
-    enum:
-    - FAILED_CHECK
-    - UNAUTHORIZED
-    - NOT_FOUND
-    - BAD_REQUEST
-    - INTERNAL_ERROR
-    - FORBIDDEN
-    - CONFLICT
-    - VALIDATION_ERROR
-    - RATE_LIMITED
-    - TIMEOUT
-    - SERVICE_UNAVAILABLE
-    - UNPROCESSABLE_ENTITY
-    type: string
-    x-enum-varnames:
-    - ErrorTypeFailedCheck
-    - ErrorTypeUnauthorized
-    - ErrorTypeNotFound
-    - ErrorTypeBadRequest
-    - ErrorTypeInternalError
-    - ErrorTypeForbidden
-    - ErrorTypeConflict
-    - ErrorTypeValidation
-    - ErrorTypeRateLimited
-    - ErrorTypeTimeout
-    - ErrorTypeServiceUnavailable
-    - ErrorTypeUnprocessableEntity
-  models.GetByOriginalURLRequest:
-    properties:
-      createIfNotExists:
-        type: boolean
-      customCode:
-        type: string
-      expiresAfter:
-        type: integer
-      originalUrl:
-        type: string
-    required:
-    - originalUrl
-    type: object
-  models.HealthResponse:
-    properties:
-      application:
-        example: true
-        type: boolean
-      database:
-        example: true
-        type: boolean
-      status:
-        description: Overall status of the system
-        enum:
-        - up
-        - down
-        - degraded
-        example: up
-        type: string
-    required:
-    - application
-    - database
-    - status
-    type: object
-  models.LoginRequest:
-    description: Request payload for user login
-    properties:
-      email:
-        description: |-
-          Email is the user's email address
-          @Description User's email address
-          @Example "user@example.com"
-        example: user@example.com
-        type: string
-      password:
-        description: |-
-          Password is the user's chosen password
-          @Description User's password (plain text in request)
-        minLength: 8
-        type: string
-    required:
-    - email
-    - password
-    type: object
-  models.LogoutRequest:
-    description: Request payload for user logout
-    properties:
-      refreshToken:
-        description: |-
-          RefreshToken identifies the session to terminate
-          @Description JWT refresh token to invalidate
-        type: string
-    required:
-    - refreshToken
-    type: object
-  models.MediaClient-models_ClientConfig:
-    properties:
-      client: {}
-      clientType:
-        $ref: '#/definitions/models.MediaClientType'
-      createdAt:
-        type: string
-      id:
-        type: integer
-      name:
-        type: string
-      updatedAt:
-        type: string
-      userId:
-        type: integer
-    type: object
-  models.MediaClientRequest:
-    properties:
-      client: {}
-      clientType:
-        allOf:
-        - $ref: '#/definitions/models.MediaClientType'
-        enum:
-        - plex
-        - jellyfin
-        - emby
-        - subsonic
-      name:
-        type: string
-    required:
-    - clientType
-    - name
-    type: object
-  models.MediaClientResponse:
-    properties:
-      client: {}
-      clientType:
-        $ref: '#/definitions/models.MediaClientType'
-      createdAt:
-        type: string
-      id:
-        type: integer
-      name:
-        type: string
-      updatedAt:
-        type: string
-      userId:
-        type: integer
-    type: object
-  models.MediaClientTestRequest:
-    properties:
-      client: {}
-      clientType:
-        allOf:
-        - $ref: '#/definitions/models.MediaClientType'
-        enum:
-        - plex
-        - jellyfin
-        - emby
-        - subsonic
-    required:
-    - clientType
-    type: object
-  models.MediaClientTestResponse:
-    properties:
-      message:
-        type: string
-      success:
-        type: boolean
-      version:
-        type: string
-    type: object
-  models.MediaClientType:
+  types.MediaClientType:
     enum:
     - plex
     - jellyfin
     - emby
     - subsonic
+    - unknown
     type: string
     x-enum-varnames:
     - MediaClientTypePlex
     - MediaClientTypeJellyfin
     - MediaClientTypeEmby
     - MediaClientTypeSubsonic
-  models.RefreshTokenRequest:
-    description: Request payload for refreshing access tokens
+    - MediaClientTypeUnknown
+  types.MediaDetails:
     properties:
-      refreshToken:
-        description: |-
-          RefreshToken is used to generate a new access token
-          @Description JWT refresh token to use for generating new access token
+      addedAt:
         type: string
-    required:
-    - refreshToken
-    type: object
-  models.RegisterRequest:
-    description: Request payload for user registration
-    properties:
-      email:
-        description: |-
-          Email is the user's email address
-          @Description User's email address
-          @Example "user@example.com"
-        example: user@example.com
+      artwork:
+        $ref: '#/definitions/types.Artwork'
+      contentRating:
         type: string
-      password:
-        description: |-
-          Password is the user's chosen password
-          @Description User's password (plain text in request)
-        minLength: 8
+      description:
         type: string
-      username:
-        description: |-
-          Username is the user's desired username
-          @Description User's chosen username
-          @Example "johndoe"
-        example: johndoe
-        type: string
-    required:
-    - email
-    - password
-    - username
-    type: object
-  models.Shorten:
-    properties:
-      clickCount:
-        example: 0
+      durationSeconds:
+        description: Changed from time.Duration to int64 for Swagger compatibility
         type: integer
-      createdAt:
+      externalIDs:
+        items:
+          $ref: '#/definitions/suasor_client_media_types.ExternalID'
+        type: array
+      genres:
+        items:
+          type: string
+        type: array
+      isFavorite:
+        type: boolean
+      ratings:
+        items:
+          $ref: '#/definitions/suasor_client_media_types.Rating'
+        type: array
+      releaseDate:
         type: string
-      expiresAt:
-        type: string
-      id:
-        example: 1
+      releaseYear:
         type: integer
-      originalUrl:
-        example: https://example.com/some/long/path
-        type: string
-      shortCode:
-        example: abc123
+      studios:
+        items:
+          type: string
+        type: array
+      tags:
+        items:
+          type: string
+        type: array
+      title:
         type: string
       updatedAt:
         type: string
-    required:
-    - originalUrl
-    type: object
-  models.ShortenData:
-    properties:
-      shortUrl:
-        type: string
-      shorten:
-        $ref: '#/definitions/models.Shorten'
-    type: object
-  models.ShortenRequest:
-    properties:
-      customCode:
-        type: string
-      expiresAfter:
-        description: In days
-        type: integer
-      originalUrl:
-        type: string
-    required:
-    - originalUrl
-    type: object
-  models.UpdateProfileRequest:
-    description: Request payload for updating user profile
-    properties:
-      email:
-        description: |-
-          Email is the new email address
-          @Description Updated email address for the user
-          @Example "newemail@example.com"
-        example: newemail@example.com
-        type: string
-      username:
-        description: |-
-          Username is the new username
-          @Description Updated username for the user
-          @Example "newusername"
-        example: newusername
-        type: string
-    type: object
-  models.UserConfig:
-    description: User-specific configuration stored in the database
-    properties:
-      autoSyncRecommendations:
-        example: true
-        type: boolean
-      contentLanguages:
-        example: en,es,fr
-        type: string
-      createServerPlaylists:
-        example: true
-        type: boolean
-      createdAt:
-        type: string
-      defaultCollection:
-        example: AI Picks
-        type: string
-      defaultMediaServer:
-        description: Sync Preferences
-        enum:
-        - emby
-        - jellyfin
-        - plex
-        example: plex
-        type: string
-      deletedAt:
-        type: string
-      digestFrequency:
-        enum:
-        - never
-        - daily
-        - weekly
-        example: weekly
-        type: string
-      emailNotifications:
-        example: true
-        type: boolean
-      enableAnimations:
-        example: true
-        type: boolean
-      enableExperimentalAI:
-        example: false
-        type: boolean
-      excludedGenres:
-        example: horror,war
-        type: string
-      id:
-        type: integer
-      includeUnratedContent:
-        example: false
-        type: boolean
-      itemsPerPage:
-        example: 20
-        maximum: 100
-        minimum: 5
-        type: integer
-      language:
-        example: en-US
-        type: string
-      maxContentRating:
-        example: R
-        type: string
-      maxRecommendations:
-        example: 20
-        maximum: 100
-        minimum: 5
-        type: integer
-      minContentRating:
-        example: PG-13
-        type: string
-      newContentWeight:
-        example: 0.7
-        maximum: 1
-        minimum: 0
+      userRating:
         type: number
-      notificationsEnabled:
-        description: Notification Settings
-        example: true
-        type: boolean
-      notifyOnNewRecommendations:
-        example: true
-        type: boolean
-      notifyOnSync:
-        example: false
-        type: boolean
-      personalHistoryWeight:
-        example: 0.8
-        maximum: 1
-        minimum: 0
-        type: number
-      popularityWeight:
-        example: 0.3
-        maximum: 1
-        minimum: 0
-        type: number
-      preferredGenres:
-        example: action,comedy,drama
-        type: string
-      recommendationFrequency:
-        description: Recommendation Preferences
-        enum:
-        - daily
-        - weekly
-        - monthly
-        example: daily
-        type: string
-      recommendationStrategy:
-        description: AI Algorithm Settings
-        enum:
-        - similar
-        - diverse
-        - balanced
-        example: diverse
-        type: string
-      syncFrequency:
-        enum:
-        - manual
-        - daily
-        - weekly
-        example: daily
-        type: string
-      theme:
-        description: UI Preferences
-        enum:
-        - light
-        - dark
-        - system
-        example: dark
-        type: string
-      updatedAt:
-        type: string
-      userId:
-        description: UserID links this config to a specific user
-        type: integer
-    required:
-    - language
     type: object
-  models.UserResponse:
-    description: User information returned in API responses
+  types.MediaType:
+    enum:
+    - movie
+    - series
+    - season
+    - episode
+    - artist
+    - album
+    - track
+    - playlist
+    - collection
+    type: string
+    x-enum-varnames:
+    - MediaTypeMovie
+    - MediaTypeSeries
+    - MediaTypeSeason
+    - MediaTypeEpisode
+    - MediaTypeArtist
+    - MediaTypeAlbum
+    - MediaTypeTrack
+    - MediaTypePlaylist
+    - MediaTypeCollection
+  types.Playlist:
     properties:
-      email:
-        description: |-
-          Email is the unique email address of the user
-          @Description User's email address
-          @Example "user@example.com"
-        type: string
-      id:
-        description: |-
-          ID is the unique identifier for the user
-          @Description User's unique identifier
-          @Example 1
+      details:
+        $ref: '#/definitions/types.MediaDetails'
+      isPublic:
+        type: boolean
+      itemCount:
         type: integer
-      role:
-        description: |-
-          Role defines the user's permission level
-          @Description User's role in the system
-          @Enum "user" "admin"
-          @Example "user"
+      itemIDs:
+        items:
+          type: string
+        type: array
+      owner:
         type: string
-      username:
-        description: |-
-          Username is the display name chosen by the user
-          @Description User's chosen username
-          @Example "johndoe"
+    type: object
+  types.Track:
+    properties:
+      albumID:
         type: string
+      albumName:
+        type: string
+      albumTitle:
+        type: string
+      artistID:
+        type: string
+      artistName:
+        type: string
+      composer:
+        type: string
+      details:
+        $ref: '#/definitions/types.MediaDetails'
+      discNumber:
+        type: integer
+      lyrics:
+        type: string
+      trackNumber:
+        type: integer
     type: object
 host: localhost:8080
 info:
@@ -958,6 +1310,46 @@ info:
   title: Suasor API
   version: "1.0"
 paths:
+  /admin/client/:clientType/:clientId/test:
+    get:
+      consumes:
+      - application/json
+      description: Tests the connection to a media client using the provided configuration
+      parameters:
+      - description: Client type
+        in: path
+        name: clientType
+        required: true
+        type: string
+      - description: Client ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Connection test result
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_TestConnectionResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Test media client connection
+      tags:
+      - clients
   /auth/login:
     post:
       consumes:
@@ -969,26 +1361,26 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.LoginRequest'
+          $ref: '#/definitions/requests.LoginRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Successfully authenticated user
           schema:
-            $ref: '#/definitions/models.APIResponse-models_AuthData'
+            $ref: '#/definitions/responses.APIResponse-responses_AuthDataResponse'
         "400":
           description: Invalid request format
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Invalid credentials or inactive account
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       summary: Log in a user
       tags:
       - auth
@@ -1003,26 +1395,26 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.LogoutRequest'
+          $ref: '#/definitions/requests.LogoutRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Successfully logged out
           schema:
-            $ref: '#/definitions/models.APIResponse-any'
+            $ref: '#/definitions/responses.APIResponse-any'
         "400":
           description: Invalid request format
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Invalid refresh token
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       summary: Log out a user
       tags:
       - auth
@@ -1037,26 +1429,26 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.RefreshTokenRequest'
+          $ref: '#/definitions/requests.RefreshTokenRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Successfully refreshed token
           schema:
-            $ref: '#/definitions/models.APIResponse-models_AuthData'
+            $ref: '#/definitions/responses.APIResponse-responses_AuthDataResponse'
         "400":
           description: Invalid request format
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Invalid or expired refresh token
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       summary: Refresh access token
       tags:
       - auth
@@ -1071,26 +1463,26 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.RegisterRequest'
+          $ref: '#/definitions/requests.RegisterRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Successfully registered user
           schema:
-            $ref: '#/definitions/models.APIResponse-models_AuthData'
+            $ref: '#/definitions/responses.APIResponse-responses_AuthDataResponse'
         "400":
           description: Invalid request format
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "409":
           description: Email or username already in use
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       summary: Register a new user
       tags:
       - auth
@@ -1103,237 +1495,540 @@ paths:
         "200":
           description: Valid session with user details
           schema:
-            $ref: '#/definitions/models.APIResponse-models_UserResponse'
+            $ref: '#/definitions/responses.APIResponse-responses_UserResponse'
         "401":
           description: Invalid or expired session token
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
       summary: Validate user session
       tags:
       - auth
-  /clients/download:
+  /clients/automation/{clientID}/calendar:
     get:
       consumes:
       - application/json
-      description: Retrieves all download client configurations for the user
+      description: Retrieves calendar events from the automation client
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: start
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: end
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: Download clients retrieved
+          description: Calendar events retrieved
           schema:
-            $ref: '#/definitions/models.APIResponse-array_models_DownloadClient'
+            $ref: '#/definitions/responses.EmptyAPIResponse'
+        "400":
+          description: Invalid client ID or dates
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
-      summary: Get all download clients
+      summary: Get calendar from automation client
       tags:
-      - clients
+      - automation
+  /clients/automation/{clientID}/command:
     post:
       consumes:
       - application/json
-      description: Creates a new download client configuration
+      description: Executes a command on the automation client
       parameters:
-      - description: Download client data
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Command details
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.DownloadClientRequest'
+          $ref: '#/definitions/requests.ExecuteCommandRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Command executed
+          schema:
+            $ref: '#/definitions/responses.EmptyAPIResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Execute command on automation client
+      tags:
+      - automation
+  /clients/automation/{clientID}/library:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all library items from the automation client
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: Sort by
+        in: query
+        name: sortBy
+        type: string
+      - description: Sort order
+        in: query
+        name: sortOrder
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Library items retrieved
+          schema:
+            $ref: '#/definitions/responses.EmptyAPIResponse'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get library items from automation client
+      tags:
+      - automation
+  /clients/automation/{clientID}/media:
+    post:
+      consumes:
+      - application/json
+      description: Adds a new media item to the automation client
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Media details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.AddMediaRequest'
       produces:
       - application/json
       responses:
         "201":
-          description: Download client created
+          description: Media added
           schema:
-            $ref: '#/definitions/models.APIResponse-models_DownloadClient'
+            $ref: '#/definitions/responses.EmptyAPIResponse'
         "400":
           description: Invalid request
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
-      summary: Create a new download client
+      summary: Add media to automation client
       tags:
-      - clients
-  /clients/download/{id}:
+      - automation
+  /clients/automation/{clientID}/media/{mediaID}:
     delete:
       consumes:
       - application/json
-      description: Deletes a download client configuration
+      description: Deletes a media item from the automation client
       parameters:
       - description: Client ID
         in: path
-        name: id
+        name: clientID
         required: true
         type: integer
+      - description: Media ID
+        in: path
+        name: mediaID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: Download client deleted
+          description: Media deleted
           schema:
-            $ref: '#/definitions/models.APIResponse-any'
+            $ref: '#/definitions/responses.EmptyAPIResponse'
         "400":
-          description: Invalid client ID
+          description: Invalid client or media ID
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-        "404":
-          description: Client not found
-          schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
-      summary: Delete download client
+      summary: Delete media from automation client
       tags:
-      - clients
+      - automation
     get:
       consumes:
       - application/json
-      description: Retrieves a specific download client configuration
+      description: Retrieves a specific media item from the automation client
       parameters:
       - description: Client ID
         in: path
-        name: id
+        name: clientID
         required: true
         type: integer
+      - description: Media ID
+        in: path
+        name: mediaID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: Download client retrieved
+          description: Media retrieved
           schema:
-            $ref: '#/definitions/models.APIResponse-models_DownloadClient'
+            $ref: '#/definitions/responses.EmptyAPIResponse'
         "400":
-          description: Invalid client ID
+          description: Invalid client or media ID
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-        "404":
-          description: Client not found
-          schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
-      summary: Get download client
+      summary: Get media by ID from automation client
       tags:
-      - clients
+      - automation
     put:
       consumes:
       - application/json
-      description: Updates an existing download client configuration
+      description: Updates an existing media item in the automation client
       parameters:
       - description: Client ID
         in: path
-        name: id
+        name: clientID
         required: true
         type: integer
-      - description: Updated client data
+      - description: Media ID
+        in: path
+        name: mediaID
+        required: true
+        type: string
+      - description: Media details
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.DownloadClientRequest'
+          $ref: '#/definitions/requests.UpdateMediaRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: Download client updated
+          description: Media updated
           schema:
-            $ref: '#/definitions/models.APIResponse-models_DownloadClient'
-        "400":
-          description: Invalid request or client ID
-          schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-        "404":
-          description: Client not found
-          schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-      security:
-      - BearerAuth: []
-      summary: Update download client
-      tags:
-      - clients
-  /clients/download/test:
-    post:
-      consumes:
-      - application/json
-      description: Tests the connection to a download client using the provided configuration
-      parameters:
-      - description: Client configuration to test
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.ClientTestRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Connection test result
-          schema:
-            $ref: '#/definitions/models.APIResponse-models_ClientTestResponse'
+            $ref: '#/definitions/responses.EmptyAPIResponse'
         "400":
           description: Invalid request
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
-      summary: Test download client connection
+      summary: Update media in automation client
       tags:
-      - clients
+      - automation
+  /clients/automation/{clientID}/profiles/metadata:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all metadata profiles from the automation client
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Metadata profiles retrieved
+          schema:
+            $ref: '#/definitions/responses.EmptyAPIResponse'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get metadata profiles from automation client
+      tags:
+      - automation
+  /clients/automation/{clientID}/profiles/quality:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all quality profiles from the automation client
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Quality profiles retrieved
+          schema:
+            $ref: '#/definitions/responses.EmptyAPIResponse'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get quality profiles from automation client
+      tags:
+      - automation
+  /clients/automation/{clientID}/search:
+    get:
+      consumes:
+      - application/json
+      description: Searches for media items in the automation client
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Search results
+          schema:
+            $ref: '#/definitions/responses.EmptyAPIResponse'
+        "400":
+          description: Invalid client ID or query
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Search media in automation client
+      tags:
+      - automation
+  /clients/automation/{clientID}/status:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves system status information from the automation client
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: System status retrieved
+          schema:
+            $ref: '#/definitions/responses.EmptyAPIResponse'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get automation client system status
+      tags:
+      - automation
+  /clients/automation/{clientID}/tags:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all tags from the automation client
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tags retrieved
+          schema:
+            $ref: '#/definitions/responses.EmptyAPIResponse'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get tags from automation client
+      tags:
+      - automation
+    post:
+      consumes:
+      - application/json
+      description: Creates a new tag in the automation client
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Tag details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CreateTagRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Tag created
+          schema:
+            $ref: '#/definitions/responses.EmptyAPIResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Create tag in automation client
+      tags:
+      - automation
   /clients/media:
     get:
       consumes:
@@ -1345,15 +2040,15 @@ paths:
         "200":
           description: Media clients retrieved
           schema:
-            $ref: '#/definitions/models.APIResponse-array_models_MediaClient-models_ClientConfig'
+            $ref: '#/definitions/responses.APIResponse-array_responses_ClientResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
       summary: Get all media clients
@@ -1369,31 +2064,724 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.MediaClientRequest'
+          $ref: '#/definitions/requests.SwaggerClientRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Media client created
           schema:
-            $ref: '#/definitions/models.APIResponse-models_MediaClientResponse'
+            $ref: '#/definitions/responses.APIResponse-responses_ClientResponse'
         "400":
           description: Invalid request
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
       summary: Create a new media client
       tags:
       - clients
+  /clients/media/{clientID}/collections:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all collections from the client
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Maximum number of collections to return
+        in: query
+        name: count
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Collections retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get all collections
+      tags:
+      - collections
+  /clients/media/{clientID}/collections/{collectionID}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific collection from the client by ID
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Collection ID
+        in: path
+        name: collectionID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Collection retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemResponse'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get collection by ID
+      tags:
+      - collections
+  /clients/media/{clientID}/movies/{movieID}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific movie from the client by ID
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Movie ID
+        in: path
+        name: movieID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movie retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemResponse'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get movie by ID
+      tags:
+      - movies
+  /clients/media/{clientID}/music/albums/{albumID}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific music album from the client by ID
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Album ID
+        in: path
+        name: albumID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Album retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_Album'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get album by ID
+      tags:
+      - music
+  /clients/media/{clientID}/music/albums/{albumID}/tracks:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all tracks for a specific album
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Album ID
+        in: path
+        name: albumID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tracks retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Track'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get tracks by album
+      tags:
+      - music
+  /clients/media/{clientID}/music/artists/{artistID}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific music artist from the client by ID
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Artist ID
+        in: path
+        name: artistID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Artist retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_Artist'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get artist by ID
+      tags:
+      - music
+  /clients/media/{clientID}/music/artists/{artistID}/albums:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all albums for a specific artist
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Artist ID
+        in: path
+        name: artistID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Albums retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Album'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get albums by artist
+      tags:
+      - music
+  /clients/media/{clientID}/music/tracks/{trackID}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific music track from the client by ID
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Track ID
+        in: path
+        name: trackID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Track retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_Track'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get track by ID
+      tags:
+      - music
+  /clients/media/{clientID}/playlists:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all playlists from the client
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Maximum number of playlists to return
+        in: query
+        name: count
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Playlists retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Playlist'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get all playlists
+      tags:
+      - playlists
+    post:
+      consumes:
+      - application/json
+      description: Creates a new playlist on the specified client
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Playlist creation data
+        in: body
+        name: playlist
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Playlist created
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_Playlist'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Create a new playlist
+      tags:
+      - playlists
+  /clients/media/{clientID}/playlists/{playlistID}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a playlist from the specified client
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Playlist ID
+        in: path
+        name: playlistID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Playlist deleted
+          schema:
+            $ref: '#/definitions/responses.APIResponse-string'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Delete a playlist
+      tags:
+      - playlists
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific playlist from the client by ID
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Playlist ID
+        in: path
+        name: playlistID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Playlist retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_Playlist'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get playlist by ID
+      tags:
+      - playlists
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing playlist on the specified client
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Playlist ID
+        in: path
+        name: playlistID
+        required: true
+        type: string
+      - description: Playlist update data
+        in: body
+        name: playlist
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Playlist updated
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_Playlist'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Update a playlist
+      tags:
+      - playlists
+  /clients/media/{clientID}/playlists/{playlistID}/items:
+    post:
+      consumes:
+      - application/json
+      description: Adds a media item to an existing playlist
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Playlist ID
+        in: path
+        name: playlistID
+        required: true
+        type: string
+      - description: Item to add
+        in: body
+        name: item
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Item added to playlist
+          schema:
+            $ref: '#/definitions/responses.APIResponse-string'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Add an item to a playlist
+      tags:
+      - playlists
+  /clients/media/{clientID}/playlists/{playlistID}/items/{itemID}:
+    delete:
+      consumes:
+      - application/json
+      description: Removes a media item from an existing playlist
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Playlist ID
+        in: path
+        name: playlistID
+        required: true
+        type: string
+      - description: Item ID to remove
+        in: path
+        name: itemID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Item removed from playlist
+          schema:
+            $ref: '#/definitions/responses.APIResponse-string'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Remove an item from a playlist
+      tags:
+      - playlists
+  /clients/media/{clientID}/series/{seriesID}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific TV series from the client by ID
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Series ID
+        in: path
+        name: seriesID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Series retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemResponse'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get series by ID
+      tags:
+      - series
+  /clients/media/{clientID}/series/{seriesID}/seasons:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all seasons for a specific TV series
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Series ID
+        in: path
+        name: seriesID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Seasons retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get seasons for a series
+      tags:
+      - series
   /clients/media/{id}:
     delete:
       consumes:
@@ -1411,62 +2799,26 @@ paths:
         "200":
           description: Media client deleted
           schema:
-            $ref: '#/definitions/models.APIResponse-models_EmptyResponse'
+            $ref: '#/definitions/responses.APIResponse-responses_EmptyResponse'
         "400":
           description: Invalid client ID
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "404":
           description: Client not found
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
       summary: Delete media client
-      tags:
-      - clients
-  /clients/media/test:
-    post:
-      consumes:
-      - application/json
-      description: Tests the connection to a media client using the provided configuration
-      parameters:
-      - description: Client configuration to test
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.MediaClientTestRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Connection test result
-          schema:
-            $ref: '#/definitions/models.APIResponse-models_MediaClientTestResponse'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-      security:
-      - BearerAuth: []
-      summary: Test media client connection
       tags:
       - clients
   /config:
@@ -1480,19 +2832,19 @@ paths:
         "200":
           description: Configuration retrieved successfully
           schema:
-            $ref: '#/definitions/models.APIResponse-models_Configuration'
+            $ref: '#/definitions/responses.APIResponse-types_Configuration'
         "401":
           description: Unauthorized access
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "403":
           description: Forbidden - admin access required
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       summary: Get current configuration
       tags:
       - config
@@ -1506,30 +2858,30 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.Configuration'
+          $ref: '#/definitions/types.Configuration'
       produces:
       - application/json
       responses:
         "200":
           description: Configuration updated successfully
           schema:
-            $ref: '#/definitions/models.APIResponse-any'
+            $ref: '#/definitions/responses.APIResponse-any'
         "400":
           description: Invalid request format
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Unauthorized access
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "403":
           description: Forbidden - admin access required
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       summary: Update application configuration
       tags:
       - config
@@ -1544,19 +2896,19 @@ paths:
         "200":
           description: File configuration retrieved successfully
           schema:
-            $ref: '#/definitions/models.APIResponse-models_Configuration'
+            $ref: '#/definitions/responses.APIResponse-types_Configuration'
         "401":
           description: Unauthorized access
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "403":
           description: Forbidden - admin access required
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       summary: Get file-based configuration
       tags:
       - config
@@ -1570,30 +2922,30 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.Configuration'
+          $ref: '#/definitions/types.Configuration'
       produces:
       - application/json
       responses:
         "200":
           description: Configuration saved to file successfully
           schema:
-            $ref: '#/definitions/models.APIResponse-any'
+            $ref: '#/definitions/responses.APIResponse-any'
         "400":
           description: Invalid request format
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Unauthorized access
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "403":
           description: Forbidden - admin access required
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       summary: Save configuration to file
       tags:
       - config
@@ -1608,19 +2960,19 @@ paths:
         "200":
           description: Configuration reset successfully
           schema:
-            $ref: '#/definitions/models.APIResponse-any'
+            $ref: '#/definitions/responses.APIResponse-any'
         "401":
           description: Unauthorized access
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "403":
           description: Forbidden - admin access required
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       summary: Reset configuration to defaults
       tags:
       - config
@@ -1635,15 +2987,15 @@ paths:
         "200":
           description: User configuration retrieved successfully
           schema:
-            $ref: '#/definitions/models.APIResponse-models_UserConfig'
+            $ref: '#/definitions/responses.APIResponse-models_UserConfig'
         "401":
           description: Unauthorized access
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       summary: Get user configuration
       tags:
       - config
@@ -1664,19 +3016,19 @@ paths:
         "200":
           description: User configuration updated successfully
           schema:
-            $ref: '#/definitions/models.APIResponse-any'
+            $ref: '#/definitions/responses.APIResponse-any'
         "400":
           description: Invalid request format
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Unauthorized access
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       summary: Update user configuration
       tags:
       - config
@@ -1689,175 +3041,699 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.HealthResponse'
+            $ref: '#/definitions/responses.HealthResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       summary: checks app and database health
       tags:
       - health
-  /shorten:
-    post:
-      consumes:
-      - application/json
-      description: Creates a new shortened URL from a long URL, with optional custom
-        code and expiration. If no custom code is provided, one will be generated.
-      parameters:
-      - description: URL to shorten
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.ShortenRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Successfully created shortened URL
-          schema:
-            $ref: '#/definitions/models.APIResponse-models_ShortenData'
-        "400":
-          description: Invalid request format or short code already exists
-          schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-      summary: Create a shortened URL
-      tags:
-      - shorten
-  /shorten/{code}:
-    delete:
-      description: Deletes an existing shortened URL by its short code
-      parameters:
-      - description: Short code identifier
-        in: path
-        name: code
-        required: true
-        type: string
-      responses:
-        "204":
-          description: No Content - URL successfully deleted
-        "400":
-          description: Bad request - missing code parameter
-          schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-        "404":
-          description: Short URL not found
-          schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-      summary: Delete a shortened URL
-      tags:
-      - shorten
+  /movies/genre/{genre}:
     get:
-      description: Redirects to the original URL from a short code
-      parameters:
-      - description: Short code identifier
-        in: path
-        name: code
-        required: true
-        type: string
-      responses:
-        "302":
-          description: Found - Redirects to the original URL
-          headers:
-            Location:
-              description: The URL to redirect to
-              type: string
-        "400":
-          description: Bad request - missing code parameter
-          schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-        "404":
-          description: Short URL not found or has expired
-          schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-      summary: Redirect to original URL
-      tags:
-      - shorten
-    put:
       consumes:
       - application/json
-      description: Updates an existing shortened URL by its short code
+      description: Retrieves movies from all connected clients that match the specified
+        genre
       parameters:
-      - description: Short code identifier
+      - description: Genre name
         in: path
-        name: code
+        name: genre
         required: true
         type: string
-      - description: Updated URL data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.ShortenRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: Successfully updated shortened URL
+          description: Movies retrieved
           schema:
-            $ref: '#/definitions/models.APIResponse-models_ShortenData'
-        "400":
-          description: Invalid request format
+            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+        "401":
+          description: Unauthorized
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-        "404":
-          description: Short URL not found
-          schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-      summary: Update a shortened URL
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get movies by genre
       tags:
-      - shorten
-  /shorten/lookup:
-    post:
+      - movies
+  /movies/year/{year}:
+    get:
       consumes:
       - application/json
-      description: Checks if an original URL already has a short code and optionally
-        creates one if it doesn't exist
+      description: Retrieves movies from all connected clients that were released
+        in the specified year
       parameters:
-      - description: Original URL to check
-        in: body
-        name: request
+      - description: Release year
+        in: path
+        name: year
         required: true
-        schema:
-          $ref: '#/definitions/models.GetByOriginalURLRequest'
+        type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: Successfully retrieved shortened URL information
+          description: Movies retrieved
           schema:
-            $ref: '#/definitions/models.APIResponse-models_ShortenData'
-        "201":
-          description: Successfully created new shortened URL
-          schema:
-            $ref: '#/definitions/models.APIResponse-models_ShortenData'
+            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
         "400":
-          description: Invalid request format
+          description: Invalid year
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-        "404":
-          description: Original URL not found and createIfNotExists is false
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
-      summary: Check if a URL is already shortened
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get movies by release year
       tags:
-      - shorten
+      - movies
+  /music/albums/genre/{genre}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves albums from all connected clients that match the specified
+        genre
+      parameters:
+      - description: Genre name
+        in: path
+        name: genre
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Albums retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Album'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get albums by genre
+      tags:
+      - music
+  /music/albums/latest/{count}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the most recently added albums
+      parameters:
+      - description: Number of albums to retrieve
+        in: path
+        name: count
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Albums retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Album'
+        "400":
+          description: Invalid count
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get latest albums by added date
+      tags:
+      - music
+  /music/albums/popular/{count}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves most popular albums
+      parameters:
+      - description: Number of albums to retrieve
+        in: path
+        name: count
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Albums retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Album'
+        "400":
+          description: Invalid count
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get popular albums
+      tags:
+      - music
+  /music/albums/year/{year}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves albums from all connected clients that were released
+        in the specified year
+      parameters:
+      - description: Release year
+        in: path
+        name: year
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Albums retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Album'
+        "400":
+          description: Invalid year
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get albums by release year
+      tags:
+      - music
+  /music/artists/genre/{genre}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves artists from all connected clients that match the specified
+        genre
+      parameters:
+      - description: Genre name
+        in: path
+        name: genre
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Artists retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Artist'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get artists by genre
+      tags:
+      - music
+  /music/artists/popular/{count}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves most popular artists
+      parameters:
+      - description: Number of artists to retrieve
+        in: path
+        name: count
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Artists retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Artist'
+        "400":
+          description: Invalid count
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get popular artists
+      tags:
+      - music
+  /music/search:
+    get:
+      consumes:
+      - application/json
+      description: Search for music across all connected clients
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Music search results retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemResponse'
+        "400":
+          description: Invalid query
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Search music (artists, albums, tracks)
+      tags:
+      - music
+  /music/tracks/genre/{genre}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves tracks from all connected clients that match the specified
+        genre
+      parameters:
+      - description: Genre name
+        in: path
+        name: genre
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tracks retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Track'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get tracks by genre
+      tags:
+      - music
+  /playlists/search:
+    get:
+      consumes:
+      - application/json
+      description: Searches for playlists matching the given query
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Playlists found
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Playlist'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Search playlists
+      tags:
+      - playlists
+  /series/actor/{actor}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves TV series featuring a specific actor
+      parameters:
+      - description: Actor name
+        in: path
+        name: actor
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Series retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get series by actor
+      tags:
+      - series
+  /series/creator/{creator}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves TV series by a specific creator/director
+      parameters:
+      - description: Creator name
+        in: path
+        name: creator
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Series retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get series by creator
+      tags:
+      - series
+  /series/genre/{genre}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves TV series from all connected clients that match the specified
+        genre
+      parameters:
+      - description: Genre name
+        in: path
+        name: genre
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Series retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get series by genre
+      tags:
+      - series
+  /series/latest/{count}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the most recently added TV series
+      parameters:
+      - description: Number of series to retrieve
+        in: path
+        name: count
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Series retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+        "400":
+          description: Invalid count
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get latest series by added date
+      tags:
+      - series
+  /series/popular/{count}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves most popular TV series
+      parameters:
+      - description: Number of series to retrieve
+        in: path
+        name: count
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Series retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+        "400":
+          description: Invalid count
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get popular series
+      tags:
+      - series
+  /series/rating:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves TV series with ratings within the specified range
+      parameters:
+      - description: Minimum rating
+        in: query
+        name: min
+        required: true
+        type: number
+      - description: Maximum rating
+        in: query
+        name: max
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Series retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+        "400":
+          description: Invalid rating parameters
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get series by rating range
+      tags:
+      - series
+  /series/search:
+    get:
+      consumes:
+      - application/json
+      description: Search for TV series across all connected clients
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Series retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+        "400":
+          description: Invalid query
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Search series
+      tags:
+      - series
+  /series/top-rated/{count}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the highest rated TV series
+      parameters:
+      - description: Number of series to retrieve
+        in: path
+        name: count
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Series retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+        "400":
+          description: Invalid count
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get top rated series
+      tags:
+      - series
+  /series/year/{year}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves TV series from all connected clients that were released
+        in the specified year
+      parameters:
+      - description: Release year
+        in: path
+        name: year
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Series retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+        "400":
+          description: Invalid year
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get series by release year
+      tags:
+      - series
   /users/{id}:
     delete:
       description: Deletes a user account (admin only)
@@ -1873,23 +3749,23 @@ paths:
         "400":
           description: Invalid user ID format
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Unauthorized - Not logged in
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "403":
           description: Forbidden - Not an admin
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
       summary: Delete a user account
@@ -1909,27 +3785,27 @@ paths:
         "200":
           description: Successfully retrieved user
           schema:
-            $ref: '#/definitions/models.APIResponse-models_UserResponse'
+            $ref: '#/definitions/responses.APIResponse-responses_UserResponse'
         "400":
           description: Invalid user ID format
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Unauthorized - Not logged in
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "403":
           description: Forbidden - Not an admin
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
       summary: Get user by ID
@@ -1950,27 +3826,27 @@ paths:
         "200":
           description: Successfully activated user account
           schema:
-            $ref: '#/definitions/models.APIResponse-models_UserResponse'
+            $ref: '#/definitions/responses.APIResponse-responses_UserResponse'
         "400":
           description: Invalid user ID format
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Unauthorized - Not logged in
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "403":
           description: Forbidden - Not an admin
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
       summary: Activate a user account
@@ -1991,27 +3867,27 @@ paths:
         "200":
           description: Successfully deactivated user account
           schema:
-            $ref: '#/definitions/models.APIResponse-models_UserResponse'
+            $ref: '#/definitions/responses.APIResponse-responses_UserResponse'
         "400":
           description: Invalid user ID format
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Unauthorized - Not logged in
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "403":
           description: Forbidden - Not an admin
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
       summary: Deactivate a user account
@@ -2033,34 +3909,34 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.ChangeRoleRequest'
+          $ref: '#/definitions/requests.ChangeRoleRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Successfully changed user role
           schema:
-            $ref: '#/definitions/models.APIResponse-models_UserResponse'
+            $ref: '#/definitions/responses.APIResponse-responses_UserResponse'
         "400":
           description: Invalid user ID format or invalid role
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Unauthorized - Not logged in
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "403":
           description: Forbidden - Not an admin
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
       summary: Change user role
@@ -2077,26 +3953,26 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.ChangePasswordRequest'
+          $ref: '#/definitions/requests.ChangePasswordRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Successfully changed password
           schema:
-            $ref: '#/definitions/models.APIResponse-string'
+            $ref: '#/definitions/responses.APIResponse-string'
         "400":
           description: Invalid request format or incorrect current password
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Unauthorized - Not logged in
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
       summary: Change user password
@@ -2112,15 +3988,15 @@ paths:
         "200":
           description: Successfully retrieved user profile
           schema:
-            $ref: '#/definitions/models.APIResponse-models_UserResponse'
+            $ref: '#/definitions/responses.APIResponse-responses_UserResponse'
         "401":
           description: Unauthorized - Not logged in
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
       summary: Get the current user's profile
@@ -2137,26 +4013,26 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.UpdateProfileRequest'
+          $ref: '#/definitions/requests.ProfileRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Successfully updated user profile
           schema:
-            $ref: '#/definitions/models.APIResponse-models_UserResponse'
+            $ref: '#/definitions/responses.APIResponse-responses_UserResponse'
         "400":
           description: Invalid request format or email/username already exists
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
           description: Unauthorized - Not logged in
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
       summary: Update user profile
@@ -2173,22 +4049,22 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.RegisterRequest'
+          $ref: '#/definitions/requests.RegisterRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Successfully registered user
           schema:
-            $ref: '#/definitions/models.APIResponse-models_UserResponse'
+            $ref: '#/definitions/responses.APIResponse-responses_UserResponse'
         "400":
           description: Invalid request format or email/username already exists
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.ErrorResponse-error'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       summary: Register a new user
       tags:
       - users

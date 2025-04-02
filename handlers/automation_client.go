@@ -33,10 +33,10 @@ func NewAutomationClientHandler(service services.AutomationClientService) *Autom
 // @Produce json
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
-// @Success 200 {object} responses.APIResponse "System status retrieved"
-// @Failure 400 {object} responses.ErrorResponse "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Server error"
+// @Success 200 {object} responses.EmptyAPIResponse "System status retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/automation/{clientID}/status [get]
 func (h *AutomationClientHandler) GetSystemStatus(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -88,10 +88,10 @@ func (h *AutomationClientHandler) GetSystemStatus(c *gin.Context) {
 // @Param offset query int false "Offset"
 // @Param sortBy query string false "Sort by"
 // @Param sortOrder query string false "Sort order"
-// @Success 200 {object} responses.APIResponse "Library items retrieved"
-// @Failure 400 {object} responses.ErrorResponse "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Server error"
+// @Success 200 {object} responses.EmptyAPIResponse "Library items retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/automation/{clientID}/library [get]
 func (h *AutomationClientHandler) GetLibraryItems(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -154,10 +154,10 @@ func (h *AutomationClientHandler) GetLibraryItems(c *gin.Context) {
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
 // @Param mediaID path string true "Media ID"
-// @Success 200 {object} responses.APIResponse "Media retrieved"
-// @Failure 400 {object} responses.ErrorResponse "Invalid client or media ID"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Server error"
+// @Success 200 {object} responses.EmptyAPIResponse "Media retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client or media ID"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/automation/{clientID}/media/{mediaID} [get]
 func (h *AutomationClientHandler) GetMediaByID(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -210,10 +210,10 @@ func (h *AutomationClientHandler) GetMediaByID(c *gin.Context) {
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
 // @Param request body requests.AddMediaRequest true "Media details"
-// @Success 201 {object} responses.APIResponse "Media added"
-// @Failure 400 {object} responses.ErrorResponse "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Server error"
+// @Success 201 {object} responses.EmptyAPIResponse "Media added"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/automation/{clientID}/media [post]
 func (h *AutomationClientHandler) AddMedia(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -272,10 +272,10 @@ func (h *AutomationClientHandler) AddMedia(c *gin.Context) {
 // @Param clientID path int true "Client ID"
 // @Param mediaID path string true "Media ID"
 // @Param request body requests.UpdateMediaRequest true "Media details"
-// @Success 200 {object} responses.APIResponse "Media updated"
-// @Failure 400 {object} responses.ErrorResponse "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Server error"
+// @Success 200 {object} responses.EmptyAPIResponse "Media updated"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/automation/{clientID}/media/{mediaID} [put]
 func (h *AutomationClientHandler) UpdateMedia(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -337,10 +337,10 @@ func (h *AutomationClientHandler) UpdateMedia(c *gin.Context) {
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
 // @Param mediaID path string true "Media ID"
-// @Success 200 {object} responses.APIResponse "Media deleted"
-// @Failure 400 {object} responses.ErrorResponse "Invalid client or media ID"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Server error"
+// @Success 200 {object} responses.EmptyAPIResponse "Media deleted"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client or media ID"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/automation/{clientID}/media/{mediaID} [delete]
 func (h *AutomationClientHandler) DeleteMedia(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -393,10 +393,10 @@ func (h *AutomationClientHandler) DeleteMedia(c *gin.Context) {
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
 // @Param q query string true "Search query"
-// @Success 200 {object} responses.APIResponse "Search results"
-// @Failure 400 {object} responses.ErrorResponse "Invalid client ID or query"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Server error"
+// @Success 200 {object} responses.EmptyAPIResponse "Search results"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID or query"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/automation/{clientID}/search [get]
 func (h *AutomationClientHandler) SearchMedia(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -453,10 +453,10 @@ func (h *AutomationClientHandler) SearchMedia(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
-// @Success 200 {object} responses.APIResponse "Quality profiles retrieved"
-// @Failure 400 {object} responses.ErrorResponse "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Server error"
+// @Success 200 {object} responses.EmptyAPIResponse "Quality profiles retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/automation/{clientID}/profiles/quality [get]
 func (h *AutomationClientHandler) GetQualityProfiles(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -504,10 +504,10 @@ func (h *AutomationClientHandler) GetQualityProfiles(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
-// @Success 200 {object} responses.APIResponse "Metadata profiles retrieved"
-// @Failure 400 {object} responses.ErrorResponse "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Server error"
+// @Success 200 {object} responses.EmptyAPIResponse "Metadata profiles retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/automation/{clientID}/profiles/metadata [get]
 func (h *AutomationClientHandler) GetMetadataProfiles(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -555,10 +555,10 @@ func (h *AutomationClientHandler) GetMetadataProfiles(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
-// @Success 200 {object} responses.APIResponse "Tags retrieved"
-// @Failure 400 {object} responses.ErrorResponse "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Server error"
+// @Success 200 {object} responses.EmptyAPIResponse "Tags retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/automation/{clientID}/tags [get]
 func (h *AutomationClientHandler) GetTags(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -607,10 +607,10 @@ func (h *AutomationClientHandler) GetTags(c *gin.Context) {
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
 // @Param request body requests.CreateTagRequest true "Tag details"
-// @Success 201 {object} responses.APIResponse "Tag created"
-// @Failure 400 {object} responses.ErrorResponse "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Server error"
+// @Success 201 {object} responses.EmptyAPIResponse "Tag created"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/automation/{clientID}/tags [post]
 func (h *AutomationClientHandler) CreateTag(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -669,10 +669,10 @@ func (h *AutomationClientHandler) CreateTag(c *gin.Context) {
 // @Param clientID path int true "Client ID"
 // @Param start query string false "Start date (YYYY-MM-DD)"
 // @Param end query string false "End date (YYYY-MM-DD)"
-// @Success 200 {object} responses.APIResponse "Calendar events retrieved"
-// @Failure 400 {object} responses.ErrorResponse "Invalid client ID or dates"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Server error"
+// @Success 200 {object} responses.EmptyAPIResponse "Calendar events retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID or dates"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/automation/{clientID}/calendar [get]
 func (h *AutomationClientHandler) GetCalendar(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -741,10 +741,10 @@ func (h *AutomationClientHandler) GetCalendar(c *gin.Context) {
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
 // @Param request body requests.ExecuteCommandRequest true "Command details"
-// @Success 200 {object} responses.APIResponse "Command executed"
-// @Failure 400 {object} responses.ErrorResponse "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Server error"
+// @Success 200 {object} responses.EmptyAPIResponse "Command executed"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/automation/{clientID}/command [post]
 func (h *AutomationClientHandler) ExecuteCommand(c *gin.Context) {
 	ctx := c.Request.Context()

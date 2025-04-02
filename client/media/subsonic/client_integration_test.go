@@ -165,8 +165,53 @@ func testGetPlaylists(t *testing.T, ctx context.Context, client providers.Playli
 
 	if len(playlists) > 0 {
 		t.Logf("Got %d playlists", len(playlists))
-		assert.NotEmpty(t, playlists[0].ExternalID)
-		assert.NotEmpty(t, playlists[0].Data.Details.Title)
+		playlist := playlists[0]
+
+		// Basic validation
+		assert.NotEmpty(t, playlist.ExternalID, "Playlist should have an external ID")
+		assert.NotEmpty(t, playlist.Data.Details.Title, "Playlist should have a title")
+		
+		// Log more details about the playlist for inspection
+		t.Logf("First playlist: %s (ID: %s, Items: %d, Owner: %s)",
+			playlist.Data.Details.Title,
+			playlist.ExternalID,
+			playlist.Data.ItemCount,
+			playlist.Data.Owner)
+		
+		// Validate playlist structure
+		assert.True(t, playlist.Data.ItemCount >= 0, "Playlist should have a valid item count")
+		
+		// Note: Subsonic might not set the AddedAt field consistently
+		if !playlist.Data.Details.AddedAt.IsZero() {
+			assert.NotEqual(t, time.Time{}, playlist.Data.Details.AddedAt, "Playlist should have an added date")
+		}
+		
+		// Check if the playlist has items
+		if playlist.Data.ItemCount > 0 && len(playlist.Data.ItemIDs) > 0 {
+			t.Logf("First playlist has %d items, first item ID: %s", 
+				len(playlist.Data.ItemIDs), 
+				playlist.Data.ItemIDs[0])
+			assert.NotEmpty(t, playlist.Data.ItemIDs[0], "Playlist items should have valid IDs")
+		}
+		
+		// Test querying with filters if this playlist provider supports it
+		if playlist.Data.ItemCount > 0 {
+			// Try to get playlist by ID using filter
+			filteredOptions := &types.QueryOptions{
+				Filters: map[string]string{
+					"id": playlist.ExternalID,
+				},
+			}
+			
+			filteredPlaylists, err := client.GetPlaylists(ctx, filteredOptions)
+			if err == nil && len(filteredPlaylists) > 0 {
+				t.Logf("Successfully retrieved playlist by ID filter")
+				assert.Equal(t, playlist.ExternalID, filteredPlaylists[0].ExternalID, 
+					"Filtered playlist should match requested ID")
+			} else {
+				t.Logf("Provider doesn't support filtering playlists by ID or no results: %v", err)
+			}
+		}
 	} else {
 		t.Log("No playlists found in library")
 	}

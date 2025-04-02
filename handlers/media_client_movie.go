@@ -44,10 +44,10 @@ func NewMediaClientMovieHandler[T clienttypes.MediaClientConfig](movieService se
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
 // @Param movieID path string true "Movie ID"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Movie]] "Movie retrieved"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[responses.MediaItemResponse] "Movie retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/media/{clientID}/movies/{movieID} [get]
 func (h *MediaClientMovieHandler[T]) GetMovieByID(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -107,9 +107,9 @@ func (h *MediaClientMovieHandler[T]) GetMovieByID(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param genre path string true "Genre name"
-// @Success 200 {object} models.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[[]responses.MediaItemResponse] "Movies retrieved"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /movies/genre/{genre} [get]
 func (h *MediaClientMovieHandler[T]) GetMoviesByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -158,10 +158,10 @@ func (h *MediaClientMovieHandler[T]) GetMoviesByGenre(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param year path int true "Release year"
-// @Success 200 {object} models.APIResponse[[]models.Movie] "Movies retrieved"
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid year"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[[]responses.MediaItemResponse] "Movies retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid year"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /movies/year/{year} [get]
 func (h *MediaClientMovieHandler[T]) GetMoviesByYear(c *gin.Context) {
 	ctx := c.Request.Context()

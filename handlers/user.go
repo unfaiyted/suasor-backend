@@ -29,7 +29,7 @@ func NewUserHandler(service services.UserService) *UserHandler {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param request body models.RegisterRequest true "User registration information"
+// @Param request body requests.RegisterRequest true "User registration information"
 // @Example request
 //
 //	{
@@ -38,7 +38,7 @@ func NewUserHandler(service services.UserService) *UserHandler {
 //	  "password": "securepassword123"
 //	}
 //
-// @Success 201 {object} models.APIResponse[models.UserResponse] "Successfully registered user"
+// @Success 201 {object} responses.APIResponse[responses.UserResponse] "Successfully registered user"
 // @Example response
 //
 //	{
@@ -52,7 +52,7 @@ func NewUserHandler(service services.UserService) *UserHandler {
 //	  "message": "User registered successfully"
 //	}
 //
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid request format or email/username already exists"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format or email/username already exists"
 // @Example response
 //
 //	{
@@ -65,7 +65,7 @@ func NewUserHandler(service services.UserService) *UserHandler {
 //	  "requestId": "c7f3305d-8c9a-4b9b-b701-3b9a1e36c1f0"
 //	}
 //
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /users/register [post]
 func (h *UserHandler) Register(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -123,7 +123,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 // @Tags users
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} models.APIResponse[models.UserResponse] "Successfully retrieved user profile"
+// @Success 200 {object} responses.APIResponse[responses.UserResponse] "Successfully retrieved user profile"
 // @Example response
 //
 //	{
@@ -137,8 +137,8 @@ func (h *UserHandler) Register(c *gin.Context) {
 //	  "message": "Profile retrieved successfully"
 //	}
 //
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized - Not logged in"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /users/profile [get]
 func (h *UserHandler) GetProfile(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -178,7 +178,7 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body models.UpdateProfileRequest true "Updated profile information"
+// @Param request body requests.ProfileRequest true "Updated profile information"
 // @Example request
 //
 //	{
@@ -186,7 +186,7 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 //	  "username": "newusername"
 //	}
 //
-// @Success 200 {object} models.APIResponse[models.UserResponse] "Successfully updated user profile"
+// @Success 200 {object} responses.APIResponse[responses.UserResponse] "Successfully updated user profile"
 // @Example response
 //
 //	{
@@ -200,9 +200,9 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 //	  "message": "Profile updated successfully"
 //	}
 //
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid request format or email/username already exists"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized - Not logged in"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format or email/username already exists"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /users/profile [put]
 func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -277,7 +277,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body models.ChangePasswordRequest true "Password change information"
+// @Param request body requests.ChangePasswordRequest true "Password change information"
 // @Example request
 //
 //	{
@@ -285,7 +285,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 //	  "newPassword": "newpassword456"
 //	}
 //
-// @Success 200 {object} models.APIResponse[string] "Successfully changed password"
+// @Success 200 {object} responses.APIResponse[string] "Successfully changed password"
 // @Example response
 //
 //	{
@@ -294,9 +294,9 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 //	  "message": "Password changed successfully"
 //	}
 //
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid request format or incorrect current password"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized - Not logged in"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format or incorrect current password"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /users/password [put]
 func (h *UserHandler) ChangePassword(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -349,7 +349,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "User ID" example:"1"
-// @Success 200 {object} models.APIResponse[models.UserResponse] "Successfully retrieved user"
+// @Success 200 {object} responses.APIResponse[responses.UserResponse] "Successfully retrieved user"
 // @Example response
 //
 //	{
@@ -363,11 +363,11 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 //	  "message": "User retrieved successfully"
 //	}
 //
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid user ID format"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized - Not logged in"
-// @Failure 403 {object} models.ErrorResponse[error] "Forbidden - Not an admin"
-// @Failure 404 {object} models.ErrorResponse[error] "User not found"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid user ID format"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
+// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - Not an admin"
+// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "User not found"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /users/{id} [get]
 func (h *UserHandler) GetByID(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -416,14 +416,14 @@ func (h *UserHandler) GetByID(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "User ID" example:"1"
-// @Param request body models.ChangeRoleRequest true "New role information"
+// @Param request body requests.ChangeRoleRequest true "New role information"
 // @Example request
 //
 //	{
 //	  "role": "admin"
 //	}
 //
-// @Success 200 {object} models.APIResponse[models.UserResponse] "Successfully changed user role"
+// @Success 200 {object} responses.APIResponse[responses.UserResponse] "Successfully changed user role"
 // @Example response
 //
 //	{
@@ -437,11 +437,11 @@ func (h *UserHandler) GetByID(c *gin.Context) {
 //	  "message": "User role changed successfully"
 //	}
 //
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid user ID format or invalid role"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized - Not logged in"
-// @Failure 403 {object} models.ErrorResponse[error] "Forbidden - Not an admin"
-// @Failure 404 {object} models.ErrorResponse[error] "User not found"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid user ID format or invalid role"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
+// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - Not an admin"
+// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "User not found"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /users/{id}/role [put]
 func (h *UserHandler) ChangeRole(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -509,7 +509,7 @@ func (h *UserHandler) ChangeRole(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "User ID" example:"1"
-// @Success 200 {object} models.APIResponse[models.UserResponse] "Successfully activated user account"
+// @Success 200 {object} responses.APIResponse[responses.UserResponse] "Successfully activated user account"
 // @Example response
 //
 //	{
@@ -523,11 +523,11 @@ func (h *UserHandler) ChangeRole(c *gin.Context) {
 //	  "message": "User account activated successfully"
 //	}
 //
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid user ID format"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized - Not logged in"
-// @Failure 403 {object} models.ErrorResponse[error] "Forbidden - Not an admin"
-// @Failure 404 {object} models.ErrorResponse[error] "User not found"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid user ID format"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
+// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - Not an admin"
+// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "User not found"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /users/{id}/activate [post]
 func (h *UserHandler) ActivateUser(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -583,7 +583,7 @@ func (h *UserHandler) ActivateUser(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "User ID" example:"1"
-// @Success 200 {object} models.APIResponse[models.UserResponse] "Successfully deactivated user account"
+// @Success 200 {object} responses.APIResponse[responses.UserResponse] "Successfully deactivated user account"
 // @Example response
 //
 //	{
@@ -597,11 +597,11 @@ func (h *UserHandler) ActivateUser(c *gin.Context) {
 //	  "message": "User account deactivated successfully"
 //	}
 //
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid user ID format"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized - Not logged in"
-// @Failure 403 {object} models.ErrorResponse[error] "Forbidden - Not an admin"
-// @Failure 404 {object} models.ErrorResponse[error] "User not found"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid user ID format"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
+// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - Not an admin"
+// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "User not found"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /users/{id}/deactivate [post]
 func (h *UserHandler) DeactivateUser(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -657,11 +657,11 @@ func (h *UserHandler) DeactivateUser(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path int true "User ID" example:"1"
 // @Success 204 "No Content - User successfully deleted"
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid user ID format"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized - Not logged in"
-// @Failure 403 {object} models.ErrorResponse[error] "Forbidden - Not an admin"
-// @Failure 404 {object} models.ErrorResponse[error] "User not found"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid user ID format"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
+// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - Not an admin"
+// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "User not found"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /users/{id} [delete]
 func (h *UserHandler) Delete(c *gin.Context) {
 	ctx := c.Request.Context()

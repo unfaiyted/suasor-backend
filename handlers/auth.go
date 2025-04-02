@@ -29,7 +29,7 @@ func NewAuthHandler(service services.AuthService) *AuthHandler {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param request body models.RegisterRequest true "User registration data"
+// @Param request body requests.RegisterRequest true "User registration data"
 // @Example request
 //
 //	{
@@ -38,7 +38,7 @@ func NewAuthHandler(service services.AuthService) *AuthHandler {
 //	  "password": "securePassword123"
 //	}
 //
-// @Success 201 {object} models.APIResponse[models.AuthData] "Successfully registered user"
+// @Success 201 {object} responses.APIResponse[responses.AuthDataResponse] "Successfully registered user"
 // @Example response
 //
 //	{
@@ -57,8 +57,8 @@ func NewAuthHandler(service services.AuthService) *AuthHandler {
 //	  "message": "User registered successfully"
 //	}
 //
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid request format"
-// @Failure 409 {object} models.ErrorResponse[error] "Email or username already in use"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
+// @Failure 409 {object} responses.ErrorResponse[responses.ErrorDetails] "Email or username already in use"
 // @Example response
 //
 //	{
@@ -71,7 +71,7 @@ func NewAuthHandler(service services.AuthService) *AuthHandler {
 //	  "requestId": "c7f3305d-8c9a-4b9b-b701-3b9a1e36c1f0"
 //	}
 //
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -113,7 +113,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param request body models.LoginRequest true "User login data"
+// @Param request body requests.LoginRequest true "User login data"
 // @Example request
 //
 //	{
@@ -121,7 +121,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 //	  "password": "securePassword123"
 //	}
 //
-// @Success 200 {object} models.APIResponse[models.AuthData] "Successfully authenticated user"
+// @Success 200 {object} responses.APIResponse[responses.AuthDataResponse] "Successfully authenticated user"
 // @Example response
 //
 //	{
@@ -140,8 +140,8 @@ func (h *AuthHandler) Register(c *gin.Context) {
 //	  "message": "Login successful"
 //	}
 //
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid request format"
-// @Failure 401 {object} models.ErrorResponse[error] "Invalid credentials or inactive account"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid credentials or inactive account"
 // @Example response
 //
 //	{
@@ -152,7 +152,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 //	  "requestId": "c7f3305d-8c9a-4b9b-b701-3b9a1e36c1f0"
 //	}
 //
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -191,14 +191,14 @@ func (h *AuthHandler) Login(c *gin.Context) {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param request body models.RefreshTokenRequest true "Refresh token data"
+// @Param request body requests.RefreshTokenRequest true "Refresh token data"
 // @Example request
 //
 //	{
 //	  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 //	}
 //
-// @Success 200 {object} models.APIResponse[models.AuthData] "Successfully refreshed token"
+// @Success 200 {object} responses.APIResponse[responses.AuthDataResponse] "Successfully refreshed token"
 // @Example response
 //
 //	{
@@ -217,8 +217,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 //	  "message": "Token refreshed successfully"
 //	}
 //
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid request format"
-// @Failure 401 {object} models.ErrorResponse[error] "Invalid or expired refresh token"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid or expired refresh token"
 // @Example response
 //
 //	{
@@ -229,7 +229,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 //	  "requestId": "c7f3305d-8c9a-4b9b-b701-3b9a1e36c1f0"
 //	}
 //
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /auth/refresh [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -268,14 +268,14 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param request body models.LogoutRequest true "Logout data"
+// @Param request body requests.LogoutRequest true "Logout data"
 // @Example request
 //
 //	{
 //	  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 //	}
 //
-// @Success 200 {object} models.APIResponse[any] "Successfully logged out"
+// @Success 200 {object} responses.APIResponse[any] "Successfully logged out"
 // @Example response
 //
 //	{
@@ -283,9 +283,9 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 //	  "message": "Successfully logged out"
 //	}
 //
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid request format"
-// @Failure 401 {object} models.ErrorResponse[error] "Invalid refresh token"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid refresh token"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /auth/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -327,7 +327,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 // @Tags auth
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} models.APIResponse[models.UserResponse] "Valid session with user details"
+// @Success 200 {object} responses.APIResponse[responses.UserResponse] "Valid session with user details"
 // @Example response
 //
 //	{
@@ -341,7 +341,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 //	  "message": "Session is valid"
 //	}
 //
-// @Failure 401 {object} models.ErrorResponse[error] "Invalid or expired session token"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid or expired session token"
 // @Example response
 //
 //	{
@@ -352,7 +352,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 //	  "requestId": "c7f3305d-8c9a-4b9b-b701-3b9a1e36c1f0"
 //	}
 //
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /auth/validate [get]
 func (h *AuthHandler) ValidateSession(c *gin.Context) {
 	ctx := c.Request.Context()

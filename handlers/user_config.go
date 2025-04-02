@@ -28,9 +28,9 @@ func NewUserConfigHandler(userConfigService services.UserConfigService) *UserCon
 // @Tags config
 // @Accept json
 // @Produce json
-// @Success 200 {object} models.APIResponse[models.UserConfig] "User configuration retrieved successfully"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized access"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[models.UserConfig] "User configuration retrieved successfully"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /config/user [get]
 func (h *UserConfigHandler) GetUserConfig(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -65,10 +65,10 @@ func (h *UserConfigHandler) GetUserConfig(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body models.UserConfig true "User configuration data"
-// @Success 200 {object} models.APIResponse[any] "User configuration updated successfully"
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid request format"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized access"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[any] "User configuration updated successfully"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /config/user [put]
 func (h *UserConfigHandler) UpdateUserConfig(c *gin.Context) {
 	ctx := c.Request.Context()

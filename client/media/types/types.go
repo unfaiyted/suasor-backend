@@ -96,7 +96,7 @@ type MediaDetails struct {
 	Ratings       Ratings       `json:"ratings,omitempty"`
 	UserRating    float32       `json:"userRating,omitempty"`
 	Artwork       Artwork       `json:"artwork,omitempty"`
-	Duration      time.Duration `json:"durationSeconds,omitempty"`
+	Duration      int64 `json:"durationSeconds,omitempty"` // Changed from time.Duration to int64 for Swagger compatibility
 	IsFavorite    bool          `json:"isFavorite,omitempty"`
 }
 

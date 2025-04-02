@@ -33,11 +33,11 @@ func NewClientHandler[T types.ClientConfig](service services.ClientService[T]) *
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body models.MediaClientRequest true "Media client data"
-// @Success 201 {object} models.APIResponse[models.MediaClientResponse] "Media client created"
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid request"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Param request body requests.SwaggerClientRequest true "Media client data"
+// @Success 201 {object} responses.APIResponse[responses.ClientResponse] "Media client created"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/media [post]
 // @Example request - Plex client
 //
@@ -136,11 +136,11 @@ func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Client ID"
-// @Success 200 {object} models.APIResponse[models.MediaClientResponse] "Media client retrieved"
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid client ID"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
-// @Failure 404 {object} models.ErrorResponse[error] "Client not found"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[responses.ClientResponse] "Media client retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Client not found"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/media/{id} [get]
 // @Example response
 // {
@@ -209,9 +209,9 @@ func (h *ClientHandler[T]) GetClient(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} models.APIResponse[[]models.MediaClient[models.ClientConfig]] "Media clients retrieved"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[[]responses.ClientResponse] "Media clients retrieved"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/media [get]
 func (h *ClientHandler[T]) GetAllClients(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -247,12 +247,12 @@ func (h *ClientHandler[T]) GetAllClients(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Client ID"
-// @Param request body models.MediaClientRequest true "Updated client data"
-// @Success 200 {object} models.APIResponse[models.MediaClientResponse] "Media client updated"
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid request or client ID"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
-// @Failure 404 {object} models.ErrorResponse[error] "Client not found"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Param request body requests.ClientRequest true "Updated client data"
+// @Success 200 {object} responses.APIResponse[responses.ClientResponse] "Media client updated"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request or client ID"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Client not found"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/media/{id} [put]
 // @Example request - Jellyfin client
 // {
@@ -334,11 +334,11 @@ func (h *ClientHandler[T]) UpdateClient(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Client ID"
-// @Success 200 {object} models.APIResponse[models.EmptyResponse] "Media client deleted"
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid client ID"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
-// @Failure 404 {object} models.ErrorResponse[error] "Client not found"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[responses.EmptyResponse] "Media client deleted"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Client not found"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/media/{id} [delete]
 func (h *ClientHandler[T]) DeleteClient(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -389,10 +389,10 @@ func (h *ClientHandler[T]) DeleteClient(c *gin.Context) {
 // @Security BearerAuth
 // @Param clientType path string true "Client type"
 // @Param id path uint64 true "Client ID"
-// @Success 200 {object} models.APIResponse[models.MediaClientTestResponse] "Connection test result"
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid request"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[responses.TestConnectionResponse] "Connection test result"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /admin/client/:clientType/:clientId/test [get]
 // @Example response
 //

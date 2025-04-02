@@ -44,10 +44,10 @@ func NewMediaClientSeriesHandler[T interface{ clienttypes.MediaClientConfig }](s
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
 // @Param seriesID path string true "Series ID"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Series]] "Series retrieved"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[responses.MediaItemResponse] "Series retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/media/{clientID}/series/{seriesID} [get]
 func (h *MediaClientSeriesHandler[T]) GetSeriesByID(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -107,9 +107,9 @@ func (h *MediaClientSeriesHandler[T]) GetSeriesByID(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param genre path string true "Genre name"
-// @Success 200 {object} models.APIResponse[[]models.MediaItem[mediatypes.Series]] "Series retrieved"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[[]responses.MediaItemResponse] "Series retrieved"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /series/genre/{genre} [get]
 func (h *MediaClientSeriesHandler[T]) GetSeriesByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -158,10 +158,10 @@ func (h *MediaClientSeriesHandler[T]) GetSeriesByGenre(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param year path int true "Release year"
-// @Success 200 {object} models.APIResponse[[]models.MediaItem[mediatypes.Series]] "Series retrieved"
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid year"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[[]responses.MediaItemResponse] "Series retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid year"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /series/year/{year} [get]
 func (h *MediaClientSeriesHandler[T]) GetSeriesByYear(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -216,9 +216,9 @@ func (h *MediaClientSeriesHandler[T]) GetSeriesByYear(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param actor path string true "Actor name"
-// @Success 200 {object} models.APIResponse[[]models.MediaItem[mediatypes.Series]] "Series retrieved"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[[]responses.MediaItemResponse] "Series retrieved"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /series/actor/{actor} [get]
 func (h *MediaClientSeriesHandler[T]) GetSeriesByActor(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -267,9 +267,9 @@ func (h *MediaClientSeriesHandler[T]) GetSeriesByActor(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param creator path string true "Creator name"
-// @Success 200 {object} models.APIResponse[[]models.MediaItem[mediatypes.Series]] "Series retrieved"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[[]responses.MediaItemResponse] "Series retrieved"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /series/creator/{creator} [get]
 func (h *MediaClientSeriesHandler[T]) GetSeriesByCreator(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -319,10 +319,10 @@ func (h *MediaClientSeriesHandler[T]) GetSeriesByCreator(c *gin.Context) {
 // @Security BearerAuth
 // @Param min query number true "Minimum rating"
 // @Param max query number true "Maximum rating"
-// @Success 200 {object} models.APIResponse[[]models.MediaItem[mediatypes.Series]] "Series retrieved"
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid rating parameters"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[[]responses.MediaItemResponse] "Series retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid rating parameters"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /series/rating [get]
 func (h *MediaClientSeriesHandler[T]) GetSeriesByRating(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -387,10 +387,10 @@ func (h *MediaClientSeriesHandler[T]) GetSeriesByRating(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param count path int true "Number of series to retrieve"
-// @Success 200 {object} models.APIResponse[[]models.MediaItem[mediatypes.Series]] "Series retrieved"
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid count"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[[]responses.MediaItemResponse] "Series retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid count"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /series/latest/{count} [get]
 func (h *MediaClientSeriesHandler[T]) GetLatestSeriesByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -445,10 +445,10 @@ func (h *MediaClientSeriesHandler[T]) GetLatestSeriesByAdded(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param count path int true "Number of series to retrieve"
-// @Success 200 {object} models.APIResponse[[]models.MediaItem[mediatypes.Series]] "Series retrieved"
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid count"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[[]responses.MediaItemResponse] "Series retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid count"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /series/popular/{count} [get]
 func (h *MediaClientSeriesHandler[T]) GetPopularSeries(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -503,10 +503,10 @@ func (h *MediaClientSeriesHandler[T]) GetPopularSeries(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param count path int true "Number of series to retrieve"
-// @Success 200 {object} models.APIResponse[[]models.MediaItem[mediatypes.Series]] "Series retrieved"
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid count"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[[]responses.MediaItemResponse] "Series retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid count"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /series/top-rated/{count} [get]
 func (h *MediaClientSeriesHandler[T]) GetTopRatedSeries(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -561,10 +561,10 @@ func (h *MediaClientSeriesHandler[T]) GetTopRatedSeries(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param q query string true "Search query"
-// @Success 200 {object} models.APIResponse[[]models.MediaItem[mediatypes.Series]] "Series retrieved"
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid query"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[[]responses.MediaItemResponse] "Series retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid query"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /series/search [get]
 func (h *MediaClientSeriesHandler[T]) SearchSeries(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -620,10 +620,10 @@ func (h *MediaClientSeriesHandler[T]) SearchSeries(c *gin.Context) {
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
 // @Param seriesID path string true "Series ID"
-// @Success 200 {object} models.APIResponse[[]models.MediaItem[mediatypes.Season]] "Seasons retrieved"
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid client ID"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[[]responses.MediaItemResponse] "Seasons retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/media/{clientID}/series/{seriesID}/seasons [get]
 func (h *MediaClientSeriesHandler[T]) GetSeasonsBySeriesID(c *gin.Context) {
 	ctx := c.Request.Context()

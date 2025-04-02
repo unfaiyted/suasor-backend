@@ -1,5 +1,17 @@
 package requests
 
+// AddMediaRequest is an alias for AutomationMediaAddRequest (for Swagger docs)
+type AddMediaRequest = AutomationMediaAddRequest
+
+// UpdateMediaRequest is an alias for AutomationMediaUpdateRequest (for Swagger docs)
+type UpdateMediaRequest = AutomationMediaUpdateRequest
+
+// CreateTagRequest is an alias for AutomationCreateTagRequest (for Swagger docs)
+type CreateTagRequest = AutomationCreateTagRequest
+
+// ExecuteCommandRequest is an alias for AutomationExecuteCommandRequest (for Swagger docs)
+type ExecuteCommandRequest = AutomationExecuteCommandRequest
+
 // MediaAddRequest represents a request to add new media
 type AutomationMediaAddRequest struct {
 	Title             string

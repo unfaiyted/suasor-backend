@@ -78,6 +78,25 @@ func RegisterMediaClientRoutes(rg *gin.RouterGroup, deps *app.AppDependencies) {
 		"plex":      mediaHandler.PlexMusicHandler(),
 		"subsonic":  mediaHandler.SubsonicMusicHandler(),
 	}
+	
+	// Define playlist handler interface
+	type playlistHandlerInterface interface {
+		GetPlaylistByID(c *gin.Context)
+		GetPlaylists(c *gin.Context)
+		CreatePlaylist(c *gin.Context)
+		UpdatePlaylist(c *gin.Context)
+		DeletePlaylist(c *gin.Context)
+		AddItemToPlaylist(c *gin.Context)
+		RemoveItemFromPlaylist(c *gin.Context)
+		SearchPlaylists(c *gin.Context)
+	}
+	
+	// For now these will be placeholders until we implement the interface methods
+	playlistHandlerMap := map[string]playlistHandlerInterface{
+		"jellyfin": nil, // mediaHandler.JellyfinPlaylistHandler() once implemented
+		"emby":     nil, // mediaHandler.EmbyPlaylistHandler() once implemented
+		"plex":     nil, // mediaHandler.PlexPlaylistHandler() once implemented
+	}
 
 	// Helper function to get the appropriate movie handler
 	getMovieHandler := func(c *gin.Context) movieHandlerInterface {
@@ -112,6 +131,26 @@ func RegisterMediaClientRoutes(rg *gin.RouterGroup, deps *app.AppDependencies) {
 			responses.RespondBadRequest(c, err, "Unsupported client type")
 			return nil
 		}
+		return handler
+	}
+	
+	// Helper function to get the appropriate playlist handler
+	getPlaylistHandler := func(c *gin.Context) playlistHandlerInterface {
+		clientType := c.Param("clientType")
+		handler, exists := playlistHandlerMap[clientType]
+		if !exists {
+			err := fmt.Errorf("unsupported client type: %s", clientType)
+			responses.RespondBadRequest(c, err, "Unsupported client type")
+			return nil
+		}
+		
+		// For now, since handlers are not implemented
+		if handler == nil {
+			err := fmt.Errorf("playlist support not implemented for client type: %s", clientType)
+			responses.RespondInternalError(c, err, "Feature not implemented")
+			return nil
+		}
+		
 		return handler
 	}
 
@@ -343,6 +382,59 @@ func RegisterMediaClientRoutes(rg *gin.RouterGroup, deps *app.AppDependencies) {
 		music.GET("/search", func(c *gin.Context) {
 			if handler := getMusicHandler(c); handler != nil {
 				handler.SearchMusic(c)
+			}
+		})
+	}
+	
+	// Playlist routes
+	playlists := client.Group("/playlists")
+	{
+		playlists.GET("", func(c *gin.Context) {
+			if handler := getPlaylistHandler(c); handler != nil {
+				handler.GetPlaylists(c)
+			}
+		})
+		
+		playlists.GET("/:id", func(c *gin.Context) {
+			if handler := getPlaylistHandler(c); handler != nil {
+				handler.GetPlaylistByID(c)
+			}
+		})
+		
+		playlists.POST("", func(c *gin.Context) {
+			if handler := getPlaylistHandler(c); handler != nil {
+				handler.CreatePlaylist(c)
+			}
+		})
+		
+		playlists.PUT("/:id", func(c *gin.Context) {
+			if handler := getPlaylistHandler(c); handler != nil {
+				handler.UpdatePlaylist(c)
+			}
+		})
+		
+		playlists.DELETE("/:id", func(c *gin.Context) {
+			if handler := getPlaylistHandler(c); handler != nil {
+				handler.DeletePlaylist(c)
+			}
+		})
+		
+		playlists.POST("/:id/items", func(c *gin.Context) {
+			if handler := getPlaylistHandler(c); handler != nil {
+				handler.AddItemToPlaylist(c)
+			}
+		})
+		
+		playlists.DELETE("/:id/items/:itemID", func(c *gin.Context) {
+			if handler := getPlaylistHandler(c); handler != nil {
+				handler.RemoveItemFromPlaylist(c)
+			}
+		})
+		
+		// Search within playlists
+		playlists.GET("/search", func(c *gin.Context) {
+			if handler := getPlaylistHandler(c); handler != nil {
+				handler.SearchPlaylists(c)
 			}
 		})
 	}

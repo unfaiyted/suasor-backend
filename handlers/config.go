@@ -55,10 +55,10 @@ func (h *ConfigHandler) checkAdminAccess(c *gin.Context) (uint64, bool) {
 // @Tags config
 // @Accept json
 // @Produce json
-// @Success 200 {object} models.APIResponse[models.Configuration] "Configuration retrieved successfully"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized access"
-// @Failure 403 {object} models.ErrorResponse[error] "Forbidden - admin access required"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[types.Configuration] "Configuration retrieved successfully"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
+// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - admin access required"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /config [get]
 func (h *ConfigHandler) GetConfig(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -84,12 +84,12 @@ func (h *ConfigHandler) GetConfig(c *gin.Context) {
 // @Tags config
 // @Accept json
 // @Produce json
-// @Param request body models.Configuration true "Configuration data"
-// @Success 200 {object} models.APIResponse[any] "Configuration updated successfully"
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid request format"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized access"
-// @Failure 403 {object} models.ErrorResponse[error] "Forbidden - admin access required"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Param request body types.Configuration true "Configuration data"
+// @Success 200 {object} responses.APIResponse[any] "Configuration updated successfully"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
+// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - admin access required"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /config [put]
 func (h *ConfigHandler) UpdateConfig(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -131,10 +131,10 @@ func (h *ConfigHandler) UpdateConfig(c *gin.Context) {
 // @Tags config
 // @Accept json
 // @Produce json
-// @Success 200 {object} models.APIResponse[models.Configuration] "File configuration retrieved successfully"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized access"
-// @Failure 403 {object} models.ErrorResponse[error] "Forbidden - admin access required"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[types.Configuration] "File configuration retrieved successfully"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
+// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - admin access required"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /config/file [get]
 // GetFileConfig uses the admin access check helper
 func (h *ConfigHandler) GetFileConfig(c *gin.Context) {
@@ -172,12 +172,12 @@ func (h *ConfigHandler) GetFileConfig(c *gin.Context) {
 // @Tags config
 // @Accept json
 // @Produce json
-// @Param request body models.Configuration true "Configuration data"
-// @Success 200 {object} models.APIResponse[any] "Configuration saved to file successfully"
-// @Failure 400 {object} models.ErrorResponse[error] "Invalid request format"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized access"
-// @Failure 403 {object} models.ErrorResponse[error] "Forbidden - admin access required"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Param request body types.Configuration true "Configuration data"
+// @Success 200 {object} responses.APIResponse[any] "Configuration saved to file successfully"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
+// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - admin access required"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /config/file [put]
 func (h *ConfigHandler) SaveFileConfig(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -219,10 +219,10 @@ func (h *ConfigHandler) SaveFileConfig(c *gin.Context) {
 // @Tags config
 // @Accept json
 // @Produce json
-// @Success 200 {object} models.APIResponse[any] "Configuration reset successfully"
-// @Failure 401 {object} models.ErrorResponse[error] "Unauthorized access"
-// @Failure 403 {object} models.ErrorResponse[error] "Forbidden - admin access required"
-// @Failure 500 {object} models.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[any] "Configuration reset successfully"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
+// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - admin access required"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /config/reset [post]
 func (h *ConfigHandler) ResetConfig(c *gin.Context) {
 	ctx := c.Request.Context()

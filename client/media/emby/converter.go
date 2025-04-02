@@ -3,7 +3,6 @@ package emby
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"suasor/client/media/types"
 	embyclient "suasor/internal/clients/embyAPI"
@@ -127,7 +126,7 @@ func (e *EmbyClient) convertToMovie(ctx context.Context, item *embyclient.BaseIt
 			ReleaseYear: releaseYear,
 			Genres:      item.Genres,
 			Artwork:     e.getArtworkURLs(item),
-			Duration:    time.Duration(item.RunTimeTicks/10000000) * time.Second,
+			Duration:    int64(item.RunTimeTicks / 10000000), // Duration in seconds
 			Ratings: types.Ratings{
 				types.Rating{
 					Source: "emby",
@@ -183,7 +182,7 @@ func (e *EmbyClient) convertToTrack(item *embyclient.BaseItemDto) (models.MediaI
 			Details: types.MediaDetails{
 				Title:       item.Name,
 				Description: item.Overview,
-				Duration:    time.Duration(item.RunTimeTicks/10000000) * time.Second,
+				Duration:    int64(item.RunTimeTicks / 10000000), // Duration in seconds
 				Artwork:     e.getArtworkURLs(item),
 			},
 			Number:    int(item.IndexNumber),
@@ -310,7 +309,7 @@ func (e *EmbyClient) convertToSeries(item *embyclient.BaseItemDto) (models.Media
 				ReleaseYear: int(item.ProductionYear),
 				Genres:      item.Genres,
 				Artwork:     e.getArtworkURLs(item),
-				Duration:    time.Duration(item.RunTimeTicks/10000000) * time.Second,
+				Duration:    int64(item.RunTimeTicks / 10000000), // Duration in seconds
 			},
 			SeasonCount: int(item.ChildCount),
 			Status:      item.Status,
@@ -374,7 +373,7 @@ func (e *EmbyClient) convertToEpisode(item *embyclient.BaseItemDto) (models.Medi
 			Title:       item.Name,
 			Description: item.Overview,
 			Artwork:     e.getArtworkURLs(item),
-			Duration:    time.Duration(item.RunTimeTicks/10000000) * time.Second,
+			Duration:    int64(item.RunTimeTicks / 10000000), // Duration in seconds
 		},
 		Number:       int64(item.IndexNumber),
 		ShowID:       item.SeriesId,

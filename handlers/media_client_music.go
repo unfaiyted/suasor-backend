@@ -770,10 +770,10 @@ func (h *MediaClientMusicHandler[T]) GetPopularArtists(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param q query string true "Search query"
-// @Success 200 {object} responses.APIResponse[map[string]interface{}] "Music search results retrieved"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid query"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Success 200 {object} responses.APIResponse[responses.MediaItemResponse] "Music search results retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid query"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /music/search [get]
 func (h *MediaClientMusicHandler[T]) SearchMusic(c *gin.Context) {
 	ctx := c.Request.Context()

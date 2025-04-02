@@ -12,9 +12,31 @@ type APIResponse[T any] struct {
 	Data    T      `json:"data,omitempty"`
 }
 
+// The following type aliases are for Swagger documentation
+// They help swagger resolve generic type issues
+
+// StringResponse is the APIResponse for a string
+type StringResponse = APIResponse[string]
+
+// HealthCheckResponse is for health check responses
+type HealthCheckResponse = APIResponse[HealthResponse]
+
+// UserProfileResponse is the API response for user profile
+type UserProfileResponse = APIResponse[UserResponse]
+
+// EmptyAPIResponse is the APIResponse for empty data
+type EmptyAPIResponse = APIResponse[any]
+
 // Type-specific response creators
 type EmptyResponse struct {
 	Success bool `json:"success"`
+}
+
+// TestConnectionResponse contains details about a connection test
+type TestConnectionResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	Version string `json:"version,omitempty"`
 }
 
 // RespondSuccess creates a standardized success response

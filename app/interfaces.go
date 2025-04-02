@@ -70,7 +70,10 @@ type ClientMusicServices interface {
 }
 
 type ClientPlaylistServices interface {
-	// TODO: implement
+	EmbyPlaylistService() services.MediaClientPlaylistService[*types.EmbyConfig]
+	JellyfinPlaylistService() services.MediaClientPlaylistService[*types.JellyfinConfig]
+	PlexPlaylistService() services.MediaClientPlaylistService[*types.PlexConfig]
+	SubsonicPlaylistService() services.MediaClientPlaylistService[*types.SubsonicConfig]
 }
 
 type MediaItemServices interface {
@@ -134,6 +137,7 @@ type ClientMediaHandlers interface {
 	ClientMediaSeriesHandlers
 	ClientMediaEpisodeHandlers
 	ClientMediaMusicHandlers
+	ClientMediaPlaylistHandlers
 }
 
 type ClientMediaMovieHandlers interface {
@@ -159,6 +163,13 @@ type ClientMediaMusicHandlers interface {
 	JellyfinMusicHandler() *handlers.MediaClientMusicHandler[*types.JellyfinConfig]
 	PlexMusicHandler() *handlers.MediaClientMusicHandler[*types.PlexConfig]
 	SubsonicMusicHandler() *handlers.MediaClientMusicHandler[*types.SubsonicConfig]
+}
+
+type ClientMediaPlaylistHandlers interface {
+	EmbyPlaylistHandler() *handlers.MediaClientPlaylistHandler[*types.EmbyConfig]
+	JellyfinPlaylistHandler() *handlers.MediaClientPlaylistHandler[*types.JellyfinConfig]
+	PlexPlaylistHandler() *handlers.MediaClientPlaylistHandler[*types.PlexConfig]
+	SubsonicPlaylistHandler() *handlers.MediaClientPlaylistHandler[*types.SubsonicConfig]
 }
 
 type UserHandlers interface {
