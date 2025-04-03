@@ -21,20 +21,13 @@ func init() {
 
 	fmt.Println("Registering Claude client factory...")
 	client.RegisterClientFactory(types.ClientTypeClaude,
-		func(ctx context.Context, clientID uint64, clientType types.ClientType) (client.Client, error) {
-			// Get client config from the service
-			return NewClaudeClient(ctx, clientID, types.ClaudeConfig{
-				BaseAIClientConfig: types.BaseAIClientConfig{
-					BaseClientConfig: types.BaseClientConfig{
-						Type:     clientType,
-						Category: types.ClientCategoryAI,
-					},
-					ClientType:  types.AIClientTypeClaude,
-					Model:       "claude-3-5-sonnet-20240620",
-					MaxTokens:   1000,
-					Temperature: 0.7,
-				},
-			})
+		func(ctx context.Context, clientID uint64, configData types.ClientConfig) (client.Client, error) {
+			// Use the provided config (should be a ClaudeConfig)
+			claudeConfig, ok := configData.(*types.ClaudeConfig)
+			if !ok {
+				return nil, fmt.Errorf("expected *types.ClaudeConfig, got %T", configData)
+			}
+			return NewClaudeClient(ctx, clientID, *claudeConfig)
 		})
 }
 

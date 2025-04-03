@@ -14,7 +14,7 @@ type ClientKey struct {
 }
 
 // Factory function type
-type ClientFactory func(ctx context.Context, clientID uint64, clientType types.ClientType) (Client, error)
+type ClientFactory func(ctx context.Context, clientID uint64, config types.ClientConfig) (Client, error)
 
 // ClientFactoryService provides client creation functionality as a singleton
 type ClientFactoryService struct {
@@ -48,9 +48,14 @@ func (s *ClientFactoryService) RegisterClientFactory(clientType types.ClientType
 }
 
 // GetClient returns an existing client or creates a new one
-func (s *ClientFactoryService) GetClient(ctx context.Context, clientID uint64, clientType types.ClientType) (Client, error) {
+func (s *ClientFactoryService) GetClient(ctx context.Context, clientID uint64, config types.ClientConfig) (Client, error) {
 	log := utils.LoggerFromContext(ctx)
+	clientType := config.GetType()
 	key := ClientKey{Type: clientType, ID: clientID}
+	log.Debug().
+		Str("clientType", clientType.String()).
+		Uint64("clientID", clientID).
+		Msg("Factory service retrieving client")
 
 	// Try to get existing client first (read lock)
 	s.mu.RLock()
@@ -61,7 +66,7 @@ func (s *ClientFactoryService) GetClient(ctx context.Context, clientID uint64, c
 		log.Info().
 			Str("clientType", clientType.String()).
 			Uint64("clientID", clientID).
-			Msg("Returning existing client instance")
+			Msg("Factory returning existing client instance")
 		return client, nil
 	}
 
@@ -81,7 +86,7 @@ func (s *ClientFactoryService) GetClient(ctx context.Context, clientID uint64, c
 	}
 
 	// Create and cache new client
-	client, err := factory(ctx, clientID, clientType)
+	client, err := factory(ctx, clientID, config)
 	if err != nil {
 		return nil, err
 	}
@@ -104,5 +109,5 @@ func RegisterClientFactory(clientType types.ClientType, factory ClientFactory) {
 
 // GetClient gets or creates a client at the package level
 func GetClient(ctx context.Context, clientID uint64, config types.ClientConfig) (Client, error) {
-	return GetClientFactoryService().GetClient(ctx, clientID, config.GetType())
+	return GetClientFactoryService().GetClient(ctx, clientID, config)
 }

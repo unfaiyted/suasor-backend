@@ -63,7 +63,7 @@ func (s *mediaMovieService[T]) getMovieClients(ctx context.Context, userID uint6
 	for _, clientConfig := range clients {
 		if clientConfig.Config.Data.SupportsMovies() {
 			clientId := clientConfig.GetID()
-			client, err := s.factory.GetClient(ctx, clientId, clientConfig.Config.Data.GetType())
+			client, err := s.factory.GetClient(ctx, clientId, clientConfig.Config.Data)
 			if err != nil {
 				// Log error but continue with other clients
 				continue
@@ -105,7 +105,7 @@ func (s *mediaMovieService[T]) getSpecificMovieClient(ctx context.Context, userI
 		Str("clientType", clientConfig.Config.Data.GetType().String()).
 		Msg("Client supports movies")
 
-	client, err := s.factory.GetClient(ctx, clientID, clientConfig.Config.Data.GetType())
+	client, err := s.factory.GetClient(ctx, clientID, clientConfig.Config.Data)
 	if err != nil {
 		return nil, err
 	}

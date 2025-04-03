@@ -23,19 +23,15 @@ func init() {
 
 	fmt.Println("Registering Emby client factory...")
 	client.GetClientFactoryService().RegisterClientFactory(config.ClientTypeEmby,
-		func(ctx context.Context, clientID uint64, clientType config.ClientType) (base.Client, error) {
-			// Create a default config that will be overridden during initialization
-			fmt.Printf("Factory called for Emby client with ID: %d\n", clientID)
+		func(ctx context.Context, clientID uint64, configData config.ClientConfig) (base.Client, error) {
+			// Use the provided config (should be an EmbyConfig)
+			embyConfig, ok := configData.(*config.EmbyConfig) 
+			if !ok {
+				return nil, fmt.Errorf("expected *config.EmbyConfig, got %T", configData)
+			}
 			
-			return NewEmbyClient(ctx, clientID, config.EmbyConfig{
-				BaseMediaClientConfig: config.BaseMediaClientConfig{
-					BaseClientConfig: config.BaseClientConfig{
-						Type:     clientType,
-						Category: config.ClientCategoryMedia,
-					},
-					ClientType: config.MediaClientTypeEmby,
-				},
-			})
+			fmt.Printf("Factory called for Emby client with ID: %d\n", clientID)
+			return NewEmbyClient(ctx, clientID, *embyConfig)
 		})
 }
 

@@ -53,7 +53,7 @@ func (s *mediaCollectionService[T]) getCollectionClients(ctx context.Context, us
 	for _, clientConfig := range clients {
 		if clientConfig.Config.Data.SupportsCollections() {
 			clientId := clientConfig.GetID()
-			client, err := s.factory.GetClient(ctx, clientId, clientConfig.Config.Data.GetType())
+			client, err := s.factory.GetClient(ctx, clientId, clientConfig.Config.Data)
 			if err != nil {
 				// Log error but continue with other clients
 				continue
@@ -94,7 +94,7 @@ func (s *mediaCollectionService[T]) getSpecificCollectionClient(ctx context.Cont
 		Str("clientType", clientConfig.Config.Data.GetType().String()).
 		Msg("Client supports collections")
 
-	client, err := s.factory.GetClient(ctx, clientID, clientConfig.Config.Data.GetType())
+	client, err := s.factory.GetClient(ctx, clientID, clientConfig.Config.Data)
 	if err != nil {
 		return nil, err
 	}

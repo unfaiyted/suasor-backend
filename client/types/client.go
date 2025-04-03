@@ -96,7 +96,6 @@ func (c ClientType) String() string {
 }
 
 func (c ClientType) AsCategory() ClientCategory {
-
 	switch c {
 	case ClientTypeEmby:
 	case ClientTypeJellyfin:
@@ -116,6 +115,17 @@ func (c ClientType) AsCategory() ClientCategory {
 	}
 	return ClientCategoryUnknown
 }
+
+// Make ClientType implement ClientConfig interface
+func (c ClientType) GetType() ClientType {
+	return c
+}
+
+func (c ClientType) GetCategory() ClientCategory {
+	return c.AsCategory()
+}
+
+func (ClientType) isClientConfig() {}
 
 func (c ClientCategory) String() string {
 	return string(c)

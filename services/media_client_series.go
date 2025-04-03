@@ -66,7 +66,7 @@ func (s *mediaSeriesService[T]) getSeriesClients(ctx context.Context, userID uin
 		// Check if the config supports series
 		if config, ok := any(clientConfig.Config.Data).(clienttypes.MediaClientConfig); ok && config.SupportsSeries() {
 			clientId := clientConfig.GetID()
-			client, err := s.clientFactory.GetClient(ctx, clientId, clientConfig.Config.Data.GetType())
+			client, err := s.clientFactory.GetClient(ctx, clientId, clientConfig.Config.Data)
 			if err != nil {
 				// Log error but continue with other clients
 				continue
@@ -94,7 +94,7 @@ func (s *mediaSeriesService[T]) getSpecificSeriesClient(ctx context.Context, use
 		return nil, ErrUnsupportedFeature
 	}
 
-	client, err := s.clientFactory.GetClient(ctx, clientID, clientConfig.Config.Data.GetType())
+	client, err := s.clientFactory.GetClient(ctx, clientID, clientConfig.Config.Data)
 	if err != nil {
 		return nil, err
 	}

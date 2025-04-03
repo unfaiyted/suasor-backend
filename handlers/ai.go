@@ -180,8 +180,7 @@ func (h *AIHandler[T]) StartConversation(c *gin.Context) {
 		responses.RespondValidationError(c, err)
 		return
 	}
-
-	clientType := types.ClientType(c.Query("clientType"))
+	clientType := types.ClientType(c.Param("clientType"))
 
 	log.Info().
 		Uint64("userID", userID.(uint64)).
@@ -227,24 +226,34 @@ func (h *AIHandler[T]) StartConversation(c *gin.Context) {
 func (h *AIHandler[T]) getAIClient(ctx context.Context, userID uint64, clientType types.ClientType, clientID uint64) (types.AiClient, error) {
 	log := utils.LoggerFromContext(ctx)
 
+	log.Info().
+		Uint64("userID", userID).
+		Str("clientType", clientType.String()).
+		Uint64("clientID", clientID).
+		Msg("Retrieving client")
 	// Get all AI clients for the user
 	clientModel, err := h.service.GetByID(ctx, clientID, userID)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get AI client")
 		return nil, err
 	}
+	log.Info().
+		Uint64("userID", userID).
+		Str("clientType", clientType.String()).
+		Uint64("clientID", clientID).
+		Msg("Client Model retrieved")
 	// from factory
-	client, err := h.factory.GetClient(ctx, clientModel.ID, clientModel.GetType())
+	client, err := h.factory.GetClient(ctx, clientModel.ID, clientModel.Config.Data)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get AI client")
 		return nil, err
 	}
-	aiApiClient, ok := client.(types.AiClient)
+	aiAiClient, ok := client.(types.AiClient)
 	if !ok {
 		return nil, fmt.Errorf("client is not an AI client")
 	}
 
-	return aiApiClient, nil
+	return aiAiClient, nil
 
 }
 
