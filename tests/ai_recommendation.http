@@ -82,7 +82,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ### Get Movie Recommendations (API Endpoint)
 # @name getRecommendations
-POST http://localhost:8080/api/v1/ai/recommendations
+POST http://localhost:8080/api/v1/ai/claude/recommendations
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -97,7 +97,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ### Analyze Movie Content
 # @name analyzeContent
-POST http://localhost:8080/api/v1/ai/analyze
+POST http://localhost:8080/api/v1/ai/claude/analyze
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -112,7 +112,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ### Start Conversational Recommendation
 # @name startConversation
-POST http://localhost:8080/api/v1/ai/conversation/start
+POST http://localhost:8080/api/v1/ai/claude/conversation/start
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -121,28 +121,32 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   "preferences": {
     "favoriteGenres": ["sci-fi", "thriller", "drama"],
     "recentlyWatched": ["Interstellar", "Tenet", "Inception"]
-  }
+  },
+  "clientType": "claude",
+  "clientId": {{createClaudeClient.response.body.$.data.id}}
 }
 
 ### Send Message in Conversation
 # Replace the conversationId with one from the response to the previous request
 # @name sendMessage
-POST http://localhost:8080/api/v1/ai/conversation/message
+POST http://localhost:8080/api/v1/ai/claude/conversation/message
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
   "conversationId": "{{startConversation.response.body.$.data.conversationId}}",
-  "message": "I'm looking for sci-fi movies with mind-bending plots, similar to Inception but more recent."
+  "message": "I'm looking for sci-fi movies with mind-bending plots, similar to Inception but more recent.",
+  "clientId": {{createClaudeClient.response.body.$.data.id}}
 }
 
 ### Continue Conversation
 # This continues the same conversation from the previous request
-POST http://localhost:8080/api/v1/ai/conversation/message
+POST http://localhost:8080/api/v1/ai/claude/conversation/message
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
   "conversationId": "{{startConversation.response.body.$.data.conversationId}}",
-  "message": "I'd like something with time travel elements too."
+  "message": "I'd like something with time travel elements too.",
+  "clientId": {{createClaudeClient.response.body.$.data.id}}
 }
