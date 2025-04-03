@@ -139,14 +139,37 @@ func (c AutomationClientType) String() string {
 	return string(c)
 }
 
-// func (c MediaClientType) AsCategory() ClientCategory {
-// 	return ClientCategoryMedia
-// }
-
 func (c AutomationClientType) AsCategory() ClientCategory {
 	return ClientCategoryAutomation
 }
 
 func (c AIClientType) AsCategory() ClientCategory {
 	return ClientCategoryAI
+}
+
+func GetClientTypeFromTypeName(typeName string) ClientType {
+	switch typeName {
+	case "*types.EmbyConfig":
+		return ClientTypeEmby
+	case "*types.JellyfinConfig":
+		return ClientTypeJellyfin
+	case "*types.RadarrConfig":
+		return ClientTypeRadarr
+	case "*types.SonarrConfig":
+		return ClientTypeSonarr
+	case "*types.LidarrConfig":
+		return ClientTypeLidarr
+	case "*types.ClaudeConfig":
+		return ClientTypeClaude
+	case "*types.OpenAIConfig":
+		return ClientTypeOpenAI
+	case "*types.OllamaConfig":
+		return ClientTypeOllama
+	case "*types.SubsonicConfig":
+		return ClientTypeSubsonic
+	case "*types.PlexConfig":
+		return ClientTypePlex
+	default:
+		return ClientTypeUnknown
+	}
 }

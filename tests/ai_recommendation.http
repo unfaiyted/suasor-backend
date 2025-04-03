@@ -20,7 +20,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   "client": {
     "enabled": true,
     "baseURL": "https://api.anthropic.com",
-    "apiKey": "{{$processEnv CLAUDE_API_KEY}}",
+    "apiKey": "{{CLAUDE_API_KEY}}",
     "model": "claude-3-5-sonnet-20240620",
     "temperature": 0.7,
     "maxTokens": 2000,
@@ -107,7 +107,9 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   "options": {
     "includeThemes": true,
     "includeSentiment": true
-  }
+  },
+  "clientId": {{createClaudeClient.response.body.$.data.id}}
+  
 }
 
 ### Start Conversational Recommendation

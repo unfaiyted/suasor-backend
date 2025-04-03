@@ -355,6 +355,14 @@ definitions:
   requests.AiContentAnalysisRequest:
     description: Request for AI-powered content analysis
     properties:
+      clientId:
+        description: Client ID to use for the conversation
+        type: integer
+      clientType:
+        description: |-
+          Specific AI client type to use (claude, openai, ollama)
+          example: claude
+        type: string
       content:
         description: |-
           The content to analyze
@@ -368,7 +376,7 @@ definitions:
           example: text
         type: string
       options:
-        additionalProperties: true
+        additionalProperties: {}
         description: |-
           Optional analysis options
           example: {"includeThemes": true, "includeSentiment": true}
@@ -380,6 +388,14 @@ definitions:
   requests.AiRecommendationRequest:
     description: Request for AI-powered content recommendations
     properties:
+      clientId:
+        description: Client ID to use for the conversation
+        type: integer
+      clientType:
+        description: |-
+          Specific AI client type to use (claude, openai, ollama)
+          example: claude
+        type: string
       contentType:
         description: |-
           Type of content to recommend (movie, tv, music, etc)
@@ -392,7 +408,7 @@ definitions:
           example: 5
         type: integer
       filters:
-        additionalProperties: true
+        additionalProperties: {}
         description: |-
           Optional filters to apply to recommendations
           example: {"genre": "sci-fi", "year": "2020-2023"}
@@ -437,6 +453,34 @@ definitions:
         type: string
     required:
     - role
+    type: object
+  requests.ConversationMessageRequest:
+    description: Request to send a message in an existing AI conversation
+    properties:
+      clientId:
+        description: Client ID to use for the conversation
+        type: integer
+      context:
+        additionalProperties: {}
+        description: |-
+          Optional context information for this message
+          example: {"includeRecommendations": true, "maxResults": 3}
+        type: object
+      conversationId:
+        description: |-
+          The conversation ID from a previous StartConversation call
+          required: true
+          example: conv-123-abcdef
+        type: string
+      message:
+        description: |-
+          The user's message to the AI
+          required: true
+          example: I'm looking for sci-fi movies similar to Interstellar
+        type: string
+    required:
+    - conversationId
+    - message
     type: object
   requests.CreateTagRequest:
     properties:
@@ -542,6 +586,32 @@ definitions:
     - email
     - password
     - username
+    type: object
+  requests.StartConversationRequest:
+    description: Request to start a new AI-powered conversation for recommendations
+    properties:
+      clientId:
+        description: Client ID to use for the conversation
+        type: integer
+      contentType:
+        description: |-
+          Type of content to discuss (movie, tv, music, etc)
+          required: true
+          example: movie
+        type: string
+      preferences:
+        additionalProperties: {}
+        description: |-
+          Optional user preferences to initialize the conversation
+          example: {"favoriteGenres": ["sci-fi", "thriller"], "recentlyWatched": ["Inception", "Tenet"]}
+        type: object
+      systemInstructions:
+        description: |-
+          Optional custom system instructions
+          example: You are a helpful movie recommendation assistant
+        type: string
+    required:
+    - contentType
     type: object
   requests.SwaggerClientRequest:
     properties:
@@ -761,6 +831,28 @@ definitions:
         example: true
         type: boolean
     type: object
+  responses.APIResponse-responses_ConversationMessageResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.ConversationMessageResponse'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.APIResponse-responses_ConversationResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.ConversationResponse'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   responses.APIResponse-responses_EmptyResponse:
     properties:
       data:
@@ -928,6 +1020,49 @@ definitions:
       success:
         example: true
         type: boolean
+    type: object
+  responses.ConversationMessageResponse:
+    description: Response to a message in an AI conversation
+    properties:
+      context:
+        additionalProperties: true
+        description: |-
+          Additional message context
+          example: {"sentiment": "positive", "topicShift": false}
+        type: object
+      message:
+        description: |-
+          The AI's response to the user message
+          example: "Based on your interest in Interstellar, I'd recommend checking out these sci-fi movies with similar themes of space exploration and time: 1. Arrival (2016), 2. The Martian (2015), 3. Ad Astra (2019). Would you like more recommendations or details about any of these?"
+        type: string
+      recommendations:
+        description: |-
+          Recommendations included in the response, if any
+          example: [{"title": "Arrival", "year": 2016, "genre": "Sci-Fi"}, {"title": "The Martian", "year": 2015, "genre": "Sci-Fi"}]
+        items:
+          additionalProperties: true
+          type: object
+        type: array
+    type: object
+  responses.ConversationResponse:
+    description: Response containing conversation details
+    properties:
+      context:
+        additionalProperties: true
+        description: |-
+          Additional information about the conversation context
+          example: {"contentType": "movie", "session": "active"}
+        type: object
+      conversationId:
+        description: |-
+          Unique ID for the conversation
+          example: conv-123-abcdef
+        type: string
+      welcome:
+        description: |-
+          Initial greeting or message from the AI
+          example: "Hi there! I'm your movie recommendation assistant. What kind of movies do you enjoy watching?"
+        type: string
     type: object
   responses.EmptyAPIResponse:
     properties:
@@ -1546,6 +1681,62 @@ definitions:
     - MediaTypeTrack
     - MediaTypePlaylist
     - MediaTypeCollection
+  types.OllamaConfig:
+    description: Claude media server configuration
+    properties:
+      apiKey:
+        example: your-api-key
+        type: string
+      baseURL:
+        example: http://localhost:8096
+        type: string
+      category:
+        $ref: '#/definitions/types.ClientCategory'
+      clientType:
+        $ref: '#/definitions/types.AIClientType'
+      maxContextTokens:
+        example: 1000
+        type: integer
+      maxTokens:
+        example: 100
+        type: integer
+      model:
+        example: claude-2
+        type: string
+      temperature:
+        example: 0.5
+        type: number
+      type:
+        $ref: '#/definitions/types.ClientType'
+    type: object
+  types.OpenAIConfig:
+    description: Claude media server configuration
+    properties:
+      apiKey:
+        example: your-api-key
+        type: string
+      baseURL:
+        example: http://localhost:8096
+        type: string
+      category:
+        $ref: '#/definitions/types.ClientCategory'
+      clientType:
+        $ref: '#/definitions/types.AIClientType'
+      maxContextTokens:
+        example: 1000
+        type: integer
+      maxTokens:
+        example: 100
+        type: integer
+      model:
+        example: claude-2
+        type: string
+      temperature:
+        example: 0.5
+        type: number
+      type:
+        $ref: '#/definitions/types.ClientType'
+    type: object
   types.Playlist:
     properties:
       details:
@@ -1687,7 +1878,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Tests the connection to a media client using the provided configuration
+      description: Tests the connection to a client using the provided configuration
       parameters:
       - description: Client type
         in: path
@@ -1720,7 +1911,7 @@ paths:
             $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
-      summary: Test media client connection
+      summary: Test client connection
       tags:
       - clients
   /ai/analyze:
@@ -1757,6 +1948,87 @@ paths:
       security:
       - BearerAuth: []
       summary: Analyze content with AI
+      tags:
+      - ai
+  /ai/conversation/message:
+    post:
+      consumes:
+      - application/json
+      description: Continue a conversation with the AI by sending a new message
+      parameters:
+      - description: Message request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.ConversationMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: AI response
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_ConversationMessageResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "403":
+          description: Conversation not owned by user
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "404":
+          description: Conversation not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Send a message in an existing AI conversation
+      tags:
+      - ai
+  /ai/conversation/start:
+    post:
+      consumes:
+      - application/json
+      description: Initialize a new conversational session with the AI for personalized
+        recommendations
+      parameters:
+      - description: Conversation initialization request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.StartConversationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Conversation started
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_ConversationResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Start a new AI conversation for recommendations
       tags:
       - ai
   /ai/recommendations:
@@ -1954,6 +2226,66 @@ paths:
       summary: Validate user session
       tags:
       - auth
+  /client/:clientType:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all client configurations for the user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Clients retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_Client-types_ClientConfig'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get all clients
+      tags:
+      - clients
+    post:
+      consumes:
+      - application/json
+      description: Creates a new client configuration
+      parameters:
+      - description: client data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.SwaggerClientRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: client created
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_Client-types_ClientConfig'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Create a new client
+      tags:
+      - clients
   /clients:
     get:
       consumes:
@@ -1978,6 +2310,45 @@ paths:
       security:
       - BearerAuth: []
       summary: Get all clients
+      tags:
+      - clients
+  /clients/:clientType/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a client configuration
+      parameters:
+      - description: Client ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: client deleted
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_EmptyResponse'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "404":
+          description: Client not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Delete client
       tags:
       - clients
   /clients/automation/{clientID}/calendar:
@@ -2500,66 +2871,6 @@ paths:
       summary: Create tag in automation client
       tags:
       - automation
-  /clients/media:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves all media client configurations for the user
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Media clients retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_Client-types_ClientConfig'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get all media clients
-      tags:
-      - clients
-    post:
-      consumes:
-      - application/json
-      description: Creates a new media client configuration
-      parameters:
-      - description: Media client data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/requests.SwaggerClientRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Media client created
-          schema:
-            $ref: '#/definitions/responses.APIResponse-models_Client-types_ClientConfig'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Create a new media client
-      tags:
-      - clients
   /clients/media/{clientID}/collections:
     get:
       consumes:
@@ -3253,45 +3564,6 @@ paths:
       summary: Get seasons for a series
       tags:
       - series
-  /clients/media/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Deletes a media client configuration
-      parameters:
-      - description: Client ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Media client deleted
-          schema:
-            $ref: '#/definitions/responses.APIResponse-responses_EmptyResponse'
-        "400":
-          description: Invalid client ID
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "404":
-          description: Client not found
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Delete media client
-      tags:
-      - clients
   /config:
     get:
       consumes:
@@ -3513,9 +3785,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: Claude client config
+          description: Ollama client config
           schema:
-            $ref: '#/definitions/types.ClaudeConfig'
+            $ref: '#/definitions/types.OllamaConfig'
       summary: Reference for all client config types
       tags:
       - swagger-reference

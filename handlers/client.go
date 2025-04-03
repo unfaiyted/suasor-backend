@@ -19,7 +19,7 @@ type ClientHandler[T client.ClientConfig] struct {
 	service services.ClientService[T]
 }
 
-// NewClientHandler creates a new media client handler
+// NewClientHandler creates a new client handler
 func NewClientHandler[T types.ClientConfig](service services.ClientService[T]) *ClientHandler[T] {
 	return &ClientHandler[T]{
 		service: service,
@@ -27,18 +27,18 @@ func NewClientHandler[T types.ClientConfig](service services.ClientService[T]) *
 }
 
 // CreateClient godoc
-// @Summary Create a new media client
-// @Description Creates a new media client configuration
+// @Summary Create a new client
+// @Description Creates a new client configuration
 // @Tags clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body requests.SwaggerClientRequest true "Media client data"
-// @Success 201 {object} responses.APIResponse[models.Client[client.ClientConfig]] "Media client created"
+// @Param request body requests.SwaggerClientRequest true "client data"
+// @Success 201 {object} responses.APIResponse[models.Client[client.ClientConfig]] "client created"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /clients/media [post]
+// @Router /client/:clientType [post]
 // @Example request - Plex client
 //
 //	{
@@ -56,7 +56,7 @@ func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().
-		Msg("Creating new media client")
+		Msg("Creating new client")
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -88,7 +88,7 @@ func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 		Uint64("userID", uid).
 		Str("name", req.Name).
 		Str("type", string(req.ClientType)).
-		Msg("Creating new media client")
+		Msg("Creating new client")
 
 	clientType := client.ClientType(req.ClientType)
 	category := clientType.AsCategory()
@@ -97,7 +97,7 @@ func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 		Str("name", req.Name).
 		Str("type", string(req.ClientType)).
 		Str("category", category.String()).
-		Msg("Creating new media client")
+		Msg("Creating new client")
 
 	clientOfType := models.Client[T]{
 		UserID:   uid,
@@ -111,7 +111,7 @@ func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 		Str("name", req.Name).
 		Str("type", string(req.ClientType)).
 		Str("category", clientOfType.GetCategory().String()).
-		Msg("Creating new media client")
+		Msg("Creating new client")
 
 	if h.service == nil {
 		log.Error().Msg("Client service is not initialized")
@@ -125,23 +125,23 @@ func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 		return
 	}
 
-	responses.RespondCreated(c, clnt, "Media client created successfully")
+	responses.RespondCreated(c, clnt, "Client created successfully")
 }
 
 // GetClient godoc
-// @Summary Get media client
-// @Description Retrieves a specific media client configuration
+// @Summary Get client
+// @Description Retrieves a specific client configuration
 // @Tags clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Client ID"
-// @Success 200 {object} responses.APIResponse[models.Client[client.ClientConfig]] "Media client retrieved"
+// @Success 200 {object} responses.APIResponse[models.Client[client.ClientConfig]] "Client retrieved"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Client not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /clients/media/{id} [get]
+// @Router /client/:clientType/{id} [get]
 // @Example response
 // {
 //   "data": {
@@ -159,7 +159,7 @@ func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 //     "createdAt": "2023-01-01T12:00:00Z",
 //     "updatedAt": "2023-01-01T12:00:00Z"
 //   },
-//   "message": "Media client retrieved successfully"
+//   "message": "Client retrieved successfully"
 // }
 
 func (h *ClientHandler[T]) GetClient(c *gin.Context) {
@@ -186,33 +186,33 @@ func (h *ClientHandler[T]) GetClient(c *gin.Context) {
 	log.Info().
 		Uint64("userID", uid).
 		Uint64("clientID", clientID).
-		Msg("Retrieving media client")
+		Msg("Retrieving client")
 
 	client, err := h.service.GetByID(ctx, uid, clientID)
 	if err != nil {
 		// Check if it's a not found error
-		if err.Error() == "media client not found" {
-			responses.RespondNotFound(c, err, "Media client not found")
+		if err.Error() == "client not found" {
+			responses.RespondNotFound(c, err, "client not found")
 			return
 		}
-		responses.RespondInternalError(c, err, "Failed to retrieve media client")
+		responses.RespondInternalError(c, err, "Failed to retrieve client")
 		return
 	}
 
-	responses.RespondOK(c, client, "Media client retrieved successfully")
+	responses.RespondOK(c, client, "Client retrieved successfully")
 }
 
 // GetAllClients godoc
-// @Summary Get all media clients
-// @Description Retrieves all media client configurations for the user
+// @Summary Get all clients
+// @Description Retrieves all client configurations for the user
 // @Tags clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} responses.APIResponse[[]models.Client[client.ClientConfig]] "Media clients retrieved"
+// @Success 200 {object} responses.APIResponse[[]models.Client[client.ClientConfig]] "Clients retrieved"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /clients/media [get]
+// @Router /client/:clientType [get]
 func (h *ClientHandler[T]) GetAllClients(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -228,32 +228,32 @@ func (h *ClientHandler[T]) GetAllClients(c *gin.Context) {
 
 	log.Info().
 		Uint64("userID", uid).
-		Msg("Retrieving all media clients")
+		Msg("Retrieving all clients")
 
 	clients, err := h.service.GetByUserID(ctx, uid)
 	if err != nil {
-		responses.RespondInternalError(c, err, "Failed to retrieve media clients")
+		responses.RespondInternalError(c, err, "Failed to retrieve clients")
 		return
 	}
 
-	responses.RespondOK(c, clients, "Media clients retrieved successfully")
+	responses.RespondOK(c, clients, "clients retrieved successfully")
 }
 
 // UpdateClient godoc
-// @Summary Update media client
-// @Description Updates an existing media client configuration
+// @Summary Update client
+// @Description Updates an existing client configuration
 // @Tags clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Client ID"
 // @Param request body requests.ClientRequest true "Updated client data"
-// @Success 200 {object} responses.APIResponse[models.Client[client.ClientConfig]] "Media clients updated"
+// @Success 200 {object} responses.APIResponse[models.Client[client.ClientConfig]] "clients updated"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request or client ID"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Client not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /clients/media/{id} [put]
+// @Router /clients/:clientType/{id} [put]
 // @Example request - Jellyfin client
 // {
 //   "name": "My Jellyfin Server",
@@ -300,7 +300,7 @@ func (h *ClientHandler[T]) UpdateClient(c *gin.Context) {
 		Uint64("clientID", clientID).
 		Str("name", req.Name).
 		Str("type", string(req.ClientType)).
-		Msg("Updating media client")
+		Msg("Updating client")
 
 	client := models.Client[T]{
 		BaseModel: models.BaseModel{
@@ -315,31 +315,31 @@ func (h *ClientHandler[T]) UpdateClient(c *gin.Context) {
 	updatedClient, err := h.service.Update(ctx, client)
 	if err != nil {
 		// Check if it's a not found error
-		if err.Error() == "media client not found" {
-			responses.RespondNotFound(c, err, "Media client not found")
+		if err.Error() == "client not found" {
+			responses.RespondNotFound(c, err, "client not found")
 			return
 		}
-		responses.RespondInternalError(c, err, "Failed to update media client")
+		responses.RespondInternalError(c, err, "Failed to update client")
 		return
 	}
 
-	responses.RespondOK(c, updatedClient, "Media client updated successfully")
+	responses.RespondOK(c, updatedClient, "client updated successfully")
 }
 
 // DeleteClient godoc
-// @Summary Delete media client
-// @Description Deletes a media client configuration
+// @Summary Delete client
+// @Description Deletes a client configuration
 // @Tags clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Client ID"
-// @Success 200 {object} responses.APIResponse[responses.EmptyResponse] "Media client deleted"
+// @Success 200 {object} responses.APIResponse[responses.EmptyResponse] "client deleted"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Client not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /clients/media/{id} [delete]
+// @Router /clients/:clientType/{id} [delete]
 func (h *ClientHandler[T]) DeleteClient(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -364,25 +364,25 @@ func (h *ClientHandler[T]) DeleteClient(c *gin.Context) {
 	log.Info().
 		Uint64("userID", uid).
 		Uint64("clientID", clientID).
-		Msg("Deleting media client")
+		Msg("Deleting client")
 
 	err = h.service.Delete(ctx, clientID, uid)
 	if err != nil {
 		// Check if it's a not found error
-		if err.Error() == "media client not found" {
-			responses.RespondNotFound(c, err, "Media client not found")
+		if err.Error() == "client not found" {
+			responses.RespondNotFound(c, err, "client not found")
 			return
 		}
-		responses.RespondInternalError(c, err, "Failed to delete media client")
+		responses.RespondInternalError(c, err, "Failed to delete client")
 		return
 	}
 
-	responses.RespondOK(c, responses.EmptyResponse{Success: true}, "Media client deleted successfully")
+	responses.RespondOK(c, responses.EmptyResponse{Success: true}, "client deleted successfully")
 }
 
 // TestConnection godoc
-// @Summary Test media client connection
-// @Description Tests the connection to a media client using the provided configuration
+// @Summary Test client connection
+// @Description Tests the connection to a client using the provided configuration
 // @Tags clients
 // @Accept json
 // @Produce json
@@ -428,23 +428,23 @@ func (h *ClientHandler[T]) TestConnection(c *gin.Context) {
 		Uint64("userID", uid).
 		Str("clientType", clientType).
 		Int("clientID", clientID).
-		Msg("Testing media client connection")
+		Msg("Testing client connection")
 
 	client, err := h.service.GetByID(ctx, cid, uid)
 	if err != nil {
 		// Check if it's a not found error
-		if err.Error() == "media client not found" {
-			responses.RespondNotFound(c, err, "Media client not found")
+		if err.Error() == "client not found" {
+			responses.RespondNotFound(c, err, "client not found")
 			return
 		}
-		responses.RespondInternalError(c, err, "Failed to retrieve media client")
+		responses.RespondInternalError(c, err, "Failed to retrieve client")
 		return
 	}
 
 	log.Info().
 		Uint64("userID", uid).
 		Str("type", string(client.GetClientType())).
-		Msg("Testing media client connection")
+		Msg("Testing client connection")
 
 	result, err := h.service.TestConnection(ctx, cid, &client.Config.Data)
 	if err != nil {
@@ -468,11 +468,11 @@ func (h *ClientHandler[T]) GetClientsByType(c *gin.Context) {
 	clientType := client.ClientType(c.Param("clientType"))
 	log.Info().
 		Str("clientType", clientType.String()).
-		Msg("Retrieving media clients")
+		Msg("Retrieving clients")
 	clients, err := h.service.GetByType(ctx, clientType, userID.(uint64))
 	if err != nil {
-		responses.RespondInternalError(c, err, "Failed to retrieve media clients")
+		responses.RespondInternalError(c, err, "Failed to retrieve clients")
 		return
 	}
-	responses.RespondOK(c, clients, "Media clients retrieved successfully")
+	responses.RespondOK(c, clients, "clients retrieved successfully")
 }

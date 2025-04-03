@@ -31,7 +31,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Tests the connection to a media client using the provided configuration",
+                "description": "Tests the connection to a client using the provided configuration",
                 "consumes": [
                     "application/json"
                 ],
@@ -41,7 +41,7 @@ const docTemplate = `{
                 "tags": [
                     "clients"
                 ],
-                "summary": "Test media client connection",
+                "summary": "Test client connection",
                 "parameters": [
                     {
                         "type": "string",
@@ -120,6 +120,132 @@ const docTemplate = `{
                         "description": "Analysis response",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse-responses_AiContentAnalysisResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/ai/conversation/message": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Continue a conversation with the AI by sending a new message",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ai"
+                ],
+                "summary": "Send a message in an existing AI conversation",
+                "parameters": [
+                    {
+                        "description": "Message request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.ConversationMessageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "AI response",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-responses_ConversationMessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "Conversation not owned by user",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Conversation not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/ai/conversation/start": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Initialize a new conversational session with the AI for personalized recommendations",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ai"
+                ],
+                "summary": "Start a new AI conversation for recommendations",
+                "parameters": [
+                    {
+                        "description": "Conversation initialization request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.StartConversationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Conversation started",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-responses_ConversationResponse"
                         }
                     },
                     "400": {
@@ -445,6 +571,101 @@ const docTemplate = `{
                 }
             }
         },
+        "/client/:clientType": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all client configurations for the user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Get all clients",
+                "responses": {
+                    "200": {
+                        "description": "Clients retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_Client-types_ClientConfig"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new client configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Create a new client",
+                "parameters": [
+                    {
+                        "description": "client data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.SwaggerClientRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "client created",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_Client-types_ClientConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
         "/clients": {
             "get": {
                 "security": [
@@ -480,6 +701,67 @@ const docTemplate = `{
                         "description": "Server error",
                         "schema": {
                             "$ref": "#/definitions/responses.BasicErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/:clientType/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes a client configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Delete client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "client deleted",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-responses_EmptyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Client not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
                         }
                     }
                 }
@@ -1271,101 +1553,6 @@ const docTemplate = `{
                         "description": "Tag created",
                         "schema": {
                             "$ref": "#/definitions/responses.EmptyAPIResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/clients/media": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves all media client configurations for the user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "clients"
-                ],
-                "summary": "Get all media clients",
-                "responses": {
-                    "200": {
-                        "description": "Media clients retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_Client-types_ClientConfig"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Creates a new media client configuration",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "clients"
-                ],
-                "summary": "Create a new media client",
-                "parameters": [
-                    {
-                        "description": "Media client data",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/requests.SwaggerClientRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Media client created",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_Client-types_ClientConfig"
                         }
                     },
                     "400": {
@@ -2462,67 +2649,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/clients/media/{id}": {
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Deletes a media client configuration",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "clients"
-                ],
-                "summary": "Delete media client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Media client deleted",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-responses_EmptyResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client ID",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "404": {
-                        "description": "Client not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
         "/config": {
             "get": {
                 "description": "Returns the current system configuration",
@@ -2858,9 +2984,9 @@ const docTemplate = `{
                 "summary": "Reference for all client config types",
                 "responses": {
                     "200": {
-                        "description": "Claude client config",
+                        "description": "Ollama client config",
                         "schema": {
-                            "$ref": "#/definitions/types.ClaudeConfig"
+                            "$ref": "#/definitions/types.OllamaConfig"
                         }
                     }
                 }
@@ -4994,6 +5120,14 @@ const docTemplate = `{
                 "contentType"
             ],
             "properties": {
+                "clientId": {
+                    "description": "Client ID to use for the conversation",
+                    "type": "integer"
+                },
+                "clientType": {
+                    "description": "Specific AI client type to use (claude, openai, ollama)\nexample: claude",
+                    "type": "string"
+                },
                 "content": {
                     "description": "The content to analyze\nrequired: true\nexample: This is a sample text that needs analysis for sentiment and themes.",
                     "type": "string"
@@ -5005,7 +5139,7 @@ const docTemplate = `{
                 "options": {
                     "description": "Optional analysis options\nexample: {\"includeThemes\": true, \"includeSentiment\": true}",
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 }
             }
         },
@@ -5016,6 +5150,14 @@ const docTemplate = `{
                 "contentType"
             ],
             "properties": {
+                "clientId": {
+                    "description": "Client ID to use for the conversation",
+                    "type": "integer"
+                },
+                "clientType": {
+                    "description": "Specific AI client type to use (claude, openai, ollama)\nexample: claude",
+                    "type": "string"
+                },
                 "contentType": {
                     "description": "Type of content to recommend (movie, tv, music, etc)\nrequired: true\nexample: movie",
                     "type": "string"
@@ -5027,7 +5169,7 @@ const docTemplate = `{
                 "filters": {
                     "description": "Optional filters to apply to recommendations\nexample: {\"genre\": \"sci-fi\", \"year\": \"2020-2023\"}",
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 }
             }
         },
@@ -5066,6 +5208,33 @@ const docTemplate = `{
                         "admin"
                     ],
                     "example": "admin"
+                }
+            }
+        },
+        "requests.ConversationMessageRequest": {
+            "description": "Request to send a message in an existing AI conversation",
+            "type": "object",
+            "required": [
+                "conversationId",
+                "message"
+            ],
+            "properties": {
+                "clientId": {
+                    "description": "Client ID to use for the conversation",
+                    "type": "integer"
+                },
+                "context": {
+                    "description": "Optional context information for this message\nexample: {\"includeRecommendations\": true, \"maxResults\": 3}",
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "conversationId": {
+                    "description": "The conversation ID from a previous StartConversation call\nrequired: true\nexample: conv-123-abcdef",
+                    "type": "string"
+                },
+                "message": {
+                    "description": "The user's message to the AI\nrequired: true\nexample: I'm looking for sci-fi movies similar to Interstellar",
+                    "type": "string"
                 }
             }
         },
@@ -5180,6 +5349,32 @@ const docTemplate = `{
                     "description": "Username is the user's desired username\n@Description User's chosen username\n@Example \"johndoe\"",
                     "type": "string",
                     "example": "johndoe"
+                }
+            }
+        },
+        "requests.StartConversationRequest": {
+            "description": "Request to start a new AI-powered conversation for recommendations",
+            "type": "object",
+            "required": [
+                "contentType"
+            ],
+            "properties": {
+                "clientId": {
+                    "description": "Client ID to use for the conversation",
+                    "type": "integer"
+                },
+                "contentType": {
+                    "description": "Type of content to discuss (movie, tv, music, etc)\nrequired: true\nexample: movie",
+                    "type": "string"
+                },
+                "preferences": {
+                    "description": "Optional user preferences to initialize the conversation\nexample: {\"favoriteGenres\": [\"sci-fi\", \"thriller\"], \"recentlyWatched\": [\"Inception\", \"Tenet\"]}",
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "systemInstructions": {
+                    "description": "Optional custom system instructions\nexample: You are a helpful movie recommendation assistant",
+                    "type": "string"
                 }
             }
         },
@@ -5501,6 +5696,38 @@ const docTemplate = `{
                 }
             }
         },
+        "responses.APIResponse-responses_ConversationMessageResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.ConversationMessageResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.APIResponse-responses_ConversationResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.ConversationResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "responses.APIResponse-responses_EmptyResponse": {
             "type": "object",
             "properties": {
@@ -5730,6 +5957,48 @@ const docTemplate = `{
                 "success": {
                     "type": "boolean",
                     "example": true
+                }
+            }
+        },
+        "responses.ConversationMessageResponse": {
+            "description": "Response to a message in an AI conversation",
+            "type": "object",
+            "properties": {
+                "context": {
+                    "description": "Additional message context\nexample: {\"sentiment\": \"positive\", \"topicShift\": false}",
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "message": {
+                    "description": "The AI's response to the user message\nexample: \"Based on your interest in Interstellar, I'd recommend checking out these sci-fi movies with similar themes of space exploration and time: 1. Arrival (2016), 2. The Martian (2015), 3. Ad Astra (2019). Would you like more recommendations or details about any of these?\"",
+                    "type": "string"
+                },
+                "recommendations": {
+                    "description": "Recommendations included in the response, if any\nexample: [{\"title\": \"Arrival\", \"year\": 2016, \"genre\": \"Sci-Fi\"}, {\"title\": \"The Martian\", \"year\": 2015, \"genre\": \"Sci-Fi\"}]",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": true
+                    }
+                }
+            }
+        },
+        "responses.ConversationResponse": {
+            "description": "Response containing conversation details",
+            "type": "object",
+            "properties": {
+                "context": {
+                    "description": "Additional information about the conversation context\nexample: {\"contentType\": \"movie\", \"session\": \"active\"}",
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "conversationId": {
+                    "description": "Unique ID for the conversation\nexample: conv-123-abcdef",
+                    "type": "string"
+                },
+                "welcome": {
+                    "description": "Initial greeting or message from the AI\nexample: \"Hi there! I'm your movie recommendation assistant. What kind of movies do you enjoy watching?\"",
+                    "type": "string"
                 }
             }
         },
@@ -6559,6 +6828,84 @@ const docTemplate = `{
                 "MediaTypePlaylist",
                 "MediaTypeCollection"
             ]
+        },
+        "types.OllamaConfig": {
+            "description": "Claude media server configuration",
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "type": "string",
+                    "example": "your-api-key"
+                },
+                "baseURL": {
+                    "type": "string",
+                    "example": "http://localhost:8096"
+                },
+                "category": {
+                    "$ref": "#/definitions/types.ClientCategory"
+                },
+                "clientType": {
+                    "$ref": "#/definitions/types.AIClientType"
+                },
+                "maxContextTokens": {
+                    "type": "integer",
+                    "example": 1000
+                },
+                "maxTokens": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "model": {
+                    "type": "string",
+                    "example": "claude-2"
+                },
+                "temperature": {
+                    "type": "number",
+                    "example": 0.5
+                },
+                "type": {
+                    "$ref": "#/definitions/types.ClientType"
+                }
+            }
+        },
+        "types.OpenAIConfig": {
+            "description": "Claude media server configuration",
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "type": "string",
+                    "example": "your-api-key"
+                },
+                "baseURL": {
+                    "type": "string",
+                    "example": "http://localhost:8096"
+                },
+                "category": {
+                    "$ref": "#/definitions/types.ClientCategory"
+                },
+                "clientType": {
+                    "$ref": "#/definitions/types.AIClientType"
+                },
+                "maxContextTokens": {
+                    "type": "integer",
+                    "example": 1000
+                },
+                "maxTokens": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "model": {
+                    "type": "string",
+                    "example": "claude-2"
+                },
+                "temperature": {
+                    "type": "number",
+                    "example": 0.5
+                },
+                "type": {
+                    "$ref": "#/definitions/types.ClientType"
+                }
+            }
         },
         "types.Playlist": {
             "type": "object",

@@ -69,7 +69,7 @@ func (h *AIHandler[T]) RequestRecommendation(c *gin.Context) {
 		Interface("filters", req.Filters).
 		Msg("Requesting AI recommendations")
 
-	clientType := types.ClientType(req.ClientType)
+	clientType := types.ClientType(c.Param("clientType"))
 
 	// Get available AI client based on specified type or default
 	aiClient, err := h.getAIClient(ctx, userID.(uint64), clientType, req.ClientID)
@@ -128,7 +128,7 @@ func (h *AIHandler[T]) AnalyzeContent(c *gin.Context) {
 		Int("contentLength", len(req.Content)).
 		Msg("Requesting AI content analysis")
 
-	clientType := types.ClientType(req.ClientType)
+	clientType := types.ClientType(c.Param("clientType"))
 
 	// Get available AI client based on specified type or default
 	aiClient, err := h.getAIClient(ctx, userID.(uint64), clientType, req.ClientID)
@@ -306,7 +306,7 @@ func (h *AIHandler[T]) SendConversationMessage(c *gin.Context) {
 		responses.RespondForbidden(c, nil, "You do not have access to this conversation")
 		return
 	}
-	clientType := types.ClientType(c.Query("clientType"))
+	clientType := types.ClientType(c.Param("clientType"))
 
 	// Get available AI client
 	// Note: We don't need to specify a client type here as the conversation is already

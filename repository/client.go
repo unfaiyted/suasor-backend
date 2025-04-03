@@ -114,9 +114,23 @@ func (r *clientRepository[T]) GetByID(ctx context.Context, id, userID uint64) (*
 // GetByUserID retrieves all media clients for a user
 func (r *clientRepository[T]) GetByUserID(ctx context.Context, userID uint64) ([]*models.Client[T], error) {
 	var clients []*models.Client[T]
+	log := utils.LoggerFromContext(ctx)
+
+	var zero T
+	typeName := utils.GetTypeName(zero)
+
+	// get clientType from typeName value
+	var clientType types.ClientType
+	clientType = types.GetClientTypeFromTypeName(typeName)
+
+	log.Info().
+		Uint64("userID", userID).
+		Str("typeName", typeName).
+		Str("clientType", clientType.String()).
+		Msg("Retrieving clients")
 
 	if err := r.db.WithContext(ctx).
-		Where("user_id = ?", userID).
+		Where("user_id = ? AND config -> 'data' ->> 'type' = ?", userID, clientType).
 		Find(&clients).Error; err != nil {
 		return nil, fmt.Errorf("failed to get clients: %w", err)
 	}
