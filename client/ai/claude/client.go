@@ -212,8 +212,8 @@ func cleanJSONResponse(input string) string {
 
 // StartConversation begins a new conversation with Claude
 func (c *ClaudeClient) StartConversation(ctx context.Context, systemInstructions string) (string, error) {
-	// Generate a unique conversation ID
-	c.memoryID = fmt.Sprintf("conv-%d-%s", c.ClientID, utils.GenerateRandomID(8))
+	// Generate a unique, URL-safe conversation ID
+	c.memoryID = fmt.Sprintf("conv-%d-%s", c.ClientID, utils.GenerateRandomID(12))
 
 	// Set system instructions if provided
 	if systemInstructions != "" {
@@ -368,8 +368,8 @@ func (c *ClaudeClient) StartRecommendationConversation(ctx context.Context, cont
 		Interface("preferences", preferences).
 		Msg("Starting recommendation conversation with Claude")
 
-	// Generate a unique conversation ID
-	conversationID := fmt.Sprintf("rec-%d-%s", c.ClientID, utils.GenerateRandomID(8))
+	// Generate a unique, URL-safe conversation ID
+	conversationID := fmt.Sprintf("rec-%d-%s", c.ClientID, utils.GenerateRandomID(12))
 	
 	// Build system instructions if not provided
 	if systemInstructions == "" {
