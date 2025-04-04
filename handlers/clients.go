@@ -24,7 +24,10 @@ type ClientsHandler struct {
 	ollamaService   services.ClientService[*types.OllamaConfig]
 }
 
-// NewClientsHandler creates a new handler for listing all clients
+// NewClientsHandler godoc
+// @Summary Create a new clients handler
+// @Description Creates a new handler for retrieving and managing all client types
+// @Tags internal
 func NewClientsHandler(
 	embyService services.ClientService[*types.EmbyConfig],
 	jellyfinService services.ClientService[*types.JellyfinConfig],
@@ -57,52 +60,13 @@ func NewClientsHandler(
 // @Tags clients
 // @Accept json
 // @Produce json
+// @Param type query string false "Filter by client category (e.g. 'media')"
+// @Param clientType query string false "Filter by specific client type (e.g. 'jellyfin')"
 // @Security BearerAuth
 // @Success 200 {object} responses.ClientsResponse "All user clients with various config types"
 // @Failure 401 {object} responses.BasicErrorResponse "Unauthorized"
 // @Failure 500 {object} responses.BasicErrorResponse "Server error"
 // @Router /clients [get]
-// @Example       response - Plex client example
-//
-//	{
-//	  "data": [
-//	    {
-//	      "id": 1,
-//	      "userId": 123,
-//	      "name": "My Plex Server",
-//	      "clientType": "plex",
-//	      "client": {
-//	        "type": "plex",
-//	        "host": "192.168.1.100",
-//	        "port": 32400,
-//	        "token": "your-plex-token",
-//	        "ssl": false,
-//	        "enabled": true
-//	      },
-//	      "createdAt": "2023-01-01T12:00:00Z",
-//	      "updatedAt": "2023-01-01T12:00:00Z"
-//	    },
-//	    {
-//	      "id": 2,
-//	      "userId": 123,
-//	      "name": "My Jellyfin Server",
-//		     "isEnabled": true,
-//	      "clientType": "jellyfin",
-//	      "client": {
-//	        "type": "jellyfin",
-//	        "host": "192.168.1.101",
-//	        "port": 8096,
-//	        "apiKey": "your-jellyfin-api-key",
-//	        "username": "admin",
-//	        "ssl": false,
-//	        "enabled": true
-//	      },
-//	      "createdAt": "2023-01-01T12:00:00Z",
-//	      "updatedAt": "2023-01-01T12:00:00Z"
-//	    }
-//	  ],
-//	  "message": "All clients retrieved successfully"
-//	}
 func (h *ClientsHandler) ListAllClients(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -116,73 +80,165 @@ func (h *ClientsHandler) ListAllClients(c *gin.Context) {
 
 	uid := userID.(uint64)
 
+	// Get filter parameters
+	typeFilter := c.Query("type")
+	clientTypeFilter := c.Query("clientType")
+
 	log.Info().
 		Uint64("userID", uid).
-		Msg("Retrieving all clients")
+		Str("typeFilter", typeFilter).
+		Str("clientTypeFilter", clientTypeFilter).
+		Msg("Retrieving filtered clients")
 
 	// Create a slice to hold all client responses
 	var allClients []responses.ClientResponse
 
-	// Fetch all client types
-	embyClients, _ := h.embyService.GetByUserID(ctx, uid)
-	for _, client := range embyClients {
-		allClients = append(allClients, toClientResponse(client))
+	// Define client type categories
+	mediaClientTypes := map[string]bool{
+		"emby":     true,
+		"jellyfin": true,
+		"plex":     true,
+		"subsonic": true,
+		"sonarr":   true,
+		"radarr":   true,
+		"lidarr":   true,
 	}
 
-	jellyfinClients, _ := h.jellyfinService.GetByUserID(ctx, uid)
-	for _, client := range jellyfinClients {
-		allClients = append(allClients, toClientResponse(client))
+	aiClientTypes := map[string]bool{
+		"claude": true,
+		"openai": true,
+		"ollama": true,
 	}
 
-	plexClients, _ := h.plexService.GetByUserID(ctx, uid)
-	for _, client := range plexClients {
-		allClients = append(allClients, toClientResponse(client))
+	autoClientTypes := map[string]bool{
+		"radarr": true,
+		"sonarr": true,
+		"lidarr": true,
 	}
 
-	subsonicClients, _ := h.subsonicService.GetByUserID(ctx, uid)
-	for _, client := range subsonicClients {
-		allClients = append(allClients, toClientResponse(client))
+	// Helper function to check if we should fetch a specific client type
+	shouldFetchClientType := func(clientType string) bool {
+		// If clientType filter is specified, only return that type
+		if clientTypeFilter != "" {
+			return clientTypeFilter == clientType
+		}
+
+		// If type filter is "media", only return media clients
+		if typeFilter == "media" {
+			return mediaClientTypes[clientType]
+		}
+		if typeFilter == "ai" {
+			return aiClientTypes[clientType]
+		}
+		if typeFilter == "automation" {
+			return autoClientTypes[clientType]
+		}
+
+		// No relevant filters, return all clients
+		return true
 	}
 
-	sonarrClients, _ := h.sonarrService.GetByUserID(ctx, uid)
-	for _, client := range sonarrClients {
-		allClients = append(allClients, toClientResponse(client))
+	// Fetch all client types based on filters
+	if shouldFetchClientType("emby") {
+		embyClients, _ := h.embyService.GetByUserID(ctx, uid)
+		for _, client := range embyClients {
+			allClients = append(allClients, toClientResponse(client))
+		}
 	}
 
-	radarrClients, _ := h.radarrService.GetByUserID(ctx, uid)
-	for _, client := range radarrClients {
-		allClients = append(allClients, toClientResponse(client))
+	if shouldFetchClientType("jellyfin") {
+		jellyfinClients, _ := h.jellyfinService.GetByUserID(ctx, uid)
+		for _, client := range jellyfinClients {
+			allClients = append(allClients, toClientResponse(client))
+		}
 	}
 
-	lidarrClients, _ := h.lidarrService.GetByUserID(ctx, uid)
-	for _, client := range lidarrClients {
-		allClients = append(allClients, toClientResponse(client))
+	if shouldFetchClientType("plex") {
+		plexClients, _ := h.plexService.GetByUserID(ctx, uid)
+		for _, client := range plexClients {
+			allClients = append(allClients, toClientResponse(client))
+		}
 	}
 
-	claudeClients, _ := h.claudeService.GetByUserID(ctx, uid)
-	for _, client := range claudeClients {
-		allClients = append(allClients, toClientResponse(client))
+	if shouldFetchClientType("subsonic") {
+		subsonicClients, _ := h.subsonicService.GetByUserID(ctx, uid)
+		for _, client := range subsonicClients {
+			allClients = append(allClients, toClientResponse(client))
+		}
 	}
 
-	openaiClients, _ := h.openaiService.GetByUserID(ctx, uid)
-	for _, client := range openaiClients {
-		allClients = append(allClients, toClientResponse(client))
+	if shouldFetchClientType("sonarr") {
+		sonarrClients, _ := h.sonarrService.GetByUserID(ctx, uid)
+		for _, client := range sonarrClients {
+			allClients = append(allClients, toClientResponse(client))
+		}
 	}
 
-	ollamaClients, _ := h.ollamaService.GetByUserID(ctx, uid)
-	for _, client := range ollamaClients {
-		allClients = append(allClients, toClientResponse(client))
+	if shouldFetchClientType("radarr") {
+		radarrClients, _ := h.radarrService.GetByUserID(ctx, uid)
+		for _, client := range radarrClients {
+			allClients = append(allClients, toClientResponse(client))
+		}
+	}
+
+	if shouldFetchClientType("lidarr") {
+		lidarrClients, _ := h.lidarrService.GetByUserID(ctx, uid)
+		for _, client := range lidarrClients {
+			allClients = append(allClients, toClientResponse(client))
+		}
+	}
+
+	if shouldFetchClientType("claude") {
+		claudeClients, _ := h.claudeService.GetByUserID(ctx, uid)
+		for _, client := range claudeClients {
+			allClients = append(allClients, toClientResponse(client))
+		}
+	}
+
+	if shouldFetchClientType("openai") {
+		openaiClients, _ := h.openaiService.GetByUserID(ctx, uid)
+		for _, client := range openaiClients {
+			allClients = append(allClients, toClientResponse(client))
+		}
+	}
+
+	if shouldFetchClientType("ollama") {
+		ollamaClients, _ := h.ollamaService.GetByUserID(ctx, uid)
+		for _, client := range ollamaClients {
+			allClients = append(allClients, toClientResponse(client))
+		}
+	}
+
+	if shouldFetchClientType("claude") {
+		claudeClients, _ := h.claudeService.GetByUserID(ctx, uid)
+		for _, client := range claudeClients {
+			allClients = append(allClients, toClientResponse(client))
+		}
+	}
+
+	if shouldFetchClientType("openai") {
+		openaiClients, _ := h.openaiService.GetByUserID(ctx, uid)
+		for _, client := range openaiClients {
+			allClients = append(allClients, toClientResponse(client))
+		}
+	}
+	if shouldFetchClientType("ollama") {
+		ollamaClients, _ := h.ollamaService.GetByUserID(ctx, uid)
+		for _, client := range ollamaClients {
+			allClients = append(allClients, toClientResponse(client))
+		}
 	}
 
 	log.Info().
 		Uint64("userID", uid).
 		Int("clientCount", len(allClients)).
-		Msg("Retrieved all clients")
+		Str("typeFilter", typeFilter).
+		Str("clientTypeFilter", clientTypeFilter).
+		Msg("Retrieved filtered clients")
 
-	responses.RespondOK(c, allClients, "All clients retrieved successfully")
+	responses.RespondOK(c, allClients, "Clients retrieved successfully")
 }
 
-// toClientResponse converts a client model to response
 func toClientResponse[T types.ClientConfig](client *models.Client[T]) responses.ClientResponse {
 	return responses.ClientResponse{
 		ID:         client.ID,
@@ -226,4 +282,3 @@ func SwaggerClientTypes() {
 	_ = &types.OpenAIConfig{}
 	_ = &types.OllamaConfig{}
 }
-

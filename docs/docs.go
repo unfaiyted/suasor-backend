@@ -666,6 +666,55 @@ const docTemplate = `{
                 }
             }
         },
+        "/client/{clientType}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all clients of a specific type for the user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Get clients by type",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Client type (e.g. 'plex', 'jellyfin', 'emby')",
+                        "name": "clientType",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Clients retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_Client-types_ClientConfig"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
         "/clients": {
             "get": {
                 "security": [
@@ -684,6 +733,20 @@ const docTemplate = `{
                     "clients"
                 ],
                 "summary": "Get all clients",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by client category (e.g. 'media')",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by specific client type (e.g. 'jellyfin')",
+                        "name": "clientType",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "All user clients with various config types",
@@ -1735,9 +1798,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Movie retrieved",
+                        "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemResponse"
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Movie"
                         }
                     },
                     "400": {
@@ -2561,9 +2624,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Series retrieved",
+                        "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemResponse"
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
                         }
                     },
                     "400": {
@@ -2623,9 +2686,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Seasons retrieved",
+                        "description": "Series retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_responses_MediaItemResponse"
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Series"
                         }
                     },
                     "400": {
@@ -3018,6 +3081,104 @@ const docTemplate = `{
                 }
             }
         },
+        "/movies/actor/{actor}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves movies from all connected clients featuring the specified actor",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Get movies by actor",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Actor name",
+                        "name": "actor",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/movies/director/{director}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves movies from all connected clients directed by the specified director",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Get movies by director",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Director name",
+                        "name": "director",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
         "/movies/genre/{genre}": {
             "get": {
                 "security": [
@@ -3049,7 +3210,289 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_responses_MediaItemResponse"
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/movies/latest/{count}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves the most recently added movies from all connected clients",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Get latest added movies",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of movies to retrieve",
+                        "name": "count",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid count format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/movies/popular/{count}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves the most popular movies from all connected clients",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Get popular movies",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of movies to retrieve",
+                        "name": "count",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid count format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/movies/rating": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves movies from all connected clients with ratings in the specified range",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Get movies by rating range",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "description": "Minimum rating (e.g. 7.5)",
+                        "name": "min",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Maximum rating (e.g. 10.0)",
+                        "name": "max",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid rating format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/movies/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Searches for movies across all connected clients matching the query",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Search for movies",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing search query",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/movies/top-rated/{count}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves the highest rated movies from all connected clients",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Get top rated movies",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of movies to retrieve",
+                        "name": "count",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid count format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
                         }
                     },
                     "401": {
@@ -3069,38 +3512,7 @@ const docTemplate = `{
         },
         "/movies/year/{year}": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves movies from all connected clients that were released in the specified year",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies"
-                ],
-                "summary": "Get movies by release year",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Release year",
-                        "name": "year",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
                 "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_responses_MediaItemResponse"
-                        }
-                    },
                     "400": {
                         "description": "Invalid year",
                         "schema": {
@@ -3630,7 +4042,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_responses_MediaItemResponse"
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
                         }
                     },
                     "401": {
@@ -3679,7 +4091,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_responses_MediaItemResponse"
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
                         }
                     },
                     "401": {
@@ -3777,7 +4189,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_responses_MediaItemResponse"
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
                         }
                     },
                     "400": {
@@ -3832,7 +4244,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_responses_MediaItemResponse"
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
                         }
                     },
                     "400": {
@@ -3894,7 +4306,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_responses_MediaItemResponse"
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
                         }
                     },
                     "400": {
@@ -3949,7 +4361,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_responses_MediaItemResponse"
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
                         }
                     },
                     "400": {
@@ -4004,7 +4416,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_responses_MediaItemResponse"
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
                         }
                     },
                     "400": {
@@ -4059,7 +4471,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_responses_MediaItemResponse"
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
                         }
                     },
                     "400": {
@@ -4782,6 +5194,59 @@ const docTemplate = `{
                 }
             }
         },
+        "models.MediaItem-types_Movie": {
+            "type": "object",
+            "properties": {
+                "clientId": {
+                    "description": "Reference to the media client",
+                    "type": "integer"
+                },
+                "clientType": {
+                    "description": "Type of client (plex, jellyfin, etc.)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.MediaClientType"
+                        }
+                    ]
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "data": {
+                    "description": "Type-specific media data",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.Movie"
+                        }
+                    ]
+                },
+                "downloadUrl": {
+                    "type": "string"
+                },
+                "externalId": {
+                    "description": "ID from external media client",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Internal ID",
+                    "type": "integer"
+                },
+                "streamUrl": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type of media (movie, show, episode, etc.)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.MediaType"
+                        }
+                    ]
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
         "models.MediaItem-types_Playlist": {
             "type": "object",
             "properties": {
@@ -4805,6 +5270,59 @@ const docTemplate = `{
                     "allOf": [
                         {
                             "$ref": "#/definitions/types.Playlist"
+                        }
+                    ]
+                },
+                "downloadUrl": {
+                    "type": "string"
+                },
+                "externalId": {
+                    "description": "ID from external media client",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Internal ID",
+                    "type": "integer"
+                },
+                "streamUrl": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type of media (movie, show, episode, etc.)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.MediaType"
+                        }
+                    ]
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.MediaItem-types_Series": {
+            "type": "object",
+            "properties": {
+                "clientId": {
+                    "description": "Reference to the media client",
+                    "type": "integer"
+                },
+                "clientType": {
+                    "description": "Type of client (plex, jellyfin, etc.)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.MediaClientType"
+                        }
+                    ]
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "data": {
+                    "description": "Type-specific media data",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.Series"
                         }
                     ]
                 },
@@ -5495,6 +6013,25 @@ const docTemplate = `{
                 }
             }
         },
+        "responses.APIResponse-array_models_MediaItem-types_Movie": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MediaItem-types_Movie"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "responses.APIResponse-array_models_MediaItem-types_Playlist": {
             "type": "object",
             "properties": {
@@ -5502,6 +6039,25 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.MediaItem-types_Playlist"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.APIResponse-array_models_MediaItem-types_Series": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MediaItem-types_Series"
                     }
                 },
                 "message": {
@@ -5600,11 +6156,43 @@ const docTemplate = `{
                 }
             }
         },
+        "responses.APIResponse-models_MediaItem-types_Movie": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.MediaItem-types_Movie"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "responses.APIResponse-models_MediaItem-types_Playlist": {
             "type": "object",
             "properties": {
                 "data": {
                     "$ref": "#/definitions/models.MediaItem-types_Playlist"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.APIResponse-models_MediaItem-types_Series": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.MediaItem-types_Series"
                 },
                 "message": {
                     "type": "string",
@@ -6832,6 +7420,45 @@ const docTemplate = `{
                 "MediaTypeCollection"
             ]
         },
+        "types.Movie": {
+            "type": "object",
+            "properties": {
+                "audioCodec": {
+                    "type": "string"
+                },
+                "cast": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.Person"
+                    }
+                },
+                "crew": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.Person"
+                    }
+                },
+                "details": {
+                    "$ref": "#/definitions/types.MediaDetails"
+                },
+                "resolution": {
+                    "description": "e.g., \"4K\", \"1080p\"",
+                    "type": "string"
+                },
+                "subtitleUrls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "trailerUrl": {
+                    "type": "string"
+                },
+                "videoCodec": {
+                    "type": "string"
+                }
+            }
+        },
         "types.OllamaConfig": {
             "description": "Claude media server configuration",
             "type": "object",
@@ -6907,6 +7534,25 @@ const docTemplate = `{
                 },
                 "type": {
                     "$ref": "#/definitions/types.ClientType"
+                }
+            }
+        },
+        "types.Person": {
+            "type": "object",
+            "properties": {
+                "character": {
+                    "description": "For actors",
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "photo": {
+                    "type": "string"
+                },
+                "role": {
+                    "description": "e.g., \"Director\", \"Actor\"",
+                    "type": "string"
                 }
             }
         },
@@ -6988,6 +7634,80 @@ const docTemplate = `{
                 },
                 "type": {
                     "$ref": "#/definitions/types.ClientType"
+                }
+            }
+        },
+        "types.Season": {
+            "type": "object",
+            "properties": {
+                "artwork": {
+                    "$ref": "#/definitions/types.Artwork"
+                },
+                "details": {
+                    "$ref": "#/definitions/types.MediaDetails"
+                },
+                "episodeCount": {
+                    "type": "integer"
+                },
+                "overview": {
+                    "type": "string"
+                },
+                "releaseDate": {
+                    "type": "string"
+                },
+                "seasonNumber": {
+                    "type": "integer"
+                },
+                "seriesID": {
+                    "type": "string"
+                },
+                "seriesName": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.Series": {
+            "type": "object",
+            "properties": {
+                "contentRating": {
+                    "type": "string"
+                },
+                "details": {
+                    "$ref": "#/definitions/types.MediaDetails"
+                },
+                "episodeCount": {
+                    "type": "integer"
+                },
+                "genres": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "network": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "number"
+                },
+                "releaseYear": {
+                    "type": "integer"
+                },
+                "seasonCount": {
+                    "type": "integer"
+                },
+                "seasons": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.Season"
+                    }
+                },
+                "status": {
+                    "description": "e.g., \"Ended\", \"Continuing\"",
+                    "type": "string"
                 }
             }
         },

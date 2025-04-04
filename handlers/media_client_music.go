@@ -828,3 +828,4 @@ func (h *MediaClientMusicHandler[T]) SearchMusic(c *gin.Context) {
 		Msg("Music search completed successfully")
 	responses.RespondOK(c, response, "Music retrieved successfully")
 }
+

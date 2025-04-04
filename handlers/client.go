@@ -450,6 +450,18 @@ func (h *ClientHandler[T]) TestConnection(c *gin.Context) {
 	responses.RespondOK(c, result, "Connection test completed")
 }
 
+// GetClientsByType godoc
+// @Summary Get clients by type
+// @Description Retrieves all clients of a specific type for the user
+// @Tags clients
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientType path string true "Client type (e.g. 'plex', 'jellyfin', 'emby')"
+// @Success 200 {object} responses.APIResponse[[]models.Client[client.ClientConfig]] "Clients retrieved"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
+// @Router /client/{clientType} [get]
 func (h *ClientHandler[T]) GetClientsByType(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)

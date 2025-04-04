@@ -585,3 +585,4 @@ func (h *MediaClientPlaylistHandler[T]) SearchPlaylists(c *gin.Context) {
 		Msg("Playlist search completed successfully")
 	responses.RespondOK(c, playlists, "Playlists retrieved successfully")
 }
+

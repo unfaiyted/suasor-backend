@@ -136,3 +136,4 @@ func (h *MediaClientCollectionHandler[T]) GetCollections(c *gin.Context) {
 	// in the services.MediaClientCollectionService interface.
 	responses.RespondNotImplemented(c, nil, "Get collections not implemented")
 }
+

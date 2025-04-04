@@ -168,3 +168,88 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
     "ssl": false
   }
 }
+
+
+###
+# @name getAllClients
+# Get all clients without filtering
+GET http://localhost:8080/api/v1/clients
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getMediaClients
+# Get only media clients (emby, jellyfin, plex, subsonic, sonarr, radarr, lidarr)
+GET http://localhost:8080/api/v1/clients?type=media
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getJellyfinClients
+# Get only Jellyfin clients
+GET http://localhost:8080/api/v1/clients?clientType=jellyfin
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getEmbyClients
+# Get only Emby clients
+GET http://localhost:8080/api/v1/clients?clientType=emby
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getRadarrClients
+# Get only Radarr clients
+GET http://localhost:8080/api/v1/clients?clientType=radarr
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getSonarrClients
+# Get only Sonarr clients
+GET http://localhost:8080/api/v1/clients?clientType=sonarr
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getLidarrClients
+# Get only Lidarr clients
+GET http://localhost:8080/api/v1/clients?clientType=lidarr
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getSubsonicClients
+# Get only Subsonic clients
+GET http://localhost:8080/api/v1/clients?clientType=subsonic
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getOpenAIClients
+# Get only OpenAI clients
+GET http://localhost:8080/api/v1/clients?clientType=openai
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getClaudeClients
+# Get only Claude clients
+GET http://localhost:8080/api/v1/clients?clientType=claude
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getOllamaClients
+# Get only Ollama clients
+GET http://localhost:8080/api/v1/clients?clientType=ollama
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getNonExistentTypeClients
+# Get clients of a non-existent type (should return empty array)
+GET http://localhost:8080/api/v1/clients?clientType=nonexistent
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

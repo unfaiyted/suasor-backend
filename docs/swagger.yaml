@@ -119,6 +119,38 @@ definitions:
       updatedAt:
         type: string
     type: object
+  models.MediaItem-types_Movie:
+    properties:
+      clientId:
+        description: Reference to the media client
+        type: integer
+      clientType:
+        allOf:
+        - $ref: '#/definitions/types.MediaClientType'
+        description: Type of client (plex, jellyfin, etc.)
+      createdAt:
+        type: string
+      data:
+        allOf:
+        - $ref: '#/definitions/types.Movie'
+        description: Type-specific media data
+      downloadUrl:
+        type: string
+      externalId:
+        description: ID from external media client
+        type: string
+      id:
+        description: Internal ID
+        type: integer
+      streamUrl:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/types.MediaType'
+        description: Type of media (movie, show, episode, etc.)
+      updatedAt:
+        type: string
+    type: object
   models.MediaItem-types_Playlist:
     properties:
       clientId:
@@ -133,6 +165,38 @@ definitions:
       data:
         allOf:
         - $ref: '#/definitions/types.Playlist'
+        description: Type-specific media data
+      downloadUrl:
+        type: string
+      externalId:
+        description: ID from external media client
+        type: string
+      id:
+        description: Internal ID
+        type: integer
+      streamUrl:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/types.MediaType'
+        description: Type of media (movie, show, episode, etc.)
+      updatedAt:
+        type: string
+    type: object
+  models.MediaItem-types_Series:
+    properties:
+      clientId:
+        description: Reference to the media client
+        type: integer
+      clientType:
+        allOf:
+        - $ref: '#/definitions/types.MediaClientType'
+        description: Type of client (plex, jellyfin, etc.)
+      createdAt:
+        type: string
+      data:
+        allOf:
+        - $ref: '#/definitions/types.Series'
         description: Type-specific media data
       downloadUrl:
         type: string
@@ -693,11 +757,37 @@ definitions:
         example: true
         type: boolean
     type: object
+  responses.APIResponse-array_models_MediaItem-types_Movie:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.MediaItem-types_Movie'
+        type: array
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   responses.APIResponse-array_models_MediaItem-types_Playlist:
     properties:
       data:
         items:
           $ref: '#/definitions/models.MediaItem-types_Playlist'
+        type: array
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.APIResponse-array_models_MediaItem-types_Series:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.MediaItem-types_Series'
         type: array
       message:
         example: Operation successful
@@ -765,10 +855,32 @@ definitions:
         example: true
         type: boolean
     type: object
+  responses.APIResponse-models_MediaItem-types_Movie:
+    properties:
+      data:
+        $ref: '#/definitions/models.MediaItem-types_Movie'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   responses.APIResponse-models_MediaItem-types_Playlist:
     properties:
       data:
         $ref: '#/definitions/models.MediaItem-types_Playlist'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.APIResponse-models_MediaItem-types_Series:
+    properties:
+      data:
+        $ref: '#/definitions/models.MediaItem-types_Series'
       message:
         example: Operation successful
         type: string
@@ -1683,6 +1795,32 @@ definitions:
     - MediaTypeTrack
     - MediaTypePlaylist
     - MediaTypeCollection
+  types.Movie:
+    properties:
+      audioCodec:
+        type: string
+      cast:
+        items:
+          $ref: '#/definitions/types.Person'
+        type: array
+      crew:
+        items:
+          $ref: '#/definitions/types.Person'
+        type: array
+      details:
+        $ref: '#/definitions/types.MediaDetails'
+      resolution:
+        description: e.g., "4K", "1080p"
+        type: string
+      subtitleUrls:
+        items:
+          type: string
+        type: array
+      trailerUrl:
+        type: string
+      videoCodec:
+        type: string
+    type: object
   types.OllamaConfig:
     description: Claude media server configuration
     properties:
@@ -1739,6 +1877,19 @@ definitions:
       type:
         $ref: '#/definitions/types.ClientType'
     type: object
+  types.Person:
+    properties:
+      character:
+        description: For actors
+        type: string
+      name:
+        type: string
+      photo:
+        type: string
+      role:
+        description: e.g., "Director", "Actor"
+        type: string
+    type: object
   types.Playlist:
     properties:
       details:
@@ -1794,6 +1945,55 @@ definitions:
         type: boolean
       type:
         $ref: '#/definitions/types.ClientType'
+    type: object
+  types.Season:
+    properties:
+      artwork:
+        $ref: '#/definitions/types.Artwork'
+      details:
+        $ref: '#/definitions/types.MediaDetails'
+      episodeCount:
+        type: integer
+      overview:
+        type: string
+      releaseDate:
+        type: string
+      seasonNumber:
+        type: integer
+      seriesID:
+        type: string
+      seriesName:
+        type: string
+      title:
+        type: string
+    type: object
+  types.Series:
+    properties:
+      contentRating:
+        type: string
+      details:
+        $ref: '#/definitions/types.MediaDetails'
+      episodeCount:
+        type: integer
+      genres:
+        items:
+          type: string
+        type: array
+      network:
+        type: string
+      rating:
+        type: number
+      releaseYear:
+        type: integer
+      seasonCount:
+        type: integer
+      seasons:
+        items:
+          $ref: '#/definitions/types.Season'
+        type: array
+      status:
+        description: e.g., "Ended", "Continuing"
+        type: string
     type: object
   types.SonarrConfig:
     description: Emby media server configuration
@@ -2288,12 +2488,52 @@ paths:
       summary: Create a new client
       tags:
       - clients
+  /client/{clientType}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all clients of a specific type for the user
+      parameters:
+      - description: Client type (e.g. 'plex', 'jellyfin', 'emby')
+        in: path
+        name: clientType
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Clients retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_Client-types_ClientConfig'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get clients by type
+      tags:
+      - clients
   /clients:
     get:
       consumes:
       - application/json
       description: Retrieves all configured clients across different types for the
         user
+      parameters:
+      - description: Filter by client category (e.g. 'media')
+        in: query
+        name: type
+        type: string
+      - description: Filter by specific client type (e.g. 'jellyfin')
+        in: query
+        name: clientType
+        type: string
       produces:
       - application/json
       responses:
@@ -2972,9 +3212,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: Movie retrieved
+          description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-responses_MediaItemResponse'
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_Movie'
         "400":
           description: Invalid client ID
           schema:
@@ -3506,9 +3746,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: Series retrieved
+          description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-responses_MediaItemResponse'
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Series'
         "400":
           description: Invalid client ID
           schema:
@@ -3546,9 +3786,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: Seasons retrieved
+          description: Series retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_Series'
         "400":
           description: Invalid client ID
           schema:
@@ -3810,6 +4050,70 @@ paths:
       summary: checks app and database health
       tags:
       - health
+  /movies/actor/{actor}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves movies from all connected clients featuring the specified
+        actor
+      parameters:
+      - description: Actor name
+        in: path
+        name: actor
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get movies by actor
+      tags:
+      - movies
+  /movies/director/{director}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves movies from all connected clients directed by the specified
+        director
+      parameters:
+      - description: Director name
+        in: path
+        name: director
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get movies by director
+      tags:
+      - movies
   /movies/genre/{genre}:
     get:
       consumes:
@@ -3828,7 +4132,7 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie'
         "401":
           description: Unauthorized
           schema:
@@ -3842,16 +4146,15 @@ paths:
       summary: Get movies by genre
       tags:
       - movies
-  /movies/year/{year}:
+  /movies/latest/{count}:
     get:
       consumes:
       - application/json
-      description: Retrieves movies from all connected clients that were released
-        in the specified year
+      description: Retrieves the most recently added movies from all connected clients
       parameters:
-      - description: Release year
+      - description: Number of movies to retrieve
         in: path
-        name: year
+        name: count
         required: true
         type: integer
       produces:
@@ -3860,9 +4163,9 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie'
         "400":
-          description: Invalid year
+          description: Invalid count format
           schema:
             $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "401":
@@ -3875,9 +4178,170 @@ paths:
             $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
-      summary: Get movies by release year
+      summary: Get latest added movies
       tags:
       - movies
+  /movies/popular/{count}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the most popular movies from all connected clients
+      parameters:
+      - description: Number of movies to retrieve
+        in: path
+        name: count
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie'
+        "400":
+          description: Invalid count format
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get popular movies
+      tags:
+      - movies
+  /movies/rating:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves movies from all connected clients with ratings in the
+        specified range
+      parameters:
+      - description: Minimum rating (e.g. 7.5)
+        in: query
+        name: min
+        required: true
+        type: number
+      - description: Maximum rating (e.g. 10.0)
+        in: query
+        name: max
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie'
+        "400":
+          description: Invalid rating format
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get movies by rating range
+      tags:
+      - movies
+  /movies/search:
+    get:
+      consumes:
+      - application/json
+      description: Searches for movies across all connected clients matching the query
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie'
+        "400":
+          description: Missing search query
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Search for movies
+      tags:
+      - movies
+  /movies/top-rated/{count}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the highest rated movies from all connected clients
+      parameters:
+      - description: Number of movies to retrieve
+        in: path
+        name: count
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie'
+        "400":
+          description: Invalid count format
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get top rated movies
+      tags:
+      - movies
+  /movies/year/{year}:
+    get:
+      responses:
+        "400":
+          description: Invalid year
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
   /music/albums/genre/{genre}:
     get:
       consumes:
@@ -4202,7 +4666,7 @@ paths:
         "200":
           description: Series retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Series'
         "401":
           description: Unauthorized
           schema:
@@ -4233,7 +4697,7 @@ paths:
         "200":
           description: Series retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Series'
         "401":
           description: Unauthorized
           schema:
@@ -4296,7 +4760,7 @@ paths:
         "200":
           description: Series retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Series'
         "400":
           description: Invalid count
           schema:
@@ -4331,7 +4795,7 @@ paths:
         "200":
           description: Series retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Series'
         "400":
           description: Invalid count
           schema:
@@ -4371,7 +4835,7 @@ paths:
         "200":
           description: Series retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Series'
         "400":
           description: Invalid rating parameters
           schema:
@@ -4406,7 +4870,7 @@ paths:
         "200":
           description: Series retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Series'
         "400":
           description: Invalid query
           schema:
@@ -4441,7 +4905,7 @@ paths:
         "200":
           description: Series retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Series'
         "400":
           description: Invalid count
           schema:
@@ -4477,7 +4941,7 @@ paths:
         "200":
           description: Series retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_responses_MediaItemResponse'
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Series'
         "400":
           description: Invalid year
           schema:
