@@ -454,6 +454,21 @@ definitions:
     required:
     - role
     type: object
+  requests.ClientRequest-types_ClientConfig:
+    properties:
+      client: {}
+      clientID:
+        type: integer
+      clientType:
+        $ref: '#/definitions/types.ClientType'
+      isEnabled:
+        type: boolean
+      name:
+        type: string
+    required:
+    - clientType
+    - name
+    type: object
   requests.ConversationMessageRequest:
     description: Request to send a message in an existing AI conversation
     properties:
@@ -612,21 +627,6 @@ definitions:
         type: string
     required:
     - contentType
-    type: object
-  requests.SwaggerClientRequest:
-    properties:
-      client: {}
-      clientID:
-        type: integer
-      clientType:
-        $ref: '#/definitions/types.ClientType'
-      isEnabled:
-        type: boolean
-      name:
-        type: string
-    required:
-    - clientType
-    - name
     type: object
   requests.UpdateMediaRequest:
     properties:
@@ -998,6 +998,8 @@ definitions:
       id:
         example: 1
         type: integer
+      isEnabled:
+        type: boolean
       name:
         example: My Plex Server
         type: string
@@ -2261,7 +2263,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/requests.SwaggerClientRequest'
+          $ref: '#/definitions/requests.ClientRequest-types_ClientConfig'
       produces:
       - application/json
       responses:

@@ -33,7 +33,7 @@ func NewClientHandler[T types.ClientConfig](service services.ClientService[T]) *
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body requests.SwaggerClientRequest true "client data"
+// @Param request body requests.ClientRequest[client.ClientConfig] true "client data"
 // @Success 201 {object} responses.APIResponse[models.Client[client.ClientConfig]] "client created"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
@@ -84,27 +84,18 @@ func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 		return
 	}
 
-	log.Info().
-		Uint64("userID", uid).
-		Str("name", req.Name).
-		Str("type", string(req.ClientType)).
-		Msg("Creating new client")
-
 	clientType := client.ClientType(req.ClientType)
 	category := clientType.AsCategory()
-	log.Debug().
-		Uint64("userID", uid).
-		Str("name", req.Name).
-		Str("type", string(req.ClientType)).
-		Str("category", category.String()).
-		Msg("Creating new client")
+
+	client := req.Client
+	client.SetCategory(category)
 
 	clientOfType := models.Client[T]{
 		UserID:   uid,
 		Name:     req.Name,
 		Type:     clientType,
 		Category: category,
-		Config:   models.ClientConfigWrapper[T]{Data: req.Client},
+		Config:   models.ClientConfigWrapper[T]{Data: client},
 	}
 	log.Debug().
 		Uint64("userID", uid).
@@ -300,16 +291,20 @@ func (h *ClientHandler[T]) UpdateClient(c *gin.Context) {
 		Uint64("clientID", clientID).
 		Str("name", req.Name).
 		Str("type", string(req.ClientType)).
+		Str("category", req.ClientType.AsCategory().String()).
+		Bool("isEnabled", req.IsEnabled).
 		Msg("Updating client")
 
 	client := models.Client[T]{
 		BaseModel: models.BaseModel{
 			ID: clientID,
 		},
-		UserID:   uid,
-		Name:     req.Name,
-		Category: req.ClientType.AsCategory(),
-		Config:   models.ClientConfigWrapper[T]{Data: req.Client},
+		UserID:    uid,
+		Name:      req.Name,
+		Category:  req.ClientType.AsCategory(),
+		Type:      req.ClientType,
+		Config:    models.ClientConfigWrapper[T]{Data: req.Client},
+		IsEnabled: req.IsEnabled,
 	}
 
 	updatedClient, err := h.service.Update(ctx, client)

@@ -96,23 +96,31 @@ func (c ClientType) String() string {
 }
 
 func (c ClientType) AsCategory() ClientCategory {
-	switch c {
-	case ClientTypeEmby:
-	case ClientTypeJellyfin:
-	case ClientTypePlex:
-	case ClientTypeSubsonic:
-		return ClientCategoryMedia
-	case ClientTypeRadarr:
-	case ClientTypeSonarr:
-	case ClientTypeLidarr:
-		return ClientCategoryAutomation
-	case ClientTypeClaude:
-	case ClientTypeOpenAI:
-	case ClientTypeOllama:
-		return ClientCategoryAI
-	default:
-		return ClientCategoryUnknown
+	// Media clients
+	mediaClients := map[ClientType]bool{
+		ClientTypeEmby: true, ClientTypeJellyfin: true,
+		ClientTypePlex: true, ClientTypeSubsonic: true,
 	}
+	if mediaClients[c] {
+		return ClientCategoryMedia
+	}
+
+	// Automation clients
+	automationClients := map[ClientType]bool{
+		ClientTypeRadarr: true, ClientTypeSonarr: true, ClientTypeLidarr: true,
+	}
+	if automationClients[c] {
+		return ClientCategoryAutomation
+	}
+
+	// AI clients
+	aiClients := map[ClientType]bool{
+		ClientTypeClaude: true, ClientTypeOpenAI: true, ClientTypeOllama: true,
+	}
+	if aiClients[c] {
+		return ClientCategoryAI
+	}
+
 	return ClientCategoryUnknown
 }
 

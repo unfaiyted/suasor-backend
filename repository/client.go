@@ -52,6 +52,7 @@ func (r *clientRepository[T]) Create(ctx context.Context, client models.Client[T
 func (r *clientRepository[T]) Update(ctx context.Context, client models.Client[T]) (*models.Client[T], error) {
 	// Get existing record first to check if it exists and preserve createdAt
 	var existing models.Client[T]
+	log := utils.LoggerFromContext(ctx)
 
 	category := client.GetCategory()
 	if err := r.db.WithContext(ctx).Where("id = ? AND user_id = ?", client.ID, client.UserID).First(&existing).Error; err != nil {
@@ -63,6 +64,18 @@ func (r *clientRepository[T]) Update(ctx context.Context, client models.Client[T
 
 	// Preserve createdAt
 	client.CreatedAt = existing.CreatedAt
+	client.Category = existing.Category
+	client.Type = existing.Type
+	client.ID = existing.ID
+	client.UserID = existing.UserID
+	// Don't override IsEnabled field here - use the one from the request
+
+	log.Debug().
+		Str("category", client.GetCategory().String()).
+		Str("type", client.GetType().String()).
+		Uint64("userID", client.UserID).
+		Uint64("clientID", client.ID).
+		Msg("Updating client")
 
 	// Update the record
 	if err := r.db.WithContext(ctx).Save(&client).Error; err != nil {

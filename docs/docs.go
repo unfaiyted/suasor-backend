@@ -634,7 +634,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.SwaggerClientRequest"
+                            "$ref": "#/definitions/requests.ClientRequest-types_ClientConfig"
                         }
                     }
                 ],
@@ -5211,6 +5211,28 @@ const docTemplate = `{
                 }
             }
         },
+        "requests.ClientRequest-types_ClientConfig": {
+            "type": "object",
+            "required": [
+                "clientType",
+                "name"
+            ],
+            "properties": {
+                "client": {},
+                "clientID": {
+                    "type": "integer"
+                },
+                "clientType": {
+                    "$ref": "#/definitions/types.ClientType"
+                },
+                "isEnabled": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "requests.ConversationMessageRequest": {
             "description": "Request to send a message in an existing AI conversation",
             "type": "object",
@@ -5374,28 +5396,6 @@ const docTemplate = `{
                 },
                 "systemInstructions": {
                     "description": "Optional custom system instructions\nexample: You are a helpful movie recommendation assistant",
-                    "type": "string"
-                }
-            }
-        },
-        "requests.SwaggerClientRequest": {
-            "type": "object",
-            "required": [
-                "clientType",
-                "name"
-            ],
-            "properties": {
-                "client": {},
-                "clientID": {
-                    "type": "integer"
-                },
-                "clientType": {
-                    "$ref": "#/definitions/types.ClientType"
-                },
-                "isEnabled": {
-                    "type": "boolean"
-                },
-                "name": {
                     "type": "string"
                 }
             }
@@ -5926,6 +5926,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer",
                     "example": 1
+                },
+                "isEnabled": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string",

@@ -63,44 +63,46 @@ func NewClientsHandler(
 // @Failure 500 {object} responses.BasicErrorResponse "Server error"
 // @Router /clients [get]
 // @Example       response - Plex client example
-// {
-//   "data": [
-//     {
-//       "id": 1,
-//       "userId": 123,
-//       "name": "My Plex Server",
-//       "clientType": "plex",
-//       "client": {
-//         "type": "plex",
-//         "host": "192.168.1.100",
-//         "port": 32400,
-//         "token": "your-plex-token",
-//         "ssl": false,
-//         "enabled": true
-//       },
-//       "createdAt": "2023-01-01T12:00:00Z",
-//       "updatedAt": "2023-01-01T12:00:00Z"
-//     },
-//     {
-//       "id": 2,
-//       "userId": 123,
-//       "name": "My Jellyfin Server",
-//       "clientType": "jellyfin",
-//       "client": {
-//         "type": "jellyfin",
-//         "host": "192.168.1.101",
-//         "port": 8096,
-//         "apiKey": "your-jellyfin-api-key",
-//         "username": "admin",
-//         "ssl": false,
-//         "enabled": true
-//       },
-//       "createdAt": "2023-01-01T12:00:00Z",
-//       "updatedAt": "2023-01-01T12:00:00Z"
-//     }
-//   ],
-//   "message": "All clients retrieved successfully"
-// }
+//
+//	{
+//	  "data": [
+//	    {
+//	      "id": 1,
+//	      "userId": 123,
+//	      "name": "My Plex Server",
+//	      "clientType": "plex",
+//	      "client": {
+//	        "type": "plex",
+//	        "host": "192.168.1.100",
+//	        "port": 32400,
+//	        "token": "your-plex-token",
+//	        "ssl": false,
+//	        "enabled": true
+//	      },
+//	      "createdAt": "2023-01-01T12:00:00Z",
+//	      "updatedAt": "2023-01-01T12:00:00Z"
+//	    },
+//	    {
+//	      "id": 2,
+//	      "userId": 123,
+//	      "name": "My Jellyfin Server",
+//		     "isEnabled": true,
+//	      "clientType": "jellyfin",
+//	      "client": {
+//	        "type": "jellyfin",
+//	        "host": "192.168.1.101",
+//	        "port": 8096,
+//	        "apiKey": "your-jellyfin-api-key",
+//	        "username": "admin",
+//	        "ssl": false,
+//	        "enabled": true
+//	      },
+//	      "createdAt": "2023-01-01T12:00:00Z",
+//	      "updatedAt": "2023-01-01T12:00:00Z"
+//	    }
+//	  ],
+//	  "message": "All clients retrieved successfully"
+//	}
 func (h *ClientsHandler) ListAllClients(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -161,12 +163,12 @@ func (h *ClientsHandler) ListAllClients(c *gin.Context) {
 	for _, client := range claudeClients {
 		allClients = append(allClients, toClientResponse(client))
 	}
-	
+
 	openaiClients, _ := h.openaiService.GetByUserID(ctx, uid)
 	for _, client := range openaiClients {
 		allClients = append(allClients, toClientResponse(client))
 	}
-	
+
 	ollamaClients, _ := h.ollamaService.GetByUserID(ctx, uid)
 	for _, client := range ollamaClients {
 		allClients = append(allClients, toClientResponse(client))
@@ -186,6 +188,7 @@ func toClientResponse[T types.ClientConfig](client *models.Client[T]) responses.
 		ID:         client.ID,
 		UserID:     client.UserID,
 		Name:       client.Name,
+		IsEnabled:  client.IsEnabled,
 		ClientType: types.MediaClientType(client.Type),
 		Client:     client.Config.Data,
 		CreatedAt:  client.CreatedAt,
@@ -223,3 +226,4 @@ func SwaggerClientTypes() {
 	_ = &types.OpenAIConfig{}
 	_ = &types.OllamaConfig{}
 }
+

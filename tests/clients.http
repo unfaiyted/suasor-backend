@@ -150,3 +150,21 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
     "ssl": false
   }
 }
+
+### 
+# @name updateEmbyClient
+PUT http://localhost:8080/api/v1/admin/client/emby/{{createEmbyClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Emby (Updated)",
+  "clientType": "emby",
+  "isEnabled": false,
+  "client": {
+    "baseURL": "http://192.168.1.100:8096",
+    "apiKey": "your-emby-apikey",
+    "username": "admin",
+    "ssl": false
+  }
+}

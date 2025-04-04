@@ -3,6 +3,7 @@ package types
 type ClientConfig interface {
 	isClientConfig()
 	GetCategory() ClientCategory
+	SetCategory(ClientCategory)
 	GetType() ClientType
 }
 
@@ -17,6 +18,9 @@ func (c *BaseClientConfig) GetType() ClientType {
 
 func (c *BaseClientConfig) GetCategory() ClientCategory {
 	return c.Category
+}
+func (c *BaseClientConfig) SetCategory(category ClientCategory) {
+	c.Category = category
 }
 
 func (BaseClientConfig) isClientConfig() {}

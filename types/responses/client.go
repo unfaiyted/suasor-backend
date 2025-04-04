@@ -11,6 +11,7 @@ type ClientResponse struct {
 	UserID     uint64                `json:"userId" example:"123"`
 	Name       string                `json:"name" example:"My Plex Server"`
 	ClientType types.MediaClientType `json:"clientType" example:"plex"`
+	IsEnabled  bool                  `json:"isEnabled"`
 	Client     any                   `json:"client"` // Can be any of the config types
 	CreatedAt  time.Time             `json:"createdAt" example:"2023-01-01T12:00:00Z"`
 	UpdatedAt  time.Time             `json:"updatedAt" example:"2023-01-01T12:00:00Z"`
