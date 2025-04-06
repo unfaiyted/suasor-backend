@@ -1,0 +1,177 @@
+###
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@dev.com",
+  "password": "TestPassword123"
+}
+
+### 
+# @name createTMDBClient
+POST http://localhost:8080/api/v1/admin/client/tmdb
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "TMDB Metadata Provider",
+  "clientType": "tmdb",
+  "isEnabled": true,
+  "client": {
+    "apiKey": "{{$env TMDB_API_KEY}}"
+  }
+}
+
+###
+# @name getAllTMDBClients
+GET http://localhost:8080/api/v1/clients?clientType=tmdb
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getAllMetadataClients
+GET http://localhost:8080/api/v1/clients?type=metadata
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getTMDBClientById
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name updateTMDBClient
+PUT http://localhost:8080/api/v1/admin/client/tmdb/{{createTMDBClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "TMDB Provider (Updated)",
+  "clientType": "tmdb",
+  "isEnabled": true,
+  "client": {
+    "apiKey": "{{$env TMDB_API_KEY}}"
+  }
+}
+
+### 
+# @name searchMovies
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/movie/search?query=Inception
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getMovieDetails
+# Assuming the first movie in the search is "Inception"
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/movie/{{searchMovies.response.body.$.data[0].id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getMovieRecommendations
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/movie/{{searchMovies.response.body.$.data[0].id}}/recommendations
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPopularMovies
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/movie/popular
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getTrendingMovies
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/movie/trending
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name searchTVShows
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/tv/search?query=Stranger%20Things
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getTVShowDetails
+# Assuming the first show in the search is "Stranger Things"
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/tv/{{searchTVShows.response.body.$.data[0].id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getTVShowRecommendations
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/tv/{{searchTVShows.response.body.$.data[0].id}}/recommendations
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPopularTVShows
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/tv/popular
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getTrendingTVShows
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/tv/trending
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getTVSeasonDetails
+# Get details for season 1 of Stranger Things
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/tv/{{searchTVShows.response.body.$.data[0].id}}/season/1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getTVEpisodeDetails
+# Get details for season 1, episode 1 of Stranger Things
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/tv/{{searchTVShows.response.body.$.data[0].id}}/season/1/episode/1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name searchPeople
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/person/search?query=Leonardo%20DiCaprio
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPersonDetails
+# Assuming the first person in the search is "Leonardo DiCaprio"
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/person/{{searchPeople.response.body.$.data[0].id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPersonMovieCredits
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/person/{{searchPeople.response.body.$.data[0].id}}/movies
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPersonTVCredits
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/person/{{searchPeople.response.body.$.data[0].id}}/tv
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name searchCollections
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/collection/search?query=Harry%20Potter
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getCollectionDetails
+# Assuming the first collection in the search is "Harry Potter Collection"
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/collection/{{searchCollections.response.body.$.data[0].id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name deleteTMDBClient
+DELETE http://localhost:8080/api/v1/admin/client/tmdb/{{createTMDBClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

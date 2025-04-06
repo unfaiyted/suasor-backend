@@ -1,0 +1,110 @@
+###
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@dev.com",
+  "password": "TestPassword123"
+}
+
+### 
+# @name createTMDBClient
+POST http://localhost:8080/api/v1/admin/client/tmdb
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "TMDB Metadata Provider",
+  "clientType": "tmdb",
+  "isEnabled": true,
+  "client": {
+    "apiKey": "{{$env TMDB_API_KEY}}"
+  }
+}
+
+### 
+# @name createEmbyClient
+POST http://localhost:8080/api/v1/admin/client/emby
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Emby",
+  "clientType": "emby",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "{{$env EMBY_TEST_URL}}",
+    "apiKey": "{{$env EMBY_TEST_API_KEY}}",
+    "username": "{{$env EMBY_TEST_USER}}",
+    "ssl": false
+  }
+}
+
+###
+# @name getEmbyMovie
+# First get a movie from Emby
+GET http://localhost:8080/api/v1/client/{{createEmbyClient.response.body.$.data.id}}/movie?limit=1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getMetadataForMovie
+# Now enrich this movie with TMDB metadata
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/movie/search?query={{getEmbyMovie.response.body.$.data[0].title}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getDetailedMetadata
+# Get detailed metadata for the movie
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/movie/{{getMetadataForMovie.response.body.$.data[0].id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getEmbyTVShow
+# First get a TV show from Emby
+GET http://localhost:8080/api/v1/client/{{createEmbyClient.response.body.$.data.id}}/tv?limit=1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getMetadataForTVShow
+# Now enrich this TV show with TMDB metadata
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/tv/search?query={{getEmbyTVShow.response.body.$.data[0].title}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getDetailedTVMetadata
+# Get detailed metadata for the TV show
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/tv/{{getMetadataForTVShow.response.body.$.data[0].id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getSeasonMetadata
+# If the TV show has seasons, get metadata for the first season
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/tv/{{getMetadataForTVShow.response.body.$.data[0].id}}/season/1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getSimilarContent
+# Get content recommendations based on the movie
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/movie/{{getMetadataForMovie.response.body.$.data[0].id}}/recommendations
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name cleanup
+# Clean up the created clients
+DELETE http://localhost:8080/api/v1/admin/client/tmdb/{{createTMDBClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+DELETE http://localhost:8080/api/v1/admin/client/emby/{{createEmbyClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

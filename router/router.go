@@ -45,6 +45,7 @@ func Setup(ctx context.Context, deps *app.AppDependencies) *gin.Engine {
 		RegisterUserConfigRoutes(authenticated, deps)
 		RegisterMediaItemRoutes(authenticated, deps)
 		RegisterMediaClientRoutes(authenticated, deps)
+		RegisterMetadataRoutes(authenticated)      // Register metadata routes
 		RegisterAIRoutes(authenticated, deps)      // Register AI routes
 		RegisterClientsRoutes(authenticated, deps) // Register all clients route
 	}

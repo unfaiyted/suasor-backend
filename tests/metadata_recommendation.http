@@ -1,0 +1,120 @@
+###
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@dev.com",
+  "password": "TestPassword123"
+}
+
+### 
+# @name createTMDBClient
+POST http://localhost:8080/api/v1/admin/client/tmdb
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "TMDB Metadata Provider",
+  "clientType": "tmdb",
+  "isEnabled": true,
+  "client": {
+    "apiKey": "{{$env TMDB_API_KEY}}"
+  }
+}
+
+### 
+# @name createClaudeClient
+POST http://localhost:8080/api/v1/admin/client/claude
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Claude AI",
+  "clientType": "claude",
+  "isEnabled": true,
+  "client": {
+    "apiKey": "{{$env CLAUDE_API_KEY}}",
+    "model": "claude-3-sonnet-20240229",
+    "temperature": 0.7,
+    "maxTokens": 4096
+  }
+}
+
+###
+# @name searchMovie
+# Search for a movie in TMDB
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/movie/search?query=Interstellar
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getMovieDetails
+# Get details for the movie
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/movie/{{searchMovie.response.body.$.data[0].id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getTMDBRecommendations
+# Get recommendations from TMDB
+GET http://localhost:8080/api/v1/client/{{createTMDBClient.response.body.$.data.id}}/metadata/movie/{{searchMovie.response.body.$.data[0].id}}/recommendations
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getAIRecommendations
+# Get AI-powered movie recommendations using Claude
+POST http://localhost:8080/api/v1/client/{{createClaudeClient.response.body.$.data.id}}/ai/recommendation
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "content": {
+    "type": "movie",
+    "title": "{{searchMovie.response.body.$.data[0].title}}",
+    "overview": "{{searchMovie.response.body.$.data[0].overview}}",
+    "genres": [
+      {{#each getMovieDetails.response.body.$.data.genres}}
+        "{{name}}"{{^last}},{{/last}}
+      {{/each}}
+    ]
+  },
+  "options": {
+    "count": 5,
+    "includeDescription": true,
+    "includeReasoning": true
+  }
+}
+
+###
+# @name comparingRecommendations
+# Now get a combined view of recommendations
+POST http://localhost:8080/api/v1/client/{{createClaudeClient.response.body.$.data.id}}/ai/conversation
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "I want to compare TMDB recommendations with AI recommendations for the movie '{{searchMovie.response.body.$.data[0].title}}'. Here are the TMDB recommendations: {{getTMDBRecommendations.response.body.$.data | json}} And here are the AI recommendations: {{getAIRecommendations.response.body.$.data | json}}. Can you analyze the difference in approaches and tell me which set might be better for someone who really enjoyed {{searchMovie.response.body.$.data[0].title}}?"
+    }
+  ],
+  "options": {
+    "temperature": 0.7,
+    "maxTokens": 2048
+  }
+}
+
+###
+# @name cleanup
+# Clean up the created clients
+DELETE http://localhost:8080/api/v1/admin/client/tmdb/{{createTMDBClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+DELETE http://localhost:8080/api/v1/admin/client/claude/{{createClaudeClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

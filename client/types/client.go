@@ -7,6 +7,7 @@ const (
 	ClientCategoryAutomation ClientCategory = "automation"
 	ClientCategoryMedia      ClientCategory = "media"
 	ClientCategoryAI         ClientCategory = "ai"
+	ClientCategoryMetadata   ClientCategory = "metadata"
 	ClientCategoryUnknown    ClientCategory = "unknown"
 )
 
@@ -72,6 +73,14 @@ const (
 	AIClientTypeUnknown AIClientType = "unknown"
 )
 
+type MetadataClientType string
+
+const (
+	MetadataClientTypeTMDB    MetadataClientType = "tmdb"
+	MetadataClientTypeTrakt   MetadataClientType = "trakt"
+	MetadataClientTypeUnknown MetadataClientType = "unknown"
+)
+
 type ClientType string
 
 const (
@@ -89,6 +98,9 @@ const (
 	ClientTypeClaude ClientType = "claude"
 	ClientTypeOpenAI ClientType = "openai"
 	ClientTypeOllama ClientType = "ollama"
+	
+	ClientTypeTMDB  ClientType = "tmdb"
+	ClientTypeTrakt ClientType = "trakt"
 )
 
 func (c ClientType) String() string {
@@ -119,6 +131,14 @@ func (c ClientType) AsCategory() ClientCategory {
 	}
 	if aiClients[c] {
 		return ClientCategoryAI
+	}
+	
+	// Metadata clients
+	metadataClients := map[ClientType]bool{
+		ClientTypeTMDB: true, ClientTypeTrakt: true,
+	}
+	if metadataClients[c] {
+		return ClientCategoryMetadata
 	}
 
 	return ClientCategoryUnknown
@@ -155,6 +175,21 @@ func (c AIClientType) AsCategory() ClientCategory {
 	return ClientCategoryAI
 }
 
+func (c MetadataClientType) AsCategory() ClientCategory {
+	return ClientCategoryMetadata
+}
+
+func (c MetadataClientType) AsGenericClient() ClientType {
+	switch c {
+	case MetadataClientTypeTMDB:
+		return ClientTypeTMDB
+	case MetadataClientTypeTrakt:
+		return ClientTypeTrakt
+	default:
+		return ClientTypeUnknown
+	}
+}
+
 func GetClientTypeFromTypeName(typeName string) ClientType {
 	switch typeName {
 	case "*types.EmbyConfig":
@@ -177,6 +212,10 @@ func GetClientTypeFromTypeName(typeName string) ClientType {
 		return ClientTypeSubsonic
 	case "*types.PlexConfig":
 		return ClientTypePlex
+	case "*types.TMDBConfig":
+		return ClientTypeTMDB
+	case "*types.TraktConfig":
+		return ClientTypeTrakt
 	default:
 		return ClientTypeUnknown
 	}

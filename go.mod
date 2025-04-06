@@ -33,6 +33,7 @@ require (
 	github.com/cloudwego/base64x v0.1.5 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
+	github.com/cyruzin/golang-tmdb v1.6.9 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/delucks/go-subsonic v0.0.0-20240806025900-2a743ec36238 // indirect
 	github.com/devopsarr/lidarr-go v1.2.0 // indirect
