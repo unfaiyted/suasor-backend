@@ -130,8 +130,10 @@ func (j *JellyfinClient) convertToEpisode(ctx context.Context, item *jellyfin.Ba
 
 	// Safely handle duration
 	var duration time.Duration
+	var durationSecs int64 = 0
 	if item.RunTimeTicks.IsSet() {
 		duration = time.Duration(*item.RunTimeTicks.Get()/10000000) * time.Second
+		durationSecs = int64(duration.Seconds())
 	}
 
 	// Safely handle episode number
@@ -159,7 +161,7 @@ func (j *JellyfinClient) convertToEpisode(ctx context.Context, item *jellyfin.Ba
 				Title:       title,
 				Description: description,
 				Artwork:     j.getArtworkURLs(item),
-				Duration:    duration,
+				Duration:    durationSecs,
 			},
 			Number:       episodeNumber,
 			SeasonNumber: seasonNumber,
@@ -254,8 +256,10 @@ func (j *JellyfinClient) convertToSeries(ctx context.Context, item *jellyfin.Bas
 
 	// Safely handle duration
 	var duration time.Duration
+	var durationSecs int64 = 0
 	if item.RunTimeTicks.IsSet() {
 		duration = time.Duration(*item.RunTimeTicks.Get()/10000000) * time.Second
+		durationSecs = int64(duration.Seconds())
 	}
 
 	// Safely handle season count
@@ -279,7 +283,7 @@ func (j *JellyfinClient) convertToSeries(ctx context.Context, item *jellyfin.Bas
 				ReleaseYear: releaseYear,
 				Genres:      genres,
 				Artwork:     j.getArtworkURLs(item),
-				Duration:    duration,
+				Duration:    durationSecs,
 			},
 			Status:      status,
 			SeasonCount: seasonCount,
@@ -386,8 +390,10 @@ func (j *JellyfinClient) convertToMovie(ctx context.Context, item *jellyfin.Base
 
 	// Calculate duration
 	var duration time.Duration
+	var durationSecs int64 = 0
 	if item.RunTimeTicks.IsSet() {
 		duration = time.Duration(*item.RunTimeTicks.Get()/10000000) * time.Second
+		durationSecs = int64(duration.Seconds())
 	}
 
 	// Initialize ratings
@@ -412,7 +418,7 @@ func (j *JellyfinClient) convertToMovie(ctx context.Context, item *jellyfin.Base
 				ContentRating: contentRating,
 				Genres:        genres,
 				Artwork:       j.getArtworkURLs(item),
-				Duration:      duration,
+				Duration:      durationSecs,
 				Ratings:       ratings,
 			},
 		},

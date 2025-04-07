@@ -172,9 +172,110 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		),
 	}
 
+	// Initialize additional repositories
+	historyRepo := repository.NewMediaPlayHistoryRepository(db)
+
+	// Initialize job repositories
+	deps.JobRepositories = &jobRepositoriesImpl{
+		jobRepo: repository.NewJobRepository(db),
+	}
+
+	// Initialize job services
+	recommendationJob := services.NewRecommendationJob(
+		deps.JobRepo(),
+		deps.UserRepo(),
+		deps.UserConfigRepo(),
+		deps.MovieRepo(),
+		deps.SeriesRepo(),
+		deps.TrackRepo(),
+		historyRepo,
+		deps.ClientServices.ClaudeService(),
+	)
+
+	mediaSyncJob := services.NewMediaSyncJob(
+		deps.JobRepo(),
+		deps.UserRepo(),
+		deps.UserConfigRepo(),
+		deps.MovieRepo(),
+		deps.SeriesRepo(),
+		deps.TrackRepo(),
+		historyRepo,
+		deps.ClientServices.EmbyService(),
+		deps.ClientServices.JellyfinService(),
+		deps.ClientServices.PlexService(),
+		deps.ClientServices.SubsonicService(),
+	)
+	
+	watchHistorySyncJob := services.NewWatchHistorySyncJob(
+		deps.JobRepo(),
+		deps.UserRepo(),
+		deps.UserConfigRepo(),
+		historyRepo,
+		deps.MovieRepo(),
+		deps.SeriesRepo(),
+		deps.MediaItemRepositories.EpisodeRepo(),
+		deps.TrackRepo(),
+		deps.ClientRepositories.EmbyRepo(),
+		deps.ClientRepositories.JellyfinRepo(),
+		deps.ClientRepositories.PlexRepo(),
+		deps.ClientRepositories.SubsonicRepo(),
+	)
+	
+	favoritesSyncJob := services.NewFavoritesSyncJob(
+		deps.JobRepo(),
+		deps.UserRepo(),
+		deps.UserConfigRepo(),
+		deps.MovieRepo(),
+		deps.SeriesRepo(),
+		deps.MediaItemRepositories.EpisodeRepo(),
+		deps.TrackRepo(),
+		deps.ClientRepositories.EmbyRepo(),
+		deps.ClientRepositories.JellyfinRepo(),
+		deps.ClientRepositories.PlexRepo(),
+		deps.ClientRepositories.SubsonicRepo(),
+		deps.ClientFactoryService,
+	)
+
+	jobService := services.NewJobService(
+		deps.JobRepo(),
+		deps.UserRepo(),
+		deps.UserConfigRepo(),
+		deps.MovieRepo(),
+		deps.SeriesRepo(),
+		deps.TrackRepo(),
+		historyRepo,
+		recommendationJob,
+		mediaSyncJob,
+		watchHistorySyncJob,
+		favoritesSyncJob,
+	)
+
+	deps.JobServices = &jobServicesImpl{
+		jobService:         jobService,
+		recommendationJob:  recommendationJob,
+		mediaSyncJob:       mediaSyncJob,
+		watchHistorySyncJob: watchHistorySyncJob,
+		favoritesSyncJob:    favoritesSyncJob,
+	}
+	
+	// Initialize job handlers
+	deps.JobHandlers = &jobHandlersImpl{
+		jobHandler: handlers.NewJobHandler(jobService),
+	}
+
+	// Register jobs with the job service
+	jobService.RegisterJob(recommendationJob)
+	jobService.RegisterJob(mediaSyncJob)
+	jobService.RegisterJob(watchHistorySyncJob)
+	jobService.RegisterJob(favoritesSyncJob)
+
 	deps.UserServices = &userServicesImpl{
 		userService:       services.NewUserService(deps.UserRepo()),
-		userConfigService: services.NewUserConfigService(deps.UserConfigRepo()),
+		userConfigService: services.NewUserConfigService(
+			deps.UserConfigRepo(),
+			deps.JobServices.JobService(),
+			deps.JobServices.RecommendationJob(),
+		),
 		authService: services.NewAuthService(deps.UserRepo(),
 			deps.SessionRepo(),
 			appConfig.Auth.JWTSecret,

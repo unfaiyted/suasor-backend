@@ -67,7 +67,8 @@ func (c *PlexClient) createMetadataFromPlexItem(item *operations.GetLibraryItems
 		}
 	}
 	if item.Duration != nil {
-		metadata.Duration = time.Duration(*item.Duration) * time.Millisecond
+		duration := time.Duration(*item.Duration) * time.Millisecond
+		metadata.Duration = int64(duration.Seconds())
 	}
 	if item.Studio != nil {
 		metadata.Studios = []string{*item.Studio}

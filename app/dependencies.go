@@ -11,6 +11,7 @@ type AppDependencies struct {
 	UserRepositories
 	MediaItemRepositories
 	ClientRepositories
+	JobRepositories
 
 	// Services
 	UserServices
@@ -18,6 +19,7 @@ type AppDependencies struct {
 	ClientServices
 	ClientMediaServices
 	MediaItemServices
+	JobServices
 
 	// Factories
 	ClientFactoryService *client.ClientFactoryService
@@ -29,4 +31,5 @@ type AppDependencies struct {
 	AIHandlers
 	UserHandlers
 	SystemHandlers
+	JobHandlers
 }

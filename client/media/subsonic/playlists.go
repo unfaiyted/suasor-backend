@@ -5,7 +5,6 @@ import (
 	t "suasor/client/media/types"
 	"suasor/types/models"
 	"suasor/utils"
-	"time"
 )
 
 func (c *SubsonicClient) GetPlaylists(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[t.Playlist], error) {
@@ -39,7 +38,7 @@ func (c *SubsonicClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 				Details: t.MediaDetails{
 					Title:       pl.Name,
 					Description: pl.Comment,
-					Duration:    time.Duration(pl.Duration) * time.Second,
+					Duration:    int64(pl.Duration), // Convert int to int64
 				},
 				ItemCount: pl.SongCount,
 				Owner:     pl.Owner,

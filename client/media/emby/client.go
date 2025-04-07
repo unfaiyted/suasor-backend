@@ -24,12 +24,19 @@ func init() {
 	fmt.Println("Registering Emby client factory...")
 	client.GetClientFactoryService().RegisterClientFactory(config.ClientTypeEmby,
 		func(ctx context.Context, clientID uint64, configData config.ClientConfig) (base.Client, error) {
+			log := utils.LoggerFromContext(ctx)
 			// Use the provided config (should be an EmbyConfig)
-			embyConfig, ok := configData.(*config.EmbyConfig) 
+			embyConfig, ok := configData.(*config.EmbyConfig)
+			log.Debug().
+				Bool("ok", ok).
+				Msg("Checking config type")
 			if !ok {
+				log.Error().
+					Err(fmt.Errorf("expected *config.EmbyConfig, got %T", configData)).
+					Msg("Expected *config.EmbyConfig, got %T")
 				return nil, fmt.Errorf("expected *config.EmbyConfig, got %T", configData)
 			}
-			
+
 			fmt.Printf("Factory called for Emby client with ID: %d\n", clientID)
 			return NewEmbyClient(ctx, clientID, *embyConfig)
 		})
@@ -105,12 +112,12 @@ func (e *EmbyClient) getUserID() string {
 	if e.embyConfig() == nil {
 		return ""
 	}
-	
+
 	// Return existing user ID if available
 	if e.embyConfig().UserID != "" {
 		return e.embyConfig().UserID
 	}
-	
+
 	// Try to infer it from username, but this won't work in this context
 	// since we'd need to make API call which requires context
 	// log error and return empty

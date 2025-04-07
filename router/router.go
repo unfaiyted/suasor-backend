@@ -48,6 +48,7 @@ func Setup(ctx context.Context, deps *app.AppDependencies) *gin.Engine {
 		RegisterMetadataRoutes(authenticated)      // Register metadata routes
 		RegisterAIRoutes(authenticated, deps)      // Register AI routes
 		RegisterClientsRoutes(authenticated, deps) // Register all clients route
+		RegisterJobRoutes(authenticated, deps.JobServices.JobService()) // Register job routes
 	}
 
 	//Admin Routes

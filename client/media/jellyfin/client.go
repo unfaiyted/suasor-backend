@@ -15,12 +15,12 @@ import (
 )
 
 func init() {
-	c.GetClientFactoryService().RegisterClientFactory(client.ClientTypeEmby,
+	c.GetClientFactoryService().RegisterClientFactory(client.ClientTypeJellyfin,
 		func(ctx context.Context, clientID uint64, cfg client.ClientConfig) (base.Client, error) {
 			// Type assert
 			jellyfinConfig, ok := cfg.(*client.JellyfinConfig)
 			if !ok {
-				return nil, fmt.Errorf("invalid config type for Emby client, expected *EmbyConfig, got %T", cfg)
+				return nil, fmt.Errorf("invalid config type for Jellyfin client, expected *JellyfinConfig, got %T", cfg)
 			}
 
 			// Use your existing constructor

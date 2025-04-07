@@ -21,6 +21,7 @@ type UserRepository interface {
 	FindByID(ctx context.Context, id uint64) (*models.User, error)
 	FindByEmail(ctx context.Context, email string) (*models.User, error)
 	FindByUsername(ctx context.Context, username string) (*models.User, error)
+	FindAll(ctx context.Context) ([]models.User, error)
 }
 
 // userRepository implements the UserRepository interface
@@ -96,4 +97,16 @@ func (r *userRepository) FindByUsername(ctx context.Context, username string) (*
 	}
 
 	return &user, nil
+}
+
+// FindAll retrieves all users
+func (r *userRepository) FindAll(ctx context.Context) ([]models.User, error) {
+	var users []models.User
+	result := r.db.Find(&users)
+	
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	
+	return users, nil
 }

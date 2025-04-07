@@ -483,3 +483,56 @@ func (h *ClientHandler[T]) GetClientsByType(c *gin.Context) {
 	}
 	responses.RespondOK(c, clients, "clients retrieved successfully")
 }
+
+// TestNewConnection godoc
+// @Summary Test client connection
+// @Description Tests the connection to a client using the provided configuration
+// @Tags clients
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body requests.ClientTestRequest[client.ClientConfig] true "Updated client data"
+// @Success 200 {object} responses.APIResponse[responses.TestConnectionResponse] "Connection test result"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
+// @Router /admin/client/:clientType/test [get]
+// @Example response
+//
+//	{
+//	  "data": {
+//	    "success": true,
+//	    "message": "Successfully connected to Emby server",
+//	    "version": "4.7.0"
+//	  },
+//	  "message": "Connection test completed"
+//	}
+func (h *ClientHandler[T]) TestNewConnection(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	// Get authenticated user ID
+	_, exists := c.Get("userID")
+
+	if !exists {
+		responses.RespondUnauthorized(c, nil, "Authentication required")
+		return
+	}
+	log.Info().
+		Str("clientType", c.Param("clientType")).
+		Msg("Testing new client connection")
+
+	var request requests.ClientTestRequest[T]
+	if err := c.ShouldBindJSON(&request); err != nil {
+		responses.RespondValidationError(c, err)
+		return
+	}
+
+	result, err := h.service.TestNewConnection(ctx, &request.Client)
+	if err != nil {
+		responses.RespondInternalError(c, err, result.Message)
+		return
+	}
+
+	responses.RespondOK(c, result, "Connection test completed")
+}

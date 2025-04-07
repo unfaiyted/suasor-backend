@@ -36,16 +36,52 @@ func (r *userConfigRepository) GetUserConfig(ctx context.Context, userID uint64)
 		// If the user config doesn't exist yet, return a new default config
 		if result.Error == gorm.ErrRecordNotFound {
 			return &models.UserConfig{
-				UserID:                 userID,
-				Theme:                  "system",
-				Language:               "en-US",
-				ItemsPerPage:           20,
-				EnableAnimations:       true,
-				PreferredGenres:        "",
-				ExcludedGenres:         "",
-				ContentLanguages:       "en",
+				UserID:           userID,
+				Theme:            "system",
+				Language:         "en-US",
+				ItemsPerPage:     20,
+				EnableAnimations: true,
+				ContentTypes:     "movie,series,tv",
+
+				// Recommendation Preferences
+				RecommendationSyncEnabled:   false,
+				RecommendationSyncListType:  "collection",
+				RecommendationSyncFrequency: "manual",
+				RecommendationListPrefix:    "Recommendations",
+				RecommendationContentTypes:  "",
+				RecommendationMinRating:     5,
+				MaxRecommendations:          &models.MaxRecommendations{},
+
+				// Advanced Recommendation Settings
+				RecommendationMaxAge:    0,
+				ExcludedKeywords:        "",
+				IncludeUnratedContent:   false,
+				PreferredGenres:         &models.Genres{},
+				ExcludedGenres:          &models.Genres{},
+				PreferredAudioLanguages: "en",
+				PreferredContentLength:  "medium",
+				MinContentRating:        "G",
+				MaxContentRating:        "R",
+
+				// AI Algorithm Settings
 				RecommendationStrategy: "balanced",
-				NotificationsEnabled:   true,
+				NewContentWeight:       0.5,
+				PopularityWeight:       0.5,
+				PersonalHistoryWeight:  0.8,
+				DiscoveryModeEnabled:   false,
+
+				// Media Sync Preferences
+				DefaultClients: &models.DefaultClients{},
+
+				// Notification Settings
+				NotificationsEnabled:       true,
+				EmailNotifications:         false,
+				NotifyOnNewRecommendations: true,
+				NotifyOnSync:               false,
+				DigestFrequency:            "never",
+
+				// Onboarding
+				OnboardingCompleted: false,
 			}, nil
 		}
 		return nil, fmt.Errorf("error retrieving user config: %w", result.Error)

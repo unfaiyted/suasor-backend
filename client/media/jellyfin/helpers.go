@@ -14,12 +14,13 @@ func getInt32Value(ptr *int32) int {
 	return int(*ptr)
 }
 
-// Helper function to get duration from ticks pointer
-func getDurationFromTicks(ticks *int64) time.Duration {
+// Helper function to get duration seconds from ticks pointer
+func getDurationFromTicks(ticks *int64) int64 {
 	if ticks == nil {
 		return 0
 	}
-	return time.Duration(*ticks/10000000) * time.Second
+	duration := time.Duration(*ticks/10000000) * time.Second
+	return int64(duration.Seconds())
 }
 
 // Helper to get a string value from a pointer, with a default empty string if nil

@@ -13,6 +13,10 @@ import (
 
 	_ "suasor/client/ai/claude"  // Force init() to run
 	_ "suasor/client/media/emby" // Force init() to run
+	_ "suasor/client/media/jellyfin"
+	_ "suasor/client/media/plex"
+	_ "suasor/client/media/subsonic"
+	_ "suasor/client/metadata/tmdb"
 	_ "suasor/docs"
 
 	swaggerFiles "github.com/swaggo/files"
@@ -63,12 +67,26 @@ func main() {
 	}
 
 	deps := app.InitializeDependencies(db, configService)
+
+	// Start the job scheduler
+	log.Info().Msg("Starting job scheduler")
+	if err := deps.JobServices.JobService().StartScheduler(); err != nil {
+		log.Error().Err(err).Msg("Failed to start job scheduler")
+	}
+
+	// Sync job schedules from database
+	if err := deps.JobServices.JobService().SyncDatabaseJobs(ctx); err != nil {
+		log.Error().Err(err).Msg("Failed to sync job schedules from database")
+	}
+
 	r := router.Setup(ctx, deps)
 
 	r.Use(middleware.LoggerMiddleware())
 
 	// Swagger Docs
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	// Start server
+	log.Info().Msg("Starting server on :8080")
 	r.Run(":8080")
 }

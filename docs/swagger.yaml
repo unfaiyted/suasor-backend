@@ -55,6 +55,242 @@ definitions:
     properties:
       data: {}
     type: object
+  models.DefaultClients:
+    properties:
+      aiClientId:
+        example: 1
+        type: integer
+      bookAutomationId:
+        example: 1
+        type: integer
+      bookClientId:
+        description: 'TODO: Add support for books. Should it be books vs audiobooks?
+          How would I want to handle that?'
+        example: 1
+        type: integer
+      movieAutomationId:
+        example: 1
+        type: integer
+      musicAutomationId:
+        example: 1
+        type: integer
+      musicClientId:
+        example: 1
+        type: integer
+      seriesAutomationId:
+        example: 1
+        type: integer
+      videoClientId:
+        example: 1
+        type: integer
+    type: object
+  models.Genres:
+    properties:
+      anime:
+        example:
+        - action
+        - comedy
+        - drama
+        items:
+          type: string
+        type: array
+      books:
+        example:
+        - fantasy
+        - horror
+        - mystery
+        items:
+          type: string
+        type: array
+      games:
+        example:
+        - action
+        - comedy
+        - drama
+        items:
+          type: string
+        type: array
+      movies:
+        example:
+        - action
+        - comedy
+        - drama
+        items:
+          type: string
+        type: array
+      music:
+        example:
+        - electronic
+        - pop
+        - rock
+        items:
+          type: string
+        type: array
+      series:
+        example:
+        - action
+        - comedy
+        - drama
+        items:
+          type: string
+        type: array
+    type: object
+  models.JobRun:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      endTime:
+        description: When the job finished running
+        type: string
+      errorMessage:
+        description: Any error message from the job run
+        type: string
+      id:
+        type: integer
+      jobName:
+        description: The name of the job
+        type: string
+      jobType:
+        allOf:
+        - $ref: '#/definitions/models.JobType'
+        description: Type of job (recommendation, sync, etc.)
+      metadata:
+        description: Metadata related to the job (stored as JSON)
+        type: string
+      startTime:
+        description: When the job started running
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/models.JobStatus'
+        description: Status of the job run
+      updatedAt:
+        type: string
+      userId:
+        description: User ID associated with the job, if applicable
+        type: integer
+    type: object
+  models.JobSchedule:
+    properties:
+      config:
+        description: Any configuration for the job (stored as JSON)
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      enabled:
+        description: Whether the job is enabled
+        type: boolean
+      frequency:
+        description: How often the job should run
+        type: string
+      id:
+        type: integer
+      jobName:
+        description: Unique name of the job
+        type: string
+      jobType:
+        allOf:
+        - $ref: '#/definitions/models.JobType'
+        description: Type of job (recommendation, sync, etc.)
+      lastRunTime:
+        description: When the job last ran
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        description: User ID associated with the job, if applicable (for user-specific
+          jobs)
+        type: integer
+    type: object
+  models.JobStatus:
+    enum:
+    - pending
+    - running
+    - completed
+    - failed
+    type: string
+    x-enum-varnames:
+    - JobStatusPending
+    - JobStatusRunning
+    - JobStatusCompleted
+    - JobStatusFailed
+  models.JobType:
+    enum:
+    - recommendation
+    - sync
+    type: string
+    x-enum-varnames:
+    - JobTypeRecommendation
+    - JobTypeSync
+  models.MaxRecommendations:
+    properties:
+      anime:
+        example: 20
+        maximum: 100
+        minimum: 5
+        type: integer
+      books:
+        example: 20
+        maximum: 100
+        minimum: 5
+        type: integer
+      games:
+        example: 20
+        maximum: 100
+        minimum: 5
+        type: integer
+      movies:
+        example: 20
+        maximum: 100
+        minimum: 5
+        type: integer
+      music:
+        example: 20
+        maximum: 100
+        minimum: 5
+        type: integer
+      series:
+        example: 20
+        maximum: 100
+        minimum: 5
+        type: integer
+    type: object
+  models.MediaItem-suasor_client_media_types_Movie:
+    properties:
+      clientId:
+        description: Reference to the media client
+        type: integer
+      clientType:
+        allOf:
+        - $ref: '#/definitions/types.MediaClientType'
+        description: Type of client (plex, jellyfin, etc.)
+      createdAt:
+        type: string
+      data:
+        allOf:
+        - $ref: '#/definitions/suasor_client_media_types.Movie'
+        description: Type-specific media data
+      downloadUrl:
+        type: string
+      externalId:
+        description: ID from external media client
+        type: string
+      id:
+        description: Internal ID
+        type: integer
+      streamUrl:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/types.MediaType'
+        description: Type of media (movie, show, episode, etc.)
+      updatedAt:
+        type: string
+    type: object
   models.MediaItem-types_Album:
     properties:
       clientId:
@@ -101,38 +337,6 @@ definitions:
       data:
         allOf:
         - $ref: '#/definitions/types.Artist'
-        description: Type-specific media data
-      downloadUrl:
-        type: string
-      externalId:
-        description: ID from external media client
-        type: string
-      id:
-        description: Internal ID
-        type: integer
-      streamUrl:
-        type: string
-      type:
-        allOf:
-        - $ref: '#/definitions/types.MediaType'
-        description: Type of media (movie, show, episode, etc.)
-      updatedAt:
-        type: string
-    type: object
-  models.MediaItem-types_Movie:
-    properties:
-      clientId:
-        description: Reference to the media client
-        type: integer
-      clientType:
-        allOf:
-        - $ref: '#/definitions/types.MediaClientType'
-        description: Type of client (plex, jellyfin, etc.)
-      createdAt:
-        type: string
-      data:
-        allOf:
-        - $ref: '#/definitions/types.Movie'
         description: Type-specific media data
       downloadUrl:
         type: string
@@ -247,31 +451,126 @@ definitions:
       updatedAt:
         type: string
     type: object
+  models.MediaSyncJob:
+    properties:
+      clientId:
+        description: ID of the client to sync from
+        type: integer
+      clientType:
+        description: Type of the client
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      enabled:
+        description: Whether sync is enabled
+        type: boolean
+      filters:
+        description: Sync filter criteria (stored as JSON)
+        type: string
+      frequency:
+        description: Sync frequency
+        type: string
+      id:
+        type: integer
+      lastSyncTime:
+        description: Last sync time
+        type: string
+      mediaType:
+        description: Type of media to sync (movies, series, music, etc.)
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        description: ID of the user
+        type: integer
+    type: object
+  models.Recommendation:
+    properties:
+      active:
+        description: Whether this is an active recommendation
+        type: boolean
+      confidence:
+        description: Confidence score (0.0 to 1.0) if available
+        type: number
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      dismissed:
+        description: Whether this item has been dismissed by the user
+        type: boolean
+      id:
+        type: integer
+      inLibrary:
+        description: Whether this item is present in the user's library
+        type: boolean
+      jobRunId:
+        description: Job run that created this recommendation
+        type: integer
+      mediaItemId:
+        description: ID of the media item being recommended
+        type: integer
+      mediaType:
+        description: Type of media being recommended (movie, series, etc.)
+        type: string
+      metadata:
+        description: Additional metadata (stored as JSON)
+        type: string
+      reason:
+        description: Explanation of why this was recommended
+        type: string
+      source:
+        allOf:
+        - $ref: '#/definitions/models.RecommendationSource'
+        description: Source of the recommendation (AI, system, manual)
+      sourceClientId:
+        description: ID of the client that generated this recommendation, if applicable
+        type: integer
+      sourceClientType:
+        description: Type of the client that generated this recommendation
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        description: ID of the user receiving this recommendation
+        type: integer
+      viewed:
+        description: Whether this item has been viewed/played by the user
+        type: boolean
+    type: object
+  models.RecommendationSource:
+    enum:
+    - ai
+    - system
+    - manual
+    type: string
+    x-enum-varnames:
+    - RecommendationSourceAI
+    - RecommendationSourceSystem
+    - RecommendationSourceManual
   models.UserConfig:
     description: User-specific configuration stored in the database
     properties:
-      autoSyncRecommendations:
-        example: true
-        type: boolean
-      contentLanguages:
-        example: en,es,fr
+      aiChatPersonality:
+        description: AI Algorithm Settings
+        enum:
+        - friendly
+        - serious
+        - enthusiastic
+        - analytical
+        - custom
+        example: serious
         type: string
-      createServerPlaylists:
-        example: true
-        type: boolean
+      contentTypes:
+        description: What sidebar options to show based on the enabled content types.
+        example: movie,series,tv
+        type: string
       createdAt:
         type: string
-      defaultCollection:
-        example: AI Picks
-        type: string
-      defaultMediaServer:
-        description: Sync Preferences
-        enum:
-        - emby
-        - jellyfin
-        - plex
-        example: plex
-        type: string
+      defaultClients:
+        $ref: '#/definitions/models.DefaultClients'
       deletedAt:
         type: string
       digestFrequency:
@@ -281,17 +580,25 @@ definitions:
         - weekly
         example: weekly
         type: string
+      discoveryModeEnabled:
+        description: Emphasize new content discovery
+        example: true
+        type: boolean
+      discoveryModeRatio:
+        example: 0.5
+        maximum: 1
+        minimum: 0
+        type: number
       emailNotifications:
         example: true
         type: boolean
       enableAnimations:
         example: true
         type: boolean
-      enableExperimentalAI:
-        example: false
-        type: boolean
       excludedGenres:
-        example: horror,war
+        $ref: '#/definitions/models.Genres'
+      excludedKeywords:
+        example: war,violence,politics
         type: string
       id:
         type: integer
@@ -310,10 +617,9 @@ definitions:
         example: R
         type: string
       maxRecommendations:
-        example: 20
-        maximum: 100
-        minimum: 5
-        type: integer
+        allOf:
+        - $ref: '#/definitions/models.MaxRecommendations'
+        description: how many movie recommendations to generate
       minContentRating:
         example: PG-13
         type: string
@@ -332,6 +638,10 @@ definitions:
       notifyOnSync:
         example: false
         type: boolean
+      onboardingCompleted:
+        description: Onboarding
+        example: true
+        type: boolean
       personalHistoryWeight:
         example: 0.8
         maximum: 1
@@ -342,32 +652,69 @@ definitions:
         maximum: 1
         minimum: 0
         type: number
-      preferredGenres:
-        example: action,comedy,drama
+      preferredAudioLanguages:
+        example: en,ja
         type: string
-      recommendationFrequency:
-        description: Recommendation Preferences
+      preferredContentLength:
         enum:
+        - short
+        - medium
+        - long
+        example: short
+        type: string
+      preferredGenres:
+        $ref: '#/definitions/models.Genres'
+      recommendationContentTypes:
+        description: What content types with be part of the auto sync recommendations
+        example: movie,series,tv,book
+        type: string
+      recommendationListPrefix:
+        description: Prefux to add to teh beginning of the list name to identify that
+          its part of the auto recommendations system
+        example: AI Picks
+        type: string
+      recommendationMaxAge:
+        description: In years, 0 = no limit
+        example: 5
+        maximum: 100
+        minimum: 0
+        type: integer
+      recommendationMinRating:
+        example: 6
+        type: number
+      recommendationStrategy:
+        enum:
+        - similar
+        - recent
+        - popular
+        - balanced
+        example: popular
+        type: string
+      recommendationSyncEnabled:
+        description: |-
+          Recommendation Preferences
+          Automatically download and organized recommended media into a collection/playlist
+        example: true
+        type: boolean
+      recommendationSyncFrequency:
+        description: How often to sync new recommendations
+        enum:
+        - manual
         - daily
         - weekly
         - monthly
         example: daily
         type: string
-      recommendationStrategy:
-        description: AI Algorithm Settings
+      recommendationSyncListType:
+        description: What type of list to create for the synced recommendations
         enum:
-        - similar
-        - diverse
-        - balanced
-        example: diverse
+        - playlist
+        - collection
+        example: playlist
         type: string
-      syncFrequency:
-        enum:
-        - manual
-        - daily
-        - weekly
-        example: daily
-        type: string
+      showAdultContent:
+        example: false
+        type: boolean
       theme:
         description: UI Preferences
         enum:
@@ -533,6 +880,26 @@ definitions:
     - clientType
     - name
     type: object
+  requests.ClientTestRequest-types_ClientConfig:
+    properties:
+      client: {}
+      clientType:
+        allOf:
+        - $ref: '#/definitions/types.ClientType'
+        enum:
+        - radarr
+        - sonarr
+        - lidarr
+        - emby
+        - jellyfin
+        - subsonic
+        - plex
+        - claude
+        - openai
+        - ollama
+    required:
+    - clientType
+    type: object
   requests.ConversationMessageRequest:
     description: Request to send a message in an existing AI conversation
     properties:
@@ -666,6 +1033,32 @@ definitions:
     - password
     - username
     type: object
+  requests.RunMediaSyncJobRequest:
+    properties:
+      clientId:
+        type: integer
+      mediaType:
+        type: string
+    required:
+    - clientId
+    - mediaType
+    type: object
+  requests.SetupMediaSyncJobRequest:
+    properties:
+      clientId:
+        type: integer
+      clientType:
+        type: string
+      frequency:
+        type: string
+      mediaType:
+        type: string
+    required:
+    - clientId
+    - clientType
+    - frequency
+    - mediaType
+    type: object
   requests.StartConversationRequest:
     description: Request to start a new AI-powered conversation for recommendations
     properties:
@@ -692,6 +1085,18 @@ definitions:
     required:
     - contentType
     type: object
+  requests.UpdateJobScheduleRequest:
+    properties:
+      enabled:
+        type: boolean
+      frequency:
+        type: string
+      jobName:
+        type: string
+    required:
+    - frequency
+    - jobName
+    type: object
   requests.UpdateMediaRequest:
     properties:
       metadataProfileID:
@@ -708,6 +1113,11 @@ definitions:
           type: integer
         type: array
     type: object
+  requests.UpdateRecommendationViewedRequest:
+    properties:
+      viewed:
+        type: boolean
+    type: object
   responses.APIResponse-any:
     properties:
       data: {}
@@ -723,6 +1133,45 @@ definitions:
       data:
         items:
           $ref: '#/definitions/models.Client-types_ClientConfig'
+        type: array
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.APIResponse-array_models_JobRun:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.JobRun'
+        type: array
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.APIResponse-array_models_JobSchedule:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.JobSchedule'
+        type: array
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.APIResponse-array_models_MediaItem-suasor_client_media_types_Movie:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.MediaItem-suasor_client_media_types_Movie'
         type: array
       message:
         example: Operation successful
@@ -749,19 +1198,6 @@ definitions:
       data:
         items:
           $ref: '#/definitions/models.MediaItem-types_Artist'
-        type: array
-      message:
-        example: Operation successful
-        type: string
-      success:
-        example: true
-        type: boolean
-    type: object
-  responses.APIResponse-array_models_MediaItem-types_Movie:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/models.MediaItem-types_Movie'
         type: array
       message:
         example: Operation successful
@@ -809,6 +1245,32 @@ definitions:
         example: true
         type: boolean
     type: object
+  responses.APIResponse-array_models_MediaSyncJob:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.MediaSyncJob'
+        type: array
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.APIResponse-array_models_Recommendation:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Recommendation'
+        type: array
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   responses.APIResponse-array_responses_MediaItemResponse:
     properties:
       data:
@@ -833,6 +1295,28 @@ definitions:
         example: true
         type: boolean
     type: object
+  responses.APIResponse-models_JobSchedule:
+    properties:
+      data:
+        $ref: '#/definitions/models.JobSchedule'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.APIResponse-models_MediaItem-suasor_client_media_types_Movie:
+    properties:
+      data:
+        $ref: '#/definitions/models.MediaItem-suasor_client_media_types_Movie'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   responses.APIResponse-models_MediaItem-types_Album:
     properties:
       data:
@@ -848,17 +1332,6 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/models.MediaItem-types_Artist'
-      message:
-        example: Operation successful
-        type: string
-      success:
-        example: true
-        type: boolean
-    type: object
-  responses.APIResponse-models_MediaItem-types_Movie:
-    properties:
-      data:
-        $ref: '#/definitions/models.MediaItem-types_Movie'
       message:
         example: Operation successful
         type: string
@@ -1326,6 +1799,45 @@ definitions:
         description: e.g., "tmdb", "imdb", "trakt", "tvdb"
         type: string
     type: object
+  suasor_client_media_types.Movie:
+    properties:
+      audioCodec:
+        type: string
+      cast:
+        items:
+          $ref: '#/definitions/suasor_client_media_types.Person'
+        type: array
+      crew:
+        items:
+          $ref: '#/definitions/suasor_client_media_types.Person'
+        type: array
+      details:
+        $ref: '#/definitions/types.MediaDetails'
+      resolution:
+        description: e.g., "4K", "1080p"
+        type: string
+      subtitleUrls:
+        items:
+          type: string
+        type: array
+      trailerUrl:
+        type: string
+      videoCodec:
+        type: string
+    type: object
+  suasor_client_media_types.Person:
+    properties:
+      character:
+        description: For actors
+        type: string
+      name:
+        type: string
+      photo:
+        type: string
+      role:
+        description: e.g., "Director", "Actor"
+        type: string
+    type: object
   suasor_client_media_types.Rating:
     properties:
       source:
@@ -1416,6 +1928,9 @@ definitions:
         $ref: '#/definitions/types.ClientCategory'
       clientType:
         $ref: '#/definitions/types.AIClientType'
+      enabled:
+        example: true
+        type: boolean
       maxContextTokens:
         example: 1000
         type: integer
@@ -1425,23 +1940,31 @@ definitions:
       model:
         example: claude-2
         type: string
+      name:
+        example: My Client
+        type: string
       temperature:
         example: 0.5
         type: number
       type:
         $ref: '#/definitions/types.ClientType'
+      validateConn:
+        example: true
+        type: boolean
     type: object
   types.ClientCategory:
     enum:
     - automation
     - media
     - ai
+    - metadata
     - unknown
     type: string
     x-enum-varnames:
     - ClientCategoryAutomation
     - ClientCategoryMedia
     - ClientCategoryAI
+    - ClientCategoryMetadata
     - ClientCategoryUnknown
   types.ClientType:
     enum:
@@ -1456,6 +1979,8 @@ definitions:
     - claude
     - openai
     - ollama
+    - tmdb
+    - trakt
     type: string
     x-enum-varnames:
     - ClientTypeEmby
@@ -1469,6 +1994,8 @@ definitions:
     - ClientTypeClaude
     - ClientTypeOpenAI
     - ClientTypeOllama
+    - ClientTypeTMDB
+    - ClientTypeTrakt
   types.Configuration:
     description: Complete application configuration settings
     properties:
@@ -1657,6 +2184,12 @@ definitions:
         $ref: '#/definitions/types.ClientCategory'
       clientType:
         $ref: '#/definitions/types.MediaClientType'
+      enabled:
+        example: true
+        type: boolean
+      name:
+        example: My Client
+        type: string
       ssl:
         example: false
         type: boolean
@@ -1668,6 +2201,9 @@ definitions:
       username:
         example: admin
         type: string
+      validateConn:
+        example: true
+        type: boolean
     type: object
   types.JellyfinConfig:
     description: Jellyfin media server configuration
@@ -1682,6 +2218,12 @@ definitions:
         $ref: '#/definitions/types.ClientCategory'
       clientType:
         $ref: '#/definitions/types.MediaClientType'
+      enabled:
+        example: true
+        type: boolean
+      name:
+        example: My Client
+        type: string
       ssl:
         example: false
         type: boolean
@@ -1693,6 +2235,9 @@ definitions:
       username:
         example: admin
         type: string
+      validateConn:
+        example: true
+        type: boolean
     type: object
   types.LidarrConfig:
     description: Jellyfin media server configuration
@@ -1707,11 +2252,20 @@ definitions:
         $ref: '#/definitions/types.ClientCategory'
       clientType:
         $ref: '#/definitions/types.AutomationClientType'
+      enabled:
+        example: true
+        type: boolean
+      name:
+        example: My Client
+        type: string
       ssl:
         example: false
         type: boolean
       type:
         $ref: '#/definitions/types.ClientType'
+      validateConn:
+        example: true
+        type: boolean
     type: object
   types.MediaClientType:
     enum:
@@ -1795,32 +2349,6 @@ definitions:
     - MediaTypeTrack
     - MediaTypePlaylist
     - MediaTypeCollection
-  types.Movie:
-    properties:
-      audioCodec:
-        type: string
-      cast:
-        items:
-          $ref: '#/definitions/types.Person'
-        type: array
-      crew:
-        items:
-          $ref: '#/definitions/types.Person'
-        type: array
-      details:
-        $ref: '#/definitions/types.MediaDetails'
-      resolution:
-        description: e.g., "4K", "1080p"
-        type: string
-      subtitleUrls:
-        items:
-          type: string
-        type: array
-      trailerUrl:
-        type: string
-      videoCodec:
-        type: string
-    type: object
   types.OllamaConfig:
     description: Claude media server configuration
     properties:
@@ -1834,6 +2362,9 @@ definitions:
         $ref: '#/definitions/types.ClientCategory'
       clientType:
         $ref: '#/definitions/types.AIClientType'
+      enabled:
+        example: true
+        type: boolean
       maxContextTokens:
         example: 1000
         type: integer
@@ -1843,11 +2374,17 @@ definitions:
       model:
         example: claude-2
         type: string
+      name:
+        example: My Client
+        type: string
       temperature:
         example: 0.5
         type: number
       type:
         $ref: '#/definitions/types.ClientType'
+      validateConn:
+        example: true
+        type: boolean
     type: object
   types.OpenAIConfig:
     description: Claude media server configuration
@@ -1862,6 +2399,9 @@ definitions:
         $ref: '#/definitions/types.ClientCategory'
       clientType:
         $ref: '#/definitions/types.AIClientType'
+      enabled:
+        example: true
+        type: boolean
       maxContextTokens:
         example: 1000
         type: integer
@@ -1871,24 +2411,17 @@ definitions:
       model:
         example: claude-2
         type: string
+      name:
+        example: My Client
+        type: string
       temperature:
         example: 0.5
         type: number
       type:
         $ref: '#/definitions/types.ClientType'
-    type: object
-  types.Person:
-    properties:
-      character:
-        description: For actors
-        type: string
-      name:
-        type: string
-      photo:
-        type: string
-      role:
-        description: e.g., "Director", "Actor"
-        type: string
+      validateConn:
+        example: true
+        type: boolean
     type: object
   types.Playlist:
     properties:
@@ -1918,6 +2451,12 @@ definitions:
         $ref: '#/definitions/types.ClientCategory'
       clientType:
         $ref: '#/definitions/types.MediaClientType'
+      enabled:
+        example: true
+        type: boolean
+      name:
+        example: My Client
+        type: string
       ssl:
         example: false
         type: boolean
@@ -1926,6 +2465,9 @@ definitions:
         type: string
       type:
         $ref: '#/definitions/types.ClientType'
+      validateConn:
+        example: true
+        type: boolean
     type: object
   types.RadarrConfig:
     description: Emby media server configuration
@@ -1940,11 +2482,20 @@ definitions:
         $ref: '#/definitions/types.ClientCategory'
       clientType:
         $ref: '#/definitions/types.AutomationClientType'
+      enabled:
+        example: true
+        type: boolean
+      name:
+        example: My Client
+        type: string
       ssl:
         example: false
         type: boolean
       type:
         $ref: '#/definitions/types.ClientType'
+      validateConn:
+        example: true
+        type: boolean
     type: object
   types.Season:
     properties:
@@ -2008,11 +2559,20 @@ definitions:
         $ref: '#/definitions/types.ClientCategory'
       clientType:
         $ref: '#/definitions/types.AutomationClientType'
+      enabled:
+        example: true
+        type: boolean
+      name:
+        example: My Client
+        type: string
       ssl:
         example: false
         type: boolean
       type:
         $ref: '#/definitions/types.ClientType'
+      validateConn:
+        example: true
+        type: boolean
     type: object
   types.SubsonicConfig:
     description: Supersonic music server configuration
@@ -2027,6 +2587,12 @@ definitions:
         $ref: '#/definitions/types.ClientCategory'
       clientType:
         $ref: '#/definitions/types.MediaClientType'
+      enabled:
+        example: true
+        type: boolean
+      name:
+        example: My Client
+        type: string
       password:
         example: your-password
         type: string
@@ -2038,6 +2604,9 @@ definitions:
       username:
         example: admin
         type: string
+      validateConn:
+        example: true
+        type: boolean
     type: object
   types.Track:
     properties:
@@ -2092,6 +2661,42 @@ paths:
         name: id
         required: true
         type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Connection test result
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_TestConnectionResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Test client connection
+      tags:
+      - clients
+  /admin/client/:clientType/test:
+    get:
+      consumes:
+      - application/json
+      description: Tests the connection to a client using the provided configuration
+      parameters:
+      - description: Updated client data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.ClientTestRequest-types_ClientConfig'
       produces:
       - application/json
       responses:
@@ -3214,7 +3819,7 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_Movie'
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-suasor_client_media_types_Movie'
         "400":
           description: Invalid client ID
           schema:
@@ -4050,6 +4655,319 @@ paths:
       summary: checks app and database health
       tags:
       - health
+  /jobs/{name}/run:
+    post:
+      consumes:
+      - application/json
+      description: Triggers a job to run immediately
+      parameters:
+      - description: Job name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/responses.APIResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      summary: Run job manually
+      tags:
+      - jobs
+  /jobs/media-sync:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of job runs for the current user
+      parameters:
+      - description: Limit number of results (default 50)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaSyncJob'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      summary: Get job runs for current user
+      tags:
+      - jobs
+    post:
+      consumes:
+      - application/json
+      description: Creates or updates a media sync job for the current user
+      parameters:
+      - description: Media sync job setup
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.SetupMediaSyncJobRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.APIResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      summary: Setup media sync job
+      tags:
+      - jobs
+  /jobs/media-sync/run:
+    post:
+      consumes:
+      - application/json
+      description: Runs a media sync job manually for the current user
+      parameters:
+      - description: Media sync job run
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.RunMediaSyncJobRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/responses.APIResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      summary: Run media sync job manually
+      tags:
+      - jobs
+  /jobs/recommendations:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of recommendations for the current user
+      parameters:
+      - description: Only return active recommendations (default true)
+        in: query
+        name: active
+        type: boolean
+      - description: Limit number of results (default 50)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_Recommendation'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      summary: Get recommendations for current user
+      tags:
+      - jobs
+  /jobs/recommendations/{id}/dismiss:
+    post:
+      consumes:
+      - application/json
+      description: Marks a recommendation as dismissed
+      parameters:
+      - description: Recommendation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.APIResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      summary: Dismiss recommendation
+      tags:
+      - jobs
+  /jobs/recommendations/{id}/viewed:
+    put:
+      consumes:
+      - application/json
+      description: Updates whether a recommendation has been viewed
+      parameters:
+      - description: Recommendation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Viewed status update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.UpdateRecommendationViewedRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.APIResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      summary: Update recommendation viewed status
+      tags:
+      - jobs
+  /jobs/runs:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of recent job runs
+      parameters:
+      - description: Limit number of results (default 50)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_JobRun'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      summary: Get recent job runs
+      tags:
+      - jobs
+  /jobs/schedules:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of all job schedules
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_JobSchedule'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      summary: Get all job schedules
+      tags:
+      - jobs
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing job schedule
+      parameters:
+      - description: Job schedule update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.UpdateJobScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_JobSchedule'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      summary: Update job schedule
+      tags:
+      - jobs
+  /jobs/schedules/{name}:
+    get:
+      consumes:
+      - application/json
+      description: Returns a specific job schedule by its name
+      parameters:
+      - description: Job name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_JobSchedule'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      summary: Get job schedule by name
+      tags:
+      - jobs
   /movies/actor/{actor}:
     get:
       consumes:
@@ -4068,7 +4986,7 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie'
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_client_media_types_Movie'
         "401":
           description: Unauthorized
           schema:
@@ -4100,7 +5018,7 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie'
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_client_media_types_Movie'
         "401":
           description: Unauthorized
           schema:
@@ -4132,7 +5050,7 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie'
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_client_media_types_Movie'
         "401":
           description: Unauthorized
           schema:
@@ -4163,7 +5081,7 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie'
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_client_media_types_Movie'
         "400":
           description: Invalid count format
           schema:
@@ -4198,7 +5116,7 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie'
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_client_media_types_Movie'
         "400":
           description: Invalid count format
           schema:
@@ -4239,7 +5157,7 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie'
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_client_media_types_Movie'
         "400":
           description: Invalid rating format
           schema:
@@ -4274,7 +5192,7 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie'
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_client_media_types_Movie'
         "400":
           description: Missing search query
           schema:
@@ -4309,7 +5227,7 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie'
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_client_media_types_Movie'
         "400":
           description: Invalid count format
           schema:

@@ -86,6 +86,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/client/:clientType/test": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tests the connection to a client using the provided configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Test client connection",
+                "parameters": [
+                    {
+                        "description": "Updated client data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.ClientTestRequest-types_ClientConfig"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Connection test result",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-responses_TestConnectionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
         "/ai/analyze": {
             "post": {
                 "security": [
@@ -1800,7 +1857,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-suasor_client_media_types_Movie"
                         }
                     },
                     "400": {
@@ -3081,6 +3138,483 @@ const docTemplate = `{
                 }
             }
         },
+        "/jobs/media-sync": {
+            "get": {
+                "description": "Returns a list of job runs for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "summary": "Get job runs for current user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Limit number of results (default 50)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaSyncJob"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates or updates a media sync job for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "summary": "Setup media sync job",
+                "parameters": [
+                    {
+                        "description": "Media sync job setup",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.SetupMediaSyncJobRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/media-sync/run": {
+            "post": {
+                "description": "Runs a media sync job manually for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "summary": "Run media sync job manually",
+                "parameters": [
+                    {
+                        "description": "Media sync job run",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.RunMediaSyncJobRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/recommendations": {
+            "get": {
+                "description": "Returns a list of recommendations for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "summary": "Get recommendations for current user",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "Only return active recommendations (default true)",
+                        "name": "active",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit number of results (default 50)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_Recommendation"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/recommendations/{id}/dismiss": {
+            "post": {
+                "description": "Marks a recommendation as dismissed",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "summary": "Dismiss recommendation",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Recommendation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/recommendations/{id}/viewed": {
+            "put": {
+                "description": "Updates whether a recommendation has been viewed",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "summary": "Update recommendation viewed status",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Recommendation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Viewed status update",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.UpdateRecommendationViewedRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/runs": {
+            "get": {
+                "description": "Returns a list of recent job runs",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "summary": "Get recent job runs",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Limit number of results (default 50)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_JobRun"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/schedules": {
+            "get": {
+                "description": "Returns a list of all job schedules",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "summary": "Get all job schedules",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_JobSchedule"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Updates an existing job schedule",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "summary": "Update job schedule",
+                "parameters": [
+                    {
+                        "description": "Job schedule update",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.UpdateJobScheduleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_JobSchedule"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/schedules/{name}": {
+            "get": {
+                "description": "Returns a specific job schedule by its name",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "summary": "Get job schedule by name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_JobSchedule"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/{name}/run": {
+            "post": {
+                "description": "Triggers a job to run immediately",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "summary": "Run job manually",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
         "/movies/actor/{actor}": {
             "get": {
                 "security": [
@@ -3112,7 +3646,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_client_media_types_Movie"
                         }
                     },
                     "401": {
@@ -3161,7 +3695,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_client_media_types_Movie"
                         }
                     },
                     "401": {
@@ -3210,7 +3744,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_client_media_types_Movie"
                         }
                     },
                     "401": {
@@ -3259,7 +3793,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_client_media_types_Movie"
                         }
                     },
                     "400": {
@@ -3314,7 +3848,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_client_media_types_Movie"
                         }
                     },
                     "400": {
@@ -3376,7 +3910,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_client_media_types_Movie"
                         }
                     },
                     "400": {
@@ -3431,7 +3965,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_client_media_types_Movie"
                         }
                     },
                     "400": {
@@ -3486,7 +4020,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_client_media_types_Movie"
                         }
                     },
                     "400": {
@@ -5088,6 +5622,341 @@ const docTemplate = `{
                 "data": {}
             }
         },
+        "models.DefaultClients": {
+            "type": "object",
+            "properties": {
+                "aiClientId": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "bookAutomationId": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "bookClientId": {
+                    "description": "TODO: Add support for books. Should it be books vs audiobooks? How would I want to handle that?",
+                    "type": "integer",
+                    "example": 1
+                },
+                "movieAutomationId": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "musicAutomationId": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "musicClientId": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "seriesAutomationId": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "videoClientId": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "models.Genres": {
+            "type": "object",
+            "properties": {
+                "anime": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "action",
+                        "comedy",
+                        "drama"
+                    ]
+                },
+                "books": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "fantasy",
+                        "horror",
+                        "mystery"
+                    ]
+                },
+                "games": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "action",
+                        "comedy",
+                        "drama"
+                    ]
+                },
+                "movies": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "action",
+                        "comedy",
+                        "drama"
+                    ]
+                },
+                "music": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "electronic",
+                        "pop",
+                        "rock"
+                    ]
+                },
+                "series": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "action",
+                        "comedy",
+                        "drama"
+                    ]
+                }
+            }
+        },
+        "models.JobRun": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "description": "When the job finished running",
+                    "type": "string"
+                },
+                "errorMessage": {
+                    "description": "Any error message from the job run",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "jobName": {
+                    "description": "The name of the job",
+                    "type": "string"
+                },
+                "jobType": {
+                    "description": "Type of job (recommendation, sync, etc.)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.JobType"
+                        }
+                    ]
+                },
+                "metadata": {
+                    "description": "Metadata related to the job (stored as JSON)",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "When the job started running",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status of the job run",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.JobStatus"
+                        }
+                    ]
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "description": "User ID associated with the job, if applicable",
+                    "type": "integer"
+                }
+            }
+        },
+        "models.JobSchedule": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "description": "Any configuration for the job (stored as JSON)",
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "description": "Whether the job is enabled",
+                    "type": "boolean"
+                },
+                "frequency": {
+                    "description": "How often the job should run",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "jobName": {
+                    "description": "Unique name of the job",
+                    "type": "string"
+                },
+                "jobType": {
+                    "description": "Type of job (recommendation, sync, etc.)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.JobType"
+                        }
+                    ]
+                },
+                "lastRunTime": {
+                    "description": "When the job last ran",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "description": "User ID associated with the job, if applicable (for user-specific jobs)",
+                    "type": "integer"
+                }
+            }
+        },
+        "models.JobStatus": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "running",
+                "completed",
+                "failed"
+            ],
+            "x-enum-varnames": [
+                "JobStatusPending",
+                "JobStatusRunning",
+                "JobStatusCompleted",
+                "JobStatusFailed"
+            ]
+        },
+        "models.JobType": {
+            "type": "string",
+            "enum": [
+                "recommendation",
+                "sync"
+            ],
+            "x-enum-varnames": [
+                "JobTypeRecommendation",
+                "JobTypeSync"
+            ]
+        },
+        "models.MaxRecommendations": {
+            "type": "object",
+            "properties": {
+                "anime": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 5,
+                    "example": 20
+                },
+                "books": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 5,
+                    "example": 20
+                },
+                "games": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 5,
+                    "example": 20
+                },
+                "movies": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 5,
+                    "example": 20
+                },
+                "music": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 5,
+                    "example": 20
+                },
+                "series": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 5,
+                    "example": 20
+                }
+            }
+        },
+        "models.MediaItem-suasor_client_media_types_Movie": {
+            "type": "object",
+            "properties": {
+                "clientId": {
+                    "description": "Reference to the media client",
+                    "type": "integer"
+                },
+                "clientType": {
+                    "description": "Type of client (plex, jellyfin, etc.)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.MediaClientType"
+                        }
+                    ]
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "data": {
+                    "description": "Type-specific media data",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/suasor_client_media_types.Movie"
+                        }
+                    ]
+                },
+                "downloadUrl": {
+                    "type": "string"
+                },
+                "externalId": {
+                    "description": "ID from external media client",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Internal ID",
+                    "type": "integer"
+                },
+                "streamUrl": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type of media (movie, show, episode, etc.)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.MediaType"
+                        }
+                    ]
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
         "models.MediaItem-types_Album": {
             "type": "object",
             "properties": {
@@ -5164,59 +6033,6 @@ const docTemplate = `{
                     "allOf": [
                         {
                             "$ref": "#/definitions/types.Artist"
-                        }
-                    ]
-                },
-                "downloadUrl": {
-                    "type": "string"
-                },
-                "externalId": {
-                    "description": "ID from external media client",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "Internal ID",
-                    "type": "integer"
-                },
-                "streamUrl": {
-                    "type": "string"
-                },
-                "type": {
-                    "description": "Type of media (movie, show, episode, etc.)",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/types.MediaType"
-                        }
-                    ]
-                },
-                "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.MediaItem-types_Movie": {
-            "type": "object",
-            "properties": {
-                "clientId": {
-                    "description": "Reference to the media client",
-                    "type": "integer"
-                },
-                "clientType": {
-                    "description": "Type of client (plex, jellyfin, etc.)",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/types.MediaClientType"
-                        }
-                    ]
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "data": {
-                    "description": "Type-specific media data",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/types.Movie"
                         }
                     ]
                 },
@@ -5406,6 +6222,145 @@ const docTemplate = `{
                 }
             }
         },
+        "models.MediaSyncJob": {
+            "type": "object",
+            "properties": {
+                "clientId": {
+                    "description": "ID of the client to sync from",
+                    "type": "integer"
+                },
+                "clientType": {
+                    "description": "Type of the client",
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "description": "Whether sync is enabled",
+                    "type": "boolean"
+                },
+                "filters": {
+                    "description": "Sync filter criteria (stored as JSON)",
+                    "type": "string"
+                },
+                "frequency": {
+                    "description": "Sync frequency",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "lastSyncTime": {
+                    "description": "Last sync time",
+                    "type": "string"
+                },
+                "mediaType": {
+                    "description": "Type of media to sync (movies, series, music, etc.)",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "description": "ID of the user",
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Recommendation": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "description": "Whether this is an active recommendation",
+                    "type": "boolean"
+                },
+                "confidence": {
+                    "description": "Confidence score (0.0 to 1.0) if available",
+                    "type": "number"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "dismissed": {
+                    "description": "Whether this item has been dismissed by the user",
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "inLibrary": {
+                    "description": "Whether this item is present in the user's library",
+                    "type": "boolean"
+                },
+                "jobRunId": {
+                    "description": "Job run that created this recommendation",
+                    "type": "integer"
+                },
+                "mediaItemId": {
+                    "description": "ID of the media item being recommended",
+                    "type": "integer"
+                },
+                "mediaType": {
+                    "description": "Type of media being recommended (movie, series, etc.)",
+                    "type": "string"
+                },
+                "metadata": {
+                    "description": "Additional metadata (stored as JSON)",
+                    "type": "string"
+                },
+                "reason": {
+                    "description": "Explanation of why this was recommended",
+                    "type": "string"
+                },
+                "source": {
+                    "description": "Source of the recommendation (AI, system, manual)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.RecommendationSource"
+                        }
+                    ]
+                },
+                "sourceClientId": {
+                    "description": "ID of the client that generated this recommendation, if applicable",
+                    "type": "integer"
+                },
+                "sourceClientType": {
+                    "description": "Type of the client that generated this recommendation",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "description": "ID of the user receiving this recommendation",
+                    "type": "integer"
+                },
+                "viewed": {
+                    "description": "Whether this item has been viewed/played by the user",
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.RecommendationSource": {
+            "type": "string",
+            "enum": [
+                "ai",
+                "system",
+                "manual"
+            ],
+            "x-enum-varnames": [
+                "RecommendationSourceAI",
+                "RecommendationSourceSystem",
+                "RecommendationSourceManual"
+            ]
+        },
         "models.UserConfig": {
             "description": "User-specific configuration stored in the database",
             "type": "object",
@@ -5413,34 +6368,28 @@ const docTemplate = `{
                 "language"
             ],
             "properties": {
-                "autoSyncRecommendations": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "contentLanguages": {
+                "aiChatPersonality": {
+                    "description": "AI Algorithm Settings",
                     "type": "string",
-                    "example": "en,es,fr"
+                    "enum": [
+                        "friendly",
+                        "serious",
+                        "enthusiastic",
+                        "analytical",
+                        "custom"
+                    ],
+                    "example": "serious"
                 },
-                "createServerPlaylists": {
-                    "type": "boolean",
-                    "example": true
+                "contentTypes": {
+                    "description": "What sidebar options to show based on the enabled content types.",
+                    "type": "string",
+                    "example": "movie,series,tv"
                 },
                 "createdAt": {
                     "type": "string"
                 },
-                "defaultCollection": {
-                    "type": "string",
-                    "example": "AI Picks"
-                },
-                "defaultMediaServer": {
-                    "description": "Sync Preferences",
-                    "type": "string",
-                    "enum": [
-                        "emby",
-                        "jellyfin",
-                        "plex"
-                    ],
-                    "example": "plex"
+                "defaultClients": {
+                    "$ref": "#/definitions/models.DefaultClients"
                 },
                 "deletedAt": {
                     "type": "string"
@@ -5454,6 +6403,17 @@ const docTemplate = `{
                     ],
                     "example": "weekly"
                 },
+                "discoveryModeEnabled": {
+                    "description": "Emphasize new content discovery",
+                    "type": "boolean",
+                    "example": true
+                },
+                "discoveryModeRatio": {
+                    "type": "number",
+                    "maximum": 1,
+                    "minimum": 0,
+                    "example": 0.5
+                },
                 "emailNotifications": {
                     "type": "boolean",
                     "example": true
@@ -5462,13 +6422,12 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": true
                 },
-                "enableExperimentalAI": {
-                    "type": "boolean",
-                    "example": false
-                },
                 "excludedGenres": {
+                    "$ref": "#/definitions/models.Genres"
+                },
+                "excludedKeywords": {
                     "type": "string",
-                    "example": "horror,war"
+                    "example": "war,violence,politics"
                 },
                 "id": {
                     "type": "integer"
@@ -5492,10 +6451,12 @@ const docTemplate = `{
                     "example": "R"
                 },
                 "maxRecommendations": {
-                    "type": "integer",
-                    "maximum": 100,
-                    "minimum": 5,
-                    "example": 20
+                    "description": "how many movie recommendations to generate",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.MaxRecommendations"
+                        }
+                    ]
                 },
                 "minContentRating": {
                     "type": "string",
@@ -5520,6 +6481,11 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": false
                 },
+                "onboardingCompleted": {
+                    "description": "Onboarding",
+                    "type": "boolean",
+                    "example": true
+                },
                 "personalHistoryWeight": {
                     "type": "number",
                     "maximum": 1,
@@ -5532,38 +6498,81 @@ const docTemplate = `{
                     "minimum": 0,
                     "example": 0.3
                 },
-                "preferredGenres": {
+                "preferredAudioLanguages": {
                     "type": "string",
-                    "example": "action,comedy,drama"
+                    "example": "en,ja"
                 },
-                "recommendationFrequency": {
-                    "description": "Recommendation Preferences",
+                "preferredContentLength": {
                     "type": "string",
                     "enum": [
+                        "short",
+                        "medium",
+                        "long"
+                    ],
+                    "example": "short"
+                },
+                "preferredGenres": {
+                    "$ref": "#/definitions/models.Genres"
+                },
+                "recommendationContentTypes": {
+                    "description": "What content types with be part of the auto sync recommendations",
+                    "type": "string",
+                    "example": "movie,series,tv,book"
+                },
+                "recommendationListPrefix": {
+                    "description": "Prefux to add to teh beginning of the list name to identify that its part of the auto recommendations system",
+                    "type": "string",
+                    "example": "AI Picks"
+                },
+                "recommendationMaxAge": {
+                    "description": "In years, 0 = no limit",
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 0,
+                    "example": 5
+                },
+                "recommendationMinRating": {
+                    "type": "number",
+                    "example": 6
+                },
+                "recommendationStrategy": {
+                    "type": "string",
+                    "enum": [
+                        "similar",
+                        "recent",
+                        "popular",
+                        "balanced"
+                    ],
+                    "example": "popular"
+                },
+                "recommendationSyncEnabled": {
+                    "description": "Recommendation Preferences\nAutomatically download and organized recommended media into a collection/playlist",
+                    "type": "boolean",
+                    "example": true
+                },
+                "recommendationSyncFrequency": {
+                    "description": "How often to sync new recommendations",
+                    "type": "string",
+                    "enum": [
+                        "manual",
                         "daily",
                         "weekly",
                         "monthly"
                     ],
                     "example": "daily"
                 },
-                "recommendationStrategy": {
-                    "description": "AI Algorithm Settings",
+                "recommendationSyncListType": {
+                    "description": "What type of list to create for the synced recommendations",
                     "type": "string",
                     "enum": [
-                        "similar",
-                        "diverse",
-                        "balanced"
+                        "playlist",
+                        "collection"
                     ],
-                    "example": "diverse"
+                    "example": "playlist"
                 },
-                "syncFrequency": {
-                    "type": "string",
-                    "enum": [
-                        "manual",
-                        "daily",
-                        "weekly"
-                    ],
-                    "example": "daily"
+                "showAdultContent": {
+                    "type": "boolean",
+                    "example": false
                 },
                 "theme": {
                     "description": "UI Preferences",
@@ -5751,6 +6760,34 @@ const docTemplate = `{
                 }
             }
         },
+        "requests.ClientTestRequest-types_ClientConfig": {
+            "type": "object",
+            "required": [
+                "clientType"
+            ],
+            "properties": {
+                "client": {},
+                "clientType": {
+                    "enum": [
+                        "radarr",
+                        "sonarr",
+                        "lidarr",
+                        "emby",
+                        "jellyfin",
+                        "subsonic",
+                        "plex",
+                        "claude",
+                        "openai",
+                        "ollama"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.ClientType"
+                        }
+                    ]
+                }
+            }
+        },
         "requests.ConversationMessageRequest": {
             "description": "Request to send a message in an existing AI conversation",
             "type": "object",
@@ -5892,6 +6929,44 @@ const docTemplate = `{
                 }
             }
         },
+        "requests.RunMediaSyncJobRequest": {
+            "type": "object",
+            "required": [
+                "clientId",
+                "mediaType"
+            ],
+            "properties": {
+                "clientId": {
+                    "type": "integer"
+                },
+                "mediaType": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.SetupMediaSyncJobRequest": {
+            "type": "object",
+            "required": [
+                "clientId",
+                "clientType",
+                "frequency",
+                "mediaType"
+            ],
+            "properties": {
+                "clientId": {
+                    "type": "integer"
+                },
+                "clientType": {
+                    "type": "string"
+                },
+                "frequency": {
+                    "type": "string"
+                },
+                "mediaType": {
+                    "type": "string"
+                }
+            }
+        },
         "requests.StartConversationRequest": {
             "description": "Request to start a new AI-powered conversation for recommendations",
             "type": "object",
@@ -5914,6 +6989,24 @@ const docTemplate = `{
                 },
                 "systemInstructions": {
                     "description": "Optional custom system instructions\nexample: You are a helpful movie recommendation assistant",
+                    "type": "string"
+                }
+            }
+        },
+        "requests.UpdateJobScheduleRequest": {
+            "type": "object",
+            "required": [
+                "frequency",
+                "jobName"
+            ],
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "frequency": {
+                    "type": "string"
+                },
+                "jobName": {
                     "type": "string"
                 }
             }
@@ -5942,6 +7035,14 @@ const docTemplate = `{
                 }
             }
         },
+        "requests.UpdateRecommendationViewedRequest": {
+            "type": "object",
+            "properties": {
+                "viewed": {
+                    "type": "boolean"
+                }
+            }
+        },
         "responses.APIResponse-any": {
             "type": "object",
             "properties": {
@@ -5963,6 +7064,63 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.Client-types_ClientConfig"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.APIResponse-array_models_JobRun": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.JobRun"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.APIResponse-array_models_JobSchedule": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.JobSchedule"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.APIResponse-array_models_MediaItem-suasor_client_media_types_Movie": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MediaItem-suasor_client_media_types_Movie"
                     }
                 },
                 "message": {
@@ -6001,25 +7159,6 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.MediaItem-types_Artist"
-                    }
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Operation successful"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
-        "responses.APIResponse-array_models_MediaItem-types_Movie": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.MediaItem-types_Movie"
                     }
                 },
                 "message": {
@@ -6089,6 +7228,44 @@ const docTemplate = `{
                 }
             }
         },
+        "responses.APIResponse-array_models_MediaSyncJob": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MediaSyncJob"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.APIResponse-array_models_Recommendation": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Recommendation"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "responses.APIResponse-array_responses_MediaItemResponse": {
             "type": "object",
             "properties": {
@@ -6124,6 +7301,38 @@ const docTemplate = `{
                 }
             }
         },
+        "responses.APIResponse-models_JobSchedule": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.JobSchedule"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.APIResponse-models_MediaItem-suasor_client_media_types_Movie": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.MediaItem-suasor_client_media_types_Movie"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "responses.APIResponse-models_MediaItem-types_Album": {
             "type": "object",
             "properties": {
@@ -6145,22 +7354,6 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/models.MediaItem-types_Artist"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Operation successful"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
-        "responses.APIResponse-models_MediaItem-types_Movie": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/models.MediaItem-types_Movie"
                 },
                 "message": {
                     "type": "string",
@@ -6792,6 +7985,64 @@ const docTemplate = `{
                 }
             }
         },
+        "suasor_client_media_types.Movie": {
+            "type": "object",
+            "properties": {
+                "audioCodec": {
+                    "type": "string"
+                },
+                "cast": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/suasor_client_media_types.Person"
+                    }
+                },
+                "crew": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/suasor_client_media_types.Person"
+                    }
+                },
+                "details": {
+                    "$ref": "#/definitions/types.MediaDetails"
+                },
+                "resolution": {
+                    "description": "e.g., \"4K\", \"1080p\"",
+                    "type": "string"
+                },
+                "subtitleUrls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "trailerUrl": {
+                    "type": "string"
+                },
+                "videoCodec": {
+                    "type": "string"
+                }
+            }
+        },
+        "suasor_client_media_types.Person": {
+            "type": "object",
+            "properties": {
+                "character": {
+                    "description": "For actors",
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "photo": {
+                    "type": "string"
+                },
+                "role": {
+                    "description": "e.g., \"Director\", \"Actor\"",
+                    "type": "string"
+                }
+            }
+        },
         "suasor_client_media_types.Rating": {
             "type": "object",
             "properties": {
@@ -6920,6 +8171,10 @@ const docTemplate = `{
                 "clientType": {
                     "$ref": "#/definitions/types.AIClientType"
                 },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
                 "maxContextTokens": {
                     "type": "integer",
                     "example": 1000
@@ -6932,12 +8187,20 @@ const docTemplate = `{
                     "type": "string",
                     "example": "claude-2"
                 },
+                "name": {
+                    "type": "string",
+                    "example": "My Client"
+                },
                 "temperature": {
                     "type": "number",
                     "example": 0.5
                 },
                 "type": {
                     "$ref": "#/definitions/types.ClientType"
+                },
+                "validateConn": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -6947,12 +8210,14 @@ const docTemplate = `{
                 "automation",
                 "media",
                 "ai",
+                "metadata",
                 "unknown"
             ],
             "x-enum-varnames": [
                 "ClientCategoryAutomation",
                 "ClientCategoryMedia",
                 "ClientCategoryAI",
+                "ClientCategoryMetadata",
                 "ClientCategoryUnknown"
             ]
         },
@@ -6969,7 +8234,9 @@ const docTemplate = `{
                 "unknown",
                 "claude",
                 "openai",
-                "ollama"
+                "ollama",
+                "tmdb",
+                "trakt"
             ],
             "x-enum-varnames": [
                 "ClientTypeEmby",
@@ -6982,7 +8249,9 @@ const docTemplate = `{
                 "ClientTypeUnknown",
                 "ClientTypeClaude",
                 "ClientTypeOpenAI",
-                "ClientTypeOllama"
+                "ClientTypeOllama",
+                "ClientTypeTMDB",
+                "ClientTypeTrakt"
             ]
         },
         "types.Configuration": {
@@ -7230,6 +8499,14 @@ const docTemplate = `{
                 "clientType": {
                     "$ref": "#/definitions/types.MediaClientType"
                 },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "name": {
+                    "type": "string",
+                    "example": "My Client"
+                },
                 "ssl": {
                     "type": "boolean",
                     "example": false
@@ -7244,6 +8521,10 @@ const docTemplate = `{
                 "username": {
                     "type": "string",
                     "example": "admin"
+                },
+                "validateConn": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -7265,6 +8546,14 @@ const docTemplate = `{
                 "clientType": {
                     "$ref": "#/definitions/types.MediaClientType"
                 },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "name": {
+                    "type": "string",
+                    "example": "My Client"
+                },
                 "ssl": {
                     "type": "boolean",
                     "example": false
@@ -7279,6 +8568,10 @@ const docTemplate = `{
                 "username": {
                     "type": "string",
                     "example": "admin"
+                },
+                "validateConn": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -7300,12 +8593,24 @@ const docTemplate = `{
                 "clientType": {
                     "$ref": "#/definitions/types.AutomationClientType"
                 },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "name": {
+                    "type": "string",
+                    "example": "My Client"
+                },
                 "ssl": {
                     "type": "boolean",
                     "example": false
                 },
                 "type": {
                     "$ref": "#/definitions/types.ClientType"
+                },
+                "validateConn": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -7420,45 +8725,6 @@ const docTemplate = `{
                 "MediaTypeCollection"
             ]
         },
-        "types.Movie": {
-            "type": "object",
-            "properties": {
-                "audioCodec": {
-                    "type": "string"
-                },
-                "cast": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.Person"
-                    }
-                },
-                "crew": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.Person"
-                    }
-                },
-                "details": {
-                    "$ref": "#/definitions/types.MediaDetails"
-                },
-                "resolution": {
-                    "description": "e.g., \"4K\", \"1080p\"",
-                    "type": "string"
-                },
-                "subtitleUrls": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "trailerUrl": {
-                    "type": "string"
-                },
-                "videoCodec": {
-                    "type": "string"
-                }
-            }
-        },
         "types.OllamaConfig": {
             "description": "Claude media server configuration",
             "type": "object",
@@ -7477,6 +8743,10 @@ const docTemplate = `{
                 "clientType": {
                     "$ref": "#/definitions/types.AIClientType"
                 },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
                 "maxContextTokens": {
                     "type": "integer",
                     "example": 1000
@@ -7489,12 +8759,20 @@ const docTemplate = `{
                     "type": "string",
                     "example": "claude-2"
                 },
+                "name": {
+                    "type": "string",
+                    "example": "My Client"
+                },
                 "temperature": {
                     "type": "number",
                     "example": 0.5
                 },
                 "type": {
                     "$ref": "#/definitions/types.ClientType"
+                },
+                "validateConn": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -7516,6 +8794,10 @@ const docTemplate = `{
                 "clientType": {
                     "$ref": "#/definitions/types.AIClientType"
                 },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
                 "maxContextTokens": {
                     "type": "integer",
                     "example": 1000
@@ -7528,31 +8810,20 @@ const docTemplate = `{
                     "type": "string",
                     "example": "claude-2"
                 },
+                "name": {
+                    "type": "string",
+                    "example": "My Client"
+                },
                 "temperature": {
                     "type": "number",
                     "example": 0.5
                 },
                 "type": {
                     "$ref": "#/definitions/types.ClientType"
-                }
-            }
-        },
-        "types.Person": {
-            "type": "object",
-            "properties": {
-                "character": {
-                    "description": "For actors",
-                    "type": "string"
                 },
-                "name": {
-                    "type": "string"
-                },
-                "photo": {
-                    "type": "string"
-                },
-                "role": {
-                    "description": "e.g., \"Director\", \"Actor\"",
-                    "type": "string"
+                "validateConn": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -7597,6 +8868,14 @@ const docTemplate = `{
                 "clientType": {
                     "$ref": "#/definitions/types.MediaClientType"
                 },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "name": {
+                    "type": "string",
+                    "example": "My Client"
+                },
                 "ssl": {
                     "type": "boolean",
                     "example": false
@@ -7607,6 +8886,10 @@ const docTemplate = `{
                 },
                 "type": {
                     "$ref": "#/definitions/types.ClientType"
+                },
+                "validateConn": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -7628,12 +8911,24 @@ const docTemplate = `{
                 "clientType": {
                     "$ref": "#/definitions/types.AutomationClientType"
                 },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "name": {
+                    "type": "string",
+                    "example": "My Client"
+                },
                 "ssl": {
                     "type": "boolean",
                     "example": false
                 },
                 "type": {
                     "$ref": "#/definitions/types.ClientType"
+                },
+                "validateConn": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -7729,12 +9024,24 @@ const docTemplate = `{
                 "clientType": {
                     "$ref": "#/definitions/types.AutomationClientType"
                 },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "name": {
+                    "type": "string",
+                    "example": "My Client"
+                },
                 "ssl": {
                     "type": "boolean",
                     "example": false
                 },
                 "type": {
                     "$ref": "#/definitions/types.ClientType"
+                },
+                "validateConn": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -7756,6 +9063,14 @@ const docTemplate = `{
                 "clientType": {
                     "$ref": "#/definitions/types.MediaClientType"
                 },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "name": {
+                    "type": "string",
+                    "example": "My Client"
+                },
                 "password": {
                     "type": "string",
                     "example": "your-password"
@@ -7770,6 +9085,10 @@ const docTemplate = `{
                 "username": {
                     "type": "string",
                     "example": "admin"
+                },
+                "validateConn": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },

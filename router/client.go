@@ -18,6 +18,7 @@ type ClientHandlerInterface interface {
 	UpdateClient(c *gin.Context)
 	DeleteClient(c *gin.Context)
 	TestConnection(c *gin.Context)
+	TestNewConnection(c *gin.Context)
 }
 
 // SetupClientRoutes configures routes for client endpoints
@@ -82,6 +83,11 @@ func RegisterClientRoutes(r *gin.RouterGroup, deps *app.AppDependencies) {
 		client.DELETE("/:id", func(c *gin.Context) {
 			if handler := getHandler(c); handler != nil {
 				handler.DeleteClient(c)
+			}
+		})
+		client.POST("/test", func(c *gin.Context) {
+			if handler := getHandler(c); handler != nil {
+				handler.TestNewConnection(c)
 			}
 		})
 

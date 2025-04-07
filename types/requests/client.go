@@ -6,8 +6,9 @@ import (
 )
 
 // ClientTestRequest is used for testing a client connection
-type ClientTestRequest struct {
-	ClientType types.ClientType `json:"clientType" binding:"required,oneof=radarr sonarr lidarr"`
+type ClientTestRequest[T types.ClientConfig] struct {
+	ClientType types.ClientType `json:"clientType" binding:"required,oneof=radarr sonarr lidarr emby jellyfin subsonic plex claude openai ollama"`
+	Client     T                `json:"client" gorm:"serializer:json"`
 }
 
 // AutomationClientRequest is used for creating/updating a download client

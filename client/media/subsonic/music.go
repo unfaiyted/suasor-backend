@@ -7,7 +7,6 @@ import (
 	t "suasor/client/media/types"
 	"suasor/types/models"
 	"suasor/utils"
-	"time"
 )
 
 func (c *SubsonicClient) GetMusic(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[t.Track], error) {
@@ -195,7 +194,7 @@ func (c *SubsonicClient) GetMusicAlbums(ctx context.Context, options *t.QueryOpt
 				Details: t.MediaDetails{
 					Title:       album.Name,
 					ReleaseYear: album.Year,
-					Duration:    time.Duration(album.Duration) * time.Second,
+					Duration:    int64(album.Duration), // Convert int to int64
 					Genres:      []string{album.Genre},
 					Artwork: t.Artwork{
 						Poster: c.GetCoverArtURL(album.CoverArt),

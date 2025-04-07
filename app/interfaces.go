@@ -202,8 +202,24 @@ type SystemRepositories interface {
 	ConfigRepo() repository.ConfigRepository
 }
 
+type JobRepositories interface {
+	JobRepo() repository.JobRepository
+}
+
+type JobServices interface {
+	JobService() services.JobService
+	RecommendationJob() *services.RecommendationJob
+	MediaSyncJob() *services.MediaSyncJob
+	WatchHistorySyncJob() *services.WatchHistorySyncJob
+	FavoritesSyncJob() *services.FavoritesSyncJob
+}
+
 type AIHandlers interface {
 	ClaudeAIHandler() *handlers.AIHandler[*types.ClaudeConfig]
 	OpenAIHandler() *handlers.AIHandler[*types.OpenAIConfig]
 	OllamaHandler() *handlers.AIHandler[*types.OllamaConfig]
+}
+
+type JobHandlers interface {
+	JobHandler() *handlers.JobHandler
 }
