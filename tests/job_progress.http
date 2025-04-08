@@ -1,0 +1,80 @@
+###
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@dev.com",
+  "password": "TestPassword123"
+}
+
+###
+# @name runAJob
+# Run a job to get a job ID for testing progress
+POST http://localhost:8080/api/v1/jobs/system.media.sync/run
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{}
+
+###
+# @name getRecentRun
+# Get the most recent job run to find its ID
+GET http://localhost:8080/api/v1/jobs/runs?limit=1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getRunningJobs
+# Get all currently running jobs
+GET http://localhost:8080/api/v1/jobs/active
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getJobProgress
+# Get progress information for a specific job run
+# Use the ID from the getRecentRun response
+GET http://localhost:8080/api/v1/jobs/runs/{{getRecentRun.response.body.$.data[0].id}}/progress
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getEmbyClients
+# Get Emby clients to get a client ID for testing
+GET http://localhost:8080/api/v1/clients?clientType=emby
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name setupMediaSyncJob
+# Setup a media sync job for testing progress
+POST http://localhost:8080/api/v1/jobs/media-sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientId": {{getEmbyClients.response.body.$.data[0].id}},
+  "clientType": "emby",
+  "mediaType": "movie",
+  "frequency": "daily"
+}
+
+###
+# @name runMediaSyncJob
+# Run the media sync job to test progress
+POST http://localhost:8080/api/v1/jobs/media-sync/run
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientId": {{getEmbyClients.response.body.$.data[0].id}},
+  "mediaType": "movie"
+}
+
+###
+# @name getMediaSyncJobs
+# Get media sync jobs to find the job ID
+GET http://localhost:8080/api/v1/jobs/media-sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

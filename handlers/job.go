@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 	"suasor/services"
+	"suasor/types/models"
 	"suasor/types/requests"
 	"suasor/types/responses"
 
@@ -66,6 +67,45 @@ func (h *JobHandler) GetJobScheduleByName(c *gin.Context) {
 	}
 
 	responses.RespondOK(c, schedule, "Job schedule retrieved successfully")
+}
+
+// CreateJobSchedule creates a new job schedule
+// @Summary Create a new job schedule
+// @Description Creates a new job schedule
+// @Tags jobs
+// @Accept json
+// @Produce json
+// @Param request body models.JobSchedule true "Job schedule to create"
+// @Success 201 {object} responses.APIResponse[models.JobSchedule]
+// @Failure 400 {object} responses.ErrorResponse[error]
+// @Failure 500 {object} responses.ErrorResponse[error]
+// @Router /jobs/schedules [post]
+func (h *JobHandler) CreateJobSchedule(c *gin.Context) {
+	var schedule models.JobSchedule
+	if err := c.ShouldBindJSON(&schedule); err != nil {
+		responses.RespondValidationError(c, err, "Invalid job schedule")
+		return
+	}
+
+	// Check if a job schedule with this name already exists
+	existingSchedule, err := h.jobService.GetJobScheduleByName(c.Request.Context(), schedule.JobName)
+	if err != nil {
+		responses.RespondInternalError(c, err, "Failed to check existing job schedule")
+		return
+	}
+
+	if existingSchedule != nil {
+		responses.RespondBadRequest(c, nil, "A job schedule with this name already exists")
+		return
+	}
+
+	// Create the job schedule
+	if err := h.jobService.CreateJobSchedule(c.Request.Context(), &schedule); err != nil {
+		responses.RespondInternalError(c, err, "Failed to create job schedule")
+		return
+	}
+
+	responses.RespondSuccess[models.JobSchedule](c, http.StatusCreated, schedule, "Job schedule created successfully")
 }
 
 // UpdateJobSchedule updates a job schedule
@@ -174,7 +214,7 @@ func (h *JobHandler) GetRecentJobRuns(c *gin.Context) {
 	responses.RespondOK(c, runs, "Job runs retrieved successfully")
 }
 
-// GetUserJobRuns retrieves job runs for the current user
+// GetMediaSyncJobs retrieves job runs for the current user
 // @Summary Get job runs for current user
 // @Description Returns a list of job runs for the current user
 // @Tags jobs
@@ -306,6 +346,58 @@ func (h *JobHandler) GetUserRecommendations(c *gin.Context) {
 	responses.RespondOK(c, recommendations, "Recommendations retrieved successfully")
 }
 
+// GetJobRunProgress retrieves progress information for a specific job run
+// @Summary Get job run progress
+// @Description Returns progress information for a specific job run
+// @Tags jobs
+// @Accept json
+// @Produce json
+// @Param id path int true "Job Run ID"
+// @Success 200 {object} responses.APIResponse[models.JobRun]
+// @Failure 404 {object} responses.ErrorResponse[error]
+// @Failure 500 {object} responses.ErrorResponse[error]
+// @Router /jobs/runs/{id}/progress [get]
+func (h *JobHandler) GetJobRunProgress(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		responses.RespondBadRequest(c, err, "Invalid job run ID")
+		return
+	}
+
+	jobRun, err := h.jobService.GetJobRunByID(c.Request.Context(), id)
+	if err != nil {
+		responses.RespondInternalError(c, err, "Failed to get job run")
+		return
+	}
+
+	if jobRun == nil {
+		responses.RespondNotFound(c, nil, "Job run not found")
+		return
+	}
+
+	responses.RespondOK(c, jobRun, "Job run progress retrieved successfully")
+}
+
+// GetActiveJobRuns retrieves all currently running jobs
+// @Summary Get all active job runs
+// @Description Returns a list of all currently running jobs
+// @Tags jobs
+// @Accept json
+// @Produce json
+// @Success 200 {object} responses.APIResponse[[]models.JobRun]
+// @Failure 500 {object} responses.ErrorResponse[error]
+// @Router /jobs/active [get]
+func (h *JobHandler) GetActiveJobRuns(c *gin.Context) {
+	runs, err := h.jobService.GetActiveJobRuns(c.Request.Context())
+	if err != nil {
+		responses.RespondInternalError(c, err, "Failed to get active job runs")
+		return
+	}
+
+	responses.RespondOK(c, runs, "Active job runs retrieved successfully")
+}
+
 // DismissRecommendation marks a recommendation as dismissed
 // @Summary Dismiss recommendation
 // @Description Marks a recommendation as dismissed
@@ -366,4 +458,3 @@ func (h *JobHandler) UpdateRecommendationViewedStatus(c *gin.Context) {
 
 	responses.RespondOK[struct{}](c, struct{}{}, "Recommendation viewed status updated successfully")
 }
-

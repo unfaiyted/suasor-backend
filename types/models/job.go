@@ -12,6 +12,12 @@ const (
 	JobTypeRecommendation JobType = "recommendation"
 	// JobTypeSync represents a media synchronization job
 	JobTypeSync JobType = "sync"
+	// JobTypeSystem represents a system maintenance job
+	JobTypeSystem JobType = "system"
+	// JobTypeNotification represents a notification job
+	JobTypeNotification JobType = "notification"
+	// JobTypeAnalysis represents an analysis job
+	JobTypeAnalysis JobType = "analysis"
 )
 
 // JobStatus defines the status of a job run
@@ -45,6 +51,14 @@ type JobRun struct {
 	UserID *uint64 `json:"userId" gorm:"index"`
 	// Any error message from the job run
 	ErrorMessage string `json:"errorMessage"`
+	// Progress percentage (0-100)
+    Progress int `json:"progress" gorm:"not null;default:0"`
+    // Total items to process
+    TotalItems int `json:"totalItems" gorm:"default:0"`
+    // Items processed so far
+    ProcessedItems int `json:"processedItems" gorm:"default:0"`
+    // Current status message
+    StatusMessage string `json:"statusMessage"`
 	// Metadata related to the job (stored as JSON)
 	Metadata string `json:"metadata" gorm:"type:jsonb"`
 }

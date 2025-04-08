@@ -9,6 +9,7 @@ import (
 	"suasor/handlers"
 	"suasor/repository"
 	"suasor/services"
+	"suasor/services/jobs"
 	"time"
 )
 
@@ -181,7 +182,7 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 	}
 
 	// Initialize job services
-	recommendationJob := services.NewRecommendationJob(
+	recommendationJob := jobs.NewRecommendationJob(
 		deps.JobRepo(),
 		deps.UserRepo(),
 		deps.UserConfigRepo(),
@@ -192,7 +193,7 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		deps.ClientServices.ClaudeService(),
 	)
 
-	mediaSyncJob := services.NewMediaSyncJob(
+	mediaSyncJob := jobs.NewMediaSyncJob(
 		deps.JobRepo(),
 		deps.UserRepo(),
 		deps.UserConfigRepo(),
@@ -206,7 +207,7 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		deps.ClientServices.SubsonicService(),
 	)
 	
-	watchHistorySyncJob := services.NewWatchHistorySyncJob(
+	watchHistorySyncJob := jobs.NewWatchHistorySyncJob(
 		deps.JobRepo(),
 		deps.UserRepo(),
 		deps.UserConfigRepo(),
@@ -221,7 +222,7 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		deps.ClientRepositories.SubsonicRepo(),
 	)
 	
-	favoritesSyncJob := services.NewFavoritesSyncJob(
+	favoritesSyncJob := jobs.NewFavoritesSyncJob(
 		deps.JobRepo(),
 		deps.UserRepo(),
 		deps.UserConfigRepo(),

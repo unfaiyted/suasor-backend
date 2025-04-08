@@ -38,6 +38,16 @@ type JobRepository interface {
 	GetRecentJobRuns(ctx context.Context, limit int) ([]models.JobRun, error)
 	// GetJobRunsByUser retrieves job runs for a specific user
 	GetJobRunsByUser(ctx context.Context, userID uint64, limit int) ([]models.JobRun, error)
+	// GetJobRunByID retrieves a specific job run by ID
+	GetJobRunByID(ctx context.Context, jobRunID uint64) (*models.JobRun, error)
+	// GetActiveJobRuns retrieves all currently active job runs
+	GetActiveJobRuns(ctx context.Context) ([]models.JobRun, error)
+	// UpdateJobProgress updates the progress of a job run
+	UpdateJobProgress(ctx context.Context, jobRunID uint64, progress int, message string) error
+	// SetJobTotalItems sets the total number of items to be processed in a job
+	SetJobTotalItems(ctx context.Context, jobRunID uint64, totalItems int) error
+	// IncrementJobProcessedItems increments the number of processed items in a job
+	IncrementJobProcessedItems(ctx context.Context, jobRunID uint64, count int) error
 	
 	// Recommendation methods
 	// CreateRecommendation creates a new recommendation
@@ -377,6 +387,101 @@ func (r *jobRepository) DeleteMediaSyncJob(ctx context.Context, syncJobID uint64
 	
 	if result.Error != nil {
 		return fmt.Errorf("error deleting media sync job: %w", result.Error)
+	}
+	return nil
+}
+
+// GetJobRunByID retrieves a specific job run by ID
+func (r *jobRepository) GetJobRunByID(ctx context.Context, jobRunID uint64) (*models.JobRun, error) {
+	var jobRun models.JobRun
+	result := r.db.WithContext(ctx).Where("id = ?", jobRunID).First(&jobRun)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("error retrieving job run: %w", result.Error)
+	}
+	return &jobRun, nil
+}
+
+// GetActiveJobRuns retrieves all currently active job runs
+func (r *jobRepository) GetActiveJobRuns(ctx context.Context) ([]models.JobRun, error) {
+	var runs []models.JobRun
+	result := r.db.WithContext(ctx).
+		Where("status = ?", models.JobStatusRunning).
+		Order("created_at DESC").
+		Find(&runs)
+	
+	if result.Error != nil {
+		return nil, fmt.Errorf("error retrieving active job runs: %w", result.Error)
+	}
+	return runs, nil
+}
+
+// UpdateJobProgress updates the progress of a job run
+func (r *jobRepository) UpdateJobProgress(ctx context.Context, jobRunID uint64, progress int, message string) error {
+	updates := map[string]interface{}{
+		"progress":       progress,
+		"status_message": message,
+	}
+	
+	result := r.db.WithContext(ctx).Model(&models.JobRun{}).
+		Where("id = ?", jobRunID).
+		Updates(updates)
+	
+	if result.Error != nil {
+		return fmt.Errorf("error updating job progress: %w", result.Error)
+	}
+	return nil
+}
+
+// SetJobTotalItems sets the total number of items to be processed in a job
+func (r *jobRepository) SetJobTotalItems(ctx context.Context, jobRunID uint64, totalItems int) error {
+	result := r.db.WithContext(ctx).Model(&models.JobRun{}).
+		Where("id = ?", jobRunID).
+		Update("total_items", totalItems)
+	
+	if result.Error != nil {
+		return fmt.Errorf("error setting job total items: %w", result.Error)
+	}
+	return nil
+}
+
+// IncrementJobProcessedItems increments the number of processed items in a job
+func (r *jobRepository) IncrementJobProcessedItems(ctx context.Context, jobRunID uint64, count int) error {
+	// First get the current job run to calculate progress percentage
+	jobRun, err := r.GetJobRunByID(ctx, jobRunID)
+	if err != nil {
+		return fmt.Errorf("error getting job run: %w", err)
+	}
+	if jobRun == nil {
+		return fmt.Errorf("job run not found")
+	}
+	
+	// Calculate new processed items count
+	newProcessedItems := jobRun.ProcessedItems + count
+	
+	// Calculate progress percentage if total items is set
+	progress := jobRun.Progress
+	if jobRun.TotalItems > 0 {
+		progress = int(float64(newProcessedItems) / float64(jobRun.TotalItems) * 100)
+		if progress > 100 {
+			progress = 100
+		}
+	}
+	
+	// Update the job run
+	updates := map[string]interface{}{
+		"processed_items": newProcessedItems,
+		"progress":        progress,
+	}
+	
+	result := r.db.WithContext(ctx).Model(&models.JobRun{}).
+		Where("id = ?", jobRunID).
+		Updates(updates)
+	
+	if result.Error != nil {
+		return fmt.Errorf("error incrementing job processed items: %w", result.Error)
 	}
 	return nil
 }

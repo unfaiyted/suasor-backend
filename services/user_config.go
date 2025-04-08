@@ -5,6 +5,7 @@ import (
 
 	"fmt"
 	"suasor/repository"
+	"suasor/services/jobs"
 	"suasor/types/models"
 	"suasor/utils"
 )
@@ -18,14 +19,14 @@ type UserConfigService interface {
 type userConfigService struct {
 	userConfigRepo repository.UserConfigRepository
 	jobService     JobService
-	recommendationJob *RecommendationJob
+	recommendationJob *jobs.RecommendationJob
 }
 
 // NewUserConfigService creates a new configuration service
 func NewUserConfigService(
 	userConfigRepo repository.UserConfigRepository,
 	jobService JobService,
-	recommendationJob *RecommendationJob,
+	recommendationJob *jobs.RecommendationJob,
 ) UserConfigService {
 	return &userConfigService{
 		userConfigRepo: userConfigRepo,

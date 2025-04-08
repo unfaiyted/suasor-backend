@@ -7,6 +7,7 @@ import (
 	"suasor/handlers"
 	"suasor/repository"
 	"suasor/services"
+	"suasor/services/jobs"
 )
 
 // Interface definitions (unchanged)
@@ -208,10 +209,10 @@ type JobRepositories interface {
 
 type JobServices interface {
 	JobService() services.JobService
-	RecommendationJob() *services.RecommendationJob
-	MediaSyncJob() *services.MediaSyncJob
-	WatchHistorySyncJob() *services.WatchHistorySyncJob
-	FavoritesSyncJob() *services.FavoritesSyncJob
+	RecommendationJob() *jobs.RecommendationJob
+	MediaSyncJob() *jobs.MediaSyncJob
+	WatchHistorySyncJob() *jobs.WatchHistorySyncJob
+	FavoritesSyncJob() *jobs.FavoritesSyncJob
 }
 
 type AIHandlers interface {

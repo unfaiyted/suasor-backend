@@ -1,0 +1,126 @@
+###
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@dev.com",
+  "password": "TestPassword123"
+}
+
+###
+# @name getAllClients
+# Get all clients to find their IDs
+GET http://localhost:8080/api/v1/clients
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getEmbyClients
+GET http://localhost:8080/api/v1/clients?clientType=emby
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getJellyfinClients
+GET http://localhost:8080/api/v1/clients?clientType=jellyfin
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPlexClients
+GET http://localhost:8080/api/v1/clients?clientType=plex
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name setUpEmbyMovieSync
+# Setup movie sync from Emby
+POST http://localhost:8080/api/v1/jobs/media-sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientId": {{getEmbyClients.response.body.$.data[0].id}},
+  "clientType": "emby",
+  "mediaType": "movie",
+  "frequency": "daily"
+}
+
+###
+# @name setUpJellyfinMovieSync
+# Setup movie sync from Jellyfin
+POST http://localhost:8080/api/v1/jobs/media-sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientId": {{getJellyfinClients.response.body.$.data[0].id}},
+  "clientType": "jellyfin",
+  "mediaType": "movie",
+  "frequency": "daily"
+}
+
+###
+# @name setUpPlexMovieSync
+# Setup movie sync from Plex
+POST http://localhost:8080/api/v1/jobs/media-sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientId": {{getPlexClients.response.body.$.data[0].id}},
+  "clientType": "plex",
+  "mediaType": "movie",
+  "frequency": "daily"
+}
+
+###
+# @name runEmbyMovieSync
+# Run Emby movie sync manually
+POST http://localhost:8080/api/v1/jobs/media-sync/run
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientId": {{getEmbyClients.response.body.$.data[0].id}},
+  "mediaType": "movie"
+}
+
+###
+# @name checkJobProgress
+# Check if the job is running
+GET http://localhost:8080/api/v1/jobs/runs?limit=1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name runJellyfinMovieSync
+# Run Jellyfin movie sync manually
+POST http://localhost:8080/api/v1/jobs/media-sync/run
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientId": {{getJellyfinClients.response.body.$.data[0].id}},
+  "mediaType": "movie"
+}
+
+###
+# @name runPlexMovieSync
+# Run Plex movie sync manually
+POST http://localhost:8080/api/v1/jobs/media-sync/run
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientId": {{getPlexClients.response.body.$.data[0].id}},
+  "mediaType": "movie"
+}
+
+###
+# @name getMediaSyncJobs
+# Get all configured media sync jobs
+GET http://localhost:8080/api/v1/jobs/media-sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

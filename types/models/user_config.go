@@ -11,10 +11,11 @@ import (
 type UserConfig struct {
 	BaseModel
 	// UserID links this config to a specific user
-	UserID uint64 `json:"userId" gorm:"uniqueIndex;not null"`
+	UserID      uint64 `json:"userId" gorm:"uniqueIndex;not null"`
+	DisplayName string `json:"displayName" gorm:"default:''" binding:"omitempty" example:"John Doe"`
 	// UI Preferences
 	Theme            string `json:"theme" gorm:"default:'system'" example:"dark" binding:"omitempty,oneof=light dark system"`
-	Language         string `json:"language" gorm:"default:'en-US'" example:"en-US" binding:"required"`
+	Language         string `json:"language" gorm:"default:'en-US'" example:"en-US" binding:"omitempty"`
 	ItemsPerPage     int    `json:"itemsPerPage" gorm:"default:20" example:"20" binding:"omitempty,min=5,max=100"`
 	EnableAnimations bool   `json:"enableAnimations" gorm:"default:true" example:"true"`
 	// What sidebar options to show based on the enabled content types.
@@ -60,6 +61,23 @@ type UserConfig struct {
 	DiscoveryModeRatio     float32 `json:"discoveryModeRatio" gorm:"default:0.5" example:"0.5" binding:"omitempty,min=0,max=1"`
 
 	DefaultClients *DefaultClients `json:"defaultClients" gorm:"type:jsonb;serializer:json"`
+
+	// Smart Collections Settings
+	SmartCollectionsEnabled bool `json:"smartCollectionsEnabled" gorm:"default:false" example:"true"`
+
+	// Content Availability Settings
+	ContentAvailabilityEnabled bool `json:"contentAvailabilityEnabled" gorm:"default:false" example:"true"`
+
+	// New Release Notifications Settings
+	NewReleaseNotificationsEnabled bool   `json:"newReleaseNotificationsEnabled" gorm:"default:false" example:"true"`
+	NewReleaseMediaTypes           string `json:"newReleaseMediaTypes" gorm:"type:text;default:'movie,series'" example:"movie,series,music"`
+
+	// Playlist Sync Settings
+	PlaylistSyncEnabled   bool   `json:"playlistSyncEnabled" gorm:"default:false" example:"true"`
+	PlaylistSyncDirection string `json:"playlistSyncDirection" gorm:"default:'bidirectional'" example:"bidirectional"`
+
+	// Activity Analysis Settings
+	ActivityAnalysisEnabled bool `json:"activityAnalysisEnabled" gorm:"default:false" example:"true"`
 
 	// Notification Settings
 	NotificationsEnabled       bool `json:"notificationsEnabled" gorm:"default:true" example:"true"`

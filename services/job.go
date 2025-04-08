@@ -6,6 +6,7 @@ import (
 	"log"
 	mediatypes "suasor/client/media/types"
 	"suasor/repository"
+	"suasor/services/jobs"
 	"suasor/services/scheduler"
 	"suasor/types/models"
 	"time"
@@ -37,9 +38,21 @@ type JobService interface {
 	GetRecentJobRuns(ctx context.Context, limit int) ([]models.JobRun, error)
 	// GetUserJobRuns retrieves job runs for a specific user
 	GetUserJobRuns(ctx context.Context, userID uint64, limit int) ([]models.JobRun, error)
+	// GetJobRunByID retrieves a specific job run by ID
+	GetJobRunByID(ctx context.Context, jobRunID uint64) (*models.JobRun, error)
+	// GetActiveJobRuns retrieves all currently active job runs
+	GetActiveJobRuns(ctx context.Context) ([]models.JobRun, error)
 	
 	// RunJobManually triggers a job to run immediately
 	RunJobManually(ctx context.Context, jobName string) error
+	
+	// Job progress tracking methods
+	// UpdateJobProgress updates the progress of a job run
+	UpdateJobProgress(ctx context.Context, jobRunID uint64, progress int, message string) error
+	// SetJobTotalItems sets the total number of items to be processed in a job
+	SetJobTotalItems(ctx context.Context, jobRunID uint64, totalItems int) error
+	// IncrementJobProcessedItems increments the number of processed items in a job
+	IncrementJobProcessedItems(ctx context.Context, jobRunID uint64, count int) error
 	
 	// GetUserRecommendations retrieves recommendations for a user
 	GetUserRecommendations(ctx context.Context, userID uint64, active bool, limit int) ([]models.Recommendation, error)
@@ -66,10 +79,10 @@ type jobService struct {
 	historyRepo          repository.MediaPlayHistoryRepository
 	scheduler            *scheduler.Scheduler
 	jobs                 map[string]scheduler.Job
-	recommendationJob    *RecommendationJob
-	mediaSyncJob         *MediaSyncJob
-	watchHistorySyncJob  *WatchHistorySyncJob
-	favoritesSyncJob     *FavoritesSyncJob
+	recommendationJob    *jobs.RecommendationJob
+	mediaSyncJob         *jobs.MediaSyncJob
+	watchHistorySyncJob  *jobs.WatchHistorySyncJob
+	favoritesSyncJob     *jobs.FavoritesSyncJob
 }
 
 // NewJobService creates a new job service
@@ -81,10 +94,10 @@ func NewJobService(
 	seriesRepo repository.MediaItemRepository[*mediatypes.Series],
 	musicRepo repository.MediaItemRepository[*mediatypes.Track],
 	historyRepo repository.MediaPlayHistoryRepository,
-	recommendationJob *RecommendationJob,
-	mediaSyncJob *MediaSyncJob,
-	watchHistorySyncJob *WatchHistorySyncJob,
-	favoritesSyncJob *FavoritesSyncJob,
+	recommendationJob *jobs.RecommendationJob,
+	mediaSyncJob *jobs.MediaSyncJob,
+	watchHistorySyncJob *jobs.WatchHistorySyncJob,
+	favoritesSyncJob *jobs.FavoritesSyncJob,
 ) JobService {
 	return &jobService{
 		jobRepo:             jobRepo,
@@ -183,6 +196,31 @@ func (s *jobService) GetRecentJobRuns(ctx context.Context, limit int) ([]models.
 // GetUserJobRuns retrieves job runs for a specific user
 func (s *jobService) GetUserJobRuns(ctx context.Context, userID uint64, limit int) ([]models.JobRun, error) {
 	return s.jobRepo.GetJobRunsByUser(ctx, userID, limit)
+}
+
+// GetJobRunByID retrieves a specific job run by ID
+func (s *jobService) GetJobRunByID(ctx context.Context, jobRunID uint64) (*models.JobRun, error) {
+	return s.jobRepo.GetJobRunByID(ctx, jobRunID)
+}
+
+// GetActiveJobRuns retrieves all currently active job runs
+func (s *jobService) GetActiveJobRuns(ctx context.Context) ([]models.JobRun, error) {
+	return s.jobRepo.GetActiveJobRuns(ctx)
+}
+
+// UpdateJobProgress updates the progress of a job run
+func (s *jobService) UpdateJobProgress(ctx context.Context, jobRunID uint64, progress int, message string) error {
+	return s.jobRepo.UpdateJobProgress(ctx, jobRunID, progress, message)
+}
+
+// SetJobTotalItems sets the total number of items to be processed in a job
+func (s *jobService) SetJobTotalItems(ctx context.Context, jobRunID uint64, totalItems int) error {
+	return s.jobRepo.SetJobTotalItems(ctx, jobRunID, totalItems)
+}
+
+// IncrementJobProcessedItems increments the number of processed items in a job
+func (s *jobService) IncrementJobProcessedItems(ctx context.Context, jobRunID uint64, count int) error {
+	return s.jobRepo.IncrementJobProcessedItems(ctx, jobRunID, count)
 }
 
 // RunJobManually triggers a job to run immediately
@@ -291,7 +329,7 @@ func (s *jobService) RunMediaSyncJob(ctx context.Context, userID, clientID uint6
 	}
 
 	// Run the sync job
-	return s.mediaSyncJob.syncUserMediaFromClient(ctx, userID, clientID, mediaType)
+	return s.mediaSyncJob.SyncUserMediaFromClient(ctx, userID, clientID, mediaType)
 }
 
 // GetMediaSyncJobs retrieves all media sync jobs for a user
@@ -302,9 +340,9 @@ func (s *jobService) GetMediaSyncJobs(ctx context.Context, userID uint64) ([]mod
 // getJobType determines the job type from a job
 func getJobType(job scheduler.Job) models.JobType {
 	switch job.(type) {
-	case *RecommendationJob:
+	case *jobs.RecommendationJob:
 		return models.JobTypeRecommendation
-	case *MediaSyncJob, *WatchHistorySyncJob, *FavoritesSyncJob:
+	case *jobs.MediaSyncJob, *jobs.WatchHistorySyncJob, *jobs.FavoritesSyncJob:
 		return models.JobTypeSync
 	default:
 		return models.JobType("unknown")

@@ -235,8 +235,8 @@ func (j *SmartCollectionJob) completeJobRun(ctx context.Context, jobRunID uint64
 	}
 }
 
-// MediaClientInfo holds information about a media client for collection operations
-type MediaClientInfo struct {
+// SmartCollectionClientInfo holds information about a media client for collection operations
+type SmartCollectionClientInfo struct {
 	ClientID   uint64
 	ClientType clienttypes.MediaClientType
 	Name       string
@@ -252,14 +252,14 @@ type CollectionStats struct {
 }
 
 // getUserMediaClients returns all media clients for a user
-func (j *SmartCollectionJob) getUserMediaClients(ctx context.Context, userID uint64) ([]MediaClientInfo, error) {
+func (j *SmartCollectionJob) getUserMediaClients(ctx context.Context, userID uint64) ([]SmartCollectionClientInfo, error) {
 	// In a real implementation, we would:
 	// 1. Query each client repository for clients belonging to this user
 	// 2. Create client connections for each client
 	// 3. Return the list of clients
 
 	// Mock implementation
-	return []MediaClientInfo{
+	return []SmartCollectionClientInfo{
 		{
 			ClientID:   1,
 			ClientType: clienttypes.MediaClientTypeEmby,
@@ -276,7 +276,7 @@ func (j *SmartCollectionJob) getUserMediaClients(ctx context.Context, userID uin
 }
 
 // processGenreCollections creates and updates genre-based collections
-func (j *SmartCollectionJob) processGenreCollections(ctx context.Context, userID uint64, clients []MediaClientInfo) (CollectionStats, error) {
+func (j *SmartCollectionJob) processGenreCollections(ctx context.Context, userID uint64, clients []SmartCollectionClientInfo) (CollectionStats, error) {
 	stats := CollectionStats{}
 	log.Printf("Processing genre collections for user %d", userID)
 
@@ -317,7 +317,7 @@ func (j *SmartCollectionJob) processGenreCollections(ctx context.Context, userID
 }
 
 // processDirectorCollections creates and updates director-based collections
-func (j *SmartCollectionJob) processDirectorCollections(ctx context.Context, userID uint64, clients []MediaClientInfo) (CollectionStats, error) {
+func (j *SmartCollectionJob) processDirectorCollections(ctx context.Context, userID uint64, clients []SmartCollectionClientInfo) (CollectionStats, error) {
 	stats := CollectionStats{}
 	log.Printf("Processing director collections for user %d", userID)
 
@@ -348,7 +348,7 @@ func (j *SmartCollectionJob) processDirectorCollections(ctx context.Context, use
 }
 
 // processActorCollections creates and updates actor-based collections
-func (j *SmartCollectionJob) processActorCollections(ctx context.Context, userID uint64, clients []MediaClientInfo) (CollectionStats, error) {
+func (j *SmartCollectionJob) processActorCollections(ctx context.Context, userID uint64, clients []SmartCollectionClientInfo) (CollectionStats, error) {
 	stats := CollectionStats{}
 	log.Printf("Processing actor collections for user %d", userID)
 
@@ -379,7 +379,7 @@ func (j *SmartCollectionJob) processActorCollections(ctx context.Context, userID
 }
 
 // processSeasonalCollections creates and updates seasonal collections
-func (j *SmartCollectionJob) processSeasonalCollections(ctx context.Context, userID uint64, clients []MediaClientInfo) (CollectionStats, error) {
+func (j *SmartCollectionJob) processSeasonalCollections(ctx context.Context, userID uint64, clients []SmartCollectionClientInfo) (CollectionStats, error) {
 	stats := CollectionStats{}
 	log.Printf("Processing seasonal collections for user %d", userID)
 
@@ -434,7 +434,7 @@ func (j *SmartCollectionJob) processSeasonalCollections(ctx context.Context, use
 }
 
 // processAIGeneratedCollections creates and updates AI-generated collections
-func (j *SmartCollectionJob) processAIGeneratedCollections(ctx context.Context, userID uint64, clients []MediaClientInfo) (CollectionStats, error) {
+func (j *SmartCollectionJob) processAIGeneratedCollections(ctx context.Context, userID uint64, clients []SmartCollectionClientInfo) (CollectionStats, error) {
 	stats := CollectionStats{}
 	log.Printf("Processing AI-generated collections for user %d", userID)
 
@@ -475,7 +475,7 @@ func (j *SmartCollectionJob) processAIGeneratedCollections(ctx context.Context, 
 }
 
 // collectionExistsInClient checks if a collection exists in a client
-func (j *SmartCollectionJob) collectionExistsInClient(ctx context.Context, client MediaClientInfo, collectionName string) (bool, error) {
+func (j *SmartCollectionJob) collectionExistsInClient(ctx context.Context, client SmartCollectionClientInfo, collectionName string) (bool, error) {
 	// In a real implementation, we would:
 	// 1. Use the client connection to query for the collection
 	// 2. Return true if it exists, false otherwise
@@ -485,7 +485,7 @@ func (j *SmartCollectionJob) collectionExistsInClient(ctx context.Context, clien
 }
 
 // createCollectionInClient creates a collection in a client
-func (j *SmartCollectionJob) createCollectionInClient(ctx context.Context, client MediaClientInfo, collectionName string, items []string) error {
+func (j *SmartCollectionJob) createCollectionInClient(ctx context.Context, client SmartCollectionClientInfo, collectionName string, items []string) error {
 	// In a real implementation, we would:
 	// 1. Use the client connection to create the collection
 	// 2. Add the specified items to the collection
@@ -495,7 +495,7 @@ func (j *SmartCollectionJob) createCollectionInClient(ctx context.Context, clien
 }
 
 // updateCollectionInClient updates a collection in a client
-func (j *SmartCollectionJob) updateCollectionInClient(ctx context.Context, client MediaClientInfo, collectionName string, addItems []string, removeItems []string) error {
+func (j *SmartCollectionJob) updateCollectionInClient(ctx context.Context, client SmartCollectionClientInfo, collectionName string, addItems []string, removeItems []string) error {
 	// In a real implementation, we would:
 	// 1. Use the client connection to update the collection
 	// 2. Add new items and remove old ones

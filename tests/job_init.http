@@ -1,0 +1,76 @@
+###
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@dev.com",
+  "password": "TestPassword123"
+}
+
+###
+# @name createMediaSyncJobSchedule
+# Create the system.media.sync job schedule
+POST http://localhost:8080/api/v1/jobs/schedules
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "jobName": "system.media.sync",
+  "jobType": "sync",
+  "frequency": "daily",
+  "enabled": true,
+  "config": "{}"
+}
+
+###
+# @name createRecommendationJobSchedule
+# Create the system.recommendation job schedule
+POST http://localhost:8080/api/v1/jobs/schedules
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "jobName": "system.recommendation",
+  "jobType": "recommendation",
+  "frequency": "daily",
+  "enabled": true,
+  "config": "{}"
+}
+
+###
+# @name createWatchHistorySyncJobSchedule
+# Create the system.watch.history.sync job schedule
+POST http://localhost:8080/api/v1/jobs/schedules
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "jobName": "system.watch.history.sync",
+  "jobType": "sync",
+  "frequency": "hourly",
+  "enabled": true,
+  "config": "{}"
+}
+
+###
+# @name createFavoritesSyncJobSchedule
+# Create the system.favorites.sync job schedule
+POST http://localhost:8080/api/v1/jobs/schedules
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "jobName": "system.favorites.sync",
+  "jobType": "sync",
+  "frequency": "daily",
+  "enabled": true,
+  "config": "{}"
+}
+
+###
+# @name getAllJobSchedules
+# Verify job schedules have been created
+GET http://localhost:8080/api/v1/jobs/schedules
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

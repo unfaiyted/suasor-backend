@@ -17,9 +17,12 @@ func RegisterJobRoutes(r *gin.RouterGroup, jobService services.JobService) {
 		jobs.GET("/schedules", jobHandler.GetAllJobSchedules)
 		jobs.GET("/schedules/:name", jobHandler.GetJobScheduleByName)
 		jobs.PUT("/schedules", jobHandler.UpdateJobSchedule)
+		jobs.POST("/schedules", jobHandler.CreateJobSchedule)
 
 		// Job runs
 		jobs.GET("/runs", jobHandler.GetRecentJobRuns)
+		jobs.GET("/runs/:id/progress", jobHandler.GetJobRunProgress)
+		jobs.GET("/active", jobHandler.GetActiveJobRuns)
 		// jobs.GET("/runs/user", jobHandler.GetUserJobRuns)
 		jobs.POST("/:name/run", jobHandler.RunJobManually)
 

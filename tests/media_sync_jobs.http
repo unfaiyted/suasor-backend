@@ -1,0 +1,108 @@
+###
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@dev.com",
+  "password": "TestPassword123"
+}
+
+###
+# @name getEmbyClients
+# First, get your Emby clients to find clientId
+GET http://localhost:8080/api/v1/clients?clientType=emby
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getMediaSyncJobs
+# Get all media sync jobs for the current user
+GET http://localhost:8080/api/v1/jobs/media-sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name setupMovieSyncJob
+# Setup a media sync job for movies
+POST http://localhost:8080/api/v1/jobs/media-sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientId": {{getEmbyClients.response.body.$.data[0].id}},
+  "clientType": "emby",
+  "mediaType": "movie",
+  "frequency": "daily"
+}
+
+###
+# @name setupTVShowSyncJob
+# Setup a media sync job for TV shows
+POST http://localhost:8080/api/v1/jobs/media-sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientId": {{getEmbyClients.response.body.$.data[0].id}},
+  "clientType": "emby",
+  "mediaType": "series",
+  "frequency": "weekly"
+}
+
+###
+# @name setupMusicSyncJob
+# Setup a media sync job for music
+POST http://localhost:8080/api/v1/jobs/media-sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientId": {{getEmbyClients.response.body.$.data[0].id}},
+  "clientType": "emby",
+  "mediaType": "music",
+  "frequency": "daily"
+}
+
+###
+# @name runMovieSyncJob
+# Run a movie sync job manually
+POST http://localhost:8080/api/v1/jobs/media-sync/run
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientId": {{getEmbyClients.response.body.$.data[0].id}},
+  "mediaType": "movie"
+}
+
+###
+# @name runTVShowSyncJob
+# Run a TV show sync job manually
+POST http://localhost:8080/api/v1/jobs/media-sync/run
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientId": {{getEmbyClients.response.body.$.data[0].id}},
+  "mediaType": "series"
+}
+
+###
+# @name runMusicSyncJob
+# Run a music sync job manually
+POST http://localhost:8080/api/v1/jobs/media-sync/run
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientId": {{getEmbyClients.response.body.$.data[0].id}},
+  "mediaType": "music"
+}
+
+###
+# @name checkJobProgress
+# Poll for job run status - check after running a job manually
+GET http://localhost:8080/api/v1/jobs/runs?limit=1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

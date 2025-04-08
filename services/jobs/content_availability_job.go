@@ -2,13 +2,11 @@ package jobs
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"time"
 
 	mediatypes "suasor/client/media/types"
-	clienttypes "suasor/client/types"
 	"suasor/repository"
 	"suasor/services/scheduler"
 	"suasor/types/models"
@@ -323,10 +321,15 @@ func (j *ContentAvailabilityJob) CheckSingleItem(ctx context.Context, mediaType 
 		},
 	}
 	
+	title := "Example Series"
+	if mediaType == "movie" {
+		title = "Example Movie"
+	}
+	
 	result := map[string]interface{}{
 		"mediaType": mediaType,
 		"tmdbID": tmdbID,
-		"title": mediaType == "movie" ? "Example Movie" : "Example Series",
+		"title": title,
 		"availableOn": services,
 		"lastUpdated": time.Now().Format(time.RFC3339),
 	}

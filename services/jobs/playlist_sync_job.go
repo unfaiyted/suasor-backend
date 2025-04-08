@@ -156,8 +156,8 @@ func (j *PlaylistSyncJob) completeJobRun(ctx context.Context, jobRunID uint64, s
 	}
 }
 
-// ClientInfo holds basic client information for sync operations
-type ClientInfo struct {
+// PlaylistClientInfo holds basic client information for playlist sync operations
+type PlaylistClientInfo struct {
 	ClientID   uint64
 	ClientType clienttypes.MediaClientType
 	Name       string
@@ -174,14 +174,14 @@ type PlaylistSyncStats struct {
 
 // getUserMediaClients returns all media clients for a user
 // This is a placeholder implementation
-func (j *PlaylistSyncJob) getUserMediaClients(ctx context.Context, userID uint64) ([]ClientInfo, error) {
+func (j *PlaylistSyncJob) getUserMediaClients(ctx context.Context, userID uint64) ([]PlaylistClientInfo, error) {
 	// For a real implementation, you would:
 	// 1. Query each client repository for clients belonging to this user
 	// 2. Determine which clients support playlist functionality
 	// 3. Check which one is designated as the primary (source of truth)
 
 	// Mock implementation
-	return []ClientInfo{
+	return []PlaylistClientInfo{
 		{
 			ClientID:   1,
 			ClientType: clienttypes.MediaClientTypeEmby,
@@ -198,12 +198,12 @@ func (j *PlaylistSyncJob) getUserMediaClients(ctx context.Context, userID uint64
 }
 
 // performPlaylistSync syncs playlists between clients
-func (j *PlaylistSyncJob) performPlaylistSync(ctx context.Context, userID uint64, clients []ClientInfo, syncDirection string) (PlaylistSyncStats, error) {
+func (j *PlaylistSyncJob) performPlaylistSync(ctx context.Context, userID uint64, clients []PlaylistClientInfo, syncDirection string) (PlaylistSyncStats, error) {
 	stats := PlaylistSyncStats{}
 	log.Printf("Syncing playlists for user %d across %d clients", userID, len(clients))
 
 	// Find the primary client (source of truth)
-	var primaryClient *ClientInfo
+	var primaryClient *PlaylistClientInfo
 	for i, client := range clients {
 		if client.IsPrimary {
 			primaryClient = &clients[i]

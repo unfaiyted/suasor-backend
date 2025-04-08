@@ -8,7 +8,6 @@ import (
 	"time"
 
 	mediatypes "suasor/client/media/types"
-	clienttypes "suasor/client/types"
 	"suasor/repository"
 	"suasor/services/scheduler"
 	"suasor/types/models"

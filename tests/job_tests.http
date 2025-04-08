@@ -1,0 +1,52 @@
+###
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@dev.com",
+  "password": "TestPassword123"
+}
+
+###
+# @name getAllJobs
+# Get all job schedules
+GET http://localhost:8080/api/v1/jobs/schedules
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getJobByName
+# Get a specific job schedule by name
+GET http://localhost:8080/api/v1/jobs/schedules/system.media.sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name updateJobSchedule
+# Update an existing job schedule
+PUT http://localhost:8080/api/v1/jobs/schedules
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "jobName": "system.media.sync",
+  "frequency": "daily",
+  "enabled": true
+}
+
+###
+# @name getRecentJobRuns
+# Get recent job runs
+GET http://localhost:8080/api/v1/jobs/runs?limit=20
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name runJobManually
+# Run a job manually
+POST http://localhost:8080/api/v1/jobs/system.media.sync/run
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{}

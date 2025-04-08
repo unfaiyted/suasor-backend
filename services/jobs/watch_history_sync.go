@@ -171,8 +171,8 @@ func (j *WatchHistorySyncJob) completeJobRun(ctx context.Context, jobRunID uint6
 	}
 }
 
-// ClientInfo holds basic client information for sync operations
-type ClientInfo struct {
+// WatchHistoryClientInfo holds basic client information for watch history sync operations
+type WatchHistoryClientInfo struct {
 	ClientID   uint64
 	ClientType clienttypes.MediaClientType
 	Name       string
@@ -181,14 +181,14 @@ type ClientInfo struct {
 
 // getUserMediaClients returns all media clients for a user
 // This is a placeholder implementation
-func (j *WatchHistorySyncJob) getUserMediaClients(ctx context.Context, userID uint64) ([]ClientInfo, error) {
+func (j *WatchHistorySyncJob) getUserMediaClients(ctx context.Context, userID uint64) ([]WatchHistoryClientInfo, error) {
 	// For a real implementation, you would:
 	// 1. Query each client repository for clients belonging to this user
 	// 2. Filter to only include clients that support watch history
 	// 3. Return the compiled list
 
 	// For now, return a placeholder client
-	return []ClientInfo{
+	return []WatchHistoryClientInfo{
 		{
 			ClientID:   1,
 			ClientType: clienttypes.MediaClientTypeEmby,
@@ -199,7 +199,7 @@ func (j *WatchHistorySyncJob) getUserMediaClients(ctx context.Context, userID ui
 }
 
 // syncClientHistory syncs watch history for a specific client
-func (j *WatchHistorySyncJob) syncClientHistory(ctx context.Context, userID uint64, client ClientInfo, jobRunID uint64) error {
+func (j *WatchHistorySyncJob) syncClientHistory(ctx context.Context, userID uint64, client WatchHistoryClientInfo, jobRunID uint64) error {
 	log.Printf("Syncing history for user %d from client %d (%s)", userID, client.ClientID, client.Name)
 
 	// Since this is a simplified implementation, we'll just log what would happen
@@ -230,7 +230,7 @@ func (j *WatchHistorySyncJob) syncClientHistory(ctx context.Context, userID uint
 }
 
 // syncEmbyHistory syncs watch history from an Emby server
-func (j *WatchHistorySyncJob) syncEmbyHistory(ctx context.Context, userID uint64, client ClientInfo, jobRunID uint64) error {
+func (j *WatchHistorySyncJob) syncEmbyHistory(ctx context.Context, userID uint64, client WatchHistoryClientInfo, jobRunID uint64) error {
 	// Placeholder implementation
 	log.Printf("Syncing Emby history for user %d from client %d", userID, client.ClientID)
 
@@ -243,7 +243,7 @@ func (j *WatchHistorySyncJob) syncEmbyHistory(ctx context.Context, userID uint64
 }
 
 // syncJellyfinHistory syncs watch history from a Jellyfin server
-func (j *WatchHistorySyncJob) syncJellyfinHistory(ctx context.Context, userID uint64, client ClientInfo, jobRunID uint64) error {
+func (j *WatchHistorySyncJob) syncJellyfinHistory(ctx context.Context, userID uint64, client WatchHistoryClientInfo, jobRunID uint64) error {
 	// Placeholder implementation
 	log.Printf("Syncing Jellyfin history for user %d from client %d", userID, client.ClientID)
 
@@ -256,7 +256,7 @@ func (j *WatchHistorySyncJob) syncJellyfinHistory(ctx context.Context, userID ui
 }
 
 // syncPlexHistory syncs watch history from a Plex server
-func (j *WatchHistorySyncJob) syncPlexHistory(ctx context.Context, userID uint64, client ClientInfo, jobRunID uint64) error {
+func (j *WatchHistorySyncJob) syncPlexHistory(ctx context.Context, userID uint64, client WatchHistoryClientInfo, jobRunID uint64) error {
 	// Placeholder implementation
 	log.Printf("Syncing Plex history for user %d from client %d", userID, client.ClientID)
 
@@ -269,7 +269,7 @@ func (j *WatchHistorySyncJob) syncPlexHistory(ctx context.Context, userID uint64
 }
 
 // syncSubsonicHistory syncs played history from a Subsonic server
-func (j *WatchHistorySyncJob) syncSubsonicHistory(ctx context.Context, userID uint64, client ClientInfo, jobRunID uint64) error {
+func (j *WatchHistorySyncJob) syncSubsonicHistory(ctx context.Context, userID uint64, client WatchHistoryClientInfo, jobRunID uint64) error {
 	// Placeholder implementation
 	log.Printf("Syncing Subsonic play history for user %d from client %d", userID, client.ClientID)
 

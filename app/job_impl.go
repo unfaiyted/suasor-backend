@@ -3,6 +3,7 @@ package app
 import (
 	"suasor/repository"
 	"suasor/services"
+	"suasor/services/jobs"
 )
 
 // Job repositories implementation
@@ -17,28 +18,28 @@ func (r *jobRepositoriesImpl) JobRepo() repository.JobRepository {
 // Job services implementation
 type jobServicesImpl struct {
 	jobService         services.JobService
-	recommendationJob  *services.RecommendationJob
-	mediaSyncJob       *services.MediaSyncJob
-	watchHistorySyncJob *services.WatchHistorySyncJob
-	favoritesSyncJob    *services.FavoritesSyncJob
+	recommendationJob  *jobs.RecommendationJob
+	mediaSyncJob       *jobs.MediaSyncJob
+	watchHistorySyncJob *jobs.WatchHistorySyncJob
+	favoritesSyncJob    *jobs.FavoritesSyncJob
 }
 
 func (s *jobServicesImpl) JobService() services.JobService {
 	return s.jobService
 }
 
-func (s *jobServicesImpl) RecommendationJob() *services.RecommendationJob {
+func (s *jobServicesImpl) RecommendationJob() *jobs.RecommendationJob {
 	return s.recommendationJob
 }
 
-func (s *jobServicesImpl) MediaSyncJob() *services.MediaSyncJob {
+func (s *jobServicesImpl) MediaSyncJob() *jobs.MediaSyncJob {
 	return s.mediaSyncJob
 }
 
-func (s *jobServicesImpl) WatchHistorySyncJob() *services.WatchHistorySyncJob {
+func (s *jobServicesImpl) WatchHistorySyncJob() *jobs.WatchHistorySyncJob {
 	return s.watchHistorySyncJob
 }
 
-func (s *jobServicesImpl) FavoritesSyncJob() *services.FavoritesSyncJob {
+func (s *jobServicesImpl) FavoritesSyncJob() *jobs.FavoritesSyncJob {
 	return s.favoritesSyncJob
 }
