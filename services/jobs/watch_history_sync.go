@@ -1,4 +1,4 @@
-package services
+package jobs
 
 import (
 	"context"
@@ -341,4 +341,3 @@ func (j *WatchHistorySyncJob) RunManualSync(ctx context.Context, userID uint64) 
 	// Run the sync job for this user
 	return j.processUserWatchHistory(ctx, *user)
 }
-

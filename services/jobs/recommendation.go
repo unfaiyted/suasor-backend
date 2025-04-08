@@ -1,4 +1,4 @@
-package services
+package jobs
 
 import (
 	"context"
@@ -467,4 +467,3 @@ func (j *RecommendationJob) SetupMediaSyncJob(ctx context.Context, userID, clien
 
 	return j.jobRepo.CreateMediaSyncJob(ctx, syncJob)
 }
-

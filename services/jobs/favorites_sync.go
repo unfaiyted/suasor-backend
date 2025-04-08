@@ -1,4 +1,4 @@
-package services
+package jobs
 
 import (
 	"context"
@@ -216,4 +216,3 @@ func makeFavoriteMetadataJson(data map[string]interface{}) string {
 
 	return string(jsonBytes)
 }
-

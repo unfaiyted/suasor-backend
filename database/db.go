@@ -125,10 +125,10 @@ func Initialize(ctx context.Context, dbConfig types.DatabaseConfig) (*gorm.DB, e
 		&models.MediaItem[media.Playlist]{},
 
 		&models.Session{},
-			&models.JobSchedule{}, 
-			&models.JobRun{},
-			&models.Recommendation{},
-			&models.MediaSyncJob{},
+		&models.JobSchedule{},
+		&models.JobRun{},
+		&models.Recommendation{},
+		&models.MediaSyncJob{},
 	); err != nil {
 		return nil, fmt.Errorf("failed to migrate database schema: %w", err)
 	}
