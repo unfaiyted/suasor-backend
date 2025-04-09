@@ -9,6 +9,7 @@ import (
 	"suasor/types/responses"
 
 	"github.com/gin-gonic/gin"
+	"suasor/utils"
 )
 
 // JobHandler manages job-related requests
@@ -166,25 +167,31 @@ func (h *JobHandler) UpdateJobSchedule(c *gin.Context) {
 // @Router /jobs/{name}/run [post]
 func (h *JobHandler) RunJobManually(c *gin.Context) {
 	name := c.Param("name")
+	log := utils.LoggerFromContext(c)
+	log.Info().Str("job", name).Msg("Running job manually")
 
 	// Validate job exists by trying to get its schedule
 	schedule, err := h.jobService.GetJobScheduleByName(c.Request.Context(), name)
 	if err != nil {
+		log.Error().Err(err).Msg("Failed to get job schedule")
 		responses.RespondInternalError(c, err, "Failed to get job schedule")
 		return
 	}
 
 	if schedule == nil {
+		log.Error().Msg("Job not found")
 		responses.RespondNotFound(c, nil, "Job not found")
 		return
 	}
 
 	// Run the job
 	if err := h.jobService.RunJobManually(c.Request.Context(), name); err != nil {
+		log.Error().Err(err).Msg("Failed to run job")
 		responses.RespondInternalError(c, err, "Failed to run job")
 		return
 	}
 
+	log.Info().Msg("Job started successfully")
 	responses.RespondSuccess[struct{}](c, http.StatusAccepted, struct{}{}, "Job started successfully")
 }
 
@@ -458,3 +465,4 @@ func (h *JobHandler) UpdateRecommendationViewedStatus(c *gin.Context) {
 
 	responses.RespondOK[struct{}](c, struct{}{}, "Recommendation viewed status updated successfully")
 }
+

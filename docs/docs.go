@@ -3138,6 +3138,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/jobs/active": {
+            "get": {
+                "description": "Returns a list of all currently running jobs",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "summary": "Get all active job runs",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_JobRun"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
         "/jobs/media-sync": {
             "get": {
                 "description": "Returns a list of job runs for the current user",
@@ -3442,6 +3471,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/jobs/runs/{id}/progress": {
+            "get": {
+                "description": "Returns progress information for a specific job run",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "summary": "Get job run progress",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Job Run ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_JobRun"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
         "/jobs/schedules": {
             "get": {
                 "description": "Returns a list of all job schedules",
@@ -3508,6 +3581,50 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new job schedule",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "summary": "Create a new job schedule",
+                "parameters": [
+                    {
+                        "description": "Job schedule to create",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.JobSchedule"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_JobSchedule"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-error"
                         }
@@ -5029,6 +5146,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/avatar": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Uploads a new avatar image for the currently authenticated user",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Upload user avatar",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Avatar image file (jpeg, png, gif only)",
+                        "name": "avatar",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully uploaded avatar",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-requests_AvatarUploadResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid file format or size",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not logged in",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
         "/users/password": {
             "put": {
                 "security": [
@@ -5767,6 +5939,14 @@ const docTemplate = `{
                     "description": "Metadata related to the job (stored as JSON)",
                     "type": "string"
                 },
+                "processedItems": {
+                    "description": "Items processed so far",
+                    "type": "integer"
+                },
+                "progress": {
+                    "description": "Progress percentage (0-100)",
+                    "type": "integer"
+                },
                 "startTime": {
                     "description": "When the job started running",
                     "type": "string"
@@ -5778,6 +5958,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.JobStatus"
                         }
                     ]
+                },
+                "statusMessage": {
+                    "description": "Current status message",
+                    "type": "string"
+                },
+                "totalItems": {
+                    "description": "Total items to process",
+                    "type": "integer"
                 },
                 "updatedAt": {
                     "type": "string"
@@ -5856,11 +6044,17 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "recommendation",
-                "sync"
+                "sync",
+                "system",
+                "notification",
+                "analysis"
             ],
             "x-enum-varnames": [
                 "JobTypeRecommendation",
-                "JobTypeSync"
+                "JobTypeSync",
+                "JobTypeSystem",
+                "JobTypeNotification",
+                "JobTypeAnalysis"
             ]
         },
         "models.MaxRecommendations": {
@@ -6364,10 +6558,12 @@ const docTemplate = `{
         "models.UserConfig": {
             "description": "User-specific configuration stored in the database",
             "type": "object",
-            "required": [
-                "language"
-            ],
             "properties": {
+                "activityAnalysisEnabled": {
+                    "description": "Activity Analysis Settings",
+                    "type": "boolean",
+                    "example": true
+                },
                 "aiChatPersonality": {
                     "description": "AI Algorithm Settings",
                     "type": "string",
@@ -6379,6 +6575,11 @@ const docTemplate = `{
                         "custom"
                     ],
                     "example": "serious"
+                },
+                "contentAvailabilityEnabled": {
+                    "description": "Content Availability Settings",
+                    "type": "boolean",
+                    "example": true
                 },
                 "contentTypes": {
                     "description": "What sidebar options to show based on the enabled content types.",
@@ -6413,6 +6614,10 @@ const docTemplate = `{
                     "maximum": 1,
                     "minimum": 0,
                     "example": 0.5
+                },
+                "displayName": {
+                    "type": "string",
+                    "example": "John Doe"
                 },
                 "emailNotifications": {
                     "type": "boolean",
@@ -6468,6 +6673,15 @@ const docTemplate = `{
                     "minimum": 0,
                     "example": 0.7
                 },
+                "newReleaseMediaTypes": {
+                    "type": "string",
+                    "example": "movie,series,music"
+                },
+                "newReleaseNotificationsEnabled": {
+                    "description": "New Release Notifications Settings",
+                    "type": "boolean",
+                    "example": true
+                },
                 "notificationsEnabled": {
                     "description": "Notification Settings",
                     "type": "boolean",
@@ -6491,6 +6705,15 @@ const docTemplate = `{
                     "maximum": 1,
                     "minimum": 0,
                     "example": 0.8
+                },
+                "playlistSyncDirection": {
+                    "type": "string",
+                    "example": "bidirectional"
+                },
+                "playlistSyncEnabled": {
+                    "description": "Playlist Sync Settings",
+                    "type": "boolean",
+                    "example": true
                 },
                 "popularityWeight": {
                     "type": "number",
@@ -6573,6 +6796,11 @@ const docTemplate = `{
                 "showAdultContent": {
                     "type": "boolean",
                     "example": false
+                },
+                "smartCollectionsEnabled": {
+                    "description": "Smart Collections Settings",
+                    "type": "boolean",
+                    "example": true
                 },
                 "theme": {
                     "description": "UI Preferences",
@@ -6697,6 +6925,17 @@ const docTemplate = `{
                     "description": "Optional filters to apply to recommendations\nexample: {\"genre\": \"sci-fi\", \"year\": \"2020-2023\"}",
                     "type": "object",
                     "additionalProperties": {}
+                }
+            }
+        },
+        "requests.AvatarUploadResponse": {
+            "description": "Response data after avatar upload",
+            "type": "object",
+            "properties": {
+                "filePath": {
+                    "description": "FilePath is the path to the uploaded avatar file\n@Description Path to the uploaded avatar file\n@Example \"/uploads/avatars/user_1.jpg\"",
+                    "type": "string",
+                    "example": "/uploads/avatars/user_1.jpg"
                 }
             }
         },
@@ -6878,6 +7117,11 @@ const docTemplate = `{
             "description": "Request payload for updating user profile",
             "type": "object",
             "properties": {
+                "avatar": {
+                    "description": "Avatar is the path to the user's avatar image\n@Description Path to the user's avatar image\n@Example \"/uploads/avatars/user_1.jpg\"",
+                    "type": "string",
+                    "example": "/uploads/avatars/user_1.jpg"
+                },
                 "email": {
                     "description": "Email is the new email address\n@Description Updated email address for the user\n@Example \"newemail@example.com\"",
                     "type": "string",
@@ -7301,6 +7545,22 @@ const docTemplate = `{
                 }
             }
         },
+        "responses.APIResponse-models_JobRun": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.JobRun"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "responses.APIResponse-models_JobSchedule": {
             "type": "object",
             "properties": {
@@ -7418,6 +7678,22 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/models.UserConfig"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.APIResponse-requests_AvatarUploadResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/requests.AvatarUploadResponse"
                 },
                 "message": {
                     "type": "string",
@@ -7954,6 +8230,11 @@ const docTemplate = `{
             "description": "User information returned in API responses",
             "type": "object",
             "properties": {
+                "avatar": {
+                    "description": "Avatar is the path to the user's avatar image\n@Description Path to the user's avatar image\n@Example \"/uploads/avatars/user_1.jpg\"",
+                    "type": "string",
+                    "example": "/uploads/avatars/user_1.jpg"
+                },
                 "email": {
                     "description": "Email is the unique email address of the user\n@Description User's email address\n@Example \"user@example.com\"",
                     "type": "string"
@@ -8264,8 +8545,10 @@ const docTemplate = `{
                     "required": [
                         "apiBaseURL",
                         "appURL",
+                        "avatarPath",
                         "environment",
                         "logLevel",
+                        "maxAvatarSize",
                         "maxPageSize",
                         "name"
                     ],
@@ -8277,6 +8560,10 @@ const docTemplate = `{
                         "appURL": {
                             "type": "string",
                             "example": "http://localhost:3000"
+                        },
+                        "avatarPath": {
+                            "type": "string",
+                            "example": "./uploads/avatars"
                         },
                         "environment": {
                             "type": "string",
@@ -8296,6 +8583,11 @@ const docTemplate = `{
                                 "error"
                             ],
                             "example": "info"
+                        },
+                        "maxAvatarSize": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "example": 5242880
                         },
                         "maxPageSize": {
                             "type": "integer",

@@ -4,12 +4,14 @@ package constants
 // DefaultConfig represents the default configuration values
 var DefaultConfig = map[string]interface{}{
 	// App defaults
-	"app.name":        "suasor",
-	"app.environment": "development",
-	"app.appURL":      "http://localhost:3000",
-	"app.apiBaseURL":  "http://localhost:8080",
-	"app.logLevel":    "info",
-	"app.maxPageSize": 100,
+	"app.name":          "suasor",
+	"app.environment":   "development",
+	"app.appURL":        "http://localhost:3000",
+	"app.apiBaseURL":    "http://localhost:8080",
+	"app.logLevel":      "info",
+	"app.maxPageSize":   100,
+	"app.avatarPath":    "./uploads/avatars",
+	"app.maxAvatarSize": 5242880, // 5MB default
 
 	// Database defaults
 	"db.host":     "localhost",

@@ -14,12 +14,14 @@ type DatabaseConfig struct {
 type Configuration struct {
 	// App contains core application settings
 	App struct {
-		Name        string `json:"name" mapstructure:"name" example:"suasor" binding:"required"`
-		Environment string `json:"environment" mapstructure:"environment" example:"development" binding:"required,oneof=development staging production"`
-		AppURL      string `json:"appURL" mapstructure:"appURL" example:"http://localhost:3000" binding:"required,url"`
-		APIBaseURL  string `json:"apiBaseURL" mapstructure:"apiBaseURL" example:"http://localhost:8080" binding:"required,url"`
-		LogLevel    string `json:"logLevel" mapstructure:"logLevel" example:"info" binding:"required,oneof=debug info warn error"`
-		MaxPageSize int    `json:"maxPageSize" mapstructure:"maxPageSize" example:"100" binding:"required,min=1,max=1000"`
+		Name          string `json:"name" mapstructure:"name" example:"suasor" binding:"required"`
+		Environment   string `json:"environment" mapstructure:"environment" example:"development" binding:"required,oneof=development staging production"`
+		AppURL        string `json:"appURL" mapstructure:"appURL" example:"http://localhost:3000" binding:"required,url"`
+		APIBaseURL    string `json:"apiBaseURL" mapstructure:"apiBaseURL" example:"http://localhost:8080" binding:"required,url"`
+		LogLevel      string `json:"logLevel" mapstructure:"logLevel" example:"info" binding:"required,oneof=debug info warn error"`
+		MaxPageSize   int    `json:"maxPageSize" mapstructure:"maxPageSize" example:"100" binding:"required,min=1,max=1000"`
+		AvatarPath    string `json:"avatarPath" mapstructure:"avatarPath" example:"./uploads/avatars" binding:"required"`
+		MaxAvatarSize int    `json:"maxAvatarSize" mapstructure:"maxAvatarSize" example:"5242880" binding:"required,min=1"`
 	} `json:"app"`
 
 	// Database contains database connection settings

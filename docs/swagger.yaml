@@ -159,6 +159,12 @@ definitions:
       metadata:
         description: Metadata related to the job (stored as JSON)
         type: string
+      processedItems:
+        description: Items processed so far
+        type: integer
+      progress:
+        description: Progress percentage (0-100)
+        type: integer
       startTime:
         description: When the job started running
         type: string
@@ -166,6 +172,12 @@ definitions:
         allOf:
         - $ref: '#/definitions/models.JobStatus'
         description: Status of the job run
+      statusMessage:
+        description: Current status message
+        type: string
+      totalItems:
+        description: Total items to process
+        type: integer
       updatedAt:
         type: string
       userId:
@@ -222,10 +234,16 @@ definitions:
     enum:
     - recommendation
     - sync
+    - system
+    - notification
+    - analysis
     type: string
     x-enum-varnames:
     - JobTypeRecommendation
     - JobTypeSync
+    - JobTypeSystem
+    - JobTypeNotification
+    - JobTypeAnalysis
   models.MaxRecommendations:
     properties:
       anime:
@@ -553,6 +571,10 @@ definitions:
   models.UserConfig:
     description: User-specific configuration stored in the database
     properties:
+      activityAnalysisEnabled:
+        description: Activity Analysis Settings
+        example: true
+        type: boolean
       aiChatPersonality:
         description: AI Algorithm Settings
         enum:
@@ -563,6 +585,10 @@ definitions:
         - custom
         example: serious
         type: string
+      contentAvailabilityEnabled:
+        description: Content Availability Settings
+        example: true
+        type: boolean
       contentTypes:
         description: What sidebar options to show based on the enabled content types.
         example: movie,series,tv
@@ -589,6 +615,9 @@ definitions:
         maximum: 1
         minimum: 0
         type: number
+      displayName:
+        example: John Doe
+        type: string
       emailNotifications:
         example: true
         type: boolean
@@ -628,6 +657,13 @@ definitions:
         maximum: 1
         minimum: 0
         type: number
+      newReleaseMediaTypes:
+        example: movie,series,music
+        type: string
+      newReleaseNotificationsEnabled:
+        description: New Release Notifications Settings
+        example: true
+        type: boolean
       notificationsEnabled:
         description: Notification Settings
         example: true
@@ -647,6 +683,13 @@ definitions:
         maximum: 1
         minimum: 0
         type: number
+      playlistSyncDirection:
+        example: bidirectional
+        type: string
+      playlistSyncEnabled:
+        description: Playlist Sync Settings
+        example: true
+        type: boolean
       popularityWeight:
         example: 0.3
         maximum: 1
@@ -715,6 +758,10 @@ definitions:
       showAdultContent:
         example: false
         type: boolean
+      smartCollectionsEnabled:
+        description: Smart Collections Settings
+        example: true
+        type: boolean
       theme:
         description: UI Preferences
         enum:
@@ -728,8 +775,6 @@ definitions:
       userId:
         description: UserID links this config to a specific user
         type: integer
-    required:
-    - language
     type: object
   requests.AddMediaRequest:
     properties:
@@ -826,6 +871,17 @@ definitions:
         type: object
     required:
     - contentType
+    type: object
+  requests.AvatarUploadResponse:
+    description: Response data after avatar upload
+    properties:
+      filePath:
+        description: |-
+          FilePath is the path to the uploaded avatar file
+          @Description Path to the uploaded avatar file
+          @Example "/uploads/avatars/user_1.jpg"
+        example: /uploads/avatars/user_1.jpg
+        type: string
     type: object
   requests.ChangePasswordRequest:
     description: Request payload for changing user password
@@ -979,6 +1035,13 @@ definitions:
   requests.ProfileRequest:
     description: Request payload for updating user profile
     properties:
+      avatar:
+        description: |-
+          Avatar is the path to the user's avatar image
+          @Description Path to the user's avatar image
+          @Example "/uploads/avatars/user_1.jpg"
+        example: /uploads/avatars/user_1.jpg
+        type: string
       email:
         description: |-
           Email is the new email address
@@ -1295,6 +1358,17 @@ definitions:
         example: true
         type: boolean
     type: object
+  responses.APIResponse-models_JobRun:
+    properties:
+      data:
+        $ref: '#/definitions/models.JobRun'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   responses.APIResponse-models_JobSchedule:
     properties:
       data:
@@ -1376,6 +1450,17 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/models.UserConfig'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.APIResponse-requests_AvatarUploadResponse:
+    properties:
+      data:
+        $ref: '#/definitions/requests.AvatarUploadResponse'
       message:
         example: Operation successful
         type: string
@@ -1764,6 +1849,13 @@ definitions:
   responses.UserResponse:
     description: User information returned in API responses
     properties:
+      avatar:
+        description: |-
+          Avatar is the path to the user's avatar image
+          @Description Path to the user's avatar image
+          @Example "/uploads/avatars/user_1.jpg"
+        example: /uploads/avatars/user_1.jpg
+        type: string
       email:
         description: |-
           Email is the unique email address of the user
@@ -2008,6 +2100,9 @@ definitions:
           appURL:
             example: http://localhost:3000
             type: string
+          avatarPath:
+            example: ./uploads/avatars
+            type: string
           environment:
             enum:
             - development
@@ -2023,6 +2118,10 @@ definitions:
             - error
             example: info
             type: string
+          maxAvatarSize:
+            example: 5242880
+            minimum: 1
+            type: integer
           maxPageSize:
             example: 100
             maximum: 1000
@@ -2034,8 +2133,10 @@ definitions:
         required:
         - apiBaseURL
         - appURL
+        - avatarPath
         - environment
         - logLevel
+        - maxAvatarSize
         - maxPageSize
         - name
         type: object
@@ -4688,6 +4789,25 @@ paths:
       summary: Run job manually
       tags:
       - jobs
+  /jobs/active:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of all currently running jobs
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_JobRun'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      summary: Get all active job runs
+      tags:
+      - jobs
   /jobs/media-sync:
     get:
       consumes:
@@ -4887,6 +5007,35 @@ paths:
       summary: Get recent job runs
       tags:
       - jobs
+  /jobs/runs/{id}/progress:
+    get:
+      consumes:
+      - application/json
+      description: Returns progress information for a specific job run
+      parameters:
+      - description: Job Run ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_JobRun'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      summary: Get job run progress
+      tags:
+      - jobs
   /jobs/schedules:
     get:
       consumes:
@@ -4904,6 +5053,35 @@ paths:
           schema:
             $ref: '#/definitions/responses.ErrorResponse-error'
       summary: Get all job schedules
+      tags:
+      - jobs
+    post:
+      consumes:
+      - application/json
+      description: Creates a new job schedule
+      parameters:
+      - description: Job schedule to create
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.JobSchedule'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_JobSchedule'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      summary: Create a new job schedule
       tags:
       - jobs
     put:
@@ -6083,6 +6261,41 @@ paths:
       security:
       - BearerAuth: []
       summary: Change user role
+      tags:
+      - users
+  /users/avatar:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads a new avatar image for the currently authenticated user
+      parameters:
+      - description: Avatar image file (jpeg, png, gif only)
+        in: formData
+        name: avatar
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully uploaded avatar
+          schema:
+            $ref: '#/definitions/responses.APIResponse-requests_AvatarUploadResponse'
+        "400":
+          description: Invalid file format or size
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized - Not logged in
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Upload user avatar
       tags:
       - users
   /users/password:

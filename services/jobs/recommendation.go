@@ -50,7 +50,7 @@ func NewRecommendationJob(
 
 // Name returns the unique name of the job
 func (j *RecommendationJob) Name() string {
-	return "system.recommendations.generate"
+	return "system.recommendation"
 }
 
 // Schedule returns when the job should next run

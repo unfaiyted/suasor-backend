@@ -1,8 +1,15 @@
 package handlers
 
 import (
+	"errors"
+	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/requests"
@@ -14,12 +21,19 @@ import (
 )
 
 type UserHandler struct {
-	service services.UserService
+	service    services.UserService
+	configSvc  services.ConfigService
+	avatarPath string
+	maxSize    int
 }
 
-func NewUserHandler(service services.UserService) *UserHandler {
+func NewUserHandler(service services.UserService, configSvc services.ConfigService) *UserHandler {
+	config := configSvc.GetConfig()
 	return &UserHandler{
-		service: service,
+		service:    service,
+		configSvc:  configSvc,
+		avatarPath: config.App.AvatarPath,
+		maxSize:    config.App.MaxAvatarSize,
 	}
 }
 
@@ -234,6 +248,9 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	}
 	if req.Username != "" {
 		updateData["username"] = req.Username
+	}
+	if req.Avatar != "" {
+		updateData["avatar"] = req.Avatar
 	}
 
 	if err := h.service.UpdateProfile(ctx, id, updateData); err != nil {
@@ -700,4 +717,143 @@ func (h *UserHandler) Delete(c *gin.Context) {
 
 	log.Info().Uint64("id", id).Msg("Successfully deleted user account")
 	c.Status(http.StatusNoContent)
+}
+
+// UploadAvatar godoc
+// @Summary Upload user avatar
+// @Description Uploads a new avatar image for the currently authenticated user
+// @Tags users
+// @Accept multipart/form-data
+// @Produce json
+// @Security BearerAuth
+// @Param avatar formData file true "Avatar image file (jpeg, png, gif only)"
+// @Success 200 {object} responses.APIResponse[requests.AvatarUploadResponse] "Successfully uploaded avatar"
+// @Example response
+//
+//	{
+//	  "success": true,
+//	  "data": {
+//	    "filePath": "/uploads/avatars/user_1.jpg"
+//	  },
+//	  "message": "Avatar uploaded successfully"
+//	}
+//
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid file format or size"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
+// @Router /users/avatar [post]
+func (h *UserHandler) UploadAvatar(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	// Get user ID from context (set by auth middleware)
+	userID, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("User ID not found in context")
+		responses.RespondUnauthorized(c, nil, "Not authenticated")
+		return
+	}
+
+	id := userID.(uint64)
+
+	// Log request details for debugging
+	log.Debug().
+		Str("content-type", c.GetHeader("Content-Type")).
+		Str("content-length", c.GetHeader("Content-Length")).
+		Msg("Avatar upload request received")
+
+	// Get file from form
+	file, header, err := c.Request.FormFile("avatar")
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to get avatar file from request")
+		responses.RespondBadRequest(c, err, "Failed to get avatar file: "+err.Error())
+		return
+	}
+	
+	// Log file details
+	log.Debug().
+		Str("filename", header.Filename).
+		Int64("size", header.Size).
+		Str("content-type", header.Header.Get("Content-Type")).
+		Msg("Avatar file received")
+		
+	defer file.Close()
+
+	// Validate file
+	if err := h.validateAvatarFile(header); err != nil {
+		log.Error().Err(err).Str("filename", header.Filename).Msg("Invalid avatar file")
+		responses.RespondBadRequest(c, err, err.Error())
+		return
+	}
+
+	// Create avatar directory if it doesn't exist
+	if err := os.MkdirAll(h.avatarPath, os.ModePerm); err != nil {
+		log.Error().Err(err).Str("path", h.avatarPath).Msg("Failed to create avatar directory")
+		responses.RespondInternalError(c, err, "Failed to create avatar directory")
+		return
+	}
+
+	// Generate unique filename based on user ID and original extension
+	ext := filepath.Ext(header.Filename)
+	filename := fmt.Sprintf("user_%d%s", id, ext)
+	filePath := filepath.Join(h.avatarPath, filename)
+
+	// Save file
+	dst, err := os.Create(filePath)
+	if err != nil {
+		log.Error().Err(err).Str("path", filePath).Msg("Failed to create avatar file")
+		responses.RespondInternalError(c, err, "Failed to save avatar file")
+		return
+	}
+	defer dst.Close()
+
+	// Read the file into memory first to diagnose EOF issues
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		log.Error().Err(err).Str("path", filePath).Msg("Failed to read avatar file contents")
+		responses.RespondInternalError(c, err, "Failed to read avatar file: "+err.Error())
+		return
+	}
+	
+	log.Debug().Int("bytesRead", len(fileBytes)).Msg("Read file bytes into memory")
+	
+	// Write the file to disk
+	if _, err = dst.Write(fileBytes); err != nil {
+		log.Error().Err(err).Str("path", filePath).Msg("Failed to write avatar file")
+		responses.RespondInternalError(c, err, "Failed to save avatar file: "+err.Error())
+		return
+	}
+
+	// Generate web-accessible path for avatar
+	webPath := fmt.Sprintf("/uploads/avatars/%s", filename)
+
+	// Update user's avatar field in profile
+	updateData := map[string]interface{}{
+		"avatar": webPath,
+	}
+
+	if err := h.service.UpdateProfile(ctx, id, updateData); err != nil {
+		log.Error().Err(err).Uint64("id", id).Msg("Failed to update user avatar")
+		responses.RespondInternalError(c, err, "Failed to update user avatar")
+		return
+	}
+
+	log.Info().Uint64("id", id).Str("path", webPath).Msg("Successfully uploaded avatar")
+	responses.RespondOK(c, &requests.AvatarUploadResponse{FilePath: webPath}, "Avatar uploaded successfully")
+}
+
+// validateAvatarFile checks if the file is valid
+func (h *UserHandler) validateAvatarFile(header *multipart.FileHeader) error {
+	// Check file size
+	if header.Size > int64(h.maxSize) {
+		return fmt.Errorf("file size exceeds the limit of %d bytes", h.maxSize)
+	}
+
+	// Check file type
+	ext := strings.ToLower(filepath.Ext(header.Filename))
+	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" && ext != ".gif" {
+		return errors.New("only JPEG, PNG and GIF images are allowed")
+	}
+
+	return nil
 }

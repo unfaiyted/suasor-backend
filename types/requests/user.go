@@ -12,6 +12,11 @@ type ProfileRequest struct {
 	// @Description Updated username for the user
 	// @Example "newusername"
 	Username string `json:"username" binding:"omitempty" example:"newusername"`
+
+	// Avatar is the path to the user's avatar image
+	// @Description Path to the user's avatar image
+	// @Example "/uploads/avatars/user_1.jpg"
+	Avatar string `json:"avatar" binding:"omitempty" example:"/uploads/avatars/user_1.jpg"`
 }
 
 // ChangePasswordRequest represents the data needed to change a user's password
@@ -49,4 +54,13 @@ type UserConfigRequest struct {
 	DefaultMediaServer     *string `json:"defaultMediaServer" binding:"omitempty,oneof= emby jellyfin plex"`
 	NotificationsEnabled   *bool   `json:"notificationsEnabled" binding:"omitempty"`
 	// more
+}
+
+// AvatarUploadResponse represents the response after a successful avatar upload
+// @Description Response data after avatar upload
+type AvatarUploadResponse struct {
+	// FilePath is the path to the uploaded avatar file
+	// @Description Path to the uploaded avatar file
+	// @Example "/uploads/avatars/user_1.jpg"
+	FilePath string `json:"filePath" example:"/uploads/avatars/user_1.jpg"`
 }

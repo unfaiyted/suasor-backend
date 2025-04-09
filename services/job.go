@@ -137,7 +137,18 @@ func (s *jobService) RegisterJob(job scheduler.Job) error {
 
 // SyncDatabaseJobs synchronizes database job schedules with the scheduler
 func (s *jobService) SyncDatabaseJobs(ctx context.Context) error {
-	// Get all job schedules from the database
+	// First, register all system jobs to ensure they exist in the database
+	systemJobs := make([]scheduler.Job, 0, len(s.jobs))
+	for _, job := range s.jobs {
+		systemJobs = append(systemJobs, job)
+	}
+	
+	// Register system jobs in the database
+	if err := jobs.RegisterSystemJobs(ctx, s.jobRepo, systemJobs); err != nil {
+		return fmt.Errorf("error registering system jobs: %w", err)
+	}
+
+	// Now get all job schedules from the database
 	schedules, err := s.jobRepo.GetAllJobSchedules(ctx)
 	if err != nil {
 		return fmt.Errorf("error getting job schedules: %w", err)
@@ -237,6 +248,7 @@ func (s *jobService) RunJobManually(ctx context.Context, jobName string) error {
 		JobType:   getJobType(job),
 		Status:    models.JobStatusRunning,
 		StartTime: &now,
+		Metadata:  "{}", // Initialize with an empty JSON object
 	}
 
 	err := s.jobRepo.CreateJobRun(ctx, jobRun)

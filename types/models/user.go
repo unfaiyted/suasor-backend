@@ -25,6 +25,11 @@ type User struct {
 	// @Description Hashed password (never returned in responses)
 	Password string `json:"-" gorm:"not null" binding:"required"`
 
+	// Avatar is the file path to the user's avatar image
+	// @Description Path to the user's avatar image
+	// @Example "/uploads/avatars/user_1.jpg"
+	Avatar string `json:"avatar" gorm:"default:''" example:"/uploads/avatars/user_1.jpg"`
+
 	// Role defines the user's permission level
 	// @Description User's role in the system
 	// @Enum "user" "admin"

@@ -3,9 +3,11 @@
     "apiBaseURL": "http://localhost:8080",
     "appURL": "http://localhost:3000",
     "environment": "development",
-    "logLevel": "info",
+    "logLevel": "debug",
     "maxPageSize": 100,
-    "name": "suasor"
+    "name": "suasor",
+    "avatarPath": "./uploads/avatars",
+    "maxAvatarSize": 5242880
   },
   "auth": {
     "allowedOrigins": ["http://localhost:5173"],

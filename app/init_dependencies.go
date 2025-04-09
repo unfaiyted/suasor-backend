@@ -269,6 +269,15 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 	jobService.RegisterJob(mediaSyncJob)
 	jobService.RegisterJob(watchHistorySyncJob)
 	jobService.RegisterJob(favoritesSyncJob)
+	
+	// Initialize and register additional system jobs where we have implementations
+	// Only register jobs that we can create properly based on available implementations
+	
+	// Database maintenance job only needs JobRepo
+	databaseMaintenanceJob := jobs.NewDatabaseMaintenanceJob(
+		deps.JobRepo(),
+	)
+	jobService.RegisterJob(databaseMaintenanceJob)
 
 	deps.UserServices = &userServicesImpl{
 		userService:       services.NewUserService(deps.UserRepo()),
@@ -289,7 +298,7 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 	// User Handlers
 	deps.UserHandlers = &userHandlersImpl{
 		authHandler:       handlers.NewAuthHandler(deps.AuthService()),
-		userHandler:       handlers.NewUserHandler(deps.UserService()),
+		userHandler:       handlers.NewUserHandler(deps.UserService(), deps.SystemServices.ConfigService()),
 		userConfigHandler: handlers.NewUserConfigHandler(deps.UserConfigService()),
 	}
 

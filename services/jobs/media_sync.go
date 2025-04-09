@@ -80,6 +80,7 @@ func (j *MediaSyncJob) SyncUserMediaFromClient(ctx context.Context, userID, clie
 		UserID:        &userID,
 		Progress:      0,
 		StatusMessage: fmt.Sprintf("Starting %s sync for client %d", mediaType, clientID),
+		Metadata:      fmt.Sprintf(`{"userId":%d,"clientId":%d,"mediaType":"%s"}`, userID, clientID, mediaType),
 	}
 	
 	err := j.jobRepo.CreateJobRun(ctx, jobRun)

@@ -26,3 +26,5 @@ DONE https://github.com/devopsarr/sonarr-go
 DONE https://github.com/devopsarr/lidarr-go
 
 
+# Metadate Sources
+- TMDB

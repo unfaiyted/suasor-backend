@@ -99,6 +99,7 @@ func (s *userService) GetByID(ctx context.Context, id uint64) (*responses.UserRe
 		ID:       uint64(user.ID),
 		Email:    user.Email,
 		Username: user.Username,
+		Avatar:   user.Avatar,
 		Role:     user.Role,
 	}, nil
 }
@@ -117,6 +118,7 @@ func (s *userService) GetByEmail(ctx context.Context, email string) (*responses.
 		ID:       uint64(user.ID),
 		Email:    user.Email,
 		Username: user.Username,
+		Avatar:   user.Avatar,
 		Role:     user.Role,
 	}, nil
 }
@@ -135,6 +137,7 @@ func (s *userService) GetByUsername(ctx context.Context, username string) (*resp
 		ID:       uint64(user.ID),
 		Email:    user.Email,
 		Username: user.Username,
+		Avatar:   user.Avatar,
 		Role:     user.Role,
 	}, nil
 }
@@ -192,6 +195,11 @@ func (s *userService) UpdateProfile(ctx context.Context, id uint64, updateData m
 			return ErrUsernameExists
 		}
 		user.Username = username
+	}
+	
+	// Update avatar if provided
+	if avatar, ok := updateData["avatar"].(string); ok {
+		user.Avatar = avatar
 	}
 
 	return s.userRepo.Update(ctx, user)

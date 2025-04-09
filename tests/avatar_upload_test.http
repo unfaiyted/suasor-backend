@@ -1,0 +1,56 @@
+### Login to get token
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "email": "{{TEST_ADMIN_USER}}",
+    "password": "{{TEST_ADMIN_PASSWORD}}"
+}
+
+### Extract the token from the login response
+@authToken = {{login.response.body.data.accessToken}}
+
+### Upload avatar
+# @name uploadAvatar
+POST {{baseUrl}}/users/avatar
+Authorization: Bearer {{authToken}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary{{$timestamp}}
+
+------WebKitFormBoundary{{$timestamp}}
+Content-Disposition: form-data; name="avatar"; filename="test_avatar.jpg"
+Content-Type: image/jpeg
+
+< ./test_avatar.jpg
+
+------WebKitFormBoundary{{$timestamp}}
+
+### Get user profile to verify avatar URL
+# @name getProfile
+GET {{baseUrl}}/users/profile
+Authorization: Bearer {{authToken}}
+
+### Test invalid file type (should fail)
+# @name uploadInvalidFile
+POST {{baseUrl}}/users/avatar
+Authorization: Bearer {{authToken}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="avatar"; filename="test.txt"
+Content-Type: text/plain
+
+This is not an image file.
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Test missing auth (should fail)
+# @name uploadWithoutAuth
+POST {{baseUrl}}/users/avatar
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="avatar"; filename="test_avatar.jpg"
+Content-Type: image/jpeg
+
+< ./test_avatar.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--

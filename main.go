@@ -87,6 +87,7 @@ func main() {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Start server
-	log.Info().Msg("Starting server on :8080")
-	r.Run(":8080")
+	port := ":" + appConfig.HTTP.Port
+	log.Info().Str("port", port).Msg("Starting server")
+	r.Run(port)
 }

@@ -16,6 +16,7 @@ func RegisterUserRoutes(rg *gin.RouterGroup, deps *app.AppDependencies) {
 		users.GET("/profile", userHandlers.GetProfile)
 		users.PUT("/profile", userHandlers.UpdateProfile)
 		users.PUT("/password", userHandlers.ChangePassword)
+		users.POST("/avatar", userHandlers.UploadAvatar)
 
 		// Admin routes
 		users.GET("/:id", userHandlers.GetByID)
@@ -24,4 +25,8 @@ func RegisterUserRoutes(rg *gin.RouterGroup, deps *app.AppDependencies) {
 		users.POST("/:id/deactivate", userHandlers.DeactivateUser)
 		users.DELETE("/:id", userHandlers.Delete)
 	}
+
+	// Serve avatar files statically
+	config := deps.SystemServices.ConfigService()
+	rg.Static("/uploads/avatars", config.GetConfig().App.AvatarPath)
 }
