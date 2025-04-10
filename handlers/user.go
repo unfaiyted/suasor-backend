@@ -824,12 +824,29 @@ func (h *UserHandler) UploadAvatar(c *gin.Context) {
 		return
 	}
 
-	// Generate web-accessible path for avatar
-	webPath := fmt.Sprintf("/uploads/avatars/%s", filename)
+	// Get base API URL from config for full avatar URL
+	config := h.configSvc.GetConfig()
+	baseURL := config.HTTP.BaseURL
+	if baseURL == "" {
+		// Default to host header if baseURL not set in config
+		baseURL = fmt.Sprintf("http://%s", c.Request.Host)
+	}
 
-	// Update user's avatar field in profile
+	// Create relative path for storage in DB
+	relativePath := fmt.Sprintf("/uploads/avatars/%s", filename)
+	
+	// Generate full web-accessible URL for avatar
+	fullURL := fmt.Sprintf("%s%s", baseURL, relativePath)
+
+	log.Debug().
+		Str("baseURL", baseURL).
+		Str("relativePath", relativePath).
+		Str("fullURL", fullURL).
+		Msg("Generated avatar URLs")
+
+	// Update user's avatar field in profile with the full URL
 	updateData := map[string]interface{}{
-		"avatar": webPath,
+		"avatar": fullURL,
 	}
 
 	if err := h.service.UpdateProfile(ctx, id, updateData); err != nil {
@@ -838,8 +855,8 @@ func (h *UserHandler) UploadAvatar(c *gin.Context) {
 		return
 	}
 
-	log.Info().Uint64("id", id).Str("path", webPath).Msg("Successfully uploaded avatar")
-	responses.RespondOK(c, &requests.AvatarUploadResponse{FilePath: webPath}, "Avatar uploaded successfully")
+	log.Info().Uint64("id", id).Str("path", fullURL).Msg("Successfully uploaded avatar")
+	responses.RespondOK(c, &requests.AvatarUploadResponse{FilePath: fullURL}, "Avatar uploaded successfully")
 }
 
 // validateAvatarFile checks if the file is valid

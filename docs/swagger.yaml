@@ -2228,6 +2228,9 @@ definitions:
       http:
         description: HTTP contains HTTP server configuration
         properties:
+          baseURL:
+            example: http://localhost:8080
+            type: string
           enableSSL:
             example: false
             type: boolean

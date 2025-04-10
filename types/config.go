@@ -48,6 +48,7 @@ type Configuration struct {
 		ProxyURL         string `json:"proxyURL" mapstructure:"proxyURL" example:"http://proxy:8080"`
 		RateLimitEnabled bool   `json:"rateLimitEnabled" mapstructure:"rateLimitEnabled" example:"true"`
 		RequestsPerMin   int    `json:"requestsPerMin" mapstructure:"requestsPerMin" example:"100" binding:"min=0"`
+		BaseURL          string `json:"baseURL" mapstructure:"baseURL" example:"http://localhost:8080" description:"Base URL for API endpoints, used for avatar URLs"`
 	} `json:"http"`
 
 	// Auth contains authentication settings

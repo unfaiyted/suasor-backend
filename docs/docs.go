@@ -8721,6 +8721,10 @@ const docTemplate = `{
                         "writeTimeout"
                     ],
                     "properties": {
+                        "baseURL": {
+                            "type": "string",
+                            "example": "http://localhost:8080"
+                        },
                         "enableSSL": {
                             "type": "boolean",
                             "example": false

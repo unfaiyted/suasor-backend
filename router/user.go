@@ -26,7 +26,5 @@ func RegisterUserRoutes(rg *gin.RouterGroup, deps *app.AppDependencies) {
 		users.DELETE("/:id", userHandlers.Delete)
 	}
 
-	// Serve avatar files statically
-	config := deps.SystemServices.ConfigService()
-	rg.Static("/uploads/avatars", config.GetConfig().App.AvatarPath)
+	// Avatar files are served statically from the main router
 }

@@ -123,6 +123,7 @@ func (s *authService) Register(ctx context.Context, request req.RegisterRequest)
 		User: res.UserResponse{
 			ID:       uint64(user.ID),
 			Email:    user.Email,
+			Avatar:   user.Avatar,
 			Username: user.Username,
 			Role:     user.Role,
 		},
@@ -188,6 +189,7 @@ func (s *authService) Login(ctx context.Context, request req.LoginRequest) (*res
 		User: res.UserResponse{
 			ID:       uint64(user.ID),
 			Email:    user.Email,
+			Avatar:   user.Avatar,
 			Username: user.Username,
 			Role:     user.Role,
 		},
@@ -256,6 +258,7 @@ func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (*r
 		User: res.UserResponse{
 			ID:       uint64(user.ID),
 			Email:    user.Email,
+			Avatar:   user.Avatar,
 			Username: user.Username,
 			Role:     user.Role,
 		},
@@ -401,6 +404,7 @@ func (s *authService) GetAuthorizedUser(ctx context.Context, tokenString string)
 	return &res.UserResponse{
 		ID:       uint64(user.ID),
 		Email:    user.Email,
+		Avatar:   user.Avatar,
 		Username: user.Username,
 		Role:     user.Role,
 	}, nil

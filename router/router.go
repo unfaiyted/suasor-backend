@@ -35,6 +35,10 @@ func Setup(ctx context.Context, deps *app.AppDependencies) *gin.Engine {
 
 	RegisterHealthRoutes(v1, deps.SystemServices.HealthService())
 	RegisterAuthRoutes(v1, deps.AuthService())
+	
+	// Serve static avatar files
+	avatarPath := deps.SystemServices.ConfigService().GetConfig().App.AvatarPath
+	r.Static("/uploads/avatars", avatarPath)
 
 	// Protected Routes
 	authenticated := v1.Group("")
