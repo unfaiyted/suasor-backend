@@ -4,13 +4,15 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"suasor/client/media"
 	mediatypes "suasor/client/media/types"
-	clienttypes "suasor/client/types"
 	"suasor/repository"
 	"suasor/services/scheduler"
 	"suasor/types/models"
 	"time"
 )
+
+// MediaClientInfo is defined in other job files
 
 // WatchHistorySyncJob synchronizes watched media history from external clients
 type WatchHistorySyncJob struct {
@@ -22,7 +24,7 @@ type WatchHistorySyncJob struct {
 	seriesRepo  repository.MediaItemRepository[*mediatypes.Series]
 	episodeRepo repository.MediaItemRepository[*mediatypes.Episode]
 	musicRepo   repository.MediaItemRepository[*mediatypes.Track]
-	clientRepos map[clienttypes.MediaClientType]interface{}
+	clientRepo  interface{} // Generic client repository
 }
 
 // NewWatchHistorySyncJob creates a new watch history sync job
@@ -35,19 +37,8 @@ func NewWatchHistorySyncJob(
 	seriesRepo repository.MediaItemRepository[*mediatypes.Series],
 	episodeRepo repository.MediaItemRepository[*mediatypes.Episode],
 	musicRepo repository.MediaItemRepository[*mediatypes.Track],
-	// Client repositories (simplified for now)
-	embyRepo interface{},
-	jellyfinRepo interface{},
-	plexRepo interface{},
-	subsonicRepo interface{},
+	clientRepo interface{}, // Generic client repository
 ) *WatchHistorySyncJob {
-	clientRepos := map[clienttypes.MediaClientType]interface{}{
-		clienttypes.MediaClientTypeEmby:     embyRepo,
-		clienttypes.MediaClientTypeJellyfin: jellyfinRepo,
-		clienttypes.MediaClientTypePlex:     plexRepo,
-		clienttypes.MediaClientTypeSubsonic: subsonicRepo,
-	}
-
 	return &WatchHistorySyncJob{
 		jobRepo:     jobRepo,
 		userRepo:    userRepo,
@@ -57,7 +48,7 @@ func NewWatchHistorySyncJob(
 		seriesRepo:  seriesRepo,
 		episodeRepo: episodeRepo,
 		musicRepo:   musicRepo,
-		clientRepos: clientRepos,
+		clientRepo:  clientRepo,
 	}
 }
 
@@ -84,8 +75,8 @@ func (j *WatchHistorySyncJob) Execute(ctx context.Context) error {
 
 	// Process each user
 	for _, user := range users {
-		if err := j.processUserWatchHistory(ctx, user); err != nil {
-			log.Printf("Error processing watch history for user %s: %v", user.Username, err)
+		if err := j.processUserHistory(ctx, user); err != nil {
+			log.Printf("Error processing history for user %s: %v", user.Username, err)
 			// Continue with other users even if one fails
 			continue
 		}
@@ -95,8 +86,8 @@ func (j *WatchHistorySyncJob) Execute(ctx context.Context) error {
 	return nil
 }
 
-// processUserWatchHistory syncs watch history for a single user
-func (j *WatchHistorySyncJob) processUserWatchHistory(ctx context.Context, user models.User) error {
+// processUserHistory syncs watch history for a single user
+func (j *WatchHistorySyncJob) processUserHistory(ctx context.Context, user models.User) error {
 	// Skip inactive users
 	if !user.Active {
 		log.Printf("Skipping inactive user: %s", user.Username)
@@ -104,15 +95,9 @@ func (j *WatchHistorySyncJob) processUserWatchHistory(ctx context.Context, user 
 	}
 
 	// Get user configuration
-	config, err := j.configRepo.GetUserConfig(ctx, user.ID)
+	_, err := j.configRepo.GetUserConfig(ctx, user.ID)
 	if err != nil {
 		return fmt.Errorf("error getting user config: %w", err)
-	}
-
-	// Check if syncing is enabled for the user
-	if !config.NotifyOnSync {
-		log.Printf("History sync not enabled for user: %s", user.Username)
-		return nil
 	}
 
 	// Create a job run record for this user
@@ -123,45 +108,65 @@ func (j *WatchHistorySyncJob) processUserWatchHistory(ctx context.Context, user 
 		Status:    models.JobStatusRunning,
 		StartTime: &now,
 		UserID:    &user.ID,
-		Metadata:  fmt.Sprintf(`{"userId":%d,"username":"%s","type":"history"}`, user.ID, user.Username),
+		Metadata:  fmt.Sprintf(`{"userId":%d,"username":"%s","type":"watchHistory"}`, user.ID, user.Username),
 	}
 
 	if err := j.jobRepo.CreateJobRun(ctx, jobRun); err != nil {
 		log.Printf("Error creating job run record: %v", err)
 		return err
 	}
-
-	// Get all media clients for this user
-	// For now, we'll just use some placeholder logic
+	
+	// Get all media clients for the user
 	clients, err := j.getUserMediaClients(ctx, user.ID)
 	if err != nil {
-		j.completeJobRun(ctx, jobRun.ID, models.JobStatusFailed, fmt.Sprintf("Error getting media clients: %v", err))
-		return err
+		errorMsg := fmt.Sprintf("Error getting media clients: %v", err)
+		j.completeJobRun(ctx, jobRun.ID, models.JobStatusFailed, errorMsg)
+		return fmt.Errorf(errorMsg)
 	}
-
-	var jobError error
+	
+	if len(clients) == 0 {
+		j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 100, "No media clients found")
+		j.completeJobRun(ctx, jobRun.ID, models.JobStatusCompleted, "No media clients found")
+		return nil
+	}
+	
+	j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 10, fmt.Sprintf("Found %d media clients", len(clients)))
+	
 	// Process each client
-	for _, client := range clients {
-		clientError := j.syncClientHistory(ctx, user.ID, client, jobRun.ID)
-		if clientError != nil {
-			log.Printf("Error syncing history from client %d: %v", client.ClientID, clientError)
-			// Record the error but continue with other clients
-			if jobError == nil {
-				jobError = clientError
-			}
+	totalClients := len(clients)
+	processedClients := 0
+	var lastError error
+	
+	for i, client := range clients {
+		// Update progress
+		progress := 10 + int(float64(i)/float64(totalClients)*80.0)
+		j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, progress, 
+			fmt.Sprintf("Processing client %d/%d: %s", i+1, totalClients, client.Name))
+		
+		// Sync watch history for this client
+		err := j.syncClientHistory(ctx, user.ID, client, jobRun.ID)
+		if err != nil {
+			log.Printf("Error syncing history for client %s: %v", client.Name, err)
+			lastError = err
+			continue
 		}
+		
+		processedClients++
 	}
-
+	
 	// Complete the job
-	status := models.JobStatusCompleted
-	errorMessage := ""
-	if jobError != nil {
-		status = models.JobStatusFailed
-		errorMessage = jobError.Error()
+	if lastError != nil {
+		errorMsg := fmt.Sprintf("Completed with errors: %v", lastError)
+		j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 100, 
+			fmt.Sprintf("Processed %d/%d clients with errors", processedClients, totalClients))
+		j.completeJobRun(ctx, jobRun.ID, models.JobStatusFailed, errorMsg)
+		return lastError
 	}
-
-	j.completeJobRun(ctx, jobRun.ID, status, errorMessage)
-	return jobError
+	
+	j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 100, 
+		fmt.Sprintf("Successfully processed %d/%d clients", processedClients, totalClients))
+	j.completeJobRun(ctx, jobRun.ID, models.JobStatusCompleted, "")
+	return nil
 }
 
 // completeJobRun finalizes a job run with status and error info
@@ -169,131 +174,6 @@ func (j *WatchHistorySyncJob) completeJobRun(ctx context.Context, jobRunID uint6
 	if err := j.jobRepo.CompleteJobRun(ctx, jobRunID, status, errorMsg); err != nil {
 		log.Printf("Error completing job run: %v", err)
 	}
-}
-
-// WatchHistoryClientInfo holds basic client information for watch history sync operations
-type WatchHistoryClientInfo struct {
-	ClientID   uint64
-	ClientType clienttypes.MediaClientType
-	Name       string
-	Config     interface{}
-}
-
-// getUserMediaClients returns all media clients for a user
-// This is a placeholder implementation
-func (j *WatchHistorySyncJob) getUserMediaClients(ctx context.Context, userID uint64) ([]WatchHistoryClientInfo, error) {
-	// For a real implementation, you would:
-	// 1. Query each client repository for clients belonging to this user
-	// 2. Filter to only include clients that support watch history
-	// 3. Return the compiled list
-
-	// For now, return a placeholder client
-	return []WatchHistoryClientInfo{
-		{
-			ClientID:   1,
-			ClientType: clienttypes.MediaClientTypeEmby,
-			Name:       "Test Emby Server",
-			Config:     nil,
-		},
-	}, nil
-}
-
-// syncClientHistory syncs watch history for a specific client
-func (j *WatchHistorySyncJob) syncClientHistory(ctx context.Context, userID uint64, client WatchHistoryClientInfo, jobRunID uint64) error {
-	log.Printf("Syncing history for user %d from client %d (%s)", userID, client.ClientID, client.Name)
-
-	// Since this is a simplified implementation, we'll just log what would happen
-	log.Printf("Would fetch watch history from %s client", client.ClientType)
-	log.Printf("Would process each history item and store in our database")
-	log.Printf("Would update existing history entries if they already exist")
-
-	// Real implementation would:
-	// 1. Create or get a client connection
-	// 2. Fetch watch history from the client API
-	// 3. Process each history item:
-	//    - Find or create the corresponding media item in our database
-	//    - Create or update the history record with watch date, completion status, etc.
-	// 4. Update sync status
-
-	switch client.ClientType {
-	case clienttypes.MediaClientTypeEmby:
-		return j.syncEmbyHistory(ctx, userID, client, jobRunID)
-	case clienttypes.MediaClientTypeJellyfin:
-		return j.syncJellyfinHistory(ctx, userID, client, jobRunID)
-	case clienttypes.MediaClientTypePlex:
-		return j.syncPlexHistory(ctx, userID, client, jobRunID)
-	case clienttypes.MediaClientTypeSubsonic:
-		return j.syncSubsonicHistory(ctx, userID, client, jobRunID)
-	default:
-		return fmt.Errorf("unsupported client type: %s", client.ClientType)
-	}
-}
-
-// syncEmbyHistory syncs watch history from an Emby server
-func (j *WatchHistorySyncJob) syncEmbyHistory(ctx context.Context, userID uint64, client WatchHistoryClientInfo, jobRunID uint64) error {
-	// Placeholder implementation
-	log.Printf("Syncing Emby history for user %d from client %d", userID, client.ClientID)
-
-	// In a real implementation:
-	// 1. Get an authenticated Emby client
-	// 2. Call the Emby API to get playback history
-	// 3. Process each history item
-
-	return nil
-}
-
-// syncJellyfinHistory syncs watch history from a Jellyfin server
-func (j *WatchHistorySyncJob) syncJellyfinHistory(ctx context.Context, userID uint64, client WatchHistoryClientInfo, jobRunID uint64) error {
-	// Placeholder implementation
-	log.Printf("Syncing Jellyfin history for user %d from client %d", userID, client.ClientID)
-
-	// In a real implementation:
-	// 1. Get an authenticated Jellyfin client
-	// 2. Call the Jellyfin API to get playback history
-	// 3. Process each history item
-
-	return nil
-}
-
-// syncPlexHistory syncs watch history from a Plex server
-func (j *WatchHistorySyncJob) syncPlexHistory(ctx context.Context, userID uint64, client WatchHistoryClientInfo, jobRunID uint64) error {
-	// Placeholder implementation
-	log.Printf("Syncing Plex history for user %d from client %d", userID, client.ClientID)
-
-	// In a real implementation:
-	// 1. Get an authenticated Plex client
-	// 2. Call the Plex API to get watch history
-	// 3. Process each history item
-
-	return nil
-}
-
-// syncSubsonicHistory syncs played history from a Subsonic server
-func (j *WatchHistorySyncJob) syncSubsonicHistory(ctx context.Context, userID uint64, client WatchHistoryClientInfo, jobRunID uint64) error {
-	// Placeholder implementation
-	log.Printf("Syncing Subsonic play history for user %d from client %d", userID, client.ClientID)
-
-	// In a real implementation:
-	// 1. Get an authenticated Subsonic client
-	// 2. Call the Subsonic API to get play history
-	// 3. Process each history item
-
-	return nil
-}
-
-// ProcessHistoryItem processes a single history item from a client
-// This is a generic approach that would be implemented for each client
-func (j *WatchHistorySyncJob) ProcessHistoryItem(ctx context.Context, userID uint64, clientID uint64, clientType clienttypes.MediaClientType, historyItem interface{}) error {
-	// This would be a common processing pipeline:
-	// 1. Extract data from the client-specific history item
-	// 2. Find or create the media item in our database
-	// 3. Create a MediaPlayHistory record linking the user to the media item
-	// 4. Store completion status, play date, position, etc.
-
-	// For now, just log what would happen
-	log.Printf("Would process history item for user %d from client %d (%s)", userID, clientID, clientType)
-
-	return nil
 }
 
 // SetupWatchHistorySyncSchedule creates or updates a watch history sync schedule for a user
@@ -326,7 +206,7 @@ func (j *WatchHistorySyncJob) SetupWatchHistorySyncSchedule(ctx context.Context,
 	return j.jobRepo.CreateJobSchedule(ctx, schedule)
 }
 
-// RunManualSync runs the history sync job manually for a specific user
+// RunManualSync runs the watch history sync job manually for a specific user
 func (j *WatchHistorySyncJob) RunManualSync(ctx context.Context, userID uint64) error {
 	// Get the user
 	user, err := j.userRepo.FindByID(ctx, userID)
@@ -339,5 +219,48 @@ func (j *WatchHistorySyncJob) RunManualSync(ctx context.Context, userID uint64) 
 	}
 
 	// Run the sync job for this user
-	return j.processUserWatchHistory(ctx, *user)
+	return j.processUserHistory(ctx, *user)
+}
+
+// getUserMediaClients returns all media clients for a user
+func (j *WatchHistorySyncJob) getUserMediaClients(ctx context.Context, userID uint64) ([]MediaClientInfo, error) {
+	// Get clients from the database
+	// In a real implementation, you would query the client repository
+	// For now, return an empty slice
+	return []MediaClientInfo{}, nil
+}
+
+// syncClientHistory syncs watch history for a specific client
+func (j *WatchHistorySyncJob) syncClientHistory(ctx context.Context, userID uint64, client MediaClientInfo, jobRunID uint64) error {
+	// Log the start of synchronization
+	log.Printf("Syncing watch history for user %d from client %d", userID, client.ClientID)
+	
+	// Get the client using client factory
+	_, err := j.getMediaClient(ctx, client.ClientID)
+	if err != nil {
+		return fmt.Errorf("failed to get media client: %w", err)
+	}
+	
+	// Update job progress
+	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 20, "Fetching play history from client")
+	
+	// In a real implementation, we would:
+	// 1. Check if client supports play history
+	// 2. Get play history for movies, series, music
+	// 3. Store the history in our database
+	
+	// Simulate some work
+	time.Sleep(100 * time.Millisecond)
+	
+	// Updated progress
+	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 90, "Finalizing watch history sync")
+	
+	return nil
+}
+
+// getMediaClient gets a media client from the client factory
+func (j *WatchHistorySyncJob) getMediaClient(ctx context.Context, clientID uint64) (media.MediaClient, error) {
+	// In a real implementation, we would get the client from the database
+	// For now, just return an error
+	return nil, fmt.Errorf("media client implementation not completed")
 }

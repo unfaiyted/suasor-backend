@@ -8,8 +8,9 @@ import (
 	"time"
 
 	"suasor/client"
+	"suasor/client/media"
 	mediatypes "suasor/client/media/types"
-	clienttypes "suasor/client/types"
+	"suasor/client/types"
 	"suasor/repository"
 	"suasor/services/scheduler"
 	"suasor/types/models"
@@ -18,7 +19,7 @@ import (
 // MediaClientInfo holds information about a media client for syncing
 type MediaClientInfo struct {
 	ClientID   uint64
-	ClientType clienttypes.MediaClientType
+	ClientType types.MediaClientType
 	Name       string
 	UserID     uint64
 }
@@ -32,7 +33,7 @@ type FavoritesSyncJob struct {
 	seriesRepo    repository.MediaItemRepository[*mediatypes.Series]
 	episodeRepo   repository.MediaItemRepository[*mediatypes.Episode]
 	musicRepo     repository.MediaItemRepository[*mediatypes.Track]
-	clientRepos   map[clienttypes.MediaClientType]interface{}
+	clientRepo    interface{} // Generic client repository
 	clientFactory *client.ClientFactoryService
 }
 
@@ -45,19 +46,9 @@ func NewFavoritesSyncJob(
 	seriesRepo repository.MediaItemRepository[*mediatypes.Series],
 	episodeRepo repository.MediaItemRepository[*mediatypes.Episode],
 	musicRepo repository.MediaItemRepository[*mediatypes.Track],
-	embyRepo interface{},
-	jellyfinRepo interface{},
-	plexRepo interface{},
-	subsonicRepo interface{},
+	clientRepo interface{}, // Generic client repository
 	clientFactory *client.ClientFactoryService,
 ) *FavoritesSyncJob {
-	clientRepos := map[clienttypes.MediaClientType]interface{}{
-		clienttypes.MediaClientTypeEmby:     embyRepo,
-		clienttypes.MediaClientTypeJellyfin: jellyfinRepo,
-		clienttypes.MediaClientTypePlex:     plexRepo,
-		clienttypes.MediaClientTypeSubsonic: subsonicRepo,
-	}
-
 	return &FavoritesSyncJob{
 		jobRepo:       jobRepo,
 		userRepo:      userRepo,
@@ -66,7 +57,7 @@ func NewFavoritesSyncJob(
 		seriesRepo:    seriesRepo,
 		episodeRepo:   episodeRepo,
 		musicRepo:     musicRepo,
-		clientRepos:   clientRepos,
+		clientRepo:    clientRepo,
 		clientFactory: clientFactory,
 	}
 }
@@ -141,11 +132,56 @@ func (j *FavoritesSyncJob) processUserFavorites(ctx context.Context, user models
 		log.Printf("Error creating job run record: %v", err)
 		return err
 	}
-
-	// For now, log what we would sync
-	log.Printf("Would sync favorites for user %s (ID: %d)", user.Username, user.ID)
-
+	
+	// Get all media clients for the user
+	clients, err := j.getUserMediaClients(ctx, user.ID)
+	if err != nil {
+		errorMsg := fmt.Sprintf("Error getting media clients: %v", err)
+		j.completeJobRun(ctx, jobRun.ID, models.JobStatusFailed, errorMsg)
+		return fmt.Errorf(errorMsg)
+	}
+	
+	if len(clients) == 0 {
+		j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 100, "No media clients found")
+		j.completeJobRun(ctx, jobRun.ID, models.JobStatusCompleted, "No media clients found")
+		return nil
+	}
+	
+	j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 10, fmt.Sprintf("Found %d media clients", len(clients)))
+	
+	// Process each client
+	totalClients := len(clients)
+	processedClients := 0
+	var lastError error
+	
+	for i, client := range clients {
+		// Update progress
+		progress := 10 + int(float64(i)/float64(totalClients)*80.0)
+		j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, progress, 
+			fmt.Sprintf("Processing client %d/%d: %s", i+1, totalClients, client.Name))
+		
+		// Sync favorites for this client
+		err := j.syncClientFavorites(ctx, user.ID, client, jobRun.ID)
+		if err != nil {
+			log.Printf("Error syncing favorites for client %s: %v", client.Name, err)
+			lastError = err
+			continue
+		}
+		
+		processedClients++
+	}
+	
 	// Complete the job
+	if lastError != nil {
+		errorMsg := fmt.Sprintf("Completed with errors: %v", lastError)
+		j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 100, 
+			fmt.Sprintf("Processed %d/%d clients with errors", processedClients, totalClients))
+		j.completeJobRun(ctx, jobRun.ID, models.JobStatusFailed, errorMsg)
+		return lastError
+	}
+	
+	j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 100, 
+		fmt.Sprintf("Successfully processed %d/%d clients", processedClients, totalClients))
 	j.completeJobRun(ctx, jobRun.ID, models.JobStatusCompleted, "")
 	return nil
 }
@@ -201,6 +237,83 @@ func (j *FavoritesSyncJob) RunManualSync(ctx context.Context, userID uint64) err
 
 	// Run the sync job for this user
 	return j.processUserFavorites(ctx, *user)
+}
+
+// getUserMediaClients returns all media clients for a user
+func (j *FavoritesSyncJob) getUserMediaClients(ctx context.Context, userID uint64) ([]MediaClientInfo, error) {
+	// Get clients from the database
+	// In a real implementation, you would query the client repository
+	// For now we'll return an empty slice
+	return []MediaClientInfo{}, nil
+}
+
+// syncClientFavorites syncs favorites for a specific client
+func (j *FavoritesSyncJob) syncClientFavorites(ctx context.Context, userID uint64, client MediaClientInfo, jobRunID uint64) error {
+	// Log the start of synchronization
+	log.Printf("Syncing favorites for user %d from client %d", userID, client.ClientID)
+	
+	// Get the client using client factory
+	mediaClient, err := j.getMediaClient(ctx, client.ClientID)
+	if err != nil {
+		return fmt.Errorf("failed to get media client: %w", err)
+	}
+	
+	// Update job progress
+	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 20, "Fetching favorites from client")
+	
+	// This will depend on the client implementation
+	// Here we'll show an example for movies
+	favoriteMovies, err := j.getFavoriteMovies(ctx, mediaClient)
+	if err != nil {
+		return fmt.Errorf("failed to get favorite movies: %w", err)
+	}
+	
+	// Update movies with the favorite flag
+	for _, movie := range favoriteMovies {
+		existingMovie, err := j.movieRepo.GetByExternalID(ctx, movie.ExternalID, client.ClientID)
+		if err != nil {
+			// Skip if movie not found
+			log.Printf("Movie not found in database: %s", movie.Data.Details.Title)
+			continue
+		}
+		
+		// Update favorite flag
+		existingMovie.Data.Details.IsFavorite = true
+		_, err = j.movieRepo.Update(ctx, *existingMovie)
+		if err != nil {
+			log.Printf("Error updating favorite flag for movie %s: %v", existingMovie.Data.Details.Title, err)
+			// Continue with other movies
+			continue
+		}
+		
+		log.Printf("Updated favorite status for movie: %s", existingMovie.Data.Details.Title)
+	}
+	
+	// Similarly, implement for series, episodes, and music tracks
+	
+	// Updated progress
+	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 90, "Finalizing favorites sync")
+	
+	return nil
+}
+
+// getMediaClient gets a media client from the client factory
+func (j *FavoritesSyncJob) getMediaClient(ctx context.Context, clientID uint64) (media.MediaClient, error) {
+	// In a real implementation, we would get the client from the database
+	// For now, we'll simulate the client
+	
+	// Currently config doesn't implement ClientConfig, so we'll use a placeholder
+	// until proper implementation is available
+	// For now, return an error to indicate this is not fully implemented
+	return nil, fmt.Errorf("media client implementation not completed")
+}
+
+// getFavoriteMovies gets favorite/liked movies from a client
+func (j *FavoritesSyncJob) getFavoriteMovies(ctx context.Context, mediaClient media.MediaClient) ([]models.MediaItem[*mediatypes.Movie], error) {
+	// In a full implementation, we would cast client to MovieProvider and call GetMovies
+	
+	// For now, return an empty slice as a placeholder
+	return []models.MediaItem[*mediatypes.Movie]{}, nil
 }
 
 // Helper to serialize metadata to JSON for favorites

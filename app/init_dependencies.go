@@ -197,14 +197,12 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		deps.JobRepo(),
 		deps.UserRepo(),
 		deps.UserConfigRepo(),
+		deps.ClientRepositories.EmbyRepo(), // Using Emby as a representative client
 		deps.MovieRepo(),
 		deps.SeriesRepo(),
 		deps.TrackRepo(),
 		historyRepo,
-		deps.ClientServices.EmbyService(),
-		deps.ClientServices.JellyfinService(),
-		deps.ClientServices.PlexService(),
-		deps.ClientServices.SubsonicService(),
+		nil, // Database connection not needed for now
 	)
 	
 	watchHistorySyncJob := jobs.NewWatchHistorySyncJob(
@@ -216,10 +214,7 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		deps.SeriesRepo(),
 		deps.MediaItemRepositories.EpisodeRepo(),
 		deps.TrackRepo(),
-		deps.ClientRepositories.EmbyRepo(),
-		deps.ClientRepositories.JellyfinRepo(),
-		deps.ClientRepositories.PlexRepo(),
-		deps.ClientRepositories.SubsonicRepo(),
+		deps.ClientRepositories.EmbyRepo(), // Using Emby as a representative client
 	)
 	
 	favoritesSyncJob := jobs.NewFavoritesSyncJob(
@@ -230,10 +225,7 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		deps.SeriesRepo(),
 		deps.MediaItemRepositories.EpisodeRepo(),
 		deps.TrackRepo(),
-		deps.ClientRepositories.EmbyRepo(),
-		deps.ClientRepositories.JellyfinRepo(),
-		deps.ClientRepositories.PlexRepo(),
-		deps.ClientRepositories.SubsonicRepo(),
+		deps.ClientRepositories.EmbyRepo(), // Using Emby as a representative client
 		deps.ClientFactoryService,
 	)
 

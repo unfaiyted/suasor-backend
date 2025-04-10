@@ -17,6 +17,8 @@ type MetadataClient interface {
 	GetMovieRecommendations(ctx context.Context, movieID string) ([]*Movie, error)
 	GetPopularMovies(ctx context.Context) ([]*Movie, error)
 	GetTrendingMovies(ctx context.Context) ([]*Movie, error)
+	GetUpcomingMovies(ctx context.Context, daysAhead int) ([]*Movie, error)
+	GetNowPlayingMovies(ctx context.Context, daysPast int) ([]*Movie, error)
 
 	// TV Series metadata methods
 	SupportsTVMetadata() bool
@@ -25,6 +27,7 @@ type MetadataClient interface {
 	GetTVShowRecommendations(ctx context.Context, tvShowID string) ([]*TVShow, error)
 	GetPopularTVShows(ctx context.Context) ([]*TVShow, error)
 	GetTrendingTVShows(ctx context.Context) ([]*TVShow, error)
+	GetRecentTVShows(ctx context.Context, daysWindow int) ([]*TVShow, error)
 	GetTVSeason(ctx context.Context, tvShowID string, seasonNumber int) (*TVSeason, error)
 	GetTVEpisode(ctx context.Context, tvShowID string, seasonNumber int, episodeNumber int) (*TVEpisode, error)
 
@@ -85,6 +88,14 @@ func (c *BaseMetadataClient) GetTrendingMovies(ctx context.Context) ([]*Movie, e
 	return nil, client.ErrNotImplemented
 }
 
+func (c *BaseMetadataClient) GetUpcomingMovies(ctx context.Context, daysAhead int) ([]*Movie, error) {
+	return nil, client.ErrNotImplemented
+}
+
+func (c *BaseMetadataClient) GetNowPlayingMovies(ctx context.Context, daysPast int) ([]*Movie, error) {
+	return nil, client.ErrNotImplemented
+}
+
 func (c *BaseMetadataClient) SupportsTVMetadata() bool {
 	return false
 }
@@ -106,6 +117,10 @@ func (c *BaseMetadataClient) GetPopularTVShows(ctx context.Context) ([]*TVShow, 
 }
 
 func (c *BaseMetadataClient) GetTrendingTVShows(ctx context.Context) ([]*TVShow, error) {
+	return nil, client.ErrNotImplemented
+}
+
+func (c *BaseMetadataClient) GetRecentTVShows(ctx context.Context, daysWindow int) ([]*TVShow, error) {
 	return nil, client.ErrNotImplemented
 }
 

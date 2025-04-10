@@ -8,6 +8,7 @@ import (
 	"suasor/client/metadata"
 	metadataTypes "suasor/client/metadata/types"
 	"suasor/client/types"
+	"time"
 
 	tmdbClient "github.com/cyruzin/golang-tmdb"
 )
@@ -822,6 +823,145 @@ func (c *Client) SearchCollections(ctx context.Context, query string) ([]*metada
 	}
 
 	return collections, nil
+}
+
+// GetUpcomingMovies gets movies that are coming to theaters in the near future
+func (c *Client) GetUpcomingMovies(ctx context.Context, daysAhead int) ([]*metadataTypes.Movie, error) {
+	options := map[string]string{
+		"language": "en-US",
+		"page":     "1",
+	}
+	
+	if daysAhead > 0 {
+		// Set the minimum release date to today
+		today := time.Now().Format("2006-01-02")
+		options["primary_release_date.gte"] = today
+		
+		// Set the maximum release date to N days in the future
+		future := time.Now().AddDate(0, 0, daysAhead).Format("2006-01-02")
+		options["primary_release_date.lte"] = future
+	}
+	
+	// Call the Upcoming Movies API
+	result, err := c.client.GetMovieUpcoming(options)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get upcoming movies: %w", err)
+	}
+	
+	movies := make([]*metadataTypes.Movie, 0, len(result.Results))
+	for i := range result.Results {
+		// Convert to our format
+		movie := &metadataTypes.Movie{
+			ID:              fmt.Sprintf("%d", result.Results[i].ID),
+			Title:           result.Results[i].Title,
+			OriginalTitle:   result.Results[i].OriginalTitle,
+			Overview:        result.Results[i].Overview,
+			ReleaseDate:     result.Results[i].ReleaseDate,
+			PosterPath:      result.Results[i].PosterPath,
+			BackdropPath:    result.Results[i].BackdropPath,
+			VoteAverage:     float64(result.Results[i].VoteAverage),
+			VoteCount:       int(result.Results[i].VoteCount),
+			Popularity:      float64(result.Results[i].Popularity),
+			Adult:           result.Results[i].Adult,
+			Video:           result.Results[i].Video,
+		}
+		movies = append(movies, movie)
+	}
+	
+	return movies, nil
+}
+
+// GetNowPlayingMovies gets movies that are currently playing in theaters
+func (c *Client) GetNowPlayingMovies(ctx context.Context, daysPast int) ([]*metadataTypes.Movie, error) {
+	options := map[string]string{
+		"language": "en-US",
+		"page":     "1",
+	}
+	
+	if daysPast > 0 {
+		// Set the maximum release date to today
+		today := time.Now().Format("2006-01-02")
+		options["primary_release_date.lte"] = today
+		
+		// Set the minimum release date to N days in the past
+		past := time.Now().AddDate(0, 0, -daysPast).Format("2006-01-02")
+		options["primary_release_date.gte"] = past
+	}
+	
+	// Call the Now Playing Movies API
+	result, err := c.client.GetMovieNowPlaying(options)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get now playing movies: %w", err)
+	}
+	
+	movies := make([]*metadataTypes.Movie, 0, len(result.Results))
+	for i := range result.Results {
+		// Convert to our format
+		movie := &metadataTypes.Movie{
+			ID:              fmt.Sprintf("%d", result.Results[i].ID),
+			Title:           result.Results[i].Title,
+			OriginalTitle:   result.Results[i].OriginalTitle,
+			Overview:        result.Results[i].Overview,
+			ReleaseDate:     result.Results[i].ReleaseDate,
+			PosterPath:      result.Results[i].PosterPath,
+			BackdropPath:    result.Results[i].BackdropPath,
+			VoteAverage:     float64(result.Results[i].VoteAverage),
+			VoteCount:       int(result.Results[i].VoteCount),
+			Popularity:      float64(result.Results[i].Popularity),
+			Adult:           result.Results[i].Adult,
+			Video:           result.Results[i].Video,
+		}
+		movies = append(movies, movie)
+	}
+	
+	return movies, nil
+}
+
+// GetRecentTVShows gets TV shows that have recently premiered or returned
+func (c *Client) GetRecentTVShows(ctx context.Context, daysWindow int) ([]*metadataTypes.TVShow, error) {
+	options := map[string]string{
+		"language": "en-US",
+		"page":     "1",
+		"sort_by":  "first_air_date.desc",
+	}
+	
+	if daysWindow > 0 {
+		// Set the maximum premiere date to today
+		today := time.Now().Format("2006-01-02")
+		options["first_air_date.lte"] = today
+		
+		// Set the minimum premiere date to N days in the past
+		past := time.Now().AddDate(0, 0, -daysWindow).Format("2006-01-02")
+		options["first_air_date.gte"] = past
+	}
+	
+	// Use the discover TV API to find recent shows
+	result, err := c.client.GetDiscoverTV(options)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get recent TV shows: %w", err)
+	}
+	
+	shows := make([]*metadataTypes.TVShow, 0, len(result.Results))
+	for i := range result.Results {
+		// Convert to our format
+		tvShow := &metadataTypes.TVShow{
+			ID:                fmt.Sprintf("%d", result.Results[i].ID),
+			Name:              result.Results[i].Name,
+			OriginalName:      result.Results[i].OriginalName,
+			Overview:          result.Results[i].Overview,
+			FirstAirDate:      result.Results[i].FirstAirDate,
+			PosterPath:        result.Results[i].PosterPath,
+			BackdropPath:      result.Results[i].BackdropPath,
+			VoteAverage:       float64(result.Results[i].VoteAverage),
+			VoteCount:         int(result.Results[i].VoteCount),
+			Popularity:        float64(result.Results[i].Popularity),
+			OriginCountry:     result.Results[i].OriginCountry,
+			OriginalLanguage:  result.Results[i].OriginalLanguage,
+		}
+		shows = append(shows, tvShow)
+	}
+	
+	return shows, nil
 }
 
 // Register registers the TMDB client with the client factory
