@@ -243,6 +243,23 @@ type SmartCollectionClientInfo struct {
 	Connection interface{} // The client connection
 }
 
+// findMediaItemsByClientID finds items from the given client in the array of client IDs
+func findMediaItemsByClientID[T mediatypes.MediaData](items []*models.MediaItem[T], clientID uint64) []*models.MediaItem[T] {
+	var result []*models.MediaItem[T]
+	
+	for _, item := range items {
+		// Check if the item has a client ID matching the requested client
+		for _, cid := range item.ClientIDs {
+			if cid.ID == clientID {
+				result = append(result, item)
+				break // Only add once even if multiple matches
+			}
+		}
+	}
+	
+	return result
+}
+
 // CollectionStats holds statistics about collection creation/updates
 type CollectionStats struct {
 	created      int
@@ -286,6 +303,13 @@ func (j *SmartCollectionJob) processGenreCollections(ctx context.Context, userID
 	// 3. For each significant genre, create or update a collection
 	// 4. Add appropriate items to each collection
 
+	// Would use the new ClientIDs array to find movies by client:
+	// movies, err := j.movieRepo.GetByUserID(ctx, userID)
+	// For each client, get the movies that belong to that client
+	// clientMovies := findMediaItemsByClientID(movies, client.ClientID)
+	// Extract genres from these movies
+	// Create a collection for each major genre
+
 	// Mock implementation
 	genres := []string{"Action", "Comedy", "Drama", "Sci-Fi", "Horror"}
 	
@@ -306,6 +330,12 @@ func (j *SmartCollectionJob) processGenreCollections(ctx context.Context, userID
 				// Create new collection
 				stats.created++
 			}
+			
+			// Would find all movies with this genre for this client:
+			// movies, err := j.movieRepo.GetByUserID(ctx, userID)
+			// clientMovies := findMediaItemsByClientID(movies, client.ClientID)
+			// Get genre movies from clientMovies
+			// For each movie, add to collection using the ClientIDs array to get the client-specific ID
 			
 			// Mock adding items to the collection
 			stats.itemsAdded += 5 + (len(genre) % 10) // Just a random number for mock purposes
@@ -489,6 +519,34 @@ func (j *SmartCollectionJob) createCollectionInClient(ctx context.Context, clien
 	// In a real implementation, we would:
 	// 1. Use the client connection to create the collection
 	// 2. Add the specified items to the collection
+	//
+	// Note: In the actual implementation, we would need to:
+	// 1. Get the media items from the repository
+	// 2. Extract the client-specific item IDs from each media item's ClientIDs array
+	// 3. Create the collection with those client-specific IDs
+	//
+	// Example implementation sketch:
+	// var mediaItems []*models.MediaItem[*mediatypes.Movie]
+	// for _, itemID := range items {
+	//     // Get the media item (this is simplified)
+	//     item, err := j.movieRepo.GetByID(ctx, itemID)
+	//     if err != nil {
+	//         continue
+	//     }
+	//     mediaItems = append(mediaItems, item)
+	// }
+	//
+	// // Extract client-specific IDs
+	// var clientItemIDs []string
+	// for _, item := range mediaItems {
+	//     for _, cid := range item.ClientIDs {
+	//         if cid.ID == client.ClientID {
+	//             clientItemIDs = append(clientItemIDs, cid.ItemID)
+	//             break
+	//         }
+	//     }
+	// }
+	// Then use clientItemIDs to create the collection in the client
 
 	log.Printf("Created collection '%s' in client %s", collectionName, client.Name)
 	return nil
@@ -499,6 +557,38 @@ func (j *SmartCollectionJob) updateCollectionInClient(ctx context.Context, clien
 	// In a real implementation, we would:
 	// 1. Use the client connection to update the collection
 	// 2. Add new items and remove old ones
+	//
+	// Note: In the actual implementation, we would need to:
+	// 1. Get the media items from the repository for both add and remove lists
+	// 2. Extract the client-specific item IDs from each media item's ClientIDs array
+	// 3. Update the collection with those client-specific IDs
+	//
+	// Example implementation sketch:
+	// // Process add items
+	// var addMediaItems []*models.MediaItem[*mediatypes.Movie]
+	// for _, itemID := range addItems {
+	//     item, err := j.movieRepo.GetByID(ctx, itemID)
+	//     if err != nil {
+	//         continue
+	//     }
+	//     addMediaItems = append(addMediaItems, item)
+	// }
+	//
+	// // Extract client-specific IDs for items to add
+	// var addClientItemIDs []string
+	// for _, item := range addMediaItems {
+	//     for _, cid := range item.ClientIDs {
+	//         if cid.ID == client.ClientID {
+	//             addClientItemIDs = append(addClientItemIDs, cid.ItemID)
+	//             break
+	//         }
+	//     }
+	// }
+	//
+	// // Process remove items (similar to above)
+	// // ...
+	//
+	// Then use addClientItemIDs and removeClientItemIDs to update the collection
 
 	log.Printf("Updated collection '%s' in client %s", collectionName, client.Name)
 	return nil

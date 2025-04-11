@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm"
 	"suasor/client"
 	mediatypes "suasor/client/media/types"
-	"suasor/client/types"
+	clienttypes "suasor/client/types"
 	"suasor/handlers"
 	"suasor/repository"
 	"suasor/services"
@@ -33,16 +33,16 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 	}
 
 	deps.ClientRepositories = &clientRepositoriesImpl{
-		embyRepo:     repository.NewClientRepository[*types.EmbyConfig](db),
-		jellyfinRepo: repository.NewClientRepository[*types.JellyfinConfig](db),
-		plexRepo:     repository.NewClientRepository[*types.PlexConfig](db),
-		subsonicRepo: repository.NewClientRepository[*types.SubsonicConfig](db),
-		sonarrRepo:   repository.NewClientRepository[*types.SonarrConfig](db),
-		radarrRepo:   repository.NewClientRepository[*types.RadarrConfig](db),
-		lidarrRepo:   repository.NewClientRepository[*types.LidarrConfig](db),
-		claudeRepo:   repository.NewClientRepository[*types.ClaudeConfig](db),
-		openaiRepo:   repository.NewClientRepository[*types.OpenAIConfig](db),
-		ollamaRepo:   repository.NewClientRepository[*types.OllamaConfig](db),
+		embyRepo:     repository.NewClientRepository[*clienttypes.EmbyConfig](db),
+		jellyfinRepo: repository.NewClientRepository[*clienttypes.JellyfinConfig](db),
+		plexRepo:     repository.NewClientRepository[*clienttypes.PlexConfig](db),
+		subsonicRepo: repository.NewClientRepository[*clienttypes.SubsonicConfig](db),
+		sonarrRepo:   repository.NewClientRepository[*clienttypes.SonarrConfig](db),
+		radarrRepo:   repository.NewClientRepository[*clienttypes.RadarrConfig](db),
+		lidarrRepo:   repository.NewClientRepository[*clienttypes.LidarrConfig](db),
+		claudeRepo:   repository.NewClientRepository[*clienttypes.ClaudeConfig](db),
+		openaiRepo:   repository.NewClientRepository[*clienttypes.OpenAIConfig](db),
+		ollamaRepo:   repository.NewClientRepository[*clienttypes.OllamaConfig](db),
 	}
 
 	deps.MediaItemRepositories = &mediaItemRepositoriesImpl{
@@ -61,37 +61,37 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 
 	// Initialize client services
 	deps.ClientServices = &clientServicesImpl{
-		embyService:     services.NewClientService[*types.EmbyConfig](deps.ClientFactoryService, deps.ClientRepositories.EmbyRepo()),
-		jellyfinService: services.NewClientService[*types.JellyfinConfig](deps.ClientFactoryService, deps.ClientRepositories.JellyfinRepo()),
-		plexService:     services.NewClientService[*types.PlexConfig](deps.ClientFactoryService, deps.ClientRepositories.PlexRepo()),
-		subsonicService: services.NewClientService[*types.SubsonicConfig](deps.ClientFactoryService, deps.ClientRepositories.SubsonicRepo()),
-		sonarrService:   services.NewClientService[*types.SonarrConfig](deps.ClientFactoryService, deps.ClientRepositories.SonarrRepo()),
-		radarrService:   services.NewClientService[*types.RadarrConfig](deps.ClientFactoryService, deps.ClientRepositories.RadarrRepo()),
-		lidarrService:   services.NewClientService[*types.LidarrConfig](deps.ClientFactoryService, deps.ClientRepositories.LidarrRepo()),
-		claudeService:   services.NewClientService[*types.ClaudeConfig](deps.ClientFactoryService, deps.ClientRepositories.ClaudeRepo()),
-		openaiService:   services.NewClientService[*types.OpenAIConfig](deps.ClientFactoryService, deps.ClientRepositories.OpenAIRepo()),
-		ollamaService:   services.NewClientService[*types.OllamaConfig](deps.ClientFactoryService, deps.ClientRepositories.OllamaRepo()),
+		embyService:     services.NewClientService[*clienttypes.EmbyConfig](deps.ClientFactoryService, deps.ClientRepositories.EmbyRepo()),
+		jellyfinService: services.NewClientService[*clienttypes.JellyfinConfig](deps.ClientFactoryService, deps.ClientRepositories.JellyfinRepo()),
+		plexService:     services.NewClientService[*clienttypes.PlexConfig](deps.ClientFactoryService, deps.ClientRepositories.PlexRepo()),
+		subsonicService: services.NewClientService[*clienttypes.SubsonicConfig](deps.ClientFactoryService, deps.ClientRepositories.SubsonicRepo()),
+		sonarrService:   services.NewClientService[*clienttypes.SonarrConfig](deps.ClientFactoryService, deps.ClientRepositories.SonarrRepo()),
+		radarrService:   services.NewClientService[*clienttypes.RadarrConfig](deps.ClientFactoryService, deps.ClientRepositories.RadarrRepo()),
+		lidarrService:   services.NewClientService[*clienttypes.LidarrConfig](deps.ClientFactoryService, deps.ClientRepositories.LidarrRepo()),
+		claudeService:   services.NewClientService[*clienttypes.ClaudeConfig](deps.ClientFactoryService, deps.ClientRepositories.ClaudeRepo()),
+		openaiService:   services.NewClientService[*clienttypes.OpenAIConfig](deps.ClientFactoryService, deps.ClientRepositories.OpenAIRepo()),
+		ollamaService:   services.NewClientService[*clienttypes.OllamaConfig](deps.ClientFactoryService, deps.ClientRepositories.OllamaRepo()),
 	}
 
 	// Initialize media client services
 	deps.ClientMediaServices = &clientMediaServicesImpl{
 		movieServices: clientMovieServicesImpl{
-			embyMovieService:     services.NewMediaClientMovieService[*types.EmbyConfig](deps.ClientRepositories.EmbyRepo(), deps.ClientFactoryService),
-			jellyfinMovieService: services.NewMediaClientMovieService[*types.JellyfinConfig](deps.ClientRepositories.JellyfinRepo(), deps.ClientFactoryService),
-			plexMovieService:     services.NewMediaClientMovieService[*types.PlexConfig](deps.ClientRepositories.PlexRepo(), deps.ClientFactoryService),
-			subsonicMovieService: services.NewMediaClientMovieService[*types.SubsonicConfig](deps.ClientRepositories.SubsonicRepo(), deps.ClientFactoryService),
+			embyMovieService:     services.NewMediaClientMovieService[*clienttypes.EmbyConfig](deps.ClientRepositories.EmbyRepo(), deps.ClientFactoryService),
+			jellyfinMovieService: services.NewMediaClientMovieService[*clienttypes.JellyfinConfig](deps.ClientRepositories.JellyfinRepo(), deps.ClientFactoryService),
+			plexMovieService:     services.NewMediaClientMovieService[*clienttypes.PlexConfig](deps.ClientRepositories.PlexRepo(), deps.ClientFactoryService),
+			subsonicMovieService: services.NewMediaClientMovieService[*clienttypes.SubsonicConfig](deps.ClientRepositories.SubsonicRepo(), deps.ClientFactoryService),
 		},
 		seriesServices: clientSeriesServicesImpl{
-			embySeriesService:     services.NewMediaClientSeriesService[*types.EmbyConfig](deps.ClientRepositories.EmbyRepo(), deps.ClientFactoryService),
-			jellyfinSeriesService: services.NewMediaClientSeriesService[*types.JellyfinConfig](deps.ClientRepositories.JellyfinRepo(), deps.ClientFactoryService),
-			plexSeriesService:     services.NewMediaClientSeriesService[*types.PlexConfig](deps.ClientRepositories.PlexRepo(), deps.ClientFactoryService),
-			subsonicSeriesService: services.NewMediaClientSeriesService[*types.SubsonicConfig](deps.ClientRepositories.SubsonicRepo(), deps.ClientFactoryService),
+			embySeriesService:     services.NewMediaClientSeriesService[*clienttypes.EmbyConfig](deps.ClientRepositories.EmbyRepo(), deps.ClientFactoryService),
+			jellyfinSeriesService: services.NewMediaClientSeriesService[*clienttypes.JellyfinConfig](deps.ClientRepositories.JellyfinRepo(), deps.ClientFactoryService),
+			plexSeriesService:     services.NewMediaClientSeriesService[*clienttypes.PlexConfig](deps.ClientRepositories.PlexRepo(), deps.ClientFactoryService),
+			subsonicSeriesService: services.NewMediaClientSeriesService[*clienttypes.SubsonicConfig](deps.ClientRepositories.SubsonicRepo(), deps.ClientFactoryService),
 		},
 		musicServices: clientMusicServicesImpl{
-			embyMusicService:     services.NewMediaClientMusicService[*types.EmbyConfig](deps.ClientRepositories.EmbyRepo(), deps.ClientFactoryService),
-			jellyfinMusicService: services.NewMediaClientMusicService[*types.JellyfinConfig](deps.ClientRepositories.JellyfinRepo(), deps.ClientFactoryService),
-			plexMusicService:     services.NewMediaClientMusicService[*types.PlexConfig](deps.ClientRepositories.PlexRepo(), deps.ClientFactoryService),
-			subsonicMusicService: services.NewMediaClientMusicService[*types.SubsonicConfig](deps.ClientRepositories.SubsonicRepo(), deps.ClientFactoryService),
+			embyMusicService:     services.NewMediaClientMusicService[*clienttypes.EmbyConfig](deps.ClientRepositories.EmbyRepo(), deps.ClientFactoryService),
+			jellyfinMusicService: services.NewMediaClientMusicService[*clienttypes.JellyfinConfig](deps.ClientRepositories.JellyfinRepo(), deps.ClientFactoryService),
+			plexMusicService:     services.NewMediaClientMusicService[*clienttypes.PlexConfig](deps.ClientRepositories.PlexRepo(), deps.ClientFactoryService),
+			subsonicMusicService: services.NewMediaClientMusicService[*clienttypes.SubsonicConfig](deps.ClientRepositories.SubsonicRepo(), deps.ClientFactoryService),
 		},
 		episodeServices:  clientEpisodeServicesImpl{},
 		playlistServices: clientPlaylistServicesImpl{},
@@ -116,16 +116,16 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 
 	// Initialize client handlers
 	deps.ClientHandlers = &clientHandlersImpl{
-		embyHandler:     handlers.NewClientHandler[*types.EmbyConfig](deps.ClientServices.EmbyService()),
-		jellyfinHandler: handlers.NewClientHandler[*types.JellyfinConfig](deps.ClientServices.JellyfinService()),
-		plexHandler:     handlers.NewClientHandler[*types.PlexConfig](deps.ClientServices.PlexService()),
-		subsonicHandler: handlers.NewClientHandler[*types.SubsonicConfig](deps.ClientServices.SubsonicService()),
-		radarrHandler:   handlers.NewClientHandler[*types.RadarrConfig](deps.ClientServices.RadarrService()),
-		lidarrHandler:   handlers.NewClientHandler[*types.LidarrConfig](deps.ClientServices.LidarrService()),
-		sonarrHandler:   handlers.NewClientHandler[*types.SonarrConfig](deps.ClientServices.SonarrService()),
-		claudeHandler:   handlers.NewClientHandler[*types.ClaudeConfig](deps.ClientServices.ClaudeService()),
-		openaiHandler:   handlers.NewClientHandler[*types.OpenAIConfig](deps.ClientServices.OpenAIService()),
-		ollamaHandler:   handlers.NewClientHandler[*types.OllamaConfig](deps.ClientServices.OllamaService()),
+		embyHandler:     handlers.NewClientHandler[*clienttypes.EmbyConfig](deps.ClientServices.EmbyService()),
+		jellyfinHandler: handlers.NewClientHandler[*clienttypes.JellyfinConfig](deps.ClientServices.JellyfinService()),
+		plexHandler:     handlers.NewClientHandler[*clienttypes.PlexConfig](deps.ClientServices.PlexService()),
+		subsonicHandler: handlers.NewClientHandler[*clienttypes.SubsonicConfig](deps.ClientServices.SubsonicService()),
+		radarrHandler:   handlers.NewClientHandler[*clienttypes.RadarrConfig](deps.ClientServices.RadarrService()),
+		lidarrHandler:   handlers.NewClientHandler[*clienttypes.LidarrConfig](deps.ClientServices.LidarrService()),
+		sonarrHandler:   handlers.NewClientHandler[*clienttypes.SonarrConfig](deps.ClientServices.SonarrService()),
+		claudeHandler:   handlers.NewClientHandler[*clienttypes.ClaudeConfig](deps.ClientServices.ClaudeService()),
+		openaiHandler:   handlers.NewClientHandler[*clienttypes.OpenAIConfig](deps.ClientServices.OpenAIService()),
+		ollamaHandler:   handlers.NewClientHandler[*clienttypes.OllamaConfig](deps.ClientServices.OllamaService()),
 	}
 
 	deps.MediaItemHandlers = &mediaItemHandlersImpl{
@@ -193,18 +193,25 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		deps.ClientServices.ClaudeService(),
 	)
 
+	// Create a generic client repository
+	// We don't have a generic ClientRepo function in the dependency interface
+	// We'll use the EmbyRepo with a type conversion since we just need a ClientRepository of the right generic type
+	// genericClientRepo := repository.ClientRepository[clienttypes.ClientConfig](deps.EmbyRepo())
+
 	mediaSyncJob := jobs.NewMediaSyncJob(
 		deps.JobRepo(),
 		deps.UserRepo(),
 		deps.UserConfigRepo(),
-		deps.ClientRepositories.EmbyRepo(), // Using Emby as a representative client
 		deps.MovieRepo(),
 		deps.SeriesRepo(),
+		deps.EpisodeRepo(),
 		deps.TrackRepo(),
-		historyRepo,
-		nil, // Database connection not needed for now
+		deps.AlbumRepo(),
+		deps.ArtistRepo(),
+		deps.ClientRepositories,
+		client.GetClientFactoryService(),
 	)
-	
+
 	watchHistorySyncJob := jobs.NewWatchHistorySyncJob(
 		deps.JobRepo(),
 		deps.UserRepo(),
@@ -216,7 +223,7 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		deps.TrackRepo(),
 		deps.ClientRepositories.EmbyRepo(), // Using Emby as a representative client
 	)
-	
+
 	favoritesSyncJob := jobs.NewFavoritesSyncJob(
 		deps.JobRepo(),
 		deps.UserRepo(),
@@ -244,13 +251,13 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 	)
 
 	deps.JobServices = &jobServicesImpl{
-		jobService:         jobService,
-		recommendationJob:  recommendationJob,
-		mediaSyncJob:       mediaSyncJob,
+		jobService:          jobService,
+		recommendationJob:   recommendationJob,
+		mediaSyncJob:        mediaSyncJob,
 		watchHistorySyncJob: watchHistorySyncJob,
 		favoritesSyncJob:    favoritesSyncJob,
 	}
-	
+
 	// Initialize job handlers
 	deps.JobHandlers = &jobHandlersImpl{
 		jobHandler: handlers.NewJobHandler(jobService),
@@ -261,10 +268,10 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 	jobService.RegisterJob(mediaSyncJob)
 	jobService.RegisterJob(watchHistorySyncJob)
 	jobService.RegisterJob(favoritesSyncJob)
-	
+
 	// Initialize and register additional system jobs where we have implementations
 	// Only register jobs that we can create properly based on available implementations
-	
+
 	// Database maintenance job only needs JobRepo
 	databaseMaintenanceJob := jobs.NewDatabaseMaintenanceJob(
 		deps.JobRepo(),
@@ -272,7 +279,7 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 	jobService.RegisterJob(databaseMaintenanceJob)
 
 	deps.UserServices = &userServicesImpl{
-		userService:       services.NewUserService(deps.UserRepo()),
+		userService: services.NewUserService(deps.UserRepo()),
 		userConfigService: services.NewUserConfigService(
 			deps.UserConfigRepo(),
 			deps.JobServices.JobService(),
@@ -295,22 +302,22 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 	}
 
 	clientMovieHandlers := &clientMediaMovieHandlersImpl{
-		embyMovieHandler:     handlers.NewMediaClientMovieHandler[*types.EmbyConfig](deps.ClientMediaServices.EmbyMovieService()),
-		jellyfinMovieHandler: handlers.NewMediaClientMovieHandler[*types.JellyfinConfig](deps.ClientMediaServices.JellyfinMovieService()),
-		plexMovieHandler:     handlers.NewMediaClientMovieHandler[*types.PlexConfig](deps.ClientMediaServices.PlexMovieService()),
+		embyMovieHandler:     handlers.NewMediaClientMovieHandler[*clienttypes.EmbyConfig](deps.ClientMediaServices.EmbyMovieService()),
+		jellyfinMovieHandler: handlers.NewMediaClientMovieHandler[*clienttypes.JellyfinConfig](deps.ClientMediaServices.JellyfinMovieService()),
+		plexMovieHandler:     handlers.NewMediaClientMovieHandler[*clienttypes.PlexConfig](deps.ClientMediaServices.PlexMovieService()),
 	}
 
 	clientSeriesHandlers := &clientMediaSeriesHandlersImpl{
-		embySeriesHandler:     handlers.NewMediaClientSeriesHandler[*types.EmbyConfig](deps.ClientMediaServices.EmbySeriesService()),
-		jellyfinSeriesHandler: handlers.NewMediaClientSeriesHandler[*types.JellyfinConfig](deps.ClientMediaServices.JellyfinSeriesService()),
-		plexSeriesHandler:     handlers.NewMediaClientSeriesHandler[*types.PlexConfig](deps.ClientMediaServices.PlexSeriesService()),
+		embySeriesHandler:     handlers.NewMediaClientSeriesHandler[*clienttypes.EmbyConfig](deps.ClientMediaServices.EmbySeriesService()),
+		jellyfinSeriesHandler: handlers.NewMediaClientSeriesHandler[*clienttypes.JellyfinConfig](deps.ClientMediaServices.JellyfinSeriesService()),
+		plexSeriesHandler:     handlers.NewMediaClientSeriesHandler[*clienttypes.PlexConfig](deps.ClientMediaServices.PlexSeriesService()),
 	}
 
 	clientMusicHandlers := &clientMediaMusicHandlersImpl{
-		embyMusicHandler:     handlers.NewMediaClientMusicHandler[*types.EmbyConfig](deps.ClientMediaServices.EmbyMusicService()),
-		jellyfinMusicHandler: handlers.NewMediaClientMusicHandler[*types.JellyfinConfig](deps.ClientMediaServices.JellyfinMusicService()),
-		plexMusicHandler:     handlers.NewMediaClientMusicHandler[*types.PlexConfig](deps.ClientMediaServices.PlexMusicService()),
-		subsonicMusicHandler: handlers.NewMediaClientMusicHandler[*types.SubsonicConfig](deps.ClientMediaServices.SubsonicMusicService()),
+		embyMusicHandler:     handlers.NewMediaClientMusicHandler[*clienttypes.EmbyConfig](deps.ClientMediaServices.EmbyMusicService()),
+		jellyfinMusicHandler: handlers.NewMediaClientMusicHandler[*clienttypes.JellyfinConfig](deps.ClientMediaServices.JellyfinMusicService()),
+		plexMusicHandler:     handlers.NewMediaClientMusicHandler[*clienttypes.PlexConfig](deps.ClientMediaServices.PlexMusicService()),
+		subsonicMusicHandler: handlers.NewMediaClientMusicHandler[*clienttypes.SubsonicConfig](deps.ClientMediaServices.SubsonicMusicService()),
 	}
 
 	deps.ClientMediaHandlers = &clientMediaHandlersImpl{

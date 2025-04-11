@@ -16,13 +16,7 @@ import (
 	"suasor/types/models"
 )
 
-// MediaClientInfo holds information about a media client for syncing
-type MediaClientInfo struct {
-	ClientID   uint64
-	ClientType types.MediaClientType
-	Name       string
-	UserID     uint64
-}
+// Using MediaClientInfo from media_sync.go
 
 // FavoritesSyncJob synchronizes favorite/liked media from external clients
 type FavoritesSyncJob struct {
@@ -33,7 +27,7 @@ type FavoritesSyncJob struct {
 	seriesRepo    repository.MediaItemRepository[*mediatypes.Series]
 	episodeRepo   repository.MediaItemRepository[*mediatypes.Episode]
 	musicRepo     repository.MediaItemRepository[*mediatypes.Track]
-	clientRepo    interface{} // Generic client repository
+	clientRepo    repository.ClientRepository[*types.EmbyConfig] // Representative client repository
 	clientFactory *client.ClientFactoryService
 }
 
@@ -46,7 +40,7 @@ func NewFavoritesSyncJob(
 	seriesRepo repository.MediaItemRepository[*mediatypes.Series],
 	episodeRepo repository.MediaItemRepository[*mediatypes.Episode],
 	musicRepo repository.MediaItemRepository[*mediatypes.Track],
-	clientRepo interface{}, // Generic client repository
+	clientRepo repository.ClientRepository[*types.EmbyConfig], // Representative client repository
 	clientFactory *client.ClientFactoryService,
 ) *FavoritesSyncJob {
 	return &FavoritesSyncJob{
@@ -270,7 +264,26 @@ func (j *FavoritesSyncJob) syncClientFavorites(ctx context.Context, userID uint6
 	
 	// Update movies with the favorite flag
 	for _, movie := range favoriteMovies {
-		existingMovie, err := j.movieRepo.GetByExternalID(ctx, movie.ExternalID, client.ClientID)
+		// Need to find the client item ID for this client
+		var clientItemID string
+		found := false
+		
+		// Find the client item ID for the current client from the ClientIDs array
+		for _, cID := range movie.ClientIDs {
+			if cID.ID == client.ClientID {
+				clientItemID = cID.ItemID
+				found = true
+				break
+			}
+		}
+		
+		if !found || clientItemID == "" {
+			log.Printf("Movie has no valid client item ID for client %d: %s", client.ClientID, movie.Data.Details.Title)
+			continue
+		}
+		
+		// Using the new repository method that searches within the ClientIDs array
+		existingMovie, err := j.movieRepo.GetByClientItemID(ctx, clientItemID, client.ClientID)
 		if err != nil {
 			// Skip if movie not found
 			log.Printf("Movie not found in database: %s", movie.Data.Details.Title)

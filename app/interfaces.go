@@ -22,7 +22,10 @@ type ClientServices interface {
 	ClaudeService() services.ClientService[*types.ClaudeConfig]
 	OpenAIService() services.ClientService[*types.OpenAIConfig]
 	OllamaService() services.ClientService[*types.OllamaConfig]
+	AllServices() map[string]services.ClientService[types.ClientConfig]
 }
+
+// Using repository.ClientRepoCollection
 
 type ClientRepositories interface {
 	EmbyRepo() repository.ClientRepository[*types.EmbyConfig]
@@ -35,6 +38,9 @@ type ClientRepositories interface {
 	ClaudeRepo() repository.ClientRepository[*types.ClaudeConfig]
 	OpenAIRepo() repository.ClientRepository[*types.OpenAIConfig]
 	OllamaRepo() repository.ClientRepository[*types.OllamaConfig]
+	
+	// Embed the repository collection interface
+	repository.ClientRepositoryCollection
 }
 
 type ClientMediaServices interface {

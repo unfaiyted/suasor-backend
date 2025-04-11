@@ -5794,6 +5794,27 @@ const docTemplate = `{
                 "data": {}
             }
         },
+        "models.ClientID": {
+            "type": "object",
+            "properties": {
+                "clientId": {
+                    "description": "ID of the client that this external ID belongs to (optional for service IDs like TMDB)",
+                    "type": "integer"
+                },
+                "clientType": {
+                    "description": "Type of client this ID belongs to (optional for service IDs)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.ClientType"
+                        }
+                    ]
+                },
+                "itemId": {
+                    "description": "The actual ID value in the external system",
+                    "type": "string"
+                }
+            }
+        },
         "models.DefaultClients": {
             "type": "object",
             "properties": {
@@ -5829,6 +5850,19 @@ const docTemplate = `{
                 "videoClientId": {
                     "type": "integer",
                     "example": 1
+                }
+            }
+        },
+        "models.ExternalID": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "The actual ID",
+                    "type": "string"
+                },
+                "source": {
+                    "description": "e.g., \"tmdb\", \"imdb\", \"trakt\", \"tvdb\"",
+                    "type": "string"
                 }
             }
         },
@@ -6101,17 +6135,12 @@ const docTemplate = `{
         "models.MediaItem-suasor_client_media_types_Movie": {
             "type": "object",
             "properties": {
-                "clientId": {
-                    "description": "Reference to the media client",
-                    "type": "integer"
-                },
-                "clientType": {
-                    "description": "Type of client (plex, jellyfin, etc.)",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/types.MediaClientType"
-                        }
-                    ]
+                "clientIds": {
+                    "description": "Client IDs for this item (mapping client to their IDs)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ClientID"
+                    }
                 },
                 "createdAt": {
                     "type": "string"
@@ -6127,15 +6156,27 @@ const docTemplate = `{
                 "downloadUrl": {
                     "type": "string"
                 },
-                "externalId": {
-                    "description": "ID from external media client",
-                    "type": "string"
+                "externalIds": {
+                    "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ExternalID"
+                    }
                 },
                 "id": {
                     "description": "Internal ID",
                     "type": "integer"
                 },
+                "releaseDate": {
+                    "type": "string"
+                },
+                "releaseYear": {
+                    "type": "integer"
+                },
                 "streamUrl": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 },
                 "type": {
@@ -6154,17 +6195,12 @@ const docTemplate = `{
         "models.MediaItem-types_Album": {
             "type": "object",
             "properties": {
-                "clientId": {
-                    "description": "Reference to the media client",
-                    "type": "integer"
-                },
-                "clientType": {
-                    "description": "Type of client (plex, jellyfin, etc.)",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/types.MediaClientType"
-                        }
-                    ]
+                "clientIds": {
+                    "description": "Client IDs for this item (mapping client to their IDs)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ClientID"
+                    }
                 },
                 "createdAt": {
                     "type": "string"
@@ -6180,15 +6216,27 @@ const docTemplate = `{
                 "downloadUrl": {
                     "type": "string"
                 },
-                "externalId": {
-                    "description": "ID from external media client",
-                    "type": "string"
+                "externalIds": {
+                    "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ExternalID"
+                    }
                 },
                 "id": {
                     "description": "Internal ID",
                     "type": "integer"
                 },
+                "releaseDate": {
+                    "type": "string"
+                },
+                "releaseYear": {
+                    "type": "integer"
+                },
                 "streamUrl": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 },
                 "type": {
@@ -6207,17 +6255,12 @@ const docTemplate = `{
         "models.MediaItem-types_Artist": {
             "type": "object",
             "properties": {
-                "clientId": {
-                    "description": "Reference to the media client",
-                    "type": "integer"
-                },
-                "clientType": {
-                    "description": "Type of client (plex, jellyfin, etc.)",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/types.MediaClientType"
-                        }
-                    ]
+                "clientIds": {
+                    "description": "Client IDs for this item (mapping client to their IDs)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ClientID"
+                    }
                 },
                 "createdAt": {
                     "type": "string"
@@ -6233,15 +6276,27 @@ const docTemplate = `{
                 "downloadUrl": {
                     "type": "string"
                 },
-                "externalId": {
-                    "description": "ID from external media client",
-                    "type": "string"
+                "externalIds": {
+                    "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ExternalID"
+                    }
                 },
                 "id": {
                     "description": "Internal ID",
                     "type": "integer"
                 },
+                "releaseDate": {
+                    "type": "string"
+                },
+                "releaseYear": {
+                    "type": "integer"
+                },
                 "streamUrl": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 },
                 "type": {
@@ -6260,17 +6315,12 @@ const docTemplate = `{
         "models.MediaItem-types_Playlist": {
             "type": "object",
             "properties": {
-                "clientId": {
-                    "description": "Reference to the media client",
-                    "type": "integer"
-                },
-                "clientType": {
-                    "description": "Type of client (plex, jellyfin, etc.)",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/types.MediaClientType"
-                        }
-                    ]
+                "clientIds": {
+                    "description": "Client IDs for this item (mapping client to their IDs)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ClientID"
+                    }
                 },
                 "createdAt": {
                     "type": "string"
@@ -6286,15 +6336,27 @@ const docTemplate = `{
                 "downloadUrl": {
                     "type": "string"
                 },
-                "externalId": {
-                    "description": "ID from external media client",
-                    "type": "string"
+                "externalIds": {
+                    "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ExternalID"
+                    }
                 },
                 "id": {
                     "description": "Internal ID",
                     "type": "integer"
                 },
+                "releaseDate": {
+                    "type": "string"
+                },
+                "releaseYear": {
+                    "type": "integer"
+                },
                 "streamUrl": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 },
                 "type": {
@@ -6313,17 +6375,12 @@ const docTemplate = `{
         "models.MediaItem-types_Series": {
             "type": "object",
             "properties": {
-                "clientId": {
-                    "description": "Reference to the media client",
-                    "type": "integer"
-                },
-                "clientType": {
-                    "description": "Type of client (plex, jellyfin, etc.)",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/types.MediaClientType"
-                        }
-                    ]
+                "clientIds": {
+                    "description": "Client IDs for this item (mapping client to their IDs)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ClientID"
+                    }
                 },
                 "createdAt": {
                     "type": "string"
@@ -6339,15 +6396,27 @@ const docTemplate = `{
                 "downloadUrl": {
                     "type": "string"
                 },
-                "externalId": {
-                    "description": "ID from external media client",
-                    "type": "string"
+                "externalIds": {
+                    "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ExternalID"
+                    }
                 },
                 "id": {
                     "description": "Internal ID",
                     "type": "integer"
                 },
+                "releaseDate": {
+                    "type": "string"
+                },
+                "releaseYear": {
+                    "type": "integer"
+                },
                 "streamUrl": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 },
                 "type": {
@@ -6366,17 +6435,12 @@ const docTemplate = `{
         "models.MediaItem-types_Track": {
             "type": "object",
             "properties": {
-                "clientId": {
-                    "description": "Reference to the media client",
-                    "type": "integer"
-                },
-                "clientType": {
-                    "description": "Type of client (plex, jellyfin, etc.)",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/types.MediaClientType"
-                        }
-                    ]
+                "clientIds": {
+                    "description": "Client IDs for this item (mapping client to their IDs)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ClientID"
+                    }
                 },
                 "createdAt": {
                     "type": "string"
@@ -6392,15 +6456,27 @@ const docTemplate = `{
                 "downloadUrl": {
                     "type": "string"
                 },
-                "externalId": {
-                    "description": "ID from external media client",
-                    "type": "string"
+                "externalIds": {
+                    "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ExternalID"
+                    }
                 },
                 "id": {
                     "description": "Internal ID",
                     "type": "integer"
                 },
+                "releaseDate": {
+                    "type": "string"
+                },
+                "releaseYear": {
+                    "type": "integer"
+                },
                 "streamUrl": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 },
                 "type": {
@@ -6462,6 +6538,27 @@ const docTemplate = `{
                 "userId": {
                     "description": "ID of the user",
                     "type": "integer"
+                }
+            }
+        },
+        "models.PrivacySettings": {
+            "type": "object",
+            "properties": {
+                "publicProfile": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "shareRecommendations": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "showRecommendationList": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "showWatchHistory": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -6555,6 +6652,23 @@ const docTemplate = `{
                 "RecommendationSourceManual"
             ]
         },
+        "models.SocialLinks": {
+            "type": "object",
+            "properties": {
+                "lastfm": {
+                    "type": "string",
+                    "example": "https://last.fm/user/faiyt"
+                },
+                "letterboxd": {
+                    "type": "string",
+                    "example": "https://letterboxd.com/faiyt"
+                },
+                "trakt": {
+                    "type": "string",
+                    "example": "https://trakt.tv/users/faiyt"
+                }
+            }
+        },
         "models.UserConfig": {
             "description": "User-specific configuration stored in the database",
             "type": "object",
@@ -6575,6 +6689,11 @@ const docTemplate = `{
                         "custom"
                     ],
                     "example": "serious"
+                },
+                "bio": {
+                    "description": "Profile settings",
+                    "type": "string",
+                    "example": "I'm a developer"
                 },
                 "contentAvailabilityEnabled": {
                     "description": "Content Availability Settings",
@@ -6737,6 +6856,9 @@ const docTemplate = `{
                 "preferredGenres": {
                     "$ref": "#/definitions/models.Genres"
                 },
+                "privacySettings": {
+                    "$ref": "#/definitions/models.PrivacySettings"
+                },
                 "recommendationContentTypes": {
                     "description": "What content types with be part of the auto sync recommendations",
                     "type": "string",
@@ -6801,6 +6923,9 @@ const docTemplate = `{
                     "description": "Smart Collections Settings",
                     "type": "boolean",
                     "example": true
+                },
+                "socialLinks": {
+                    "$ref": "#/definitions/models.SocialLinks"
                 },
                 "theme": {
                     "description": "UI Preferences",
@@ -7971,7 +8096,7 @@ const docTemplate = `{
                 "clientType": {
                     "allOf": [
                         {
-                            "$ref": "#/definitions/types.MediaClientType"
+                            "$ref": "#/definitions/types.ClientType"
                         }
                     ],
                     "example": "plex"
@@ -9413,6 +9538,9 @@ const docTemplate = `{
                     "$ref": "#/definitions/types.MediaDetails"
                 },
                 "discNumber": {
+                    "type": "integer"
+                },
+                "duration": {
                     "type": "integer"
                 },
                 "lyrics": {

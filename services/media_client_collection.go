@@ -18,8 +18,8 @@ import (
 
 // MediaClientCollectionService defines operations for interacting with collection clients
 type MediaClientCollectionService[T types.ClientConfig] interface {
-	GetCollectionByID(ctx context.Context, userID uint64, clientID uint64, collectionID string) (*models.MediaItem[mediatypes.Collection], error)
-	GetCollections(ctx context.Context, userID uint64, count int) ([]models.MediaItem[mediatypes.Collection], error)
+	GetCollectionByID(ctx context.Context, userID uint64, clientID uint64, collectionID string) (*models.MediaItem[*mediatypes.Collection], error)
+	GetCollections(ctx context.Context, userID uint64, count int) ([]models.MediaItem[*mediatypes.Collection], error)
 }
 
 type mediaCollectionService[T types.MediaClientConfig] struct {
@@ -69,7 +69,7 @@ func (s *mediaCollectionService[T]) getCollectionClients(ctx context.Context, us
 func (s *mediaCollectionService[T]) getSpecificCollectionClient(ctx context.Context, userID, clientID uint64) (media.MediaClient, error) {
 	log := utils.LoggerFromContext(ctx)
 
-	clientConfig, err := (s.repo).GetByID(ctx, clientID, userID)
+	clientConfig, err := (s.repo).GetByID(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func (s *mediaCollectionService[T]) getSpecificCollectionClient(ctx context.Cont
 	return client.(media.MediaClient), nil
 }
 
-func (s *mediaCollectionService[T]) GetCollectionByID(ctx context.Context, userID uint64, clientID uint64, collectionID string) (*models.MediaItem[mediatypes.Collection], error) {
+func (s *mediaCollectionService[T]) GetCollectionByID(ctx context.Context, userID uint64, clientID uint64, collectionID string) (*models.MediaItem[*mediatypes.Collection], error) {
 	client, err := s.getSpecificCollectionClient(ctx, userID, clientID)
 	log := utils.LoggerFromContext(ctx)
 	log.Info().
@@ -163,13 +163,13 @@ func (s *mediaCollectionService[T]) GetCollectionByID(ctx context.Context, userI
 	return &collections[0], nil
 }
 
-func (s *mediaCollectionService[T]) GetCollections(ctx context.Context, userID uint64, count int) ([]models.MediaItem[mediatypes.Collection], error) {
+func (s *mediaCollectionService[T]) GetCollections(ctx context.Context, userID uint64, count int) ([]models.MediaItem[*mediatypes.Collection], error) {
 	clients, err := s.getCollectionClients(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	var allCollections []models.MediaItem[mediatypes.Collection]
+	var allCollections []models.MediaItem[*mediatypes.Collection]
 
 	for _, client := range clients {
 		collectionProvider, ok := client.(providers.CollectionProvider)
@@ -201,3 +201,4 @@ func (s *mediaCollectionService[T]) GetCollections(ctx context.Context, userID u
 
 	return allCollections, nil
 }
+

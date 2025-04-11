@@ -60,11 +60,18 @@ func (h *MediaItemHandler[T]) createMediaItem(
 	}
 
 	mediaItem := models.MediaItem[T]{
-		Type:       mediaType,
-		ClientID:   clientID,
-		ClientType: clientType,
-		ExternalID: externalID,
-		Data:       mediaData,
+		Type:        mediaType,
+		ClientIDs:   []models.ClientID{},
+		ExternalIDs: []models.ExternalID{},
+		Data:        mediaData,
+	}
+	
+	// Set client info
+	mediaItem.SetClientInfo(clientID, clientType, externalID)
+	
+	// Only add external ID if provided
+	if externalID != "" {
+		mediaItem.AddExternalID("client", externalID)
 	}
 
 	result, err := h.service.Create(c.Request.Context(), mediaItem)
@@ -120,12 +127,19 @@ func (h *MediaItemHandler[T]) updateMediaItem(
 	}
 
 	mediaItem := models.MediaItem[T]{
-		ID:         id,
-		Type:       mediaType,
-		ClientID:   clientID,
-		ClientType: clientType,
-		ExternalID: externalID,
-		Data:       mediaData,
+		ID:          id,
+		Type:        mediaType,
+		ClientIDs:   []models.ClientID{},
+		ExternalIDs: []models.ExternalID{},
+		Data:        mediaData,
+	}
+	
+	// Set client info
+	mediaItem.SetClientInfo(clientID, clientType, externalID)
+	
+	// Only add external ID if provided
+	if externalID != "" {
+		mediaItem.AddExternalID("client", externalID)
 	}
 
 	result, err := h.service.Update(c.Request.Context(), mediaItem)

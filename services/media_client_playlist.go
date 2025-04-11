@@ -17,14 +17,14 @@ import (
 
 // MediaClientPlaylistService defines operations for interacting with playlist clients
 type MediaClientPlaylistService[T types.ClientConfig] interface {
-	GetPlaylistByID(ctx context.Context, userID uint64, clientID uint64, playlistID string) (*models.MediaItem[mediatypes.Playlist], error)
-	GetPlaylists(ctx context.Context, userID uint64, count int) ([]models.MediaItem[mediatypes.Playlist], error)
-	CreatePlaylist(ctx context.Context, userID uint64, clientID uint64, name string, description string) (*models.MediaItem[mediatypes.Playlist], error)
-	UpdatePlaylist(ctx context.Context, userID uint64, clientID uint64, playlistID string, name string, description string) (*models.MediaItem[mediatypes.Playlist], error)
+	GetPlaylistByID(ctx context.Context, userID uint64, clientID uint64, playlistID string) (*models.MediaItem[*mediatypes.Playlist], error)
+	GetPlaylists(ctx context.Context, userID uint64, count int) ([]models.MediaItem[*mediatypes.Playlist], error)
+	CreatePlaylist(ctx context.Context, userID uint64, clientID uint64, name string, description string) (*models.MediaItem[*mediatypes.Playlist], error)
+	UpdatePlaylist(ctx context.Context, userID uint64, clientID uint64, playlistID string, name string, description string) (*models.MediaItem[*mediatypes.Playlist], error)
 	DeletePlaylist(ctx context.Context, userID uint64, clientID uint64, playlistID string) error
 	AddItemToPlaylist(ctx context.Context, userID uint64, clientID uint64, playlistID string, itemID string) error
 	RemoveItemFromPlaylist(ctx context.Context, userID uint64, clientID uint64, playlistID string, itemID string) error
-	SearchPlaylists(ctx context.Context, userID uint64, query string) ([]models.MediaItem[mediatypes.Playlist], error)
+	SearchPlaylists(ctx context.Context, userID uint64, query string) ([]models.MediaItem[*mediatypes.Playlist], error)
 }
 
 type mediaPlaylistService[T types.MediaClientConfig] struct {
@@ -74,7 +74,7 @@ func (s *mediaPlaylistService[T]) getPlaylistClients(ctx context.Context, userID
 func (s *mediaPlaylistService[T]) getSpecificPlaylistClient(ctx context.Context, userID, clientID uint64) (media.MediaClient, error) {
 	log := utils.LoggerFromContext(ctx)
 
-	clientConfig, err := (s.repo).GetByID(ctx, clientID, userID)
+	clientConfig, err := (s.repo).GetByID(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func (s *mediaPlaylistService[T]) getSpecificPlaylistClient(ctx context.Context,
 	return client.(media.MediaClient), nil
 }
 
-func (s *mediaPlaylistService[T]) GetPlaylistByID(ctx context.Context, userID uint64, clientID uint64, playlistID string) (*models.MediaItem[mediatypes.Playlist], error) {
+func (s *mediaPlaylistService[T]) GetPlaylistByID(ctx context.Context, userID uint64, clientID uint64, playlistID string) (*models.MediaItem[*mediatypes.Playlist], error) {
 	client, err := s.getSpecificPlaylistClient(ctx, userID, clientID)
 	log := utils.LoggerFromContext(ctx)
 	log.Info().
@@ -168,13 +168,13 @@ func (s *mediaPlaylistService[T]) GetPlaylistByID(ctx context.Context, userID ui
 	return &playlists[0], nil
 }
 
-func (s *mediaPlaylistService[T]) GetPlaylists(ctx context.Context, userID uint64, count int) ([]models.MediaItem[mediatypes.Playlist], error) {
+func (s *mediaPlaylistService[T]) GetPlaylists(ctx context.Context, userID uint64, count int) ([]models.MediaItem[*mediatypes.Playlist], error) {
 	clients, err := s.getPlaylistClients(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	var allPlaylists []models.MediaItem[mediatypes.Playlist]
+	var allPlaylists []models.MediaItem[*mediatypes.Playlist]
 
 	for _, client := range clients {
 		playlistProvider, ok := client.(providers.PlaylistProvider)
@@ -207,14 +207,14 @@ func (s *mediaPlaylistService[T]) GetPlaylists(ctx context.Context, userID uint6
 	return allPlaylists, nil
 }
 
-func (s *mediaPlaylistService[T]) CreatePlaylist(ctx context.Context, userID uint64, clientID uint64, name string, description string) (*models.MediaItem[mediatypes.Playlist], error) {
+func (s *mediaPlaylistService[T]) CreatePlaylist(ctx context.Context, userID uint64, clientID uint64, name string, description string) (*models.MediaItem[*mediatypes.Playlist], error) {
 	// This is a placeholder. In actual implementations, clients would need to implement
 	// a method for creating playlists which isn't currently in the PlaylistProvider interface.
 	// For now, we'll return an error indicating this feature isn't implemented.
 	return nil, errors.New("create playlist not implemented")
 }
 
-func (s *mediaPlaylistService[T]) UpdatePlaylist(ctx context.Context, userID uint64, clientID uint64, playlistID string, name string, description string) (*models.MediaItem[mediatypes.Playlist], error) {
+func (s *mediaPlaylistService[T]) UpdatePlaylist(ctx context.Context, userID uint64, clientID uint64, playlistID string, name string, description string) (*models.MediaItem[*mediatypes.Playlist], error) {
 	// This is a placeholder. In actual implementations, clients would need to implement
 	// a method for updating playlists which isn't currently in the PlaylistProvider interface.
 	// For now, we'll return an error indicating this feature isn't implemented.
@@ -242,13 +242,13 @@ func (s *mediaPlaylistService[T]) RemoveItemFromPlaylist(ctx context.Context, us
 	return errors.New("remove item from playlist not implemented")
 }
 
-func (s *mediaPlaylistService[T]) SearchPlaylists(ctx context.Context, userID uint64, query string) ([]models.MediaItem[mediatypes.Playlist], error) {
+func (s *mediaPlaylistService[T]) SearchPlaylists(ctx context.Context, userID uint64, query string) ([]models.MediaItem[*mediatypes.Playlist], error) {
 	clients, err := s.getPlaylistClients(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	var allPlaylists []models.MediaItem[mediatypes.Playlist]
+	var allPlaylists []models.MediaItem[*mediatypes.Playlist]
 
 	for _, client := range clients {
 		playlistProvider, ok := client.(providers.PlaylistProvider)
@@ -270,3 +270,4 @@ func (s *mediaPlaylistService[T]) SearchPlaylists(ctx context.Context, userID ui
 
 	return allPlaylists, nil
 }
+

@@ -1,0 +1,23 @@
+--- a/services/jobs/media_sync.go
++++ b/services/jobs/media_sync.go
+@@ -1154,10 +1154,16 @@
+ 		for _, item := range nonPtrSeries {
+ 			// Create a copy of the series data
+ 			seriesPtr := &mediatypes.Series{
+-				Genres:     item.Data.Genres,
+-				Cast:       item.Data.Cast,
+-				Seasons:    item.Data.Seasons,
+-				EpisodeIDs: item.Data.EpisodeIDs,
++				Details:       item.Data.Details,
++				Seasons:       item.Data.Seasons,
++				EpisodeCount:  item.Data.EpisodeCount,
++				SeasonCount:   item.Data.SeasonCount,
++				ReleaseYear:   item.Data.ReleaseYear,
++				ContentRating: item.Data.ContentRating,
++				Rating:        item.Data.Rating,
++				Network:       item.Data.Network,
++				Status:        item.Data.Status,
++				Genres:        item.Data.Genres,
+ 			}
+ 
+ 			// Create media item with pointer data

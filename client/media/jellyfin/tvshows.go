@@ -10,7 +10,7 @@ import (
 	"suasor/utils"
 )
 
-func (j *JellyfinClient) GetSeries(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[t.Series], error) {
+func (j *JellyfinClient) GetSeries(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[*t.Series], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -54,7 +54,7 @@ func (j *JellyfinClient) GetSeries(ctx context.Context, options *t.QueryOptions)
 		Msg("Successfully retrieved TV shows from Jellyfin")
 
 	// Convert results to expected format
-	shows := make([]models.MediaItem[t.Series], 0)
+	shows := make([]models.MediaItem[*t.Series], 0)
 	for _, item := range result.Items {
 		if *item.Type == "Series" {
 			show, err := j.convertToSeries(ctx, &item)
@@ -78,7 +78,7 @@ func (j *JellyfinClient) GetSeries(ctx context.Context, options *t.QueryOptions)
 	return shows, nil
 }
 
-func (j *JellyfinClient) GetSeriesByID(ctx context.Context, id string) (models.MediaItem[t.Series], error) {
+func (j *JellyfinClient) GetSeriesByID(ctx context.Context, id string) (models.MediaItem[*t.Series], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -113,7 +113,7 @@ func (j *JellyfinClient) GetSeriesByID(ctx context.Context, id string) (models.M
 			Str("showID", id).
 			Int("statusCode", 0).
 			Msg("Failed to fetch TV show from Jellyfin")
-		return models.MediaItem[t.Series]{}, fmt.Errorf("failed to fetch TV show: %w", err)
+		return models.MediaItem[*t.Series]{}, fmt.Errorf("failed to fetch TV show: %w", err)
 	}
 
 	// Check if any items were returned
@@ -122,7 +122,7 @@ func (j *JellyfinClient) GetSeriesByID(ctx context.Context, id string) (models.M
 			Str("showID", id).
 			Int("statusCode", resp.StatusCode).
 			Msg("No TV show found with the specified ID")
-		return models.MediaItem[t.Series]{}, fmt.Errorf("TV show with ID %s not found", id)
+		return models.MediaItem[*t.Series]{}, fmt.Errorf("TV show with ID %s not found", id)
 	}
 
 	item := result.Items[0]
@@ -133,7 +133,7 @@ func (j *JellyfinClient) GetSeriesByID(ctx context.Context, id string) (models.M
 			Str("showID", id).
 			Str("actualType", string(*item.Type.Ptr())).
 			Msg("Item with specified ID is not a TV show")
-		return models.MediaItem[t.Series]{}, fmt.Errorf("item with ID %s is not a TV show", id)
+		return models.MediaItem[*t.Series]{}, fmt.Errorf("item with ID %s is not a TV show", id)
 	}
 
 	log.Info().
@@ -149,7 +149,7 @@ func (j *JellyfinClient) GetSeriesByID(ctx context.Context, id string) (models.M
 			Str("showID", id).
 			Str("showName", *item.Name.Get()).
 			Msg("Error converting Jellyfin item to TV show format")
-		return models.MediaItem[t.Series]{}, fmt.Errorf("error converting TV show data: %w", err)
+		return models.MediaItem[*t.Series]{}, fmt.Errorf("error converting TV show data: %w", err)
 	}
 
 	log.Debug().
@@ -161,7 +161,7 @@ func (j *JellyfinClient) GetSeriesByID(ctx context.Context, id string) (models.M
 	return show, nil
 }
 
-func (j *JellyfinClient) GetSeriesSeasons(ctx context.Context, showID string) ([]models.MediaItem[t.Season], error) {
+func (j *JellyfinClient) GetSeriesSeasons(ctx context.Context, showID string) ([]models.MediaItem[*t.Season], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -200,7 +200,7 @@ func (j *JellyfinClient) GetSeriesSeasons(ctx context.Context, showID string) ([
 		Str("showID", showID).
 		Msg("Successfully retrieved seasons for TV show from Jellyfin")
 
-	seasons := make([]models.MediaItem[t.Season], 0)
+	seasons := make([]models.MediaItem[*t.Season], 0)
 	for _, item := range result.Items {
 		if *item.Type == "Season" {
 			season, err := j.convertToSeason(ctx, &item)
@@ -225,7 +225,7 @@ func (j *JellyfinClient) GetSeriesSeasons(ctx context.Context, showID string) ([
 	return seasons, nil
 }
 
-func (j *JellyfinClient) GetSeriesEpisodes(ctx context.Context, showID string, seasonNumber int) ([]models.MediaItem[t.Episode], error) {
+func (j *JellyfinClient) GetSeriesEpisodes(ctx context.Context, showID string, seasonNumber int) ([]models.MediaItem[*t.Episode], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -267,7 +267,7 @@ func (j *JellyfinClient) GetSeriesEpisodes(ctx context.Context, showID string, s
 		Int("seasonNumber", seasonNumber).
 		Msg("Successfully retrieved episodes for TV show season from Jellyfin")
 
-	episodes := make([]models.MediaItem[t.Episode], 0)
+	episodes := make([]models.MediaItem[*t.Episode], 0)
 	for _, item := range result.Items {
 		if *item.Type == "Episode" {
 			episode, err := j.convertToEpisode(ctx, &item)
@@ -294,7 +294,7 @@ func (j *JellyfinClient) GetSeriesEpisodes(ctx context.Context, showID string, s
 	return episodes, nil
 }
 
-func (j *JellyfinClient) GetEpisodeByID(ctx context.Context, id string) (models.MediaItem[t.Episode], error) {
+func (j *JellyfinClient) GetEpisodeByID(ctx context.Context, id string) (models.MediaItem[*t.Episode], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -325,7 +325,7 @@ func (j *JellyfinClient) GetEpisodeByID(ctx context.Context, id string) (models.
 			Str("episodeID", id).
 			Int("statusCode", 0).
 			Msg("Failed to fetch episode from Jellyfin")
-		return models.MediaItem[t.Episode]{}, fmt.Errorf("failed to fetch episode: %w", err)
+		return models.MediaItem[*t.Episode]{}, fmt.Errorf("failed to fetch episode: %w", err)
 	}
 
 	// Check if any items were returned
@@ -334,7 +334,7 @@ func (j *JellyfinClient) GetEpisodeByID(ctx context.Context, id string) (models.
 			Str("episodeID", id).
 			Int("statusCode", resp.StatusCode).
 			Msg("No episode found with the specified ID")
-		return models.MediaItem[t.Episode]{}, fmt.Errorf("episode with ID %s not found", id)
+		return models.MediaItem[*t.Episode]{}, fmt.Errorf("episode with ID %s not found", id)
 	}
 
 	item := result.Items[0]
@@ -345,7 +345,7 @@ func (j *JellyfinClient) GetEpisodeByID(ctx context.Context, id string) (models.
 			Str("episodeID", id).
 			Str("actualType", baseItemKindToString(*item.Type)).
 			Msg("Item with specified ID is not an episode")
-		return models.MediaItem[t.Episode]{}, fmt.Errorf("item with ID %s is not an episode", id)
+		return models.MediaItem[*t.Episode]{}, fmt.Errorf("item with ID %s is not an episode", id)
 	}
 
 	log.Info().
@@ -360,7 +360,7 @@ func (j *JellyfinClient) GetEpisodeByID(ctx context.Context, id string) (models.
 			Err(err).
 			Str("episodeID", id).
 			Msg("Error converting Jellyfin item to episode format")
-		return models.MediaItem[t.Episode]{}, fmt.Errorf("error converting episode data: %w", err)
+		return models.MediaItem[*t.Episode]{}, fmt.Errorf("error converting episode data: %w", err)
 	}
 
 	log.Debug().

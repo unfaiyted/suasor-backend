@@ -16,7 +16,9 @@ type MediaItemRepository[T types.MediaData] interface {
 
 	// Retrieval operations
 	GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error)
-	GetByExternalID(ctx context.Context, externalID string, clientID uint64) (*models.MediaItem[T], error)
+
+	GetByExternalID(ctx context.Context, source string, externalID string) (*models.MediaItem[T], error)
+	GetByClientItemID(ctx context.Context, externalID string, clientID uint64) (*models.MediaItem[T], error)
 	GetByClientID(ctx context.Context, clientID uint64) ([]*models.MediaItem[T], error)
 	GetByType(ctx context.Context, mediaType types.MediaType, clientID uint64) ([]*models.MediaItem[T], error)
 	GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error)
@@ -77,39 +79,71 @@ func (r *mediaItemRepository[T]) GetByID(ctx context.Context, id uint64) (*model
 	return &item, nil
 }
 
-func (r *mediaItemRepository[T]) GetByExternalID(ctx context.Context, externalID string, clientID uint64) (*models.MediaItem[T], error) {
-	var item models.MediaItem[T]
+func (r *mediaItemRepository[T]) GetByExternalID(ctx context.Context, source string, externalID string) (*models.MediaItem[T], error) {
+	var items []*models.MediaItem[T]
 
-	if err := r.db.WithContext(ctx).
-		Where("external_id = ? AND client_id = ?", externalID, clientID).
-		First(&item).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("media item not found")
-		}
+	// Use JSON contains operator to find items where externalIDs contains an entry with the given source and ID
+	query := r.db.WithContext(ctx).
+		Where("external_ids @> ?", fmt.Sprintf(`[{"source":"%s","id":"%s"}]`, source, externalID)).
+		Find(&items)
+
+	if err := query.Error; err != nil {
 		return nil, fmt.Errorf("failed to get media item: %w", err)
 	}
 
-	return &item, nil
+	if len(items) == 0 {
+		return nil, fmt.Errorf("media item not found")
+	}
+
+	// Return the first match
+	return items[0], nil
 }
 
 func (r *mediaItemRepository[T]) GetByClientID(ctx context.Context, clientID uint64) ([]*models.MediaItem[T], error) {
 	var items []*models.MediaItem[T]
 
-	if err := r.db.WithContext(ctx).
-		Where("client_id = ?", clientID).
-		Find(&items).Error; err != nil {
+	// Use JSON contains operator to find items where clientIDs contains an entry with the given client ID
+	query := r.db.WithContext(ctx).
+		Where("client_ids @> ?", fmt.Sprintf(`[{"id":%d}]`, clientID)).
+		Find(&items)
+
+	if err := query.Error; err != nil {
 		return nil, fmt.Errorf("failed to get media items: %w", err)
 	}
 
 	return items, nil
 }
 
+// GetByClientItemID retrieves a media item by client ID and client item ID
+func (r *mediaItemRepository[T]) GetByClientItemID(ctx context.Context, itemID string, clientID uint64) (*models.MediaItem[T], error) {
+	var items []*models.MediaItem[T]
+
+	// Use JSON contains operator to find items where clientIDs contains an entry with the given ID and itemID
+	query := r.db.WithContext(ctx).
+		Where("client_ids @> ?", fmt.Sprintf(`[{"id":%d,"itemId":"%s"}]`, clientID, itemID)).
+		Find(&items)
+
+	if err := query.Error; err != nil {
+		return nil, fmt.Errorf("failed to get media item: %w", err)
+	}
+
+	if len(items) == 0 {
+		return nil, fmt.Errorf("not found")
+	}
+
+	// Return the first match
+	return items[0], nil
+}
+
 func (r *mediaItemRepository[T]) GetByType(ctx context.Context, mediaType types.MediaType, clientID uint64) ([]*models.MediaItem[T], error) {
 	var items []*models.MediaItem[T]
 
-	if err := r.db.WithContext(ctx).
-		Where("type = ? AND client_id = ?", mediaType, clientID).
-		Find(&items).Error; err != nil {
+	// Find all items of the given type that also have a reference to the client ID
+	query := r.db.WithContext(ctx).
+		Where("type = ? AND client_ids @> ?", mediaType, fmt.Sprintf(`[{"id":%d}]`, clientID)).
+		Find(&items)
+
+	if err := query.Error; err != nil {
 		return nil, fmt.Errorf("failed to get media items by type: %w", err)
 	}
 
@@ -118,11 +152,39 @@ func (r *mediaItemRepository[T]) GetByType(ctx context.Context, mediaType types.
 
 func (r *mediaItemRepository[T]) GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error) {
 	var items []*models.MediaItem[T]
+	var clientIDs []uint64
 
+	// First get all client IDs belonging to this user
 	if err := r.db.WithContext(ctx).
-		Joins("JOIN clients ON media_items.client_id = clients.id").
-		Where("clients.user_id = ?", userID).
-		Find(&items).Error; err != nil {
+		Table("clients").
+		Where("user_id = ?", userID).
+		Pluck("id", &clientIDs).Error; err != nil {
+		return nil, fmt.Errorf("failed to get client IDs for user: %w", err)
+	}
+
+	if len(clientIDs) == 0 {
+		// No clients for this user
+		return items, nil
+	}
+
+	// Build a condition to match any client ID in the user's clients
+	// This is more complex with JSON fields, so we'll use a different approach
+	var conditions []string
+	var args []interface{}
+
+	for _, clientID := range clientIDs {
+		jsonPattern := fmt.Sprintf(`[{"id":%d}]`, clientID)
+		conditions = append(conditions, "client_ids @> ?")
+		args = append(args, jsonPattern)
+	}
+
+	// Combine conditions with OR
+	query := r.db.WithContext(ctx).Where(conditions[0], args[0])
+	for i := 1; i < len(conditions); i++ {
+		query = query.Or(conditions[i], args[i])
+	}
+
+	if err := query.Find(&items).Error; err != nil {
 		return nil, fmt.Errorf("failed to get media items for user: %w", err)
 	}
 

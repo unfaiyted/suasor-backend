@@ -245,7 +245,7 @@ func toClientResponse[T types.ClientConfig](client *models.Client[T]) responses.
 		UserID:     client.UserID,
 		Name:       client.Name,
 		IsEnabled:  client.IsEnabled,
-		ClientType: types.MediaClientType(client.Type),
+		ClientType: client.Type, // Already a ClientType
 		Client:     client.Config.Data,
 		CreatedAt:  client.CreatedAt,
 		UpdatedAt:  client.UpdatedAt,

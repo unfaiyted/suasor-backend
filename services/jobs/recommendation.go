@@ -499,11 +499,16 @@ func (j *RecommendationJob) findOrCreateSeriesItem(ctx context.Context, title st
 	
 	// If not found, create a new placeholder item
 	mediaItem := models.MediaItem[*mediatypes.Series]{
-		ExternalID: fmt.Sprintf("recommendation-%s", title),
-		ClientID:   0, // Special ID for recommendation engine
-		ClientType: "recommendation",
-		Type:       mediatypes.MediaTypeSeries,
-		Data:       series,
+		Type: mediatypes.MediaTypeSeries,
+		Data: series,
+		ClientIDs: []models.ClientID{
+			{
+				ID:     0, // Special ID for recommendation engine
+				Type:   "recommendation",
+				ItemID: fmt.Sprintf("recommendation-%s", title),
+			},
+		},
+		ExternalIDs: []models.ExternalID{},
 	}
 	
 	// For a placeholder item, use a mock ID
@@ -697,12 +702,17 @@ func (j *RecommendationJob) findOrCreateMusicItem(ctx context.Context, title, ar
 	
 	// If not found, create a new placeholder item
 	mediaItem := models.MediaItem[*mediatypes.Track]{
-		ExternalID: fmt.Sprintf("recommendation-%s-%s", artist, title),
-		ClientID:   0, // Special ID for recommendation engine
-		ClientType: "recommendation",
-		Type:       mediatypes.MediaTypeTrack,
-		Data:       track,
+		Type:        mediatypes.MediaTypeTrack,
+		Data:        track,
+		ClientIDs:   []models.ClientID{},
+		ExternalIDs: []models.ExternalID{},
 	}
+	
+	// Add client ID for recommendation engine
+	mediaItem.AddClientID(0, "recommendation", fmt.Sprintf("recommendation-%s-%s", artist, title))
+	
+	// Add external ID for recommendation
+	mediaItem.AddExternalID("recommendation", fmt.Sprintf("recommendation-%s-%s", artist, title))
 	
 	// For a placeholder item, use a mock ID
 	mediaItem.ID = uint64(time.Now().UnixNano() % 100000000)
@@ -1185,12 +1195,17 @@ func (j *RecommendationJob) findOrCreateMovieItem(ctx context.Context, title str
 	
 	// If not found, create a new placeholder item
 	mediaItem := models.MediaItem[*mediatypes.Movie]{
-		ExternalID: fmt.Sprintf("recommendation-%s-%d", title, year),
-		ClientID:   0, // Special ID for recommendation engine
-		ClientType: "recommendation",
-		Type:       mediatypes.MediaTypeMovie,
-		Data:       movie,
+		Type:        mediatypes.MediaTypeMovie,
+		Data:        movie,
+		ClientIDs:   []models.ClientID{},
+		ExternalIDs: []models.ExternalID{},
 	}
+	
+	// Add client ID for recommendation engine
+	mediaItem.AddClientID(0, "recommendation", fmt.Sprintf("recommendation-%s-%d", title, year))
+	
+	// Add external ID for recommendation
+	mediaItem.AddExternalID("recommendation", fmt.Sprintf("recommendation-%s-%d", title, year))
 	
 	// In a real implementation, you would:
 	// 1. Create the movie in the database

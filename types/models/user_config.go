@@ -21,6 +21,12 @@ type UserConfig struct {
 	// What sidebar options to show based on the enabled content types.
 	ContentTypes string `json:"contentTypes" gorm:"type:text;default:''" example:"movie,series,tv"`
 
+	// Profile settings
+	Bio string `json:"bio" gorm:"type:text;default:''" example:"I'm a developer"`
+
+	SocialLinks     SocialLinks     `json:"socialLinks" gorm:"type:jsonb;serializer:json"`
+	PrivacySettings PrivacySettings `json:"privacySettings" gorm:"type:jsonb;serializer:json"`
+
 	// Recommendation Preferences
 	// Automatically download and organized recommended media into a collection/playlist
 	RecommendationSyncEnabled bool `json:"recommendationSyncEnabled" gorm:"default:false" example:"true"`
@@ -97,6 +103,19 @@ type Genres struct {
 	Books  []string `json:"books" gorm:"type:text" example:"fantasy,horror,mystery"`
 	Anime  []string `json:"anime" gorm:"type:text" example:"action,comedy,drama"`
 	Games  []string `json:"games" gorm:"type:text" example:"action,comedy,drama"`
+}
+
+type SocialLinks struct {
+	Letterboxd string `json:"letterboxd" gorm:"type:text;default:''" example:"https://letterboxd.com/faiyt"`
+	Lastfm     string `json:"lastfm" gorm:"type:text;default:''" example:"https://last.fm/user/faiyt"`
+	Trakt      string `json:"trakt" gorm:"type:text;default:''" example:"https://trakt.tv/users/faiyt"`
+}
+
+type PrivacySettings struct {
+	ShowWatchHistory       bool `json:"showWatchHistory" gorm:"default:true" example:"true"`
+	ShareRecommendations   bool `json:"shareRecommendations" gorm:"default:true" example:"true"`
+	PublicProfile          bool `json:"publicProfile" gorm:"default:true" example:"true"`
+	ShowRecommendationList bool `json:"showRecommendationList" gorm:"default:true" example:"true"`
 }
 
 // Scan implements the sql.Scanner interface

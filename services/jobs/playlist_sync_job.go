@@ -164,6 +164,35 @@ type PlaylistClientInfo struct {
 	IsPrimary  bool
 }
 
+// findClientItemID retrieves the client-specific item ID from a media item's ClientIDs array
+func findClientItemID[T mediatypes.MediaData](item *models.MediaItem[T], clientID uint64) (string, bool) {
+	for _, cid := range item.ClientIDs {
+		if cid.ID == clientID {
+			return cid.ItemID, true
+		}
+	}
+	return "", false
+}
+
+// findMatchingMediaItems finds items from one client that have corresponding matches in another client
+// Returns a map of source client item IDs to target client item IDs
+func findMatchingMediaItems[T mediatypes.MediaData](items []*models.MediaItem[T], sourceClientID, targetClientID uint64) map[string]string {
+	matches := make(map[string]string)
+	
+	for _, item := range items {
+		// Extract IDs for both clients if they exist
+		sourceItemID, sourceFound := findClientItemID(item, sourceClientID)
+		targetItemID, targetFound := findClientItemID(item, targetClientID)
+		
+		// Only add to map if both clients have this item
+		if sourceFound && targetFound {
+			matches[sourceItemID] = targetItemID
+		}
+	}
+	
+	return matches
+}
+
 // PlaylistSyncStats contains statistics about a playlist sync operation
 type PlaylistSyncStats struct {
 	totalSynced int
@@ -222,6 +251,12 @@ func (j *PlaylistSyncJob) performPlaylistSync(ctx context.Context, userID uint64
 	// 3. Handle conflicts (same name but different content)
 	// 4. Create/update playlists in target clients
 	// 5. Track statistics on changes made
+	// 6. Use the ClientIDs array for each media item to find corresponding items across clients
+	//    This would be implemented using the findMatchingMediaItems function:
+	//    - Get all media items for the user from repository
+	//    - For each source playlist, identify its items by client ID
+	//    - For each target client, create a playlist with corresponding items found in ClientIDs array
+	//    - Items not found in target client would be reported as "unavailable in target"
 
 	// Mock implementation
 	stats.totalSynced = 15
@@ -287,10 +322,15 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 
 	// In a real implementation, we would:
 	// 1. Get the source client
-	// 2. Fetch the specific playlist
+	// 2. Fetch the specific playlist 
 	// 3. Get all target clients for the user
 	// 4. Create/update the playlist on each target client
 	// 5. Handle any conflicts
+	// 6. For matching media items across clients, we'd lookup using ClientIDs array:
+	//    - Find items by source client ID in the ClientIDs array
+	//    - For each target client, find matching items using their ClientIDs
+	//    - Create a mapping between source client items and target client items
+	//    - Use this mapping to recreate the playlist on target clients
 	
 	// Mock implementation
 	log.Printf("Successfully synced playlist %s to all clients for user %d", playlistID, userID)
@@ -303,6 +343,20 @@ func (j *PlaylistSyncJob) GetClientPlaylists(ctx context.Context, userID uint64,
 	// 1. Get the client connection
 	// 2. Fetch all playlists from the client
 	// 3. Format them into a consistent structure
+	// 4. For each playlist item, we'd need to:
+	//    - Find the corresponding media item in our database
+	//    - Make sure it has this client's ID in the ClientIDs array
+	//    - Use this to build a comprehensive mapping of all identifiers
+	
+	// For each playlist item, we'd need to:
+	// playlist.Items = append(playlist.Items, mediatypes.PlaylistItem{
+	//     Item: &models.MediaItem[*mediatypes.Track]{
+	//         ClientIDs: []models.ClientID{
+	//             {ID: clientID, Type: clientType, ItemID: nativeItemID},
+	//         },
+	//         // Set other fields accordingly
+	//     },
+	// })
 	
 	// Mock implementation
 	return []mediatypes.Playlist{}, nil

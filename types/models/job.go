@@ -145,5 +145,5 @@ type MediaSyncJob struct {
 	// Whether sync is enabled
 	Enabled bool `json:"enabled" gorm:"not null;default:true"`
 	// Sync filter criteria (stored as JSON)
-	Filters string `json:"filters" gorm:"type:jsonb"`
+	Filters string `json:"filters" gorm:"type:jsonb;default:'{}'"`
 }

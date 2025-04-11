@@ -121,9 +121,8 @@ func (b *BaseMediaClient) ToMediaItemPlaylist(ctx context.Context, item media.Pl
 
 func (b *BaseMediaClient) ToMediaItemCollection(ctx context.Context, item media.Collection, itemID string) (models.MediaItem[media.Collection], error) {
 	mediaItem := models.MediaItem[media.Collection]{
-		Data:       item,
-		ClientType: b.ClientType,
-		Type:       item.GetMediaType(),
+		Data: item,
+		Type: item.GetMediaType(),
 	}
 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
 
@@ -132,9 +131,8 @@ func (b *BaseMediaClient) ToMediaItemCollection(ctx context.Context, item media.
 
 func (b *BaseMediaClient) ToMediaItemMovie(ctx context.Context, item media.Movie, itemID string) (models.MediaItem[media.Movie], error) {
 	mediaItem := models.MediaItem[media.Movie]{
-		Data:       item,
-		ClientType: b.ClientType,
-		Type:       item.GetMediaType(),
+		Data: item,
+		Type: item.GetMediaType(),
 	}
 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
 
@@ -143,9 +141,8 @@ func (b *BaseMediaClient) ToMediaItemMovie(ctx context.Context, item media.Movie
 
 func (b *BaseMediaClient) ToMediaItemSeries(ctx context.Context, item media.Series, itemID string) (models.MediaItem[media.Series], error) {
 	mediaItem := models.MediaItem[media.Series]{
-		Data:       item,
-		ClientType: b.ClientType,
-		Type:       item.GetMediaType(),
+		Data: item,
+		Type: item.GetMediaType(),
 	}
 
 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
@@ -155,9 +152,8 @@ func (b *BaseMediaClient) ToMediaItemSeries(ctx context.Context, item media.Seri
 
 func (b *BaseMediaClient) ToMediaItemTrack(ctx context.Context, item media.Track, itemID string) (models.MediaItem[media.Track], error) {
 	mediaItem := models.MediaItem[media.Track]{
-		Data:       item,
-		ClientType: b.ClientType,
-		Type:       item.GetMediaType(),
+		Data: item,
+		Type: item.GetMediaType(),
 	}
 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
 
@@ -166,9 +162,8 @@ func (b *BaseMediaClient) ToMediaItemTrack(ctx context.Context, item media.Track
 
 func (b *BaseMediaClient) ToMediaItemAlbum(ctx context.Context, item media.Album, itemID string) (models.MediaItem[media.Album], error) {
 	mediaItem := models.MediaItem[media.Album]{
-		Data:       item,
-		Type:       item.GetMediaType(),
-		ClientType: b.ClientType,
+		Data: item,
+		Type: item.GetMediaType(),
 	}
 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
 
@@ -177,9 +172,8 @@ func (b *BaseMediaClient) ToMediaItemAlbum(ctx context.Context, item media.Album
 
 func (b *BaseMediaClient) ToMediaItemArtist(ctx context.Context, item media.Artist, itemID string) (models.MediaItem[media.Artist], error) {
 	mediaItem := models.MediaItem[media.Artist]{
-		Data:       item,
-		ClientType: b.ClientType,
-		Type:       item.GetMediaType(),
+		Data: item,
+		Type: item.GetMediaType(),
 	}
 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
 

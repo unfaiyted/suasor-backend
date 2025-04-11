@@ -15,7 +15,8 @@ type MediaItemService[T types.MediaData] interface {
 	Create(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error)
 	Update(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error)
 	GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error)
-	GetByExternalID(ctx context.Context, externalID string, clientID uint64) (*models.MediaItem[T], error)
+	GetByExternalID(ctx context.Context, source string, externalID string) (*models.MediaItem[T], error)
+	GetByClientItemID(ctx context.Context, itemID string, clientID uint64) (*models.MediaItem[T], error)
 	GetByClientID(ctx context.Context, clientID uint64) ([]*models.MediaItem[T], error)
 	GetByType(ctx context.Context, mediaType types.MediaType, clientID uint64) ([]*models.MediaItem[T], error)
 	GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error)
@@ -57,8 +58,12 @@ func (s *mediaItemService[T]) GetByID(ctx context.Context, id uint64) (*models.M
 	return s.repo.GetByID(ctx, id)
 }
 
-func (s *mediaItemService[T]) GetByExternalID(ctx context.Context, externalID string, clientID uint64) (*models.MediaItem[T], error) {
-	return s.repo.GetByExternalID(ctx, externalID, clientID)
+func (s *mediaItemService[T]) GetByExternalID(ctx context.Context, source string, externalID string) (*models.MediaItem[T], error) {
+	return s.repo.GetByExternalID(ctx, source, externalID)
+}
+
+func (s *mediaItemService[T]) GetByClientItemID(ctx context.Context, itemID string, clientID uint64) (*models.MediaItem[T], error) {
+	return s.repo.GetByClientItemID(ctx, itemID, clientID)
 }
 
 func (s *mediaItemService[T]) GetByClientID(ctx context.Context, clientID uint64) ([]*models.MediaItem[T], error) {
@@ -121,8 +126,8 @@ func (s *mediaItemService[T]) GetRecentItems(ctx context.Context, userID uint64,
 
 func validateMediaItem[T types.MediaData](item models.MediaItem[T]) error {
 	// Basic validation
-	if item.ClientID == 0 {
-		return fmt.Errorf("client ID is required")
+	if len(item.ClientIDs) == 0 {
+		return fmt.Errorf("at least one client ID is required")
 	}
 
 	if item.Type == "" {

@@ -77,17 +77,17 @@ func (e *EmbyClient) convertToWatchHistoryItem(ctx context.Context, item *embycl
 }
 
 // Helper function to convert Emby item to internal Movie type
-func (e *EmbyClient) convertToMovie(ctx context.Context, item *embyclient.BaseItemDto) (models.MediaItem[types.Movie], error) {
+func (e *EmbyClient) convertToMovie(ctx context.Context, item *embyclient.BaseItemDto) (models.MediaItem[*types.Movie], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
 	// Validate required fields
 	if item == nil {
-		return models.MediaItem[types.Movie]{}, fmt.Errorf("cannot convert nil item to movie")
+		return models.MediaItem[*types.Movie]{}, fmt.Errorf("cannot convert nil item to movie")
 	}
 
 	if item.Id == "" {
-		return models.MediaItem[types.Movie]{}, fmt.Errorf("movie is missing required ID field")
+		return models.MediaItem[*types.Movie]{}, fmt.Errorf("movie is missing required ID field")
 	}
 
 	log.Debug().
@@ -136,8 +136,8 @@ func (e *EmbyClient) convertToMovie(ctx context.Context, item *embyclient.BaseIt
 		},
 	}
 
-	mediaItemMovie := models.MediaItem[types.Movie]{
-		Data: movie,
+	mediaItemMovie := models.MediaItem[*types.Movie]{
+		Data: &movie,
 		Type: movie.GetMediaType(),
 	}
 	mediaItemMovie.SetClientInfo(e.ClientID, e.ClientType, item.Id)
@@ -172,13 +172,13 @@ func (e *EmbyClient) convertToMovie(ctx context.Context, item *embyclient.BaseIt
 	return mediaItemMovie, nil
 }
 
-func (e *EmbyClient) convertToTrack(item *embyclient.BaseItemDto) (models.MediaItem[types.Track], error) {
+func (e *EmbyClient) convertToTrack(item *embyclient.BaseItemDto) (models.MediaItem[*types.Track], error) {
 	if item == nil {
-		return models.MediaItem[types.Track]{}, fmt.Errorf("cannot convert nil item to music track")
+		return models.MediaItem[*types.Track]{}, fmt.Errorf("cannot convert nil item to music track")
 	}
 
-	track := models.MediaItem[types.Track]{
-		Data: types.Track{
+	track := models.MediaItem[*types.Track]{
+		Data: &types.Track{
 			Details: types.MediaDetails{
 				Title:       item.Name,
 				Description: item.Overview,
@@ -210,13 +210,13 @@ func (e *EmbyClient) convertToTrack(item *embyclient.BaseItemDto) (models.MediaI
 	return track, nil
 }
 
-func (e *EmbyClient) convertToMusicArtist(item *embyclient.BaseItemDto) (models.MediaItem[types.Artist], error) {
+func (e *EmbyClient) convertToMusicArtist(item *embyclient.BaseItemDto) (models.MediaItem[*types.Artist], error) {
 	if item == nil {
-		return models.MediaItem[types.Artist]{}, fmt.Errorf("cannot convert nil item to music artist")
+		return models.MediaItem[*types.Artist]{}, fmt.Errorf("cannot convert nil item to music artist")
 	}
 
-	artist := models.MediaItem[types.Artist]{
-		Data: types.Artist{
+	artist := models.MediaItem[*types.Artist]{
+		Data: &types.Artist{
 			Details: types.MediaDetails{
 				Title:       item.Name,
 				Description: item.Overview,
@@ -239,13 +239,13 @@ func (e *EmbyClient) convertToMusicArtist(item *embyclient.BaseItemDto) (models.
 	return artist, nil
 }
 
-func (e *EmbyClient) convertToAlbum(item *embyclient.BaseItemDto) (models.MediaItem[types.Album], error) {
+func (e *EmbyClient) convertToAlbum(item *embyclient.BaseItemDto) (models.MediaItem[*types.Album], error) {
 	if item == nil {
-		return models.MediaItem[types.Album]{}, fmt.Errorf("cannot convert nil item to music album")
+		return models.MediaItem[*types.Album]{}, fmt.Errorf("cannot convert nil item to music album")
 	}
 
-	album := models.MediaItem[types.Album]{
-		Data: types.Album{
+	album := models.MediaItem[*types.Album]{
+		Data: &types.Album{
 			Details: types.MediaDetails{
 				Title:       item.Name,
 				Description: item.Overview,
@@ -271,9 +271,9 @@ func (e *EmbyClient) convertToAlbum(item *embyclient.BaseItemDto) (models.MediaI
 	return album, nil
 }
 
-func (e *EmbyClient) convertToPlaylist(item *embyclient.BaseItemDto) (models.MediaItem[types.Playlist], error) {
+func (e *EmbyClient) convertToPlaylist(item *embyclient.BaseItemDto) (models.MediaItem[*types.Playlist], error) {
 	if item == nil {
-		return models.MediaItem[types.Playlist]{}, fmt.Errorf("cannot convert nil item to playlist")
+		return models.MediaItem[*types.Playlist]{}, fmt.Errorf("cannot convert nil item to playlist")
 	}
 
 	playlist := types.Playlist{
@@ -285,8 +285,8 @@ func (e *EmbyClient) convertToPlaylist(item *embyclient.BaseItemDto) (models.Med
 		ItemCount: int(item.ChildCount),
 		IsPublic:  true, // Assume public by default in Emby
 	}
-	mediaItemPlaylist := models.MediaItem[types.Playlist]{
-		Data: playlist,
+	mediaItemPlaylist := models.MediaItem[*types.Playlist]{
+		Data: &playlist,
 		Type: playlist.GetMediaType(),
 	}
 	mediaItemPlaylist.SetClientInfo(e.ClientID, e.ClientType, item.Id)
@@ -296,13 +296,13 @@ func (e *EmbyClient) convertToPlaylist(item *embyclient.BaseItemDto) (models.Med
 
 // Note: This is a duplicate of the first function and should be removed
 
-func (e *EmbyClient) convertToSeries(item *embyclient.BaseItemDto) (models.MediaItem[types.Series], error) {
+func (e *EmbyClient) convertToSeries(item *embyclient.BaseItemDto) (models.MediaItem[*types.Series], error) {
 	if item == nil {
-		return models.MediaItem[types.Series]{}, fmt.Errorf("cannot convert nil item to TV show")
+		return models.MediaItem[*types.Series]{}, fmt.Errorf("cannot convert nil item to TV show")
 	}
 
-	show := models.MediaItem[types.Series]{
-		Data: types.Series{
+	show := models.MediaItem[*types.Series]{
+		Data: &types.Series{
 			Details: types.MediaDetails{
 				Title:       item.Name,
 				Description: item.Overview,
@@ -336,13 +336,13 @@ func (e *EmbyClient) convertToSeries(item *embyclient.BaseItemDto) (models.Media
 	return show, nil
 }
 
-func (e *EmbyClient) convertToSeason(item *embyclient.BaseItemDto, showID string) (models.MediaItem[types.Season], error) {
+func (e *EmbyClient) convertToSeason(item *embyclient.BaseItemDto, showID string) (models.MediaItem[*types.Season], error) {
 	if item == nil {
-		return models.MediaItem[types.Season]{}, fmt.Errorf("cannot convert nil item to season")
+		return models.MediaItem[*types.Season]{}, fmt.Errorf("cannot convert nil item to season")
 	}
 
-	season := models.MediaItem[types.Season]{
-		Data: types.Season{
+	season := models.MediaItem[*types.Season]{
+		Data: &types.Season{
 			Details: types.MediaDetails{
 				Title:       item.Name,
 				Description: item.Overview,
@@ -363,9 +363,9 @@ func (e *EmbyClient) convertToSeason(item *embyclient.BaseItemDto, showID string
 	return season, nil
 }
 
-func (e *EmbyClient) convertToEpisode(item *embyclient.BaseItemDto) (models.MediaItem[types.Episode], error) {
+func (e *EmbyClient) convertToEpisode(item *embyclient.BaseItemDto) (models.MediaItem[*types.Episode], error) {
 	if item == nil {
-		return models.MediaItem[types.Episode]{}, fmt.Errorf("cannot convert nil item to episode")
+		return models.MediaItem[*types.Episode]{}, fmt.Errorf("cannot convert nil item to episode")
 	}
 
 	episode := types.Episode{
@@ -382,8 +382,8 @@ func (e *EmbyClient) convertToEpisode(item *embyclient.BaseItemDto) (models.Medi
 		ShowTitle:    item.SeriesName,
 	}
 
-	mediaItemEpisde := models.MediaItem[types.Episode]{
-		Data: episode,
+	mediaItemEpisde := models.MediaItem[*types.Episode]{
+		Data: &episode,
 		Type: episode.GetMediaType(),
 	}
 	mediaItemEpisde.SetClientInfo(e.ClientID, e.ClientType, item.Id)

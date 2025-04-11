@@ -45,7 +45,7 @@ func (s *clientService[T]) Create(ctx context.Context, client models.Client[T]) 
 }
 
 func (s *clientService[T]) GetByID(ctx context.Context, id uint64, userID uint64) (*models.Client[T], error) {
-	return s.repo.GetByID(ctx, id, userID)
+	return s.repo.GetByID(ctx, id)
 }
 
 func (s *clientService[T]) GetByUserID(ctx context.Context, userID uint64) ([]*models.Client[T], error) {

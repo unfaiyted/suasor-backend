@@ -14,13 +14,22 @@ import (
 )
 
 func createMovieMediaItem[T mediatypes.Movie](clientID uint64, clientType clienttypes.MediaClientType, externalID string, data mediatypes.Movie) models.MediaItem[mediatypes.Movie] {
-	return models.MediaItem[mediatypes.Movie]{
-		Type:       mediatypes.MediaTypeMovie,
-		ClientID:   clientID,
-		ClientType: clientType,
-		ExternalID: externalID,
-		Data:       data,
+	mediaItem := models.MediaItem[mediatypes.Movie]{
+		Type:        mediatypes.MediaTypeMovie,
+		ClientIDs:   []models.ClientID{},
+		ExternalIDs: []models.ExternalID{},
+		Data:        data,
 	}
+
+	// Set client info
+	mediaItem.SetClientInfo(clientID, clientType, externalID)
+
+	// Only add external ID if provided
+	if externalID != "" {
+		mediaItem.AddExternalID("client", externalID)
+	}
+
+	return mediaItem
 }
 
 // MediaClientMovieHandler handles movie-related operations for media clients

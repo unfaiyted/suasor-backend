@@ -22,6 +22,10 @@ const (
 	MediaClientTypeUnknown  MediaClientType = "unknown"
 )
 
+func (c MediaClientType) AsGenericType() ClientType {
+	return ClientType(c)
+}
+
 func (c MediaClientType) AsCategory() ClientCategory {
 	return ClientCategoryMedia
 }
@@ -98,7 +102,7 @@ const (
 	ClientTypeClaude ClientType = "claude"
 	ClientTypeOpenAI ClientType = "openai"
 	ClientTypeOllama ClientType = "ollama"
-	
+
 	ClientTypeTMDB  ClientType = "tmdb"
 	ClientTypeTrakt ClientType = "trakt"
 )
@@ -132,7 +136,7 @@ func (c ClientType) AsCategory() ClientCategory {
 	if aiClients[c] {
 		return ClientCategoryAI
 	}
-	
+
 	// Metadata clients
 	metadataClients := map[ClientType]bool{
 		ClientTypeTMDB: true, ClientTypeTrakt: true,
@@ -153,10 +157,30 @@ func (c ClientType) GetCategory() ClientCategory {
 	return c.AsCategory()
 }
 
+func (c ClientType) AsMediaClientType() MediaClientType {
+	switch c {
+	case ClientTypeEmby:
+		return MediaClientTypeEmby
+	case ClientTypeJellyfin:
+		return MediaClientTypeJellyfin
+	case ClientTypePlex:
+		return MediaClientTypePlex
+	case ClientTypeSubsonic:
+		return MediaClientTypeSubsonic
+	default:
+		return MediaClientTypeUnknown
+	}
+}
+
 func (ClientType) isClientConfig() {}
 
 func (c ClientCategory) String() string {
 	return string(c)
+}
+
+// IsMedia checks if this category is a media client category
+func (c ClientCategory) IsMedia() bool {
+	return c == ClientCategoryMedia
 }
 
 func (c MediaClientType) String() string {

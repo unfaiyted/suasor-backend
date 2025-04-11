@@ -14,13 +14,22 @@ import (
 )
 
 func createCollectionMediaItem[T mediatypes.Collection](clientID uint64, clientType clienttypes.MediaClientType, externalID string, data mediatypes.Collection) models.MediaItem[mediatypes.Collection] {
-	return models.MediaItem[mediatypes.Collection]{
-		Type:       mediatypes.MediaTypeCollection,
-		ClientID:   clientID,
-		ClientType: clientType,
-		ExternalID: externalID,
-		Data:       data,
+	mediaItem := models.MediaItem[mediatypes.Collection]{
+		Type: mediatypes.MediaTypeCollection,
+		Data: data,
+		ClientIDs: []models.ClientID{},
+		ExternalIDs: []models.ExternalID{},
 	}
+	
+	// Set client info and external ID
+	mediaItem.SetClientInfo(clientID, clientType, externalID)
+	
+	// Only add external ID if provided
+	if externalID != "" {
+		mediaItem.AddExternalID("client", externalID)
+	}
+	
+	return mediaItem
 }
 
 // MediaClientCollectionHandler handles collection-related operations for media clients

@@ -14,13 +14,22 @@ import (
 )
 
 func createPlaylistMediaItem[T mediatypes.Playlist](clientID uint64, clientType clienttypes.MediaClientType, externalID string, data mediatypes.Playlist) models.MediaItem[mediatypes.Playlist] {
-	return models.MediaItem[mediatypes.Playlist]{
-		Type:       mediatypes.MediaTypePlaylist,
-		ClientID:   clientID,
-		ClientType: clientType,
-		ExternalID: externalID,
-		Data:       data,
+	mediaItem := models.MediaItem[mediatypes.Playlist]{
+		Type:        mediatypes.MediaTypePlaylist,
+		ClientIDs:   []models.ClientID{},
+		ExternalIDs: []models.ExternalID{},
+		Data:        data,
 	}
+	
+	// Set client info
+	mediaItem.SetClientInfo(clientID, clientType, externalID)
+	
+	// Only add external ID if provided
+	if externalID != "" {
+		mediaItem.AddExternalID("client", externalID)
+	}
+	
+	return mediaItem
 }
 
 // MediaClientPlaylistHandler handles playlist-related operations for media clients

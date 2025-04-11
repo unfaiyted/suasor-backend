@@ -16,25 +16,25 @@ import (
 
 // MusicSearchResults contains search results for music
 type MusicSearchResults struct {
-	Artists []models.MediaItem[mediatypes.Artist] `json:"artists"`
-	Albums  []models.MediaItem[mediatypes.Album]  `json:"albums"`
-	Tracks  []models.MediaItem[mediatypes.Track]  `json:"tracks"`
+	Artists []models.MediaItem[*mediatypes.Artist] `json:"artists"`
+	Albums  []models.MediaItem[*mediatypes.Album]  `json:"albums"`
+	Tracks  []models.MediaItem[*mediatypes.Track]  `json:"tracks"`
 }
 
 // MediaClientMusicService defines the music client service interface
 type MediaClientMusicService[T types.MediaClientConfig] interface {
-	GetTrackByID(ctx context.Context, userID, clientID uint64, trackID string) (models.MediaItem[mediatypes.Track], error)
-	GetAlbumByID(ctx context.Context, userID, clientID uint64, albumID string) (models.MediaItem[mediatypes.Album], error)
-	GetArtistByID(ctx context.Context, userID, clientID uint64, artistID string) (models.MediaItem[mediatypes.Artist], error)
-	GetTracksByAlbum(ctx context.Context, userID, clientID uint64, albumID string) ([]models.MediaItem[mediatypes.Track], error)
-	GetAlbumsByArtist(ctx context.Context, userID, clientID uint64, artistID string) ([]models.MediaItem[mediatypes.Album], error)
-	GetArtistsByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[mediatypes.Artist], error)
-	GetAlbumsByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[mediatypes.Album], error)
-	GetTracksByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[mediatypes.Track], error)
-	GetAlbumsByYear(ctx context.Context, userID uint64, year int) ([]models.MediaItem[mediatypes.Album], error)
-	GetLatestAlbumsByAdded(ctx context.Context, userID uint64, count int) ([]models.MediaItem[mediatypes.Album], error)
-	GetPopularAlbums(ctx context.Context, userID uint64, count int) ([]models.MediaItem[mediatypes.Album], error)
-	GetPopularArtists(ctx context.Context, userID uint64, count int) ([]models.MediaItem[mediatypes.Artist], error)
+	GetTrackByID(ctx context.Context, userID, clientID uint64, trackID string) (models.MediaItem[*mediatypes.Track], error)
+	GetAlbumByID(ctx context.Context, userID, clientID uint64, albumID string) (models.MediaItem[*mediatypes.Album], error)
+	GetArtistByID(ctx context.Context, userID, clientID uint64, artistID string) (models.MediaItem[*mediatypes.Artist], error)
+	GetTracksByAlbum(ctx context.Context, userID, clientID uint64, albumID string) ([]models.MediaItem[*mediatypes.Track], error)
+	GetAlbumsByArtist(ctx context.Context, userID, clientID uint64, artistID string) ([]models.MediaItem[*mediatypes.Album], error)
+	GetArtistsByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[*mediatypes.Artist], error)
+	GetAlbumsByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[*mediatypes.Album], error)
+	GetTracksByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[*mediatypes.Track], error)
+	GetAlbumsByYear(ctx context.Context, userID uint64, year int) ([]models.MediaItem[*mediatypes.Album], error)
+	GetLatestAlbumsByAdded(ctx context.Context, userID uint64, count int) ([]models.MediaItem[*mediatypes.Album], error)
+	GetPopularAlbums(ctx context.Context, userID uint64, count int) ([]models.MediaItem[*mediatypes.Album], error)
+	GetPopularArtists(ctx context.Context, userID uint64, count int) ([]models.MediaItem[*mediatypes.Artist], error)
 	SearchMusic(ctx context.Context, userID uint64, query string) (MusicSearchResults, error)
 }
 
@@ -86,7 +86,7 @@ func (s *MediaClientMusicServiceImpl[T]) getMusicClients(ctx context.Context, us
 func (s *MediaClientMusicServiceImpl[T]) getSpecificMusicClient(ctx context.Context, userID, clientID uint64) (media.MediaClient, error) {
 	log := utils.LoggerFromContext(ctx)
 
-	clientConfig, err := (s.clientRepo).GetByID(ctx, clientID, userID)
+	clientConfig, err := (s.clientRepo).GetByID(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func (s *MediaClientMusicServiceImpl[T]) getSpecificMusicClient(ctx context.Cont
 }
 
 // GetTrackByID retrieves a specific music track by ID
-func (s *MediaClientMusicServiceImpl[T]) GetTrackByID(ctx context.Context, userID, clientID uint64, trackID string) (models.MediaItem[mediatypes.Track], error) {
+func (s *MediaClientMusicServiceImpl[T]) GetTrackByID(ctx context.Context, userID, clientID uint64, trackID string) (models.MediaItem[*mediatypes.Track], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("userID", userID).
@@ -134,7 +134,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetTrackByID(ctx context.Context, userI
 			Uint64("userID", userID).
 			Uint64("clientID", clientID).
 			Msg("Failed to get client")
-		return models.MediaItem[mediatypes.Track]{}, fmt.Errorf("failed to get client: %w", err)
+		return models.MediaItem[*mediatypes.Track]{}, fmt.Errorf("failed to get client: %w", err)
 	}
 
 	musicClient, ok := client.(providers.MusicProvider)
@@ -144,14 +144,14 @@ func (s *MediaClientMusicServiceImpl[T]) GetTrackByID(ctx context.Context, userI
 			Uint64("clientID", clientID).
 			Str("clientType", "media client").
 			Msg("Client does not implement music provider interface")
-		return models.MediaItem[mediatypes.Track]{}, fmt.Errorf("client does not implement music provider interface")
+		return models.MediaItem[*mediatypes.Track]{}, fmt.Errorf("client does not implement music provider interface")
 	}
 
 	return musicClient.GetMusicTrackByID(ctx, trackID)
 }
 
 // GetAlbumByID retrieves a specific music album by ID
-func (s *MediaClientMusicServiceImpl[T]) GetAlbumByID(ctx context.Context, userID, clientID uint64, albumID string) (models.MediaItem[mediatypes.Album], error) {
+func (s *MediaClientMusicServiceImpl[T]) GetAlbumByID(ctx context.Context, userID, clientID uint64, albumID string) (models.MediaItem[*mediatypes.Album], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("userID", userID).
@@ -165,7 +165,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetAlbumByID(ctx context.Context, userI
 			Uint64("userID", userID).
 			Uint64("clientID", clientID).
 			Msg("Failed to get client")
-		return models.MediaItem[mediatypes.Album]{}, fmt.Errorf("failed to get client: %w", err)
+		return models.MediaItem[*mediatypes.Album]{}, fmt.Errorf("failed to get client: %w", err)
 	}
 
 	musicClient, ok := client.(providers.MusicProvider)
@@ -175,7 +175,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetAlbumByID(ctx context.Context, userI
 			Uint64("clientID", clientID).
 			Str("clientType", "media client").
 			Msg("Client does not implement music provider interface")
-		return models.MediaItem[mediatypes.Album]{}, fmt.Errorf("client does not implement music provider interface")
+		return models.MediaItem[*mediatypes.Album]{}, fmt.Errorf("client does not implement music provider interface")
 	}
 
 	options := &mediatypes.QueryOptions{
@@ -191,7 +191,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetAlbumByID(ctx context.Context, userI
 			Uint64("clientID", clientID).
 			Str("albumID", albumID).
 			Msg("Failed to get album")
-		return models.MediaItem[mediatypes.Album]{}, fmt.Errorf("failed to get album: %w", err)
+		return models.MediaItem[*mediatypes.Album]{}, fmt.Errorf("failed to get album: %w", err)
 	}
 
 	if len(albums) == 0 {
@@ -200,14 +200,14 @@ func (s *MediaClientMusicServiceImpl[T]) GetAlbumByID(ctx context.Context, userI
 			Uint64("clientID", clientID).
 			Str("albumID", albumID).
 			Msg("Album not found")
-		return models.MediaItem[mediatypes.Album]{}, fmt.Errorf("album not found")
+		return models.MediaItem[*mediatypes.Album]{}, fmt.Errorf("album not found")
 	}
 
 	return albums[0], nil
 }
 
 // GetArtistByID retrieves a specific music artist by ID
-func (s *MediaClientMusicServiceImpl[T]) GetArtistByID(ctx context.Context, userID, clientID uint64, artistID string) (models.MediaItem[mediatypes.Artist], error) {
+func (s *MediaClientMusicServiceImpl[T]) GetArtistByID(ctx context.Context, userID, clientID uint64, artistID string) (models.MediaItem[*mediatypes.Artist], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("userID", userID).
@@ -221,7 +221,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetArtistByID(ctx context.Context, user
 			Uint64("userID", userID).
 			Uint64("clientID", clientID).
 			Msg("Failed to get client")
-		return models.MediaItem[mediatypes.Artist]{}, fmt.Errorf("failed to get client: %w", err)
+		return models.MediaItem[*mediatypes.Artist]{}, fmt.Errorf("failed to get client: %w", err)
 	}
 
 	musicClient, ok := client.(providers.MusicProvider)
@@ -231,7 +231,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetArtistByID(ctx context.Context, user
 			Uint64("clientID", clientID).
 			Str("clientType", "media client").
 			Msg("Client does not implement music provider interface")
-		return models.MediaItem[mediatypes.Artist]{}, fmt.Errorf("client does not implement music provider interface")
+		return models.MediaItem[*mediatypes.Artist]{}, fmt.Errorf("client does not implement music provider interface")
 	}
 
 	options := &mediatypes.QueryOptions{
@@ -247,7 +247,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetArtistByID(ctx context.Context, user
 			Uint64("clientID", clientID).
 			Str("artistID", artistID).
 			Msg("Failed to get artist")
-		return models.MediaItem[mediatypes.Artist]{}, fmt.Errorf("failed to get artist: %w", err)
+		return models.MediaItem[*mediatypes.Artist]{}, fmt.Errorf("failed to get artist: %w", err)
 	}
 
 	if len(artists) == 0 {
@@ -256,14 +256,14 @@ func (s *MediaClientMusicServiceImpl[T]) GetArtistByID(ctx context.Context, user
 			Uint64("clientID", clientID).
 			Str("artistID", artistID).
 			Msg("Artist not found")
-		return models.MediaItem[mediatypes.Artist]{}, fmt.Errorf("artist not found")
+		return models.MediaItem[*mediatypes.Artist]{}, fmt.Errorf("artist not found")
 	}
 
 	return artists[0], nil
 }
 
 // GetTracksByAlbum retrieves all tracks for a specific album
-func (s *MediaClientMusicServiceImpl[T]) GetTracksByAlbum(ctx context.Context, userID, clientID uint64, albumID string) ([]models.MediaItem[mediatypes.Track], error) {
+func (s *MediaClientMusicServiceImpl[T]) GetTracksByAlbum(ctx context.Context, userID, clientID uint64, albumID string) ([]models.MediaItem[*mediatypes.Track], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("userID", userID).
@@ -310,7 +310,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetTracksByAlbum(ctx context.Context, u
 }
 
 // GetAlbumsByArtist retrieves all albums for a specific artist
-func (s *MediaClientMusicServiceImpl[T]) GetAlbumsByArtist(ctx context.Context, userID, clientID uint64, artistID string) ([]models.MediaItem[mediatypes.Album], error) {
+func (s *MediaClientMusicServiceImpl[T]) GetAlbumsByArtist(ctx context.Context, userID, clientID uint64, artistID string) ([]models.MediaItem[*mediatypes.Album], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("userID", userID).
@@ -357,7 +357,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetAlbumsByArtist(ctx context.Context, 
 }
 
 // GetArtistsByGenre retrieves all artists for a specific genre
-func (s *MediaClientMusicServiceImpl[T]) GetArtistsByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[mediatypes.Artist], error) {
+func (s *MediaClientMusicServiceImpl[T]) GetArtistsByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[*mediatypes.Artist], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("userID", userID).
@@ -372,7 +372,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetArtistsByGenre(ctx context.Context, 
 		return nil, fmt.Errorf("failed to get music clients: %w", err)
 	}
 
-	var allArtists []models.MediaItem[mediatypes.Artist]
+	var allArtists []models.MediaItem[*mediatypes.Artist]
 
 	for _, client := range musicClients {
 		musicClient, ok := client.(providers.MusicProvider)
@@ -404,7 +404,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetArtistsByGenre(ctx context.Context, 
 }
 
 // GetAlbumsByGenre retrieves all albums for a specific genre
-func (s *MediaClientMusicServiceImpl[T]) GetAlbumsByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[mediatypes.Album], error) {
+func (s *MediaClientMusicServiceImpl[T]) GetAlbumsByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[*mediatypes.Album], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("userID", userID).
@@ -419,7 +419,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetAlbumsByGenre(ctx context.Context, u
 		return nil, fmt.Errorf("failed to get music clients: %w", err)
 	}
 
-	var allAlbums []models.MediaItem[mediatypes.Album]
+	var allAlbums []models.MediaItem[*mediatypes.Album]
 
 	for _, client := range musicClients {
 		musicClient, ok := client.(providers.MusicProvider)
@@ -451,7 +451,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetAlbumsByGenre(ctx context.Context, u
 }
 
 // GetTracksByGenre retrieves all tracks for a specific genre
-func (s *MediaClientMusicServiceImpl[T]) GetTracksByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[mediatypes.Track], error) {
+func (s *MediaClientMusicServiceImpl[T]) GetTracksByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[*mediatypes.Track], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("userID", userID).
@@ -466,7 +466,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetTracksByGenre(ctx context.Context, u
 		return nil, fmt.Errorf("failed to get music clients: %w", err)
 	}
 
-	var allTracks []models.MediaItem[mediatypes.Track]
+	var allTracks []models.MediaItem[*mediatypes.Track]
 
 	for _, client := range musicClients {
 		musicClient, ok := client.(providers.MusicProvider)
@@ -498,7 +498,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetTracksByGenre(ctx context.Context, u
 }
 
 // GetAlbumsByYear retrieves all albums for a specific release year
-func (s *MediaClientMusicServiceImpl[T]) GetAlbumsByYear(ctx context.Context, userID uint64, year int) ([]models.MediaItem[mediatypes.Album], error) {
+func (s *MediaClientMusicServiceImpl[T]) GetAlbumsByYear(ctx context.Context, userID uint64, year int) ([]models.MediaItem[*mediatypes.Album], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("userID", userID).
@@ -513,7 +513,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetAlbumsByYear(ctx context.Context, us
 		return nil, fmt.Errorf("failed to get music clients: %w", err)
 	}
 
-	var allAlbums []models.MediaItem[mediatypes.Album]
+	var allAlbums []models.MediaItem[*mediatypes.Album]
 
 	for _, client := range musicClients {
 		musicClient, ok := client.(providers.MusicProvider)
@@ -545,7 +545,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetAlbumsByYear(ctx context.Context, us
 }
 
 // GetLatestAlbumsByAdded retrieves the most recently added albums
-func (s *MediaClientMusicServiceImpl[T]) GetLatestAlbumsByAdded(ctx context.Context, userID uint64, count int) ([]models.MediaItem[mediatypes.Album], error) {
+func (s *MediaClientMusicServiceImpl[T]) GetLatestAlbumsByAdded(ctx context.Context, userID uint64, count int) ([]models.MediaItem[*mediatypes.Album], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("userID", userID).
@@ -560,7 +560,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetLatestAlbumsByAdded(ctx context.Cont
 		return nil, fmt.Errorf("failed to get music clients: %w", err)
 	}
 
-	var allAlbums []models.MediaItem[mediatypes.Album]
+	var allAlbums []models.MediaItem[*mediatypes.Album]
 
 	for _, client := range musicClients {
 		musicClient, ok := client.(providers.MusicProvider)
@@ -600,7 +600,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetLatestAlbumsByAdded(ctx context.Cont
 }
 
 // GetPopularAlbums retrieves the most popular albums
-func (s *MediaClientMusicServiceImpl[T]) GetPopularAlbums(ctx context.Context, userID uint64, count int) ([]models.MediaItem[mediatypes.Album], error) {
+func (s *MediaClientMusicServiceImpl[T]) GetPopularAlbums(ctx context.Context, userID uint64, count int) ([]models.MediaItem[*mediatypes.Album], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("userID", userID).
@@ -615,7 +615,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetPopularAlbums(ctx context.Context, u
 		return nil, fmt.Errorf("failed to get music clients: %w", err)
 	}
 
-	var allAlbums []models.MediaItem[mediatypes.Album]
+	var allAlbums []models.MediaItem[*mediatypes.Album]
 
 	for _, client := range musicClients {
 		musicClient, ok := client.(providers.MusicProvider)
@@ -655,7 +655,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetPopularAlbums(ctx context.Context, u
 }
 
 // GetPopularArtists retrieves the most popular artists
-func (s *MediaClientMusicServiceImpl[T]) GetPopularArtists(ctx context.Context, userID uint64, count int) ([]models.MediaItem[mediatypes.Artist], error) {
+func (s *MediaClientMusicServiceImpl[T]) GetPopularArtists(ctx context.Context, userID uint64, count int) ([]models.MediaItem[*mediatypes.Artist], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("userID", userID).
@@ -670,7 +670,7 @@ func (s *MediaClientMusicServiceImpl[T]) GetPopularArtists(ctx context.Context, 
 		return nil, fmt.Errorf("failed to get music clients: %w", err)
 	}
 
-	var allArtists []models.MediaItem[mediatypes.Artist]
+	var allArtists []models.MediaItem[*mediatypes.Artist]
 
 	for _, client := range musicClients {
 		musicClient, ok := client.(providers.MusicProvider)
@@ -787,3 +787,4 @@ func (s *MediaClientMusicServiceImpl[T]) SearchMusic(ctx context.Context, userID
 
 	return results, nil
 }
+

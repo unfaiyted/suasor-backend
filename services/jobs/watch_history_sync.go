@@ -6,6 +6,7 @@ import (
 	"log"
 	"suasor/client/media"
 	mediatypes "suasor/client/media/types"
+	"suasor/client/types"
 	"suasor/repository"
 	"suasor/services/scheduler"
 	"suasor/types/models"
@@ -24,7 +25,7 @@ type WatchHistorySyncJob struct {
 	seriesRepo  repository.MediaItemRepository[*mediatypes.Series]
 	episodeRepo repository.MediaItemRepository[*mediatypes.Episode]
 	musicRepo   repository.MediaItemRepository[*mediatypes.Track]
-	clientRepo  interface{} // Generic client repository
+	clientRepo  repository.ClientRepository[*types.EmbyConfig] // Representative client repository
 }
 
 // NewWatchHistorySyncJob creates a new watch history sync job
@@ -37,7 +38,7 @@ func NewWatchHistorySyncJob(
 	seriesRepo repository.MediaItemRepository[*mediatypes.Series],
 	episodeRepo repository.MediaItemRepository[*mediatypes.Episode],
 	musicRepo repository.MediaItemRepository[*mediatypes.Track],
-	clientRepo interface{}, // Generic client repository
+	clientRepo repository.ClientRepository[*types.EmbyConfig], // Representative client repository
 ) *WatchHistorySyncJob {
 	return &WatchHistorySyncJob{
 		jobRepo:     jobRepo,
@@ -241,15 +242,53 @@ func (j *WatchHistorySyncJob) syncClientHistory(ctx context.Context, userID uint
 		return fmt.Errorf("failed to get media client: %w", err)
 	}
 	
+	// TODO: When implementing the full functionality,
+	// uncomment the mediaClient variable and use it to retrieve history
+	
 	// Update job progress
 	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 20, "Fetching play history from client")
 	
 	// In a real implementation, we would:
 	// 1. Check if client supports play history
 	// 2. Get play history for movies, series, music
-	// 3. Store the history in our database
+	// 3. Process each history item and match it to our database items using ClientIDs array
 	
-	// Simulate some work
+	// Example implementation stub for processing history items:
+	/*
+	historyItems, err := mediaClient.GetRecentlyPlayed(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get play history: %w", err)
+	}
+	
+	for _, historyItem := range historyItems {
+		// For each history item, find the corresponding media item in our database
+		// using the new ClientIDs array-based structure
+		
+		// For movies:
+		for _, movieID := range historyItem.MovieIDs {
+			// Find the movie in our database using clientItemID
+			existingMovie, err := j.movieRepo.GetByClientItemID(ctx, movieID, client.ClientID)
+			if err != nil {
+				// Skip if movie not found
+				continue
+			}
+			
+			// Record the watch history for this movie
+			j.historyRepo.CreateMediaPlayHistory(ctx, &models.MediaPlayHistory{
+				UserID:       userID,
+				MediaItemID:  existingMovie.ID,
+				MediaType:    models.MediaTypeMovie,
+				PlayedAt:     historyItem.PlayedAt,
+				ClientID:     client.ClientID,
+				ClientItemID: movieID,
+			})
+		}
+		
+		// Similar processing for series, episodes, and music
+	}
+	*/
+	
+	// Simulate some work for now
 	time.Sleep(100 * time.Millisecond)
 	
 	// Updated progress

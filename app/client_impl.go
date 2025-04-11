@@ -22,6 +22,26 @@ type clientServicesImpl struct {
 	claudeService   services.ClientService[*types.ClaudeConfig]
 	openaiService   services.ClientService[*types.OpenAIConfig]
 	ollamaService   services.ClientService[*types.OllamaConfig]
+	allServices     map[string]services.ClientService[types.ClientConfig]
+}
+
+func (s *clientServicesImpl) AllServices() map[string]services.ClientService[types.ClientConfig] {
+	if s.allServices == nil {
+		s.allServices = map[string]services.ClientService[types.ClientConfig]{
+			"emby":     s.embyService.(services.ClientService[types.ClientConfig]),
+			"jellyfin": s.jellyfinService.(services.ClientService[types.ClientConfig]),
+			"plex":     s.plexService.(services.ClientService[types.ClientConfig]),
+			"subsonic": s.subsonicService.(services.ClientService[types.ClientConfig]),
+			"sonarr":   s.sonarrService.(services.ClientService[types.ClientConfig]),
+			"radarr":   s.radarrService.(services.ClientService[types.ClientConfig]),
+			"lidarr":   s.lidarrService.(services.ClientService[types.ClientConfig]),
+			"claude":   s.claudeService.(services.ClientService[types.ClientConfig]),
+			"openai":   s.openaiService.(services.ClientService[types.ClientConfig]),
+			"ollama":   s.ollamaService.(services.ClientService[types.ClientConfig]),
+		}
+	}
+
+	return s.allServices
 }
 
 func (s *clientServicesImpl) ClaudeService() services.ClientService[*types.ClaudeConfig] {
@@ -197,6 +217,46 @@ type clientRepositoriesImpl struct {
 	claudeRepo   repository.ClientRepository[*types.ClaudeConfig]
 	openaiRepo   repository.ClientRepository[*types.OpenAIConfig]
 	ollamaRepo   repository.ClientRepository[*types.OllamaConfig]
+}
+
+// AllRepos returns all client repositories in a type-safe struct
+func (r *clientRepositoriesImpl) AllRepos() repository.ClientRepoCollection {
+	return repository.ClientRepoCollection{
+		EmbyRepo:     r.embyRepo,
+		JellyfinRepo: r.jellyfinRepo,
+		PlexRepo:     r.plexRepo,
+		SubsonicRepo: r.subsonicRepo,
+		SonarrRepo:   r.sonarrRepo,
+		RadarrRepo:   r.radarrRepo,
+		LidarrRepo:   r.lidarrRepo,
+		ClaudeRepo:   r.claudeRepo,
+		OpenAIRepo:   r.openaiRepo,
+		OllamaRepo:   r.ollamaRepo,
+	}
+}
+
+// GetAllByCategory returns repositories filtered by category
+func (r *clientRepositoriesImpl) GetAllByCategory(category types.ClientCategory) repository.ClientRepoCollection {
+	allRepos := r.AllRepos()
+	filteredRepos := repository.ClientRepoCollection{}
+	
+	// Only populate repositories that match the category
+	if category == types.ClientCategoryMedia {
+		filteredRepos.EmbyRepo = allRepos.EmbyRepo
+		filteredRepos.JellyfinRepo = allRepos.JellyfinRepo
+		filteredRepos.PlexRepo = allRepos.PlexRepo
+		filteredRepos.SubsonicRepo = allRepos.SubsonicRepo
+	} else if category == types.ClientCategoryAutomation {
+		filteredRepos.SonarrRepo = allRepos.SonarrRepo
+		filteredRepos.RadarrRepo = allRepos.RadarrRepo
+		filteredRepos.LidarrRepo = allRepos.LidarrRepo
+	} else if category == types.ClientCategoryAI {
+		filteredRepos.ClaudeRepo = allRepos.ClaudeRepo
+		filteredRepos.OpenAIRepo = allRepos.OpenAIRepo
+		filteredRepos.OllamaRepo = allRepos.OllamaRepo
+	}
+	
+	return filteredRepos
 }
 
 func (r *clientRepositoriesImpl) ClaudeRepo() repository.ClientRepository[*types.ClaudeConfig] {

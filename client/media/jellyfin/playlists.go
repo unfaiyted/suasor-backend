@@ -10,7 +10,7 @@ import (
 	"suasor/utils"
 )
 
-func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[t.Playlist], error) {
+func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[*t.Playlist], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -56,11 +56,11 @@ func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 		Msg("Successfully retrieved playlists from Jellyfin")
 
 	// Convert results to expected format
-	playlists := make([]models.MediaItem[t.Playlist], 0)
+	playlists := make([]models.MediaItem[*t.Playlist], 0)
 	for _, item := range result.Items {
 		if *item.Type == "Playlist" {
-			playlist := models.MediaItem[t.Playlist]{
-				Data: t.Playlist{
+			playlist := models.MediaItem[*t.Playlist]{
+				Data: &t.Playlist{
 					Details: t.MediaDetails{
 						Title:       *item.Name.Get(),
 						Description: *item.Overview.Get(),

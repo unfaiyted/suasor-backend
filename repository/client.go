@@ -18,11 +18,31 @@ type ClientRepository[T types.ClientConfig] interface {
 	Update(ctx context.Context, client models.Client[T]) (*models.Client[T], error)
 
 	// Common operations
-	GetByID(ctx context.Context, id, userID uint64) (*models.Client[T], error)
+	GetByID(ctx context.Context, id uint64) (*models.Client[T], error)
 	GetByUserID(ctx context.Context, userID uint64) ([]*models.Client[T], error)
 	GetByCategory(ctx context.Context, clientType types.ClientCategory, userID uint64) ([]*models.Client[T], error)
 	GetByType(ctx context.Context, clientType types.ClientType, userID uint64) ([]*models.Client[T], error)
 	Delete(ctx context.Context, id, userID uint64) error
+}
+
+// ClientRepoCollection is a struct that contains all typed client repositories
+type ClientRepoCollection struct {
+	EmbyRepo     ClientRepository[*types.EmbyConfig]
+	JellyfinRepo ClientRepository[*types.JellyfinConfig]
+	PlexRepo     ClientRepository[*types.PlexConfig]
+	SubsonicRepo ClientRepository[*types.SubsonicConfig]
+	SonarrRepo   ClientRepository[*types.SonarrConfig]
+	RadarrRepo   ClientRepository[*types.RadarrConfig]
+	LidarrRepo   ClientRepository[*types.LidarrConfig]
+	ClaudeRepo   ClientRepository[*types.ClaudeConfig]
+	OpenAIRepo   ClientRepository[*types.OpenAIConfig]
+	OllamaRepo   ClientRepository[*types.OllamaConfig]
+}
+
+// ClientRepositoryCollection defines an interface for accessing multiple client repositories
+type ClientRepositoryCollection interface {
+	AllRepos() ClientRepoCollection
+	GetAllByCategory(category types.ClientCategory) ClientRepoCollection
 }
 
 type clientRepository[T types.ClientConfig] struct {
@@ -41,7 +61,7 @@ func (r *clientRepository[T]) Create(ctx context.Context, client models.Client[T
 		return nil, fmt.Errorf("failed to create %s client: %w", clientType, err)
 	}
 
-	updatedClient, err := r.GetByID(ctx, client.ID, client.UserID)
+	updatedClient, err := r.GetByID(ctx, client.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -86,11 +106,10 @@ func (r *clientRepository[T]) Update(ctx context.Context, client models.Client[T
 }
 
 // GetByID retrieves a media client by ID
-func (r *clientRepository[T]) GetByID(ctx context.Context, id, userID uint64) (*models.Client[T], error) {
+func (r *clientRepository[T]) GetByID(ctx context.Context, id uint64) (*models.Client[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	var client models.Client[T]
 	log.Debug().
-		Uint64("userID", userID).
 		Uint64("clientID", id).
 		Str("clientType", client.GetType().String()).
 		Msg("Retrieving client")
@@ -100,14 +119,12 @@ func (r *clientRepository[T]) GetByID(ctx context.Context, id, userID uint64) (*
 		First(&client).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			log.Warn().
-				Uint64("userID", userID).
 				Uint64("clientID", id).
 				Str("clientType", client.GetType().String()).
 				Msg("Client not found")
 			return nil, fmt.Errorf("client not found")
 		}
 		log.Error().
-			Uint64("userID", userID).
 			Uint64("clientID", id).
 			Str("clientType", client.GetType().String()).
 			Err(err).

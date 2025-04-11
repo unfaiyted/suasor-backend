@@ -14,33 +14,60 @@ import (
 )
 
 func createTrackMediaItem(clientID uint64, clientType clienttypes.MediaClientType, externalID string, data mediatypes.Track) models.MediaItem[mediatypes.Track] {
-	return models.MediaItem[mediatypes.Track]{
-		Type:       mediatypes.MediaTypeTrack,
-		ClientID:   clientID,
-		ClientType: clientType,
-		ExternalID: externalID,
-		Data:       data,
+	mediaItem := models.MediaItem[mediatypes.Track]{
+		Type:        mediatypes.MediaTypeTrack,
+		ClientIDs:   []models.ClientID{},
+		ExternalIDs: []models.ExternalID{},
+		Data:        data,
 	}
+	
+	// Set client info
+	mediaItem.SetClientInfo(clientID, clientType, externalID)
+	
+	// Only add external ID if provided
+	if externalID != "" {
+		mediaItem.AddExternalID("client", externalID)
+	}
+	
+	return mediaItem
 }
 
 func createAlbumMediaItem(clientID uint64, clientType clienttypes.MediaClientType, externalID string, data mediatypes.Album) models.MediaItem[mediatypes.Album] {
-	return models.MediaItem[mediatypes.Album]{
-		Type:       mediatypes.MediaTypeAlbum,
-		ClientID:   clientID,
-		ClientType: clientType,
-		ExternalID: externalID,
-		Data:       data,
+	mediaItem := models.MediaItem[mediatypes.Album]{
+		Type:        mediatypes.MediaTypeAlbum,
+		ClientIDs:   []models.ClientID{},
+		ExternalIDs: []models.ExternalID{},
+		Data:        data,
 	}
+	
+	// Set client info
+	mediaItem.SetClientInfo(clientID, clientType, externalID)
+	
+	// Only add external ID if provided
+	if externalID != "" {
+		mediaItem.AddExternalID("client", externalID)
+	}
+	
+	return mediaItem
 }
 
 func createArtistMediaItem(clientID uint64, clientType clienttypes.MediaClientType, externalID string, data mediatypes.Artist) models.MediaItem[mediatypes.Artist] {
-	return models.MediaItem[mediatypes.Artist]{
-		Type:       mediatypes.MediaTypeArtist,
-		ClientID:   clientID,
-		ClientType: clientType,
-		ExternalID: externalID,
-		Data:       data,
+	mediaItem := models.MediaItem[mediatypes.Artist]{
+		Type:        mediatypes.MediaTypeArtist,
+		ClientIDs:   []models.ClientID{},
+		ExternalIDs: []models.ExternalID{},
+		Data:        data,
 	}
+	
+	// Set client info
+	mediaItem.SetClientInfo(clientID, clientType, externalID)
+	
+	// Only add external ID if provided
+	if externalID != "" {
+		mediaItem.AddExternalID("client", externalID)
+	}
+	
+	return mediaItem
 }
 
 // MediaClientMusicHandler handles music-related operations for media clients

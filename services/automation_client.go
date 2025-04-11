@@ -36,13 +36,13 @@ type AutomationClientService interface {
 
 type automationClientService struct {
 	clientRepo    repository.ClientRepository[types.AutomationClientConfig]
-	clientFactory client.ClientFactoryService
+	clientFactory *client.ClientFactoryService
 }
 
 // NewAutomationClientService creates a new automation client service
 func NewAutomationClientService(
 	clientRepo repository.ClientRepository[types.AutomationClientConfig],
-	clientFactory client.ClientFactoryService,
+	clientFactory *client.ClientFactoryService,
 ) AutomationClientService {
 	return &automationClientService{
 		clientRepo:    clientRepo,
@@ -52,7 +52,7 @@ func NewAutomationClientService(
 
 // getAutomationClient gets a specific automation client for a user
 func (s *automationClientService) getAutomationClient(ctx context.Context, userID, clientID uint64) (automation.AutomationClient, error) {
-	clientConfig, err := s.clientRepo.GetByID(ctx, clientID, userID)
+	clientConfig, err := s.clientRepo.GetByID(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}

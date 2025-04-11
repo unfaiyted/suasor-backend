@@ -55,6 +55,20 @@ definitions:
     properties:
       data: {}
     type: object
+  models.ClientID:
+    properties:
+      clientId:
+        description: ID of the client that this external ID belongs to (optional for
+          service IDs like TMDB)
+        type: integer
+      clientType:
+        allOf:
+        - $ref: '#/definitions/types.ClientType'
+        description: Type of client this ID belongs to (optional for service IDs)
+      itemId:
+        description: The actual ID value in the external system
+        type: string
+    type: object
   models.DefaultClients:
     properties:
       aiClientId:
@@ -83,6 +97,15 @@ definitions:
       videoClientId:
         example: 1
         type: integer
+    type: object
+  models.ExternalID:
+    properties:
+      id:
+        description: The actual ID
+        type: string
+      source:
+        description: e.g., "tmdb", "imdb", "trakt", "tvdb"
+        type: string
     type: object
   models.Genres:
     properties:
@@ -279,13 +302,11 @@ definitions:
     type: object
   models.MediaItem-suasor_client_media_types_Movie:
     properties:
-      clientId:
-        description: Reference to the media client
-        type: integer
-      clientType:
-        allOf:
-        - $ref: '#/definitions/types.MediaClientType'
-        description: Type of client (plex, jellyfin, etc.)
+      clientIds:
+        description: Client IDs for this item (mapping client to their IDs)
+        items:
+          $ref: '#/definitions/models.ClientID'
+        type: array
       createdAt:
         type: string
       data:
@@ -294,13 +315,21 @@ definitions:
         description: Type-specific media data
       downloadUrl:
         type: string
-      externalId:
-        description: ID from external media client
-        type: string
+      externalIds:
+        description: External IDs for this item (TMDB, IMDB, etc.)
+        items:
+          $ref: '#/definitions/models.ExternalID'
+        type: array
       id:
         description: Internal ID
         type: integer
+      releaseDate:
+        type: string
+      releaseYear:
+        type: integer
       streamUrl:
+        type: string
+      title:
         type: string
       type:
         allOf:
@@ -311,13 +340,11 @@ definitions:
     type: object
   models.MediaItem-types_Album:
     properties:
-      clientId:
-        description: Reference to the media client
-        type: integer
-      clientType:
-        allOf:
-        - $ref: '#/definitions/types.MediaClientType'
-        description: Type of client (plex, jellyfin, etc.)
+      clientIds:
+        description: Client IDs for this item (mapping client to their IDs)
+        items:
+          $ref: '#/definitions/models.ClientID'
+        type: array
       createdAt:
         type: string
       data:
@@ -326,13 +353,21 @@ definitions:
         description: Type-specific media data
       downloadUrl:
         type: string
-      externalId:
-        description: ID from external media client
-        type: string
+      externalIds:
+        description: External IDs for this item (TMDB, IMDB, etc.)
+        items:
+          $ref: '#/definitions/models.ExternalID'
+        type: array
       id:
         description: Internal ID
         type: integer
+      releaseDate:
+        type: string
+      releaseYear:
+        type: integer
       streamUrl:
+        type: string
+      title:
         type: string
       type:
         allOf:
@@ -343,13 +378,11 @@ definitions:
     type: object
   models.MediaItem-types_Artist:
     properties:
-      clientId:
-        description: Reference to the media client
-        type: integer
-      clientType:
-        allOf:
-        - $ref: '#/definitions/types.MediaClientType'
-        description: Type of client (plex, jellyfin, etc.)
+      clientIds:
+        description: Client IDs for this item (mapping client to their IDs)
+        items:
+          $ref: '#/definitions/models.ClientID'
+        type: array
       createdAt:
         type: string
       data:
@@ -358,13 +391,21 @@ definitions:
         description: Type-specific media data
       downloadUrl:
         type: string
-      externalId:
-        description: ID from external media client
-        type: string
+      externalIds:
+        description: External IDs for this item (TMDB, IMDB, etc.)
+        items:
+          $ref: '#/definitions/models.ExternalID'
+        type: array
       id:
         description: Internal ID
         type: integer
+      releaseDate:
+        type: string
+      releaseYear:
+        type: integer
       streamUrl:
+        type: string
+      title:
         type: string
       type:
         allOf:
@@ -375,13 +416,11 @@ definitions:
     type: object
   models.MediaItem-types_Playlist:
     properties:
-      clientId:
-        description: Reference to the media client
-        type: integer
-      clientType:
-        allOf:
-        - $ref: '#/definitions/types.MediaClientType'
-        description: Type of client (plex, jellyfin, etc.)
+      clientIds:
+        description: Client IDs for this item (mapping client to their IDs)
+        items:
+          $ref: '#/definitions/models.ClientID'
+        type: array
       createdAt:
         type: string
       data:
@@ -390,13 +429,21 @@ definitions:
         description: Type-specific media data
       downloadUrl:
         type: string
-      externalId:
-        description: ID from external media client
-        type: string
+      externalIds:
+        description: External IDs for this item (TMDB, IMDB, etc.)
+        items:
+          $ref: '#/definitions/models.ExternalID'
+        type: array
       id:
         description: Internal ID
         type: integer
+      releaseDate:
+        type: string
+      releaseYear:
+        type: integer
       streamUrl:
+        type: string
+      title:
         type: string
       type:
         allOf:
@@ -407,13 +454,11 @@ definitions:
     type: object
   models.MediaItem-types_Series:
     properties:
-      clientId:
-        description: Reference to the media client
-        type: integer
-      clientType:
-        allOf:
-        - $ref: '#/definitions/types.MediaClientType'
-        description: Type of client (plex, jellyfin, etc.)
+      clientIds:
+        description: Client IDs for this item (mapping client to their IDs)
+        items:
+          $ref: '#/definitions/models.ClientID'
+        type: array
       createdAt:
         type: string
       data:
@@ -422,13 +467,21 @@ definitions:
         description: Type-specific media data
       downloadUrl:
         type: string
-      externalId:
-        description: ID from external media client
-        type: string
+      externalIds:
+        description: External IDs for this item (TMDB, IMDB, etc.)
+        items:
+          $ref: '#/definitions/models.ExternalID'
+        type: array
       id:
         description: Internal ID
         type: integer
+      releaseDate:
+        type: string
+      releaseYear:
+        type: integer
       streamUrl:
+        type: string
+      title:
         type: string
       type:
         allOf:
@@ -439,13 +492,11 @@ definitions:
     type: object
   models.MediaItem-types_Track:
     properties:
-      clientId:
-        description: Reference to the media client
-        type: integer
-      clientType:
-        allOf:
-        - $ref: '#/definitions/types.MediaClientType'
-        description: Type of client (plex, jellyfin, etc.)
+      clientIds:
+        description: Client IDs for this item (mapping client to their IDs)
+        items:
+          $ref: '#/definitions/models.ClientID'
+        type: array
       createdAt:
         type: string
       data:
@@ -454,13 +505,21 @@ definitions:
         description: Type-specific media data
       downloadUrl:
         type: string
-      externalId:
-        description: ID from external media client
-        type: string
+      externalIds:
+        description: External IDs for this item (TMDB, IMDB, etc.)
+        items:
+          $ref: '#/definitions/models.ExternalID'
+        type: array
       id:
         description: Internal ID
         type: integer
+      releaseDate:
+        type: string
+      releaseYear:
+        type: integer
       streamUrl:
+        type: string
+      title:
         type: string
       type:
         allOf:
@@ -503,6 +562,21 @@ definitions:
       userId:
         description: ID of the user
         type: integer
+    type: object
+  models.PrivacySettings:
+    properties:
+      publicProfile:
+        example: true
+        type: boolean
+      shareRecommendations:
+        example: true
+        type: boolean
+      showRecommendationList:
+        example: true
+        type: boolean
+      showWatchHistory:
+        example: true
+        type: boolean
     type: object
   models.Recommendation:
     properties:
@@ -568,6 +642,18 @@ definitions:
     - RecommendationSourceAI
     - RecommendationSourceSystem
     - RecommendationSourceManual
+  models.SocialLinks:
+    properties:
+      lastfm:
+        example: https://last.fm/user/faiyt
+        type: string
+      letterboxd:
+        example: https://letterboxd.com/faiyt
+        type: string
+      trakt:
+        example: https://trakt.tv/users/faiyt
+        type: string
+    type: object
   models.UserConfig:
     description: User-specific configuration stored in the database
     properties:
@@ -584,6 +670,10 @@ definitions:
         - analytical
         - custom
         example: serious
+        type: string
+      bio:
+        description: Profile settings
+        example: I'm a developer
         type: string
       contentAvailabilityEnabled:
         description: Content Availability Settings
@@ -707,6 +797,8 @@ definitions:
         type: string
       preferredGenres:
         $ref: '#/definitions/models.Genres'
+      privacySettings:
+        $ref: '#/definitions/models.PrivacySettings'
       recommendationContentTypes:
         description: What content types with be part of the auto sync recommendations
         example: movie,series,tv,book
@@ -762,6 +854,8 @@ definitions:
         description: Smart Collections Settings
         example: true
         type: boolean
+      socialLinks:
+        $ref: '#/definitions/models.SocialLinks'
       theme:
         description: UI Preferences
         enum:
@@ -1660,7 +1754,7 @@ definitions:
         description: Can be any of the config types
       clientType:
         allOf:
-        - $ref: '#/definitions/types.MediaClientType'
+        - $ref: '#/definitions/types.ClientType'
         example: plex
       createdAt:
         example: "2023-01-01T12:00:00Z"
@@ -2729,6 +2823,8 @@ definitions:
       details:
         $ref: '#/definitions/types.MediaDetails'
       discNumber:
+        type: integer
+      duration:
         type: integer
       lyrics:
         type: string

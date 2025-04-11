@@ -10,7 +10,7 @@ import (
 	"suasor/utils"
 )
 
-func (j *JellyfinClient) GetCollections(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[t.Collection], error) {
+func (j *JellyfinClient) GetCollections(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[*t.Collection], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -54,7 +54,7 @@ func (j *JellyfinClient) GetCollections(ctx context.Context, options *t.QueryOpt
 		Msg("Successfully retrieved collections from Jellyfin")
 
 	// Convert results to expected format
-	collections := make([]models.MediaItem[t.Collection], 0)
+	collections := make([]models.MediaItem[*t.Collection], 0)
 	for _, item := range result.Items {
 		if *item.Type == "BoxSet" {
 			collection, err := j.convertToCollection(ctx, &item)

@@ -13,7 +13,7 @@ import (
 )
 
 // GetPlaylists retrieves playlists from the Emby server
-func (e *EmbyClient) GetPlaylists(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[types.Playlist], error) {
+func (e *EmbyClient) GetPlaylists(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[*types.Playlist], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -44,7 +44,7 @@ func (e *EmbyClient) GetPlaylists(ctx context.Context, options *types.QueryOptio
 		Int("totalRecordCount", int(items.TotalRecordCount)).
 		Msg("Successfully retrieved playlists from Emby")
 
-	playlists := make([]models.MediaItem[types.Playlist], 0)
+	playlists := make([]models.MediaItem[*types.Playlist], 0)
 	for _, item := range items.Items {
 		if item.Type_ == "Playlist" {
 			playlist, err := e.convertToPlaylist(&item)

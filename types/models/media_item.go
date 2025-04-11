@@ -12,20 +12,43 @@ import (
 
 // MediaItem is the base type for all media items
 type MediaItem[T types.MediaData] struct {
-	ID          uint64                 `json:"id" gorm:"primaryKey;autoIncrement"` // Internal ID
-	ExternalID  string                 `json:"externalId" gorm:"index;size:255"`   // ID from external media client
-	ClientID    uint64                 `json:"clientId" gorm:"index"`              // Reference to the media client
-	ClientType  client.MediaClientType `json:"clientType" gorm:"type:varchar(50)"` // Type of client (plex, jellyfin, etc.)
-	Type        types.MediaType        `json:"type" gorm:"type:varchar(50)"`       // Type of media (movie, show, episode, etc.)
-	StreamURL   string                 `json:"streamUrl,omitempty" gorm:"size:1024"`
-	DownloadURL string                 `json:"downloadUrl,omitempty" gorm:"size:1024"`
-	Data        T                      `json:"data" gorm:"type:jsonb"` // Type-specific media data
-	CreatedAt   time.Time              `json:"createdAt" gorm:"autoCreateTime"`
-	UpdatedAt   time.Time              `json:"updatedAt" gorm:"autoUpdateTime"`
+	ID          uint64      `json:"id" gorm:"primaryKey;autoIncrement"` // Internal ID
+	ClientIDs   ClientIDs   `json:"clientIds" gorm:"type:jsonb"`        // Client IDs for this item (mapping client to their IDs)
+	ExternalIDs ExternalIDs `json:"externalIds" gorm:"type:jsonb"`      // External IDs for this item (TMDB, IMDB, etc.)
+
+	Type        types.MediaType `json:"type" gorm:"type:varchar(50)"` // Type of media (movie, show, episode, etc.)
+	Title       string          `json:"title"`
+	ReleaseDate time.Time       `json:"releaseDate,omitempty"`
+	ReleaseYear int             `json:"releaseYear,omitempty"`
+
+	StreamURL   string    `json:"streamUrl,omitempty" gorm:"size:1024"`
+	DownloadURL string    `json:"downloadUrl,omitempty" gorm:"size:1024"`
+	Data        T         `json:"data" gorm:"type:jsonb"` // Type-specific media data
+	CreatedAt   time.Time `json:"createdAt" gorm:"autoCreateTime"`
+	UpdatedAt   time.Time `json:"updatedAt" gorm:"autoUpdateTime"`
 }
 
+// ExternalID represents an ID that identifies this media item in an external system
+type ClientID struct {
+	// ID of the client that this external ID belongs to (optional for service IDs like TMDB)
+	ID uint64 `json:"clientId,omitempty"`
+	// Type of client this ID belongs to (optional for service IDs)
+	Type client.ClientType `json:"clientType,omitempty" gorm:"type:varchar(50)"`
+	// The actual ID value in the external system
+	ItemID string `json:"itemId"`
+}
+
+type ClientIDs = []ClientID
+
+type ExternalID struct {
+	Source string `json:"source"` // e.g., "tmdb", "imdb", "trakt", "tvdb"
+	ID     string `json:"id"`     // The actual ID
+}
+
+type ExternalIDs = []ExternalID
+
 func (MediaItem[T]) TableName() string {
-	return "mediaItems"
+	return "media_items"
 }
 
 // Custom serialization for GORM and JSON
@@ -86,11 +109,107 @@ func (m *MediaItem[T]) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Implement this interface for MediaItem[T]
+// SetClientInfo adds or updates client ID information for this media item
 func (m *MediaItem[T]) SetClientInfo(clientID uint64, clientType client.MediaClientType, clientItemKey string) {
-	m.ClientID = clientID
-	m.ClientType = clientType
-	m.ExternalID = clientItemKey
+	// Add to ClientIDs
+	found := false
+	genericType := clientType.AsGenericType()
+
+	for i, id := range m.ClientIDs {
+		if id.ID == clientID && id.Type == genericType {
+			// Update existing entry
+			m.ClientIDs[i].ItemID = clientItemKey
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		// Add new entry
+		m.ClientIDs = append(m.ClientIDs, ClientID{
+			ID:     clientID,
+			Type:   genericType,
+			ItemID: clientItemKey,
+		})
+	}
+}
+
+// AddExternalID adds or updates an external ID for this media item
+func (m *MediaItem[T]) AddExternalID(source string, id string) {
+	if id == "" {
+		return
+	}
+
+	// Check if external ID already exists
+	found := false
+	for i, extID := range m.ExternalIDs {
+		if extID.Source == source {
+			// Update existing entry
+			m.ExternalIDs[i].ID = id
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		// Add new entry
+		m.ExternalIDs = append(m.ExternalIDs, ExternalID{
+			Source: source,
+			ID:     id,
+		})
+	}
+}
+
+// GetExternalID retrieves an external ID by source
+func (m *MediaItem[T]) GetExternalID(source string) (string, bool) {
+	for _, extID := range m.ExternalIDs {
+		if extID.Source == source {
+			return extID.ID, true
+		}
+	}
+	return "", false
+}
+
+// GetClientItemID retrieves the item ID for a specific client
+func (m *MediaItem[T]) GetClientItemID(clientID uint64, clientType client.ClientType) (string, bool) {
+	for _, cID := range m.ClientIDs {
+		if cID.ID == clientID && cID.Type == clientType {
+			return cID.ItemID, true
+		}
+	}
+	return "", false
+}
+
+func (m *MediaItem[T]) AddClientID(clientID uint64, clientType client.ClientType, itemID string) {
+	if itemID == "" {
+		return
+	}
+
+	// Check if client ID already exists
+	found := false
+	for i, cID := range m.ClientIDs {
+		if cID.ID == clientID && cID.Type == clientType {
+			// Update existing entry
+			m.ClientIDs[i].ItemID = itemID
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		// Add new entry
+		m.ClientIDs = append(m.ClientIDs, ClientID{
+			ID:     clientID,
+			Type:   clientType,
+			ItemID: itemID,
+		})
+	}
+}
+
+// GetClientItemIDByMediaType retrieves the item ID for a specific media client
+func (m *MediaItem[T]) GetClientItemIDByMediaType(clientID uint64, clientType client.MediaClientType) (string, bool) {
+	genericType := clientType.AsGenericClient()
+	return m.GetClientItemID(clientID, genericType)
 }
 
 func (m *MediaItem[T]) GetData() T {
@@ -184,25 +303,65 @@ func (m *MediaItem[T]) AsPlaylist() (MediaItem[types.Playlist], bool) {
 
 // CreateMediaItem creates a new MediaItem of the appropriate type
 func CreateMediaItem(mediaType types.MediaType) (any, error) {
+	// Initialize with empty arrays for ClientIDs and ExternalIDs
+	clientIDs := make(ClientIDs, 0)
+	externalIDs := make(ExternalIDs, 0)
+
 	switch mediaType {
 	case types.MediaTypeMovie:
-		return &MediaItem[types.Movie]{Type: mediaType}, nil
+		return &MediaItem[types.Movie]{
+			Type:        mediaType,
+			ClientIDs:   clientIDs,
+			ExternalIDs: externalIDs,
+		}, nil
 	case types.MediaTypeSeries:
-		return &MediaItem[types.Series]{Type: mediaType}, nil
+		return &MediaItem[types.Series]{
+			Type:        mediaType,
+			ClientIDs:   clientIDs,
+			ExternalIDs: externalIDs,
+		}, nil
 	case types.MediaTypeEpisode:
-		return &MediaItem[types.Episode]{Type: mediaType}, nil
+		return &MediaItem[types.Episode]{
+			Type:        mediaType,
+			ClientIDs:   clientIDs,
+			ExternalIDs: externalIDs,
+		}, nil
 	case types.MediaTypeSeason:
-		return &MediaItem[types.Season]{Type: mediaType}, nil
+		return &MediaItem[types.Season]{
+			Type:        mediaType,
+			ClientIDs:   clientIDs,
+			ExternalIDs: externalIDs,
+		}, nil
 	case types.MediaTypeTrack:
-		return &MediaItem[types.Track]{Type: mediaType}, nil
+		return &MediaItem[types.Track]{
+			Type:        mediaType,
+			ClientIDs:   clientIDs,
+			ExternalIDs: externalIDs,
+		}, nil
 	case types.MediaTypeAlbum:
-		return &MediaItem[types.Album]{Type: mediaType}, nil
+		return &MediaItem[types.Album]{
+			Type:        mediaType,
+			ClientIDs:   clientIDs,
+			ExternalIDs: externalIDs,
+		}, nil
 	case types.MediaTypeArtist:
-		return &MediaItem[types.Artist]{Type: mediaType}, nil
+		return &MediaItem[types.Artist]{
+			Type:        mediaType,
+			ClientIDs:   clientIDs,
+			ExternalIDs: externalIDs,
+		}, nil
 	case types.MediaTypeCollection:
-		return &MediaItem[types.Collection]{Type: mediaType}, nil
+		return &MediaItem[types.Collection]{
+			Type:        mediaType,
+			ClientIDs:   clientIDs,
+			ExternalIDs: externalIDs,
+		}, nil
 	case types.MediaTypePlaylist:
-		return &MediaItem[types.Playlist]{Type: mediaType}, nil
+		return &MediaItem[types.Playlist]{
+			Type:        mediaType,
+			ClientIDs:   clientIDs,
+			ExternalIDs: externalIDs,
+		}, nil
 	default:
 		return nil, fmt.Errorf("unknown media type: %s", mediaType)
 	}

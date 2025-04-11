@@ -7,13 +7,13 @@ import (
 	"time"
 )
 
-func (c *SubsonicClient) convertChildToTrack(song gosonic.Child) models.MediaItem[t.Track] {
+func (c *SubsonicClient) convertChildToTrack(song gosonic.Child) models.MediaItem[*t.Track] {
 	// Duration is in seconds, keep as int64
 	duration := time.Duration(song.Duration) * time.Second
 
-	track := models.MediaItem[t.Track]{
+	track := models.MediaItem[*t.Track]{
 		Type: "music",
-		Data: t.Track{
+		Data: &t.Track{
 			Details: t.MediaDetails{
 				Title:       song.Title,
 				Duration:    int64(duration.Seconds()),

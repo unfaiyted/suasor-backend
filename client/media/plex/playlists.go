@@ -12,7 +12,7 @@ import (
 )
 
 // GetPlaylists retrieves playlists from Plex
-func (c *PlexClient) GetPlaylists(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[types.Playlist], error) {
+func (c *PlexClient) GetPlaylists(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[*types.Playlist], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -37,7 +37,7 @@ func (c *PlexClient) GetPlaylists(ctx context.Context, options *types.QueryOptio
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No playlists found in Plex")
-		return []models.MediaItem[types.Playlist]{}, nil
+		return []models.MediaItem[*types.Playlist]{}, nil
 	}
 
 	log.Info().
@@ -46,11 +46,10 @@ func (c *PlexClient) GetPlaylists(ctx context.Context, options *types.QueryOptio
 		Int("totalItems", len(res.Object.MediaContainer.Metadata)).
 		Msg("Successfully retrieved playlists from Plex")
 
-	playlists := make([]models.MediaItem[types.Playlist], 0, len(res.Object.MediaContainer.Metadata))
+	playlists := make([]models.MediaItem[*types.Playlist], 0, len(res.Object.MediaContainer.Metadata))
 	for _, item := range res.Object.MediaContainer.Metadata {
-		playlist := models.MediaItem[types.Playlist]{
-			ExternalID: *item.RatingKey,
-			Data: types.Playlist{
+		playlist := models.MediaItem[*types.Playlist]{
+			Data: &types.Playlist{
 				Details: types.MediaDetails{
 					Description: *item.Summary,
 					Title:       *item.Title,
@@ -79,3 +78,4 @@ func (c *PlexClient) GetPlaylists(ctx context.Context, options *types.QueryOptio
 
 	return playlists, nil
 }
+
