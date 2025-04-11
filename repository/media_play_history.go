@@ -60,7 +60,7 @@ func (r *mediaPlayHistoryRepository) GetRecentUserMovieHistory(ctx context.Conte
 		Table("media_play_histories").
 		Joins("JOIN media_items ON media_play_histories.media_item_id = media_items.id").
 		Where("media_items.type = ? AND media_play_histories.user_id = ?", types.MediaTypeMovie, userID).
-		Order("media_play_histories.last_watched_at DESC").
+		Order("media_play_histories.last_played_at DESC").
 		Limit(limit).
 		Find(&history)
 
@@ -87,7 +87,7 @@ func (r *mediaPlayHistoryRepository) GetRecentUserSeriesHistory(ctx context.Cont
 		Table("media_play_histories").
 		Joins("JOIN media_items ON media_play_histories.media_item_id = media_items.id").
 		Where("media_items.type = ? AND media_play_histories.user_id = ?", types.MediaTypeSeries, userID).
-		Order("media_play_histories.last_watched_at DESC").
+		Order("media_play_histories.last_played_at DESC").
 		Limit(limit).
 		Find(&history)
 
@@ -114,7 +114,7 @@ func (r *mediaPlayHistoryRepository) GetRecentUserMusicHistory(ctx context.Conte
 		Table("media_play_histories").
 		Joins("JOIN media_items ON media_play_histories.media_item_id = media_items.id").
 		Where("media_items.type = ? AND media_play_histories.user_id = ?", types.MediaTypeTrack, userID).
-		Order("media_play_histories.last_watched_at DESC").
+		Order("media_play_histories.last_played_at DESC").
 		Limit(limit).
 		Find(&history)
 

@@ -68,7 +68,7 @@ func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOpt
 
 		historyItem := models.MediaPlayHistory[t.MediaData]{
 			PlayedPercentage: *userData.PlayedPercentage.Get(),
-			LastWatchedAt:    *userData.LastPlayedDate.Get(), // Default to now if not available
+			LastPlayedAt:     *userData.LastPlayedDate.Get(), // Default to now if not available
 		}
 		historyItem.Item.SetClientInfo(j.ClientID, j.ClientType, *item.Id)
 
@@ -118,7 +118,7 @@ func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOpt
 
 		// Set last played date if available
 		if userData.LastPlayedDate.IsSet() {
-			historyItem.LastWatchedAt = *userData.LastPlayedDate.Get()
+			historyItem.LastPlayedAt = *userData.LastPlayedDate.Get()
 		}
 
 		historyItems = append(historyItems, historyItem)

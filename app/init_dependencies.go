@@ -182,6 +182,24 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 	}
 
 	// Initialize job services
+
+	// Get a Claude AI client for recommendations (if configured)
+	// This could be any AI client type that implements the required interface
+	// var aiClientService interface{}
+	// claudeClients, _ := deps.ClientRepositories.ClaudeRepo.GetByUserId(ctx)
+	// if len(claudeClients) > 0 {
+	// 	// Use the first Claude client found
+	// 	clientID := claudeClients[0].ID
+	// 	clientConfig := claudeClients[0].Config.Data
+	// 	aiClient, err := deps.ClientFactoryService.GetClient(ctx, clientID, clientConfig)
+	// 	if err == nil {
+	// 		aiClientService = aiClient
+	// 		log.Info().
+	// 			Uint64("clientID", clientID).
+	// 			Msg("Initialized AI client for recommendation service")
+	// 	}
+	// }
+
 	recommendationJob := jobs.NewRecommendationJob(
 		deps.JobRepo(),
 		deps.UserRepo(),
@@ -190,13 +208,8 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		deps.SeriesRepo(),
 		deps.TrackRepo(),
 		historyRepo,
-		deps.ClientServices.ClaudeService(),
+		aiClientService,
 	)
-
-	// Create a generic client repository
-	// We don't have a generic ClientRepo function in the dependency interface
-	// We'll use the EmbyRepo with a type conversion since we just need a ClientRepository of the right generic type
-	// genericClientRepo := repository.ClientRepository[clienttypes.ClientConfig](deps.EmbyRepo())
 
 	mediaSyncJob := jobs.NewMediaSyncJob(
 		deps.JobRepo(),

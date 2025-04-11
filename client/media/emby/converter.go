@@ -65,8 +65,8 @@ func (e *EmbyClient) convertToWatchHistoryItem(ctx context.Context, item *embycl
 
 	watchItem := models.MediaPlayHistory[types.MediaData]{
 		Item:            &watchData,
-		Type:            string(item.Type_),
-		WatchedAt:       item.UserData.LastPlayedDate,
+		Type:            types.MediaType(item.Type_),
+		PlayedAt:        item.UserData.LastPlayedDate,
 		IsFavorite:      item.UserData.IsFavorite,
 		PlayCount:       item.UserData.PlayCount,
 		PositionSeconds: int(item.UserData.PlaybackPositionTicks / 10000000),

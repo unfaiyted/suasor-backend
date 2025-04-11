@@ -37,9 +37,10 @@ type UserConfig struct {
 	// Prefux to add to teh beginning of the list name to identify that its part of the auto recommendations system
 	RecommendationListPrefix string `json:"recommendationListPrefix" gorm:"default:'Recommendations'" example:"AI Picks" binding:"omitempty"`
 	// What content types with be part of the auto sync recommendations
-	RecommendationContentTypes string  `json:"recommendationContentTypes" gorm:"type:text;default:''" example:"movie,series,tv,book"`
-	RecommendationMinRating    float32 `json:"recommendationMinRating" gorm:"default:5.0" example:"6" binding:"omitempty"`
-	RecommendationMaxAge       int     `json:"recommendationMaxAge" gorm:"default:0" example:"5" binding:"omitempty,min=0,max=100"` // In years, 0 = no limit
+	RecommendationContentTypes   string  `json:"recommendationContentTypes" gorm:"type:text;default:''" example:"movie,series,tv,book"`
+	RecommendationMinRating      float32 `json:"recommendationMinRating" gorm:"default:5.0" example:"6" binding:"omitempty"`
+	RecommendationMaxAge         int     `json:"recommendationMaxAge" gorm:"default:0" example:"5" binding:"omitempty,min=0,max=100"` // In years, 0 = no limit
+	RecommendationIncludeWatched bool    `json:"recommendationIncludeWatched" gorm:"default:false" example:"false"`
 
 	// how many movie recommendations to generate
 	MaxRecommendations *MaxRecommendations `json:"maxRecommendations" gorm:"type:jsonb;serializer:json"`

@@ -441,9 +441,9 @@ func (j *FavoritesSyncJob) syncMovieFavorites(ctx context.Context, userID, clien
 			// Create new history record (timestamp is needed since we don't have a way to update existing record)
 			historyRecord := models.MediaPlayHistory[*mediatypes.Movie]{
 				MediaItemID:      existingMovie.ID,
-				Type:             string(mediatypes.MediaTypeMovie),
-				WatchedAt:        time.Now(),
-				LastWatchedAt:    time.Now(),
+				Type:             mediatypes.MediaTypeMovie,
+				PlayedAt:         time.Now(),
+				LastPlayedAt:     time.Now(),
 				IsFavorite:       true,
 				PlayCount:        int32(playCount),
 				PlayedPercentage: 100, // Assume watched if favorited
@@ -466,9 +466,9 @@ func (j *FavoritesSyncJob) syncMovieFavorites(ctx context.Context, userID, clien
 			// Create new history record for a favorited but never watched item
 			historyRecord := models.MediaPlayHistory[*mediatypes.Movie]{
 				MediaItemID:      existingMovie.ID,
-				Type:             string(mediatypes.MediaTypeMovie),
-				WatchedAt:        time.Now(),
-				LastWatchedAt:    time.Now(),
+				Type:             mediatypes.MediaTypeMovie,
+				PlayedAt:         time.Now(),
+				LastPlayedAt:     time.Now(),
 				IsFavorite:       true,
 				PlayCount:        1,   // First view
 				PlayedPercentage: 100, // Assume watched if favorited
@@ -582,9 +582,9 @@ func (j *FavoritesSyncJob) syncSeriesFavorites(ctx context.Context, userID, clie
 			// Create new history record (timestamp is needed since we don't have a way to update existing record)
 			historyRecord := models.MediaPlayHistory[*mediatypes.Series]{
 				MediaItemID:      existingSeries.ID,
-				Type:             string(mediatypes.MediaTypeSeries),
-				WatchedAt:        time.Now(),
-				LastWatchedAt:    time.Now(),
+				Type:             mediatypes.MediaTypeSeries,
+				PlayedAt:         time.Now(),
+				LastPlayedAt:     time.Now(),
 				IsFavorite:       true,
 				PlayCount:        int32(playCount),
 				PlayedPercentage: 100, // Assume watched if favorited
@@ -607,9 +607,9 @@ func (j *FavoritesSyncJob) syncSeriesFavorites(ctx context.Context, userID, clie
 			// Create new history record for a favorited but never watched item
 			historyRecord := models.MediaPlayHistory[*mediatypes.Series]{
 				MediaItemID:      existingSeries.ID,
-				Type:             string(mediatypes.MediaTypeSeries),
-				WatchedAt:        time.Now(),
-				LastWatchedAt:    time.Now(),
+				Type:             mediatypes.MediaTypeSeries,
+				PlayedAt:         time.Now(),
+				LastPlayedAt:     time.Now(),
 				IsFavorite:       true,
 				PlayCount:        1,   // First view
 				PlayedPercentage: 100, // Assume watched if favorited
@@ -731,9 +731,9 @@ func (j *FavoritesSyncJob) syncMusicFavorites(ctx context.Context, userID, clien
 			// Create new history record (timestamp is needed since we don't have a way to update existing record)
 			historyRecord := models.MediaPlayHistory[*mediatypes.Track]{
 				MediaItemID:      existingTrack.ID,
-				Type:             string(mediatypes.MediaTypeTrack),
-				WatchedAt:        time.Now(), // For music, this is "played at"
-				LastWatchedAt:    time.Now(),
+				Type:             mediatypes.MediaTypeTrack,
+				PlayedAt:         time.Now(), // For music, this is "played at"
+				LastPlayedAt:     time.Now(),
 				IsFavorite:       true,
 				PlayCount:        int32(playCount),
 				PlayedPercentage: 100, // Assume listened to completion if favorited
@@ -756,9 +756,9 @@ func (j *FavoritesSyncJob) syncMusicFavorites(ctx context.Context, userID, clien
 			// Create new history record for a favorited but never played item
 			historyRecord := models.MediaPlayHistory[*mediatypes.Track]{
 				MediaItemID:      existingTrack.ID,
-				Type:             string(mediatypes.MediaTypeTrack),
-				WatchedAt:        time.Now(),
-				LastWatchedAt:    time.Now(),
+				Type:             mediatypes.MediaTypeTrack,
+				PlayedAt:         time.Now(),
+				LastPlayedAt:     time.Now(),
 				IsFavorite:       true,
 				PlayCount:        1,   // First play
 				PlayedPercentage: 100, // Assume listened to completion if favorited
@@ -857,4 +857,3 @@ func (j *FavoritesSyncJob) getMediaClient(ctx context.Context, clientID uint64, 
 
 	return mediaClient, nil
 }
-

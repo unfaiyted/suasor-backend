@@ -93,6 +93,7 @@ type MediaDetails struct {
 	Studios       []string    `json:"studios,omitempty"`
 	ExternalIDs   ExternalIDs `json:"externalIDs,omitempty"`
 	ContentRating string      `json:"contentRating,omitempty"`
+	Language      string      `json:"language,omitempty"`
 	Ratings       Ratings     `json:"ratings,omitempty"`
 	UserRating    float32     `json:"userRating,omitempty"`
 	Artwork       Artwork     `json:"artwork,omitempty"`

@@ -438,9 +438,9 @@ func (j *WatchHistorySyncJob) processMovieHistory(ctx context.Context, userID, c
 	// Create history record
 	historyRecord := models.MediaPlayHistory[*mediatypes.Movie]{
 		MediaItemID:      movieItem.ID,
-		Type:             string(mediatypes.MediaTypeMovie),
-		WatchedAt:        historyItem.WatchedAt,
-		LastWatchedAt:    historyItem.LastWatchedAt,
+		Type:             mediatypes.MediaTypeMovie,
+		PlayedAt:         historyItem.PlayedAt,
+		LastPlayedAt:     historyItem.LastPlayedAt,
 		PlayedPercentage: historyItem.PlayedPercentage,
 		PlayCount:        historyItem.PlayCount,
 		PositionSeconds:  historyItem.PositionSeconds,
@@ -459,7 +459,7 @@ func (j *WatchHistorySyncJob) processMovieHistory(ctx context.Context, userID, c
 
 	log.Debug().
 		Str("movieTitle", movieItem.Title).
-		Time("watchedAt", historyItem.WatchedAt).
+		Time("watchedAt", historyItem.PlayedAt).
 		Float64("percentage", historyItem.PlayedPercentage).
 		Msg("Saved movie watch history")
 
@@ -497,9 +497,9 @@ func (j *WatchHistorySyncJob) processSeriesHistory(ctx context.Context, userID, 
 	// Create history record
 	historyRecord := models.MediaPlayHistory[*mediatypes.Series]{
 		MediaItemID:      seriesItem.ID,
-		Type:             string(mediatypes.MediaTypeSeries),
-		WatchedAt:        historyItem.WatchedAt,
-		LastWatchedAt:    historyItem.LastWatchedAt,
+		Type:             mediatypes.MediaTypeSeries,
+		PlayedAt:         historyItem.PlayedAt,
+		LastPlayedAt:     historyItem.LastPlayedAt,
 		PlayedPercentage: historyItem.PlayedPercentage,
 		PlayCount:        historyItem.PlayCount,
 		PositionSeconds:  historyItem.PositionSeconds,
@@ -518,7 +518,7 @@ func (j *WatchHistorySyncJob) processSeriesHistory(ctx context.Context, userID, 
 
 	log.Debug().
 		Str("seriesTitle", seriesItem.Title).
-		Time("watchedAt", historyItem.WatchedAt).
+		Time("watchedAt", historyItem.PlayedAt).
 		Float64("percentage", historyItem.PlayedPercentage).
 		Msg("Saved series watch history")
 
@@ -556,9 +556,9 @@ func (j *WatchHistorySyncJob) processEpisodeHistory(ctx context.Context, userID,
 	// Create history record
 	historyRecord := models.MediaPlayHistory[*mediatypes.Episode]{
 		MediaItemID:      episodeItem.ID,
-		Type:             string(mediatypes.MediaTypeEpisode),
-		WatchedAt:        historyItem.WatchedAt,
-		LastWatchedAt:    historyItem.LastWatchedAt,
+		Type:             mediatypes.MediaTypeEpisode,
+		PlayedAt:         historyItem.PlayedAt,
+		LastPlayedAt:     historyItem.LastPlayedAt,
 		PlayedPercentage: historyItem.PlayedPercentage,
 		PlayCount:        historyItem.PlayCount,
 		PositionSeconds:  historyItem.PositionSeconds,
@@ -577,7 +577,7 @@ func (j *WatchHistorySyncJob) processEpisodeHistory(ctx context.Context, userID,
 
 	log.Debug().
 		Str("episodeTitle", episodeItem.Title).
-		Time("watchedAt", historyItem.WatchedAt).
+		Time("watchedAt", historyItem.PlayedAt).
 		Float64("percentage", historyItem.PlayedPercentage).
 		Msg("Saved episode watch history")
 
@@ -615,9 +615,9 @@ func (j *WatchHistorySyncJob) processMusicHistory(ctx context.Context, userID, c
 	// Create history record
 	historyRecord := models.MediaPlayHistory[*mediatypes.Track]{
 		MediaItemID:      trackItem.ID,
-		Type:             string(mediatypes.MediaTypeTrack),
-		WatchedAt:        historyItem.WatchedAt,
-		LastWatchedAt:    historyItem.LastWatchedAt,
+		Type:             mediatypes.MediaTypeTrack,
+		PlayedAt:         historyItem.PlayedAt,
+		LastPlayedAt:     historyItem.LastPlayedAt,
 		PlayedPercentage: historyItem.PlayedPercentage,
 		PlayCount:        historyItem.PlayCount,
 		PositionSeconds:  historyItem.PositionSeconds,
@@ -636,7 +636,7 @@ func (j *WatchHistorySyncJob) processMusicHistory(ctx context.Context, userID, c
 
 	log.Debug().
 		Str("trackTitle", trackItem.Title).
-		Time("playedAt", historyItem.WatchedAt).
+		Time("playedAt", historyItem.PlayedAt).
 		Float64("percentage", historyItem.PlayedPercentage).
 		Msg("Saved track play history")
 
@@ -700,4 +700,3 @@ func (j *WatchHistorySyncJob) getMediaClient(ctx context.Context, clientID uint6
 
 	return mediaClient, nil
 }
-
