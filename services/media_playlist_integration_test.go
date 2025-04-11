@@ -237,7 +237,7 @@ func TestMediaPlaylistServiceIntegration(t *testing.T) {
 	t.Run("TestGetPlaylistByID", func(t *testing.T) {
 		// Setup the mock to return a specific playlist when filtering by ID
 		mockClient.On("GetPlaylists", mock.Anything, mock.MatchedBy(func(options *mediatypes.QueryOptions) bool {
-			return options != nil && options.Filters != nil && options.Filters["id"] == "playlist123"
+			return options != nil && options.ExternalSourceID == "playlist123"
 		})).Return(testPlaylists, nil)
 
 		playlist, err := service.GetPlaylistByID(ctx, userID, clientID, "playlist123")

@@ -82,22 +82,22 @@ func (ratings *Ratings) AddOrUpdateRating(source string, value float32, votes in
 
 // MediaDetails contains common metadata fields for all media types
 type MediaDetails struct {
-	Title         string        `json:"title"`
-	Description   string        `json:"description,omitempty"`
-	ReleaseDate   time.Time     `json:"releaseDate,omitempty"`
-	ReleaseYear   int           `json:"releaseYear,omitempty"`
-	AddedAt       time.Time     `json:"addedAt,omitempty"`
-	UpdatedAt     time.Time     `json:"updatedAt,omitempty"`
-	Genres        []string      `json:"genres,omitempty"`
-	Tags          []string      `json:"tags,omitempty"`
-	Studios       []string      `json:"studios,omitempty"`
-	ExternalIDs   ExternalIDs   `json:"externalIDs,omitempty"`
-	ContentRating string        `json:"contentRating,omitempty"`
-	Ratings       Ratings       `json:"ratings,omitempty"`
-	UserRating    float32       `json:"userRating,omitempty"`
-	Artwork       Artwork       `json:"artwork,omitempty"`
-	Duration      int64 `json:"durationSeconds,omitempty"` // Changed from time.Duration to int64 for Swagger compatibility
-	IsFavorite    bool          `json:"isFavorite,omitempty"`
+	Title         string      `json:"title"`
+	Description   string      `json:"description,omitempty"`
+	ReleaseDate   time.Time   `json:"releaseDate,omitempty"`
+	ReleaseYear   int         `json:"releaseYear,omitempty"`
+	AddedAt       time.Time   `json:"addedAt,omitempty"`
+	UpdatedAt     time.Time   `json:"updatedAt,omitempty"`
+	Genres        []string    `json:"genres,omitempty"`
+	Tags          []string    `json:"tags,omitempty"`
+	Studios       []string    `json:"studios,omitempty"`
+	ExternalIDs   ExternalIDs `json:"externalIDs,omitempty"`
+	ContentRating string      `json:"contentRating,omitempty"`
+	Ratings       Ratings     `json:"ratings,omitempty"`
+	UserRating    float32     `json:"userRating,omitempty"`
+	Artwork       Artwork     `json:"artwork,omitempty"`
+	Duration      int64       `json:"durationSeconds,omitempty"` // Changed from time.Duration to int64 for Swagger compatibility
+	IsFavorite    bool        `json:"isFavorite,omitempty"`
 }
 
 type MediaType string
@@ -113,22 +113,3 @@ const (
 	MediaTypePlaylist   MediaType = "playlist"
 	MediaTypeCollection MediaType = "collection"
 )
-
-type SortOrder string
-
-const (
-	SortOrderAsc  SortOrder = "asc"
-	SortOrderDesc SortOrder = "desc"
-	SortOrderNone SortOrder = ""
-)
-
-// Quer}yOptions provides parameters for filtering and pagination
-type QueryOptions struct {
-	Limit                int               `json:"limit,omitempty"`
-	Offset               int               `json:"offset,omitempty"`
-	Sort                 string            `json:"sort,omitempty"`
-	SortOrder            SortOrder         `json:"sortOrder,omitempty"` // "asc" or "desc"
-	Filters              map[string]string `json:"filters,omitempty"`
-	Query                string            `json:"query,omitempty"`
-	IncludeWatchProgress bool              `json:"includeWatchProgress,omitempty"`
-}

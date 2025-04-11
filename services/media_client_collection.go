@@ -144,9 +144,7 @@ func (s *mediaCollectionService[T]) GetCollectionByID(ctx context.Context, userI
 
 	// Get all collections and find by ID
 	options := &mediatypes.QueryOptions{
-		Filters: map[string]string{
-			"id": collectionID,
-		},
+		ExternalSourceID: collectionID,
 	}
 
 	collections, err := collectionProvider.GetCollections(ctx, options)

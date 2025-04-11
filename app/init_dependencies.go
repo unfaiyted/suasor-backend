@@ -221,18 +221,20 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		deps.SeriesRepo(),
 		deps.MediaItemRepositories.EpisodeRepo(),
 		deps.TrackRepo(),
-		deps.ClientRepositories.EmbyRepo(), // Using Emby as a representative client
+		deps.ClientRepositories,
+		deps.ClientFactoryService,
 	)
 
 	favoritesSyncJob := jobs.NewFavoritesSyncJob(
 		deps.JobRepo(),
 		deps.UserRepo(),
 		deps.UserConfigRepo(),
+		historyRepo,
 		deps.MovieRepo(),
 		deps.SeriesRepo(),
 		deps.MediaItemRepositories.EpisodeRepo(),
 		deps.TrackRepo(),
-		deps.ClientRepositories.EmbyRepo(), // Using Emby as a representative client
+		deps.ClientRepositories,
 		deps.ClientFactoryService,
 	)
 

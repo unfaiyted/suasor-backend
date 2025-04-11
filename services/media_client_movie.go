@@ -4,8 +4,7 @@ import (
 	"context"
 	"errors"
 	"sort"
-
-	"strconv"
+	
 	"suasor/client"
 	"suasor/client/media"
 	"suasor/client/media/providers"
@@ -171,9 +170,7 @@ func (s *mediaMovieService[T]) GetMoviesByGenre(ctx context.Context, userID uint
 		}
 
 		options := &mediatypes.QueryOptions{
-			Filters: map[string]string{
-				"genre": genre,
-			},
+			Genre: genre,
 		}
 
 		movies, err := movieProvider.GetMovies(ctx, options)
@@ -203,9 +200,7 @@ func (s *mediaMovieService[T]) GetMoviesByYear(ctx context.Context, userID uint6
 		}
 
 		options := &mediatypes.QueryOptions{
-			Filters: map[string]string{
-				"year": strconv.Itoa(year),
-			},
+			Year: year,
 		}
 
 		movies, err := movieProvider.GetMovies(ctx, options)
@@ -234,9 +229,7 @@ func (s *mediaMovieService[T]) GetMoviesByActor(ctx context.Context, userID uint
 		}
 
 		options := &mediatypes.QueryOptions{
-			Filters: map[string]string{
-				"actor": actor,
-			},
+			Actor: actor,
 		}
 
 		movies, err := movieProvider.GetMovies(ctx, options)
@@ -265,9 +258,7 @@ func (s *mediaMovieService[T]) GetMoviesByDirector(ctx context.Context, userID u
 		}
 
 		options := &mediatypes.QueryOptions{
-			Filters: map[string]string{
-				"director": director,
-			},
+			Director: director,
 		}
 
 		movies, err := movieProvider.GetMovies(ctx, options)
@@ -296,10 +287,8 @@ func (s *mediaMovieService[T]) GetMoviesByRating(ctx context.Context, userID uin
 		}
 
 		options := &mediatypes.QueryOptions{
-			Filters: map[string]string{
-				"minRating": strconv.FormatFloat(minRating, 'f', -1, 64),
-				"maxRating": strconv.FormatFloat(maxRating, 'f', -1, 64),
-			},
+			MinimumRating: float32(minRating),
+			// Note: maxRating doesn't have a typed field yet, will need to be added if needed
 		}
 
 		movies, err := movieProvider.GetMovies(ctx, options)

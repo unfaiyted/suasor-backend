@@ -441,67 +441,116 @@ func (j *MediaSyncJob) syncEpisodes(ctx context.Context, mediaClient media.Media
 	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 10, "Fetching episodes from client")
 
 	// Check if client supports episodes
-	_, ok := mediaClient.(providers.SeriesProvider)
+	seriesProvider, ok := mediaClient.(providers.SeriesProvider)
 	if !ok {
 		return fmt.Errorf("client doesn't support episodes")
 	}
 
 	// Get all episodes from the client
 	clientType := mediaClient.(client.Client).GetType().AsMediaClientType()
-	// Note: We would need to get series first and then get episodes for each series
-	// This is a simplified version just for compilation
-
-	// Mock implementation for compilation purposes
-	var episodes []models.MediaItem[mediatypes.Episode]
-
-	// In a real implementation, we would do:
-	// 1. Get all series
-	// 2. For each series, get all seasons
-	// 3. For each season, get all episodes
-	// Example pseudocode:
-	// allSeries, _ := seriesProvider.GetSeries(ctx, &mediatypes.QueryOptions{})
-	// for _, series := range allSeries {
-	//     // Get the series ID
-	//     seasons, _ := seriesProvider.GetSeriesSeasons(ctx, series.GetID())
-	//     for _, season := range seasons {
-	//         seriesEpisodes, _ := seriesProvider.GetSeriesEpisodes(ctx, series.GetID(), season.GetNumber())
-	//         episodes = append(episodes, seriesEpisodes...)
-	//     }
-	// }
-
-	// For now, just return an empty slice and nil error
-	var err error
+	
+	// Initialize a slice to hold all episodes
+	var allEpisodes []models.MediaItem[*mediatypes.Episode]
+	
+	// First get all series
+	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 15, "Fetching series list")
+	allSeries, err := seriesProvider.GetSeries(ctx, &mediatypes.QueryOptions{})
 	if err != nil {
-		return fmt.Errorf("failed to get episodes: %w", err)
+		return fmt.Errorf("failed to get series list: %w", err)
 	}
-
+	
+	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 20, fmt.Sprintf("Found %d series, fetching episodes", len(allSeries)))
+	
+	// Set total items for tracking progress
+	totalSeries := len(allSeries)
+	j.jobRepo.SetJobTotalItems(ctx, jobRunID, totalSeries)
+	processedSeries := 0
+	
+	// For each series, get episodes
+	for _, series := range allSeries {
+		if series.Data == nil || len(series.ClientIDs) == 0 {
+			// Skip series with no data or no client ID
+			log.Printf("Skipping series with missing data")
+			continue
+		}
+		
+		// Find the client item ID for this series
+		var seriesID string
+		for _, cid := range series.ClientIDs {
+			if cid.ID == clientID {
+				seriesID = cid.ItemID
+				break
+			}
+		}
+		
+		if seriesID == "" {
+			log.Printf("No matching client item ID found for series: %s", series.Data.Details.Title)
+			continue
+		}
+		
+		// Get seasons for this series
+		seasons, err := seriesProvider.GetSeriesSeasons(ctx, seriesID)
+		if err != nil {
+			log.Printf("Error getting seasons for series %s: %v", series.Data.Details.Title, err)
+			continue
+		}
+		
+		// For each season, get episodes
+		for _, season := range seasons {
+			if season.Data == nil {
+				continue
+			}
+			
+			seasonNumber := season.Data.Number
+			episodes, err := seriesProvider.GetSeriesEpisodes(ctx, seriesID, seasonNumber)
+			if err != nil {
+				log.Printf("Error getting episodes for series %s season %d: %v", 
+					series.Data.Details.Title, seasonNumber, err)
+				continue
+			}
+			
+			allEpisodes = append(allEpisodes, episodes...)
+		}
+		
+		// Update progress
+		processedSeries++
+		progress := 20 + int(float64(processedSeries)/float64(totalSeries)*30.0)
+		j.jobRepo.UpdateJobProgress(ctx, jobRunID, progress, 
+			fmt.Sprintf("Processed %d/%d series, found %d episodes", 
+				processedSeries, totalSeries, len(allEpisodes)))
+		j.jobRepo.IncrementJobProcessedItems(ctx, jobRunID, 1)
+	}
+	
 	// Update job progress
-	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 50, fmt.Sprintf("Processing %d episodes", len(episodes)))
-
+	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 50, 
+		fmt.Sprintf("Processing %d episodes", len(allEpisodes)))
+	
 	// Process episodes in batches to avoid memory issues
 	batchSize := 100
-	totalEpisodes := len(episodes)
+	totalEpisodes := len(allEpisodes)
 	processedEpisodes := 0
-
+	
 	for i := 0; i < totalEpisodes; i += batchSize {
 		end := i + batchSize
 		if end > totalEpisodes {
 			end = totalEpisodes
 		}
-
-		episodeBatch := episodes[i:end]
-		err := j.processEpisodeBatch(ctx, j.convertToEpisodePointers(episodeBatch), clientID, clientType)
+		
+		episodeBatch := allEpisodes[i:end]
+		err := j.processEpisodeBatch(ctx, episodeBatch, clientID, clientType)
 		if err != nil {
 			return fmt.Errorf("failed to process episode batch: %w", err)
 		}
-
+		
 		processedEpisodes += len(episodeBatch)
 		progress := 50 + int(float64(processedEpisodes)/float64(totalEpisodes)*50.0)
-		j.jobRepo.UpdateJobProgress(ctx, jobRunID, progress, fmt.Sprintf("Processed %d/%d episodes", processedEpisodes, totalEpisodes))
+		j.jobRepo.UpdateJobProgress(ctx, jobRunID, progress, 
+			fmt.Sprintf("Processed %d/%d episodes", processedEpisodes, totalEpisodes))
 	}
-
+	
 	// Update job progress
-	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 100, fmt.Sprintf("Synced %d episodes", totalEpisodes))
+	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 100, 
+		fmt.Sprintf("Synced %d episodes from %d series", totalEpisodes, totalSeries))
 
 	return nil
 }
@@ -747,6 +796,20 @@ func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []models.Me
 
 // processSeriesBatch processes a batch of series and saves them to the database
 func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.MediaItem[*mediatypes.Series], clientID uint64, clientType clienttypes.MediaClientType) error {
+	// Try to get a series provider for this client to fetch season details
+	mediaClient, err := j.getMediaClient(ctx, clientID, clientType.String())
+	if err != nil {
+		// Just log the error but continue processing with what we have
+		log.Printf("Failed to get media client for season details: %v", err)
+	}
+	
+	// Cast to series provider if possible
+	var seriesProvider providers.SeriesProvider
+	if mediaClient != nil {
+		if sp, ok := mediaClient.(providers.SeriesProvider); ok {
+			seriesProvider = sp
+		}
+	}
 	for _, s := range series {
 		// Skip if series has no client ID information
 		if len(s.ClientIDs) == 0 {
@@ -811,6 +874,60 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.M
 			existingSeries.Title = s.Data.Details.Title
 			existingSeries.ReleaseDate = s.Data.Details.ReleaseDate
 			existingSeries.ReleaseYear = s.Data.Details.ReleaseYear
+			
+			// Update additional series-specific fields
+			existingSeries.Data.Genres = s.Data.Genres
+			existingSeries.Data.Network = s.Data.Network
+			existingSeries.Data.Status = s.Data.Status
+			existingSeries.Data.ContentRating = s.Data.ContentRating
+			existingSeries.Data.Rating = s.Data.Rating
+
+			// Update seasons if available
+			if len(s.Data.Seasons) > 0 {
+				existingSeries.Data.Seasons = s.Data.Seasons
+				existingSeries.Data.SeasonCount = s.Data.SeasonCount
+			} else if seriesProvider != nil {
+				// Try to fetch seasons if they're not already loaded
+				var seriesID string
+				for _, cid := range s.ClientIDs {
+					if cid.ID == clientID {
+						seriesID = cid.ItemID
+						break
+					}
+				}
+				
+				if seriesID != "" {
+					// Fetch seasons for this series
+					seasons, err := seriesProvider.GetSeriesSeasons(ctx, seriesID)
+					if err == nil && len(seasons) > 0 {
+						// Convert to Season type from pointer
+						seriesSeasons := make([]mediatypes.Season, 0, len(seasons))
+						for _, season := range seasons {
+							if season.Data != nil {
+								seriesSeasons = append(seriesSeasons, *season.Data)
+							}
+						}
+						
+						existingSeries.Data.Seasons = seriesSeasons
+						existingSeries.Data.SeasonCount = len(seriesSeasons)
+						
+						// Update episode count by summing episode counts from seasons
+						totalEpisodes := 0
+						for _, season := range seriesSeasons {
+							totalEpisodes += season.EpisodeCount
+						}
+						
+						if totalEpisodes > 0 {
+							existingSeries.Data.EpisodeCount = totalEpisodes
+						}
+					}
+				}
+			}
+
+			// Update episode count
+			if s.Data.EpisodeCount > 0 {
+				existingSeries.Data.EpisodeCount = s.Data.EpisodeCount
+			}
 
 			// Save the updated series
 			_, err = j.seriesRepo.Update(ctx, *existingSeries)
@@ -824,6 +941,15 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.M
 			s.Title = s.Data.Details.Title
 			s.ReleaseDate = s.Data.Details.ReleaseDate
 			s.ReleaseYear = s.Data.Details.ReleaseYear
+			
+			// Make sure we have genres data initialized
+			if s.Data.Genres == nil {
+				s.Data.Genres = []string{}
+			}
+			
+			if s.Data.Seasons == nil {
+				s.Data.Seasons = []mediatypes.Season{}
+			}
 
 			// Create the series
 			_, err = j.seriesRepo.Create(ctx, s)
@@ -1199,222 +1325,4 @@ func (j *MediaSyncJob) processArtistBatch(ctx context.Context, artists []models.
 	}
 
 	return nil
-}
-
-// convertToMoviePointers converts a slice of non-pointer movies to a slice of pointer movies
-func (j *MediaSyncJob) convertToMoviePointers(nonPtrMovies []models.MediaItem[mediatypes.Movie]) []models.MediaItem[*mediatypes.Movie] {
-	result := make([]models.MediaItem[*mediatypes.Movie], 0, len(nonPtrMovies))
-
-	for _, item := range nonPtrMovies {
-		// Create a copy of the movie data
-		moviePtr := &mediatypes.Movie{
-			Details: item.Data.Details,
-			Cast:    item.Data.Cast,
-			Crew:    item.Data.Crew,
-		}
-
-		// Create media item with pointer data
-		ptrItem := models.MediaItem[*mediatypes.Movie]{
-			ID:          item.ID,
-			ClientIDs:   item.ClientIDs,
-			ExternalIDs: item.ExternalIDs,
-			Type:        item.Type,
-			Title:       item.Data.Details.Title,
-			ReleaseDate: item.Data.Details.ReleaseDate,
-			ReleaseYear: item.Data.Details.ReleaseYear,
-			Data:        moviePtr,
-			StreamURL:   item.StreamURL,
-			DownloadURL: item.DownloadURL,
-			CreatedAt:   item.CreatedAt,
-			UpdatedAt:   item.UpdatedAt,
-		}
-
-		result = append(result, ptrItem)
-	}
-
-	return result
-}
-
-// convertToSeriesPointers converts a slice of non-pointer series to a slice of pointer series
-func (j *MediaSyncJob) convertToSeriesPointers(nonPtrSeries []models.MediaItem[mediatypes.Series]) []models.MediaItem[*mediatypes.Series] {
-	result := make([]models.MediaItem[*mediatypes.Series], 0, len(nonPtrSeries))
-
-	for _, item := range nonPtrSeries {
-		// Create a copy of the series data
-		seriesPtr := &mediatypes.Series{
-			Details:       item.Data.Details,
-			Seasons:       item.Data.Seasons,
-			EpisodeCount:  item.Data.EpisodeCount,
-			SeasonCount:   item.Data.SeasonCount,
-			ReleaseYear:   item.Data.ReleaseYear,
-			ContentRating: item.Data.ContentRating,
-			Rating:        item.Data.Rating,
-			Network:       item.Data.Network,
-			Status:        item.Data.Status,
-			Genres:        item.Data.Genres,
-		}
-
-		// Create media item with pointer data
-		ptrItem := models.MediaItem[*mediatypes.Series]{
-			ID:          item.ID,
-			ClientIDs:   item.ClientIDs,
-			ExternalIDs: item.ExternalIDs,
-			Type:        item.Type,
-			Title:       item.Data.Details.Title,
-			ReleaseDate: item.Data.Details.ReleaseDate,
-			ReleaseYear: item.Data.Details.ReleaseYear,
-			Data:        seriesPtr,
-			StreamURL:   item.StreamURL,
-			DownloadURL: item.DownloadURL,
-			CreatedAt:   item.CreatedAt,
-			UpdatedAt:   item.UpdatedAt,
-		}
-
-		result = append(result, ptrItem)
-	}
-
-	return result
-}
-
-// convertToEpisodePointers converts a slice of non-pointer episodes to a slice of pointer episodes
-func (j *MediaSyncJob) convertToEpisodePointers(nonPtrEpisodes []models.MediaItem[mediatypes.Episode]) []models.MediaItem[*mediatypes.Episode] {
-	result := make([]models.MediaItem[*mediatypes.Episode], 0, len(nonPtrEpisodes))
-
-	for _, item := range nonPtrEpisodes {
-		// Create a copy of the episode data
-		episodePtr := &mediatypes.Episode{
-			Details:      item.Data.Details,
-			Number:       item.Data.Number,
-			ShowID:       item.Data.ShowID,
-			SeasonID:     item.Data.SeasonID,
-			SeasonNumber: item.Data.SeasonNumber,
-			ShowTitle:    item.Data.ShowTitle,
-		}
-
-		// Create media item with pointer data
-		ptrItem := models.MediaItem[*mediatypes.Episode]{
-			ID:          item.ID,
-			ClientIDs:   item.ClientIDs,
-			ExternalIDs: item.ExternalIDs,
-			Type:        item.Type,
-			Title:       item.Data.Details.Title,
-			ReleaseDate: item.Data.Details.ReleaseDate,
-			ReleaseYear: item.Data.Details.ReleaseYear,
-			Data:        episodePtr,
-			StreamURL:   item.StreamURL,
-			DownloadURL: item.DownloadURL,
-			CreatedAt:   item.CreatedAt,
-			UpdatedAt:   item.UpdatedAt,
-		}
-
-		result = append(result, ptrItem)
-	}
-
-	return result
-}
-
-// convertToTrackPointers converts a slice of non-pointer tracks to a slice of pointer tracks
-func (j *MediaSyncJob) convertToTrackPointers(nonPtrTracks []models.MediaItem[mediatypes.Track]) []models.MediaItem[*mediatypes.Track] {
-	result := make([]models.MediaItem[*mediatypes.Track], 0, len(nonPtrTracks))
-
-	for _, item := range nonPtrTracks {
-		// Create a copy of the track data
-		trackPtr := &mediatypes.Track{
-			Details:    item.Data.Details,
-			ArtistID:   item.Data.ArtistID,
-			ArtistName: item.Data.ArtistName,
-			AlbumID:    item.Data.AlbumID,
-			AlbumName:  item.Data.AlbumName,
-			Number:     item.Data.Number,
-			Duration:   item.Data.Duration,
-		}
-
-		// Create media item with pointer data
-		ptrItem := models.MediaItem[*mediatypes.Track]{
-			ID:          item.ID,
-			ClientIDs:   item.ClientIDs,
-			ExternalIDs: item.ExternalIDs,
-			Type:        item.Type,
-			Title:       item.Data.Details.Title,
-			ReleaseDate: item.Data.Details.ReleaseDate,
-			ReleaseYear: item.Data.Details.ReleaseYear,
-			Data:        trackPtr,
-			StreamURL:   item.StreamURL,
-			DownloadURL: item.DownloadURL,
-			CreatedAt:   item.CreatedAt,
-			UpdatedAt:   item.UpdatedAt,
-		}
-
-		result = append(result, ptrItem)
-	}
-
-	return result
-}
-
-// convertToAlbumPointers converts a slice of non-pointer albums to a slice of pointer albums
-func (j *MediaSyncJob) convertToAlbumPointers(nonPtrAlbums []models.MediaItem[mediatypes.Album]) []models.MediaItem[*mediatypes.Album] {
-	result := make([]models.MediaItem[*mediatypes.Album], 0, len(nonPtrAlbums))
-
-	for _, item := range nonPtrAlbums {
-		// Create a copy of the album data
-		albumPtr := &mediatypes.Album{
-			Details:    item.Data.Details,
-			ArtistID:   item.Data.ArtistID,
-			ArtistName: item.Data.ArtistName,
-			// TrackIDs:   item.Data.TrackIDs,
-		}
-
-		// Create media item with pointer data
-		ptrItem := models.MediaItem[*mediatypes.Album]{
-			ID:          item.ID,
-			ClientIDs:   item.ClientIDs,
-			ExternalIDs: item.ExternalIDs,
-			Type:        item.Type,
-			Title:       item.Data.Details.Title,
-			ReleaseDate: item.Data.Details.ReleaseDate,
-			ReleaseYear: item.Data.Details.ReleaseYear,
-			Data:        albumPtr,
-			StreamURL:   item.StreamURL,
-			DownloadURL: item.DownloadURL,
-			CreatedAt:   item.CreatedAt,
-			UpdatedAt:   item.UpdatedAt,
-		}
-
-		result = append(result, ptrItem)
-	}
-
-	return result
-}
-
-// convertToArtistPointers converts a slice of non-pointer artists to a slice of pointer artists
-func (j *MediaSyncJob) convertToArtistPointers(nonPtrArtists []models.MediaItem[mediatypes.Artist]) []models.MediaItem[*mediatypes.Artist] {
-	result := make([]models.MediaItem[*mediatypes.Artist], 0, len(nonPtrArtists))
-
-	for _, item := range nonPtrArtists {
-		// Create a copy of the artist data
-		artistPtr := &mediatypes.Artist{
-			Details: item.Data.Details,
-			// AlbumIDs: item.Data.AlbumIDs,
-			// TrackIDs: item.Data.TrackIDs,
-			// Genres:   item.Data.Genres,
-		}
-
-		// Create media item with pointer data
-		ptrItem := models.MediaItem[*mediatypes.Artist]{
-			ID:          item.ID,
-			ClientIDs:   item.ClientIDs,
-			ExternalIDs: item.ExternalIDs,
-			Type:        item.Type,
-			Title:       item.Data.Details.Title,
-			Data:        artistPtr,
-			StreamURL:   item.StreamURL,
-			DownloadURL: item.DownloadURL,
-			CreatedAt:   item.CreatedAt,
-			UpdatedAt:   item.UpdatedAt,
-		}
-
-		result = append(result, ptrItem)
-	}
-
-	return result
 }

@@ -2,6 +2,10 @@
 package emby
 
 import (
+	"fmt"
+	"strings"
+	"time"
+
 	"github.com/antihax/optional"
 	"suasor/client/media/types"
 	embyclient "suasor/internal/clients/embyAPI"
@@ -43,40 +47,91 @@ func applyQueryOptions(queryParams *embyclient.ItemsServiceApiGetItemsOpts, opti
 		}
 	}
 
-	// Apply filters
-	if options.Filters != nil {
-		// Media type filter
-		if mediaType, ok := options.Filters["mediaType"]; ok {
-			queryParams.IncludeItemTypes = optional.NewString(mediaType)
-		}
+	// Apply filters - use typed fields
 
-		// Genre filter
-		if genre, ok := options.Filters["genre"]; ok {
-			queryParams.Genres = optional.NewString(genre)
-		}
+	// Media type filter
+	if options.MediaType != "" {
+		queryParams.IncludeItemTypes = optional.NewString(options.MediaType)
+	}
 
-		// Favorite filter
-		if favorite, ok := options.Filters["isFavorite"]; ok && favorite == "true" {
-			queryParams.IsFavorite = optional.NewBool(true)
-		}
+	// Genre filter
+	if options.Genre != "" {
+		queryParams.Genres = optional.NewString(options.Genre)
+	}
 
-		// Year filter
-		if year, ok := options.Filters["year"]; ok {
-			queryParams.Years = optional.NewString(year)
-		}
+	// Favorite filter
+	if options.Favorites {
+		queryParams.IsFavorite = optional.NewBool(true)
+	}
 
-		// Person filter (actor or creator)
-		if actor, ok := options.Filters["actor"]; ok {
-			queryParams.Person = optional.NewString(actor)
-		}
+	// Year filter
+	if options.Year > 0 {
+		queryParams.Years = optional.NewString(fmt.Sprintf("%d", options.Year))
+	}
 
-		if director, ok := options.Filters["director"]; ok {
-			queryParams.Person = optional.NewString(director)
-		}
+	// Person filters
+	if options.Actor != "" {
+		queryParams.Person = optional.NewString(options.Actor)
+	}
 
-		if creator, ok := options.Filters["creator"]; ok {
-			queryParams.Person = optional.NewString(creator)
-		}
+	if options.Director != "" {
+		queryParams.Person = optional.NewString(options.Director)
+	}
+	
+	// Creator filter
+	if options.Creator != "" {
+		queryParams.Person = optional.NewString(options.Creator)
+	}
+	
+	// Apply more advanced filters
+	
+	// Content rating filter
+	if options.ContentRating != "" {
+		queryParams.OfficialRatings = optional.NewString(options.ContentRating)
+	}
+	
+	// Tags filter
+	if len(options.Tags) > 0 {
+		queryParams.Tags = optional.NewString(strings.Join(options.Tags, ","))
+	}
+	
+	// Recently added filter
+	if options.RecentlyAdded {
+		queryParams.SortBy = optional.NewString("DateCreated,SortName")
+		queryParams.SortOrder = optional.NewString("Descending")
+	}
+	
+	// Recently played filter
+	if options.RecentlyPlayed {
+		queryParams.SortBy = optional.NewString("DatePlayed,SortName")
+		queryParams.SortOrder = optional.NewString("Descending")
+	}
+	
+	// Unwatched filter
+	if options.Unwatched {
+		queryParams.IsPlayed = optional.NewBool(false)
+	}
+	
+	// Date filters
+	if !options.DateAddedAfter.IsZero() {
+		queryParams.MinDateLastSaved = optional.NewString(options.DateAddedAfter.Format(time.RFC3339))
+	}
+	
+	if !options.DateAddedBefore.IsZero() {
+		queryParams.MaxPremiereDate = optional.NewString(options.DateAddedBefore.Format(time.RFC3339))
+	}
+	
+	if !options.ReleasedAfter.IsZero() {
+		queryParams.MinPremiereDate = optional.NewString(options.ReleasedAfter.Format(time.RFC3339))
+	}
+	
+	if !options.ReleasedBefore.IsZero() {
+		queryParams.MaxPremiereDate = optional.NewString(options.ReleasedBefore.Format(time.RFC3339))
+	}
+	
+	// Rating filter
+	if options.MinimumRating > 0 {
+		queryParams.MinCommunityRating = optional.NewFloat64(float64(options.MinimumRating))
 	}
 
 	// Debug logging removed to avoid logger dependency

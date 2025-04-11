@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	t "suasor/client/media/types"
 	"suasor/types/models"
 	"suasor/utils"
@@ -21,16 +22,9 @@ func (c *SubsonicClient) GetMusic(ctx context.Context, options *t.QueryOptions) 
 	var tracks []models.MediaItem[*t.Track]
 	var err error
 
-	// If filter/query provided, use search3
-	if options != nil && len(options.Filters) > 0 {
-
-		queryString := ""
-		for _, value := range options.Filters {
-			if queryString != "" {
-				queryString += " "
-			}
-			queryString += value
-		}
+	// If query or typed filters provided, use search3
+	if options != nil && (options.Query != "" || hasAnyTypedFilter(options)) {
+		queryString := buildQueryString(options)
 		tracks, err = c.searchMusic(ctx, queryString, options.Limit)
 	} else {
 		// Otherwise get random songs
@@ -324,4 +318,89 @@ func (c *SubsonicClient) searchMusic(ctx context.Context, query string, limit in
 	}
 
 	return tracks, nil
+}
+
+// Helper function to check if any typed filters are set
+func hasAnyTypedFilter(options *t.QueryOptions) bool {
+	if options == nil {
+		return false
+	}
+	
+	return options.Favorites ||
+		options.Genre != "" ||
+		options.Year > 0 ||
+		options.Actor != "" ||
+		options.Director != "" ||
+		options.Studio != "" ||
+		options.Creator != "" ||
+		options.MediaType != "" ||
+		options.ContentRating != "" ||
+		len(options.Tags) > 0 ||
+		options.RecentlyAdded ||
+		options.RecentlyPlayed ||
+		options.Unwatched ||
+		!options.DateAddedAfter.IsZero() ||
+		!options.DateAddedBefore.IsZero() ||
+		!options.ReleasedAfter.IsZero() ||
+		!options.ReleasedBefore.IsZero() ||
+		!options.PlayedAfter.IsZero() ||
+		!options.PlayedBefore.IsZero() ||
+		options.MinimumRating > 0 ||
+		options.ExternalSourceID != ""
+}
+
+// Helper function to build a query string from typed filters
+func buildQueryString(options *t.QueryOptions) string {
+	if options == nil {
+		return ""
+	}
+	
+	var queryParts []string
+	
+	// First add the direct search query if provided
+	if options.Query != "" {
+		queryParts = append(queryParts, options.Query)
+	}
+	
+	// Add typed filters
+	if options.MediaType != "" {
+		queryParts = append(queryParts, options.MediaType)
+	}
+	
+	if options.Genre != "" {
+		queryParts = append(queryParts, options.Genre)
+	}
+	
+	if options.Year > 0 {
+		queryParts = append(queryParts, strconv.Itoa(options.Year))
+	}
+	
+	if options.Actor != "" {
+		queryParts = append(queryParts, options.Actor)
+	}
+	
+	if options.Director != "" {
+		queryParts = append(queryParts, options.Director)
+	}
+	
+	if options.Creator != "" {
+		queryParts = append(queryParts, options.Creator)
+	}
+	
+	if options.Studio != "" {
+		queryParts = append(queryParts, options.Studio)
+	}
+	
+	if options.ContentRating != "" {
+		queryParts = append(queryParts, options.ContentRating)
+	}
+	
+	if len(options.Tags) > 0 {
+		for _, tag := range options.Tags {
+			queryParts = append(queryParts, tag)
+		}
+	}
+	
+	// Join all parts with spaces
+	return strings.Join(queryParts, " ")
 }

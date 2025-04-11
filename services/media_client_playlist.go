@@ -149,9 +149,7 @@ func (s *mediaPlaylistService[T]) GetPlaylistByID(ctx context.Context, userID ui
 
 	// Get all playlists and find by ID
 	options := &mediatypes.QueryOptions{
-		Filters: map[string]string{
-			"id": playlistID,
-		},
+		ExternalSourceID: playlistID,
 	}
 
 	playlists, err := playlistProvider.GetPlaylists(ctx, options)

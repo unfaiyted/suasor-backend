@@ -16,6 +16,7 @@ type MediaPlayHistory[T types.MediaData] struct {
 	WatchedAt        time.Time     `json:"watchedAt" gorm:"index"`
 	LastWatchedAt    time.Time     `json:"lastWatchedAt" gorm:"index"`
 	IsFavorite       bool          `json:"isFavorite,omitempty"`
+	IsDisliked       bool          `json:"isDisliked,omitempty"`
 	PlayedPercentage float64       `json:"playedPercentage,omitempty"`
 	PlayCount        int32         `json:"playCount,omitempty"`
 	PositionSeconds  int           `json:"positionSeconds"`
