@@ -7,6 +7,7 @@ import (
 	mediatypes "suasor/client/media/types"
 	"suasor/repository"
 	"suasor/services/jobs"
+	"suasor/services/jobs/recommendation"
 	"suasor/services/scheduler"
 	"suasor/types/models"
 	"time"
@@ -22,7 +23,7 @@ type JobService interface {
 	RegisterJob(job scheduler.Job) error
 	// SyncDatabaseJobs synchronizes database job schedules with the scheduler
 	SyncDatabaseJobs(ctx context.Context) error
-	
+
 	// GetAllJobSchedules retrieves all job schedules
 	GetAllJobSchedules(ctx context.Context) ([]models.JobSchedule, error)
 	// GetJobScheduleByName retrieves a job schedule by name
@@ -33,7 +34,7 @@ type JobService interface {
 	UpdateJobSchedule(ctx context.Context, schedule *models.JobSchedule) error
 	// DeleteJobSchedule deletes a job schedule
 	DeleteJobSchedule(ctx context.Context, name string) error
-	
+
 	// GetRecentJobRuns retrieves recent job runs
 	GetRecentJobRuns(ctx context.Context, limit int) ([]models.JobRun, error)
 	// GetUserJobRuns retrieves job runs for a specific user
@@ -42,10 +43,10 @@ type JobService interface {
 	GetJobRunByID(ctx context.Context, jobRunID uint64) (*models.JobRun, error)
 	// GetActiveJobRuns retrieves all currently active job runs
 	GetActiveJobRuns(ctx context.Context) ([]models.JobRun, error)
-	
+
 	// RunJobManually triggers a job to run immediately
 	RunJobManually(ctx context.Context, jobName string) error
-	
+
 	// Job progress tracking methods
 	// UpdateJobProgress updates the progress of a job run
 	UpdateJobProgress(ctx context.Context, jobRunID uint64, progress int, message string) error
@@ -53,14 +54,14 @@ type JobService interface {
 	SetJobTotalItems(ctx context.Context, jobRunID uint64, totalItems int) error
 	// IncrementJobProcessedItems increments the number of processed items in a job
 	IncrementJobProcessedItems(ctx context.Context, jobRunID uint64, count int) error
-	
+
 	// GetUserRecommendations retrieves recommendations for a user
 	GetUserRecommendations(ctx context.Context, userID uint64, active bool, limit int) ([]models.Recommendation, error)
 	// DismissRecommendation marks a recommendation as dismissed
 	DismissRecommendation(ctx context.Context, recommendationID uint64) error
 	// UpdateRecommendationViewedStatus updates whether a recommendation has been viewed
 	UpdateRecommendationViewedStatus(ctx context.Context, recommendationID uint64, viewed bool) error
-	
+
 	// SetupMediaSyncJob creates or updates a media sync job
 	SetupMediaSyncJob(ctx context.Context, userID, clientID uint64, clientType, mediaType, frequency string) error
 	// RunMediaSyncJob runs a media sync job manually
@@ -70,19 +71,19 @@ type JobService interface {
 }
 
 type jobService struct {
-	jobRepo              repository.JobRepository
-	userRepo             repository.UserRepository
-	configRepo           repository.UserConfigRepository
-	movieRepo            repository.MediaItemRepository[*mediatypes.Movie]
-	seriesRepo           repository.MediaItemRepository[*mediatypes.Series]
-	musicRepo            repository.MediaItemRepository[*mediatypes.Track]
-	historyRepo          repository.MediaPlayHistoryRepository
-	scheduler            *scheduler.Scheduler
-	jobs                 map[string]scheduler.Job
-	recommendationJob    *jobs.RecommendationJob
-	mediaSyncJob         *jobs.MediaSyncJob
-	watchHistorySyncJob  *jobs.WatchHistorySyncJob
-	favoritesSyncJob     *jobs.FavoritesSyncJob
+	jobRepo             repository.JobRepository
+	userRepo            repository.UserRepository
+	configRepo          repository.UserConfigRepository
+	movieRepo           repository.MediaItemRepository[*mediatypes.Movie]
+	seriesRepo          repository.MediaItemRepository[*mediatypes.Series]
+	musicRepo           repository.MediaItemRepository[*mediatypes.Track]
+	historyRepo         repository.MediaPlayHistoryRepository
+	scheduler           *scheduler.Scheduler
+	jobs                map[string]scheduler.Job
+	recommendationJob   *recommendation.RecommendationJob
+	mediaSyncJob        *jobs.MediaSyncJob
+	watchHistorySyncJob *jobs.WatchHistorySyncJob
+	favoritesSyncJob    *jobs.FavoritesSyncJob
 }
 
 // NewJobService creates a new job service
@@ -94,7 +95,7 @@ func NewJobService(
 	seriesRepo repository.MediaItemRepository[*mediatypes.Series],
 	musicRepo repository.MediaItemRepository[*mediatypes.Track],
 	historyRepo repository.MediaPlayHistoryRepository,
-	recommendationJob *jobs.RecommendationJob,
+	recommendationJob *recommendation.RecommendationJob,
 	mediaSyncJob *jobs.MediaSyncJob,
 	watchHistorySyncJob *jobs.WatchHistorySyncJob,
 	favoritesSyncJob *jobs.FavoritesSyncJob,
@@ -142,7 +143,7 @@ func (s *jobService) SyncDatabaseJobs(ctx context.Context) error {
 	for _, job := range s.jobs {
 		systemJobs = append(systemJobs, job)
 	}
-	
+
 	// Register system jobs in the database
 	if err := jobs.RegisterSystemJobs(ctx, s.jobRepo, systemJobs); err != nil {
 		return fmt.Errorf("error registering system jobs: %w", err)
@@ -352,7 +353,7 @@ func (s *jobService) GetMediaSyncJobs(ctx context.Context, userID uint64) ([]mod
 // getJobType determines the job type from a job
 func getJobType(job scheduler.Job) models.JobType {
 	switch job.(type) {
-	case *jobs.RecommendationJob:
+	case *recommendation.RecommendationJob:
 		return models.JobTypeRecommendation
 	case *jobs.MediaSyncJob, *jobs.WatchHistorySyncJob, *jobs.FavoritesSyncJob:
 		return models.JobTypeSync
@@ -360,3 +361,4 @@ func getJobType(job scheduler.Job) models.JobType {
 		return models.JobType("unknown")
 	}
 }
+

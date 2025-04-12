@@ -28,6 +28,20 @@ definitions:
     - ErrorTypeTimeout
     - ErrorTypeServiceUnavailable
     - ErrorTypeUnprocessableEntity
+  models.Award:
+    properties:
+      category:
+        type: string
+      isWinner:
+        type: boolean
+      name:
+        type: string
+      production:
+        description: Movie/show the award was for
+        type: string
+      year:
+        type: integer
+    type: object
   models.Client-types_ClientConfig:
     properties:
       category:
@@ -69,6 +83,93 @@ definitions:
         description: The actual ID value in the external system
         type: string
     type: object
+  models.Credit:
+    properties:
+      character:
+        description: For actors
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      department:
+        description: e.g., "Directing", "Writing", "Sound"
+        type: string
+      episodeCount:
+        description: Number of episodes for TV series
+        type: integer
+      id:
+        type: integer
+      isArtist:
+        type: boolean
+      isCast:
+        description: Credit type flags
+        type: boolean
+      isCreator:
+        type: boolean
+      isCrew:
+        type: boolean
+      isGuest:
+        type: boolean
+      job:
+        description: Specific job title
+        type: string
+      mediaItemId:
+        type: integer
+      metadata:
+        allOf:
+        - $ref: '#/definitions/models.CreditMetadata'
+        description: Credit metadata (awards, notes, etc.)
+      name:
+        description: Name as it appears in the credits
+        type: string
+      order:
+        description: Display order in credits
+        type: integer
+      person:
+        $ref: '#/definitions/models.Person'
+      personId:
+        type: integer
+      role:
+        description: e.g., "Director", "Actor"
+        type: string
+      seasonNumber:
+        description: For TV series credits
+        type: integer
+      updatedAt:
+        type: string
+    type: object
+  models.CreditAward:
+    properties:
+      category:
+        type: string
+      isNominee:
+        type: boolean
+      isWinner:
+        type: boolean
+      name:
+        type: string
+      year:
+        type: integer
+    type: object
+  models.CreditMetadata:
+    properties:
+      additionalInfo:
+        additionalProperties: {}
+        type: object
+      awards:
+        items:
+          $ref: '#/definitions/models.CreditAward'
+        type: array
+      notes:
+        type: string
+      specialPerformance:
+        type: boolean
+      uncredited:
+        type: boolean
+      voiceOnly:
+        type: boolean
+    type: object
   models.DefaultClients:
     properties:
       aiClientId:
@@ -105,6 +206,13 @@ definitions:
         type: string
       source:
         description: e.g., "tmdb", "imdb", "trakt", "tvdb"
+        type: string
+    type: object
+  models.ExternalLink:
+    properties:
+      name:
+        type: string
+      url:
         type: string
     type: object
   models.Genres:
@@ -563,6 +671,70 @@ definitions:
         description: ID of the user
         type: integer
     type: object
+  models.Person:
+    properties:
+      biography:
+        type: string
+      birthplace:
+        type: string
+      clientIds:
+        items:
+          $ref: '#/definitions/models.ClientID'
+        type: array
+      createdAt:
+        type: string
+      dateOfBirth:
+        type: string
+      dateOfDeath:
+        type: string
+      deletedAt:
+        type: string
+      externalIds:
+        items:
+          $ref: '#/definitions/models.ExternalID'
+        type: array
+      gender:
+        type: string
+      id:
+        type: integer
+      knownFor:
+        description: Professional information
+        type: string
+      metadata:
+        allOf:
+        - $ref: '#/definitions/models.PersonMetadata'
+        description: Additional metadata
+      name:
+        type: string
+      photo:
+        description: Biographical information
+        type: string
+      popularity:
+        type: number
+      updatedAt:
+        type: string
+    type: object
+  models.PersonMetadata:
+    properties:
+      alternateNames:
+        items:
+          type: string
+        type: array
+      awards:
+        items:
+          $ref: '#/definitions/models.Award'
+        type: array
+      externalLinks:
+        items:
+          $ref: '#/definitions/models.ExternalLink'
+        type: array
+      socialMedia:
+        $ref: '#/definitions/models.SocialMedia'
+      tags:
+        items:
+          type: string
+        type: array
+    type: object
   models.PrivacySettings:
     properties:
       publicProfile:
@@ -654,6 +826,17 @@ definitions:
         example: https://trakt.tv/users/faiyt
         type: string
     type: object
+  models.SocialMedia:
+    properties:
+      facebook:
+        type: string
+      instagram:
+        type: string
+      twitter:
+        type: string
+      website:
+        type: string
+    type: object
   models.UserConfig:
     description: User-specific configuration stored in the database
     properties:
@@ -735,6 +918,11 @@ definitions:
       maxContentRating:
         example: R
         type: string
+      maxNotificationsPerDay:
+        example: 10
+        maximum: 100
+        minimum: 1
+        type: integer
       maxRecommendations:
         allOf:
         - $ref: '#/definitions/models.MaxRecommendations'
@@ -758,11 +946,25 @@ definitions:
         description: Notification Settings
         example: true
         type: boolean
+      notifyMediaTypes:
+        example: movie,series,music
+        type: string
       notifyOnNewRecommendations:
         example: true
         type: boolean
       notifyOnSync:
         example: false
+        type: boolean
+      notifyRatingThreshold:
+        example: 5
+        maximum: 10
+        minimum: 0
+        type: number
+      notifyRecentReleases:
+        example: true
+        type: boolean
+      notifyUpcomingReleases:
+        example: true
         type: boolean
       onboardingCompleted:
         description: Onboarding
@@ -803,6 +1005,12 @@ definitions:
         description: What content types with be part of the auto sync recommendations
         example: movie,series,tv,book
         type: string
+      recommendationIncludeSimilar:
+        example: false
+        type: boolean
+      recommendationIncludeWatched:
+        example: false
+        type: boolean
       recommendationListPrefix:
         description: Prefux to add to teh beginning of the list name to identify that
           its part of the auto recommendations system
@@ -1078,6 +1286,187 @@ definitions:
     - conversationId
     - message
     type: object
+  requests.CreateCreditRequest:
+    description: Request payload for creating a new credit
+    properties:
+      character:
+        description: |-
+          Character is the character's name (for acting roles)
+          @Description Character's name (for acting roles)
+          @Example "Forrest Gump"
+        example: Forrest Gump
+        type: string
+      department:
+        description: |-
+          Department is the department the person worked in
+          @Description Department the person worked in
+          @Example "Acting"
+        example: Acting
+        type: string
+      isArtist:
+        description: |-
+          IsArtist indicates if this is an artist credit
+          @Description Indicates if this is an artist credit
+          @Example false
+        example: false
+        type: boolean
+      isCast:
+        description: |-
+          IsCast indicates if this is a cast credit
+          @Description Indicates if this is a cast credit
+          @Example true
+        example: true
+        type: boolean
+      isCreator:
+        description: |-
+          IsCreator indicates if this is a creator credit
+          @Description Indicates if this is a creator credit
+          @Example false
+        example: false
+        type: boolean
+      isCrew:
+        description: |-
+          IsCrew indicates if this is a crew credit
+          @Description Indicates if this is a crew credit
+          @Example false
+        example: false
+        type: boolean
+      isGuest:
+        description: |-
+          IsGuest indicates if this is a guest credit
+          @Description Indicates if this is a guest credit
+          @Example false
+        example: false
+        type: boolean
+      job:
+        description: |-
+          Job is the specific job the person had
+          @Description Specific job the person had
+          @Example "Lead Actor"
+        example: Lead Actor
+        type: string
+      mediaItemId:
+        description: |-
+          MediaItemID is the ID of the media item
+          @Description ID of the media item
+          @Example 2
+        example: 2
+        type: integer
+      name:
+        description: |-
+          Name is the person's name for this credit
+          @Description Person's name for this credit
+          @Example "Tom Hanks"
+        example: Tom Hanks
+        type: string
+      order:
+        description: |-
+          Order is the order of importance (lower means more important)
+          @Description Order of importance (lower means more important)
+          @Example 1
+        example: 1
+        type: integer
+      personId:
+        description: |-
+          PersonID is the ID of the person
+          @Description ID of the person
+          @Example 1
+        example: 1
+        type: integer
+      role:
+        description: |-
+          Role is the person's role
+          @Description Person's role
+          @Example "Actor"
+        example: Actor
+        type: string
+    required:
+    - mediaItemId
+    - name
+    - personId
+    type: object
+  requests.CreateCreditsRequest:
+    description: Request payload for creating multiple credits for a media item
+    properties:
+      credits:
+        description: |-
+          Credits is the list of credits to create
+          @Description List of credits to create
+        items:
+          $ref: '#/definitions/requests.CreateCreditRequest'
+        type: array
+    required:
+    - credits
+    type: object
+  requests.CreatePersonRequest:
+    description: Request payload for creating a new person
+    properties:
+      biography:
+        description: |-
+          Biography is the person's biography
+          @Description Person's biography
+          @Example "Thomas Jeffrey Hanks is an American actor and filmmaker..."
+        example: Thomas Jeffrey Hanks is an American actor and filmmaker...
+        type: string
+      birthplace:
+        description: |-
+          Birthplace is the person's birthplace
+          @Description Person's birthplace
+          @Example "Concord, California, USA"
+        example: Concord, California, USA
+        type: string
+      dateOfBirth:
+        description: |-
+          DateOfBirth is the person's date of birth
+          @Description Person's date of birth in RFC3339 format
+          @Example "1956-07-09T00:00:00Z"
+        example: "1956-07-09T00:00:00Z"
+        type: string
+      dateOfDeath:
+        description: |-
+          DateOfDeath is the person's date of death (if applicable)
+          @Description Person's date of death in RFC3339 format (if applicable)
+          @Example "2056-07-09T00:00:00Z"
+        example: "2056-07-09T00:00:00Z"
+        type: string
+      externalIds:
+        description: |-
+          ExternalIDs contains IDs from external services
+          @Description IDs from external services
+        items:
+          $ref: '#/definitions/requests.ExternalIDRequest'
+        type: array
+      gender:
+        description: |-
+          Gender is the person's gender
+          @Description Person's gender
+          @Example "Male"
+        example: Male
+        type: string
+      knownFor:
+        description: |-
+          KnownFor is what the person is primarily known for
+          @Description What the person is primarily known for
+          @Example "Actor"
+        example: Actor
+        type: string
+      name:
+        description: |-
+          Name is the person's name
+          @Description Person's name
+          @Example "Tom Hanks"
+        example: Tom Hanks
+        type: string
+      photo:
+        description: |-
+          Photo is the URL or path to the person's photo
+          @Description URL or path to the person's photo
+          @Example "https://example.com/photos/tom-hanks.jpg"
+        example: https://example.com/photos/tom-hanks.jpg
+        type: string
+    required:
+    - name
+    type: object
   requests.CreateTagRequest:
     properties:
       name:
@@ -1094,6 +1483,55 @@ definitions:
         type: object
     required:
     - command
+    type: object
+  requests.ExternalIDRequest:
+    description: External ID for a person
+    properties:
+      id:
+        description: |-
+          ID is the identifier in the external service
+          @Description Identifier in the external service
+          @Example "31"
+        example: "31"
+        type: string
+      source:
+        description: |-
+          Source is the name of the external service
+          @Description Name of the external service
+          @Example "TMDB"
+        example: TMDB
+        type: string
+    required:
+    - id
+    - source
+    type: object
+  requests.ImportPersonRequest:
+    description: Request payload for importing a person from an external source
+    properties:
+      externalId:
+        description: |-
+          ExternalID is the identifier in the external service
+          @Description Identifier in the external service
+          @Example "31"
+        example: "31"
+        type: string
+      personData:
+        allOf:
+        - $ref: '#/definitions/requests.CreatePersonRequest'
+        description: |-
+          PersonData contains the person data to import
+          @Description Person data to import
+      source:
+        description: |-
+          Source is the name of the external service
+          @Description Name of the external service
+          @Example "TMDB"
+        example: TMDB
+        type: string
+    required:
+    - externalId
+    - personData
+    - source
     type: object
   requests.LoginRequest:
     description: Request payload for user login
@@ -1242,6 +1680,101 @@ definitions:
     required:
     - contentType
     type: object
+  requests.UpdateCreditRequest:
+    description: Request payload for updating an existing credit
+    properties:
+      character:
+        description: |-
+          Character is the character's name (for acting roles)
+          @Description Character's name (for acting roles)
+          @Example "Forrest Gump"
+        example: Forrest Gump
+        type: string
+      department:
+        description: |-
+          Department is the department the person worked in
+          @Description Department the person worked in
+          @Example "Acting"
+        example: Acting
+        type: string
+      isArtist:
+        description: |-
+          IsArtist indicates if this is an artist credit
+          @Description Indicates if this is an artist credit
+          @Example false
+        example: false
+        type: boolean
+      isCast:
+        description: |-
+          IsCast indicates if this is a cast credit
+          @Description Indicates if this is a cast credit
+          @Example true
+        example: true
+        type: boolean
+      isCreator:
+        description: |-
+          IsCreator indicates if this is a creator credit
+          @Description Indicates if this is a creator credit
+          @Example false
+        example: false
+        type: boolean
+      isCrew:
+        description: |-
+          IsCrew indicates if this is a crew credit
+          @Description Indicates if this is a crew credit
+          @Example false
+        example: false
+        type: boolean
+      isGuest:
+        description: |-
+          IsGuest indicates if this is a guest credit
+          @Description Indicates if this is a guest credit
+          @Example false
+        example: false
+        type: boolean
+      job:
+        description: |-
+          Job is the specific job the person had
+          @Description Specific job the person had
+          @Example "Lead Actor"
+        example: Lead Actor
+        type: string
+      mediaItemId:
+        description: |-
+          MediaItemID is the ID of the media item
+          @Description ID of the media item
+          @Example 2
+        example: 2
+        type: integer
+      name:
+        description: |-
+          Name is the person's name for this credit
+          @Description Person's name for this credit
+          @Example "Tom Hanks"
+        example: Tom Hanks
+        type: string
+      order:
+        description: |-
+          Order is the order of importance (lower means more important)
+          @Description Order of importance (lower means more important)
+          @Example 1
+        example: 1
+        type: integer
+      personId:
+        description: |-
+          PersonID is the ID of the person
+          @Description ID of the person
+          @Example 1
+        example: 1
+        type: integer
+      role:
+        description: |-
+          Role is the person's role
+          @Description Person's role
+          @Example "Actor"
+        example: Actor
+        type: string
+    type: object
   requests.UpdateJobScheduleRequest:
     properties:
       enabled:
@@ -1269,6 +1802,73 @@ definitions:
         items:
           type: integer
         type: array
+    type: object
+  requests.UpdatePersonRequest:
+    description: Request payload for updating an existing person
+    properties:
+      biography:
+        description: |-
+          Biography is the person's biography
+          @Description Person's biography
+          @Example "Thomas Jeffrey Hanks is an American actor and filmmaker..."
+        example: Thomas Jeffrey Hanks is an American actor and filmmaker...
+        type: string
+      birthplace:
+        description: |-
+          Birthplace is the person's birthplace
+          @Description Person's birthplace
+          @Example "Concord, California, USA"
+        example: Concord, California, USA
+        type: string
+      dateOfBirth:
+        description: |-
+          DateOfBirth is the person's date of birth
+          @Description Person's date of birth in RFC3339 format
+          @Example "1956-07-09T00:00:00Z"
+        example: "1956-07-09T00:00:00Z"
+        type: string
+      dateOfDeath:
+        description: |-
+          DateOfDeath is the person's date of death (if applicable)
+          @Description Person's date of death in RFC3339 format (if applicable)
+          @Example "2056-07-09T00:00:00Z"
+        example: "2056-07-09T00:00:00Z"
+        type: string
+      externalIds:
+        description: |-
+          ExternalIDs contains IDs from external services
+          @Description IDs from external services
+        items:
+          $ref: '#/definitions/requests.ExternalIDRequest'
+        type: array
+      gender:
+        description: |-
+          Gender is the person's gender
+          @Description Person's gender
+          @Example "Male"
+        example: Male
+        type: string
+      knownFor:
+        description: |-
+          KnownFor is what the person is primarily known for
+          @Description What the person is primarily known for
+          @Example "Actor"
+        example: Actor
+        type: string
+      name:
+        description: |-
+          Name is the person's name
+          @Description Person's name
+          @Example "Tom Hanks"
+        example: Tom Hanks
+        type: string
+      photo:
+        description: |-
+          Photo is the URL or path to the person's photo
+          @Description URL or path to the person's photo
+          @Example "https://example.com/photos/tom-hanks.jpg"
+        example: https://example.com/photos/tom-hanks.jpg
+        type: string
     type: object
   requests.UpdateRecommendationViewedRequest:
     properties:
@@ -1989,11 +2589,7 @@ definitions:
     properties:
       audioCodec:
         type: string
-      cast:
-        items:
-          $ref: '#/definitions/suasor_client_media_types.Person'
-        type: array
-      crew:
+      credits:
         items:
           $ref: '#/definitions/suasor_client_media_types.Person'
         type: array
@@ -2016,6 +2612,16 @@ definitions:
       character:
         description: For actors
         type: string
+      isArtist:
+        type: boolean
+      isCast:
+        type: boolean
+      isCreator:
+        type: boolean
+      isCrew:
+        type: boolean
+      isGuest:
+        type: boolean
       name:
         type: string
       photo:
@@ -2054,6 +2660,10 @@ definitions:
         type: string
       artistName:
         type: string
+      credits:
+        items:
+          $ref: '#/definitions/suasor_client_media_types.Person'
+        type: array
       details:
         $ref: '#/definitions/types.MediaDetails'
       trackCount:
@@ -2101,6 +2711,18 @@ definitions:
     - AutomationClientTypeSonarr
     - AutomationClientTypeLidarr
     - AutomationClientTypeUnknown
+  types.ChangeRecord:
+    properties:
+      changeType:
+        description: '"add", "remove", "update", "reorder"'
+        type: string
+      clientId:
+        type: integer
+      itemId:
+        type: string
+      timestamp:
+        type: string
+    type: object
   types.ClaudeConfig:
     description: Claude media server configuration
     properties:
@@ -2502,6 +3124,8 @@ definitions:
         type: array
       isFavorite:
         type: boolean
+      language:
+        type: string
       ratings:
         items:
           $ref: '#/definitions/suasor_client_media_types.Rating'
@@ -2630,11 +3254,37 @@ definitions:
       itemCount:
         type: integer
       itemIDs:
+        description: Maintained for backward compatibility
         items:
           type: string
         type: array
+      items:
+        items:
+          $ref: '#/definitions/types.PlaylistItem'
+        type: array
+      lastModified:
+        description: Track when and which client last modified this playlist
+        type: string
+      lastSynced:
+        type: string
+      modifiedBy:
+        description: Client ID that last modified this playlist
+        type: integer
       owner:
         type: string
+    type: object
+  types.PlaylistItem:
+    properties:
+      changeHistory:
+        items:
+          $ref: '#/definitions/types.ChangeRecord'
+        type: array
+      itemId:
+        type: string
+      lastChanged:
+        type: string
+      position:
+        type: integer
     type: object
   types.PlexConfig:
     description: Plex media server configuration
@@ -2699,6 +3349,10 @@ definitions:
     properties:
       artwork:
         $ref: '#/definitions/types.Artwork'
+      credits:
+        items:
+          $ref: '#/definitions/suasor_client_media_types.Person'
+        type: array
       details:
         $ref: '#/definitions/types.MediaDetails'
       episodeCount:
@@ -2720,6 +3374,10 @@ definitions:
     properties:
       contentRating:
         type: string
+      credits:
+        items:
+          $ref: '#/definitions/suasor_client_media_types.Person'
+        type: array
       details:
         $ref: '#/definitions/types.MediaDetails'
       episodeCount:
@@ -2820,6 +3478,10 @@ definitions:
         type: string
       composer:
         type: string
+      credits:
+        items:
+          $ref: '#/definitions/suasor_client_media_types.Person'
+        type: array
       details:
         $ref: '#/definitions/types.MediaDetails'
       discNumber:
@@ -4037,6 +4699,25 @@ paths:
       summary: Get movie by ID
       tags:
       - movies
+  /clients/media/{clientID}/movies/{source}/{externalID}:
+    get:
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-suasor_client_media_types_Movie'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
   /clients/media/{clientID}/music/albums/{albumID}:
     get:
       consumes:
@@ -4822,6 +5503,365 @@ paths:
       summary: Update user configuration
       tags:
       - config
+  /credits:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new credit associating a person with a media item
+      parameters:
+      - description: Credit information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CreateCreditRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Credit created successfully
+          schema:
+            $ref: '#/definitions/models.Credit'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Create a new credit
+      tags:
+      - credits
+  /credits/{creditID}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a credit record by ID
+      parameters:
+      - description: Credit ID
+        in: path
+        name: creditID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Credit deleted successfully
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+        "400":
+          description: Invalid credit ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "404":
+          description: Credit not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Delete a credit
+      tags:
+      - credits
+    put:
+      consumes:
+      - application/json
+      description: Updates a credit record with the provided information
+      parameters:
+      - description: Credit ID
+        in: path
+        name: creditID
+        required: true
+        type: integer
+      - description: Updated credit information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.UpdateCreditRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Credit updated successfully
+          schema:
+            $ref: '#/definitions/models.Credit'
+        "400":
+          description: Invalid credit ID or request format
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "404":
+          description: Credit not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Update an existing credit
+      tags:
+      - credits
+  /credits/media/{mediaItemID}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all credits (cast and crew) associated with a specific
+        media item
+      parameters:
+      - description: Media Item ID
+        in: path
+        name: mediaItemID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Credits retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.Credit'
+            type: array
+        "400":
+          description: Invalid media item ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get all credits for a media item
+      tags:
+      - credits
+    post:
+      consumes:
+      - application/json
+      description: Creates multiple credits for a specific media item in a single
+        operation
+      parameters:
+      - description: Media Item ID
+        in: path
+        name: mediaItemID
+        required: true
+        type: integer
+      - description: Multiple credits information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CreateCreditsRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Credits created successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.Credit'
+            type: array
+        "400":
+          description: Invalid media item ID or request format
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Create multiple credits for a media item
+      tags:
+      - credits
+  /credits/media/{mediaItemID}/{type}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves credits for a media item filtered by type (cast, crew,
+        directors)
+      parameters:
+      - description: Media Item ID
+        in: path
+        name: mediaItemID
+        required: true
+        type: integer
+      - description: Credit type (cast, crew, directors)
+        in: path
+        name: type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Credits retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.Credit'
+            type: array
+        "400":
+          description: Invalid media item ID or credit type
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get credits by type for a media item
+      tags:
+      - credits
+  /credits/media/{mediaItemID}/cast:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all cast credits associated with a specific media item
+      parameters:
+      - description: Media Item ID
+        in: path
+        name: mediaItemID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cast credits retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.Credit'
+            type: array
+        "400":
+          description: Invalid media item ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get cast for a media item
+      tags:
+      - credits
+  /credits/media/{mediaItemID}/crew:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all crew credits associated with a specific media item,
+        optionally filtered by department
+      parameters:
+      - description: Media Item ID
+        in: path
+        name: mediaItemID
+        required: true
+        type: integer
+      - description: Filter by department (e.g., 'Directing', 'Writing')
+        in: query
+        name: department
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Crew credits retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.Credit'
+            type: array
+        "400":
+          description: Invalid media item ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get crew for a media item
+      tags:
+      - credits
+  /credits/media/{mediaItemID}/directors:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all director credits associated with a specific media
+        item
+      parameters:
+      - description: Media Item ID
+        in: path
+        name: mediaItemID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Director credits retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.Credit'
+            type: array
+        "400":
+          description: Invalid media item ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get directors for a media item
+      tags:
+      - credits
+  /credits/person/{personID}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all credits associated with a specific person
+      parameters:
+      - description: Person ID
+        in: path
+        name: personID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Credits retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.Credit'
+            type: array
+        "400":
+          description: Invalid person ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get all credits for a person
+      tags:
+      - credits
   /docs/client-types:
     get:
       consumes:
@@ -5809,6 +6849,397 @@ paths:
       summary: Get tracks by genre
       tags:
       - music
+  /people:
+    get:
+      consumes:
+      - application/json
+      description: Searches for people whose names match the provided query
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      - default: 20
+        description: Maximum number of results to return
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: People retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.Person'
+            type: array
+        "400":
+          description: Missing search query or invalid limit
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Search for people by name
+      tags:
+      - people
+    post:
+      consumes:
+      - application/json
+      description: Creates a new person record with the provided information
+      parameters:
+      - description: Person information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CreatePersonRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Person created successfully
+          schema:
+            $ref: '#/definitions/models.Person'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Create a new person
+      tags:
+      - people
+  /people/{personID}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a person record by ID
+      parameters:
+      - description: Person ID
+        in: path
+        name: personID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Person deleted successfully
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+        "400":
+          description: Invalid person ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "404":
+          description: Person not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Delete a person
+      tags:
+      - people
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific person by their ID
+      parameters:
+      - description: Person ID
+        in: path
+        name: personID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Person retrieved successfully
+          schema:
+            $ref: '#/definitions/models.Person'
+        "400":
+          description: Invalid person ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "404":
+          description: Person not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get person by ID
+      tags:
+      - people
+    put:
+      consumes:
+      - application/json
+      description: Updates a person record with the provided information
+      parameters:
+      - description: Person ID
+        in: path
+        name: personID
+        required: true
+        type: integer
+      - description: Updated person information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.UpdatePersonRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Person updated successfully
+          schema:
+            $ref: '#/definitions/models.Person'
+        "400":
+          description: Invalid person ID or request format
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "404":
+          description: Person not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Update an existing person
+      tags:
+      - people
+  /people/{personID}/credits:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific person along with all their credits
+      parameters:
+      - description: Person ID
+        in: path
+        name: personID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Person and their credits retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid person ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "404":
+          description: Person not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get person with their credits
+      tags:
+      - people
+  /people/{personID}/credits/grouped:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a person's credits organized by department and role
+      parameters:
+      - description: Person ID
+        in: path
+        name: personID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Credits grouped by department and role
+          schema:
+            additionalProperties:
+              additionalProperties:
+                items:
+                  $ref: '#/definitions/models.Credit'
+                type: array
+              type: object
+            type: object
+        "400":
+          description: Invalid person ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get a person's credits grouped by type
+      tags:
+      - people
+  /people/{personID}/external-ids:
+    post:
+      consumes:
+      - application/json
+      description: Adds or updates an external ID reference for a person
+      parameters:
+      - description: Person ID
+        in: path
+        name: personID
+        required: true
+        type: integer
+      - description: External ID information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.ExternalIDRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: External ID added successfully
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+        "400":
+          description: Invalid person ID or request format
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Add external ID to person
+      tags:
+      - people
+  /people/import:
+    post:
+      consumes:
+      - application/json
+      description: Imports a person from an external source with the provided details
+      parameters:
+      - description: Person import information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.ImportPersonRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Person imported successfully
+          schema:
+            $ref: '#/definitions/models.Person'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Import a person from an external source
+      tags:
+      - people
+  /people/popular:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of popular people, sorted by popularity
+      parameters:
+      - default: 20
+        description: Maximum number of results to return
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Popular people retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.Person'
+            type: array
+        "400":
+          description: Invalid limit
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get popular people
+      tags:
+      - people
+  /people/roles/{role}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves people filtered by their professional role (Actor, Director,
+        etc.)
+      parameters:
+      - description: Role to filter by (e.g., 'Actor', 'Director')
+        in: path
+        name: role
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: People retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.Person'
+            type: array
+        "400":
+          description: Missing role parameter
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get people by role
+      tags:
+      - people
   /playlists/search:
     get:
       consumes:

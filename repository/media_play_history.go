@@ -25,6 +25,12 @@ type MediaPlayHistoryRepository interface {
 	HasUserViewedMedia(ctx context.Context, userID, mediaItemID uint64) (bool, error)
 	// GetItemPlayCount gets the number of times a user has played a media item
 	GetItemPlayCount(ctx context.Context, userID, mediaItemID uint64) (int, error)
+	// GetByUserIDAndTypeMovie retrieves a user's movie play history with limit and offset
+	GetByUserIDAndTypeMovie(ctx context.Context, userID uint64, limit int, offset int) ([]models.MediaPlayHistory[*types.Movie], error)
+	// GetByUserIDAndTypeSeries retrieves a user's series play history with limit and offset
+	GetByUserIDAndTypeSeries(ctx context.Context, userID uint64, limit int, offset int) ([]models.MediaPlayHistory[*types.Series], error)
+	// GetByUserIDAndTypeMusic retrieves a user's music play history with limit and offset
+	GetByUserIDAndTypeMusic(ctx context.Context, userID uint64, limit int, offset int) ([]models.MediaPlayHistory[*types.Track], error)
 }
 
 type mediaPlayHistoryRepository struct {
@@ -169,5 +175,89 @@ func (r *mediaPlayHistoryRepository) GetItemPlayCount(ctx context.Context, userI
 	}
 
 	return int(history.PlayCount), nil
+}
+
+// GetByUserIDAndTypeMovie retrieves a user's movie play history with limit and offset
+func (r *mediaPlayHistoryRepository) GetByUserIDAndTypeMovie(ctx context.Context, userID uint64, limit int, offset int) ([]models.MediaPlayHistory[*types.Movie], error) {
+	var history []models.MediaPlayHistory[*types.Movie]
+
+	result := r.db.WithContext(ctx).
+		Table("media_play_histories").
+		Joins("JOIN media_items ON media_play_histories.media_item_id = media_items.id").
+		Where("media_items.type = ? AND media_play_histories.user_id = ?", types.MediaTypeMovie, userID).
+		Order("media_play_histories.last_played_at DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&history)
+
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get user movie history: %w", result.Error)
+	}
+
+	// Load the associated MediaItems
+	for i := range history {
+		if err := history[i].LoadItem(r.db); err != nil {
+			// Log the error but continue
+			fmt.Printf("Error loading media item for history %d: %v\n", history[i].ID, err)
+		}
+	}
+
+	return history, nil
+}
+
+// GetByUserIDAndTypeSeries retrieves a user's series play history with limit and offset
+func (r *mediaPlayHistoryRepository) GetByUserIDAndTypeSeries(ctx context.Context, userID uint64, limit int, offset int) ([]models.MediaPlayHistory[*types.Series], error) {
+	var history []models.MediaPlayHistory[*types.Series]
+
+	result := r.db.WithContext(ctx).
+		Table("media_play_histories").
+		Joins("JOIN media_items ON media_play_histories.media_item_id = media_items.id").
+		Where("media_items.type = ? AND media_play_histories.user_id = ?", types.MediaTypeSeries, userID).
+		Order("media_play_histories.last_played_at DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&history)
+
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get user series history: %w", result.Error)
+	}
+
+	// Load the associated MediaItems
+	for i := range history {
+		if err := history[i].LoadItem(r.db); err != nil {
+			// Log the error but continue
+			fmt.Printf("Error loading media item for history %d: %v\n", history[i].ID, err)
+		}
+	}
+
+	return history, nil
+}
+
+// GetByUserIDAndTypeMusic retrieves a user's music play history with limit and offset
+func (r *mediaPlayHistoryRepository) GetByUserIDAndTypeMusic(ctx context.Context, userID uint64, limit int, offset int) ([]models.MediaPlayHistory[*types.Track], error) {
+	var history []models.MediaPlayHistory[*types.Track]
+
+	result := r.db.WithContext(ctx).
+		Table("media_play_histories").
+		Joins("JOIN media_items ON media_play_histories.media_item_id = media_items.id").
+		Where("media_items.type = ? AND media_play_histories.user_id = ?", types.MediaTypeTrack, userID).
+		Order("media_play_histories.last_played_at DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&history)
+
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get user music history: %w", result.Error)
+	}
+
+	// Load the associated MediaItems
+	for i := range history {
+		if err := history[i].LoadItem(r.db); err != nil {
+			// Log the error but continue
+			fmt.Printf("Error loading media item for history %d: %v\n", history[i].ID, err)
+		}
+	}
+
+	return history, nil
 }
 

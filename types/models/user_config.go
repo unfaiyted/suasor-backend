@@ -68,6 +68,9 @@ type UserConfig struct {
 	DiscoveryModeRatio     float32 `json:"discoveryModeRatio" gorm:"default:0.5" example:"0.5" binding:"omitempty,min=0,max=1"`
 
 	DefaultClients *DefaultClients `json:"defaultClients" gorm:"type:jsonb;serializer:json"`
+	
+	// AI Model Preferences
+	AIModelPreferences *AIModelPreferences `json:"aiModelPreferences" gorm:"type:jsonb;serializer:json"`
 
 	// Smart Collections Settings
 	SmartCollectionsEnabled bool `json:"smartCollectionsEnabled" gorm:"default:false" example:"true"`
@@ -179,4 +182,24 @@ func (d *DefaultClients) Scan(value any) error {
 }
 func (d DefaultClients) Value() (driver.Value, error) {
 	return json.Marshal(d)
+}
+
+// AIModelPreferences defines user preferences for AI models
+type AIModelPreferences struct {
+	DefaultModelForChat           string `json:"defaultModelForChat" gorm:"default:''" example:"claude-3-opus-20240229"`
+	DefaultModelForRecommendations string `json:"defaultModelForRecommendations" gorm:"default:''" example:"claude-3-opus-20240229"`
+	DefaultTemperature            float32 `json:"defaultTemperature" gorm:"default:0.7" example:"0.7" binding:"omitempty,min=0,max=1"`
+	DefaultMaxTokens              int `json:"defaultMaxTokens" gorm:"default:4000" example:"4000" binding:"omitempty,min=100,max=100000"`
+}
+
+func (a *AIModelPreferences) Scan(value any) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+	return json.Unmarshal(bytes, &a)
+}
+
+func (a AIModelPreferences) Value() (driver.Value, error) {
+	return json.Marshal(a)
 }

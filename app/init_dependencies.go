@@ -2,7 +2,6 @@
 package app
 
 import (
-	"gorm.io/gorm"
 	"suasor/client"
 	mediatypes "suasor/client/media/types"
 	clienttypes "suasor/client/types"
@@ -10,7 +9,10 @@ import (
 	"suasor/repository"
 	"suasor/services"
 	"suasor/services/jobs"
+	"suasor/services/jobs/recommendation"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *AppDependencies {
@@ -184,6 +186,7 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 
 	// Initialize additional repositories
 	historyRepo := repository.NewMediaPlayHistoryRepository(db)
+	recommendationRepo := repository.NewRecommendationRepository(db)
 
 	// Initialize job repositories
 	deps.JobRepositories = &jobRepositoriesImpl{
@@ -209,7 +212,7 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 	// 	}
 	// }
 
-	recommendationJob := jobs.NewRecommendationJob(
+	recommendationJob := recommendation.NewRecommendationJob(
 		deps.JobRepo(),
 		deps.UserRepo(),
 		deps.UserConfigRepo(),
@@ -223,7 +226,8 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		// Use repositories instead of services
 		repository.NewCreditRepository(deps.GetDB()),
 		repository.NewPersonRepository(deps.GetDB()),
-		// aiClientService,
+		// Add recommendation repository
+		recommendationRepo,
 	)
 
 	mediaSyncJob := jobs.NewMediaSyncJob(
@@ -354,6 +358,14 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		movieHandlers:  clientMovieHandlers,
 		seriesHandlers: clientSeriesHandlers,
 		musicHandlers:  clientMusicHandlers,
+	}
+
+	// Initialize recommendation service and handler using the already created repository
+	recommendationService := services.NewRecommendationService(recommendationRepo)
+
+	deps.JobHandlers = &jobHandlersImpl{
+		jobHandler:            handlers.NewJobHandler(jobService),
+		recommendationHandler: handlers.NewRecommendationHandler(recommendationService),
 	}
 
 	return deps

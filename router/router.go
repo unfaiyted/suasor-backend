@@ -53,6 +53,7 @@ func Setup(ctx context.Context, deps *app.AppDependencies) *gin.Engine {
 		RegisterAIRoutes(authenticated, deps)      // Register AI routes
 		RegisterClientsRoutes(authenticated, deps) // Register all clients route
 		RegisterJobRoutes(authenticated, deps.JobServices.JobService()) // Register job routes
+		RegisterRecommendationRoutes(authenticated, deps) // Register recommendation routes
 	}
 
 	//Admin Routes

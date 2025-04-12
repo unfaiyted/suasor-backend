@@ -5,7 +5,7 @@ import (
 
 	"fmt"
 	"suasor/repository"
-	"suasor/services/jobs"
+	"suasor/services/jobs/recommendation"
 	"suasor/types/models"
 	"suasor/utils"
 )
@@ -17,20 +17,20 @@ type UserConfigService interface {
 }
 
 type userConfigService struct {
-	userConfigRepo repository.UserConfigRepository
-	jobService     JobService
-	recommendationJob *jobs.RecommendationJob
+	userConfigRepo    repository.UserConfigRepository
+	jobService        JobService
+	recommendationJob *recommendation.RecommendationJob
 }
 
 // NewUserConfigService creates a new configuration service
 func NewUserConfigService(
 	userConfigRepo repository.UserConfigRepository,
 	jobService JobService,
-	recommendationJob *jobs.RecommendationJob,
+	recommendationJob *recommendation.RecommendationJob,
 ) UserConfigService {
 	return &userConfigService{
-		userConfigRepo: userConfigRepo,
-		jobService: jobService,
+		userConfigRepo:    userConfigRepo,
+		jobService:        jobService,
 		recommendationJob: recommendationJob,
 	}
 }
@@ -79,7 +79,7 @@ func (s *userConfigService) SaveUserConfig(ctx context.Context, config models.Us
 	if existingConfig == nil ||
 		existingConfig.RecommendationSyncEnabled != config.RecommendationSyncEnabled ||
 		existingConfig.RecommendationSyncFrequency != config.RecommendationSyncFrequency {
-		
+
 		log.Info().
 			Uint64("userId", config.UserID).
 			Bool("syncEnabled", config.RecommendationSyncEnabled).

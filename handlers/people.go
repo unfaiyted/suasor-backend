@@ -25,7 +25,19 @@ func NewPeopleHandler(personService *services.PersonService) *PeopleHandler {
 	}
 }
 
-// GetPersonByID gets a person by ID
+// GetPersonByID godoc
+// @Summary Get person by ID
+// @Description Retrieves a specific person by their ID
+// @Tags people
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param personID path int true "Person ID"
+// @Success 200 {object} models.Person "Person retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid person ID"
+// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Person not found"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
+// @Router /people/{personID} [get]
 func (h *PeopleHandler) GetPersonByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -56,7 +68,19 @@ func (h *PeopleHandler) GetPersonByID(c *gin.Context) {
 	c.JSON(http.StatusOK, person)
 }
 
-// GetPersonWithCredits gets a person with their credits
+// GetPersonWithCredits godoc
+// @Summary Get person with their credits
+// @Description Retrieves a specific person along with all their credits
+// @Tags people
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param personID path int true "Person ID"
+// @Success 200 {object} map[string]interface{} "Person and their credits retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid person ID"
+// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Person not found"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
+// @Router /people/{personID}/credits [get]
 func (h *PeopleHandler) GetPersonWithCredits(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -90,7 +114,19 @@ func (h *PeopleHandler) GetPersonWithCredits(c *gin.Context) {
 	})
 }
 
-// SearchPeople searches for people by name
+// SearchPeople godoc
+// @Summary Search for people by name
+// @Description Searches for people whose names match the provided query
+// @Tags people
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param q query string true "Search query"
+// @Param limit query int false "Maximum number of results to return" default(20)
+// @Success 200 {array} models.Person "People retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Missing search query or invalid limit"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
+// @Router /people [get]
 func (h *PeopleHandler) SearchPeople(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -123,7 +159,18 @@ func (h *PeopleHandler) SearchPeople(c *gin.Context) {
 	c.JSON(http.StatusOK, people)
 }
 
-// GetPopularPeople gets popular people
+// GetPopularPeople godoc
+// @Summary Get popular people
+// @Description Retrieves a list of popular people, sorted by popularity
+// @Tags people
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param limit query int false "Maximum number of results to return" default(20)
+// @Success 200 {array} models.Person "Popular people retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid limit"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
+// @Router /people/popular [get]
 func (h *PeopleHandler) GetPopularPeople(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -149,7 +196,18 @@ func (h *PeopleHandler) GetPopularPeople(c *gin.Context) {
 	c.JSON(http.StatusOK, people)
 }
 
-// GetPeopleByRole gets people by role
+// GetPeopleByRole godoc
+// @Summary Get people by role
+// @Description Retrieves people filtered by their professional role (Actor, Director, etc.)
+// @Tags people
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param role path string true "Role to filter by (e.g., 'Actor', 'Director')"
+// @Success 200 {array} models.Person "People retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Missing role parameter"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
+// @Router /people/roles/{role} [get]
 func (h *PeopleHandler) GetPeopleByRole(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -173,7 +231,18 @@ func (h *PeopleHandler) GetPeopleByRole(c *gin.Context) {
 	c.JSON(http.StatusOK, people)
 }
 
-// CreatePerson creates a new person
+// CreatePerson godoc
+// @Summary Create a new person
+// @Description Creates a new person record with the provided information
+// @Tags people
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body requests.CreatePersonRequest true "Person information"
+// @Success 201 {object} models.Person "Person created successfully"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
+// @Router /people [post]
 func (h *PeopleHandler) CreatePerson(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -215,7 +284,20 @@ func (h *PeopleHandler) CreatePerson(c *gin.Context) {
 	c.JSON(http.StatusCreated, createdPerson)
 }
 
-// UpdatePerson updates an existing person
+// UpdatePerson godoc
+// @Summary Update an existing person
+// @Description Updates a person record with the provided information
+// @Tags people
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param personID path int true "Person ID"
+// @Param request body requests.UpdatePersonRequest true "Updated person information"
+// @Success 200 {object} models.Person "Person updated successfully"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid person ID or request format"
+// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Person not found"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
+// @Router /people/{personID} [put]
 func (h *PeopleHandler) UpdatePerson(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -300,7 +382,19 @@ func (h *PeopleHandler) UpdatePerson(c *gin.Context) {
 	c.JSON(http.StatusOK, updatedPerson)
 }
 
-// DeletePerson deletes a person
+// DeletePerson godoc
+// @Summary Delete a person
+// @Description Deletes a person record by ID
+// @Tags people
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param personID path int true "Person ID"
+// @Success 200 {object} map[string]bool "Person deleted successfully"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid person ID"
+// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Person not found"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
+// @Router /people/{personID} [delete]
 func (h *PeopleHandler) DeletePerson(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -332,7 +426,18 @@ func (h *PeopleHandler) DeletePerson(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
 
-// GetPersonCreditsGrouped gets a person's credits grouped by type
+// GetPersonCreditsGrouped godoc
+// @Summary Get a person's credits grouped by type
+// @Description Retrieves a person's credits organized by department and role
+// @Tags people
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param personID path int true "Person ID"
+// @Success 200 {object} map[string]map[string][]models.Credit "Credits grouped by department and role"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid person ID"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
+// @Router /people/{personID}/credits/grouped [get]
 func (h *PeopleHandler) GetPersonCreditsGrouped(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -358,7 +463,18 @@ func (h *PeopleHandler) GetPersonCreditsGrouped(c *gin.Context) {
 	c.JSON(http.StatusOK, creditsGrouped)
 }
 
-// ImportPerson imports a person from an external source
+// ImportPerson godoc
+// @Summary Import a person from an external source
+// @Description Imports a person from an external source with the provided details
+// @Tags people
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body requests.ImportPersonRequest true "Person import information"
+// @Success 200 {object} models.Person "Person imported successfully"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
+// @Router /people/import [post]
 func (h *PeopleHandler) ImportPerson(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -400,7 +516,19 @@ func (h *PeopleHandler) ImportPerson(c *gin.Context) {
 	c.JSON(http.StatusOK, importedPerson)
 }
 
-// AddExternalIDToPerson adds an external ID to a person
+// AddExternalIDToPerson godoc
+// @Summary Add external ID to person
+// @Description Adds or updates an external ID reference for a person
+// @Tags people
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param personID path int true "Person ID"
+// @Param request body requests.ExternalIDRequest true "External ID information"
+// @Success 200 {object} map[string]bool "External ID added successfully"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid person ID or request format"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
+// @Router /people/{personID}/external-ids [post]
 func (h *PeopleHandler) AddExternalIDToPerson(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)

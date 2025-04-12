@@ -18,10 +18,12 @@ type AIClient interface {
 	// Core text generation capabilities
 	GenerateText(ctx context.Context, promptText string, options *aitypes.GenerationOptions) (string, error)
 	GenerateStructured(ctx context.Context, promptText string, outputSchema interface{}, options *aitypes.GenerationOptions) error
+	GenerateContent(ctx context.Context, systemPrompt string, userPrompt string, model string, options map[string]interface{}) (*aitypes.ContentResponse, error)
 	
 	// Conversational capabilities
 	StartConversation(ctx context.Context, systemInstructions string) (string, error)
 	SendMessage(ctx context.Context, conversationID string, message string) (string, error)
+	CreateMessage(ctx context.Context, request aitypes.MessageRequest) (*aitypes.MessageResponse, error)
 	
 	// Recommendations capabilities
 	GetRecommendations(ctx context.Context, request *aitypes.RecommendationRequest) (*aitypes.RecommendationResponse, error)
@@ -87,5 +89,13 @@ func (b *BaseAIClient) GetCapabilities() *aitypes.AICapabilities {
 }
 
 func (b *BaseAIClient) GetRecommendations(ctx context.Context, request *aitypes.RecommendationRequest) (*aitypes.RecommendationResponse, error) {
+	return nil, ErrFeatureNotSupported
+}
+
+func (b *BaseAIClient) GenerateContent(ctx context.Context, systemPrompt string, userPrompt string, model string, options map[string]interface{}) (*aitypes.ContentResponse, error) {
+	return nil, ErrFeatureNotSupported
+}
+
+func (b *BaseAIClient) CreateMessage(ctx context.Context, request aitypes.MessageRequest) (*aitypes.MessageResponse, error) {
 	return nil, ErrFeatureNotSupported
 }

@@ -67,3 +67,55 @@ type RecommendationResponse struct {
 	Explanation string               `json:"explanation,omitempty"`
 	TokenUsage  TokenUsage           `json:"tokenUsage,omitempty"`
 }
+
+// ContentResponse represents a structured response from the AI model
+type ContentResponse struct {
+	Text       string     `json:"text"`
+	TokenUsage TokenUsage `json:"tokenUsage,omitempty"`
+}
+
+// Message represents a message in a conversation
+type Message struct {
+	Role    string           `json:"role"`
+	Content []MessageContent `json:"content"`
+}
+
+// MessageContent represents the content of a message
+type MessageContent struct {
+	Type string `json:"type"`
+	Text string `json:"text"`
+}
+
+// ResponseFormat describes the format of the response
+type ResponseFormat struct {
+	Type string `json:"type"`
+}
+
+// MessageRequest represents a request to create a message
+type MessageRequest struct {
+	Model          string         `json:"model"`
+	Messages       []Message      `json:"messages"`
+	MaxTokens      int            `json:"max_tokens,omitempty"`
+	Temperature    float64        `json:"temperature,omitempty"`
+	TopP           float64        `json:"top_p,omitempty"`
+	ResponseFormat ResponseFormat `json:"response_format,omitempty"`
+	ConversationID string         `json:"conversation_id,omitempty"`
+	System         string         `json:"system,omitempty"`
+	Tools          interface{}    `json:"tools,omitempty"`
+	ToolChoice     interface{}    `json:"tool_choice,omitempty"`
+	Stop           []string       `json:"stop,omitempty"`
+	Stream         bool           `json:"stream,omitempty"`
+	TopK           int            `json:"top_k,omitempty"`
+	Seed           int            `json:"seed,omitempty"`
+}
+
+// MessageResponse represents a response to a message request
+type MessageResponse struct {
+	ID        string          `json:"id"`
+	Object    string          `json:"object"`
+	Created   int64           `json:"created"`
+	Model     string          `json:"model"`
+	Content   []MessageContent `json:"content"`
+	Role      string          `json:"role"`
+	TokenUsage TokenUsage     `json:"usage,omitempty"`
+}

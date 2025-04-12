@@ -8,6 +8,7 @@ import (
 	"suasor/repository"
 	"suasor/services"
 	"suasor/services/jobs"
+	"suasor/services/jobs/recommendation"
 )
 
 // Interface definitions (unchanged)
@@ -38,7 +39,7 @@ type ClientRepositories interface {
 	ClaudeRepo() repository.ClientRepository[*types.ClaudeConfig]
 	OpenAIRepo() repository.ClientRepository[*types.OpenAIConfig]
 	OllamaRepo() repository.ClientRepository[*types.OllamaConfig]
-	
+
 	// Embed the repository collection interface
 	repository.ClientRepositoryCollection
 }
@@ -215,7 +216,7 @@ type JobRepositories interface {
 
 type JobServices interface {
 	JobService() services.JobService
-	RecommendationJob() *jobs.RecommendationJob
+	RecommendationJob() *recommendation.RecommendationJob
 	MediaSyncJob() *jobs.MediaSyncJob
 	WatchHistorySyncJob() *jobs.WatchHistorySyncJob
 	FavoritesSyncJob() *jobs.FavoritesSyncJob
@@ -229,4 +230,5 @@ type AIHandlers interface {
 
 type JobHandlers interface {
 	JobHandler() *handlers.JobHandler
+	RecommendationHandler() *handlers.RecommendationHandler
 }

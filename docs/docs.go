@@ -1881,6 +1881,36 @@ const docTemplate = `{
                 }
             }
         },
+        "/clients/media/{clientID}/movies/{source}/{externalID}": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-suasor_client_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
         "/clients/media/{clientID}/music/albums/{albumID}": {
             "get": {
                 "security": [
@@ -3076,6 +3106,561 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized access",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/credits": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new credit associating a person with a media item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "credits"
+                ],
+                "summary": "Create a new credit",
+                "parameters": [
+                    {
+                        "description": "Credit information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.CreateCreditRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Credit created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.Credit"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/credits/media/{mediaItemID}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all credits (cast and crew) associated with a specific media item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "credits"
+                ],
+                "summary": "Get all credits for a media item",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Media Item ID",
+                        "name": "mediaItemID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Credits retrieved successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Credit"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid media item ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates multiple credits for a specific media item in a single operation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "credits"
+                ],
+                "summary": "Create multiple credits for a media item",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Media Item ID",
+                        "name": "mediaItemID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Multiple credits information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.CreateCreditsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Credits created successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Credit"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid media item ID or request format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/credits/media/{mediaItemID}/cast": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all cast credits associated with a specific media item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "credits"
+                ],
+                "summary": "Get cast for a media item",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Media Item ID",
+                        "name": "mediaItemID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cast credits retrieved successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Credit"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid media item ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/credits/media/{mediaItemID}/crew": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all crew credits associated with a specific media item, optionally filtered by department",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "credits"
+                ],
+                "summary": "Get crew for a media item",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Media Item ID",
+                        "name": "mediaItemID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by department (e.g., 'Directing', 'Writing')",
+                        "name": "department",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Crew credits retrieved successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Credit"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid media item ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/credits/media/{mediaItemID}/directors": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all director credits associated with a specific media item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "credits"
+                ],
+                "summary": "Get directors for a media item",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Media Item ID",
+                        "name": "mediaItemID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Director credits retrieved successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Credit"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid media item ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/credits/media/{mediaItemID}/{type}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves credits for a media item filtered by type (cast, crew, directors)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "credits"
+                ],
+                "summary": "Get credits by type for a media item",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Media Item ID",
+                        "name": "mediaItemID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Credit type (cast, crew, directors)",
+                        "name": "type",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Credits retrieved successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Credit"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid media item ID or credit type",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/credits/person/{personID}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all credits associated with a specific person",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "credits"
+                ],
+                "summary": "Get all credits for a person",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Person ID",
+                        "name": "personID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Credits retrieved successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Credit"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid person ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/credits/{creditID}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates a credit record with the provided information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "credits"
+                ],
+                "summary": "Update an existing credit",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Credit ID",
+                        "name": "creditID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated credit information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.UpdateCreditRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Credit updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.Credit"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid credit ID or request format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Credit not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes a credit record by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "credits"
+                ],
+                "summary": "Delete a credit",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Credit ID",
+                        "name": "creditID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Credit deleted successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "boolean"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid credit ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Credit not found",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
                         }
@@ -4607,6 +5192,617 @@ const docTemplate = `{
                 }
             }
         },
+        "/people": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Searches for people whose names match the provided query",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "people"
+                ],
+                "summary": "Search for people by name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Maximum number of results to return",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "People retrieved successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Person"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing search query or invalid limit",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new person record with the provided information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "people"
+                ],
+                "summary": "Create a new person",
+                "parameters": [
+                    {
+                        "description": "Person information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.CreatePersonRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Person created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.Person"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/people/import": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Imports a person from an external source with the provided details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "people"
+                ],
+                "summary": "Import a person from an external source",
+                "parameters": [
+                    {
+                        "description": "Person import information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.ImportPersonRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Person imported successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.Person"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/people/popular": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a list of popular people, sorted by popularity",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "people"
+                ],
+                "summary": "Get popular people",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Maximum number of results to return",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Popular people retrieved successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Person"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid limit",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/people/roles/{role}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves people filtered by their professional role (Actor, Director, etc.)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "people"
+                ],
+                "summary": "Get people by role",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Role to filter by (e.g., 'Actor', 'Director')",
+                        "name": "role",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "People retrieved successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Person"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing role parameter",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/people/{personID}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a specific person by their ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "people"
+                ],
+                "summary": "Get person by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Person ID",
+                        "name": "personID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Person retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.Person"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid person ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Person not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates a person record with the provided information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "people"
+                ],
+                "summary": "Update an existing person",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Person ID",
+                        "name": "personID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated person information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.UpdatePersonRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Person updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.Person"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid person ID or request format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Person not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes a person record by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "people"
+                ],
+                "summary": "Delete a person",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Person ID",
+                        "name": "personID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Person deleted successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "boolean"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid person ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Person not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/people/{personID}/credits": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a specific person along with all their credits",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "people"
+                ],
+                "summary": "Get person with their credits",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Person ID",
+                        "name": "personID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Person and their credits retrieved successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid person ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Person not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/people/{personID}/credits/grouped": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a person's credits organized by department and role",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "people"
+                ],
+                "summary": "Get a person's credits grouped by type",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Person ID",
+                        "name": "personID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Credits grouped by department and role",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/models.Credit"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid person ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/people/{personID}/external-ids": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Adds or updates an external ID reference for a person",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "people"
+                ],
+                "summary": "Add external ID to person",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Person ID",
+                        "name": "personID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "External ID information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.ExternalIDRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "External ID added successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "boolean"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid person ID or request format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
         "/playlists/search": {
             "get": {
                 "security": [
@@ -5753,6 +6949,27 @@ const docTemplate = `{
                 "ErrorTypeUnprocessableEntity"
             ]
         },
+        "models.Award": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "isWinner": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "production": {
+                    "description": "Movie/show the award was for",
+                    "type": "string"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.Client-types_ClientConfig": {
             "type": "object",
             "properties": {
@@ -5815,6 +7032,135 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Credit": {
+            "type": "object",
+            "properties": {
+                "character": {
+                    "description": "For actors",
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "department": {
+                    "description": "e.g., \"Directing\", \"Writing\", \"Sound\"",
+                    "type": "string"
+                },
+                "episodeCount": {
+                    "description": "Number of episodes for TV series",
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "isArtist": {
+                    "type": "boolean"
+                },
+                "isCast": {
+                    "description": "Credit type flags",
+                    "type": "boolean"
+                },
+                "isCreator": {
+                    "type": "boolean"
+                },
+                "isCrew": {
+                    "type": "boolean"
+                },
+                "isGuest": {
+                    "type": "boolean"
+                },
+                "job": {
+                    "description": "Specific job title",
+                    "type": "string"
+                },
+                "mediaItemId": {
+                    "type": "integer"
+                },
+                "metadata": {
+                    "description": "Credit metadata (awards, notes, etc.)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.CreditMetadata"
+                        }
+                    ]
+                },
+                "name": {
+                    "description": "Name as it appears in the credits",
+                    "type": "string"
+                },
+                "order": {
+                    "description": "Display order in credits",
+                    "type": "integer"
+                },
+                "person": {
+                    "$ref": "#/definitions/models.Person"
+                },
+                "personId": {
+                    "type": "integer"
+                },
+                "role": {
+                    "description": "e.g., \"Director\", \"Actor\"",
+                    "type": "string"
+                },
+                "seasonNumber": {
+                    "description": "For TV series credits",
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreditAward": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "isNominee": {
+                    "type": "boolean"
+                },
+                "isWinner": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.CreditMetadata": {
+            "type": "object",
+            "properties": {
+                "additionalInfo": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "awards": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.CreditAward"
+                    }
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "specialPerformance": {
+                    "type": "boolean"
+                },
+                "uncredited": {
+                    "type": "boolean"
+                },
+                "voiceOnly": {
+                    "type": "boolean"
+                }
+            }
+        },
         "models.DefaultClients": {
             "type": "object",
             "properties": {
@@ -5862,6 +7208,17 @@ const docTemplate = `{
                 },
                 "source": {
                     "description": "e.g., \"tmdb\", \"imdb\", \"trakt\", \"tvdb\"",
+                    "type": "string"
+                }
+            }
+        },
+        "models.ExternalLink": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "url": {
                     "type": "string"
                 }
             }
@@ -6541,6 +7898,104 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Person": {
+            "type": "object",
+            "properties": {
+                "biography": {
+                    "type": "string"
+                },
+                "birthplace": {
+                    "type": "string"
+                },
+                "clientIds": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ClientID"
+                    }
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "dateOfBirth": {
+                    "type": "string"
+                },
+                "dateOfDeath": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "externalIds": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ExternalID"
+                    }
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "knownFor": {
+                    "description": "Professional information",
+                    "type": "string"
+                },
+                "metadata": {
+                    "description": "Additional metadata",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.PersonMetadata"
+                        }
+                    ]
+                },
+                "name": {
+                    "type": "string"
+                },
+                "photo": {
+                    "description": "Biographical information",
+                    "type": "string"
+                },
+                "popularity": {
+                    "type": "number"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.PersonMetadata": {
+            "type": "object",
+            "properties": {
+                "alternateNames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "awards": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Award"
+                    }
+                },
+                "externalLinks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ExternalLink"
+                    }
+                },
+                "socialMedia": {
+                    "$ref": "#/definitions/models.SocialMedia"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "models.PrivacySettings": {
             "type": "object",
             "properties": {
@@ -6669,6 +8124,23 @@ const docTemplate = `{
                 }
             }
         },
+        "models.SocialMedia": {
+            "type": "object",
+            "properties": {
+                "facebook": {
+                    "type": "string"
+                },
+                "instagram": {
+                    "type": "string"
+                },
+                "twitter": {
+                    "type": "string"
+                },
+                "website": {
+                    "type": "string"
+                }
+            }
+        },
         "models.UserConfig": {
             "description": "User-specific configuration stored in the database",
             "type": "object",
@@ -6774,6 +8246,12 @@ const docTemplate = `{
                     "type": "string",
                     "example": "R"
                 },
+                "maxNotificationsPerDay": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 1,
+                    "example": 10
+                },
                 "maxRecommendations": {
                     "description": "how many movie recommendations to generate",
                     "allOf": [
@@ -6806,6 +8284,10 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": true
                 },
+                "notifyMediaTypes": {
+                    "type": "string",
+                    "example": "movie,series,music"
+                },
                 "notifyOnNewRecommendations": {
                     "type": "boolean",
                     "example": true
@@ -6813,6 +8295,20 @@ const docTemplate = `{
                 "notifyOnSync": {
                     "type": "boolean",
                     "example": false
+                },
+                "notifyRatingThreshold": {
+                    "type": "number",
+                    "maximum": 10,
+                    "minimum": 0,
+                    "example": 5
+                },
+                "notifyRecentReleases": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "notifyUpcomingReleases": {
+                    "type": "boolean",
+                    "example": true
                 },
                 "onboardingCompleted": {
                     "description": "Onboarding",
@@ -6863,6 +8359,14 @@ const docTemplate = `{
                     "description": "What content types with be part of the auto sync recommendations",
                     "type": "string",
                     "example": "movie,series,tv,book"
+                },
+                "recommendationIncludeSimilar": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "recommendationIncludeWatched": {
+                    "type": "boolean",
+                    "example": false
                 },
                 "recommendationListPrefix": {
                     "description": "Prefux to add to teh beginning of the list name to identify that its part of the auto recommendations system",
@@ -7179,6 +8683,154 @@ const docTemplate = `{
                 }
             }
         },
+        "requests.CreateCreditRequest": {
+            "description": "Request payload for creating a new credit",
+            "type": "object",
+            "required": [
+                "mediaItemId",
+                "name",
+                "personId"
+            ],
+            "properties": {
+                "character": {
+                    "description": "Character is the character's name (for acting roles)\n@Description Character's name (for acting roles)\n@Example \"Forrest Gump\"",
+                    "type": "string",
+                    "example": "Forrest Gump"
+                },
+                "department": {
+                    "description": "Department is the department the person worked in\n@Description Department the person worked in\n@Example \"Acting\"",
+                    "type": "string",
+                    "example": "Acting"
+                },
+                "isArtist": {
+                    "description": "IsArtist indicates if this is an artist credit\n@Description Indicates if this is an artist credit\n@Example false",
+                    "type": "boolean",
+                    "example": false
+                },
+                "isCast": {
+                    "description": "IsCast indicates if this is a cast credit\n@Description Indicates if this is a cast credit\n@Example true",
+                    "type": "boolean",
+                    "example": true
+                },
+                "isCreator": {
+                    "description": "IsCreator indicates if this is a creator credit\n@Description Indicates if this is a creator credit\n@Example false",
+                    "type": "boolean",
+                    "example": false
+                },
+                "isCrew": {
+                    "description": "IsCrew indicates if this is a crew credit\n@Description Indicates if this is a crew credit\n@Example false",
+                    "type": "boolean",
+                    "example": false
+                },
+                "isGuest": {
+                    "description": "IsGuest indicates if this is a guest credit\n@Description Indicates if this is a guest credit\n@Example false",
+                    "type": "boolean",
+                    "example": false
+                },
+                "job": {
+                    "description": "Job is the specific job the person had\n@Description Specific job the person had\n@Example \"Lead Actor\"",
+                    "type": "string",
+                    "example": "Lead Actor"
+                },
+                "mediaItemId": {
+                    "description": "MediaItemID is the ID of the media item\n@Description ID of the media item\n@Example 2",
+                    "type": "integer",
+                    "example": 2
+                },
+                "name": {
+                    "description": "Name is the person's name for this credit\n@Description Person's name for this credit\n@Example \"Tom Hanks\"",
+                    "type": "string",
+                    "example": "Tom Hanks"
+                },
+                "order": {
+                    "description": "Order is the order of importance (lower means more important)\n@Description Order of importance (lower means more important)\n@Example 1",
+                    "type": "integer",
+                    "example": 1
+                },
+                "personId": {
+                    "description": "PersonID is the ID of the person\n@Description ID of the person\n@Example 1",
+                    "type": "integer",
+                    "example": 1
+                },
+                "role": {
+                    "description": "Role is the person's role\n@Description Person's role\n@Example \"Actor\"",
+                    "type": "string",
+                    "example": "Actor"
+                }
+            }
+        },
+        "requests.CreateCreditsRequest": {
+            "description": "Request payload for creating multiple credits for a media item",
+            "type": "object",
+            "required": [
+                "credits"
+            ],
+            "properties": {
+                "credits": {
+                    "description": "Credits is the list of credits to create\n@Description List of credits to create",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/requests.CreateCreditRequest"
+                    }
+                }
+            }
+        },
+        "requests.CreatePersonRequest": {
+            "description": "Request payload for creating a new person",
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "biography": {
+                    "description": "Biography is the person's biography\n@Description Person's biography\n@Example \"Thomas Jeffrey Hanks is an American actor and filmmaker...\"",
+                    "type": "string",
+                    "example": "Thomas Jeffrey Hanks is an American actor and filmmaker..."
+                },
+                "birthplace": {
+                    "description": "Birthplace is the person's birthplace\n@Description Person's birthplace\n@Example \"Concord, California, USA\"",
+                    "type": "string",
+                    "example": "Concord, California, USA"
+                },
+                "dateOfBirth": {
+                    "description": "DateOfBirth is the person's date of birth\n@Description Person's date of birth in RFC3339 format\n@Example \"1956-07-09T00:00:00Z\"",
+                    "type": "string",
+                    "example": "1956-07-09T00:00:00Z"
+                },
+                "dateOfDeath": {
+                    "description": "DateOfDeath is the person's date of death (if applicable)\n@Description Person's date of death in RFC3339 format (if applicable)\n@Example \"2056-07-09T00:00:00Z\"",
+                    "type": "string",
+                    "example": "2056-07-09T00:00:00Z"
+                },
+                "externalIds": {
+                    "description": "ExternalIDs contains IDs from external services\n@Description IDs from external services",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/requests.ExternalIDRequest"
+                    }
+                },
+                "gender": {
+                    "description": "Gender is the person's gender\n@Description Person's gender\n@Example \"Male\"",
+                    "type": "string",
+                    "example": "Male"
+                },
+                "knownFor": {
+                    "description": "KnownFor is what the person is primarily known for\n@Description What the person is primarily known for\n@Example \"Actor\"",
+                    "type": "string",
+                    "example": "Actor"
+                },
+                "name": {
+                    "description": "Name is the person's name\n@Description Person's name\n@Example \"Tom Hanks\"",
+                    "type": "string",
+                    "example": "Tom Hanks"
+                },
+                "photo": {
+                    "description": "Photo is the URL or path to the person's photo\n@Description URL or path to the person's photo\n@Example \"https://example.com/photos/tom-hanks.jpg\"",
+                    "type": "string",
+                    "example": "https://example.com/photos/tom-hanks.jpg"
+                }
+            }
+        },
         "requests.CreateTagRequest": {
             "type": "object",
             "required": [
@@ -7202,6 +8854,55 @@ const docTemplate = `{
                 "parameters": {
                     "type": "object",
                     "additionalProperties": true
+                }
+            }
+        },
+        "requests.ExternalIDRequest": {
+            "description": "External ID for a person",
+            "type": "object",
+            "required": [
+                "id",
+                "source"
+            ],
+            "properties": {
+                "id": {
+                    "description": "ID is the identifier in the external service\n@Description Identifier in the external service\n@Example \"31\"",
+                    "type": "string",
+                    "example": "31"
+                },
+                "source": {
+                    "description": "Source is the name of the external service\n@Description Name of the external service\n@Example \"TMDB\"",
+                    "type": "string",
+                    "example": "TMDB"
+                }
+            }
+        },
+        "requests.ImportPersonRequest": {
+            "description": "Request payload for importing a person from an external source",
+            "type": "object",
+            "required": [
+                "externalId",
+                "personData",
+                "source"
+            ],
+            "properties": {
+                "externalId": {
+                    "description": "ExternalID is the identifier in the external service\n@Description Identifier in the external service\n@Example \"31\"",
+                    "type": "string",
+                    "example": "31"
+                },
+                "personData": {
+                    "description": "PersonData contains the person data to import\n@Description Person data to import",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/requests.CreatePersonRequest"
+                        }
+                    ]
+                },
+                "source": {
+                    "description": "Source is the name of the external service\n@Description Name of the external service\n@Example \"TMDB\"",
+                    "type": "string",
+                    "example": "TMDB"
                 }
             }
         },
@@ -7362,6 +9063,77 @@ const docTemplate = `{
                 }
             }
         },
+        "requests.UpdateCreditRequest": {
+            "description": "Request payload for updating an existing credit",
+            "type": "object",
+            "properties": {
+                "character": {
+                    "description": "Character is the character's name (for acting roles)\n@Description Character's name (for acting roles)\n@Example \"Forrest Gump\"",
+                    "type": "string",
+                    "example": "Forrest Gump"
+                },
+                "department": {
+                    "description": "Department is the department the person worked in\n@Description Department the person worked in\n@Example \"Acting\"",
+                    "type": "string",
+                    "example": "Acting"
+                },
+                "isArtist": {
+                    "description": "IsArtist indicates if this is an artist credit\n@Description Indicates if this is an artist credit\n@Example false",
+                    "type": "boolean",
+                    "example": false
+                },
+                "isCast": {
+                    "description": "IsCast indicates if this is a cast credit\n@Description Indicates if this is a cast credit\n@Example true",
+                    "type": "boolean",
+                    "example": true
+                },
+                "isCreator": {
+                    "description": "IsCreator indicates if this is a creator credit\n@Description Indicates if this is a creator credit\n@Example false",
+                    "type": "boolean",
+                    "example": false
+                },
+                "isCrew": {
+                    "description": "IsCrew indicates if this is a crew credit\n@Description Indicates if this is a crew credit\n@Example false",
+                    "type": "boolean",
+                    "example": false
+                },
+                "isGuest": {
+                    "description": "IsGuest indicates if this is a guest credit\n@Description Indicates if this is a guest credit\n@Example false",
+                    "type": "boolean",
+                    "example": false
+                },
+                "job": {
+                    "description": "Job is the specific job the person had\n@Description Specific job the person had\n@Example \"Lead Actor\"",
+                    "type": "string",
+                    "example": "Lead Actor"
+                },
+                "mediaItemId": {
+                    "description": "MediaItemID is the ID of the media item\n@Description ID of the media item\n@Example 2",
+                    "type": "integer",
+                    "example": 2
+                },
+                "name": {
+                    "description": "Name is the person's name for this credit\n@Description Person's name for this credit\n@Example \"Tom Hanks\"",
+                    "type": "string",
+                    "example": "Tom Hanks"
+                },
+                "order": {
+                    "description": "Order is the order of importance (lower means more important)\n@Description Order of importance (lower means more important)\n@Example 1",
+                    "type": "integer",
+                    "example": 1
+                },
+                "personId": {
+                    "description": "PersonID is the ID of the person\n@Description ID of the person\n@Example 1",
+                    "type": "integer",
+                    "example": 1
+                },
+                "role": {
+                    "description": "Role is the person's role\n@Description Person's role\n@Example \"Actor\"",
+                    "type": "string",
+                    "example": "Actor"
+                }
+            }
+        },
         "requests.UpdateJobScheduleRequest": {
             "type": "object",
             "required": [
@@ -7401,6 +9173,59 @@ const docTemplate = `{
                     "items": {
                         "type": "integer"
                     }
+                }
+            }
+        },
+        "requests.UpdatePersonRequest": {
+            "description": "Request payload for updating an existing person",
+            "type": "object",
+            "properties": {
+                "biography": {
+                    "description": "Biography is the person's biography\n@Description Person's biography\n@Example \"Thomas Jeffrey Hanks is an American actor and filmmaker...\"",
+                    "type": "string",
+                    "example": "Thomas Jeffrey Hanks is an American actor and filmmaker..."
+                },
+                "birthplace": {
+                    "description": "Birthplace is the person's birthplace\n@Description Person's birthplace\n@Example \"Concord, California, USA\"",
+                    "type": "string",
+                    "example": "Concord, California, USA"
+                },
+                "dateOfBirth": {
+                    "description": "DateOfBirth is the person's date of birth\n@Description Person's date of birth in RFC3339 format\n@Example \"1956-07-09T00:00:00Z\"",
+                    "type": "string",
+                    "example": "1956-07-09T00:00:00Z"
+                },
+                "dateOfDeath": {
+                    "description": "DateOfDeath is the person's date of death (if applicable)\n@Description Person's date of death in RFC3339 format (if applicable)\n@Example \"2056-07-09T00:00:00Z\"",
+                    "type": "string",
+                    "example": "2056-07-09T00:00:00Z"
+                },
+                "externalIds": {
+                    "description": "ExternalIDs contains IDs from external services\n@Description IDs from external services",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/requests.ExternalIDRequest"
+                    }
+                },
+                "gender": {
+                    "description": "Gender is the person's gender\n@Description Person's gender\n@Example \"Male\"",
+                    "type": "string",
+                    "example": "Male"
+                },
+                "knownFor": {
+                    "description": "KnownFor is what the person is primarily known for\n@Description What the person is primarily known for\n@Example \"Actor\"",
+                    "type": "string",
+                    "example": "Actor"
+                },
+                "name": {
+                    "description": "Name is the person's name\n@Description Person's name\n@Example \"Tom Hanks\"",
+                    "type": "string",
+                    "example": "Tom Hanks"
+                },
+                "photo": {
+                    "description": "Photo is the URL or path to the person's photo\n@Description URL or path to the person's photo\n@Example \"https://example.com/photos/tom-hanks.jpg\"",
+                    "type": "string",
+                    "example": "https://example.com/photos/tom-hanks.jpg"
                 }
             }
         },
@@ -8397,13 +10222,7 @@ const docTemplate = `{
                 "audioCodec": {
                     "type": "string"
                 },
-                "cast": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/suasor_client_media_types.Person"
-                    }
-                },
-                "crew": {
+                "credits": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/suasor_client_media_types.Person"
@@ -8436,6 +10255,21 @@ const docTemplate = `{
                 "character": {
                     "description": "For actors",
                     "type": "string"
+                },
+                "isArtist": {
+                    "type": "boolean"
+                },
+                "isCast": {
+                    "type": "boolean"
+                },
+                "isCreator": {
+                    "type": "boolean"
+                },
+                "isCrew": {
+                    "type": "boolean"
+                },
+                "isGuest": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
@@ -8489,6 +10323,12 @@ const docTemplate = `{
                 },
                 "artistName": {
                     "type": "string"
+                },
+                "credits": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/suasor_client_media_types.Person"
+                    }
                 },
                 "details": {
                     "$ref": "#/definitions/types.MediaDetails"
@@ -8558,6 +10398,24 @@ const docTemplate = `{
                 "AutomationClientTypeLidarr",
                 "AutomationClientTypeUnknown"
             ]
+        },
+        "types.ChangeRecord": {
+            "type": "object",
+            "properties": {
+                "changeType": {
+                    "description": "\"add\", \"remove\", \"update\", \"reorder\"",
+                    "type": "string"
+                },
+                "clientId": {
+                    "type": "integer"
+                },
+                "itemId": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
         },
         "types.ClaudeConfig": {
             "description": "Claude media server configuration",
@@ -9086,6 +10944,9 @@ const docTemplate = `{
                 "isFavorite": {
                     "type": "boolean"
                 },
+                "language": {
+                    "type": "string"
+                },
                 "ratings": {
                     "type": "array",
                     "items": {
@@ -9261,13 +11122,51 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "itemIDs": {
+                    "description": "Maintained for backward compatibility",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.PlaylistItem"
+                    }
+                },
+                "lastModified": {
+                    "description": "Track when and which client last modified this playlist",
+                    "type": "string"
+                },
+                "lastSynced": {
+                    "type": "string"
+                },
+                "modifiedBy": {
+                    "description": "Client ID that last modified this playlist",
+                    "type": "integer"
+                },
                 "owner": {
                     "type": "string"
+                }
+            }
+        },
+        "types.PlaylistItem": {
+            "type": "object",
+            "properties": {
+                "changeHistory": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.ChangeRecord"
+                    }
+                },
+                "itemId": {
+                    "type": "string"
+                },
+                "lastChanged": {
+                    "type": "string"
+                },
+                "position": {
+                    "type": "integer"
                 }
             }
         },
@@ -9359,6 +11258,12 @@ const docTemplate = `{
                 "artwork": {
                     "$ref": "#/definitions/types.Artwork"
                 },
+                "credits": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/suasor_client_media_types.Person"
+                    }
+                },
                 "details": {
                     "$ref": "#/definitions/types.MediaDetails"
                 },
@@ -9390,6 +11295,12 @@ const docTemplate = `{
             "properties": {
                 "contentRating": {
                     "type": "string"
+                },
+                "credits": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/suasor_client_media_types.Person"
+                    }
                 },
                 "details": {
                     "$ref": "#/definitions/types.MediaDetails"
@@ -9533,6 +11444,12 @@ const docTemplate = `{
                 },
                 "composer": {
                     "type": "string"
+                },
+                "credits": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/suasor_client_media_types.Person"
+                    }
                 },
                 "details": {
                     "$ref": "#/definitions/types.MediaDetails"
