@@ -14,6 +14,9 @@ import (
 	"suasor/types/responses"
 )
 
+// TODO: Clean this up and merge the duplicated code. There are 2 of every method a local. Also need to add in godoc api documentation like we have done with our other handlers.
+// TODO: Add in logging like we have done with our other handlers.
+
 // MediaItemHandler handles all media item operations
 type MediaItemHandler[T types.MediaData] struct {
 	service services.MediaItemService[T]
@@ -65,10 +68,10 @@ func (h *MediaItemHandler[T]) createMediaItem(
 		ExternalIDs: []models.ExternalID{},
 		Data:        mediaData,
 	}
-	
+
 	// Set client info
 	mediaItem.SetClientInfo(clientID, clientType, externalID)
-	
+
 	// Only add external ID if provided
 	if externalID != "" {
 		mediaItem.AddExternalID("client", externalID)
@@ -133,10 +136,10 @@ func (h *MediaItemHandler[T]) updateMediaItem(
 		ExternalIDs: []models.ExternalID{},
 		Data:        mediaData,
 	}
-	
+
 	// Set client info
 	mediaItem.SetClientInfo(clientID, clientType, externalID)
-	
+
 	// Only add external ID if provided
 	if externalID != "" {
 		mediaItem.AddExternalID("client", externalID)
@@ -295,4 +298,13 @@ func (h *MediaItemHandler[T]) getRecentMediaItems(c *gin.Context, userID uint64,
 	}
 
 	responses.RespondOK(c, items, "Recent media items retrieved successfully")
+}
+
+// GetMediaItemByExternalSourceID retrieves a media item by external source ID
+
+func (h *MediaItemHandler[T]) GetMediaItemByExternalSourceID(c *gin.Context) {
+
+	// TODO: Implement being able to get a media item by external source ID
+	// You should be able to get a media item by the external source ID that is stored in the database if it exists.
+
 }

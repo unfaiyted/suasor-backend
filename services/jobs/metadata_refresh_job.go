@@ -15,14 +15,14 @@ import (
 
 // MetadataRefreshJob periodically updates metadata for media items from external sources
 type MetadataRefreshJob struct {
-	jobRepo            repository.JobRepository
-	userRepo           repository.UserRepository
-	configRepo         repository.UserConfigRepository
-	movieRepo          repository.MediaItemRepository[*mediatypes.Movie]
-	seriesRepo         repository.MediaItemRepository[*mediatypes.Series]
-	episodeRepo        repository.MediaItemRepository[*mediatypes.Episode]
-	musicRepo          repository.MediaItemRepository[*mediatypes.Track]
-	metadataClientSvc  interface{} // Using interface{} to avoid import cycles
+	jobRepo           repository.JobRepository
+	userRepo          repository.UserRepository
+	configRepo        repository.UserConfigRepository
+	movieRepo         repository.MediaItemRepository[*mediatypes.Movie]
+	seriesRepo        repository.MediaItemRepository[*mediatypes.Series]
+	episodeRepo       repository.MediaItemRepository[*mediatypes.Episode]
+	musicRepo         repository.MediaItemRepository[*mediatypes.Track]
+	metadataClientSvc interface{} // Using interface{} to avoid import cycles
 }
 
 // NewMetadataRefreshJob creates a new metadata refresh job
@@ -166,12 +166,6 @@ func (j *MetadataRefreshJob) completeJobRun(ctx context.Context, jobRunID uint64
 	log.Printf("Metadata refresh stats: %s", string(statsJSON))
 }
 
-// MetadataRefreshStats holds statistics for metadata refresh operations
-type MetadataRefreshStats struct {
-	checked int
-	updated int
-}
-
 // refreshMovieMetadata refreshes metadata for movies
 func (j *MetadataRefreshJob) refreshMovieMetadata(ctx context.Context, jobRunID uint64) (MetadataRefreshStats, error) {
 	stats := MetadataRefreshStats{}
@@ -186,8 +180,8 @@ func (j *MetadataRefreshJob) refreshMovieMetadata(ctx context.Context, jobRunID 
 	// 6. Track statistics on updates made
 
 	// Mock implementation
-	stats.checked = 250  // Pretend we checked 250 movies
-	stats.updated = 75   // Pretend we updated 75 of them
+	stats.checked = 250 // Pretend we checked 250 movies
+	stats.updated = 75  // Pretend we updated 75 of them
 
 	log.Printf("Checked %d movies, updated %d", stats.checked, stats.updated)
 	return stats, nil
@@ -200,8 +194,8 @@ func (j *MetadataRefreshJob) refreshSeriesMetadata(ctx context.Context, jobRunID
 
 	// Similar to movie refresh, but for TV series
 	// Mock implementation
-	stats.checked = 120  // Pretend we checked 120 series
-	stats.updated = 45   // Pretend we updated 45 of them
+	stats.checked = 120 // Pretend we checked 120 series
+	stats.updated = 45  // Pretend we updated 45 of them
 
 	log.Printf("Checked %d series, updated %d", stats.checked, stats.updated)
 	return stats, nil
@@ -214,8 +208,8 @@ func (j *MetadataRefreshJob) refreshEpisodeMetadata(ctx context.Context, jobRunI
 
 	// Similar approach but for episodes
 	// Mock implementation
-	stats.checked = 850  // Pretend we checked 850 episodes
-	stats.updated = 230  // Pretend we updated 230 of them
+	stats.checked = 850 // Pretend we checked 850 episodes
+	stats.updated = 230 // Pretend we updated 230 of them
 
 	log.Printf("Checked %d episodes, updated %d", stats.checked, stats.updated)
 	return stats, nil
@@ -228,8 +222,8 @@ func (j *MetadataRefreshJob) refreshMusicMetadata(ctx context.Context, jobRunID 
 
 	// Similar approach but for music
 	// Mock implementation
-	stats.checked = 500  // Pretend we checked 500 tracks
-	stats.updated = 150  // Pretend we updated 150 of them
+	stats.checked = 500 // Pretend we checked 500 tracks
+	stats.updated = 150 // Pretend we updated 150 of them
 
 	log.Printf("Checked %d tracks, updated %d", stats.checked, stats.updated)
 	return stats, nil
@@ -296,11 +290,12 @@ func (j *MetadataRefreshJob) GetPriorityItems(ctx context.Context) (map[string][
 	// 4. Have incomplete metadata
 
 	priorityItems := map[string][]uint64{
-		"movies":   {1, 2, 3},   // Mock movie IDs
-		"series":   {4, 5},      // Mock series IDs
-		"episodes": {6, 7, 8},   // Mock episode IDs
-		"music":    {9, 10},     // Mock music IDs
+		"movies":   {1, 2, 3}, // Mock movie IDs
+		"series":   {4, 5},    // Mock series IDs
+		"episodes": {6, 7, 8}, // Mock episode IDs
+		"music":    {9, 10},   // Mock music IDs
 	}
 
 	return priorityItems, nil
 }
+

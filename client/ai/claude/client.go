@@ -267,51 +267,90 @@ func (c *ClaudeClient) GetCapabilities() *aitypes.AICapabilities {
 	}
 }
 
-// GetRecommendations implements the AiClient interface to get content recommendations
-func (c *ClaudeClient) GetRecommendations(ctx context.Context, contentType string, filters map[string]interface{}, count int) ([]map[string]interface{}, error) {
+// GetRecommendations implements the AIClient interface to get content recommendations
+func (c *ClaudeClient) GetRecommendations(ctx context.Context, request *aitypes.RecommendationRequest) (*aitypes.RecommendationResponse, error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Info().
-		Str("contentType", contentType).
-		Interface("filters", filters).
-		Int("count", count).
+		Str("mediaType", request.MediaType).
+		Int("count", request.Count).
 		Msg("Getting recommendations from Claude")
 
 	// Build the prompt based on content type and filters
-	prompt := fmt.Sprintf("Please recommend %d %s items", count, contentType)
+	prompt := fmt.Sprintf("Please recommend %d %s items", request.Count, request.MediaType)
 	
 	// Add filter information
-	if len(filters) > 0 {
+	if len(request.UserPreferences) > 0 {
 		filterInfo := "\nConsider these preferences:\n"
-		for k, v := range filters {
+		for k, v := range request.UserPreferences {
 			filterInfo += fmt.Sprintf("- %s: %v\n", k, v)
 		}
 		prompt += filterInfo
 	}
 
+	// Add excluded IDs if any
+	if len(request.ExcludeIDs) > 0 {
+		prompt += "\nPlease exclude the following items:\n"
+		for _, id := range request.ExcludeIDs {
+			prompt += fmt.Sprintf("- %s\n", id)
+		}
+	}
+
+	// Add additional context if provided
+	if request.AdditionalContext != "" {
+		prompt += "\n" + request.AdditionalContext
+	}
+
 	// Add output format instructions
-	prompt += "\nPlease return the recommendations as a JSON array of objects. Each object should include relevant fields for the content type."
-	
-	// Create the output schema to receive the data
-	var recommendations []map[string]interface{}
-	
+	prompt += "\nPlease return the recommendations as a JSON array of objects with the following structure for each recommendation:" +
+		"\n- title: The title of the item" +
+		"\n- year: The release year (as a number)" +
+		"\n- genres: An array of genre strings" +
+		"\n- reason: A brief explanation of why this is recommended" +
+		"\n- rating: The average rating (0-10 scale)" +
+		"\n- popularity: A popularity rank (1-100, where 1 is most popular)" +
+		"\n- description: A brief description of the item"
+
 	// Generate the structured response
-	err := c.GenerateStructured(ctx, prompt, &recommendations, &aitypes.GenerationOptions{
+	var recommendations []aitypes.RecommendationItem
+	
+	// Use the provided generation options or create default ones
+	genOptions := &aitypes.GenerationOptions{
 		Temperature:       0.4,
 		MaxTokens:         2000,
-		SystemInstructions: fmt.Sprintf("You are a helpful recommendation system specialized in %s. Provide detailed and personalized recommendations based on the user's preferences.", contentType),
-	})
+		SystemInstructions: fmt.Sprintf("You are a helpful recommendation system specialized in %s. Provide detailed and personalized recommendations based on the user's preferences.", request.MediaType),
+	}
 	
+	if request.GenerationOptions != nil {
+		if request.GenerationOptions.Temperature > 0 {
+			genOptions.Temperature = request.GenerationOptions.Temperature
+		}
+		if request.GenerationOptions.MaxTokens > 0 {
+			genOptions.MaxTokens = request.GenerationOptions.MaxTokens
+		}
+		if request.GenerationOptions.SystemInstructions != "" {
+			genOptions.SystemInstructions = request.GenerationOptions.SystemInstructions
+		}
+	}
+	
+	// Generate the structured response
+	err := c.GenerateStructured(ctx, prompt, &recommendations, genOptions)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get recommendations from Claude")
 		return nil, err
 	}
 	
 	// Ensure we have the requested number of recommendations if possible
-	if len(recommendations) > count {
-		recommendations = recommendations[:count]
+	if len(recommendations) > request.Count {
+		recommendations = recommendations[:request.Count]
 	}
 	
-	return recommendations, nil
+	// Create and return the response
+	response := &aitypes.RecommendationResponse{
+		Items:       recommendations,
+		Explanation: "Recommendations generated based on user preferences using Claude",
+	}
+	
+	return response, nil
 }
 
 // AnalyzeContent implements the AiClient interface to analyze content

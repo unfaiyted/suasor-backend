@@ -39,3 +39,8 @@ func WithRequestID(ctx context.Context, requestID string) (context.Context, zero
 	logger := LoggerFromContext(ctx).With().Str("request_id", requestID).Logger()
 	return WithContext(ctx, logger), logger
 }
+
+func WithJobID(ctx context.Context, jobID uint64) (context.Context, zerolog.Logger) {
+	logger := LoggerFromContext(ctx).With().Uint64("job_id", jobID).Logger()
+	return WithContext(ctx, logger), logger
+}

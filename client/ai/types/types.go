@@ -31,3 +31,39 @@ type TokenUsage struct {
 	CompletionTokens int // Tokens used in the completion
 	TotalTokens      int // Total tokens used
 }
+
+// RecommendationRequest contains parameters for generating recommendations
+type RecommendationRequest struct {
+	MediaType          string                 // Type of media ("movie", "series", "music")
+	UserPreferences    map[string]interface{} // User preferences to consider
+	ExcludeIDs         []string               // IDs to exclude from recommendations
+	Count              int                    // Number of recommendations to generate
+	IncludeSimilarTo   []string               // Include items similar to these IDs
+	AdditionalContext  string                 // Additional context or instructions
+	GenerationOptions  *GenerationOptions     // Options for the generation process
+}
+
+// RecommendationItem represents a single recommended item
+type RecommendationItem struct {
+	Title        string   `json:"title"`
+	Year         int      `json:"year,omitempty"`
+	Genres       []string `json:"genres,omitempty"`
+	Reason       string   `json:"reason,omitempty"`
+	ExternalID   string   `json:"externalId,omitempty"`
+	Rating       float32  `json:"rating,omitempty"`
+	Popularity   int      `json:"popularity,omitempty"`
+	SourceNames  []string `json:"sourceNames,omitempty"`
+	PosterURL    string   `json:"posterUrl,omitempty"`
+	BackdropURL  string   `json:"backdropUrl,omitempty"`
+	ReleaseDate  string   `json:"releaseDate,omitempty"`
+	Directors    []string `json:"directors,omitempty"`
+	Actors       []string `json:"actors,omitempty"`
+	Description  string   `json:"description,omitempty"`
+}
+
+// RecommendationResponse contains the list of recommendations
+type RecommendationResponse struct {
+	Items       []RecommendationItem `json:"items"`
+	Explanation string               `json:"explanation,omitempty"`
+	TokenUsage  TokenUsage           `json:"tokenUsage,omitempty"`
+}

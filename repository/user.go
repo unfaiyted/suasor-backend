@@ -22,6 +22,7 @@ type UserRepository interface {
 	FindByEmail(ctx context.Context, email string) (*models.User, error)
 	FindByUsername(ctx context.Context, username string) (*models.User, error)
 	FindAll(ctx context.Context) ([]models.User, error)
+	FindAllActive(ctx context.Context) ([]models.User, error)
 }
 
 // userRepository implements the UserRepository interface
@@ -103,10 +104,21 @@ func (r *userRepository) FindByUsername(ctx context.Context, username string) (*
 func (r *userRepository) FindAll(ctx context.Context) ([]models.User, error) {
 	var users []models.User
 	result := r.db.Find(&users)
-	
+
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	
+
+	return users, nil
+}
+
+func (r *userRepository) FindAllActive(ctx context.Context) ([]models.User, error) {
+	var users []models.User
+	result := r.db.Where("is_active = true").Find(&users)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
 	return users, nil
 }

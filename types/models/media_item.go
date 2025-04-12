@@ -38,14 +38,32 @@ type ClientID struct {
 	ItemID string `json:"itemId"`
 }
 
-type ClientIDs = []ClientID
+type ClientIDs []ClientID
+
+func (ids ClientIDs) GetID(clientID uint64, clientType client.ClientType) string {
+	for _, id := range ids {
+		if id.ID == clientID && id.Type == clientType {
+			return id.ItemID
+		}
+	}
+	return ""
+}
 
 type ExternalID struct {
 	Source string `json:"source"` // e.g., "tmdb", "imdb", "trakt", "tvdb"
 	ID     string `json:"id"`     // The actual ID
 }
 
-type ExternalIDs = []ExternalID
+type ExternalIDs []ExternalID
+
+func (ids ExternalIDs) GetID(source string) string {
+	for _, id := range ids {
+		if id.Source == source {
+			return id.ID
+		}
+	}
+	return ""
+}
 
 func (MediaItem[T]) TableName() string {
 	return "media_items"

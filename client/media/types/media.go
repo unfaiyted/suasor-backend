@@ -16,24 +16,26 @@ type Artist struct {
 // MusicAlbum represents a music album
 type Album struct {
 	Details    MediaDetails
-	ArtistID   string `json:"artistID"`
-	ArtistName string `json:"artistName"`
-	TrackCount int    `json:"trackCount"`
+	ArtistID   string  `json:"artistID"`
+	ArtistName string  `json:"artistName"`
+	TrackCount int     `json:"trackCount"`
+	Credits    Credits `json:"credits,omitempty"`
 }
 
 // MusicTrack represents a music track
 type Track struct {
 	Details    MediaDetails
-	AlbumID    string `json:"albumID"`
-	ArtistID   string `json:"artistID"`
-	AlbumName  string `json:"albumName"`
-	AlbumTitle string `json:"albumTitle,omitempty"`
-	Duration   int    `json:"duration,omitempty"`
-	ArtistName string `json:"artistName,omitempty"`
-	Number     int    `json:"trackNumber,omitempty"`
-	DiscNumber int    `json:"discNumber,omitempty"`
-	Composer   string `json:"composer,omitempty"`
-	Lyrics     string `json:"lyrics,omitempty"`
+	AlbumID    string  `json:"albumID"`
+	ArtistID   string  `json:"artistID"`
+	AlbumName  string  `json:"albumName"`
+	AlbumTitle string  `json:"albumTitle,omitempty"`
+	Duration   int     `json:"duration,omitempty"`
+	ArtistName string  `json:"artistName,omitempty"`
+	Number     int     `json:"trackNumber,omitempty"`
+	DiscNumber int     `json:"discNumber,omitempty"`
+	Composer   string  `json:"composer,omitempty"`
+	Lyrics     string  `json:"lyrics,omitempty"`
+	Credits    Credits `json:"credits,omitempty"`
 }
 
 // Season represents a TV season
@@ -47,16 +49,18 @@ type Season struct {
 	ReleaseDate  time.Time `json:"releaseDate,omitempty"`
 	SeriesName   string    `json:"seriesName,omitempty"`
 	SeriesID     string    `json:"seriesID"`
+	Credits      Credits   `json:"credits,omitempty"`
 }
 
 // Episode represents a TV episode
 type Episode struct {
 	Details      MediaDetails
-	Number       int64  `json:"number"`
-	ShowID       string `json:"showID"`
-	SeasonID     string `json:"seasonID"`
-	SeasonNumber int    `json:"seasonNumber"`
-	ShowTitle    string `json:"showTitle,omitempty"`
+	Number       int64   `json:"number"`
+	ShowID       string  `json:"showID"`
+	SeasonID     string  `json:"seasonID"`
+	SeasonNumber int     `json:"seasonNumber"`
+	ShowTitle    string  `json:"showTitle,omitempty"`
+	Credits      Credits `json:"credits,omitempty"`
 }
 
 // Series represents a TV series
@@ -71,6 +75,7 @@ type Series struct {
 	Network       string   `json:"network,omitempty"`
 	Status        string   `json:"status,omitempty"` // e.g., "Ended", "Continuing"
 	Genres        []string `json:"genres,omitempty"`
+	Credits       Credits  `json:"credits,omitempty"`
 }
 
 // Collection represents a collection of media items
@@ -81,20 +86,40 @@ type Collection struct {
 	CollectionType string   `json:"collectionType"` // e.g., "movie", "tvshow"
 }
 
+// ChangeRecord tracks when and where an item was changed
+type ChangeRecord struct {
+	ClientID   uint64    `json:"clientId"`
+	ItemID     string    `json:"itemId,omitempty"`
+	ChangeType string    `json:"changeType"` // "add", "remove", "update", "reorder"
+	Timestamp  time.Time `json:"timestamp"`
+}
+
+// PlaylistItem represents an item in a playlist with its position and history
+type PlaylistItem struct {
+	ItemID        string         `json:"itemId"`
+	Position      int            `json:"position"`
+	LastChanged   time.Time      `json:"lastChanged"`
+	ChangeHistory []ChangeRecord `json:"changeHistory,omitempty"`
+}
+
 // Playlist represents a user-created playlist of media items
 type Playlist struct {
-	Details   MediaDetails
-	ItemIDs   []string `json:"itemIDs"`
-	ItemCount int      `json:"itemCount"`
-	Owner     string   `json:"owner,omitempty"`
-	IsPublic  bool     `json:"isPublic"`
+	Details    MediaDetails
+	Items      []PlaylistItem `json:"items"`
+	ItemIDs    []string       `json:"itemIDs"` // Maintained for backward compatibility
+	ItemCount  int            `json:"itemCount"`
+	Owner      string         `json:"owner,omitempty"`
+	IsPublic   bool           `json:"isPublic"`
+	LastSynced time.Time      `json:"lastSynced,omitempty"`
+	// Track when and which client last modified this playlist
+	LastModified time.Time `json:"lastModified,omitempty"`
+	ModifiedBy   uint64    `json:"modifiedBy,omitempty"` // Client ID that last modified this playlist
 }
 
 // Movie represents a movie item
 type Movie struct {
 	Details      MediaDetails
-	Cast         []Person `json:"cast,omitempty"`
-	Crew         []Person `json:"crew,omitempty"`
+	Credits      Credits  `json:"credits,omitempty"`
 	TrailerURL   string   `json:"trailerUrl,omitempty"`
 	Resolution   string   `json:"resolution,omitempty"` // e.g., "4K", "1080p"
 	VideoCodec   string   `json:"videoCodec,omitempty"`
@@ -117,6 +142,54 @@ type Person struct {
 	Role      string `json:"role,omitempty"`      // e.g., "Director", "Actor"
 	Character string `json:"character,omitempty"` // For actors
 	Photo     string `json:"photo,omitempty"`
+
+	IsCast    bool `json:"isCast,omitempty"`
+	IsCrew    bool `json:"isCrew,omitempty"`
+	IsGuest   bool `json:"isGuest,omitempty"`
+	IsCreator bool `json:"isCreator,omitempty"`
+	IsArtist  bool `json:"isArtist,omitempty"`
+}
+
+type Credits []Person
+
+func (c Credits) GetCast() []Person {
+	var cast []Person
+	for _, person := range c {
+		if person.IsCast {
+			cast = append(cast, person)
+		}
+	}
+	return cast
+}
+
+func (c Credits) GetCrew() []Person {
+	var crew []Person
+	for _, person := range c {
+		if person.IsCrew {
+			crew = append(crew, person)
+		}
+	}
+	return crew
+}
+
+func (c Credits) GetGuests() []Person {
+	var guests []Person
+	for _, person := range c {
+		if person.IsGuest {
+			guests = append(guests, person)
+		}
+	}
+	return guests
+}
+
+func (c Credits) GetCreators() []Person {
+	var creators []Person
+	for _, person := range c {
+		if person.IsCreator {
+			creators = append(creators, person)
+		}
+	}
+	return creators
 }
 
 type MediaData interface {

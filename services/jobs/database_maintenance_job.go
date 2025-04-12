@@ -13,7 +13,7 @@ import (
 
 // DatabaseMaintenanceJob performs routine database optimization and maintenance
 type DatabaseMaintenanceJob struct {
-	jobRepo     repository.JobRepository
+	jobRepo repository.JobRepository
 	// Include other repositories that might need maintenance
 }
 
@@ -59,11 +59,11 @@ func (j *DatabaseMaintenanceJob) Execute(ctx context.Context) error {
 	// Run the maintenance tasks
 	var jobError error
 	maintenanceStats := map[string]int{
-		"tablesOptimized":   0,
-		"recordsArchived":   0,
-		"recordsDeleted":    0,
-		"tokensCleanedUp":   0,
-		"sessionsCleanedUp": 0,
+		"tablesOptimized":      0,
+		"recordsArchived":      0,
+		"recordsDeleted":       0,
+		"tokensCleanedUp":      0,
+		"sessionsCleanedUp":    0,
 		"integrityIssuesFixed": 0,
 	}
 
@@ -154,14 +154,6 @@ func (j *DatabaseMaintenanceJob) completeJobRun(ctx context.Context, jobRunID ui
 	}
 }
 
-// MaintenanceStats holds statistics for various maintenance operations
-type MaintenanceStats struct {
-	optimized int
-	archived  int
-	cleaned   int
-	fixed     int
-}
-
 // optimizeDatabaseTables optimizes database tables
 func (j *DatabaseMaintenanceJob) optimizeDatabaseTables(ctx context.Context) (MaintenanceStats, error) {
 	stats := MaintenanceStats{}
@@ -191,7 +183,7 @@ func (j *DatabaseMaintenanceJob) archiveOldJobRuns(ctx context.Context) (Mainten
 
 	// Mock implementation
 	cutoffDate := time.Now().AddDate(0, -1, 0) // 1 month ago
-	stats.archived = 250 // Pretend we archived 250 job runs
+	stats.archived = 250                       // Pretend we archived 250 job runs
 
 	log.Printf("Archived %d job runs older than %s", stats.archived, cutoffDate.Format("2006-01-02"))
 	return stats, nil
@@ -313,15 +305,16 @@ func (j *DatabaseMaintenanceJob) GetDatabaseStats(ctx context.Context) (map[stri
 
 	// Mock implementation
 	return map[string]interface{}{
-		"totalTables": 25,
-		"totalRows": 125000,
+		"totalTables":    25,
+		"totalRows":      125000,
 		"totalSizeBytes": 524288000, // 500 MB
 		"largestTables": []map[string]interface{}{
 			{"name": "media_items", "rows": 50000, "sizeBytes": 209715200},
 			{"name": "media_play_history", "rows": 35000, "sizeBytes": 104857600},
 			{"name": "job_runs", "rows": 15000, "sizeBytes": 52428800},
 		},
-		"lastOptimized": time.Now().AddDate(0, 0, -7).Format(time.RFC3339),
+		"lastOptimized":   time.Now().AddDate(0, 0, -7).Format(time.RFC3339),
 		"databaseVersion": "PostgreSQL 14.5",
 	}, nil
 }
+

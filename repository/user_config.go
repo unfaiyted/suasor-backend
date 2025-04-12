@@ -75,7 +75,7 @@ func (r *userConfigRepository) GetUserConfig(ctx context.Context, userID uint64)
 
 				// Notification Settings
 				NotificationsEnabled:       true,
-				EmailNotifications:         false,
+				NotifyEmail:                false,
 				NotifyOnNewRecommendations: true,
 				NotifyOnSync:               false,
 				DigestFrequency:            "never",

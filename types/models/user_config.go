@@ -41,7 +41,7 @@ type UserConfig struct {
 	RecommendationMinRating      float32 `json:"recommendationMinRating" gorm:"default:5.0" example:"6" binding:"omitempty"`
 	RecommendationMaxAge         int     `json:"recommendationMaxAge" gorm:"default:0" example:"5" binding:"omitempty,min=0,max=100"` // In years, 0 = no limit
 	RecommendationIncludeWatched bool    `json:"recommendationIncludeWatched" gorm:"default:false" example:"false"`
-
+	RecommendationIncludeSimilar bool    `json:"recommendationIncludeSimilar" gorm:"default:false" example:"false"`
 	// how many movie recommendations to generate
 	MaxRecommendations *MaxRecommendations `json:"maxRecommendations" gorm:"type:jsonb;serializer:json"`
 
@@ -87,10 +87,15 @@ type UserConfig struct {
 	ActivityAnalysisEnabled bool `json:"activityAnalysisEnabled" gorm:"default:false" example:"true"`
 
 	// Notification Settings
-	NotificationsEnabled       bool `json:"notificationsEnabled" gorm:"default:true" example:"true"`
-	EmailNotifications         bool `json:"emailNotifications" gorm:"default:false" example:"true"`
-	NotifyOnNewRecommendations bool `json:"notifyOnNewRecommendations" gorm:"default:true" example:"true"`
-	NotifyOnSync               bool `json:"notifyOnSync" gorm:"default:false" example:"false"`
+	NotificationsEnabled       bool    `json:"notificationsEnabled" gorm:"default:true" example:"true"`
+	NotifyRatingThreshold      float64 `json:"notifyRatingThreshold" gorm:"default:5.0" example:"5" binding:"omitempty,min=0,max=10"`
+	NotifyUpcomingReleases     bool    `json:"notifyUpcomingReleases" gorm:"default:true" example:"true"`
+	NotifyRecentReleases       bool    `json:"notifyRecentReleases" gorm:"default:true" example:"true"`
+	NotifyEmail                bool    `json:"emailNotifications" gorm:"default:false" example:"true"`
+	NotifyOnNewRecommendations bool    `json:"notifyOnNewRecommendations" gorm:"default:true" example:"true"`
+	NotifyMediaTypes           string  `json:"notifyMediaTypes" gorm:"type:text;default:'movie,series,music'" example:"movie,series,music"`
+	NotifyOnSync               bool    `json:"notifyOnSync" gorm:"default:false" example:"false"`
+	MaxNotificationsPerDay     int     `json:"maxNotificationsPerDay" gorm:"default:10" example:"10" binding:"omitempty,min=1,max=100"`
 
 	DigestFrequency string `json:"digestFrequency" gorm:"default:'never'" example:"weekly" binding:"omitempty,oneof=never daily weekly"`
 

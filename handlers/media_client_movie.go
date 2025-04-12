@@ -620,3 +620,22 @@ func (h *MediaClientMovieHandler[T]) SearchMovies(c *gin.Context) {
 		Msg("Movie search completed successfully")
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }
+
+// GetMovieByExternalID gets a movie by external ID
+// @Summary Get movie by external ID
+// @Description Retrieves a movie from all connected clients by external ID
+// @Tags movies
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param source path int true "Source"
+// @Param externalID path string true "External ID"
+
+// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Movie]] "Movies retrieved"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
+// @Router /clients/media/{clientID}/movies/{source}/{externalID} [get]
+func (h *MediaClientMovieHandler[T]) GetMovieByExternalID(c *gin.Context) {
+
+}

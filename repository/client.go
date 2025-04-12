@@ -49,6 +49,38 @@ type clientRepository[T types.ClientConfig] struct {
 	db *gorm.DB
 }
 
+// clientRepoCollection implements ClientRepositoryCollection
+type clientRepoCollection struct {
+	db *gorm.DB
+}
+
+// NewClientRepositoryCollection creates a new ClientRepositoryCollection
+func NewClientRepositoryCollection(db *gorm.DB) ClientRepositoryCollection {
+	return &clientRepoCollection{db: db}
+}
+
+// AllRepos returns all client repositories
+func (c *clientRepoCollection) AllRepos() ClientRepoCollection {
+	return ClientRepoCollection{
+		EmbyRepo:     NewClientRepository[*types.EmbyConfig](c.db),
+		JellyfinRepo: NewClientRepository[*types.JellyfinConfig](c.db),
+		PlexRepo:     NewClientRepository[*types.PlexConfig](c.db),
+		SubsonicRepo: NewClientRepository[*types.SubsonicConfig](c.db),
+		SonarrRepo:   NewClientRepository[*types.SonarrConfig](c.db),
+		RadarrRepo:   NewClientRepository[*types.RadarrConfig](c.db),
+		LidarrRepo:   NewClientRepository[*types.LidarrConfig](c.db),
+		ClaudeRepo:   NewClientRepository[*types.ClaudeConfig](c.db),
+		OpenAIRepo:   NewClientRepository[*types.OpenAIConfig](c.db),
+		OllamaRepo:   NewClientRepository[*types.OllamaConfig](c.db),
+	}
+}
+
+// GetAllByCategory returns all client repositories for a given category
+func (c *clientRepoCollection) GetAllByCategory(category types.ClientCategory) ClientRepoCollection {
+	// Just return all for now
+	return c.AllRepos()
+}
+
 // NewClientRepository creates a new media client repository
 func NewClientRepository[T types.ClientConfig](db *gorm.DB) ClientRepository[T] {
 	return &clientRepository[T]{db: db}

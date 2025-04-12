@@ -77,12 +77,12 @@ func (j *LibraryCleanupJob) Execute(ctx context.Context) error {
 	// Run the cleanup tasks
 	var jobError error
 	cleanupStats := map[string]int{
-		"duplicatesFound":     0,
-		"duplicatesResolved":  0,
-		"orphanedItemsFound":  0,
+		"duplicatesFound":      0,
+		"duplicatesResolved":   0,
+		"orphanedItemsFound":   0,
 		"orphanedItemsRemoved": 0,
-		"accessErrorsFound":   0,
-		"accessErrorsFixed":   0,
+		"accessErrorsFound":    0,
+		"accessErrorsFixed":    0,
 	}
 
 	// Find and resolve duplicate media items
@@ -154,14 +154,6 @@ func (j *LibraryCleanupJob) completeJobRun(ctx context.Context, jobRunID uint64,
 	log.Printf("Cleanup stats: %s", statsJSON)
 }
 
-// CleanupStats holds statistics for cleanup operations
-type CleanupStats struct {
-	found    int
-	resolved int
-	removed  int
-	fixed    int
-}
-
 // findAndResolveDuplicates finds and resolves duplicate media items
 func (j *LibraryCleanupJob) findAndResolveDuplicates(ctx context.Context) (CleanupStats, error) {
 	stats := CleanupStats{}
@@ -175,8 +167,8 @@ func (j *LibraryCleanupJob) findAndResolveDuplicates(ctx context.Context) (Clean
 	// 5. Remove the duplicate entries
 
 	// Mock implementation
-	stats.found = 12     // Pretend we found 12 duplicates
-	stats.resolved = 10  // Pretend we successfully resolved 10 of them
+	stats.found = 12    // Pretend we found 12 duplicates
+	stats.resolved = 10 // Pretend we successfully resolved 10 of them
 
 	log.Printf("Found %d duplicate items, resolved %d", stats.found, stats.resolved)
 	return stats, nil
@@ -194,8 +186,8 @@ func (j *LibraryCleanupJob) findAndCleanupOrphanedItems(ctx context.Context) (Cl
 	// 4. Update any references to these items
 
 	// Mock implementation
-	stats.found = 25     // Pretend we found 25 orphaned items 
-	stats.removed = 20   // Pretend we removed 20 of them
+	stats.found = 25   // Pretend we found 25 orphaned items
+	stats.removed = 20 // Pretend we removed 20 of them
 
 	log.Printf("Found %d orphaned items, removed %d", stats.found, stats.removed)
 	return stats, nil
@@ -213,8 +205,8 @@ func (j *LibraryCleanupJob) findAndFixAccessErrors(ctx context.Context) (Cleanup
 	// 4. Generate a report of fixed and unfixable items
 
 	// Mock implementation
-	stats.found = 8     // Pretend we found 8 items with access errors
-	stats.fixed = 5     // Pretend we fixed 5 of them
+	stats.found = 8 // Pretend we found 8 items with access errors
+	stats.fixed = 5 // Pretend we fixed 5 of them
 
 	log.Printf("Found %d items with access errors, fixed %d", stats.found, stats.fixed)
 	return stats, nil
@@ -269,3 +261,4 @@ func (j *LibraryCleanupJob) GenerateCleanupReport(ctx context.Context, recentJob
 		"Access errors found: 8\n" +
 		"Access errors fixed: 5\n", nil
 }
+

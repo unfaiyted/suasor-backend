@@ -23,6 +23,9 @@ type AIClient interface {
 	StartConversation(ctx context.Context, systemInstructions string) (string, error)
 	SendMessage(ctx context.Context, conversationID string, message string) (string, error)
 	
+	// Recommendations capabilities
+	GetRecommendations(ctx context.Context, request *aitypes.RecommendationRequest) (*aitypes.RecommendationResponse, error)
+	
 	// Information methods
 	GetSupportedModels() []string
 	GetCapabilities() *aitypes.AICapabilities
@@ -81,4 +84,8 @@ func (b *BaseAIClient) GetCapabilities() *aitypes.AICapabilities {
 		MaxContextTokens:         0,
 		DefaultMaxTokens:         0,
 	}
+}
+
+func (b *BaseAIClient) GetRecommendations(ctx context.Context, request *aitypes.RecommendationRequest) (*aitypes.RecommendationResponse, error) {
+	return nil, ErrFeatureNotSupported
 }

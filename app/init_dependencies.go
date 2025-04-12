@@ -14,7 +14,9 @@ import (
 )
 
 func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *AppDependencies {
-	deps := &AppDependencies{}
+	deps := &AppDependencies{
+		db: db,
+	}
 
 	// NOTE: The Config Service represents the file configuration for the app itself. Not the user configuraiton.
 	appConfig := configService.GetConfig()
@@ -31,6 +33,13 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		userConfigRepo: repository.NewUserConfigRepository(db),
 		sessionRepo:    repository.NewSessionRepository(db),
 	}
+
+	// Initialize people and credits repositories
+	personRepo := repository.NewPersonRepository(db)
+	creditRepo := repository.NewCreditRepository(db)
+
+	// Initialize media services for people and credits
+	deps.MediaServices = NewMediaServices(personRepo, creditRepo)
 
 	deps.ClientRepositories = &clientRepositoriesImpl{
 		embyRepo:     repository.NewClientRepository[*clienttypes.EmbyConfig](db),
@@ -208,7 +217,13 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		deps.SeriesRepo(),
 		deps.TrackRepo(),
 		historyRepo,
-		aiClientService,
+		repository.NewClientRepositoryCollection(deps.GetDB()),
+		client.GetClientFactoryService(),
+
+		// Use repositories instead of services
+		repository.NewCreditRepository(deps.GetDB()),
+		repository.NewPersonRepository(deps.GetDB()),
+		// aiClientService,
 	)
 
 	mediaSyncJob := jobs.NewMediaSyncJob(

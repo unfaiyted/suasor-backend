@@ -2,10 +2,14 @@
 package app
 
 import (
+	"gorm.io/gorm"
 	"suasor/client"
 )
 
 type AppDependencies struct {
+	// Database
+	db *gorm.DB
+
 	// Repositories
 	SystemRepositories
 	UserRepositories
@@ -19,6 +23,7 @@ type AppDependencies struct {
 	ClientServices
 	ClientMediaServices
 	MediaItemServices
+	MediaServices
 	JobServices
 
 	// Factories
@@ -32,4 +37,9 @@ type AppDependencies struct {
 	UserHandlers
 	SystemHandlers
 	JobHandlers
+}
+
+// GetDB returns the database connection
+func (a *AppDependencies) GetDB() *gorm.DB {
+	return a.db
 }
