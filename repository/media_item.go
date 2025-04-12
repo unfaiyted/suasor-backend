@@ -23,6 +23,8 @@ type MediaItemRepository[T types.MediaData] interface {
 	GetByType(ctx context.Context, mediaType types.MediaType, clientID uint64) ([]*models.MediaItem[T], error)
 	GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error)
 
+	Search(ctx context.Context, options types.QueryOptions) ([]*models.MediaItem[T], error)
+
 	// Delete operation
 	Delete(ctx context.Context, id uint64) error
 }
@@ -205,4 +207,31 @@ func (r *mediaItemRepository[T]) Delete(ctx context.Context, id uint64) error {
 	}
 
 	return nil
+}
+
+func (r *mediaItemRepository[T]) Search(ctx context.Context, options types.QueryOptions) ([]*models.MediaItem[T], error) {
+	var items []*models.MediaItem[T]
+
+	// Build the query
+	query := r.db.WithContext(ctx).
+		Where("type = ?", options.MediaType)
+
+	if options.Query != "" {
+		query = query.Where("external_ids @> ?", fmt.Sprintf(`[{"source":"%s","id":"%s"}]`, options.MediaType, options.Query))
+	}
+
+	if options.Limit > 0 {
+		query = query.Limit(options.Limit)
+	}
+
+	if options.Offset > 0 {
+		query = query.Offset(options.Offset)
+	}
+
+	// Execute the query
+	if err := query.Find(&items).Error; err != nil {
+		return nil, fmt.Errorf("failed to search media items: %w", err)
+	}
+
+	return items, nil
 }

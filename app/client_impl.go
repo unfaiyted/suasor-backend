@@ -206,6 +206,14 @@ func (h *clientHandlersImpl) SonarrHandler() *handlers.ClientHandler[*types.Sona
 	return h.sonarrHandler
 }
 
+type repositoryCollectionsImpl struct {
+	clientRepos repository.ClientRepositoryCollection
+}
+
+func (r *repositoryCollectionsImpl) ClientRepositories() repository.ClientRepositoryCollection {
+	return r.clientRepos
+}
+
 type clientRepositoriesImpl struct {
 	embyRepo     repository.ClientRepository[*types.EmbyConfig]
 	jellyfinRepo repository.ClientRepository[*types.JellyfinConfig]
@@ -239,7 +247,7 @@ func (r *clientRepositoriesImpl) AllRepos() repository.ClientRepoCollection {
 func (r *clientRepositoriesImpl) GetAllByCategory(category types.ClientCategory) repository.ClientRepoCollection {
 	allRepos := r.AllRepos()
 	filteredRepos := repository.ClientRepoCollection{}
-	
+
 	// Only populate repositories that match the category
 	if category == types.ClientCategoryMedia {
 		filteredRepos.EmbyRepo = allRepos.EmbyRepo
@@ -255,7 +263,7 @@ func (r *clientRepositoriesImpl) GetAllByCategory(category types.ClientCategory)
 		filteredRepos.OpenAIRepo = allRepos.OpenAIRepo
 		filteredRepos.OllamaRepo = allRepos.OllamaRepo
 	}
-	
+
 	return filteredRepos
 }
 

@@ -32,7 +32,7 @@ type QueryOptions struct {
 	Director         string    `json:"director,omitempty"`         // Filter by director name/ID
 	Studio           string    `json:"studio,omitempty"`           // Filter by studio
 	Creator          string    `json:"creator,omitempty"`          // Filter by content creator
-	MediaType        string    `json:"mediaType,omitempty"`        // Filter by media type (movie, show, music, etc.)
+	MediaType        MediaType `json:"mediaType,omitempty"`        // Filter by media type (movie, show, music, etc.)
 	ContentRating    string    `json:"contentRating,omitempty"`    // Filter by content rating (PG, PG-13, etc.)
 	Tags             []string  `json:"tags,omitempty"`             // Filter by tags
 	RecentlyAdded    bool      `json:"recentlyAdded,omitempty"`    // Filter to recently added items
@@ -122,7 +122,7 @@ func (opts *QueryOptions) GetFilterValue(filterName string) string {
 	case "creator":
 		return opts.Creator
 	case "mediaType":
-		return opts.MediaType
+		return string(opts.MediaType)
 	case "contentRating":
 		return opts.ContentRating
 	case "tags":

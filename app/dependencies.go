@@ -4,6 +4,7 @@ package app
 import (
 	"gorm.io/gorm"
 	"suasor/client"
+	"suasor/handlers"
 )
 
 type AppDependencies struct {
@@ -16,6 +17,9 @@ type AppDependencies struct {
 	MediaItemRepositories
 	ClientRepositories
 	JobRepositories
+
+	// Collections
+	RepositoryCollections
 
 	// Services
 	UserServices
@@ -37,9 +41,15 @@ type AppDependencies struct {
 	UserHandlers
 	SystemHandlers
 	JobHandlers
+	searchHandler *handlers.SearchHandler
 }
 
 // GetDB returns the database connection
 func (a *AppDependencies) GetDB() *gorm.DB {
 	return a.db
+}
+
+// SearchHandler returns the search handler
+func (a *AppDependencies) SearchHandler() *handlers.SearchHandler {
+	return a.searchHandler
 }

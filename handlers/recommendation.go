@@ -196,7 +196,7 @@ func (h *RecommendationHandler) GetRecentRecommendations(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param minScore query float false "Minimum score (0-1) for recommendations (default: 0.7)"
+// @Param minScore query string false "Minimum score (0-1) for recommendations (default: 0.7)"
 // @Param mediaType query string false "Filter by media type (movie, series, music)"
 // @Param limit query int false "Number of recommendations to return (default: 20)"
 // @Success 200 {object} responses.APIResponse[responses.RecommendationsListResponse] "Top recommendations retrieved successfully"
@@ -326,7 +326,7 @@ func (h *RecommendationHandler) GetRecommendationByID(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param request body requests.MarkRecommendationAsViewedRequest true "Recommendation ID to mark as viewed"
-// @Success 200 {object} responses.MessageResponse "Recommendation marked as viewed successfully"
+// @Success 200 {object} responses.APIResponse[any] "Recommendation marked as viewed successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request parameters"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Recommendation not found"
@@ -377,7 +377,7 @@ func (h *RecommendationHandler) MarkRecommendationAsViewed(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param request body requests.RateRecommendationRequest true "Recommendation ID and rating"
-// @Success 200 {object} responses.MessageResponse "Recommendation rated successfully"
+// @Success 200 {object} responses.APIResponse[any] "Recommendation rated successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request parameters"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Recommendation not found"

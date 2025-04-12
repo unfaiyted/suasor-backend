@@ -54,6 +54,7 @@ func Setup(ctx context.Context, deps *app.AppDependencies) *gin.Engine {
 		RegisterClientsRoutes(authenticated, deps) // Register all clients route
 		RegisterJobRoutes(authenticated, deps.JobServices.JobService()) // Register job routes
 		RegisterRecommendationRoutes(authenticated, deps) // Register recommendation routes
+		RegisterSearchRoutes(authenticated, deps.SearchHandler()) // Register search routes
 	}
 
 	//Admin Routes

@@ -245,7 +245,7 @@ func (j *FavoritesSyncJob) getUserMediaClients(ctx context.Context, userID uint6
 	var clients []MediaClientInfo
 
 	// Get all media client types from the repository collection
-	mediaCategoryClients := j.clientRepos.GetAllByCategory(clienttypes.ClientCategoryMedia)
+	mediaCategoryClients := j.clientRepos.GetAllByCategory(ctx, clienttypes.ClientCategoryMedia)
 
 	// Emby clients
 	embyClients, err := mediaCategoryClients.EmbyRepo.GetByUserID(ctx, userID)
@@ -807,7 +807,7 @@ func (j *FavoritesSyncJob) getMediaClient(ctx context.Context, clientID uint64, 
 	// Get the client config from the repository
 	var clientConfig clienttypes.ClientConfig
 
-	mediaCategoryClients := j.clientRepos.GetAllByCategory(clienttypes.ClientCategoryMedia)
+	mediaCategoryClients := j.clientRepos.GetAllByCategory(ctx, clienttypes.ClientCategoryMedia)
 
 	switch clienttypes.MediaClientType(clientType) {
 	case clienttypes.MediaClientTypeEmby:

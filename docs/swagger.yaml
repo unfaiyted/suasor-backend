@@ -28,6 +28,25 @@ definitions:
     - ErrorTypeTimeout
     - ErrorTypeServiceUnavailable
     - ErrorTypeUnprocessableEntity
+  models.AIModelPreferences:
+    properties:
+      defaultMaxTokens:
+        example: 4000
+        maximum: 100000
+        minimum: 100
+        type: integer
+      defaultModelForChat:
+        example: claude-3-opus-20240229
+        type: string
+      defaultModelForRecommendations:
+        example: claude-3-opus-20240229
+        type: string
+      defaultTemperature:
+        example: 0.7
+        maximum: 1
+        minimum: 0
+        type: number
+    type: object
   models.Award:
     properties:
       category:
@@ -207,6 +226,10 @@ definitions:
       source:
         description: e.g., "tmdb", "imdb", "trakt", "tvdb"
         type: string
+    type: object
+  models.ExternalIDMap:
+    additionalProperties:
+      type: string
     type: object
   models.ExternalLink:
     properties:
@@ -751,10 +774,14 @@ definitions:
         type: boolean
     type: object
   models.Recommendation:
+    description: Media recommendation stored in the database
     properties:
       active:
         description: Whether this is an active recommendation
         type: boolean
+      aiModel:
+        description: AI model used if recommendedBy="AI"
+        type: string
       confidence:
         description: Confidence score (0.0 to 1.0) if available
         type: number
@@ -765,26 +792,56 @@ definitions:
       dismissed:
         description: Whether this item has been dismissed by the user
         type: boolean
+      expiresAt:
+        description: When this recommendation expires
+        type: string
+      externalIds:
+        $ref: '#/definitions/models.ExternalIDMap'
+      genres:
+        items:
+          type: string
+        type: array
       id:
         type: integer
       inLibrary:
         description: Whether this item is present in the user's library
         type: boolean
+      isViewed:
+        description: Whether user has viewed this item
+        type: boolean
       jobRunId:
         description: Job run that created this recommendation
         type: integer
+      matchesActors:
+        items:
+          type: string
+        type: array
+      matchesDirectors:
+        items:
+          type: string
+        type: array
+      matchesGenres:
+        items:
+          type: string
+        type: array
       mediaItemId:
-        description: ID of the media item being recommended
         type: integer
       mediaType:
-        description: Type of media being recommended (movie, series, etc.)
-        type: string
+        allOf:
+        - $ref: '#/definitions/types.MediaType'
+        description: '"movie", "series", "music"'
       metadata:
         description: Additional metadata (stored as JSON)
         type: string
-      reason:
-        description: Explanation of why this was recommended
+      reasoning:
         type: string
+      recommendedBy:
+        description: '"AI", "popular", "similar_users"'
+        type: string
+      similarItems:
+        items:
+          type: string
+        type: array
       source:
         allOf:
         - $ref: '#/definitions/models.RecommendationSource'
@@ -795,14 +852,17 @@ definitions:
       sourceClientType:
         description: Type of the client that generated this recommendation
         type: string
+      title:
+        type: string
       updatedAt:
         type: string
       userId:
-        description: ID of the user receiving this recommendation
         type: integer
-      viewed:
-        description: Whether this item has been viewed/played by the user
-        type: boolean
+      userRating:
+        description: If user has rated this recommendation
+        type: number
+      year:
+        type: integer
     type: object
   models.RecommendationSource:
     enum:
@@ -854,6 +914,10 @@ definitions:
         - custom
         example: serious
         type: string
+      aiModelPreferences:
+        allOf:
+        - $ref: '#/definitions/models.AIModelPreferences'
+        description: AI Model Preferences
       bio:
         description: Profile settings
         example: I'm a developer
@@ -1564,6 +1628,14 @@ definitions:
     required:
     - refreshToken
     type: object
+  requests.MarkRecommendationAsViewedRequest:
+    properties:
+      recommendationId:
+        example: 123
+        type: integer
+    required:
+    - recommendationId
+    type: object
   requests.ProfileRequest:
     description: Request payload for updating user profile
     properties:
@@ -1588,6 +1660,20 @@ definitions:
           @Example "newusername"
         example: newusername
         type: string
+    type: object
+  requests.RateRecommendationRequest:
+    properties:
+      rating:
+        example: 4.5
+        maximum: 5
+        minimum: 0
+        type: number
+      recommendationId:
+        example: 123
+        type: integer
+    required:
+    - rating
+    - recommendationId
     type: object
   requests.RefreshTokenRequest:
     description: Request payload for refreshing access tokens
@@ -2239,6 +2325,28 @@ definitions:
         example: true
         type: boolean
     type: object
+  responses.APIResponse-responses_RecommendationResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.RecommendationResponse'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.APIResponse-responses_RecommendationsListResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.RecommendationsListResponse'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   responses.APIResponse-responses_TestConnectionResponse:
     properties:
       data:
@@ -2455,6 +2563,24 @@ definitions:
       stackInfo:
         type: string
     type: object
+  responses.ErrorResponse-any:
+    properties:
+      details: {}
+      message:
+        example: This is a pretty message
+        type: string
+      request_id:
+        type: string
+      statusCode:
+        example: 201
+        type: integer
+      timestamp:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/errors.ErrorType'
+        example: FAILED_CHECK
+    type: object
   responses.ErrorResponse-error:
     properties:
       details: {}
@@ -2531,6 +2657,435 @@ definitions:
       updatedAt:
         type: string
     type: object
+  responses.RecentSearchHistoryItem:
+    properties:
+      id:
+        type: integer
+      query:
+        type: string
+      resultCount:
+        type: integer
+      searchedAt:
+        type: string
+    type: object
+  responses.RecentSearchesResponse:
+    properties:
+      searches:
+        items:
+          $ref: '#/definitions/responses.RecentSearchHistoryItem'
+        type: array
+      success:
+        type: boolean
+    type: object
+  responses.RecommendationResponse:
+    properties:
+      aiModel:
+        type: string
+      createdAt:
+        type: string
+      externalIds:
+        additionalProperties:
+          type: string
+        type: object
+      genres:
+        items:
+          type: string
+        type: array
+      id:
+        type: integer
+      isViewed:
+        type: boolean
+      matchesActors:
+        items:
+          type: string
+        type: array
+      matchesDirectors:
+        items:
+          type: string
+        type: array
+      matchesGenres:
+        items:
+          type: string
+        type: array
+      mediaType:
+        $ref: '#/definitions/types.MediaType'
+      reasoning:
+        type: string
+      recommendedBy:
+        type: string
+      score:
+        type: number
+      similarItems:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      userRating:
+        type: number
+      year:
+        type: integer
+    type: object
+  responses.RecommendationsListResponse:
+    properties:
+      limit:
+        type: integer
+      mediaType:
+        type: string
+      offset:
+        type: integer
+      recommendations:
+        items:
+          $ref: '#/definitions/responses.RecommendationResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+  responses.SearchResponse:
+    properties:
+      results:
+        $ref: '#/definitions/responses.SearchResults'
+      success:
+        type: boolean
+    type: object
+  responses.SearchResults:
+    properties:
+      albums:
+        items:
+          properties:
+            clientIds:
+              description: Client IDs for this item (mapping client to their IDs)
+              items:
+                $ref: '#/definitions/models.ClientID'
+              type: array
+            createdAt:
+              type: string
+            data:
+              allOf:
+              - $ref: '#/definitions/types.Album'
+              description: Type-specific media data
+            downloadUrl:
+              type: string
+            externalIds:
+              description: External IDs for this item (TMDB, IMDB, etc.)
+              items:
+                $ref: '#/definitions/models.ExternalID'
+              type: array
+            id:
+              description: Internal ID
+              type: integer
+            releaseDate:
+              type: string
+            releaseYear:
+              type: integer
+            streamUrl:
+              type: string
+            title:
+              type: string
+            type:
+              allOf:
+              - $ref: '#/definitions/types.MediaType'
+              description: Type of media (movie, show, episode, etc.)
+            updatedAt:
+              type: string
+          type: object
+        type: array
+      artists:
+        items:
+          properties:
+            clientIds:
+              description: Client IDs for this item (mapping client to their IDs)
+              items:
+                $ref: '#/definitions/models.ClientID'
+              type: array
+            createdAt:
+              type: string
+            data:
+              allOf:
+              - $ref: '#/definitions/types.Artist'
+              description: Type-specific media data
+            downloadUrl:
+              type: string
+            externalIds:
+              description: External IDs for this item (TMDB, IMDB, etc.)
+              items:
+                $ref: '#/definitions/models.ExternalID'
+              type: array
+            id:
+              description: Internal ID
+              type: integer
+            releaseDate:
+              type: string
+            releaseYear:
+              type: integer
+            streamUrl:
+              type: string
+            title:
+              type: string
+            type:
+              allOf:
+              - $ref: '#/definitions/types.MediaType'
+              description: Type of media (movie, show, episode, etc.)
+            updatedAt:
+              type: string
+          type: object
+        type: array
+      collections:
+        items:
+          properties:
+            clientIds:
+              description: Client IDs for this item (mapping client to their IDs)
+              items:
+                $ref: '#/definitions/models.ClientID'
+              type: array
+            createdAt:
+              type: string
+            data:
+              allOf:
+              - $ref: '#/definitions/suasor_client_media_types.Collection'
+              description: Type-specific media data
+            downloadUrl:
+              type: string
+            externalIds:
+              description: External IDs for this item (TMDB, IMDB, etc.)
+              items:
+                $ref: '#/definitions/models.ExternalID'
+              type: array
+            id:
+              description: Internal ID
+              type: integer
+            releaseDate:
+              type: string
+            releaseYear:
+              type: integer
+            streamUrl:
+              type: string
+            title:
+              type: string
+            type:
+              allOf:
+              - $ref: '#/definitions/types.MediaType'
+              description: Type of media (movie, show, episode, etc.)
+            updatedAt:
+              type: string
+          type: object
+        type: array
+      episodes:
+        items:
+          properties:
+            clientIds:
+              description: Client IDs for this item (mapping client to their IDs)
+              items:
+                $ref: '#/definitions/models.ClientID'
+              type: array
+            createdAt:
+              type: string
+            data:
+              allOf:
+              - $ref: '#/definitions/types.Episode'
+              description: Type-specific media data
+            downloadUrl:
+              type: string
+            externalIds:
+              description: External IDs for this item (TMDB, IMDB, etc.)
+              items:
+                $ref: '#/definitions/models.ExternalID'
+              type: array
+            id:
+              description: Internal ID
+              type: integer
+            releaseDate:
+              type: string
+            releaseYear:
+              type: integer
+            streamUrl:
+              type: string
+            title:
+              type: string
+            type:
+              allOf:
+              - $ref: '#/definitions/types.MediaType'
+              description: Type of media (movie, show, episode, etc.)
+            updatedAt:
+              type: string
+          type: object
+        type: array
+      movies:
+        items:
+          properties:
+            clientIds:
+              description: Client IDs for this item (mapping client to their IDs)
+              items:
+                $ref: '#/definitions/models.ClientID'
+              type: array
+            createdAt:
+              type: string
+            data:
+              allOf:
+              - $ref: '#/definitions/suasor_client_media_types.Movie'
+              description: Type-specific media data
+            downloadUrl:
+              type: string
+            externalIds:
+              description: External IDs for this item (TMDB, IMDB, etc.)
+              items:
+                $ref: '#/definitions/models.ExternalID'
+              type: array
+            id:
+              description: Internal ID
+              type: integer
+            releaseDate:
+              type: string
+            releaseYear:
+              type: integer
+            streamUrl:
+              type: string
+            title:
+              type: string
+            type:
+              allOf:
+              - $ref: '#/definitions/types.MediaType'
+              description: Type of media (movie, show, episode, etc.)
+            updatedAt:
+              type: string
+          type: object
+        type: array
+      people:
+        items:
+          $ref: '#/definitions/models.Person'
+        type: array
+      playlists:
+        items:
+          properties:
+            clientIds:
+              description: Client IDs for this item (mapping client to their IDs)
+              items:
+                $ref: '#/definitions/models.ClientID'
+              type: array
+            createdAt:
+              type: string
+            data:
+              allOf:
+              - $ref: '#/definitions/types.Playlist'
+              description: Type-specific media data
+            downloadUrl:
+              type: string
+            externalIds:
+              description: External IDs for this item (TMDB, IMDB, etc.)
+              items:
+                $ref: '#/definitions/models.ExternalID'
+              type: array
+            id:
+              description: Internal ID
+              type: integer
+            releaseDate:
+              type: string
+            releaseYear:
+              type: integer
+            streamUrl:
+              type: string
+            title:
+              type: string
+            type:
+              allOf:
+              - $ref: '#/definitions/types.MediaType'
+              description: Type of media (movie, show, episode, etc.)
+            updatedAt:
+              type: string
+          type: object
+        type: array
+      series:
+        items:
+          properties:
+            clientIds:
+              description: Client IDs for this item (mapping client to their IDs)
+              items:
+                $ref: '#/definitions/models.ClientID'
+              type: array
+            createdAt:
+              type: string
+            data:
+              allOf:
+              - $ref: '#/definitions/types.Series'
+              description: Type-specific media data
+            downloadUrl:
+              type: string
+            externalIds:
+              description: External IDs for this item (TMDB, IMDB, etc.)
+              items:
+                $ref: '#/definitions/models.ExternalID'
+              type: array
+            id:
+              description: Internal ID
+              type: integer
+            releaseDate:
+              type: string
+            releaseYear:
+              type: integer
+            streamUrl:
+              type: string
+            title:
+              type: string
+            type:
+              allOf:
+              - $ref: '#/definitions/types.MediaType'
+              description: Type of media (movie, show, episode, etc.)
+            updatedAt:
+              type: string
+          type: object
+        type: array
+      totalCount:
+        type: integer
+      tracks:
+        items:
+          properties:
+            clientIds:
+              description: Client IDs for this item (mapping client to their IDs)
+              items:
+                $ref: '#/definitions/models.ClientID'
+              type: array
+            createdAt:
+              type: string
+            data:
+              allOf:
+              - $ref: '#/definitions/types.Track'
+              description: Type-specific media data
+            downloadUrl:
+              type: string
+            externalIds:
+              description: External IDs for this item (TMDB, IMDB, etc.)
+              items:
+                $ref: '#/definitions/models.ExternalID'
+              type: array
+            id:
+              description: Internal ID
+              type: integer
+            releaseDate:
+              type: string
+            releaseYear:
+              type: integer
+            streamUrl:
+              type: string
+            title:
+              type: string
+            type:
+              allOf:
+              - $ref: '#/definitions/types.MediaType'
+              description: Type of media (movie, show, episode, etc.)
+            updatedAt:
+              type: string
+          type: object
+        type: array
+    type: object
+  responses.SearchSuggestionsResponse:
+    properties:
+      success:
+        type: boolean
+      suggestions:
+        items:
+          type: string
+        type: array
+    type: object
   responses.TestConnectionResponse:
     properties:
       message:
@@ -2539,6 +3094,22 @@ definitions:
         type: boolean
       version:
         type: string
+    type: object
+  responses.TrendingSearchItem:
+    properties:
+      query:
+        type: string
+      searchCount:
+        type: integer
+    type: object
+  responses.TrendingSearchesResponse:
+    properties:
+      searches:
+        items:
+          $ref: '#/definitions/responses.TrendingSearchItem'
+        type: array
+      success:
+        type: boolean
     type: object
   responses.UserResponse:
     description: User information returned in API responses
@@ -2575,6 +3146,20 @@ definitions:
           @Description User's chosen username
           @Example "johndoe"
         type: string
+    type: object
+  suasor_client_media_types.Collection:
+    properties:
+      collectionType:
+        description: e.g., "movie", "tvshow"
+        type: string
+      details:
+        $ref: '#/definitions/types.MediaDetails'
+      itemCount:
+        type: integer
+      itemIDs:
+        items:
+          type: string
+        type: array
     type: object
   suasor_client_media_types.ExternalID:
     properties:
@@ -3025,6 +3610,25 @@ definitions:
         example: true
         type: boolean
     type: object
+  types.Episode:
+    properties:
+      credits:
+        items:
+          $ref: '#/definitions/suasor_client_media_types.Person'
+        type: array
+      details:
+        $ref: '#/definitions/types.MediaDetails'
+      number:
+        type: integer
+      seasonID:
+        type: string
+      seasonNumber:
+        type: integer
+      showID:
+        type: string
+      showTitle:
+        type: string
+    type: object
   types.JellyfinConfig:
     description: Jellyfin media server configuration
     properties:
@@ -3160,6 +3764,7 @@ definitions:
     - track
     - playlist
     - collection
+    - all
     type: string
     x-enum-varnames:
     - MediaTypeMovie
@@ -3171,6 +3776,7 @@ definitions:
     - MediaTypeTrack
     - MediaTypePlaylist
     - MediaTypeCollection
+    - MediaTypeAll
   types.OllamaConfig:
     description: Claude media server configuration
     properties:
@@ -7275,6 +7881,391 @@ paths:
       summary: Search playlists
       tags:
       - playlists
+  /recommendations:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of recommendations for the authenticated user
+      parameters:
+      - description: Filter by media type (movie, series, music)
+        in: query
+        name: mediaType
+        type: string
+      - description: 'Number of recommendations to return (default: 20)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Offset for pagination (default: 0)'
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Recommendations retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_RecommendationsListResponse'
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get recommendations for the current user
+      tags:
+      - recommendations
+  /recommendations/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific recommendation by its ID for the authenticated
+        user
+      parameters:
+      - description: Recommendation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Recommendation retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_RecommendationResponse'
+        "400":
+          description: Invalid recommendation ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "404":
+          description: Recommendation not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get a specific recommendation by ID
+      tags:
+      - recommendations
+  /recommendations/rate:
+    post:
+      consumes:
+      - application/json
+      description: Sets a user rating for a specific recommendation
+      parameters:
+      - description: Recommendation ID and rating
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.RateRecommendationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Recommendation rated successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-any'
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "404":
+          description: Recommendation not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Rate a recommendation
+      tags:
+      - recommendations
+  /recommendations/recent:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of recently created recommendations for the authenticated
+        user
+      parameters:
+      - description: 'Number of days to look back (default: 7)'
+        in: query
+        name: days
+        type: integer
+      - description: Filter by media type (movie, series, music)
+        in: query
+        name: mediaType
+        type: string
+      - description: 'Number of recommendations to return (default: 20)'
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Recent recommendations retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_RecommendationsListResponse'
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get recent recommendations for the current user
+      tags:
+      - recommendations
+  /recommendations/top:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of top-scored recommendations for the authenticated
+        user
+      parameters:
+      - description: 'Minimum score (0-1) for recommendations (default: 0.7)'
+        in: query
+        name: minScore
+        type: string
+      - description: Filter by media type (movie, series, music)
+        in: query
+        name: mediaType
+        type: string
+      - description: 'Number of recommendations to return (default: 20)'
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Top recommendations retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_RecommendationsListResponse'
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get top-scored recommendations for the current user
+      tags:
+      - recommendations
+  /recommendations/view:
+    post:
+      consumes:
+      - application/json
+      description: Marks a specific recommendation as viewed for the authenticated
+        user
+      parameters:
+      - description: Recommendation ID to mark as viewed
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.MarkRecommendationAsViewedRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Recommendation marked as viewed successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-any'
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "404":
+          description: Recommendation not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Mark a recommendation as viewed
+      tags:
+      - recommendations
+  /search:
+    get:
+      consumes:
+      - application/json
+      description: Searches for content in the database, media clients, and metadata
+        sources
+      parameters:
+      - description: Search query
+        in: query
+        name: query
+        required: true
+        type: string
+      - description: Limit search to specific media type (movie, series, music, person)
+        in: query
+        name: mediaType
+        type: string
+      - default: 20
+        description: Maximum number of results
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset for pagination
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SearchResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Search for content across all sources
+      tags:
+      - search
+  /search/recent:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of the user's recent searches
+      parameters:
+      - default: 10
+        description: Maximum number of results
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.RecentSearchesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Get recent searches for the current user
+      tags:
+      - search
+  /search/suggestions:
+    get:
+      consumes:
+      - application/json
+      description: Returns suggestions based on partial search input
+      parameters:
+      - description: Partial search query
+        in: query
+        name: q
+        required: true
+        type: string
+      - default: 5
+        description: Maximum number of suggestions
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SearchSuggestionsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Get search suggestions
+      tags:
+      - search
+  /search/trending:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of popular searches across the platform
+      parameters:
+      - default: 10
+        description: Maximum number of results
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.TrendingSearchesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Get trending searches across all users
+      tags:
+      - search
   /series/actor/{actor}:
     get:
       consumes:

@@ -113,4 +113,5 @@ const (
 	MediaTypeTrack      MediaType = "track"
 	MediaTypePlaylist   MediaType = "playlist"
 	MediaTypeCollection MediaType = "collection"
+	MediaTypeAll        MediaType = "all"
 )

@@ -51,7 +51,7 @@ func applyQueryOptions(queryParams *embyclient.ItemsServiceApiGetItemsOpts, opti
 
 	// Media type filter
 	if options.MediaType != "" {
-		queryParams.IncludeItemTypes = optional.NewString(options.MediaType)
+		queryParams.IncludeItemTypes = optional.NewString(string(options.MediaType))
 	}
 
 	// Genre filter
@@ -77,58 +77,58 @@ func applyQueryOptions(queryParams *embyclient.ItemsServiceApiGetItemsOpts, opti
 	if options.Director != "" {
 		queryParams.Person = optional.NewString(options.Director)
 	}
-	
+
 	// Creator filter
 	if options.Creator != "" {
 		queryParams.Person = optional.NewString(options.Creator)
 	}
-	
+
 	// Apply more advanced filters
-	
+
 	// Content rating filter
 	if options.ContentRating != "" {
 		queryParams.OfficialRatings = optional.NewString(options.ContentRating)
 	}
-	
+
 	// Tags filter
 	if len(options.Tags) > 0 {
 		queryParams.Tags = optional.NewString(strings.Join(options.Tags, ","))
 	}
-	
+
 	// Recently added filter
 	if options.RecentlyAdded {
 		queryParams.SortBy = optional.NewString("DateCreated,SortName")
 		queryParams.SortOrder = optional.NewString("Descending")
 	}
-	
+
 	// Recently played filter
 	if options.RecentlyPlayed {
 		queryParams.SortBy = optional.NewString("DatePlayed,SortName")
 		queryParams.SortOrder = optional.NewString("Descending")
 	}
-	
+
 	// Unwatched filter
 	if options.Unwatched {
 		queryParams.IsPlayed = optional.NewBool(false)
 	}
-	
+
 	// Date filters
 	if !options.DateAddedAfter.IsZero() {
 		queryParams.MinDateLastSaved = optional.NewString(options.DateAddedAfter.Format(time.RFC3339))
 	}
-	
+
 	if !options.DateAddedBefore.IsZero() {
 		queryParams.MaxPremiereDate = optional.NewString(options.DateAddedBefore.Format(time.RFC3339))
 	}
-	
+
 	if !options.ReleasedAfter.IsZero() {
 		queryParams.MinPremiereDate = optional.NewString(options.ReleasedAfter.Format(time.RFC3339))
 	}
-	
+
 	if !options.ReleasedBefore.IsZero() {
 		queryParams.MaxPremiereDate = optional.NewString(options.ReleasedBefore.Format(time.RFC3339))
 	}
-	
+
 	// Rating filter
 	if options.MinimumRating > 0 {
 		queryParams.MinCommunityRating = optional.NewFloat64(float64(options.MinimumRating))

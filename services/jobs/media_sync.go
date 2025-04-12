@@ -276,7 +276,7 @@ func (j *MediaSyncJob) getClientConfig(ctx context.Context, clientID uint64, cli
 	// Get client config from database
 	var config clienttypes.ClientConfig
 
-	clientRepos := j.clientRepos.GetAllByCategory(clienttypes.ClientCategoryMedia)
+	clientRepos := j.clientRepos.GetAllByCategory(ctx, clienttypes.ClientCategoryMedia)
 	switch clientType {
 	case "emby":
 		c, err := clientRepos.EmbyRepo.GetByID(ctx, clientID)
@@ -448,24 +448,24 @@ func (j *MediaSyncJob) syncEpisodes(ctx context.Context, mediaClient media.Media
 
 	// Get all episodes from the client
 	clientType := mediaClient.(client.Client).GetType().AsMediaClientType()
-	
+
 	// Initialize a slice to hold all episodes
 	var allEpisodes []models.MediaItem[*mediatypes.Episode]
-	
+
 	// First get all series
 	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 15, "Fetching series list")
 	allSeries, err := seriesProvider.GetSeries(ctx, &mediatypes.QueryOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to get series list: %w", err)
 	}
-	
+
 	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 20, fmt.Sprintf("Found %d series, fetching episodes", len(allSeries)))
-	
+
 	// Set total items for tracking progress
 	totalSeries := len(allSeries)
 	j.jobRepo.SetJobTotalItems(ctx, jobRunID, totalSeries)
 	processedSeries := 0
-	
+
 	// For each series, get episodes
 	for _, series := range allSeries {
 		if series.Data == nil || len(series.ClientIDs) == 0 {
@@ -473,7 +473,7 @@ func (j *MediaSyncJob) syncEpisodes(ctx context.Context, mediaClient media.Media
 			log.Printf("Skipping series with missing data")
 			continue
 		}
-		
+
 		// Find the client item ID for this series
 		var seriesID string
 		for _, cid := range series.ClientIDs {
@@ -482,74 +482,74 @@ func (j *MediaSyncJob) syncEpisodes(ctx context.Context, mediaClient media.Media
 				break
 			}
 		}
-		
+
 		if seriesID == "" {
 			log.Printf("No matching client item ID found for series: %s", series.Data.Details.Title)
 			continue
 		}
-		
+
 		// Get seasons for this series
 		seasons, err := seriesProvider.GetSeriesSeasons(ctx, seriesID)
 		if err != nil {
 			log.Printf("Error getting seasons for series %s: %v", series.Data.Details.Title, err)
 			continue
 		}
-		
+
 		// For each season, get episodes
 		for _, season := range seasons {
 			if season.Data == nil {
 				continue
 			}
-			
+
 			seasonNumber := season.Data.Number
 			episodes, err := seriesProvider.GetSeriesEpisodes(ctx, seriesID, seasonNumber)
 			if err != nil {
-				log.Printf("Error getting episodes for series %s season %d: %v", 
+				log.Printf("Error getting episodes for series %s season %d: %v",
 					series.Data.Details.Title, seasonNumber, err)
 				continue
 			}
-			
+
 			allEpisodes = append(allEpisodes, episodes...)
 		}
-		
+
 		// Update progress
 		processedSeries++
 		progress := 20 + int(float64(processedSeries)/float64(totalSeries)*30.0)
-		j.jobRepo.UpdateJobProgress(ctx, jobRunID, progress, 
-			fmt.Sprintf("Processed %d/%d series, found %d episodes", 
+		j.jobRepo.UpdateJobProgress(ctx, jobRunID, progress,
+			fmt.Sprintf("Processed %d/%d series, found %d episodes",
 				processedSeries, totalSeries, len(allEpisodes)))
 		j.jobRepo.IncrementJobProcessedItems(ctx, jobRunID, 1)
 	}
-	
+
 	// Update job progress
-	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 50, 
+	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 50,
 		fmt.Sprintf("Processing %d episodes", len(allEpisodes)))
-	
+
 	// Process episodes in batches to avoid memory issues
 	batchSize := 100
 	totalEpisodes := len(allEpisodes)
 	processedEpisodes := 0
-	
+
 	for i := 0; i < totalEpisodes; i += batchSize {
 		end := i + batchSize
 		if end > totalEpisodes {
 			end = totalEpisodes
 		}
-		
+
 		episodeBatch := allEpisodes[i:end]
 		err := j.processEpisodeBatch(ctx, episodeBatch, clientID, clientType)
 		if err != nil {
 			return fmt.Errorf("failed to process episode batch: %w", err)
 		}
-		
+
 		processedEpisodes += len(episodeBatch)
 		progress := 50 + int(float64(processedEpisodes)/float64(totalEpisodes)*50.0)
-		j.jobRepo.UpdateJobProgress(ctx, jobRunID, progress, 
+		j.jobRepo.UpdateJobProgress(ctx, jobRunID, progress,
 			fmt.Sprintf("Processed %d/%d episodes", processedEpisodes, totalEpisodes))
 	}
-	
+
 	// Update job progress
-	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 100, 
+	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 100,
 		fmt.Sprintf("Synced %d episodes from %d series", totalEpisodes, totalSeries))
 
 	return nil
@@ -802,7 +802,7 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.M
 		// Just log the error but continue processing with what we have
 		log.Printf("Failed to get media client for season details: %v", err)
 	}
-	
+
 	// Cast to series provider if possible
 	var seriesProvider providers.SeriesProvider
 	if mediaClient != nil {
@@ -874,7 +874,7 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.M
 			existingSeries.Title = s.Data.Details.Title
 			existingSeries.ReleaseDate = s.Data.Details.ReleaseDate
 			existingSeries.ReleaseYear = s.Data.Details.ReleaseYear
-			
+
 			// Update additional series-specific fields
 			existingSeries.Data.Genres = s.Data.Genres
 			existingSeries.Data.Network = s.Data.Network
@@ -895,7 +895,7 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.M
 						break
 					}
 				}
-				
+
 				if seriesID != "" {
 					// Fetch seasons for this series
 					seasons, err := seriesProvider.GetSeriesSeasons(ctx, seriesID)
@@ -907,16 +907,16 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.M
 								seriesSeasons = append(seriesSeasons, *season.Data)
 							}
 						}
-						
+
 						existingSeries.Data.Seasons = seriesSeasons
 						existingSeries.Data.SeasonCount = len(seriesSeasons)
-						
+
 						// Update episode count by summing episode counts from seasons
 						totalEpisodes := 0
 						for _, season := range seriesSeasons {
 							totalEpisodes += season.EpisodeCount
 						}
-						
+
 						if totalEpisodes > 0 {
 							existingSeries.Data.EpisodeCount = totalEpisodes
 						}
@@ -941,12 +941,12 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.M
 			s.Title = s.Data.Details.Title
 			s.ReleaseDate = s.Data.Details.ReleaseDate
 			s.ReleaseYear = s.Data.Details.ReleaseYear
-			
+
 			// Make sure we have genres data initialized
 			if s.Data.Genres == nil {
 				s.Data.Genres = []string{}
 			}
-			
+
 			if s.Data.Seasons == nil {
 				s.Data.Seasons = []mediatypes.Season{}
 			}

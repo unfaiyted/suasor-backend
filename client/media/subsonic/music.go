@@ -10,7 +10,7 @@ import (
 	"suasor/utils"
 )
 
-func (c *SubsonicClient) GetMusic(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[*t.Track], error) {
+func (c *SubsonicClient) GetMusic(ctx context.Context, options *t.QueryOptions) ([]*models.MediaItem[*t.Track], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -19,7 +19,7 @@ func (c *SubsonicClient) GetMusic(ctx context.Context, options *t.QueryOptions) 
 		Str("clientType", string(c.ClientType)).
 		Msg("Retrieving music tracks from Subsonic server")
 
-	var tracks []models.MediaItem[*t.Track]
+	var tracks []*models.MediaItem[*t.Track]
 	var err error
 
 	// If query or typed filters provided, use search3
@@ -46,7 +46,7 @@ func (c *SubsonicClient) GetMusic(ctx context.Context, options *t.QueryOptions) 
 
 	return tracks, nil
 }
-func (c *SubsonicClient) GetMusicArtists(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[*t.Artist], error) {
+func (c *SubsonicClient) GetMusicArtists(ctx context.Context, options *t.QueryOptions) ([]*models.MediaItem[*t.Artist], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -65,10 +65,10 @@ func (c *SubsonicClient) GetMusicArtists(ctx context.Context, options *t.QueryOp
 
 	if resp.Artists == nil || len(resp.Artists.Index) == 0 {
 		log.Info().Msg("No artists returned from Subsonic")
-		return []models.MediaItem[*t.Artist]{}, nil
+		return []*models.MediaItem[*t.Artist]{}, nil
 	}
 
-	var artists []models.MediaItem[*t.Artist]
+	var artists []*models.MediaItem[*t.Artist]
 
 	// Flatten all artists from all indexes
 	for _, index := range resp.Artists.Index {
@@ -93,7 +93,7 @@ func (c *SubsonicClient) GetMusicArtists(ctx context.Context, options *t.QueryOp
 				musicArtist.Data.Details.Artwork.Poster = c.GetCoverArtURL(artist.CoverArt)
 			}
 
-			artists = append(artists, musicArtist)
+			artists = append(artists, &musicArtist)
 		}
 	}
 
@@ -104,7 +104,7 @@ func (c *SubsonicClient) GetMusicArtists(ctx context.Context, options *t.QueryOp
 	return artists, nil
 }
 
-func (c *SubsonicClient) GetMusicTrackByID(ctx context.Context, id string) (models.MediaItem[*t.Track], error) {
+func (c *SubsonicClient) GetMusicTrackByID(ctx context.Context, id string) (*models.MediaItem[*t.Track], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -123,14 +123,14 @@ func (c *SubsonicClient) GetMusicTrackByID(ctx context.Context, id string) (mode
 			Err(err).
 			Str("trackID", id).
 			Msg("Failed to fetch track from Subsonic")
-		return models.MediaItem[*t.Track]{}, err
+		return &models.MediaItem[*t.Track]{}, err
 	}
 
 	if resp.Song == nil {
 		log.Error().
 			Str("trackID", id).
 			Msg("No track found with the specified ID")
-		return models.MediaItem[*t.Track]{}, fmt.Errorf("track with ID %s not found", id)
+		return &models.MediaItem[*t.Track]{}, fmt.Errorf("track with ID %s not found", id)
 	}
 
 	track := c.convertChildToTrack(*resp.Song)
@@ -144,7 +144,7 @@ func (c *SubsonicClient) GetMusicTrackByID(ctx context.Context, id string) (mode
 	return track, nil
 }
 
-func (c *SubsonicClient) GetMusicAlbums(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[*t.Album], error) {
+func (c *SubsonicClient) GetMusicAlbums(ctx context.Context, options *t.QueryOptions) ([]*models.MediaItem[*t.Album], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -176,10 +176,10 @@ func (c *SubsonicClient) GetMusicAlbums(ctx context.Context, options *t.QueryOpt
 
 	if resp.AlbumList2 == nil || len(resp.AlbumList2.Album) == 0 {
 		log.Info().Msg("No albums returned from Subsonic")
-		return []models.MediaItem[*t.Album]{}, nil
+		return []*models.MediaItem[*t.Album]{}, nil
 	}
 
-	albums := make([]models.MediaItem[*t.Album], 0, len(resp.AlbumList2.Album))
+	albums := make([]*models.MediaItem[*t.Album], 0, len(resp.AlbumList2.Album))
 
 	for _, album := range resp.AlbumList2.Album {
 		musicAlbum := models.MediaItem[*t.Album]{
@@ -199,7 +199,7 @@ func (c *SubsonicClient) GetMusicAlbums(ctx context.Context, options *t.QueryOpt
 			},
 		}
 		musicAlbum.SetClientInfo(c.ClientID, c.ClientType, album.ID)
-		albums = append(albums, musicAlbum)
+		albums = append(albums, &musicAlbum)
 	}
 
 	log.Info().
@@ -243,7 +243,7 @@ func (c *SubsonicClient) GetMusicGenres(ctx context.Context) ([]string, error) {
 	return genres, nil
 }
 
-func (c *SubsonicClient) getRandomSongs(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[*t.Track], error) {
+func (c *SubsonicClient) getRandomSongs(ctx context.Context, options *t.QueryOptions) ([]*models.MediaItem[*t.Track], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -265,10 +265,10 @@ func (c *SubsonicClient) getRandomSongs(ctx context.Context, options *t.QueryOpt
 
 	if resp.RandomSongs == nil || len(resp.RandomSongs.Song) == 0 {
 		log.Info().Msg("No songs returned from Subsonic")
-		return []models.MediaItem[*t.Track]{}, nil
+		return []*models.MediaItem[*t.Track]{}, nil
 	}
 
-	tracks := make([]models.MediaItem[*t.Track], 0, len(resp.RandomSongs.Song))
+	tracks := make([]*models.MediaItem[*t.Track], 0, len(resp.RandomSongs.Song))
 
 	for _, song := range resp.RandomSongs.Song {
 		track := c.convertChildToTrack(*song)
@@ -278,7 +278,7 @@ func (c *SubsonicClient) getRandomSongs(ctx context.Context, options *t.QueryOpt
 	return tracks, nil
 }
 
-func (c *SubsonicClient) searchMusic(ctx context.Context, query string, limit int) ([]models.MediaItem[*t.Track], error) {
+func (c *SubsonicClient) searchMusic(ctx context.Context, query string, limit int) ([]*models.MediaItem[*t.Track], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -307,10 +307,10 @@ func (c *SubsonicClient) searchMusic(ctx context.Context, query string, limit in
 		log.Info().
 			Str("query", query).
 			Msg("No songs found matching query")
-		return []models.MediaItem[*t.Track]{}, nil
+		return []*models.MediaItem[*t.Track]{}, nil
 	}
 
-	tracks := make([]models.MediaItem[*t.Track], 0, len(resp.SearchResult3.Song))
+	tracks := make([]*models.MediaItem[*t.Track], 0, len(resp.SearchResult3.Song))
 
 	for _, song := range resp.SearchResult3.Song {
 		track := c.convertChildToTrack(*song)
@@ -325,7 +325,7 @@ func hasAnyTypedFilter(options *t.QueryOptions) bool {
 	if options == nil {
 		return false
 	}
-	
+
 	return options.Favorites ||
 		options.Genre != "" ||
 		options.Year > 0 ||
@@ -354,53 +354,54 @@ func buildQueryString(options *t.QueryOptions) string {
 	if options == nil {
 		return ""
 	}
-	
+
 	var queryParts []string
-	
+
 	// First add the direct search query if provided
 	if options.Query != "" {
 		queryParts = append(queryParts, options.Query)
 	}
-	
+
 	// Add typed filters
 	if options.MediaType != "" {
-		queryParts = append(queryParts, options.MediaType)
+		queryParts = append(queryParts, string(options.MediaType))
 	}
-	
+
 	if options.Genre != "" {
 		queryParts = append(queryParts, options.Genre)
 	}
-	
+
 	if options.Year > 0 {
 		queryParts = append(queryParts, strconv.Itoa(options.Year))
 	}
-	
+
 	if options.Actor != "" {
 		queryParts = append(queryParts, options.Actor)
 	}
-	
+
 	if options.Director != "" {
 		queryParts = append(queryParts, options.Director)
 	}
-	
+
 	if options.Creator != "" {
 		queryParts = append(queryParts, options.Creator)
 	}
-	
+
 	if options.Studio != "" {
 		queryParts = append(queryParts, options.Studio)
 	}
-	
+
 	if options.ContentRating != "" {
 		queryParts = append(queryParts, options.ContentRating)
 	}
-	
+
 	if len(options.Tags) > 0 {
 		for _, tag := range options.Tags {
 			queryParts = append(queryParts, tag)
 		}
 	}
-	
+
 	// Join all parts with spaces
 	return strings.Join(queryParts, " ")
 }
+

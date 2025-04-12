@@ -9,6 +9,8 @@ import (
 	media "suasor/client/media/types"
 	types "suasor/client/types"
 	models "suasor/types/models"
+	"suasor/types/responses"
+	"suasor/utils"
 )
 
 var ErrFeatureNotSupported = errors.New("feature not supported by this media client")
@@ -23,6 +25,7 @@ type MediaClient interface {
 	SupportsPlaylists() bool
 	SupportsCollections() bool
 	SupportsHistory() bool
+	Search(ctx context.Context, options *media.QueryOptions) (responses.SearchResults, error)
 }
 
 type BaseMediaClient struct {
@@ -51,27 +54,27 @@ func (m *BaseMediaClient) SupportsCollections() bool { return false }
 func (m *BaseMediaClient) SupportsHistory() bool     { return false }
 
 // Embed in your clients to provide default behavior
-func (b *BaseMediaClient) GetMovies(ctx context.Context, options *media.QueryOptions) ([]models.MediaItem[media.Movie], error) {
+func (b *BaseMediaClient) GetMovies(ctx context.Context, options *media.QueryOptions) ([]*models.MediaItem[*media.Movie], error) {
 	return nil, ErrFeatureNotSupported
 }
 
-func (b *BaseMediaClient) GetSeries(ctx context.Context, options *media.QueryOptions) ([]models.MediaItem[media.Series], error) {
+func (b *BaseMediaClient) GetSeries(ctx context.Context, options *media.QueryOptions) ([]*models.MediaItem[*media.Series], error) {
 	return nil, ErrFeatureNotSupported
 }
 
-func (b *BaseMediaClient) GetMusic(ctx context.Context, options *media.QueryOptions) ([]models.MediaItem[media.Track], error) {
+func (b *BaseMediaClient) GetMusic(ctx context.Context, options *media.QueryOptions) ([]*models.MediaItem[*media.Track], error) {
 	return nil, ErrFeatureNotSupported
 }
 
-func (b *BaseMediaClient) GetPlaylists(ctx context.Context, options *media.QueryOptions) ([]models.MediaItem[media.Playlist], error) {
+func (b *BaseMediaClient) GetPlaylists(ctx context.Context, options *media.QueryOptions) ([]*models.MediaItem[*media.Playlist], error) {
 	return nil, ErrFeatureNotSupported
 }
 
-func (b *BaseMediaClient) GetCollections(ctx context.Context, options *media.QueryOptions) ([]models.MediaItem[media.Collection], error) {
+func (b *BaseMediaClient) GetCollections(ctx context.Context, options *media.QueryOptions) ([]*models.MediaItem[*media.Collection], error) {
 	return nil, ErrFeatureNotSupported
 }
 
-func (b *BaseMediaClient) GetHistory(ctx context.Context, options *media.QueryOptions) ([]models.MediaPlayHistory[media.MediaData], error) {
+func (b *BaseMediaClient) GetHistory(ctx context.Context, options *media.QueryOptions) ([]*models.MediaPlayHistory[media.MediaData], error) {
 	return nil, ErrFeatureNotSupported
 }
 
@@ -182,4 +185,76 @@ func (b *BaseMediaClient) ToMediaItemArtist(ctx context.Context, item media.Arti
 
 func (b *BaseMediaClient) TestConnection(ctx context.Context) (bool, error) {
 	return false, nil
+}
+
+// TODO: This implementation should work, but it also isnt going to be as fast as if we
+// write a specific implementation for each type as needed on the client side. This is
+// because we might be able to reduce the number of requests to the client by doing a
+// more generic search at the client level.
+// This should work on for all clients and not need any special implemenations for them
+func (b *BaseMediaClient) Search(ctx context.Context, options *media.QueryOptions) (responses.SearchResults, error) {
+	log := utils.LoggerFromContext(ctx)
+	log.Info().Str("query", options.Query).Msg("Searching media items")
+
+	var results responses.SearchResults
+
+	// check if mediaType is empty and if it is set it to ALL
+	if options.MediaType == "" {
+		options.MediaType = media.MediaTypeAll
+	}
+
+	switch options.MediaType {
+	case media.MediaTypeMovie:
+		movies, err := b.GetMovies(ctx, options)
+		if err != nil {
+			return results, err
+		}
+		results.Movies = movies
+	case media.MediaTypeSeries:
+		series, err := b.GetSeries(ctx, options)
+		if err != nil {
+			return results, err
+		}
+		results.Series = series
+	case media.MediaTypeTrack, media.MediaTypeAlbum, media.MediaTypeArtist:
+		b.GetMusic(ctx, options)
+	// case media.MediaTypePerson:
+	// results.People = b.GetPeople(ctx, options)
+	case media.MediaTypePlaylist:
+		playlists, err := b.GetPlaylists(ctx, options)
+		if err != nil {
+			return results, err
+		}
+		results.Playlists = playlists
+	case media.MediaTypeCollection:
+		collections, err := b.GetCollections(ctx, options)
+		if err != nil {
+			return results, err
+		}
+		results.Collections = collections
+	default:
+		movies, err := b.GetMovies(ctx, options)
+		if err != nil {
+			return results, err
+		}
+		results.Movies = movies
+		series, err := b.GetSeries(ctx, options)
+		if err != nil {
+			return results, err
+		}
+		results.Series = series
+		b.GetMusic(ctx, options)
+		playlists, err := b.GetPlaylists(ctx, options)
+		if err != nil {
+			return results, err
+		}
+		results.Playlists = playlists
+		collections, err := b.GetCollections(ctx, options)
+		if err != nil {
+			return results, err
+		}
+		results.Collections = collections
+	}
+
+	return results, nil
 }

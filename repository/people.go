@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	mediatypes "suasor/client/media/types"
 	"suasor/types/models"
 	"suasor/utils"
 
+	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -26,6 +28,8 @@ type PersonRepository interface {
 	// Advanced operations
 	GetPopular(ctx context.Context, limit int) ([]models.Person, error)
 	GetWithMostCredits(ctx context.Context, limit int) ([]models.Person, error)
+
+	Search(ctx context.Context, options mediatypes.QueryOptions) ([]*models.Person, error)
 }
 
 // PersonRepository is a GORM implementation of PersonRepository
@@ -195,4 +199,29 @@ func (r *personRepository) GetWithMostCredits(ctx context.Context, limit int) ([
 	}
 
 	return people, nil
+}
+
+func (r *personRepository) Search(ctx context.Context, options mediatypes.QueryOptions) ([]*models.Person, error) {
+	var people []*models.Person
+	log := utils.LoggerFromContext(ctx)
+
+	log.Info().Str("query", options.Query).Int("limit", options.Limit).Int("offset", options.Offset).Msg("Searching people")
+
+	query := r.db.WithContext(ctx).
+		Where("name ILIKE ?", "%"+options.Query+"%")
+
+	if options.Limit > 0 {
+		query = query.Limit(options.Limit)
+	}
+
+	if options.Offset > 0 {
+		query = query.Offset(options.Offset)
+	}
+
+	if err := query.Find(&people).Error; err != nil {
+		return nil, fmt.Errorf("failed to search people: %w", err)
+	}
+
+	return people, nil
+
 }

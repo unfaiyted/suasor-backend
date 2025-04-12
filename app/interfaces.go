@@ -39,9 +39,11 @@ type ClientRepositories interface {
 	ClaudeRepo() repository.ClientRepository[*types.ClaudeConfig]
 	OpenAIRepo() repository.ClientRepository[*types.OpenAIConfig]
 	OllamaRepo() repository.ClientRepository[*types.OllamaConfig]
+}
 
-	// Embed the repository collection interface
-	repository.ClientRepositoryCollection
+type RepositoryCollections interface {
+	ClientRepositories() repository.ClientRepositoryCollection
+	// repository.MediaItemRepoCollection
 }
 
 type ClientMediaServices interface {

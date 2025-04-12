@@ -1,56 +1,225 @@
 package handlers
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
-	// "suasor/services"
-	// "suasor/types/responses"
+	"net/http"
+	"strconv"
+	"suasor/client/media/types"
+	"suasor/services"
+	"suasor/types/responses"
+	"suasor/utils"
 )
 
 // SearchHandler handles all search operations
 type SearchHandler struct {
-	// Probably going to need to create a search service that handles most of the logic.
+	service services.SearchService
 }
 
 // NewSearchHandler creates a new search handler
-func NewSearchHandler() *SearchHandler {
-	return &SearchHandler{}
+func NewSearchHandler(service services.SearchService) *SearchHandler {
+	return &SearchHandler{service: service}
 }
 
-// SearchMediaItems handles searching for media items
+// Search godoc
+// @Summary Search for content across all sources
+// @Description Searches for content in the database, media clients, and metadata sources
+// @Tags search
+// @Accept json
+// @Produce json
+// @Param query query string true "Search query"
+// @Param mediaType query string false "Limit search to specific media type (movie, series, music, person)"
+// @Param limit query int false "Maximum number of results" default(20)
+// @Param offset query int false "Offset for pagination" default(0)
+// @Success 200 {object} responses.SearchResponse
+// @Failure 400 {object} responses.ErrorResponse[any]
+// @Failure 500 {object} responses.ErrorResponse[any]
+// @Router /search [get]
 func (h *SearchHandler) Search(c *gin.Context) {
-	// We should be able to search for media by a query string
-	// The search process should look for local media first, then search the connected clients for items.
-	// The collected clients each have seperate search methods by type.
-	// We should be able to search for movies, series, and music.
-	// the search result should have them seperated by type.
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
 
-	// We will also search configured metadata sources to see if they have any results that were missed.
-	// Initally we have tmbd setup for movies, tvdb for series, and musicbrainz will be added for music.
+	// Get current user ID from context
+	userID, exists := c.Get("userID")
+	if !exists {
+		err := errors.New("user not authenticated")
+		responses.RespondUnauthorized(c, err, "User not authenticated")
+		return
+	}
 
-	// We will return a SearchResponse struct that will have a list of items in a list seperated by type.
-	// Any new items will be added to our MediaItem database records.
-	// We need to make sure we know if the item is in the users library or not.
+	// Parse query parameters
+	query := c.Query("query")
+	if query == "" {
+		err := errors.New("query parameter is required")
+		responses.RespondBadRequest(c, err, "Query parameter is required")
+		return
+	}
 
-	// We should save the user's search history to the database to keep track of what they are searching for and tie it back to possible recommendations based on recent searches. The query, and maybe a version of the results.
-	// Considerations: this may be slow, we may not want thit to come as a single call. We may want the frontend to do more of the work to break up the search so that it seems faster. It may make sense to have multiple requests that we can break up and show users the data on the frontend as each request comes back.
+	// Parse other query parameters
+	limitStr := c.DefaultQuery("limit", "20")
+	offsetStr := c.DefaultQuery("offset", "0")
+	mediaType := c.Query("mediaType")
 
-	// It might be good to use methods that only search one datasource at a time and we update the frontend as they come back. think about it.
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 0 {
+		limit = 20
+	}
+
+	offset, err := strconv.Atoi(offsetStr)
+	if err != nil || offset < 0 {
+		offset = 0
+	}
+
+	// Create query options
+	options := types.QueryOptions{
+		Query:     query,
+		Limit:     limit,
+		Offset:    offset,
+		MediaType: types.MediaType(mediaType),
+	}
+
+	// Perform search
+	results, err := h.service.SearchAll(ctx, userID.(uint64), options)
+	if err != nil {
+		log.Error().Err(err).Msg("Error performing search")
+		responses.RespondInternalError(c, err, "Error performing search")
+		return
+	}
+
+	// Convert to response format
+	response := responses.ConvertToSearchResponse(results)
+
+	// Return results
+	c.JSON(http.StatusOK, response)
 }
 
-// GetRecentSearches returns a list of recent searches
+// GetRecentSearches godoc
+// @Summary Get recent searches for the current user
+// @Description Returns a list of the user's recent searches
+// @Tags search
+// @Accept json
+// @Produce json
+// @Param limit query int false "Maximum number of results" default(10)
+// @Success 200 {object} responses.RecentSearchesResponse
+// @Failure 400 {object} responses.ErrorResponse[any]
+// @Failure 500 {object} responses.ErrorResponse[any]
+// @Router /search/recent [get]
+func (h *SearchHandler) GetRecentSearches(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
 
-// GetUserSearches returns a list of searches for a specific user
+	// Get current user ID from context
+	userID, exists := c.Get("userID")
+	if !exists {
+		err := errors.New("user not authenticated")
+		responses.RespondUnauthorized(c, err, "User not authenticated")
+		return
+	}
 
-// SearchMediaItems searches for media items based on a query
+	// Parse limit parameter
+	limitStr := c.DefaultQuery("limit", "10")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 0 {
+		limit = 10
+	}
 
-// SearchMediaClients searches a users media clients based on a query
+	// Get recent searches
+	searches, err := h.service.GetRecentSearches(ctx, userID.(uint64), limit)
+	if err != nil {
+		log.Error().Err(err).Msg("Error retrieving recent searches")
+		responses.RespondInternalError(c, err, "Error retrieving recent searches")
+		return
+	}
 
-// SearchMediaClientsByType searches a users media clients based on a query and media type
+	// Convert to response format
+	response := responses.ConvertToRecentSearchesResponse(searches)
 
-// SearchMetadataClients searches a users metadata clients based on a query
+	// Return results
+	c.JSON(http.StatusOK, response)
+}
 
-// SearchAutomationClients searches a users automation clients based on a query
+// GetTrendingSearches godoc
+// @Summary Get trending searches across all users
+// @Description Returns a list of popular searches across the platform
+// @Tags search
+// @Accept json
+// @Produce json
+// @Param limit query int false "Maximum number of results" default(10)
+// @Success 200 {object} responses.TrendingSearchesResponse
+// @Failure 400 {object} responses.ErrorResponse[any]
+// @Failure 500 {object} responses.ErrorResponse[any]
+// @Router /search/trending [get]
+func (h *SearchHandler) GetTrendingSearches(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
 
-// SearchAll does every possible search combined. Might be really slow. Not ideal for user interaction, but maybe background tasks
+	// Parse limit parameter
+	limitStr := c.DefaultQuery("limit", "10")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 0 {
+		limit = 10
+	}
 
-// GetSearchSuggestions returns a list of search suggestions based on a query
+	// Get trending searches
+	searches, err := h.service.GetTrendingSearches(ctx, limit)
+	if err != nil {
+		log.Error().Err(err).Msg("Error retrieving trending searches")
+		responses.RespondInternalError(c, err, "Error retrieving trending searches")
+		return
+	}
+
+	// Convert to response format
+	response := responses.ConvertToTrendingSearchesResponse(searches)
+
+	// Return results
+	c.JSON(http.StatusOK, response)
+}
+
+// GetSearchSuggestions godoc
+// @Summary Get search suggestions
+// @Description Returns suggestions based on partial search input
+// @Tags search
+// @Accept json
+// @Produce json
+// @Param q query string true "Partial search query"
+// @Param limit query int false "Maximum number of suggestions" default(5)
+// @Success 200 {object} responses.SearchSuggestionsResponse
+// @Failure 400 {object} responses.ErrorResponse[any]
+// @Failure 500 {object} responses.ErrorResponse[any]
+// @Router /search/suggestions [get]
+func (h *SearchHandler) GetSearchSuggestions(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	// Parse query parameters
+	partialQuery := c.Query("q")
+	if partialQuery == "" {
+		err := errors.New("query parameter 'q' is required")
+		responses.RespondBadRequest(c, err, "Query parameter 'q' is required")
+		return
+	}
+
+	// Parse limit parameter
+	limitStr := c.DefaultQuery("limit", "5")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 0 {
+		limit = 5
+	}
+
+	// Get search suggestions
+	suggestions, err := h.service.GetSearchSuggestions(ctx, partialQuery, limit)
+	if err != nil {
+		log.Error().Err(err).Msg("Error retrieving search suggestions")
+		responses.RespondInternalError(c, err, "Error retrieving search suggestions")
+		return
+	}
+
+	// Create response
+	response := responses.SearchSuggestionsResponse{
+		Success:     true,
+		Suggestions: suggestions,
+	}
+
+	// Return results
+	c.JSON(http.StatusOK, response)
+}

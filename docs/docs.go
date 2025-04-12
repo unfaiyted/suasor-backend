@@ -5858,6 +5858,594 @@ const docTemplate = `{
                 }
             }
         },
+        "/recommendations": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a list of recommendations for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "recommendations"
+                ],
+                "summary": "Get recommendations for the current user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by media type (movie, series, music)",
+                        "name": "mediaType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of recommendations to return (default: 20)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset for pagination (default: 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Recommendations retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-responses_RecommendationsListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/recommendations/rate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Sets a user rating for a specific recommendation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "recommendations"
+                ],
+                "summary": "Rate a recommendation",
+                "parameters": [
+                    {
+                        "description": "Recommendation ID and rating",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.RateRecommendationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Recommendation rated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Recommendation not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/recommendations/recent": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a list of recently created recommendations for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "recommendations"
+                ],
+                "summary": "Get recent recommendations for the current user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of days to look back (default: 7)",
+                        "name": "days",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by media type (movie, series, music)",
+                        "name": "mediaType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of recommendations to return (default: 20)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Recent recommendations retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-responses_RecommendationsListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/recommendations/top": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a list of top-scored recommendations for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "recommendations"
+                ],
+                "summary": "Get top-scored recommendations for the current user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Minimum score (0-1) for recommendations (default: 0.7)",
+                        "name": "minScore",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by media type (movie, series, music)",
+                        "name": "mediaType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of recommendations to return (default: 20)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Top recommendations retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-responses_RecommendationsListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/recommendations/view": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Marks a specific recommendation as viewed for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "recommendations"
+                ],
+                "summary": "Mark a recommendation as viewed",
+                "parameters": [
+                    {
+                        "description": "Recommendation ID to mark as viewed",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.MarkRecommendationAsViewedRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Recommendation marked as viewed successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Recommendation not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/recommendations/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a specific recommendation by its ID for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "recommendations"
+                ],
+                "summary": "Get a specific recommendation by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Recommendation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Recommendation retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-responses_RecommendationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid recommendation ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Recommendation not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/search": {
+            "get": {
+                "description": "Searches for content in the database, media clients, and metadata sources",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "search"
+                ],
+                "summary": "Search for content across all sources",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "query",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Limit search to specific media type (movie, series, music, person)",
+                        "name": "mediaType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Maximum number of results",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset for pagination",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SearchResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/search/recent": {
+            "get": {
+                "description": "Returns a list of the user's recent searches",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "search"
+                ],
+                "summary": "Get recent searches for the current user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Maximum number of results",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.RecentSearchesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/search/suggestions": {
+            "get": {
+                "description": "Returns suggestions based on partial search input",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "search"
+                ],
+                "summary": "Get search suggestions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Partial search query",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 5,
+                        "description": "Maximum number of suggestions",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SearchSuggestionsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/search/trending": {
+            "get": {
+                "description": "Returns a list of popular searches across the platform",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "search"
+                ],
+                "summary": "Get trending searches across all users",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Maximum number of results",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.TrendingSearchesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/series/actor/{actor}": {
             "get": {
                 "security": [
@@ -6949,6 +7537,31 @@ const docTemplate = `{
                 "ErrorTypeUnprocessableEntity"
             ]
         },
+        "models.AIModelPreferences": {
+            "type": "object",
+            "properties": {
+                "defaultMaxTokens": {
+                    "type": "integer",
+                    "maximum": 100000,
+                    "minimum": 100,
+                    "example": 4000
+                },
+                "defaultModelForChat": {
+                    "type": "string",
+                    "example": "claude-3-opus-20240229"
+                },
+                "defaultModelForRecommendations": {
+                    "type": "string",
+                    "example": "claude-3-opus-20240229"
+                },
+                "defaultTemperature": {
+                    "type": "number",
+                    "maximum": 1,
+                    "minimum": 0,
+                    "example": 0.7
+                }
+            }
+        },
         "models.Award": {
             "type": "object",
             "properties": {
@@ -7210,6 +7823,12 @@ const docTemplate = `{
                     "description": "e.g., \"tmdb\", \"imdb\", \"trakt\", \"tvdb\"",
                     "type": "string"
                 }
+            }
+        },
+        "models.ExternalIDMap": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
             }
         },
         "models.ExternalLink": {
@@ -8018,11 +8637,16 @@ const docTemplate = `{
             }
         },
         "models.Recommendation": {
+            "description": "Media recommendation stored in the database",
             "type": "object",
             "properties": {
                 "active": {
                     "description": "Whether this is an active recommendation",
                     "type": "boolean"
+                },
+                "aiModel": {
+                    "description": "AI model used if recommendedBy=\"AI\"",
+                    "type": "string"
                 },
                 "confidence": {
                     "description": "Confidence score (0.0 to 1.0) if available",
@@ -8038,6 +8662,19 @@ const docTemplate = `{
                     "description": "Whether this item has been dismissed by the user",
                     "type": "boolean"
                 },
+                "expiresAt": {
+                    "description": "When this recommendation expires",
+                    "type": "string"
+                },
+                "externalIds": {
+                    "$ref": "#/definitions/models.ExternalIDMap"
+                },
+                "genres": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -8045,25 +8682,59 @@ const docTemplate = `{
                     "description": "Whether this item is present in the user's library",
                     "type": "boolean"
                 },
+                "isViewed": {
+                    "description": "Whether user has viewed this item",
+                    "type": "boolean"
+                },
                 "jobRunId": {
                     "description": "Job run that created this recommendation",
                     "type": "integer"
                 },
+                "matchesActors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "matchesDirectors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "matchesGenres": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "mediaItemId": {
-                    "description": "ID of the media item being recommended",
                     "type": "integer"
                 },
                 "mediaType": {
-                    "description": "Type of media being recommended (movie, series, etc.)",
-                    "type": "string"
+                    "description": "\"movie\", \"series\", \"music\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.MediaType"
+                        }
+                    ]
                 },
                 "metadata": {
                     "description": "Additional metadata (stored as JSON)",
                     "type": "string"
                 },
-                "reason": {
-                    "description": "Explanation of why this was recommended",
+                "reasoning": {
                     "type": "string"
+                },
+                "recommendedBy": {
+                    "description": "\"AI\", \"popular\", \"similar_users\"",
+                    "type": "string"
+                },
+                "similarItems": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "source": {
                     "description": "Source of the recommendation (AI, system, manual)",
@@ -8081,16 +8752,21 @@ const docTemplate = `{
                     "description": "Type of the client that generated this recommendation",
                     "type": "string"
                 },
+                "title": {
+                    "type": "string"
+                },
                 "updatedAt": {
                     "type": "string"
                 },
                 "userId": {
-                    "description": "ID of the user receiving this recommendation",
                     "type": "integer"
                 },
-                "viewed": {
-                    "description": "Whether this item has been viewed/played by the user",
-                    "type": "boolean"
+                "userRating": {
+                    "description": "If user has rated this recommendation",
+                    "type": "number"
+                },
+                "year": {
+                    "type": "integer"
                 }
             }
         },
@@ -8161,6 +8837,14 @@ const docTemplate = `{
                         "custom"
                     ],
                     "example": "serious"
+                },
+                "aiModelPreferences": {
+                    "description": "AI Model Preferences",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.AIModelPreferences"
+                        }
+                    ]
                 },
                 "bio": {
                     "description": "Profile settings",
@@ -8939,6 +9623,18 @@ const docTemplate = `{
                 }
             }
         },
+        "requests.MarkRecommendationAsViewedRequest": {
+            "type": "object",
+            "required": [
+                "recommendationId"
+            ],
+            "properties": {
+                "recommendationId": {
+                    "type": "integer",
+                    "example": 123
+                }
+            }
+        },
         "requests.ProfileRequest": {
             "description": "Request payload for updating user profile",
             "type": "object",
@@ -8957,6 +9653,25 @@ const docTemplate = `{
                     "description": "Username is the new username\n@Description Updated username for the user\n@Example \"newusername\"",
                     "type": "string",
                     "example": "newusername"
+                }
+            }
+        },
+        "requests.RateRecommendationRequest": {
+            "type": "object",
+            "required": [
+                "rating",
+                "recommendationId"
+            ],
+            "properties": {
+                "rating": {
+                    "type": "number",
+                    "maximum": 5,
+                    "minimum": 0,
+                    "example": 4.5
+                },
+                "recommendationId": {
+                    "type": "integer",
+                    "example": 123
                 }
             }
         },
@@ -9767,6 +10482,38 @@ const docTemplate = `{
                 }
             }
         },
+        "responses.APIResponse-responses_RecommendationResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.RecommendationResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.APIResponse-responses_RecommendationsListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.RecommendationsListResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "responses.APIResponse-responses_TestConnectionResponse": {
             "type": "object",
             "properties": {
@@ -10049,6 +10796,34 @@ const docTemplate = `{
                 }
             }
         },
+        "responses.ErrorResponse-any": {
+            "type": "object",
+            "properties": {
+                "details": {},
+                "message": {
+                    "type": "string",
+                    "example": "This is a pretty message"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "statusCode": {
+                    "type": "integer",
+                    "example": 201
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "type": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/errors.ErrorType"
+                        }
+                    ],
+                    "example": "FAILED_CHECK"
+                }
+            }
+        },
         "responses.ErrorResponse-error": {
             "type": "object",
             "properties": {
@@ -10162,6 +10937,677 @@ const docTemplate = `{
                 }
             }
         },
+        "responses.RecentSearchHistoryItem": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "query": {
+                    "type": "string"
+                },
+                "resultCount": {
+                    "type": "integer"
+                },
+                "searchedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "responses.RecentSearchesResponse": {
+            "type": "object",
+            "properties": {
+                "searches": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/responses.RecentSearchHistoryItem"
+                    }
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "responses.RecommendationResponse": {
+            "type": "object",
+            "properties": {
+                "aiModel": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "externalIds": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "genres": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "isViewed": {
+                    "type": "boolean"
+                },
+                "matchesActors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "matchesDirectors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "matchesGenres": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "mediaType": {
+                    "$ref": "#/definitions/types.MediaType"
+                },
+                "reasoning": {
+                    "type": "string"
+                },
+                "recommendedBy": {
+                    "type": "string"
+                },
+                "score": {
+                    "type": "number"
+                },
+                "similarItems": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "userRating": {
+                    "type": "number"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
+        },
+        "responses.RecommendationsListResponse": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "mediaType": {
+                    "type": "string"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "recommendations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/responses.RecommendationResponse"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "responses.SearchResponse": {
+            "type": "object",
+            "properties": {
+                "results": {
+                    "$ref": "#/definitions/responses.SearchResults"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "responses.SearchResults": {
+            "type": "object",
+            "properties": {
+                "albums": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "clientIds": {
+                                "description": "Client IDs for this item (mapping client to their IDs)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ClientID"
+                                }
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Type-specific media data",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.Album"
+                                    }
+                                ]
+                            },
+                            "downloadUrl": {
+                                "type": "string"
+                            },
+                            "externalIds": {
+                                "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ExternalID"
+                                }
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "releaseDate": {
+                                "type": "string"
+                            },
+                            "releaseYear": {
+                                "type": "integer"
+                            },
+                            "streamUrl": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "description": "Type of media (movie, show, episode, etc.)",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.MediaType"
+                                    }
+                                ]
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "artists": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "clientIds": {
+                                "description": "Client IDs for this item (mapping client to their IDs)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ClientID"
+                                }
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Type-specific media data",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.Artist"
+                                    }
+                                ]
+                            },
+                            "downloadUrl": {
+                                "type": "string"
+                            },
+                            "externalIds": {
+                                "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ExternalID"
+                                }
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "releaseDate": {
+                                "type": "string"
+                            },
+                            "releaseYear": {
+                                "type": "integer"
+                            },
+                            "streamUrl": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "description": "Type of media (movie, show, episode, etc.)",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.MediaType"
+                                    }
+                                ]
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "collections": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "clientIds": {
+                                "description": "Client IDs for this item (mapping client to their IDs)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ClientID"
+                                }
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Type-specific media data",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/suasor_client_media_types.Collection"
+                                    }
+                                ]
+                            },
+                            "downloadUrl": {
+                                "type": "string"
+                            },
+                            "externalIds": {
+                                "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ExternalID"
+                                }
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "releaseDate": {
+                                "type": "string"
+                            },
+                            "releaseYear": {
+                                "type": "integer"
+                            },
+                            "streamUrl": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "description": "Type of media (movie, show, episode, etc.)",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.MediaType"
+                                    }
+                                ]
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "episodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "clientIds": {
+                                "description": "Client IDs for this item (mapping client to their IDs)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ClientID"
+                                }
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Type-specific media data",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.Episode"
+                                    }
+                                ]
+                            },
+                            "downloadUrl": {
+                                "type": "string"
+                            },
+                            "externalIds": {
+                                "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ExternalID"
+                                }
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "releaseDate": {
+                                "type": "string"
+                            },
+                            "releaseYear": {
+                                "type": "integer"
+                            },
+                            "streamUrl": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "description": "Type of media (movie, show, episode, etc.)",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.MediaType"
+                                    }
+                                ]
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "movies": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "clientIds": {
+                                "description": "Client IDs for this item (mapping client to their IDs)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ClientID"
+                                }
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Type-specific media data",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/suasor_client_media_types.Movie"
+                                    }
+                                ]
+                            },
+                            "downloadUrl": {
+                                "type": "string"
+                            },
+                            "externalIds": {
+                                "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ExternalID"
+                                }
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "releaseDate": {
+                                "type": "string"
+                            },
+                            "releaseYear": {
+                                "type": "integer"
+                            },
+                            "streamUrl": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "description": "Type of media (movie, show, episode, etc.)",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.MediaType"
+                                    }
+                                ]
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "people": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Person"
+                    }
+                },
+                "playlists": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "clientIds": {
+                                "description": "Client IDs for this item (mapping client to their IDs)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ClientID"
+                                }
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Type-specific media data",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.Playlist"
+                                    }
+                                ]
+                            },
+                            "downloadUrl": {
+                                "type": "string"
+                            },
+                            "externalIds": {
+                                "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ExternalID"
+                                }
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "releaseDate": {
+                                "type": "string"
+                            },
+                            "releaseYear": {
+                                "type": "integer"
+                            },
+                            "streamUrl": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "description": "Type of media (movie, show, episode, etc.)",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.MediaType"
+                                    }
+                                ]
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "series": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "clientIds": {
+                                "description": "Client IDs for this item (mapping client to their IDs)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ClientID"
+                                }
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Type-specific media data",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.Series"
+                                    }
+                                ]
+                            },
+                            "downloadUrl": {
+                                "type": "string"
+                            },
+                            "externalIds": {
+                                "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ExternalID"
+                                }
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "releaseDate": {
+                                "type": "string"
+                            },
+                            "releaseYear": {
+                                "type": "integer"
+                            },
+                            "streamUrl": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "description": "Type of media (movie, show, episode, etc.)",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.MediaType"
+                                    }
+                                ]
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "tracks": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "clientIds": {
+                                "description": "Client IDs for this item (mapping client to their IDs)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ClientID"
+                                }
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Type-specific media data",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.Track"
+                                    }
+                                ]
+                            },
+                            "downloadUrl": {
+                                "type": "string"
+                            },
+                            "externalIds": {
+                                "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ExternalID"
+                                }
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "releaseDate": {
+                                "type": "string"
+                            },
+                            "releaseYear": {
+                                "type": "integer"
+                            },
+                            "streamUrl": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "description": "Type of media (movie, show, episode, etc.)",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.MediaType"
+                                    }
+                                ]
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "responses.SearchSuggestionsResponse": {
+            "type": "object",
+            "properties": {
+                "success": {
+                    "type": "boolean"
+                },
+                "suggestions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "responses.TestConnectionResponse": {
             "type": "object",
             "properties": {
@@ -10173,6 +11619,31 @@ const docTemplate = `{
                 },
                 "version": {
                     "type": "string"
+                }
+            }
+        },
+        "responses.TrendingSearchItem": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string"
+                },
+                "searchCount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "responses.TrendingSearchesResponse": {
+            "type": "object",
+            "properties": {
+                "searches": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/responses.TrendingSearchItem"
+                    }
+                },
+                "success": {
+                    "type": "boolean"
                 }
             }
         },
@@ -10200,6 +11671,27 @@ const docTemplate = `{
                 "username": {
                     "description": "Username is the display name chosen by the user\n@Description User's chosen username\n@Example \"johndoe\"",
                     "type": "string"
+                }
+            }
+        },
+        "suasor_client_media_types.Collection": {
+            "type": "object",
+            "properties": {
+                "collectionType": {
+                    "description": "e.g., \"movie\", \"tvshow\"",
+                    "type": "string"
+                },
+                "details": {
+                    "$ref": "#/definitions/types.MediaDetails"
+                },
+                "itemCount": {
+                    "type": "integer"
+                },
+                "itemIDs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -10807,6 +12299,35 @@ const docTemplate = `{
                 }
             }
         },
+        "types.Episode": {
+            "type": "object",
+            "properties": {
+                "credits": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/suasor_client_media_types.Person"
+                    }
+                },
+                "details": {
+                    "$ref": "#/definitions/types.MediaDetails"
+                },
+                "number": {
+                    "type": "integer"
+                },
+                "seasonID": {
+                    "type": "string"
+                },
+                "seasonNumber": {
+                    "type": "integer"
+                },
+                "showID": {
+                    "type": "string"
+                },
+                "showTitle": {
+                    "type": "string"
+                }
+            }
+        },
         "types.JellyfinConfig": {
             "description": "Jellyfin media server configuration",
             "type": "object",
@@ -10993,7 +12514,8 @@ const docTemplate = `{
                 "album",
                 "track",
                 "playlist",
-                "collection"
+                "collection",
+                "all"
             ],
             "x-enum-varnames": [
                 "MediaTypeMovie",
@@ -11004,7 +12526,8 @@ const docTemplate = `{
                 "MediaTypeAlbum",
                 "MediaTypeTrack",
                 "MediaTypePlaylist",
-                "MediaTypeCollection"
+                "MediaTypeCollection",
+                "MediaTypeAll"
             ]
         },
         "types.OllamaConfig": {

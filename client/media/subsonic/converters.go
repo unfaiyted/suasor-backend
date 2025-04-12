@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func (c *SubsonicClient) convertChildToTrack(song gosonic.Child) models.MediaItem[*t.Track] {
+func (c *SubsonicClient) convertChildToTrack(song gosonic.Child) *models.MediaItem[*t.Track] {
 	// Duration is in seconds, keep as int64
 	duration := time.Duration(song.Duration) * time.Second
 
@@ -30,5 +30,5 @@ func (c *SubsonicClient) convertChildToTrack(song gosonic.Child) models.MediaIte
 	}
 
 	track.SetClientInfo(c.ClientID, c.ClientType, song.ID)
-	return track
+	return &track
 }

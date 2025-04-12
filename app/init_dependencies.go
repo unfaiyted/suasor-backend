@@ -56,6 +56,21 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		ollamaRepo:   repository.NewClientRepository[*clienttypes.OllamaConfig](db),
 	}
 
+	deps.RepositoryCollections = &repositoryCollectionsImpl{
+		clientRepos: repository.NewClientRepositoryCollection(
+			deps.ClientRepositories.EmbyRepo(),
+			deps.ClientRepositories.JellyfinRepo(),
+			deps.ClientRepositories.PlexRepo(),
+			deps.ClientRepositories.SubsonicRepo(),
+			deps.ClientRepositories.SonarrRepo(),
+			deps.ClientRepositories.RadarrRepo(),
+			deps.ClientRepositories.LidarrRepo(),
+			deps.ClientRepositories.ClaudeRepo(),
+			deps.ClientRepositories.OpenAIRepo(),
+			deps.ClientRepositories.OllamaRepo(),
+		),
+	}
+
 	deps.MediaItemRepositories = &mediaItemRepositoriesImpl{
 		movieRepo:      repository.NewMediaItemRepository[*mediatypes.Movie](db),
 		seriesRepo:     repository.NewMediaItemRepository[*mediatypes.Series](db),
@@ -220,7 +235,8 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		deps.SeriesRepo(),
 		deps.TrackRepo(),
 		historyRepo,
-		repository.NewClientRepositoryCollection(deps.GetDB()),
+		deps.RepositoryCollections.ClientRepositories(),
+
 		client.GetClientFactoryService(),
 
 		// Use repositories instead of services
@@ -240,7 +256,7 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		deps.TrackRepo(),
 		deps.AlbumRepo(),
 		deps.ArtistRepo(),
-		deps.ClientRepositories,
+		deps.RepositoryCollections.ClientRepositories(),
 		client.GetClientFactoryService(),
 	)
 
@@ -253,7 +269,8 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		deps.SeriesRepo(),
 		deps.MediaItemRepositories.EpisodeRepo(),
 		deps.TrackRepo(),
-		deps.ClientRepositories,
+		deps.RepositoryCollections.ClientRepositories(),
+
 		deps.ClientFactoryService,
 	)
 
@@ -266,7 +283,8 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		deps.SeriesRepo(),
 		deps.MediaItemRepositories.EpisodeRepo(),
 		deps.TrackRepo(),
-		deps.ClientRepositories,
+
+		deps.RepositoryCollections.ClientRepositories(),
 		deps.ClientFactoryService,
 	)
 
@@ -367,6 +385,24 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		jobHandler:            handlers.NewJobHandler(jobService),
 		recommendationHandler: handlers.NewRecommendationHandler(recommendationService),
 	}
+
+	// Initialize search repository, service, and handler
+	searchRepo := repository.NewSearchRepository(db)
+	searchService := services.NewSearchService(
+		searchRepo,
+		deps.MediaItemRepositories.MovieRepo(),
+		deps.MediaItemRepositories.SeriesRepo(),
+		deps.MediaItemRepositories.EpisodeRepo(),
+		deps.MediaItemRepositories.TrackRepo(),
+		deps.MediaItemRepositories.AlbumRepo(),
+		deps.MediaItemRepositories.ArtistRepo(),
+		deps.MediaItemRepositories.CollectionRepo(),
+		deps.MediaItemRepositories.PlaylistRepo(),
+		repository.NewPersonRepository(db),
+		deps.RepositoryCollections.ClientRepositories(),
+		client.GetClientFactoryService(),
+	)
+	deps.searchHandler = handlers.NewSearchHandler(searchService)
 
 	return deps
 }
