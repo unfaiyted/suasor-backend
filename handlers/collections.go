@@ -8,7 +8,6 @@ import (
 
 	mediatypes "suasor/client/media/types"
 	"suasor/services"
-	"suasor/types/models"
 	"suasor/types/responses"
 	"suasor/utils"
 )
@@ -98,10 +97,10 @@ func (h *CollectionHandler) GetCollectionByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
-	collectionID := c.Param("id")
-	if collectionID == "" {
-		log.Warn().Msg("Collection ID is required")
-		responses.RespondBadRequest(c, nil, "Collection ID is required")
+	collectionID, err := utils.ParseUint64(c.Param("id"))
+	if err != nil {
+		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid collection ID")
+		responses.RespondBadRequest(c, err, "Invalid collection ID")
 		return
 	}
 
@@ -122,7 +121,7 @@ func (h *CollectionHandler) GetCollectionByID(c *gin.Context) {
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).
-		Str("collectionID", collectionID).
+		Uint64("collectionID", collectionID).
 		Msg("Getting collection by ID")
 
 	collection, err := h.service.GetCollectionByID(ctx, userID, clientID, collectionID)
@@ -130,7 +129,7 @@ func (h *CollectionHandler) GetCollectionByID(c *gin.Context) {
 		log.Error().Err(err).
 			Uint64("userID", userID).
 			Uint64("clientID", clientID).
-			Str("collectionID", collectionID).
+			Uint64("collectionID", collectionID).
 			Msg("Failed to retrieve collection")
 		responses.RespondNotFound(c, err, "Collection not found")
 		return
@@ -139,7 +138,7 @@ func (h *CollectionHandler) GetCollectionByID(c *gin.Context) {
 	log.Info().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).
-		Str("collectionID", collectionID).
+		Uint64("collectionID", collectionID).
 		Msg("Collection retrieved successfully")
 
 	responses.RespondOK(c, collection, "Collection retrieved successfully")
@@ -163,10 +162,10 @@ func (h *CollectionHandler) GetCollectionItems(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
-	collectionID := c.Param("id")
-	if collectionID == "" {
-		log.Warn().Msg("Collection ID is required")
-		responses.RespondBadRequest(c, nil, "Collection ID is required")
+	collectionID, err := utils.ParseUint64(c.Param("id"))
+	if err != nil {
+		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid collection ID")
+		responses.RespondBadRequest(c, err, "Invalid collection ID")
 		return
 	}
 
@@ -187,40 +186,39 @@ func (h *CollectionHandler) GetCollectionItems(c *gin.Context) {
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).
-		Str("collectionID", collectionID).
+		Uint64("collectionID", collectionID).
 		Msg("Getting collection items")
 
 	// First, verify the collection exists
 	collection, err := h.service.GetCollectionByID(ctx, userID, clientID, collectionID)
-	if err != nil {
+	if err != nil || collection == nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
 			Uint64("clientID", clientID).
-			Str("collectionID", collectionID).
+			Uint64("collectionID", collectionID).
 			Msg("Failed to retrieve collection")
 		responses.RespondNotFound(c, err, "Collection not found")
 		return
 	}
 
 	// Get the collection ID as uint64
-	collectionIDInt, err := strconv.ParseUint(collectionID, 10, 64)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
 			Uint64("clientID", clientID).
-			Str("collectionID", collectionID).
+			Uint64("collectionID", collectionID).
 			Msg("Failed to parse collection ID")
 		responses.RespondBadRequest(c, err, "Invalid collection ID format")
 		return
 	}
 
 	// Get items from the collection using the service
-	items, err := h.service.GetCollectionItems(ctx, collectionIDInt)
+	items, err := h.service.GetCollectionItems(ctx, collectionID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
 			Uint64("clientID", clientID).
-			Uint64("collectionID", collectionIDInt).
+			Uint64("collectionID", collectionID).
 			Msg("Failed to retrieve collection items")
 		responses.RespondInternalError(c, err, "Failed to retrieve collection items")
 		return
@@ -229,8 +227,8 @@ func (h *CollectionHandler) GetCollectionItems(c *gin.Context) {
 	log.Info().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).
-		Str("collectionID", collectionID).
-		Int("itemCount", len(items)).
+		Uint64("collectionID", collectionID).
+		// Int("itemCount", len(items)).
 		Msg("Collection items retrieved successfully")
 
 	responses.RespondOK(c, items, "Collection items retrieved successfully")
@@ -323,3 +321,4 @@ func (h *CollectionHandler) GetFeaturedCollections(c *gin.Context) {
 
 	responses.RespondOK(c, collections, "Featured collections retrieved successfully")
 }
+

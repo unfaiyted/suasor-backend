@@ -51,12 +51,14 @@ func (j *JellyfinClient) convertToCollection(ctx context.Context, item *jellyfin
 	// Build collection object
 	collection := models.MediaItem[*t.Collection]{
 		Data: &t.Collection{
-			Details: t.MediaDetails{
-				Title:       title,
-				Description: description,
-				Artwork:     j.getArtworkURLs(item),
+			ItemList: t.ItemList{
+				Details: t.MediaDetails{
+					Title:       title,
+					Description: description,
+					Artwork:     j.getArtworkURLs(item),
+				},
+				ItemCount: itemCount,
 			},
-			ItemCount: itemCount,
 		},
 		Type: "collection",
 	}
@@ -291,7 +293,7 @@ func (j *JellyfinClient) convertToSeries(ctx context.Context, item *jellyfin.Bas
 		Type: "tvshow",
 	}
 
-	// ClientID:   j.ClientID,
+	// SyncClient:   j.SyncClient,
 	// 			ExternalID: *item.Id,
 	// 			ClientType: string(j.ClientType),
 	show.SetClientInfo(j.ClientID, j.ClientType, *item.Id)
@@ -664,7 +666,7 @@ func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.B
 		}
 		// Convert to generic MediaData
 		result.Type = movie.Type
-		result.ClientIDs = movie.ClientIDs
+		result.SyncClients = movie.SyncClients
 		result.ExternalIDs = movie.ExternalIDs
 		result.Data = movie.Data
 
@@ -674,7 +676,7 @@ func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.B
 			return models.MediaItem[t.MediaData]{}, convErr
 		}
 		result.Type = episode.Type
-		result.ClientIDs = episode.ClientIDs
+		result.SyncClients = episode.SyncClients
 		result.ExternalIDs = episode.ExternalIDs
 		result.Data = episode.Data
 	case jellyfin.BASEITEMKIND_MUSIC_ALBUM:
@@ -683,7 +685,7 @@ func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.B
 			return models.MediaItem[t.MediaData]{}, convErr
 		}
 		result.Type = album.Type
-		result.ClientIDs = album.ClientIDs
+		result.SyncClients = album.SyncClients
 		result.ExternalIDs = album.ExternalIDs
 		result.Data = album.Data
 	case jellyfin.BASEITEMKIND_SERIES:
@@ -692,7 +694,7 @@ func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.B
 			return models.MediaItem[t.MediaData]{}, convErr
 		}
 		result.Type = tvShow.Type
-		result.ClientIDs = tvShow.ClientIDs
+		result.SyncClients = tvShow.SyncClients
 		result.ExternalIDs = tvShow.ExternalIDs
 		result.Data = tvShow.Data
 	case jellyfin.BASEITEMKIND_SEASON:
@@ -701,7 +703,7 @@ func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.B
 			return models.MediaItem[t.MediaData]{}, convErr
 		}
 		result.Type = season.Type
-		result.ClientIDs = season.ClientIDs
+		result.SyncClients = season.SyncClients
 		result.ExternalIDs = season.ExternalIDs
 		result.Data = season.Data
 	case jellyfin.BASEITEMKIND_AUDIO:
@@ -710,7 +712,7 @@ func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.B
 			return models.MediaItem[t.MediaData]{}, convErr
 		}
 		result.Type = artist.Type
-		result.ClientIDs = artist.ClientIDs
+		result.SyncClients = artist.SyncClients
 		result.ExternalIDs = artist.ExternalIDs
 		result.Data = artist.Data
 	case jellyfin.BASEITEMKIND_PLAYLIST:
@@ -719,7 +721,7 @@ func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.B
 			return models.MediaItem[t.MediaData]{}, convErr
 		}
 		result.Type = playlist.Type
-		result.ClientIDs = playlist.ClientIDs
+		result.SyncClients = playlist.SyncClients
 		result.ExternalIDs = playlist.ExternalIDs
 		result.Data = playlist.Data
 	case jellyfin.BASEITEMKIND_COLLECTION_FOLDER:
@@ -728,7 +730,7 @@ func (j *JellyfinClient) convertByItemType(ctx context.Context, item *jellyfin.B
 			return models.MediaItem[t.MediaData]{}, convErr
 		}
 		result.Type = collection.Type
-		result.ClientIDs = collection.ClientIDs
+		result.SyncClients = collection.SyncClients
 		result.ExternalIDs = collection.ExternalIDs
 		result.Data = collection.Data
 	default:
@@ -862,13 +864,15 @@ func (j *JellyfinClient) convertToPlaylist(ctx context.Context, item *jellyfin.B
 	// Build playlist object
 	playlist := models.MediaItem[*t.Playlist]{
 		Data: &t.Playlist{
-			Details: t.MediaDetails{
-				Title:       title,
-				Description: description,
-				Artwork:     j.getArtworkURLs(item),
+			ItemList: t.ItemList{
+				Details: t.MediaDetails{
+					Title:       title,
+					Description: description,
+					Artwork:     j.getArtworkURLs(item),
+				},
+				ItemCount: itemCount,
+				IsPublic:  true, // Assume public by default in Jellyfin
 			},
-			ItemCount: itemCount,
-			IsPublic:  true, // Assume public by default in Jellyfin
 		},
 		Type: "playlist",
 	}
@@ -956,7 +960,7 @@ func (j *JellyfinClient) convertToPlaylist(ctx context.Context, item *jellyfin.B
 // 		Type: "season",
 // 	}
 //
-// 	season.SetClientInfo(j.ClientID, j.ClientType, *item.Id)
+// 	season.SetClientInfo(j.SyncClient, j.ClientType, *item.Id)
 //
 // 	// Safely set release date if available
 // 	if item.PremiereDate.IsSet() {

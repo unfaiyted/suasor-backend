@@ -537,4 +537,3 @@ func (c *PlexClient) GetEpisodeByID(ctx context.Context, id string) (models.Medi
 
 	return episode, nil
 }
-

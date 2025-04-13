@@ -58,11 +58,11 @@ type mediaItemHandlersImpl struct {
 	artistHandler     *handlers.MediaItemHandler[*mediatypes.Artist]
 	collectionHandler *handlers.MediaItemHandler[*mediatypes.Collection]
 	playlistHandler   *handlers.MediaItemHandler[*mediatypes.Playlist]
-	
+
 	// Specialized handlers
-	musicHandler            *handlers.MusicSpecificHandler
-	seriesSpecificHandler   *handlers.SeriesSpecificHandler
-	playlistSpecificHandler *handlers.PlaylistHandler
+	musicHandler              *handlers.MusicSpecificHandler
+	seriesSpecificHandler     *handlers.SeriesSpecificHandler
+	playlistSpecificHandler   *handlers.PlaylistHandler
 	collectionSpecificHandler *handlers.CollectionHandler
 }
 

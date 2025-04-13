@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"suasor/client"
@@ -16,6 +17,22 @@ import (
 	"suasor/services/scheduler"
 	"suasor/types/models"
 )
+
+// PlaylistClientInfo holds information about a media client that supports playlists
+type PlaylistClientInfo struct {
+	ClientID   uint64
+	ClientType clienttypes.MediaClientType
+	Name       string
+	IsPrimary  bool
+}
+
+// PlaylistSyncStats tracks statistics about a playlist sync operation
+type PlaylistSyncStats struct {
+	totalSynced int
+	created     int
+	updated     int
+	conflicts   int
+}
 
 // PlaylistSyncJob synchronizes playlists between different media clients
 type PlaylistSyncJob struct {
@@ -163,7 +180,7 @@ func (j *PlaylistSyncJob) completeJobRun(ctx context.Context, jobRunID uint64, s
 
 // findClientItemID retrieves the client-specific item ID from a media item's ClientIDs array
 func findClientItemID[T mediatypes.MediaData](item *models.MediaItem[T], clientID uint64) (string, bool) {
-	for _, cid := range item.ClientIDs {
+	for _, cid := range item.SyncClients {
 		if cid.ID == clientID {
 			return cid.ItemID, true
 		}
@@ -189,7 +206,7 @@ func (j *PlaylistSyncJob) findMatchingTargetItem(
 	}
 
 	// If we have the media item, check if it has an ID for the target client
-	for _, clientID := range sourceItem.ClientIDs {
+	for _, clientID := range sourceItem.SyncClients {
 		if clientID.ID == targetClientID {
 			// Found the matching ID in the target client
 			return clientID.ItemID, nil
@@ -387,7 +404,7 @@ func (j *PlaylistSyncJob) syncPrimaryToClients(
 
 			var targetPlaylist *models.MediaItem[*mediatypes.Playlist]
 			for i, p := range targetPlaylists {
-				if p.Data.Details.Title == playlist.Data.Details.Title {
+				if p.Data.ItemList.Details.Title == playlist.Data.ItemList.Details.Title {
 					targetPlaylist = &targetPlaylists[i]
 					break
 				}
@@ -396,8 +413,8 @@ func (j *PlaylistSyncJob) syncPrimaryToClients(
 			if targetPlaylist == nil {
 				// Create new playlist on target
 				newPlaylist, err := targetProvider.CreatePlaylist(ctx,
-					playlist.Data.Details.Title,
-					playlist.Data.Details.Description)
+					playlist.Data.ItemList.Details.Title,
+					playlist.Data.ItemList.Details.Description)
 				if err != nil {
 					logger.Printf("Error creating playlist on client %d: %v", clientInfo.ClientID, err)
 					continue
@@ -446,7 +463,7 @@ func (j *PlaylistSyncJob) syncClientsToPrimary(
 	primaryPlaylists, ok := clientPlaylists[primaryClient.ClientID]
 	if ok {
 		for i, p := range primaryPlaylists {
-			primaryPlaylistMap[p.Data.Details.Title] = &primaryPlaylists[i]
+			primaryPlaylistMap[p.Data.ItemList.Details.Title] = &primaryPlaylists[i]
 		}
 	}
 
@@ -464,13 +481,13 @@ func (j *PlaylistSyncJob) syncClientsToPrimary(
 		// For each playlist in this client
 		for _, playlist := range clientPlaylists {
 			// Check if this playlist exists in primary
-			primaryPlaylist, exists := primaryPlaylistMap[playlist.Data.Details.Title]
+			primaryPlaylist, exists := primaryPlaylistMap[playlist.Data.ItemList.Details.Title]
 
 			if !exists {
 				// Create new playlist on primary
 				newPlaylist, err := primaryProvider.CreatePlaylist(ctx,
-					playlist.Data.Details.Title,
-					playlist.Data.Details.Description)
+					playlist.Data.ItemList.Details.Title,
+					playlist.Data.ItemList.Details.Description)
 				if err != nil {
 					logger.Printf("Error creating playlist on primary client: %v", err)
 					continue
@@ -517,11 +534,11 @@ func (j *PlaylistSyncJob) syncBidirectional(
 	// Group playlists by title across all clients
 	for clientID, playlists := range clientPlaylists {
 		for _, playlist := range playlists {
-			title := playlist.Data.Details.Title
+			title := playlist.Data.ItemList.Details.Title
 			playlistVersions[title] = append(playlistVersions[title], PlaylistVersion{
 				ClientID:     clientID,
 				Playlist:     playlist,
-				LastModified: playlist.Data.LastModified,
+				LastModified: playlist.Data.ItemList.LastModified,
 			})
 		}
 	}
@@ -582,7 +599,7 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 
 	// Get the target playlist's client-specific ID by finding it in the ClientIDs array
 	var targetPlaylistID string
-	for _, cid := range targetPlaylist.ClientIDs {
+	for _, cid := range targetPlaylist.SyncClients {
 		if cid.ID == targetClientID {
 			targetPlaylistID = cid.ItemID
 			break
@@ -591,7 +608,7 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 
 	// Get the source playlist's client-specific ID
 	var sourcePlaylistID string
-	for _, cid := range sourcePlaylist.ClientIDs {
+	for _, cid := range sourcePlaylist.SyncClients {
 		if cid.ID == sourceClientID {
 			sourcePlaylistID = cid.ItemID
 			break
@@ -605,29 +622,23 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 	var sourceItems []string
 
 	// First, check if we have a SyncClientState for the source client
-	if sourcePlaylist.Data.SyncClientStates != nil {
-		sourceState := sourcePlaylist.Data.SyncClientStates.GetSyncClientState(sourceClientID)
-		if sourceState != nil && len(sourceState.ItemIDs) > 0 {
+	if sourcePlaylist.Data.ItemList.SyncClientStates != nil {
+		sourceState := sourcePlaylist.Data.ItemList.SyncClientStates.GetSyncClientState(sourceClientID)
+		if sourceState != nil && len(sourceState.Items) > 0 {
 			// Use client-specific item IDs from the sync state
-			sourceItems = sourceState.ItemIDs
+			for _, item := range sourceState.Items {
+				sourceItems = append(sourceItems, item.ItemID)
+			}
 			logger.Printf("Using %d items from sync client state for client %d", len(sourceItems), sourceClientID)
 		}
 	}
 
 	// If no items found in sync state, check the Items array
-	if len(sourceItems) == 0 && len(sourcePlaylist.Data.Items) > 0 {
-		for _, item := range sourcePlaylist.Data.Items {
-			sourceItems = append(sourceItems, item.ItemID)
+	if len(sourceItems) == 0 && len(sourcePlaylist.Data.ItemList.Items) > 0 {
+		for _, item := range sourcePlaylist.Data.ItemList.Items {
+			sourceItems = append(sourceItems, fmt.Sprintf("%d", item.ItemID))
 		}
 		logger.Printf("Using %d items from PlaylistItems for source playlist", len(sourceItems))
-	}
-
-	// If still no items, fall back to the legacy ItemIDs array
-	if len(sourceItems) == 0 && len(sourcePlaylist.Data.ItemIDs) > 0 {
-		for _, itemID := range sourcePlaylist.Data.ItemIDs {
-			sourceItems = append(sourceItems, fmt.Sprintf("%d", itemID))
-		}
-		logger.Printf("Using %d items from legacy ItemIDs for source playlist", len(sourceItems))
 	}
 
 	// For each source item, find its corresponding ID in the target client
@@ -663,14 +674,14 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 		now := time.Now()
 
 		// Update the Items array if it exists
-		if len(targetPlaylist.Data.Items) > 0 {
+		if len(targetPlaylist.Data.ItemList.Items) > 0 {
 			// Find or create the item in the target playlist's Items array
 			found := false
-			for i, item := range targetPlaylist.Data.Items {
-				if item.ItemID == targetItemID {
+			for i, item := range targetPlaylist.Data.ItemList.Items {
+				if fmt.Sprintf("%d", item.ItemID) == targetItemID {
 					// Update existing item
-					targetPlaylist.Data.Items[i].LastChanged = now
-					targetPlaylist.Data.Items[i].ChangeHistory = append(targetPlaylist.Data.Items[i].ChangeHistory,
+					targetPlaylist.Data.ItemList.Items[i].LastChanged = now
+					targetPlaylist.Data.ItemList.Items[i].ChangeHistory = append(targetPlaylist.Data.ItemList.Items[i].ChangeHistory,
 						mediatypes.ChangeRecord{
 							ClientID:   sourceClientID,
 							ItemID:     sourceItemID,
@@ -684,9 +695,9 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 
 			if !found {
 				// Add new item to the playlist
-				targetPlaylist.Data.Items = append(targetPlaylist.Data.Items, mediatypes.PlaylistItem{
-					ItemID:      targetItemID,
-					Position:    len(targetPlaylist.Data.Items),
+				targetPlaylist.Data.ItemList.Items = append(targetPlaylist.Data.ItemList.Items, mediatypes.ListItem{
+					ItemID:      parseUint64OrZero(targetItemID),
+					Position:    len(targetPlaylist.Data.ItemList.Items),
 					LastChanged: now,
 					ChangeHistory: []mediatypes.ChangeRecord{
 						{
@@ -703,21 +714,36 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 
 	// Update the SyncClientStates to store the latest client-specific IDs
 	// This ensures we have a record of which items are on each client
-	if targetPlaylist.Data.SyncClientStates == nil {
-		targetPlaylist.Data.SyncClientStates = mediatypes.SyncClientStates{}
+	if targetPlaylist.Data.ItemList.SyncClientStates == nil {
+		targetPlaylist.Data.ItemList.SyncClientStates = mediatypes.SyncClientStates{}
 	}
 
-	// Store the target client's item IDs
-	targetPlaylist.Data.SyncClientStates.AddOrUpdateSyncClientState(
-		targetClientID,
-		targetItems,
-		targetPlaylistID,
-	)
+	// Create the SyncListItems from strings
+	syncItems := transformToSyncListItems(targetItems)
+
+	// Check if state exists, then update or create
+	existingState := targetPlaylist.Data.ItemList.SyncClientStates.GetSyncClientState(targetClientID)
+	if existingState != nil {
+		// Update existing state
+		existingState.Items = syncItems
+		existingState.ClientListID = targetPlaylistID
+		existingState.LastSynced = time.Now()
+	} else {
+		// Add a new state
+		targetPlaylist.Data.ItemList.SyncClientStates = append(
+			targetPlaylist.Data.ItemList.SyncClientStates,
+			mediatypes.SyncClientState{
+				ClientID:     targetClientID,
+				Items:        syncItems,
+				ClientListID: targetPlaylistID,
+				LastSynced:   time.Now(),
+			})
+	}
 
 	// Update last synced timestamp for both playlists
 	now := time.Now()
-	sourcePlaylist.Data.LastSynced = now
-	targetPlaylist.Data.LastSynced = now
+	sourcePlaylist.Data.ItemList.LastSynced = now
+	targetPlaylist.Data.ItemList.LastSynced = now
 
 	return syncCount, nil
 }
@@ -829,8 +855,8 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 	sourcePlaylist := sourcePlaylists[0]
 
 	// Update the SyncClientState for this playlist if needed
-	if sourcePlaylist.Data.SyncClientStates == nil {
-		sourcePlaylist.Data.SyncClientStates = mediatypes.SyncClientStates{}
+	if sourcePlaylist.Data.ItemList.SyncClientStates == nil {
+		sourcePlaylist.Data.ItemList.SyncClientStates = mediatypes.SyncClientStates{}
 	}
 
 	// Get the playlist items for this source playlist
@@ -849,12 +875,27 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 			}
 		}
 
-		// Store these in the source playlist's SyncClientState
-		sourcePlaylist.Data.SyncClientStates.AddOrUpdateSyncClientState(
-			sourceClientID,
-			sourceItemIDs,
-			playlistID,
-		)
+		// Create the SyncListItems from strings
+		syncItems := transformToSyncListItems(sourceItemIDs)
+
+		// Check if state exists, then update or create
+		existingState := sourcePlaylist.Data.ItemList.SyncClientStates.GetSyncClientState(sourceClientID)
+		if existingState != nil {
+			// Update existing state
+			existingState.Items = syncItems
+			existingState.ClientListID = playlistID
+			existingState.LastSynced = time.Now()
+		} else {
+			// Add a new state
+			sourcePlaylist.Data.ItemList.SyncClientStates = append(
+				sourcePlaylist.Data.ItemList.SyncClientStates,
+				mediatypes.SyncClientState{
+					ClientID:     sourceClientID,
+					Items:        syncItems,
+					ClientListID: playlistID,
+					LastSynced:   time.Now(),
+				})
+		}
 	}
 
 	// For each target client
@@ -885,7 +926,7 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 
 		var targetPlaylist *models.MediaItem[*mediatypes.Playlist]
 		for i, p := range targetPlaylists {
-			if p.Data.Details.Title == sourcePlaylist.Data.Details.Title {
+			if p.Data.ItemList.Details.Title == sourcePlaylist.Data.ItemList.Details.Title {
 				targetPlaylist = &targetPlaylists[i]
 				break
 			}
@@ -895,8 +936,8 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 		if targetPlaylist == nil {
 			// Create new playlist on target
 			newPlaylist, err := targetProvider.CreatePlaylist(ctx,
-				sourcePlaylist.Data.Details.Title,
-				sourcePlaylist.Data.Details.Description)
+				sourcePlaylist.Data.ItemList.Details.Title,
+				sourcePlaylist.Data.ItemList.Details.Description)
 			if err != nil {
 				logger.Printf("Error creating playlist on client %d: %v", clientInfo.ClientID, err)
 				continue
@@ -906,7 +947,7 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 
 		// Get the client-specific playlist ID for target by finding it in ClientIDs
 		var targetPlaylistID string
-		for _, cid := range targetPlaylist.ClientIDs {
+		for _, cid := range targetPlaylist.SyncClients {
 			if cid.ID == clientInfo.ClientID {
 				targetPlaylistID = cid.ItemID
 				break
@@ -922,7 +963,7 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 		}
 
 		logger.Printf("Successfully synced %d items from playlist %s (client ID: %s) to client %d (playlist ID: %s) for user %d",
-			syncCount, sourcePlaylist.Data.Details.Title, playlistID, clientInfo.ClientID, targetPlaylistID, userID)
+			syncCount, sourcePlaylist.Data.ItemList.Details.Title, playlistID, clientInfo.ClientID, targetPlaylistID, userID)
 	}
 
 	return nil
@@ -977,7 +1018,7 @@ func (j *PlaylistSyncJob) resolvePlaylistConflicts(
 		return false, nil
 	case "bidirectional":
 		// Most recent changes win
-		return sourcePlaylist.Data.LastModified.After(targetPlaylist.Data.LastModified), nil
+		return sourcePlaylist.Data.ItemList.LastModified.After(targetPlaylist.Data.ItemList.LastModified), nil
 	default:
 		return false, fmt.Errorf("unknown sync direction: %s", syncDirection)
 	}
@@ -1022,19 +1063,25 @@ func (j *PlaylistSyncJob) UpdatePlaylistSyncPreferences(ctx context.Context, use
 	return nil
 }
 
-// // PlaylistClientInfo holds information about a media client that supports playlists
-// type PlaylistClientInfo struct {
-// 	ClientID   uint64
-// 	ClientType clienttypes.MediaClientType
-// 	Name       string
-// 	IsPrimary  bool
-// }
-//
-// // PlaylistSyncStats tracks statistics about a playlist sync operation
-// type PlaylistSyncStats struct {
-// 	totalSynced int
-// 	created     int
-// 	updated     int
-// 	conflicts   int
-// }
+// Helper function to transform string IDs to SyncListItems
+func transformToSyncListItems(ids []string) mediatypes.SyncListItems {
+	items := make(mediatypes.SyncListItems, len(ids))
+	for i, id := range ids {
+		items[i] = mediatypes.SyncListItem{
+			ItemID:      id,
+			Position:    i,
+			LastChanged: time.Now(),
+		}
+	}
+	return items
+}
+
+// Helper function to parse uint64 safely, returns 0 if error
+func parseUint64OrZero(s string) uint64 {
+	val, err := strconv.ParseUint(s, 10, 64)
+	if err != nil {
+		return 0
+	}
+	return val
+}
 

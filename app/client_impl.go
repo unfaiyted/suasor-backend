@@ -118,6 +118,17 @@ type mediaItemServicesImpl struct {
 	artistService     services.MediaItemService[*mediatypes.Artist]
 	collectionService services.MediaItemService[*mediatypes.Collection]
 	playlistService   services.MediaItemService[*mediatypes.Playlist]
+
+	collectionExtendedService services.CollectionService
+	playlistExtendedService   services.PlaylistService
+}
+
+func (s *mediaItemServicesImpl) CollectionExtendedService() services.CollectionService {
+	return s.collectionExtendedService
+}
+
+func (s *mediaItemServicesImpl) PlaylistExtendedService() services.PlaylistService {
+	return s.playlistExtendedService
 }
 
 func (s *mediaItemServicesImpl) MovieService() services.MediaItemService[*mediatypes.Movie] {

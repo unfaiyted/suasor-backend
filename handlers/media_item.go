@@ -73,7 +73,7 @@ func (h *MediaItemHandler[T]) CreateMediaItem(c *gin.Context) {
 
 	mediaItem := models.MediaItem[T]{
 		Type:        mediaType,
-		ClientIDs:   []models.ClientID{},
+		SyncClients: []models.SyncClient{},
 		ExternalIDs: []models.ExternalID{},
 		Data:        mediaData,
 	}
@@ -158,7 +158,7 @@ func (h *MediaItemHandler[T]) UpdateMediaItem(c *gin.Context) {
 	mediaItem := models.MediaItem[T]{
 		ID:          id,
 		Type:        mediaType,
-		ClientIDs:   []models.ClientID{},
+		SyncClients: []models.SyncClient{},
 		ExternalIDs: []models.ExternalID{},
 		Data:        mediaData,
 	}

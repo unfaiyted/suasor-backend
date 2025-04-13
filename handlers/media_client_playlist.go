@@ -16,19 +16,19 @@ import (
 func createPlaylistMediaItem[T mediatypes.Playlist](clientID uint64, clientType clienttypes.MediaClientType, externalID string, data mediatypes.Playlist) models.MediaItem[mediatypes.Playlist] {
 	mediaItem := models.MediaItem[mediatypes.Playlist]{
 		Type:        mediatypes.MediaTypePlaylist,
-		ClientIDs:   []models.ClientID{},
+		SyncClients: []models.SyncClient{},
 		ExternalIDs: []models.ExternalID{},
 		Data:        data,
 	}
-	
+
 	// Set client info
 	mediaItem.SetClientInfo(clientID, clientType, externalID)
-	
+
 	// Only add external ID if provided
 	if externalID != "" {
 		mediaItem.AddExternalID("client", externalID)
 	}
-	
+
 	return mediaItem
 }
 
@@ -594,4 +594,3 @@ func (h *MediaClientPlaylistHandler[T]) SearchPlaylists(c *gin.Context) {
 		Msg("Playlist search completed successfully")
 	responses.RespondOK(c, playlists, "Playlists retrieved successfully")
 }
-

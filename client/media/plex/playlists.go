@@ -50,18 +50,20 @@ func (c *PlexClient) GetPlaylists(ctx context.Context, options *types.QueryOptio
 	for _, item := range res.Object.MediaContainer.Metadata {
 		playlist := models.MediaItem[*types.Playlist]{
 			Data: &types.Playlist{
-				Details: types.MediaDetails{
-					Description: *item.Summary,
-					Title:       *item.Title,
-					Artwork:     types.Artwork{
-						// Thumbnail: c.makeFullURL(*item.Thumb),
+				ItemList: types.ItemList{
+					Details: types.MediaDetails{
+						Description: *item.Summary,
+						Title:       *item.Title,
+						Artwork:     types.Artwork{
+							// Thumbnail: c.makeFullURL(*item.Thumb),
+						},
+						ExternalIDs: types.ExternalIDs{types.ExternalID{
+							Source: "plex",
+							ID:     *item.RatingKey,
+						}},
+						UpdatedAt: time.Unix(int64(*item.UpdatedAt), 0),
+						AddedAt:   time.Unix(int64(*item.AddedAt), 0),
 					},
-					ExternalIDs: types.ExternalIDs{types.ExternalID{
-						Source: "plex",
-						ID:     *item.RatingKey,
-					}},
-					UpdatedAt: time.Unix(int64(*item.UpdatedAt), 0),
-					AddedAt:   time.Unix(int64(*item.AddedAt), 0),
 				},
 			},
 		}
@@ -78,4 +80,3 @@ func (c *PlexClient) GetPlaylists(ctx context.Context, options *types.QueryOptio
 
 	return playlists, nil
 }
-

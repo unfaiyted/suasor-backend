@@ -67,9 +67,9 @@ func (s *collectionService) Create(ctx context.Context, collection models.MediaI
 		return nil, errors.New("collection must have a title")
 	}
 
-	// Initialize items array if nil
-	if collection.Data.ItemIDs == nil {
-		collection.Data.ItemIDs = []uint64{}
+	// Initialize Items array if nil
+	if collection.Data.Items == nil {
+		collection.Data.Items = []mediatypes.ListItem{}
 	}
 
 	return s.mediaItemSvc.Create(ctx, collection)
@@ -83,8 +83,9 @@ func (s *collectionService) Update(ctx context.Context, collection models.MediaI
 	}
 
 	// Preserve items if not provided in the update
-	if collection.Data.ItemIDs == nil || len(collection.Data.ItemIDs) == 0 {
-		collection.Data.ItemIDs = existing.Data.ItemIDs
+	if collection.Data.Items == nil || len(collection.Data.Items) == 0 {
+		collection.Data.Items = existing.Data.Items
+		collection.Data.ItemCount = existing.Data.ItemCount
 	}
 
 	// Update the collection
@@ -121,7 +122,7 @@ func (s *collectionService) GetFeaturedCollections(ctx context.Context, userID u
 	var featured []*models.MediaItem[*mediatypes.Collection]
 	for _, collection := range collections {
 		// Simple criteria: has items, has cover image, or is recently created
-		isFeatured := len(collection.Data.ItemIDs) > 0 ||
+		isFeatured := len(collection.Data.Items) > 0 ||
 			collection.Data.Details.Artwork.Poster != "" ||
 			time.Since(collection.CreatedAt) < time.Hour*24*7 // One week
 
@@ -171,12 +172,15 @@ func (s *collectionService) GetCollectionItems(ctx context.Context, collectionID
 	}
 
 	// Return the items
-	if collection.Data.ItemIDs == nil {
+	if collection.Data.Items == nil || len(collection.Data.Items) == 0 {
 		return &models.MediaItems{}, nil
 	}
 
+	// Extract item IDs from the collection
+	itemIDs := collection.Data.GetItemIDs()
+
 	// Get all items
-	items, err := s.repo.GetAllMediaItemsByIDs(ctx, collection.Data.ItemIDs)
+	items, err := s.repo.GetAllMediaItemsByIDs(ctx, itemIDs)
 
 	return items, nil
 }
@@ -188,15 +192,21 @@ func (s *collectionService) AddItemToCollection(ctx context.Context, collectionI
 		return fmt.Errorf("failed to add item to collection: %w", err)
 	}
 
-	// Check if the item already exists in the collection
-	for _, existingID := range collection.Data.ItemIDs {
-		if existingID == item.ID {
-			return errors.New("item already exists in collection")
-		}
+	// Check if the item already exists in the collection (using the Collection's optimized method)
+	_, _, found := collection.Data.FindItemByID(item.ID)
+	if found {
+		return errors.New("item already exists in collection")
+	}
+
+	// Create a new ListItem
+	newItem := mediatypes.ListItem{
+		ItemID:      item.ID,
+		Position:    len(collection.Data.Items),
+		LastChanged: time.Now(),
 	}
 
 	// Add the item to the collection
-	collection.Data.ItemIDs = append(collection.Data.ItemIDs, item.ID)
+	collection.Data.AddItem(newItem, collection.Data.ModifiedBy)
 
 	// Update the collection
 	_, err = s.Update(ctx, *collection)
@@ -210,24 +220,11 @@ func (s *collectionService) RemoveItemFromCollection(ctx context.Context, collec
 		return fmt.Errorf("failed to remove item from collection: %w", err)
 	}
 
-	// Find and remove the item
-	var newItems []uint64
-	itemFound := false
-
-	for _, id := range collection.Data.ItemIDs {
-		if id != itemID {
-			newItems = append(newItems, id)
-		} else {
-			itemFound = true
-		}
+	// Use the new RemoveItem method
+	err = collection.Data.RemoveItem(itemID, collection.Data.ModifiedBy)
+	if err != nil {
+		return fmt.Errorf("failed to remove item: %w", err)
 	}
-
-	if !itemFound {
-		return errors.New("item not found in collection")
-	}
-
-	// Update the collection with the new items
-	collection.Data.ItemIDs = newItems
 	_, err = s.Update(ctx, *collection)
 	return err
 }
@@ -239,14 +236,21 @@ func (s *collectionService) UpdateCollectionItems(ctx context.Context, collectio
 		return fmt.Errorf("failed to update collection items: %w", err)
 	}
 
-	// Get all the ids of the items
-	ids := make([]uint64, len(items))
+	// Clear existing items
+	collection.Data.Items = []mediatypes.ListItem{}
+
+	// Add each item with position
 	for i, item := range items {
-		ids[i] = item.ID
+		newItem := mediatypes.ListItem{
+			ItemID:      item.ID,
+			Position:    i,
+			LastChanged: time.Now(),
+		}
+		collection.Data.AddItem(newItem, collection.Data.ModifiedBy)
 	}
 
-	// Replace all items
-	collection.Data.ItemIDs = ids
+	// Ensure positions are normalized
+	collection.Data.NormalizePositions()
 
 	// Update the collection
 	_, err = s.Update(ctx, *collection)
@@ -334,4 +338,3 @@ func containsCollection(collections []*models.MediaItem[*mediatypes.Collection],
 // func parseInt(s string, base int, bitSize int) (uint64, error) {
 // 	return strings.ParseUint(s, base, bitSize)
 // }
-

@@ -138,6 +138,14 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		artistService:     services.NewMediaItemService[*mediatypes.Artist](deps.MediaItemRepositories.ArtistRepo()),
 		collectionService: services.NewMediaItemService[*mediatypes.Collection](deps.MediaItemRepositories.CollectionRepo()),
 		playlistService:   services.NewMediaItemService[*mediatypes.Playlist](deps.MediaItemRepositories.PlaylistRepo()),
+
+		collectionExtendedService: services.NewCollectionService(
+			deps.MediaItemRepositories.CollectionRepo(),
+		),
+
+		playlistExtendedService: services.NewPlaylistService(
+			deps.MediaItemRepositories.PlaylistRepo(),
+		),
 	}
 
 	// Initialize client handlers
@@ -164,30 +172,27 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		collectionHandler: handlers.NewMediaItemHandler[*mediatypes.Collection](deps.MediaItemServices.CollectionService()),
 		playlistHandler:   handlers.NewMediaItemHandler[*mediatypes.Playlist](deps.MediaItemServices.PlaylistService()),
 
+		collectionSpecificHandler: handlers.NewCollectionHandler(
+			deps.MediaItemServices.CollectionService(),
+			deps.MediaItemServices.CollectionExtendedService(),
+		),
+
 		// Initialize specialized handlers
 		musicHandler: handlers.NewMusicSpecificHandler(
 			deps.MediaItemServices.TrackService(),
 			deps.MediaItemServices.AlbumService(),
 			deps.MediaItemServices.ArtistService(),
 		),
+
 		seriesSpecificHandler: &handlers.SeriesSpecificHandler{
 			MediaItemHandler: handlers.NewMediaItemHandler(deps.MediaItemServices.SeriesService()),
 			// episodeHandler:   deps.MediaItemHandlers.EpisodeHandler(),
 			// seasonHandler:    deps.MediaItemHandlers.SeasonHandler(),
 		},
+
 		playlistSpecificHandler: handlers.NewPlaylistHandler(
 			deps.MediaItemServices.PlaylistService(),
-			services.NewMediaClientPlaylistService[any](
-				deps.RepositoryCollections.ClientRepositories(),
-				deps.ClientFactoryService,
-			),
-		),
-		collectionSpecificHandler: handlers.NewCollectionHandler(
-			deps.MediaItemServices.CollectionService(),
-			services.NewMediaClientCollectionService[any](
-				deps.RepositoryCollections.ClientRepositories(),
-				deps.ClientFactoryService,
-			),
+			deps.MediaItemServices.PlaylistExtendedService(),
 		),
 	}
 

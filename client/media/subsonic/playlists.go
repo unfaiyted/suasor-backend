@@ -35,14 +35,17 @@ func (c *SubsonicClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 		playlist := models.MediaItem[*t.Playlist]{
 			Type: "playlist",
 			Data: &t.Playlist{
-				Details: t.MediaDetails{
-					Title:       pl.Name,
-					Description: pl.Comment,
-					Duration:    int64(pl.Duration), // Convert int to int64
+				ItemList: t.ItemList{
+					Details: t.MediaDetails{
+						Title:       pl.Name,
+						Description: pl.Comment,
+						Duration:    int64(pl.Duration), // Convert int to int64
+					},
+					ItemCount: pl.SongCount,
+					// Owner:     pl.Owner,
+					// pl.Owner is the Subsonic user who created the playlist
+					IsPublic: pl.Public,
 				},
-				ItemCount: pl.SongCount,
-				Owner:     pl.Owner,
-				IsPublic:  pl.Public,
 			},
 		}
 		playlist.SetClientInfo(c.ClientID, c.ClientType, pl.ID)
@@ -50,7 +53,7 @@ func (c *SubsonicClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 		// Add cover art if available
 		if pl.CoverArt != "" {
 			coverURL := c.GetCoverArtURL(pl.CoverArt)
-			playlist.Data.Details.Artwork.Poster = coverURL
+			playlist.Data.ItemList.Details.Artwork.Poster = coverURL
 		}
 
 		playlists = append(playlists, &playlist)
@@ -107,3 +110,4 @@ func (c *SubsonicClient) GetPlaylistItems(ctx context.Context, playlistID string
 
 	return tracks, nil
 }
+

@@ -45,6 +45,29 @@ func (item *ListItem) AddChangeRecord(clientID uint64, changeType string) {
 	item.LastChanged = time.Now()
 }
 
+func (item *SyncListItem) ToSyncItems(idMapper func(string) string) SyncListItems {
+	return SyncListItems{
+		SyncListItem{
+			ItemID:        idMapper(item.ItemID),
+			Position:      item.Position,
+			LastChanged:   item.LastChanged,
+			ChangeHistory: item.ChangeHistory,
+		},
+	}
+}
+func (items SyncListItems) ToListItems(idMapper func(string) string) SyncListItems {
+	result := make(SyncListItems, len(items))
+	for i, item := range items {
+		result[i] = SyncListItem{
+			ItemID:        idMapper(item.ItemID),
+			Position:      item.Position,
+			LastChanged:   item.LastChanged,
+			ChangeHistory: item.ChangeHistory,
+		}
+	}
+	return result
+}
+
 func (items ListItems) ToSyncItems(idMapper func(uint64) string) SyncListItems {
 	result := make(SyncListItems, len(items))
 	for i, item := range items {
@@ -208,7 +231,7 @@ func (il *ItemList) ensureItemsOrdered() {
 }
 
 // Normalize positions to ensure they're sequential from 0
-func (il *ItemList) normalizePositions() {
+func (il *ItemList) NormalizePositions() {
 	il.ensureItemsOrdered()
 	for i := range il.Items {
 		il.Items[i].Position = i
@@ -427,7 +450,7 @@ func (il *ItemList) ApplyClientChanges(clientID uint64, clientItems SyncListItem
 		}
 	}
 
-	il.normalizePositions()
+	il.NormalizePositions()
 	il.updateClientState(clientID, clientItems, clientListID)
 	il.ItemCount = len(il.Items)
 	il.LastModified = now
@@ -545,7 +568,7 @@ func (il *ItemList) ApplyChangesFromMultipleClients(
 		}
 	}
 
-	il.normalizePositions()
+	il.NormalizePositions()
 	il.LastModified = now
 	il.ItemCount = len(il.Items)
 
@@ -761,7 +784,7 @@ func MergePlaylists(primary, secondary *Playlist) *Playlist {
 		}
 	}
 
-	result.normalizePositions()
+	result.NormalizePositions()
 	result.ItemCount = len(result.Items)
 	result.LastModified = time.Now()
 

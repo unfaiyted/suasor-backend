@@ -142,12 +142,12 @@ func (j *SmartCollectionJob) processUserCollections(ctx context.Context, user mo
 	// Process each collection type
 	var jobError error
 	collectionStats := map[string]int{
-		"genreCollections":      0,
-		"directorCollections":   0,
-		"actorCollections":      0,
-		"seasonalCollections":   0,
-		"customCollections":     0,
-		"aiGeneratedCollections": 0,
+		"genreCollections":        0,
+		"directorCollections":     0,
+		"actorCollections":        0,
+		"seasonalCollections":     0,
+		"customCollections":       0,
+		"aiGeneratedCollections":  0,
 		"totalCollectionsCreated": 0,
 		"totalCollectionsUpdated": 0,
 	}
@@ -246,17 +246,17 @@ type SmartCollectionClientInfo struct {
 // findMediaItemsByClientID finds items from the given client in the array of client IDs
 func findMediaItemsByClientID[T mediatypes.MediaData](items []*models.MediaItem[T], clientID uint64) []*models.MediaItem[T] {
 	var result []*models.MediaItem[T]
-	
+
 	for _, item := range items {
 		// Check if the item has a client ID matching the requested client
-		for _, cid := range item.ClientIDs {
+		for _, cid := range item.SyncClients {
 			if cid.ID == clientID {
 				result = append(result, item)
 				break // Only add once even if multiple matches
 			}
 		}
 	}
-	
+
 	return result
 }
 
@@ -312,7 +312,7 @@ func (j *SmartCollectionJob) processGenreCollections(ctx context.Context, userID
 
 	// Mock implementation
 	genres := []string{"Action", "Comedy", "Drama", "Sci-Fi", "Horror"}
-	
+
 	for _, genre := range genres {
 		// For each client
 		for _, client := range clients {
@@ -322,7 +322,7 @@ func (j *SmartCollectionJob) processGenreCollections(ctx context.Context, userID
 				log.Printf("Error checking if collection exists: %v", err)
 				continue
 			}
-			
+
 			if exists {
 				// Update existing collection
 				stats.updated++
@@ -330,13 +330,13 @@ func (j *SmartCollectionJob) processGenreCollections(ctx context.Context, userID
 				// Create new collection
 				stats.created++
 			}
-			
+
 			// Would find all movies with this genre for this client:
 			// movies, err := j.movieRepo.GetByUserID(ctx, userID)
 			// clientMovies := findMediaItemsByClientID(movies, client.ClientID)
 			// Get genre movies from clientMovies
 			// For each movie, add to collection using the ClientIDs array to get the client-specific ID
-			
+
 			// Mock adding items to the collection
 			stats.itemsAdded += 5 + (len(genre) % 10) // Just a random number for mock purposes
 		}
@@ -354,7 +354,7 @@ func (j *SmartCollectionJob) processDirectorCollections(ctx context.Context, use
 	// Similar to genre collections, but for directors
 	// Mock implementation
 	directors := []string{"Christopher Nolan", "Steven Spielberg", "Martin Scorsese"}
-	
+
 	for _, director := range directors {
 		for _, client := range clients {
 			exists, err := j.collectionExistsInClient(ctx, client, fmt.Sprintf("%s Collection", director))
@@ -362,13 +362,13 @@ func (j *SmartCollectionJob) processDirectorCollections(ctx context.Context, use
 				log.Printf("Error checking if collection exists: %v", err)
 				continue
 			}
-			
+
 			if exists {
 				stats.updated++
 			} else {
 				stats.created++
 			}
-			
+
 			stats.itemsAdded += 3 + (len(director) % 5)
 		}
 	}
@@ -385,7 +385,7 @@ func (j *SmartCollectionJob) processActorCollections(ctx context.Context, userID
 	// Similar to director collections, but for actors
 	// Mock implementation
 	actors := []string{"Tom Hanks", "Meryl Streep", "Leonardo DiCaprio"}
-	
+
 	for _, actor := range actors {
 		for _, client := range clients {
 			exists, err := j.collectionExistsInClient(ctx, client, fmt.Sprintf("%s Collection", actor))
@@ -393,13 +393,13 @@ func (j *SmartCollectionJob) processActorCollections(ctx context.Context, userID
 				log.Printf("Error checking if collection exists: %v", err)
 				continue
 			}
-			
+
 			if exists {
 				stats.updated++
 			} else {
 				stats.created++
 			}
-			
+
 			stats.itemsAdded += 4 + (len(actor) % 6)
 		}
 	}
@@ -421,9 +421,9 @@ func (j *SmartCollectionJob) processSeasonalCollections(ctx context.Context, use
 	// Mock implementation - determine current season
 	now := time.Now()
 	month := now.Month()
-	
+
 	var seasonalCollections []string
-	
+
 	// Add seasonal collections based on current month
 	if month >= 9 && month <= 10 {
 		seasonalCollections = append(seasonalCollections, "Halloween Favorites")
@@ -437,10 +437,10 @@ func (j *SmartCollectionJob) processSeasonalCollections(ctx context.Context, use
 	if month >= 6 && month <= 8 {
 		seasonalCollections = append(seasonalCollections, "Summer Blockbusters")
 	}
-	
+
 	// Always include some standard seasonal collections
 	seasonalCollections = append(seasonalCollections, "Oscar Winners")
-	
+
 	for _, collection := range seasonalCollections {
 		for _, client := range clients {
 			exists, err := j.collectionExistsInClient(ctx, client, collection)
@@ -448,13 +448,13 @@ func (j *SmartCollectionJob) processSeasonalCollections(ctx context.Context, use
 				log.Printf("Error checking if collection exists: %v", err)
 				continue
 			}
-			
+
 			if exists {
 				stats.updated++
 			} else {
 				stats.created++
 			}
-			
+
 			stats.itemsAdded += 5 + (len(collection) % 8)
 		}
 	}
@@ -481,7 +481,7 @@ func (j *SmartCollectionJob) processAIGeneratedCollections(ctx context.Context, 
 		"If You Liked Inception...",
 		"Perfect Weekend Binges",
 	}
-	
+
 	for _, collection := range aiCollections {
 		for _, client := range clients {
 			exists, err := j.collectionExistsInClient(ctx, client, collection)
@@ -489,13 +489,13 @@ func (j *SmartCollectionJob) processAIGeneratedCollections(ctx context.Context, 
 				log.Printf("Error checking if collection exists: %v", err)
 				continue
 			}
-			
+
 			if exists {
 				stats.updated++
 			} else {
 				stats.created++
 			}
-			
+
 			stats.itemsAdded += 4 + (len(collection) % 7)
 		}
 	}
@@ -650,16 +650,17 @@ func (j *SmartCollectionJob) GetCollectionSuggestions(ctx context.Context, userI
 	// Mock implementation
 	return []map[string]interface{}{
 		{
-			"name": "Sci-Fi Adventures",
-			"description": "A collection of science fiction movies with exploration themes",
-			"sampleItems": []string{"Interstellar", "The Martian", "Arrival"},
+			"name":               "Sci-Fi Adventures",
+			"description":        "A collection of science fiction movies with exploration themes",
+			"sampleItems":        []string{"Interstellar", "The Martian", "Arrival"},
 			"estimatedItemCount": 15,
 		},
 		{
-			"name": "Crime Thrillers",
-			"description": "Suspenseful crime movies and series with unexpected twists",
-			"sampleItems": []string{"Silence of the Lambs", "Se7en", "The Departed"},
+			"name":               "Crime Thrillers",
+			"description":        "Suspenseful crime movies and series with unexpected twists",
+			"sampleItems":        []string{"Silence of the Lambs", "Se7en", "The Departed"},
 			"estimatedItemCount": 12,
 		},
 	}, nil
 }
+

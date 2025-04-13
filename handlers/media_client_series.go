@@ -16,19 +16,19 @@ import (
 func createSeriesMediaItem[T mediatypes.Series](clientID uint64, clientType clienttypes.MediaClientType, externalID string, data mediatypes.Series) models.MediaItem[mediatypes.Series] {
 	mediaItem := models.MediaItem[mediatypes.Series]{
 		Type:        mediatypes.MediaTypeSeries,
-		ClientIDs:   []models.ClientID{},
+		SyncClients: []models.SyncClient{},
 		ExternalIDs: []models.ExternalID{},
 		Data:        data,
 	}
-	
+
 	// Set client info
 	mediaItem.SetClientInfo(clientID, clientType, externalID)
-	
+
 	// Only add external ID if provided
 	if externalID != "" {
 		mediaItem.AddExternalID("client", externalID)
 	}
-	
+
 	return mediaItem
 }
 

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"crypto/rand"
+	"strings"
 	"time"
 )
 
@@ -38,4 +39,10 @@ func GenerateShortCode() string {
 	}
 
 	return string(shortCode)
+}
+
+// containsIgnoreCase checks if a string contains a substring, ignoring case
+func ContainsIgnoreCase(s, substr string) bool {
+	s, substr = strings.ToLower(s), strings.ToLower(substr)
+	return strings.Contains(s, substr)
 }

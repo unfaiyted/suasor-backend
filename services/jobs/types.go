@@ -2,8 +2,7 @@ package jobs
 
 import (
 	"time"
-
-	clienttypes "suasor/client/types"
+	// clienttypes "suasor/client/types"
 )
 
 // MovieSummary contains a summary of a movie for recommendation purposes
@@ -73,98 +72,98 @@ type MovieRecommendation struct {
 
 // UserPreferenceProfile holds user preferences for generating recommendations
 type UserPreferenceProfile struct {
-	// Common preferences 
+	// Common preferences
 	PreferredReleaseYears [2]int             // [min, max] years
 	ContentRatingRange    [2]string          // [min, max] content ratings
 	MinRating             float32            // Minimum rating (0-10)
 	PreferredLanguages    map[string]float32 // Language -> weight
-	
+
 	// Recommended content behavior
 	ExcludeWatched       bool // Whether to exclude content already watched
 	IncludeSimilarItems  bool // Whether to include items similar to favorites
 	UseAIRecommendations bool // Whether to use AI for recommendations
-	
+
 	// Content type preferences
 	NotifyForMovies bool
-	NotifyForSeries bool  
+	NotifyForSeries bool
 	NotifyForMusic  bool
-	
+
 	// Notification settings
-	RatingThreshold    float64 // Minimum rating to notify about
-	MaxNotifications   int     // Maximum notifications to create
-	NotifyForUpcoming  bool    // Notify about upcoming releases
-	NotifyForRecent    bool    // Notify about recent releases
-	
+	RatingThreshold   float64 // Minimum rating to notify about
+	MaxNotifications  int     // Maximum notifications to create
+	NotifyForUpcoming bool    // Notify about upcoming releases
+	NotifyForRecent   bool    // Notify about recent releases
+
 	// User content in library (to avoid notifying about owned content)
 	OwnedMovieIDs  map[string]bool
 	OwnedSeriesIDs map[string]bool
 	OwnedMusicIDs  map[string]bool
-	
+
 	// Movie preferences
-	WatchedMovieIDs         map[uint64]bool      // MediaItemID -> watched
-	RecentMovies            []MovieSummary       // Recently watched movies
-	TopRatedMovies          []MovieSummary       // Top rated movies
-	FavoriteMovieGenres     map[string]float32   // Genre -> weight
-	FavoriteActors          map[string]float32   // Actor -> weight
-	FavoriteDirectors       map[string]float32   // Director -> weight
-	MovieWatchTimes         map[string][]int64   // Time of day preferences (hour -> count)
-	MovieWatchDays          map[string]int       // Days of week preferences (day -> count)
-	MovieTagPreferences     map[string]float32   // User tag preferences for movies
-	ExcludedMovieGenres     []string             // Genres to exclude
-	PreferredMovieGenres    []string             // Genres to prefer
-	MovieReleaseYearRange   [2]int               // Preferred year range for movies
-	MovieDurationPreference [2]int               // Preferred duration range in minutes
-	
-	// Series preferences  
-	WatchedSeriesIDs         map[uint64]bool     // MediaItemID -> watched
-	RecentSeries             []SeriesSummary     // Recently watched series
-	TopRatedSeries           []SeriesSummary     // Top rated series
-	FavoriteSeriesGenres     map[string]float32  // Genre -> weight
-	FavoriteShowrunners      map[string]float32  // Showrunner -> weight
-	SeriesWatchTimes         map[string][]int64  // Time of day preferences
-	SeriesWatchDays          map[string]int      // Days of week preferences
-	SeriesTagPreferences     map[string]float32  // User tag preferences for series
-	ExcludedSeriesGenres     []string            // Genres to exclude
-	PreferredSeriesGenres    []string            // Genres to prefer
-	SeriesReleaseYearRange   [2]int              // Preferred year range for series
-	SeriesEpisodeLengthRange [2]int              // Preferred episode length in minutes
-	PreferredSeriesStatus    []string            // Preferred status (ended, continuing, etc.)
-	
+	WatchedMovieIDs         map[uint64]bool    // MediaItemID -> watched
+	RecentMovies            []MovieSummary     // Recently watched movies
+	TopRatedMovies          []MovieSummary     // Top rated movies
+	FavoriteMovieGenres     map[string]float32 // Genre -> weight
+	FavoriteActors          map[string]float32 // Actor -> weight
+	FavoriteDirectors       map[string]float32 // Director -> weight
+	MovieWatchTimes         map[string][]int64 // Time of day preferences (hour -> count)
+	MovieWatchDays          map[string]int     // Days of week preferences (day -> count)
+	MovieTagPreferences     map[string]float32 // User tag preferences for movies
+	ExcludedMovieGenres     []string           // Genres to exclude
+	PreferredMovieGenres    []string           // Genres to prefer
+	MovieReleaseYearRange   [2]int             // Preferred year range for movies
+	MovieDurationPreference [2]int             // Preferred duration range in minutes
+
+	// Series preferences
+	WatchedSeriesIDs         map[uint64]bool    // MediaItemID -> watched
+	RecentSeries             []SeriesSummary    // Recently watched series
+	TopRatedSeries           []SeriesSummary    // Top rated series
+	FavoriteSeriesGenres     map[string]float32 // Genre -> weight
+	FavoriteShowrunners      map[string]float32 // Showrunner -> weight
+	SeriesWatchTimes         map[string][]int64 // Time of day preferences
+	SeriesWatchDays          map[string]int     // Days of week preferences
+	SeriesTagPreferences     map[string]float32 // User tag preferences for series
+	ExcludedSeriesGenres     []string           // Genres to exclude
+	PreferredSeriesGenres    []string           // Genres to prefer
+	SeriesReleaseYearRange   [2]int             // Preferred year range for series
+	SeriesEpisodeLengthRange [2]int             // Preferred episode length in minutes
+	PreferredSeriesStatus    []string           // Preferred status (ended, continuing, etc.)
+
 	// Music preferences
-	PlayedMusicIDs         map[uint64]bool       // MediaItemID -> played
-	RecentMusic            []MusicSummary        // Recently played music
-	TopRatedMusic          []MusicSummary        // Top rated music
-	FavoriteMusicGenres    map[string]float32    // Genre -> weight
-	FavoriteArtists        map[string]float32    // Artist -> weight
-	MusicPlayTimes         map[string][]int64    // Time of day preferences
-	MusicPlayDays          map[string]int        // Days of week preferences
-	MusicTagPreferences    map[string]float32    // User tag preferences for music
-	ExcludedMusicGenres    []string              // Genres to exclude
-	PreferredMusicGenres   []string              // Genres to prefer  
-	MusicReleaseDateRange  [2]int                // Preferred year range for music
-	MusicDurationRange     [2]int                // Preferred track length in seconds
-	MusicMoodPreferences   map[string]float32    // Mood preferences for music
-	
+	PlayedMusicIDs        map[uint64]bool    // MediaItemID -> played
+	RecentMusic           []MusicSummary     // Recently played music
+	TopRatedMusic         []MusicSummary     // Top rated music
+	FavoriteMusicGenres   map[string]float32 // Genre -> weight
+	FavoriteArtists       map[string]float32 // Artist -> weight
+	MusicPlayTimes        map[string][]int64 // Time of day preferences
+	MusicPlayDays         map[string]int     // Days of week preferences
+	MusicTagPreferences   map[string]float32 // User tag preferences for music
+	ExcludedMusicGenres   []string           // Genres to exclude
+	PreferredMusicGenres  []string           // Genres to prefer
+	MusicReleaseDateRange [2]int             // Preferred year range for music
+	MusicDurationRange    [2]int             // Preferred track length in seconds
+	MusicMoodPreferences  map[string]float32 // Mood preferences for music
+
 	// Watch/play history patterns
-	WatchTimeOfDay        map[int]int            // Hour (0-23) -> count
-	WatchDayOfWeek        map[string]int         // Day name -> count  
-	TypicalSessionLength  map[string]float32     // Media type -> avg minutes
-	BingeWatchingScore    float32                // Score indicating binge watching tendency (0-1)
-	ContentRotationFreq   float32                // How often user switches genres/styles (0-1)
-	
+	WatchTimeOfDay       map[int]int        // Hour (0-23) -> count
+	WatchDayOfWeek       map[string]int     // Day name -> count
+	TypicalSessionLength map[string]float32 // Media type -> avg minutes
+	BingeWatchingScore   float32            // Score indicating binge watching tendency (0-1)
+	ContentRotationFreq  float32            // How often user switches genres/styles (0-1)
+
 	// Advanced metrics
-	GenreBreadth          float32                // How diverse their tastes are (0-1)
-	ContentCompleter      float32                // How likely to finish what they start (0-1)
-	NewContentScore       float32                // Affinity for new vs. classic content (0-1)
-	PopularityInfluence   float32                // How much popularity affects choices (0-1)
-	RatingInfluence       float32                // How much ratings affect choices (0-1)
-	ExplorationScore      float32                // Willingness to try new things (0-1)
-	OverallActivityLevel  map[string]float32     // Activity level by media type (0-1)
-	
+	GenreBreadth         float32            // How diverse their tastes are (0-1)
+	ContentCompleter     float32            // How likely to finish what they start (0-1)
+	NewContentScore      float32            // Affinity for new vs. classic content (0-1)
+	PopularityInfluence  float32            // How much popularity affects choices (0-1)
+	RatingInfluence      float32            // How much ratings affect choices (0-1)
+	ExplorationScore     float32            // Willingness to try new things (0-1)
+	OverallActivityLevel map[string]float32 // Activity level by media type (0-1)
+
 	// Analysis metadata
-	AnalysisTimestamp   int64                   // When this profile was generated
-	ProfileConfidence   float32                 // Confidence in this profile (0-1)
-	DataPointsAnalyzed  int                     // Number of history items analyzed
+	AnalysisTimestamp  int64   // When this profile was generated
+	ProfileConfidence  float32 // Confidence in this profile (0-1)
+	DataPointsAnalyzed int     // Number of history items analyzed
 }
 
 // NewReleases holds new release information by media type
@@ -211,20 +210,20 @@ type NotificationStats struct {
 }
 
 // PlaylistClientInfo holds basic client information for playlist sync operations
-type PlaylistClientInfo struct {
-	ClientID   uint64
-	ClientType clienttypes.MediaClientType
-	Name       string
-	IsPrimary  bool
-}
+// type PlaylistClientInfo struct {
+// 	ClientID   uint64
+// 	ClientType clienttypes.MediaClientType
+// 	Name       string
+// 	IsPrimary  bool
+// }
 
 // PlaylistSyncStats contains statistics about a playlist sync operation
-type PlaylistSyncStats struct {
-	totalSynced int
-	created     int
-	updated     int
-	conflicts   int
-}
+// type PlaylistSyncStats struct {
+// 	totalSynced int
+// 	created     int
+// 	updated     int
+// 	conflicts   int
+// }
 
 // WatchlistItem represents an item in a user's watchlist
 type WatchlistItem struct {
@@ -290,3 +289,4 @@ type UserNotification struct {
 	Read        bool
 	Dismissed   bool
 }
+

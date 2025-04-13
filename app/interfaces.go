@@ -43,7 +43,6 @@ type ClientRepositories interface {
 
 type RepositoryCollections interface {
 	ClientRepositories() repository.ClientRepositoryCollection
-	// repository.MediaItemRepoCollection
 }
 
 type ClientMediaServices interface {
@@ -99,6 +98,9 @@ type MediaItemServices interface {
 	ArtistService() services.MediaItemService[*mediatypes.Artist]
 	CollectionService() services.MediaItemService[*mediatypes.Collection]
 	PlaylistService() services.MediaItemService[*mediatypes.Playlist]
+
+	CollectionExtendedService() services.CollectionService
+	PlaylistExtendedService() services.PlaylistService
 }
 
 type UserRepositories interface {
@@ -150,7 +152,7 @@ type MediaItemHandlers interface {
 	ArtistHandler() *handlers.MediaItemHandler[*mediatypes.Artist]
 	CollectionHandler() *handlers.MediaItemHandler[*mediatypes.Collection]
 	PlaylistHandler() *handlers.MediaItemHandler[*mediatypes.Playlist]
-	
+
 	// Specialized handlers
 	MusicHandler() *handlers.MusicSpecificHandler
 	SeriesSpecificHandler() *handlers.SeriesSpecificHandler

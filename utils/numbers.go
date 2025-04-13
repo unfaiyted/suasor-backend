@@ -3,13 +3,14 @@ package utils
 import (
 	"crypto/rand"
 	"math/big"
+	"strconv"
 )
 
 // GenerateRandomID generates a URL-safe random ID of the specified length
 func GenerateRandomID(length int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
 	charsetLength := big.NewInt(int64(len(charset)))
-	
+
 	b := make([]byte, length)
 	for i := range b {
 		// Use crypto/rand for better randomness
@@ -17,4 +18,11 @@ func GenerateRandomID(length int) string {
 		b[i] = charset[randomIndex.Int64()]
 	}
 	return string(b)
+}
+
+// Helper functions
+
+// parseUint64 parses a string to uint64
+func ParseUint64(s string) (uint64, error) {
+	return strconv.ParseUint(s, 10, 64)
 }

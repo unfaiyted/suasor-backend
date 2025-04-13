@@ -16,7 +16,7 @@ import (
 func createMovieMediaItem[T mediatypes.Movie](clientID uint64, clientType clienttypes.MediaClientType, externalID string, data mediatypes.Movie) models.MediaItem[mediatypes.Movie] {
 	mediaItem := models.MediaItem[mediatypes.Movie]{
 		Type:        mediatypes.MediaTypeMovie,
-		ClientIDs:   []models.ClientID{},
+		SyncClients: []models.SyncClient{},
 		ExternalIDs: []models.ExternalID{},
 		Data:        data,
 	}

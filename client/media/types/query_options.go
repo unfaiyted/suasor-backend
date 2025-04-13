@@ -45,6 +45,7 @@ type QueryOptions struct {
 	PlayedAfter      time.Time `json:"playedAfter,omitempty"`      // Filter by played date after
 	PlayedBefore     time.Time `json:"playedBefore,omitempty"`     // Filter by played date before
 	MinimumRating    float32   `json:"minimumRating,omitempty"`    // Filter by minimum rating
+	ItemIDs          string    `json:"itemIds,omitempty"`          // Filter by external ID (emby, jellyfin, plex, etc.)
 	ExternalSourceID string    `json:"externalSourceID,omitempty"` // Filter by external source ID (TMDB, IMDB, etc.)
 }
 

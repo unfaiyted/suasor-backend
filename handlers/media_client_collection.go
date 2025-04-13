@@ -15,20 +15,20 @@ import (
 
 func createCollectionMediaItem[T mediatypes.Collection](clientID uint64, clientType clienttypes.MediaClientType, externalID string, data mediatypes.Collection) models.MediaItem[mediatypes.Collection] {
 	mediaItem := models.MediaItem[mediatypes.Collection]{
-		Type: mediatypes.MediaTypeCollection,
-		Data: data,
-		ClientIDs: []models.ClientID{},
+		Type:        mediatypes.MediaTypeCollection,
+		Data:        data,
+		SyncClients: []models.SyncClient{},
 		ExternalIDs: []models.ExternalID{},
 	}
-	
+
 	// Set client info and external ID
 	mediaItem.SetClientInfo(clientID, clientType, externalID)
-	
+
 	// Only add external ID if provided
 	if externalID != "" {
 		mediaItem.AddExternalID("client", externalID)
 	}
-	
+
 	return mediaItem
 }
 
@@ -145,4 +145,3 @@ func (h *MediaClientCollectionHandler[T]) GetCollections(c *gin.Context) {
 	// in the services.MediaClientCollectionService interface.
 	responses.RespondNotImplemented(c, nil, "Get collections not implemented")
 }
-

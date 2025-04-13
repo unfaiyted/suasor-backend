@@ -468,7 +468,7 @@ func (j *MediaSyncJob) syncEpisodes(ctx context.Context, mediaClient media.Media
 
 	// For each series, get episodes
 	for _, series := range allSeries {
-		if series.Data == nil || len(series.ClientIDs) == 0 {
+		if series.Data == nil || len(series.SyncClients) == 0 {
 			// Skip series with no data or no client ID
 			log.Printf("Skipping series with missing data")
 			continue
@@ -476,7 +476,7 @@ func (j *MediaSyncJob) syncEpisodes(ctx context.Context, mediaClient media.Media
 
 		// Find the client item ID for this series
 		var seriesID string
-		for _, cid := range series.ClientIDs {
+		for _, cid := range series.SyncClients {
 			if cid.ID == clientID {
 				seriesID = cid.ItemID
 				break
@@ -706,14 +706,14 @@ func (j *MediaSyncJob) syncArtists(ctx context.Context, mediaClient media.MediaC
 func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []models.MediaItem[*mediatypes.Movie], clientID uint64, clientType clienttypes.MediaClientType) error {
 	for _, movie := range movies {
 		// Skip if movie has no client ID information
-		if len(movie.ClientIDs) == 0 {
+		if len(movie.SyncClients) == 0 {
 			log.Printf("Skipping movie with no client IDs: %s", movie.Data.Details.Title)
 			continue
 		}
 
 		// Get the client ID and item ID for lookup
 		clientItemID := ""
-		for _, cid := range movie.ClientIDs {
+		for _, cid := range movie.SyncClients {
 			if cid.ID == clientID {
 				clientItemID = cid.ItemID
 				break
@@ -730,19 +730,19 @@ func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []models.Me
 		if err == nil {
 			// Movie exists, update it
 			// Merge client IDs
-			for _, cid := range movie.ClientIDs {
+			for _, cid := range movie.SyncClients {
 				found := false
-				for i, existingCid := range existingMovie.ClientIDs {
+				for i, existingCid := range existingMovie.SyncClients {
 					if existingCid.ID == cid.ID && existingCid.Type == cid.Type {
 						// Update existing entry if needed
-						existingMovie.ClientIDs[i].ItemID = cid.ItemID
+						existingMovie.SyncClients[i].ItemID = cid.ItemID
 						found = true
 						break
 					}
 				}
 				if !found {
 					// Add new client ID
-					existingMovie.ClientIDs = append(existingMovie.ClientIDs, cid)
+					existingMovie.SyncClients = append(existingMovie.SyncClients, cid)
 				}
 			}
 
@@ -812,14 +812,14 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.M
 	}
 	for _, s := range series {
 		// Skip if series has no client ID information
-		if len(s.ClientIDs) == 0 {
+		if len(s.SyncClients) == 0 {
 			log.Printf("Skipping series with no client IDs: %s", s.Data.Details.Title)
 			continue
 		}
 
 		// Get the client ID and item ID for lookup
 		clientItemID := ""
-		for _, cid := range s.ClientIDs {
+		for _, cid := range s.SyncClients {
 			if cid.ID == clientID {
 				clientItemID = cid.ItemID
 				break
@@ -836,19 +836,19 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.M
 		if err == nil {
 			// Series exists, update it
 			// Merge client IDs
-			for _, cid := range s.ClientIDs {
+			for _, cid := range s.SyncClients {
 				found := false
-				for i, existingCid := range existingSeries.ClientIDs {
+				for i, existingCid := range existingSeries.SyncClients {
 					if existingCid.ID == cid.ID && existingCid.Type == cid.Type {
 						// Update existing entry if needed
-						existingSeries.ClientIDs[i].ItemID = cid.ItemID
+						existingSeries.SyncClients[i].ItemID = cid.ItemID
 						found = true
 						break
 					}
 				}
 				if !found {
 					// Add new client ID
-					existingSeries.ClientIDs = append(existingSeries.ClientIDs, cid)
+					existingSeries.SyncClients = append(existingSeries.SyncClients, cid)
 				}
 			}
 
@@ -889,7 +889,7 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.M
 			} else if seriesProvider != nil {
 				// Try to fetch seasons if they're not already loaded
 				var seriesID string
-				for _, cid := range s.ClientIDs {
+				for _, cid := range s.SyncClients {
 					if cid.ID == clientID {
 						seriesID = cid.ItemID
 						break
@@ -967,14 +967,14 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.M
 func (j *MediaSyncJob) processEpisodeBatch(ctx context.Context, episodes []models.MediaItem[*mediatypes.Episode], clientID uint64, clientType clienttypes.MediaClientType) error {
 	for _, episode := range episodes {
 		// Skip if episode has no client ID information
-		if len(episode.ClientIDs) == 0 {
+		if len(episode.SyncClients) == 0 {
 			log.Printf("Skipping episode with no client IDs: %s", episode.Data.Details.Title)
 			continue
 		}
 
 		// Get the client ID and item ID for lookup
 		clientItemID := ""
-		for _, cid := range episode.ClientIDs {
+		for _, cid := range episode.SyncClients {
 			if cid.ID == clientID {
 				clientItemID = cid.ItemID
 				break
@@ -991,19 +991,19 @@ func (j *MediaSyncJob) processEpisodeBatch(ctx context.Context, episodes []model
 		if err == nil {
 			// Episode exists, update it
 			// Merge client IDs
-			for _, cid := range episode.ClientIDs {
+			for _, cid := range episode.SyncClients {
 				found := false
-				for i, existingCid := range existingEpisode.ClientIDs {
+				for i, existingCid := range existingEpisode.SyncClients {
 					if existingCid.ID == cid.ID && existingCid.Type == cid.Type {
 						// Update existing entry if needed
-						existingEpisode.ClientIDs[i].ItemID = cid.ItemID
+						existingEpisode.SyncClients[i].ItemID = cid.ItemID
 						found = true
 						break
 					}
 				}
 				if !found {
 					// Add new client ID
-					existingEpisode.ClientIDs = append(existingEpisode.ClientIDs, cid)
+					existingEpisode.SyncClients = append(existingEpisode.SyncClients, cid)
 				}
 			}
 
@@ -1059,14 +1059,14 @@ func (j *MediaSyncJob) processEpisodeBatch(ctx context.Context, episodes []model
 func (j *MediaSyncJob) processTrackBatch(ctx context.Context, tracks []models.MediaItem[*mediatypes.Track], clientID uint64, clientType clienttypes.MediaClientType) error {
 	for _, track := range tracks {
 		// Skip if track has no client ID information
-		if len(track.ClientIDs) == 0 {
+		if len(track.SyncClients) == 0 {
 			log.Printf("Skipping track with no client IDs: %s", track.Data.Details.Title)
 			continue
 		}
 
 		// Get the client ID and item ID for lookup
 		clientItemID := ""
-		for _, cid := range track.ClientIDs {
+		for _, cid := range track.SyncClients {
 			if cid.ID == clientID {
 				clientItemID = cid.ItemID
 				break
@@ -1083,19 +1083,19 @@ func (j *MediaSyncJob) processTrackBatch(ctx context.Context, tracks []models.Me
 		if err == nil {
 			// Track exists, update it
 			// Merge client IDs
-			for _, cid := range track.ClientIDs {
+			for _, cid := range track.SyncClients {
 				found := false
-				for i, existingCid := range existingTrack.ClientIDs {
+				for i, existingCid := range existingTrack.SyncClients {
 					if existingCid.ID == cid.ID && existingCid.Type == cid.Type {
 						// Update existing entry if needed
-						existingTrack.ClientIDs[i].ItemID = cid.ItemID
+						existingTrack.SyncClients[i].ItemID = cid.ItemID
 						found = true
 						break
 					}
 				}
 				if !found {
 					// Add new client ID
-					existingTrack.ClientIDs = append(existingTrack.ClientIDs, cid)
+					existingTrack.SyncClients = append(existingTrack.SyncClients, cid)
 				}
 			}
 
@@ -1151,14 +1151,14 @@ func (j *MediaSyncJob) processTrackBatch(ctx context.Context, tracks []models.Me
 func (j *MediaSyncJob) processAlbumBatch(ctx context.Context, albums []models.MediaItem[*mediatypes.Album], clientID uint64, clientType clienttypes.MediaClientType) error {
 	for _, album := range albums {
 		// Skip if album has no client ID information
-		if len(album.ClientIDs) == 0 {
+		if len(album.SyncClients) == 0 {
 			log.Printf("Skipping album with no client IDs: %s", album.Data.Details.Title)
 			continue
 		}
 
 		// Get the client ID and item ID for lookup
 		clientItemID := ""
-		for _, cid := range album.ClientIDs {
+		for _, cid := range album.SyncClients {
 			if cid.ID == clientID {
 				clientItemID = cid.ItemID
 				break
@@ -1175,19 +1175,19 @@ func (j *MediaSyncJob) processAlbumBatch(ctx context.Context, albums []models.Me
 		if err == nil {
 			// Album exists, update it
 			// Merge client IDs
-			for _, cid := range album.ClientIDs {
+			for _, cid := range album.SyncClients {
 				found := false
-				for i, existingCid := range existingAlbum.ClientIDs {
+				for i, existingCid := range existingAlbum.SyncClients {
 					if existingCid.ID == cid.ID && existingCid.Type == cid.Type {
 						// Update existing entry if needed
-						existingAlbum.ClientIDs[i].ItemID = cid.ItemID
+						existingAlbum.SyncClients[i].ItemID = cid.ItemID
 						found = true
 						break
 					}
 				}
 				if !found {
 					// Add new client ID
-					existingAlbum.ClientIDs = append(existingAlbum.ClientIDs, cid)
+					existingAlbum.SyncClients = append(existingAlbum.SyncClients, cid)
 				}
 			}
 
@@ -1243,14 +1243,14 @@ func (j *MediaSyncJob) processAlbumBatch(ctx context.Context, albums []models.Me
 func (j *MediaSyncJob) processArtistBatch(ctx context.Context, artists []models.MediaItem[*mediatypes.Artist], clientID uint64, clientType clienttypes.MediaClientType) error {
 	for _, artist := range artists {
 		// Skip if artist has no client ID information
-		if len(artist.ClientIDs) == 0 {
+		if len(artist.SyncClients) == 0 {
 			log.Printf("Skipping artist with no client IDs: %s", artist.Data.Details.Title)
 			continue
 		}
 
 		// Get the client ID and item ID for lookup
 		clientItemID := ""
-		for _, cid := range artist.ClientIDs {
+		for _, cid := range artist.SyncClients {
 			if cid.ID == clientID {
 				clientItemID = cid.ItemID
 				break
@@ -1267,19 +1267,19 @@ func (j *MediaSyncJob) processArtistBatch(ctx context.Context, artists []models.
 		if err == nil {
 			// Artist exists, update it
 			// Merge client IDs
-			for _, cid := range artist.ClientIDs {
+			for _, cid := range artist.SyncClients {
 				found := false
-				for i, existingCid := range existingArtist.ClientIDs {
+				for i, existingCid := range existingArtist.SyncClients {
 					if existingCid.ID == cid.ID && existingCid.Type == cid.Type {
 						// Update existing entry if needed
-						existingArtist.ClientIDs[i].ItemID = cid.ItemID
+						existingArtist.SyncClients[i].ItemID = cid.ItemID
 						found = true
 						break
 					}
 				}
 				if !found {
 					// Add new client ID
-					existingArtist.ClientIDs = append(existingArtist.ClientIDs, cid)
+					existingArtist.SyncClients = append(existingArtist.SyncClients, cid)
 				}
 			}
 

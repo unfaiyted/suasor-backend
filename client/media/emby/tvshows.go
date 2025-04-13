@@ -144,7 +144,7 @@ func (e *EmbyClient) GetSeriesSeasons(ctx context.Context, showID string) ([]mod
 	seasons := make([]models.MediaItem[*types.Season], 0)
 	for _, item := range result.Items {
 		if item.Type_ == "Season" {
-			season, err := e.convertToSeason(&item, showID)
+			season, err := e.convertToSeason(ctx, &item, showID)
 			if err != nil {
 				log.Warn().
 					Err(err).

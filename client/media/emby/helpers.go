@@ -17,6 +17,10 @@ func applyQueryOptions(queryParams *embyclient.ItemsServiceApiGetItemsOpts, opti
 		return
 	}
 
+	if options.ItemIDs != "" {
+		queryParams.Ids = optional.NewString(options.ItemIDs)
+	}
+
 	if options.Limit > 0 {
 		queryParams.Limit = optional.NewInt32(int32(options.Limit))
 	}

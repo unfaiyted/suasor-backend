@@ -16,57 +16,57 @@ import (
 func createTrackMediaItem(clientID uint64, clientType clienttypes.MediaClientType, externalID string, data mediatypes.Track) models.MediaItem[mediatypes.Track] {
 	mediaItem := models.MediaItem[mediatypes.Track]{
 		Type:        mediatypes.MediaTypeTrack,
-		ClientIDs:   []models.ClientID{},
+		SyncClients: []models.SyncClient{},
 		ExternalIDs: []models.ExternalID{},
 		Data:        data,
 	}
-	
+
 	// Set client info
 	mediaItem.SetClientInfo(clientID, clientType, externalID)
-	
+
 	// Only add external ID if provided
 	if externalID != "" {
 		mediaItem.AddExternalID("client", externalID)
 	}
-	
+
 	return mediaItem
 }
 
 func createAlbumMediaItem(clientID uint64, clientType clienttypes.MediaClientType, externalID string, data mediatypes.Album) models.MediaItem[mediatypes.Album] {
 	mediaItem := models.MediaItem[mediatypes.Album]{
 		Type:        mediatypes.MediaTypeAlbum,
-		ClientIDs:   []models.ClientID{},
+		SyncClients: []models.SyncClient{},
 		ExternalIDs: []models.ExternalID{},
 		Data:        data,
 	}
-	
+
 	// Set client info
 	mediaItem.SetClientInfo(clientID, clientType, externalID)
-	
+
 	// Only add external ID if provided
 	if externalID != "" {
 		mediaItem.AddExternalID("client", externalID)
 	}
-	
+
 	return mediaItem
 }
 
 func createArtistMediaItem(clientID uint64, clientType clienttypes.MediaClientType, externalID string, data mediatypes.Artist) models.MediaItem[mediatypes.Artist] {
 	mediaItem := models.MediaItem[mediatypes.Artist]{
 		Type:        mediatypes.MediaTypeArtist,
-		ClientIDs:   []models.ClientID{},
+		SyncClients: []models.SyncClient{},
 		ExternalIDs: []models.ExternalID{},
 		Data:        data,
 	}
-	
+
 	// Set client info
 	mediaItem.SetClientInfo(clientID, clientType, externalID)
-	
+
 	// Only add external ID if provided
 	if externalID != "" {
 		mediaItem.AddExternalID("client", externalID)
 	}
-	
+
 	return mediaItem
 }
 
@@ -855,4 +855,3 @@ func (h *MediaClientMusicHandler[T]) SearchMusic(c *gin.Context) {
 		Msg("Music search completed successfully")
 	responses.RespondOK(c, response, "Music retrieved successfully")
 }
-

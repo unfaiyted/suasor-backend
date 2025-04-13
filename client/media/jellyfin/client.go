@@ -78,11 +78,9 @@ func NewJellyfinClient(ctx context.Context, clientID uint64, config client.Jelly
 // }
 
 // Capability methods
-func (j *JellyfinClient) SupportsMovies() bool      { return true }
-func (j *JellyfinClient) SupportsTVShows() bool     { return true }
-func (j *JellyfinClient) SupportsMusic() bool       { return true }
-func (j *JellyfinClient) SupportsPlaylists() bool   { return true }
-func (j *JellyfinClient) SupportsCollections() bool { return true }
+func (j *JellyfinClient) SupportsMovies() bool  { return true }
+func (j *JellyfinClient) SupportsTVShows() bool { return true }
+func (j *JellyfinClient) SupportsMusic() bool   { return true }
 
 // resolveUserID resolves the user ID from the username
 func (j *JellyfinClient) resolveUserID(ctx context.Context) error {

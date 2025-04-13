@@ -4,15 +4,15 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	client "suasor/client/types"
+	// client "suasor/client/types"
 	"time"
 )
 
 // Person represents someone involved with media (actors, directors, etc.)
 type Person struct {
-	BaseModel               // Include base fields (ID, timestamps)
-	Name        string      `json:"name" gorm:"type:varchar(255);index"`
-	ClientIDs   ClientIDs   `json:"clientIds" gorm:"type:jsonb"`
+	BaseModel        // Include base fields (ID, timestamps)
+	Name      string `json:"name" gorm:"type:varchar(255);index"`
+	// ClientIDs   ClientIDs   `json:"clientIds" gorm:"type:jsonb"`
 	ExternalIDs ExternalIDs `json:"externalIds" gorm:"type:jsonb"`
 
 	// Biographical information
@@ -142,8 +142,8 @@ func (p *Person) GetPersonPublicView() map[string]any {
 // NewPerson creates a new person record with the given name
 func NewPerson(name string) *Person {
 	return &Person{
-		Name:        name,
-		ClientIDs:   make(ClientIDs, 0),
+		Name: name,
+		// ClientIDs:   make(ClientIDs, 0),
 		ExternalIDs: make(ExternalIDs, 0),
 		Metadata: PersonMetadata{
 			SocialMedia:    SocialMedia{},
@@ -176,22 +176,22 @@ func (p *Person) GetExternalID(source string) string {
 	return p.ExternalIDs.GetID(source)
 }
 
-// AddClientID adds a client ID to the person's record
-func (p *Person) AddClientID(clientID uint64, clientType client.ClientType, itemID string) {
-	for i, cID := range p.ClientIDs {
-		if cID.ID == clientID {
-			// Update existing ID
-			p.ClientIDs[i].ItemID = itemID
-			return
-		}
-	}
-	// Add new ID
-	p.ClientIDs = append(p.ClientIDs, ClientID{
-		ID:     clientID,
-		Type:   clientType,
-		ItemID: itemID,
-	})
-}
+// // AddClientID adds a client ID to the person's record
+// func (p *Person) AddClientID(clientID uint64, clientType client.ClientType, itemID string) {
+// 	for i, cID := range p.ClientIDs {
+// 		if cID.ID == clientID {
+// 			// Update existing ID
+// 			p.ClientIDs[i].ItemID = itemID
+// 			return
+// 		}
+// 	}
+// 	// Add new ID
+// 	p.ClientIDs = append(p.ClientIDs, ClientID{
+// 		ID:     clientID,
+// 		Type:   clientType,
+// 		ItemID: itemID,
+// 	})
+// }
 
 // AddAward adds an award to the person's record
 func (p *Person) AddAward(name string, year int, category string, isWinner bool) {

@@ -18,12 +18,14 @@ type MediaItems struct {
 	Artists  []*MediaItem[*types.Artist]
 	Albums   []*MediaItem[*types.Album]
 	Tracks   []*MediaItem[*types.Track]
+
+	TotalItems int
 }
 
 // MediaItem is the base type for all media items
 type MediaItem[T types.MediaData] struct {
 	ID          uint64      `json:"id" gorm:"primaryKey;autoIncrement"` // Internal ID
-	ClientIDs   ClientIDs   `json:"clientIds" gorm:"type:jsonb"`        // Client IDs for this item (mapping client to their IDs)
+	SyncClients SyncClients `json:"syncClients" gorm:"type:jsonb"`      // Client IDs for this item (mapping client to their IDs)
 	ExternalIDs ExternalIDs `json:"externalIds" gorm:"type:jsonb"`      // External IDs for this item (TMDB, IMDB, etc.)
 
 	Type        types.MediaType `json:"type" gorm:"type:varchar(50)"` // Type of media (movie, show, episode, etc.)
@@ -39,7 +41,7 @@ type MediaItem[T types.MediaData] struct {
 }
 
 // ExternalID represents an ID that identifies this media item in an external system
-type ClientID struct {
+type SyncClient struct {
 	// ID of the client that this external ID belongs to (optional for service IDs like TMDB)
 	ID uint64 `json:"clientId,omitempty"`
 	// Type of client this ID belongs to (optional for service IDs)
@@ -48,15 +50,24 @@ type ClientID struct {
 	ItemID string `json:"itemId"`
 }
 
-type ClientIDs []ClientID
+type SyncClients []SyncClient
 
-func (ids ClientIDs) GetID(clientID uint64, clientType client.ClientType) string {
-	for _, id := range ids {
+func (s SyncClients) GetClientItemID(clientID uint64, clientType client.ClientType) string {
+	for _, id := range s {
 		if id.ID == clientID && id.Type == clientType {
 			return id.ItemID
 		}
 	}
 	return ""
+}
+
+func (s SyncClients) GetByClientID(clientID uint64) (*SyncClient, bool) {
+	for _, client := range s {
+		if client.ID == clientID {
+			return &client, true
+		}
+	}
+	return &SyncClient{}, false
 }
 
 type ExternalID struct {
@@ -139,14 +150,14 @@ func (m *MediaItem[T]) UnmarshalJSON(data []byte) error {
 
 // SetClientInfo adds or updates client ID information for this media item
 func (m *MediaItem[T]) SetClientInfo(clientID uint64, clientType client.MediaClientType, clientItemKey string) {
-	// Add to ClientIDs
+	// Add to SyncClients
 	found := false
 	genericType := clientType.AsGenericType()
 
-	for i, id := range m.ClientIDs {
+	for i, id := range m.SyncClients {
 		if id.ID == clientID && id.Type == genericType {
 			// Update existing entry
-			m.ClientIDs[i].ItemID = clientItemKey
+			m.SyncClients[i].ItemID = clientItemKey
 			found = true
 			break
 		}
@@ -154,7 +165,7 @@ func (m *MediaItem[T]) SetClientInfo(clientID uint64, clientType client.MediaCli
 
 	if !found {
 		// Add new entry
-		m.ClientIDs = append(m.ClientIDs, ClientID{
+		m.SyncClients = append(m.SyncClients, SyncClient{
 			ID:     clientID,
 			Type:   genericType,
 			ItemID: clientItemKey,
@@ -199,26 +210,26 @@ func (m *MediaItem[T]) GetExternalID(source string) (string, bool) {
 }
 
 // GetClientItemID retrieves the item ID for a specific client
-func (m *MediaItem[T]) GetClientItemID(clientID uint64, clientType client.ClientType) (string, bool) {
-	for _, cID := range m.ClientIDs {
-		if cID.ID == clientID && cID.Type == clientType {
+func (m *MediaItem[T]) GetClientItemID(clientID uint64) (string, bool) {
+	for _, cID := range m.SyncClients {
+		if cID.ID == clientID {
 			return cID.ItemID, true
 		}
 	}
 	return "", false
 }
 
-func (m *MediaItem[T]) AddClientID(clientID uint64, clientType client.ClientType, itemID string) {
+func (m *MediaItem[T]) AddSyncClient(clientID uint64, clientType client.ClientType, itemID string) {
 	if itemID == "" {
 		return
 	}
 
 	// Check if client ID already exists
 	found := false
-	for i, cID := range m.ClientIDs {
+	for i, cID := range m.SyncClients {
 		if cID.ID == clientID && cID.Type == clientType {
 			// Update existing entry
-			m.ClientIDs[i].ItemID = itemID
+			m.SyncClients[i].ItemID = itemID
 			found = true
 			break
 		}
@@ -226,18 +237,12 @@ func (m *MediaItem[T]) AddClientID(clientID uint64, clientType client.ClientType
 
 	if !found {
 		// Add new entry
-		m.ClientIDs = append(m.ClientIDs, ClientID{
+		m.SyncClients = append(m.SyncClients, SyncClient{
 			ID:     clientID,
 			Type:   clientType,
 			ItemID: itemID,
 		})
 	}
-}
-
-// GetClientItemIDByMediaType retrieves the item ID for a specific media client
-func (m *MediaItem[T]) GetClientItemIDByMediaType(clientID uint64, clientType client.MediaClientType) (string, bool) {
-	genericType := clientType.AsGenericClient()
-	return m.GetClientItemID(clientID, genericType)
 }
 
 func (m *MediaItem[T]) GetData() T {
@@ -331,63 +336,63 @@ func (m *MediaItem[T]) AsPlaylist() (MediaItem[types.Playlist], bool) {
 
 // CreateMediaItem creates a new MediaItem of the appropriate type
 func CreateMediaItem(mediaType types.MediaType) (any, error) {
-	// Initialize with empty arrays for ClientIDs and ExternalIDs
-	clientIDs := make(ClientIDs, 0)
+	// Initialize with empty arrays for SyncClients and ExternalIDs
+	clientIDs := make(SyncClients, 0)
 	externalIDs := make(ExternalIDs, 0)
 
 	switch mediaType {
 	case types.MediaTypeMovie:
 		return &MediaItem[types.Movie]{
 			Type:        mediaType,
-			ClientIDs:   clientIDs,
+			SyncClients: clientIDs,
 			ExternalIDs: externalIDs,
 		}, nil
 	case types.MediaTypeSeries:
 		return &MediaItem[types.Series]{
 			Type:        mediaType,
-			ClientIDs:   clientIDs,
+			SyncClients: clientIDs,
 			ExternalIDs: externalIDs,
 		}, nil
 	case types.MediaTypeEpisode:
 		return &MediaItem[types.Episode]{
 			Type:        mediaType,
-			ClientIDs:   clientIDs,
+			SyncClients: clientIDs,
 			ExternalIDs: externalIDs,
 		}, nil
 	case types.MediaTypeSeason:
 		return &MediaItem[types.Season]{
 			Type:        mediaType,
-			ClientIDs:   clientIDs,
+			SyncClients: clientIDs,
 			ExternalIDs: externalIDs,
 		}, nil
 	case types.MediaTypeTrack:
 		return &MediaItem[types.Track]{
 			Type:        mediaType,
-			ClientIDs:   clientIDs,
+			SyncClients: clientIDs,
 			ExternalIDs: externalIDs,
 		}, nil
 	case types.MediaTypeAlbum:
 		return &MediaItem[types.Album]{
 			Type:        mediaType,
-			ClientIDs:   clientIDs,
+			SyncClients: clientIDs,
 			ExternalIDs: externalIDs,
 		}, nil
 	case types.MediaTypeArtist:
 		return &MediaItem[types.Artist]{
 			Type:        mediaType,
-			ClientIDs:   clientIDs,
+			SyncClients: clientIDs,
 			ExternalIDs: externalIDs,
 		}, nil
 	case types.MediaTypeCollection:
 		return &MediaItem[types.Collection]{
 			Type:        mediaType,
-			ClientIDs:   clientIDs,
+			SyncClients: clientIDs,
 			ExternalIDs: externalIDs,
 		}, nil
 	case types.MediaTypePlaylist:
 		return &MediaItem[types.Playlist]{
 			Type:        mediaType,
-			ClientIDs:   clientIDs,
+			SyncClients: clientIDs,
 			ExternalIDs: externalIDs,
 		}, nil
 	default:

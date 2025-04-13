@@ -246,11 +246,11 @@ func (s *mediaPlaylistService[T]) CreatePlaylist(ctx context.Context, userID uin
 
 	// Update modification timestamp and client ID
 	now := time.Now()
-	playlist.Data.LastModified = now
-	playlist.Data.ModifiedBy = clientID
+	playlist.Data.ItemList.LastModified = now
+	playlist.Data.ItemList.ModifiedBy = clientID
 
 	// Get the client's ID for this playlist - ModifiedBy is just a uint64 client ID
-	clientItemID, found := playlist.GetClientItemID(clientID, types.ClientTypePlex) // Default to Plex as a placeholder
+	clientItemID, found := playlist.GetClientItemID(clientID) // Default to Plex as a placeholder
 	playlistIDStr := "unknown"
 	if found {
 		playlistIDStr = clientItemID
@@ -297,8 +297,8 @@ func (s *mediaPlaylistService[T]) UpdatePlaylist(ctx context.Context, userID uin
 
 	// Update modification timestamp and client ID
 	now := time.Now()
-	playlist.Data.LastModified = now
-	playlist.Data.ModifiedBy = clientID
+	playlist.Data.ItemList.LastModified = now
+	playlist.Data.ItemList.ModifiedBy = clientID
 
 	log.Info().
 		Uint64("userID", userID).
@@ -392,9 +392,15 @@ func (s *mediaPlaylistService[T]) AddItemToPlaylist(ctx context.Context, userID 
 
 		// Add to change history if Items array is used
 		if len(playlist.Data.Items) > 0 {
+			// Try to convert string itemID to uint64 for comparison
+			var numericItemID uint64
+			if id, err := strconv.ParseUint(itemID, 10, 64); err == nil {
+				numericItemID = id
+			}
+
 			// Find the item and update its change history
 			for i, item := range playlist.Data.Items {
-				if item.ItemID == itemID {
+				if item.ItemID == numericItemID {
 					// Update existing item
 					playlist.Data.Items[i].LastChanged = now
 					playlist.Data.Items[i].ChangeHistory = append(playlist.Data.Items[i].ChangeHistory,
@@ -548,16 +554,22 @@ func (s *mediaPlaylistService[T]) ReorderPlaylistItems(ctx context.Context, user
 		// Add to change history
 		if len(playlist.Data.Items) > 0 {
 			// Update the positions based on the new order
-			for i, id := range itemIDs {
+			for i, idStr := range itemIDs {
+				// Try to convert string ID to uint64 for comparison
+				var numericID uint64
+				if id, err := strconv.ParseUint(idStr, 10, 64); err == nil {
+					numericID = id
+				}
+
 				for j, item := range playlist.Data.Items {
-					if item.ItemID == id {
+					if item.ItemID == numericID {
 						// Update position
 						playlist.Data.Items[j].Position = i
 						playlist.Data.Items[j].LastChanged = now
 						playlist.Data.Items[j].ChangeHistory = append(playlist.Data.Items[j].ChangeHistory,
 							mediatypes.ChangeRecord{
 								ClientID:   clientID,
-								ItemID:     id,
+								ItemID:     idStr,
 								ChangeType: "reorder",
 								Timestamp:  now,
 							})
@@ -671,7 +683,7 @@ func (s *EnhancedMediaClientPlaylistService[T]) AddItemToPlaylist(ctx context.Co
 
 	// Translate the item ID to the client's format if needed
 	clientItemID := itemID
-	
+
 	// Check if the itemID looks like a system ID (as a number or UUID)
 	// For this example, we check if it might be a numeric ID from our system
 	if s.mediaItemRepo != nil {
@@ -681,7 +693,7 @@ func (s *EnhancedMediaClientPlaylistService[T]) AddItemToPlaylist(ctx context.Co
 			mediaItem, err := s.mediaItemRepo.GetByID(ctx, numericID)
 			if err == nil {
 				// Find the client-specific ID
-				for _, cid := range mediaItem.ClientIDs {
+				for _, cid := range mediaItem.SyncClients {
 					if cid.ID == clientID {
 						clientItemID = cid.ItemID
 						log.Debug().
@@ -704,12 +716,12 @@ func (s *EnhancedMediaClientPlaylistService[T]) AddItemToPlaylist(ctx context.Co
 					if otherClientID == clientID {
 						continue // Skip the current client
 					}
-					
+
 					// Try to find a media item with this ID in another client
 					mediaItem, err := s.mediaItemRepo.GetByClientItemID(ctx, itemID, otherClientID)
 					if err == nil {
 						// Found the item, now get its ID for the target client
-						for _, cid := range mediaItem.ClientIDs {
+						for _, cid := range mediaItem.SyncClients {
 							if cid.ID == clientID {
 								clientItemID = cid.ItemID
 								log.Debug().
@@ -754,16 +766,23 @@ func (s *EnhancedMediaClientPlaylistService[T]) AddItemToPlaylist(ctx context.Co
 		playlist := &playlists[0]
 		playlist.Data.LastModified = now
 		playlist.Data.ModifiedBy = clientID
-		
+
 		// Add to change history if Items array is used
 		if len(playlist.Data.Items) > 0 {
 			// Find the item and update its change history
 			found := false
+
+			// Try to convert to uint64 for comparison
+			var numericClientItemID uint64
+			if id, err := strconv.ParseUint(clientItemID, 10, 64); err == nil {
+				numericClientItemID = id
+			}
+
 			for i, item := range playlist.Data.Items {
-				if item.ItemID == clientItemID {
+				if item.ItemID == numericClientItemID {
 					// Update existing item
 					playlist.Data.Items[i].LastChanged = now
-					playlist.Data.Items[i].ChangeHistory = append(playlist.Data.Items[i].ChangeHistory, 
+					playlist.Data.Items[i].ChangeHistory = append(playlist.Data.Items[i].ChangeHistory,
 						mediatypes.ChangeRecord{
 							ClientID:   clientID,
 							ItemID:     clientItemID,
@@ -774,11 +793,13 @@ func (s *EnhancedMediaClientPlaylistService[T]) AddItemToPlaylist(ctx context.Co
 					break
 				}
 			}
-			
+
 			// If item not found, add it to the Items array
 			if !found {
-				playlist.Data.Items = append(playlist.Data.Items, mediatypes.PlaylistItem{
-					ItemID:      clientItemID,
+				// Convert string clientItemID to uint64
+				numericID, _ := strconv.ParseUint(clientItemID, 10, 64)
+				playlist.Data.Items = append(playlist.Data.Items, mediatypes.ListItem{
+					ItemID:      numericID,
 					Position:    len(playlist.Data.Items),
 					LastChanged: now,
 					ChangeHistory: []mediatypes.ChangeRecord{

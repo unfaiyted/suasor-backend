@@ -126,7 +126,7 @@ func (s *mediaItemService[T]) GetRecentItems(ctx context.Context, userID uint64,
 
 func validateMediaItem[T types.MediaData](item models.MediaItem[T]) error {
 	// Basic validation
-	if len(item.ClientIDs) == 0 {
+	if len(item.SyncClients) == 0 {
 		return fmt.Errorf("at least one client ID is required")
 	}
 

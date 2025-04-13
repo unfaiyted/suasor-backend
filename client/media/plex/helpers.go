@@ -23,6 +23,14 @@ func (c *PlexClient) makeFullURL(resourcePath string) string {
 	return fmt.Sprintf("%s%s", plexConfig.BaseURL, resourcePath)
 }
 
+// // makeFullURL converts a Plex path to a full URL with authentication
+// func (c *PlexClient) makeFullURL(path *string) string {
+// 	if path == nil || *path == "" {
+// 		return ""
+// 	}
+// 	return fmt.Sprintf("%s%s?X-Plex-Token=%s", c.BaseURL, *path, c.Token)
+// }
+
 // findLibrarySectionByType returns the section key for the specified type
 func (c *PlexClient) findLibrarySectionByType(ctx context.Context, sectionType string) (string, error) {
 	// Get logger from context

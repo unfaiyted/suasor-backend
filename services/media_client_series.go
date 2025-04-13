@@ -27,7 +27,7 @@ type MediaClientSeriesService[T types.ClientConfig] interface {
 	GetOnGoing(ctx context.Context, userID uint64, count int) ([]models.MediaItem[*mediatypes.Series], error)
 	GetRecentEpisodes(ctx context.Context, userID uint64, count int) ([]models.MediaItem[*mediatypes.Episode], error)
 	GetSeriesByNetwork(ctx context.Context, userID uint64, network string) ([]models.MediaItem[*mediatypes.Series], error)
-	
+
 	// Added missing methods required by handlers
 	GetSeriesByYear(ctx context.Context, userID uint64, year int) ([]models.MediaItem[*mediatypes.Series], error)
 	GetSeriesByActor(ctx context.Context, userID uint64, actor string) ([]models.MediaItem[*mediatypes.Series], error)
@@ -201,7 +201,7 @@ func (s *mediaSeriesService[T]) GetSeasonByID(ctx context.Context, userID, clien
 	// Note: The SeriesProvider interface doesn't have a GetSeasonByID method
 	// This implementation assumes season IDs are prefixed with "show_ID-season_number"
 	// This is a simplification, and in a real implementation, you might need a different approach
-	
+
 	// Check if the client exists and supports series
 	_, err := s.getSpecificSeriesClient(ctx, userID, clientID)
 	if err != nil {
@@ -254,11 +254,11 @@ func (s *mediaSeriesService[T]) GetRecentlyAdded(ctx context.Context, userID uin
 		}
 
 		options := &mediatypes.QueryOptions{
-			RecentlyAdded:   true,
-			DateAddedAfter:  cutoffDate,
-			Sort:            "dateAdded",
-			SortOrder:       mediatypes.SortOrderDesc,
-			Limit:           count,
+			RecentlyAdded:  true,
+			DateAddedAfter: cutoffDate,
+			Sort:           "dateAdded",
+			SortOrder:      mediatypes.SortOrderDesc,
+			Limit:          count,
 		}
 
 		series, err := showProvider.GetSeries(ctx, options)
@@ -357,10 +357,10 @@ func (s *mediaSeriesService[T]) GetRecentEpisodes(ctx context.Context, userID ui
 		for _, show := range series {
 			// Get the series ID from the ClientIDs
 			// We could use the first client ID as a simplification
-			if len(show.ClientIDs) == 0 {
+			if len(show.SyncClients) == 0 {
 				continue
 			}
-			showID := show.ClientIDs[0].ItemID
+			showID := show.SyncClients[0].ItemID
 
 			// Get seasons for this series
 			seasons, err := showProvider.GetSeriesSeasons(ctx, showID)
@@ -378,7 +378,7 @@ func (s *mediaSeriesService[T]) GetRecentEpisodes(ctx context.Context, userID ui
 					latestSeasonIdx = i
 				}
 			}
-			
+
 			latestSeason := seasons[latestSeasonIdx]
 
 			// Get episodes for the latest season
@@ -589,9 +589,9 @@ func (s *mediaSeriesService[T]) GetLatestSeriesByAdded(ctx context.Context, user
 
 		options := &mediatypes.QueryOptions{
 			DateAddedAfter: cutoffDate,
-			Sort:          "dateAdded",
-			SortOrder:     mediatypes.SortOrderDesc,
-			Limit:         count,
+			Sort:           "dateAdded",
+			SortOrder:      mediatypes.SortOrderDesc,
+			Limit:          count,
 		}
 
 		series, err := showProvider.GetSeries(ctx, options)
@@ -604,7 +604,7 @@ func (s *mediaSeriesService[T]) GetLatestSeriesByAdded(ctx context.Context, user
 
 	// Sort all series by added date (newest first)
 	// This could be done with a custom sort, but we'll rely on the client sorting for now
-	
+
 	// Limit to requested count
 	if len(allSeries) > count {
 		allSeries = allSeries[:count]
@@ -724,14 +724,14 @@ func (s *mediaSeriesService[T]) SearchSeries(ctx context.Context, userID uint64,
 	// This is a simple implementation to ensure matches
 	filteredSeries := allSeries[:0] // Reuse the same slice
 	lowerQuery := strings.ToLower(query)
-	
+
 	// First pass: exact title matches
 	for _, s := range allSeries {
 		if strings.ToLower(s.Data.Details.Title) == lowerQuery {
 			filteredSeries = append(filteredSeries, s)
 		}
 	}
-	
+
 	// Second pass: title starts with query
 	if len(filteredSeries) < 10 {
 		for _, s := range allSeries {
@@ -750,7 +750,7 @@ func (s *mediaSeriesService[T]) SearchSeries(ctx context.Context, userID uint64,
 			}
 		}
 	}
-	
+
 	// Third pass: contains query anywhere in title
 	if len(filteredSeries) < 10 {
 		for _, s := range allSeries {
@@ -769,7 +769,7 @@ func (s *mediaSeriesService[T]) SearchSeries(ctx context.Context, userID uint64,
 			}
 		}
 	}
-	
+
 	return filteredSeries, nil
 }
 
@@ -793,3 +793,4 @@ func (s *mediaSeriesService[T]) GetSeasonsBySeriesID(ctx context.Context, userID
 
 	return seasons, nil
 }
+

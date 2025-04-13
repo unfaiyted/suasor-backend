@@ -404,7 +404,7 @@ func (j *FavoritesSyncJob) syncMovieFavorites(ctx context.Context, userID, clien
 	for _, movie := range movies {
 		// Get client item ID for this client
 		var clientItemID string
-		for _, cid := range movie.ClientIDs {
+		for _, cid := range movie.SyncClients {
 			if cid.ID == clientID {
 				clientItemID = cid.ItemID
 				break
@@ -545,7 +545,7 @@ func (j *FavoritesSyncJob) syncSeriesFavorites(ctx context.Context, userID, clie
 	for _, s := range series {
 		// Get client item ID for this client
 		var clientItemID string
-		for _, cid := range s.ClientIDs {
+		for _, cid := range s.SyncClients {
 			if cid.ID == clientID {
 				clientItemID = cid.ItemID
 				break
@@ -694,7 +694,7 @@ func (j *FavoritesSyncJob) syncMusicFavorites(ctx context.Context, userID, clien
 	for _, track := range tracks {
 		// Get client item ID for this client
 		var clientItemID string
-		for _, cid := range track.ClientIDs {
+		for _, cid := range track.SyncClients {
 			if cid.ID == clientID {
 				clientItemID = cid.ItemID
 				break

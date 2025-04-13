@@ -413,7 +413,7 @@ func (j *WatchHistorySyncJob) processMovieHistory(ctx context.Context, userID, c
 
 	// Get client item ID from the media item
 	var clientItemID string
-	for _, cid := range historyItem.Item.ClientIDs {
+	for _, cid := range historyItem.Item.SyncClients {
 		if cid.ID == clientID {
 			clientItemID = cid.ItemID
 			break
@@ -472,7 +472,7 @@ func (j *WatchHistorySyncJob) processSeriesHistory(ctx context.Context, userID, 
 
 	// Get client item ID from the media item
 	var clientItemID string
-	for _, cid := range historyItem.Item.ClientIDs {
+	for _, cid := range historyItem.Item.SyncClients {
 		if cid.ID == clientID {
 			clientItemID = cid.ItemID
 			break
@@ -531,7 +531,7 @@ func (j *WatchHistorySyncJob) processEpisodeHistory(ctx context.Context, userID,
 
 	// Get client item ID from the media item
 	var clientItemID string
-	for _, cid := range historyItem.Item.ClientIDs {
+	for _, cid := range historyItem.Item.SyncClients {
 		if cid.ID == clientID {
 			clientItemID = cid.ItemID
 			break
@@ -590,7 +590,7 @@ func (j *WatchHistorySyncJob) processMusicHistory(ctx context.Context, userID, c
 
 	// Get client item ID from the media item
 	var clientItemID string
-	for _, cid := range historyItem.Item.ClientIDs {
+	for _, cid := range historyItem.Item.SyncClients {
 		if cid.ID == clientID {
 			clientItemID = cid.ItemID
 			break

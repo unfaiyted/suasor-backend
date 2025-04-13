@@ -2,9 +2,9 @@
 package handlers
 
 import (
-	"strconv"
-
 	"github.com/gin-gonic/gin"
+	"strconv"
+	"strings"
 
 	mediatypes "suasor/client/media/types"
 	"suasor/services"
@@ -16,13 +16,13 @@ import (
 // PlaylistHandler provides handlers for playlist operations
 type PlaylistHandler struct {
 	*MediaItemHandler[*mediatypes.Playlist]
-	service services.MediaClientPlaylistService[any]
+	service services.PlaylistService
 }
 
 // NewPlaylistHandler creates a new playlist handler
 func NewPlaylistHandler(
 	mediaItemService services.MediaItemService[*mediatypes.Playlist],
-	playlistService services.MediaClientPlaylistService[any],
+	playlistService services.PlaylistService,
 ) *PlaylistHandler {
 	return &PlaylistHandler{
 		MediaItemHandler: NewMediaItemHandler(mediaItemService),
@@ -63,7 +63,7 @@ func (h *PlaylistHandler) GetPlaylists(c *gin.Context) {
 		Int("limit", limit).
 		Msg("Getting playlists")
 
-	playlists, err := h.service.GetPlaylists(ctx, userID, limit)
+	playlists, err := h.service.GetByUserID(ctx, userID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -87,8 +87,6 @@ func (h *PlaylistHandler) GetPlaylists(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Playlist ID"
-// @Param userId query int true "User ID"
-// @Param clientId query int true "Client ID"
 // @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "Playlist retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Playlist not found"
@@ -98,6 +96,14 @@ func (h *PlaylistHandler) GetPlaylistByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
+	// get logged in user id from context
+	userID, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("Attempt to access playlist without authentication")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
+		return
+	}
+
 	playlistID := c.Param("id")
 	if playlistID == "" {
 		log.Warn().Msg("Playlist ID is required")
@@ -105,31 +111,21 @@ func (h *PlaylistHandler) GetPlaylistByID(c *gin.Context) {
 		return
 	}
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
+	pID, err := utils.ParseUint64(c.Param("id"))
 	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
-		return
-	}
-
-	clientID, err := strconv.ParseUint(c.Query("clientId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("clientId", c.Query("clientId")).Msg("Invalid client ID")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
-		return
+		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid playlist ID")
+		responses.RespondBadRequest(c, err, "Invalid playlist ID")
 	}
 
 	log.Debug().
-		Uint64("userID", userID).
-		Uint64("clientID", clientID).
-		Str("playlistID", playlistID).
+		Uint64("userID", userID.(uint64)).
+		Uint64("playlistID", pID).
 		Msg("Getting playlist by ID")
 
-	playlist, err := h.service.GetPlaylistByID(ctx, userID, clientID, playlistID)
+	playlist, err := h.service.GetByID(ctx, pID)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("userID", userID).
-			Uint64("clientID", clientID).
+			Uint64("userID", userID.(uint64)).
 			Str("playlistID", playlistID).
 			Msg("Failed to retrieve playlist")
 		responses.RespondNotFound(c, err, "Playlist not found")
@@ -137,8 +133,6 @@ func (h *PlaylistHandler) GetPlaylistByID(c *gin.Context) {
 	}
 
 	log.Info().
-		Uint64("userID", userID).
-		Uint64("clientID", clientID).
 		Str("playlistID", playlistID).
 		Msg("Playlist retrieved successfully")
 
@@ -170,31 +164,20 @@ func (h *PlaylistHandler) GetPlaylistItems(c *gin.Context) {
 		return
 	}
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
-		return
-	}
-
-	clientID, err := strconv.ParseUint(c.Query("clientId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("clientId", c.Query("clientId")).Msg("Invalid client ID")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
-		return
-	}
-
 	log.Debug().
-		Uint64("userID", userID).
-		Uint64("clientID", clientID).
 		Str("playlistID", playlistID).
 		Msg("Getting playlist items")
 
-	items, err := h.service.GetPlaylistItems(ctx, userID, clientID, playlistID)
+	pID, err := utils.ParseUint64(c.Param("id"))
+	if err != nil {
+		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid playlist ID")
+		responses.RespondBadRequest(c, err, "Invalid playlist ID")
+		return
+	}
+
+	items, err := h.service.GetPlaylistItems(ctx, pID)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("userID", userID).
-			Uint64("clientID", clientID).
 			Str("playlistID", playlistID).
 			Msg("Failed to retrieve playlist items")
 		responses.RespondInternalError(c, err, "Failed to retrieve playlist items")
@@ -202,8 +185,6 @@ func (h *PlaylistHandler) GetPlaylistItems(c *gin.Context) {
 	}
 
 	log.Info().
-		Uint64("userID", userID).
-		Uint64("clientID", clientID).
 		Str("playlistID", playlistID).
 		Int("itemCount", len(items)).
 		Msg("Playlist items retrieved successfully")
@@ -259,7 +240,12 @@ func (h *PlaylistHandler) CreatePlaylist(c *gin.Context) {
 		Str("name", req.Name).
 		Msg("Creating playlist")
 
-	playlist, err := h.service.CreatePlaylist(ctx, userID, clientID, req.Name, req.Description)
+	newPlaylist := models.MediaItem[*mediatypes.Playlist]{
+		Type: mediatypes.MediaTypePlaylist,
+		Data: &mediatypes.Playlist{ItemList: mediatypes.ItemList{Details: mediatypes.MediaDetails{Title: req.Name, Description: req.Description}}},
+	}
+
+	playlist, err := h.service.Create(ctx, &newPlaylist)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -337,7 +323,25 @@ func (h *PlaylistHandler) UpdatePlaylist(c *gin.Context) {
 		Str("name", req.Name).
 		Msg("Updating playlist")
 
-	playlist, err := h.service.UpdatePlaylist(ctx, userID, clientID, playlistID, req.Name, req.Description)
+	pID, err := utils.ParseUint64(c.Param("id"))
+	if err != nil {
+		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid playlist ID")
+		responses.RespondBadRequest(c, err, "Invalid playlist ID")
+		return
+	}
+	playlist, err := h.service.GetByID(ctx, pID)
+	if err != nil {
+		log.Error().Err(err).
+			Str("playlistID", playlistID).
+			Msg("Failed to get playlist")
+		responses.RespondInternalError(c, err, "Failed to get playlist")
+		return
+	}
+
+	playlist.Data.ItemList.Details.Title = req.Name
+	playlist.Data.ItemList.Details.Description = req.Description
+
+	updatedPlaylist, err := h.service.Update(ctx, playlist)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -354,7 +358,7 @@ func (h *PlaylistHandler) UpdatePlaylist(c *gin.Context) {
 		Str("playlistID", playlistID).
 		Msg("Playlist updated successfully")
 
-	responses.RespondOK(c, playlist, "Playlist updated successfully")
+	responses.RespondOK(c, updatedPlaylist, "Playlist updated successfully")
 }
 
 // DeletePlaylist godoc
@@ -401,7 +405,14 @@ func (h *PlaylistHandler) DeletePlaylist(c *gin.Context) {
 		Str("playlistID", playlistID).
 		Msg("Deleting playlist")
 
-	err = h.service.DeletePlaylist(ctx, userID, clientID, playlistID)
+	pID, err := utils.ParseUint64(c.Param("id"))
+	if err != nil {
+		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid playlist ID")
+		responses.RespondBadRequest(c, err, "Invalid playlist ID")
+		return
+	}
+
+	err = h.service.Delete(ctx, pID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -428,8 +439,6 @@ func (h *PlaylistHandler) DeletePlaylist(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Playlist ID"
-// @Param userId query int true "User ID"
-// @Param clientId query int true "Client ID"
 // @Param itemData body object true "Item data including media item ID"
 // @Success 200 {object} responses.APIResponse[any] "Item added to playlist successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
@@ -446,22 +455,8 @@ func (h *PlaylistHandler) AddItemToPlaylist(c *gin.Context) {
 		return
 	}
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
-		return
-	}
-
-	clientID, err := strconv.ParseUint(c.Query("clientId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("clientId", c.Query("clientId")).Msg("Invalid client ID")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
-		return
-	}
-
 	var req struct {
-		ItemID string `json:"itemId" binding:"required"`
+		ItemID uint64 `json:"itemId" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -471,29 +466,30 @@ func (h *PlaylistHandler) AddItemToPlaylist(c *gin.Context) {
 	}
 
 	log.Debug().
-		Uint64("userID", userID).
-		Uint64("clientID", clientID).
 		Str("playlistID", playlistID).
-		Str("itemID", req.ItemID).
+		Uint64("itemID", req.ItemID).
 		Msg("Adding item to playlist")
 
-	err = h.service.AddItemToPlaylist(ctx, userID, clientID, playlistID, req.ItemID)
+	pID, err := utils.ParseUint64(c.Param("id"))
+	if err != nil {
+		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid playlist ID")
+		responses.RespondBadRequest(c, err, "Invalid playlist ID")
+		return
+	}
+
+	err = h.service.AddItemToPlaylist(ctx, pID, req.ItemID)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("userID", userID).
-			Uint64("clientID", clientID).
 			Str("playlistID", playlistID).
-			Str("itemID", req.ItemID).
+			Uint64("itemID", req.ItemID).
 			Msg("Failed to add item to playlist")
 		responses.RespondInternalError(c, err, "Failed to add item to playlist")
 		return
 	}
 
 	log.Info().
-		Uint64("userID", userID).
-		Uint64("clientID", clientID).
 		Str("playlistID", playlistID).
-		Str("itemID", req.ItemID).
+		Uint64("itemID", req.ItemID).
 		Msg("Item added to playlist successfully")
 
 	responses.RespondOK(c, responses.EmptyResponse{Success: true}, "Item added to playlist successfully")
@@ -531,32 +527,27 @@ func (h *PlaylistHandler) RemoveItemFromPlaylist(c *gin.Context) {
 		return
 	}
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
-		return
-	}
-
-	clientID, err := strconv.ParseUint(c.Query("clientId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("clientId", c.Query("clientId")).Msg("Invalid client ID")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
-		return
-	}
-
 	log.Debug().
-		Uint64("userID", userID).
-		Uint64("clientID", clientID).
 		Str("playlistID", playlistID).
 		Str("itemID", itemID).
 		Msg("Removing item from playlist")
+	pID, err := utils.ParseUint64(c.Param("id"))
+	if err != nil {
+		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid playlist ID")
+		responses.RespondBadRequest(c, err, "Invalid playlist ID")
+		return
+	}
 
-	err = h.service.RemoveItemFromPlaylist(ctx, userID, clientID, playlistID, itemID)
+	iID, err := utils.ParseUint64(c.Param("itemID"))
+	if err != nil {
+		log.Warn().Err(err).Str("itemID", c.Param("itemID")).Msg("Invalid item ID")
+		responses.RespondBadRequest(c, err, "Invalid item ID")
+		return
+	}
+
+	err = h.service.RemoveItemFromPlaylist(ctx, pID, iID)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("userID", userID).
-			Uint64("clientID", clientID).
 			Str("playlistID", playlistID).
 			Str("itemID", itemID).
 			Msg("Failed to remove item from playlist")
@@ -565,8 +556,6 @@ func (h *PlaylistHandler) RemoveItemFromPlaylist(c *gin.Context) {
 	}
 
 	log.Info().
-		Uint64("userID", userID).
-		Uint64("clientID", clientID).
 		Str("playlistID", playlistID).
 		Str("itemID", itemID).
 		Msg("Item removed from playlist successfully")
@@ -630,7 +619,14 @@ func (h *PlaylistHandler) ReorderPlaylistItems(c *gin.Context) {
 		Int("itemCount", len(req.ItemIDs)).
 		Msg("Reordering playlist items")
 
-	err = h.service.ReorderPlaylistItems(ctx, userID, clientID, playlistID, req.ItemIDs)
+	pID, err := utils.ParseUint64(c.Param("id"))
+	if err != nil {
+		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid playlist ID")
+		responses.RespondBadRequest(c, err, "Invalid playlist ID")
+		return
+	}
+
+	err = h.service.ReorderPlaylistItems(ctx, pID, req.ItemIDs)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -686,7 +682,7 @@ func (h *PlaylistHandler) SearchPlaylists(c *gin.Context) {
 		Str("query", query).
 		Msg("Searching playlists")
 
-	playlists, err := h.service.SearchPlaylists(ctx, userID, query)
+	playlists, err := h.service.SearchPlaylists(ctx, query, userID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -749,7 +745,26 @@ func (h *PlaylistHandler) SyncPlaylist(c *gin.Context) {
 		Str("playlistID", playlistID).
 		Msg("Syncing playlist across clients")
 
-	err = h.service.SyncPlaylist(ctx, userID, clientID, playlistID)
+	pID, err := utils.ParseUint64(c.Param("id"))
+	if err != nil {
+		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid playlist ID")
+		responses.RespondBadRequest(c, err, "Invalid playlist ID")
+		return
+	}
+	var targetClientIDs []uint64
+	tClientIDs := strings.Split(c.Query("clientIDs"), ",")
+	// convert each clientID to uint64
+	for i, clientID := range tClientIDs {
+		id, err := strconv.ParseUint(clientID, 10, 64)
+		if err != nil {
+			log.Warn().Err(err).Str("clientID", clientID).Msg("Invalid client ID")
+			responses.RespondBadRequest(c, err, "Invalid client ID")
+			return
+		}
+		targetClientIDs[i] = id
+	}
+
+	err = h.service.SyncPlaylist(ctx, pID, targetClientIDs)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
