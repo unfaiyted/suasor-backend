@@ -175,6 +175,20 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 			// episodeHandler:   deps.MediaItemHandlers.EpisodeHandler(),
 			// seasonHandler:    deps.MediaItemHandlers.SeasonHandler(),
 		},
+		playlistSpecificHandler: handlers.NewPlaylistHandler(
+			deps.MediaItemServices.PlaylistService(),
+			services.NewMediaClientPlaylistService[any](
+				deps.RepositoryCollections.ClientRepositories(),
+				deps.ClientFactoryService,
+			),
+		),
+		collectionSpecificHandler: handlers.NewCollectionHandler(
+			deps.MediaItemServices.CollectionService(),
+			services.NewMediaClientCollectionService[any](
+				deps.RepositoryCollections.ClientRepositories(),
+				deps.ClientFactoryService,
+			),
+		),
 	}
 
 	// System Handlers

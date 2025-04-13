@@ -82,9 +82,9 @@ type Series struct {
 // Collection represents a collection of media items
 type Collection struct {
 	Details        MediaDetails
-	ItemIDs        []string `json:"itemIDs"`
+	ItemIDs        []uint64 `json:"itemIDs"`
 	ItemCount      int      `json:"itemCount"`
-	CollectionType string   `json:"collectionType"` // e.g., "movie", "tvshow"
+	CollectionType string   `json:"collectionType"` // e.g., "movie", "tvshow", "mixed"
 }
 
 // ChangeRecord tracks when and where an item was changed
@@ -95,23 +95,31 @@ type ChangeRecord struct {
 	Timestamp  time.Time `json:"timestamp"`
 }
 
-// PlaylistItem represents an item in a playlist with its position and history
-type PlaylistItem struct {
-	ItemID        string         `json:"itemId"`
-	Position      int            `json:"position"`
-	LastChanged   time.Time      `json:"lastChanged"`
-	ChangeHistory []ChangeRecord `json:"changeHistory,omitempty"`
+// // PlaylistItem represents an item in a playlist with its position and history
+// type PlaylistItem struct {
+// 	ItemID        string         `json:"itemId"`
+// 	Position      int            `json:"position"`
+// 	LastChanged   time.Time      `json:"lastChanged"`
+// 	ChangeHistory []ChangeRecord `json:"changeHistory,omitempty"`
+// }
+
+type ClientItemList struct {
+	ItemIDs  []uint64 `json:"itemIDs"`
+	ClientID uint64   `json:"clientItemIDs,omitempty"`
 }
+
+type ClientItemLists []ClientItemList
 
 // Playlist represents a user-created playlist of media items
 type Playlist struct {
-	Details    MediaDetails
-	Items      []PlaylistItem `json:"items"`
-	ItemIDs    []string       `json:"itemIDs"` // Maintained for backward compatibility
-	ItemCount  int            `json:"itemCount"`
-	Owner      string         `json:"owner,omitempty"`
-	IsPublic   bool           `json:"isPublic"`
-	LastSynced time.Time      `json:"lastSynced,omitempty"`
+	Details MediaDetails
+
+	ItemIDs             []uint64        `json:"itemIDs"`
+	SyncedClientItemIDs ClientItemLists `json:"clientItemIDs,omitempty"`
+	ItemCount           int             `json:"itemCount"`
+	Owner               string          `json:"owner,omitempty"`
+	IsPublic            bool            `json:"isPublic"`
+	LastSynced          time.Time       `json:"lastSynced,omitempty"`
 	// Track when and which client last modified this playlist
 	LastModified time.Time `json:"lastModified,omitempty"`
 	ModifiedBy   uint64    `json:"modifiedBy,omitempty"` // Client ID that last modified this playlist

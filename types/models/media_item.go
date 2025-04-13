@@ -10,6 +10,16 @@ import (
 	"time"
 )
 
+type MediaItems struct {
+	Movies   []*MediaItem[*types.Movie]
+	Series   []*MediaItem[*types.Series]
+	Seasons  []*MediaItem[*types.Season]
+	Episodes []*MediaItem[*types.Episode]
+	Artists  []*MediaItem[*types.Artist]
+	Albums   []*MediaItem[*types.Album]
+	Tracks   []*MediaItem[*types.Track]
+}
+
 // MediaItem is the base type for all media items
 type MediaItem[T types.MediaData] struct {
 	ID          uint64      `json:"id" gorm:"primaryKey;autoIncrement"` // Internal ID

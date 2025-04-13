@@ -19,12 +19,12 @@ import (
 
 // PlaylistSyncJob synchronizes playlists between different media clients
 type PlaylistSyncJob struct {
-	jobRepo         repository.JobRepository
-	userRepo        repository.UserRepository
-	configRepo      repository.UserConfigRepository
-	clientRepos     map[clienttypes.MediaClientType]interface{}
-	clientFactory   *client.ClientFactoryService
-	mediaItemRepo   repository.MediaItemRepository[mediatypes.MediaData]
+	jobRepo          repository.JobRepository
+	userRepo         repository.UserRepository
+	configRepo       repository.UserConfigRepository
+	clientRepos      map[clienttypes.MediaClientType]interface{}
+	clientFactory    *client.ClientFactoryService
+	mediaItemRepo    repository.MediaItemRepository[mediatypes.MediaData]
 	mediaHistoryRepo repository.MediaPlayHistoryRepository
 }
 
@@ -173,9 +173,9 @@ func findClientItemID[T mediatypes.MediaData](item *models.MediaItem[T], clientI
 
 // findMatchingTargetItem looks up a media item in the target client given its source client ID
 func (j *PlaylistSyncJob) findMatchingTargetItem(
-	ctx context.Context, 
-	sourceClientID uint64, 
-	sourceItemID string, 
+	ctx context.Context,
+	sourceClientID uint64,
+	sourceItemID string,
 	targetClientID uint64,
 ) (string, error) {
 	if j.mediaItemRepo == nil {
@@ -187,7 +187,7 @@ func (j *PlaylistSyncJob) findMatchingTargetItem(
 	if err != nil {
 		return "", fmt.Errorf("source item not found: %w", err)
 	}
-	
+
 	// If we have the media item, check if it has an ID for the target client
 	for _, clientID := range sourceItem.ClientIDs {
 		if clientID.ID == targetClientID {
@@ -195,7 +195,7 @@ func (j *PlaylistSyncJob) findMatchingTargetItem(
 			return clientID.ItemID, nil
 		}
 	}
-	
+
 	return "", fmt.Errorf("no matching item ID in target client")
 }
 
@@ -580,7 +580,7 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 	targetProvider providers.PlaylistProvider,
 ) (int, error) {
 	logger := log.Logger{} // Ideally use structured logging from context
-	
+
 	// Get the target playlist's client-specific ID by finding it in the ClientIDs array
 	var targetPlaylistID string
 	for _, cid := range targetPlaylist.ClientIDs {
@@ -589,7 +589,7 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 			break
 		}
 	}
-	
+
 	// Get the source playlist's client-specific ID
 	var sourcePlaylistID string
 	for _, cid := range sourcePlaylist.ClientIDs {
@@ -598,22 +598,22 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 			break
 		}
 	}
-	
+
 	logger.Printf("Syncing items from playlist %s (client %d) to playlist %s (client %d)",
 		sourcePlaylistID, sourceClientID, targetPlaylistID, targetClientID)
-	
+
 	// Get the items from the source playlist - use Items or ItemIDs as appropriate
-	var sourceItemIDs []string
-	if len(sourcePlaylist.Data.Items) > 0 {
+	var sourceItemIDs []uint64
+	if len(sourcePlaylist.Data.ItemIDs) > 0 {
 		// If using the Items array with PlaylistItems
-		for _, item := range sourcePlaylist.Data.Items {
-			sourceItemIDs = append(sourceItemIDs, item.ItemID)
+		for _, item := range sourcePlaylist.Data.ItemIDs {
+			sourceItemIDs = append(sourceItemIDs, item)
 		}
 	} else {
 		// If using the legacy ItemIDs array
 		sourceItemIDs = sourcePlaylist.Data.ItemIDs
 	}
-	
+
 	// For each source item, find its corresponding ID in the target client
 	syncCount := 0
 	for _, sourceItemID := range sourceItemIDs {
@@ -623,33 +623,33 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 			logger.Printf("Could not find matching item for %s in target client: %v", sourceItemID, err)
 			continue
 		}
-		
+
 		// Add item to target playlist using the target client's playlist ID format
 		// If targetPlaylistID is empty (which shouldn't happen), log a warning
 		if targetPlaylistID == "" {
 			logger.Printf("Warning: Empty target playlist ID for client %d", targetClientID)
 			continue
 		}
-		
+
 		// Both IDs must be in the format expected by the target client
 		err = targetProvider.AddItemToPlaylist(ctx, targetPlaylistID, targetItemID)
 		if err != nil {
 			logger.Printf("Error adding item to target playlist: %v", err)
 			continue
 		}
-		
+
 		syncCount++
-		
+
 		// Record this change in the change history
 		now := time.Now()
-		if len(targetPlaylist.Data.Items) > 0 {
+		if len(targetPlaylist.Data.ItemIDs) > 0 {
 			// Find or create the item in the target playlist's Items array
 			found := false
-			for i, item := range targetPlaylist.Data.Items {
-				if item.ItemID == targetItemID {
+			for i, id := range targetPlaylist.Data.ItemIDs {
+				if id == targetItemID {
 					// Update existing item
 					targetPlaylist.Data.Items[i].LastChanged = now
-					targetPlaylist.Data.Items[i].ChangeHistory = append(targetPlaylist.Data.Items[i].ChangeHistory, 
+					targetPlaylist.Data.Items[i].ChangeHistory = append(targetPlaylist.Data.Items[i].ChangeHistory,
 						mediatypes.ChangeRecord{
 							ClientID:   sourceClientID,
 							ItemID:     sourceItemID,
@@ -660,7 +660,7 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 					break
 				}
 			}
-			
+
 			if !found {
 				// Add new item to the playlist
 				targetPlaylist.Data.Items = append(targetPlaylist.Data.Items, mediatypes.PlaylistItem{
@@ -679,12 +679,12 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 			}
 		}
 	}
-	
+
 	// Update last synced timestamp for both playlists
 	now := time.Now()
 	sourcePlaylist.Data.LastSynced = now
 	targetPlaylist.Data.LastSynced = now
-	
+
 	return syncCount, nil
 }
 func (j *PlaylistSyncJob) SetupPlaylistSyncSchedule(ctx context.Context, userID uint64, frequency string) error {
@@ -848,7 +848,7 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 				break
 			}
 		}
-		
+
 		// Map source items to target items and sync
 		_, err = j.syncPlaylistItems(ctx, userID, sourcePlaylist, *targetPlaylist,
 			sourceClientID, clientInfo.ClientID, targetProvider)
@@ -967,4 +967,3 @@ func (j *PlaylistSyncJob) UpdatePlaylistSyncPreferences(ctx context.Context, use
 
 	return nil
 }
-

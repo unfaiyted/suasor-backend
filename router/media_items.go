@@ -303,42 +303,46 @@ func RegisterDirectMediaItemRoutes(rg *gin.RouterGroup, deps *app.AppDependencie
 	// Playlist routes
 	playlists := rg.Group("/playlists")
 	{
+		// Get specialized playlist handler
+		playlistHandler := mediaHandlers.PlaylistSpecificHandler()
+		
+		// Basic CRUD operations
+		playlists.GET("", playlistHandler.GetPlaylists)
+		playlists.GET("/:id", playlistHandler.GetPlaylistByID)
+		playlists.POST("", playlistHandler.CreatePlaylist)
+		playlists.PUT("/:id", playlistHandler.UpdatePlaylist)
+		playlists.DELETE("/:id", playlistHandler.DeletePlaylist)
+		
+		// Playlist items management
+		playlists.GET("/:id/items", playlistHandler.GetPlaylistItems)
+		playlists.POST("/:id/items", playlistHandler.AddItemToPlaylist)
+		playlists.DELETE("/:id/items/:itemId", playlistHandler.RemoveItemFromPlaylist)
+		
+		// Playlist reordering
+		playlists.POST("/:id/reorder", playlistHandler.ReorderPlaylistItems)
+		
+		// Search playlists
+		playlists.GET("/search", playlistHandler.SearchPlaylists)
+		
+		// Sync playlist across clients
+		playlists.POST("/:id/sync", playlistHandler.SyncPlaylist)
+	}
 
-		// Add item to playlist - needs special implementation
-		playlists.POST("/:id/items", func(c *gin.Context) {
-			responses.RespondNotImplemented(c, nil, "Adding items to a playlist not implemented yet")
-		})
-
-		// Remove item from playlist - needs special implementation
-		playlists.DELETE("/:id/items/:itemID", func(c *gin.Context) {
-			responses.RespondNotImplemented(c, nil, "Removing items from a playlist not implemented yet")
-		})
-
-		// Get playlist items - needs special implementation
-		playlists.GET("/:id/items", func(c *gin.Context) {
-			responses.RespondNotImplemented(c, nil, "Getting playlist items not implemented yet")
-		})
-
-		// Collections routes
-		collections := rg.Group("/collections")
-		{
-			// Get items in a collection - needs special implementation
-			collections.GET("/:id/items", func(c *gin.Context) {
-				responses.RespondNotImplemented(c, nil, "Getting items in a collection not implemented yet")
-			})
-
-			// Add item to collection - needs special implementation
-			collections.POST("/:id/items", func(c *gin.Context) {
-				responses.RespondNotImplemented(c, nil, "Adding items to a collection not implemented yet")
-			})
-
-			// Remove item from collection - needs special implementation
-			collections.DELETE("/:id/items/:itemID", func(c *gin.Context) {
-				responses.RespondNotImplemented(c, nil, "Removing items from a collection not implemented yet")
-			})
-
-			// Generic cross-media items endpoint
-
-		}
+	// Collections routes
+	collections := rg.Group("/collections")
+	{
+		// Get specialized collection handler
+		collectionHandler := mediaHandlers.CollectionSpecificHandler()
+		
+		// Basic CRUD operations
+		collections.GET("", collectionHandler.GetCollections)
+		collections.GET("/:id", collectionHandler.GetCollectionByID)
+		
+		// Collection items management
+		collections.GET("/:id/items", collectionHandler.GetCollectionItems)
+		
+		// Special collection types
+		collections.GET("/smart", collectionHandler.GetSmartCollections)
+		collections.GET("/featured", collectionHandler.GetFeaturedCollections)
 	}
 }

@@ -23,6 +23,8 @@ type MediaItemRepository[T types.MediaData] interface {
 	GetByType(ctx context.Context, mediaType types.MediaType, clientID uint64) ([]*models.MediaItem[T], error)
 	GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error)
 
+	GetAllMediaItemsByIDs(ctx context.Context, ids []uint64) (*models.MediaItems, error)
+
 	Search(ctx context.Context, options types.QueryOptions) ([]*models.MediaItem[T], error)
 
 	// Delete operation
@@ -233,5 +235,61 @@ func (r *mediaItemRepository[T]) Search(ctx context.Context, options types.Query
 		return nil, fmt.Errorf("failed to search media items: %w", err)
 	}
 
+	return items, nil
+}
+
+func (r *mediaItemRepository[T]) GetAllMediaItemsByIDs(ctx context.Context, ids []uint64) (*models.MediaItems, error) {
+
+	// Fetch movies
+	movies, err := fetchMediaItemsByType[*types.Movie](ctx, r.db, ids, types.MediaTypeMovie)
+	if err != nil {
+		return nil, err
+	}
+	// Fetch series
+	series, err := fetchMediaItemsByType[*types.Series](ctx, r.db, ids, types.MediaTypeSeries)
+	if err != nil {
+		return nil, err
+	}
+	episodes, err := fetchMediaItemsByType[*types.Episode](ctx, r.db, ids, types.MediaTypeEpisode)
+	if err != nil {
+		return nil, err
+	}
+	// Fetch other types
+	seasons, err := fetchMediaItemsByType[*types.Season](ctx, r.db, ids, types.MediaTypeSeason)
+	if err != nil {
+		return nil, err
+	}
+	tracks, err := fetchMediaItemsByType[*types.Track](ctx, r.db, ids, types.MediaTypeTrack)
+	if err != nil {
+		return nil, err
+	}
+	albums, err := fetchMediaItemsByType[*types.Album](ctx, r.db, ids, types.MediaTypeAlbum)
+	if err != nil {
+		return nil, err
+	}
+	artists, err := fetchMediaItemsByType[*types.Artist](ctx, r.db, ids, types.MediaTypeArtist)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.MediaItems{
+		Movies:   movies,
+		Series:   series,
+		Seasons:  seasons,
+		Episodes: episodes,
+		Tracks:   tracks,
+		Albums:   albums,
+		Artists:  artists,
+	}, nil
+}
+
+func fetchMediaItemsByType[T types.MediaData](ctx context.Context, db *gorm.DB, ids []uint64, mediaType types.MediaType) ([]*models.MediaItem[T], error) {
+
+	// Fetch items by type
+	var items []*models.MediaItem[T]
+	if err := db.WithContext(ctx).Where("id IN ? AND type = ?", ids, mediaType).Find(&items).Error; err != nil {
+		return nil, err
+
+	}
 	return items, nil
 }

@@ -154,6 +154,8 @@ type MediaItemHandlers interface {
 	// Specialized handlers
 	MusicHandler() *handlers.MusicSpecificHandler
 	SeriesSpecificHandler() *handlers.SeriesSpecificHandler
+	PlaylistSpecificHandler() *handlers.PlaylistHandler
+	CollectionSpecificHandler() *handlers.CollectionHandler
 }
 
 type ClientMediaHandlers interface {

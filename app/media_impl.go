@@ -60,8 +60,10 @@ type mediaItemHandlersImpl struct {
 	playlistHandler   *handlers.MediaItemHandler[*mediatypes.Playlist]
 	
 	// Specialized handlers
-	musicHandler          *handlers.MusicSpecificHandler
-	seriesSpecificHandler *handlers.SeriesSpecificHandler
+	musicHandler            *handlers.MusicSpecificHandler
+	seriesSpecificHandler   *handlers.SeriesSpecificHandler
+	playlistSpecificHandler *handlers.PlaylistHandler
+	collectionSpecificHandler *handlers.CollectionHandler
 }
 
 func (h *mediaItemHandlersImpl) MovieHandler() *handlers.MediaItemHandler[*mediatypes.Movie] {
@@ -110,4 +112,14 @@ func (h *mediaItemHandlersImpl) MusicHandler() *handlers.MusicSpecificHandler {
 // SeriesSpecificHandler returns the specialized series handler
 func (h *mediaItemHandlersImpl) SeriesSpecificHandler() *handlers.SeriesSpecificHandler {
 	return h.seriesSpecificHandler
+}
+
+// PlaylistSpecificHandler returns the specialized playlist handler
+func (h *mediaItemHandlersImpl) PlaylistSpecificHandler() *handlers.PlaylistHandler {
+	return h.playlistSpecificHandler
+}
+
+// CollectionSpecificHandler returns the specialized collection handler
+func (h *mediaItemHandlersImpl) CollectionSpecificHandler() *handlers.CollectionHandler {
+	return h.collectionSpecificHandler
 }

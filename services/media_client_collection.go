@@ -199,4 +199,3 @@ func (s *mediaCollectionService[T]) GetCollections(ctx context.Context, userID u
 
 	return allCollections, nil
 }
-
