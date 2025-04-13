@@ -58,6 +58,10 @@ type mediaItemHandlersImpl struct {
 	artistHandler     *handlers.MediaItemHandler[*mediatypes.Artist]
 	collectionHandler *handlers.MediaItemHandler[*mediatypes.Collection]
 	playlistHandler   *handlers.MediaItemHandler[*mediatypes.Playlist]
+	
+	// Specialized handlers
+	musicHandler          *handlers.MusicSpecificHandler
+	seriesSpecificHandler *handlers.SeriesSpecificHandler
 }
 
 func (h *mediaItemHandlersImpl) MovieHandler() *handlers.MediaItemHandler[*mediatypes.Movie] {
@@ -70,6 +74,12 @@ func (h *mediaItemHandlersImpl) SeriesHandler() *handlers.MediaItemHandler[*medi
 
 func (h *mediaItemHandlersImpl) EpisodeHandler() *handlers.MediaItemHandler[*mediatypes.Episode] {
 	return h.episodeHandler
+}
+
+// SeasonHandler returns the season handler (not implemented in this structure)
+func (h *mediaItemHandlersImpl) SeasonHandler() *handlers.MediaItemHandler[*mediatypes.Season] {
+	// Season handler is not directly implemented
+	return nil
 }
 
 func (h *mediaItemHandlersImpl) TrackHandler() *handlers.MediaItemHandler[*mediatypes.Track] {
@@ -90,4 +100,14 @@ func (h *mediaItemHandlersImpl) CollectionHandler() *handlers.MediaItemHandler[*
 
 func (h *mediaItemHandlersImpl) PlaylistHandler() *handlers.MediaItemHandler[*mediatypes.Playlist] {
 	return h.playlistHandler
+}
+
+// MusicHandler returns the specialized music handler
+func (h *mediaItemHandlersImpl) MusicHandler() *handlers.MusicSpecificHandler {
+	return h.musicHandler
+}
+
+// SeriesSpecificHandler returns the specialized series handler
+func (h *mediaItemHandlersImpl) SeriesSpecificHandler() *handlers.SeriesSpecificHandler {
+	return h.seriesSpecificHandler
 }

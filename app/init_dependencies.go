@@ -163,6 +163,18 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		artistHandler:     handlers.NewMediaItemHandler[*mediatypes.Artist](deps.MediaItemServices.ArtistService()),
 		collectionHandler: handlers.NewMediaItemHandler[*mediatypes.Collection](deps.MediaItemServices.CollectionService()),
 		playlistHandler:   handlers.NewMediaItemHandler[*mediatypes.Playlist](deps.MediaItemServices.PlaylistService()),
+
+		// Initialize specialized handlers
+		musicHandler: handlers.NewMusicSpecificHandler(
+			deps.MediaItemServices.TrackService(),
+			deps.MediaItemServices.AlbumService(),
+			deps.MediaItemServices.ArtistService(),
+		),
+		seriesSpecificHandler: &handlers.SeriesSpecificHandler{
+			MediaItemHandler: handlers.NewMediaItemHandler(deps.MediaItemServices.SeriesService()),
+			// episodeHandler:   deps.MediaItemHandlers.EpisodeHandler(),
+			// seasonHandler:    deps.MediaItemHandlers.SeasonHandler(),
+		},
 	}
 
 	// System Handlers

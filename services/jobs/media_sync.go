@@ -901,10 +901,10 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.M
 					seasons, err := seriesProvider.GetSeriesSeasons(ctx, seriesID)
 					if err == nil && len(seasons) > 0 {
 						// Convert to Season type from pointer
-						seriesSeasons := make([]mediatypes.Season, 0, len(seasons))
+						seriesSeasons := make([]*mediatypes.Season, 0, len(seasons))
 						for _, season := range seasons {
 							if season.Data != nil {
-								seriesSeasons = append(seriesSeasons, *season.Data)
+								seriesSeasons = append(seriesSeasons, season.Data)
 							}
 						}
 
@@ -948,7 +948,7 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.M
 			}
 
 			if s.Data.Seasons == nil {
-				s.Data.Seasons = []mediatypes.Season{}
+				s.Data.Seasons = []*mediatypes.Season{}
 			}
 
 			// Create the series

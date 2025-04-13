@@ -144,11 +144,16 @@ type MediaItemHandlers interface {
 	MovieHandler() *handlers.MediaItemHandler[*mediatypes.Movie]
 	SeriesHandler() *handlers.MediaItemHandler[*mediatypes.Series]
 	EpisodeHandler() *handlers.MediaItemHandler[*mediatypes.Episode]
+	SeasonHandler() *handlers.MediaItemHandler[*mediatypes.Season]
 	TrackHandler() *handlers.MediaItemHandler[*mediatypes.Track]
 	AlbumHandler() *handlers.MediaItemHandler[*mediatypes.Album]
 	ArtistHandler() *handlers.MediaItemHandler[*mediatypes.Artist]
 	CollectionHandler() *handlers.MediaItemHandler[*mediatypes.Collection]
 	PlaylistHandler() *handlers.MediaItemHandler[*mediatypes.Playlist]
+	
+	// Specialized handlers
+	MusicHandler() *handlers.MusicSpecificHandler
+	SeriesSpecificHandler() *handlers.SeriesSpecificHandler
 }
 
 type ClientMediaHandlers interface {

@@ -12,7 +12,7 @@ import (
 // RegisterMediaPlayHistoryRoutes configures routes for media play history
 func RegisterMediaPlayHistoryRoutes(rg *gin.RouterGroup, deps *app.AppDependencies) {
 	// Initialize the repository, service, and handler
-	// Note: Eventually this should be moved to the dependency injection system
+	// We need to initialize these here since they're not fully integrated into the dependency system yet
 	repo := repository.NewMediaPlayHistoryRepository(deps.GetDB())
 	service := services.NewMediaPlayHistoryService(repo)
 	handler := handlers.NewMediaPlayHistoryHandler(service)

@@ -33,10 +33,10 @@ func NewMediaPlayHistoryHandler(service services.MediaPlayHistoryService) *Media
 // @Param offset query int false "Number of items to skip (default 0)"
 // @Param type query string false "Media type filter (movie, series, episode, track, etc.)"
 // @Param completed query bool false "Filter by completion status"
-// @Success 200 {object} responses.Response "Successfully retrieved play history"
-// @Failure 400 {object} responses.ErrorResponse "Bad request"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Internal server error"
+// @Success 200 {object} responses.APIResponse[[]models.MediaPlayHistory[any]] "Successfully retrieved play history"
+// @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
+// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /history [get]
 func (h *MediaPlayHistoryHandler) GetMediaPlayHistory(c *gin.Context) {
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
@@ -84,10 +84,10 @@ func (h *MediaPlayHistoryHandler) GetMediaPlayHistory(c *gin.Context) {
 // @Produce json
 // @Param userId query int true "User ID"
 // @Param limit query int false "Number of items to return (default 10)"
-// @Success 200 {object} responses.Response "Successfully retrieved continue watching items"
-// @Failure 400 {object} responses.ErrorResponse "Bad request"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Internal server error"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[any]] "Successfully retrieved continue watching items"
+// @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
+// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /history/continue-watching [get]
 func (h *MediaPlayHistoryHandler) GetContinueWatching(c *gin.Context) {
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
@@ -115,11 +115,11 @@ func (h *MediaPlayHistoryHandler) GetContinueWatching(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "History ID"
-// @Success 200 {object} responses.Response "Successfully retrieved play history entry"
-// @Failure 400 {object} responses.ErrorResponse "Bad request"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 404 {object} responses.ErrorResponse "Not found"
-// @Failure 500 {object} responses.ErrorResponse "Internal server error"
+// @Success 200 {object} responses.APIResponse[models.MediaPlayHistory[any]] "Successfully retrieved play history entry"
+// @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
+// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
+// @Failure 404 {object} responses.ErrorResponse[any] "Not found"
+// @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /history/{id} [get]
 func (h *MediaPlayHistoryHandler) GetMediaPlayHistoryByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -145,10 +145,10 @@ func (h *MediaPlayHistoryHandler) GetMediaPlayHistoryByID(c *gin.Context) {
 // @Produce json
 // @Param mediaItemId path int true "Media Item ID"
 // @Param userId query int true "User ID"
-// @Success 200 {object} responses.Response "Successfully retrieved play history for media item"
-// @Failure 400 {object} responses.ErrorResponse "Bad request"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Internal server error"
+// @Success 200 {object} responses.APIResponse[[]models.MediaPlayHistory[any]] "Successfully retrieved play history for media item"
+// @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
+// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /history/media/{mediaItemId} [get]
 func (h *MediaPlayHistoryHandler) GetMediaPlayHistoryByMediaItem(c *gin.Context) {
 	mediaItemID, err := strconv.ParseUint(c.Param("mediaItemId"), 10, 64)
@@ -179,10 +179,10 @@ func (h *MediaPlayHistoryHandler) GetMediaPlayHistoryByMediaItem(c *gin.Context)
 // @Accept json
 // @Produce json
 // @Param mediaPlay body models.MediaPlayHistoryRequest true "Media play information"
-// @Success 201 {object} responses.Response "Play event recorded successfully"
-// @Failure 400 {object} responses.ErrorResponse "Bad request"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Internal server error"
+// @Success 201 {object} responses.APIResponse[models.MediaPlayHistory[any]] "Play event recorded successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
+// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /history [post]
 func (h *MediaPlayHistoryHandler) RecordMediaPlay(c *gin.Context) {
 	var req models.MediaPlayHistoryRequest
@@ -229,10 +229,10 @@ func (h *MediaPlayHistoryHandler) RecordMediaPlay(c *gin.Context) {
 // @Param mediaItemId path int true "Media Item ID"
 // @Param userId query int true "User ID"
 // @Param favorite query bool true "Favorite status"
-// @Success 200 {object} responses.Response "Favorite status updated successfully"
-// @Failure 400 {object} responses.ErrorResponse "Bad request"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Internal server error"
+// @Success 200 {object} responses.APIResponse[models.MediaPlayHistory[any]] "Favorite status updated successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
+// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /history/media/{mediaItemId}/favorite [put]
 func (h *MediaPlayHistoryHandler) ToggleFavorite(c *gin.Context) {
 	mediaItemID, err := strconv.ParseUint(c.Param("mediaItemId"), 10, 64)
@@ -271,10 +271,10 @@ func (h *MediaPlayHistoryHandler) ToggleFavorite(c *gin.Context) {
 // @Param mediaItemId path int true "Media Item ID"
 // @Param userId query int true "User ID"
 // @Param rating query number true "User rating (0-10)"
-// @Success 200 {object} responses.Response "Rating updated successfully"
-// @Failure 400 {object} responses.ErrorResponse "Bad request"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Internal server error"
+// @Success 200 {object} responses.APIResponse[models.MediaPlayHistory[any]] "Rating updated successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
+// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /history/media/{mediaItemId}/rating [put]
 func (h *MediaPlayHistoryHandler) UpdateUserRating(c *gin.Context) {
 	mediaItemID, err := strconv.ParseUint(c.Param("mediaItemId"), 10, 64)
@@ -319,10 +319,10 @@ func (h *MediaPlayHistoryHandler) UpdateUserRating(c *gin.Context) {
 // @Param type query string false "Media type filter (movie, series, episode, track, etc.)"
 // @Param limit query int false "Number of items to return (default 10)"
 // @Param offset query int false "Number of items to skip (default 0)"
-// @Success 200 {object} responses.Response "Successfully retrieved favorites"
-// @Failure 400 {object} responses.ErrorResponse "Bad request"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Internal server error"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[any]] "Successfully retrieved favorites"
+// @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
+// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /favorites [get]
 func (h *MediaPlayHistoryHandler) GetFavorites(c *gin.Context) {
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
@@ -358,11 +358,11 @@ func (h *MediaPlayHistoryHandler) GetFavorites(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "History ID"
-// @Success 200 {object} responses.Response "History entry deleted successfully"
-// @Failure 400 {object} responses.ErrorResponse "Bad request"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 404 {object} responses.ErrorResponse "Not found"
-// @Failure 500 {object} responses.ErrorResponse "Internal server error"
+// @Success 200 {object} responses.APIResponse[models.MediaPlayHistory[any]] "History entry deleted successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
+// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
+// @Failure 404 {object} responses.ErrorResponse[any] "Not found"
+// @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /history/{id} [delete]
 func (h *MediaPlayHistoryHandler) DeleteHistory(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -388,10 +388,10 @@ func (h *MediaPlayHistoryHandler) DeleteHistory(c *gin.Context) {
 // @Produce json
 // @Param userId query int true "User ID"
 // @Param type query string false "Media type filter (movie, series, episode, track, etc.)"
-// @Success 200 {object} responses.Response "History cleared successfully"
-// @Failure 400 {object} responses.ErrorResponse "Bad request"
-// @Failure 401 {object} responses.ErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse "Internal server error"
+// @Success 200 {object} responses.APIResponse[any] "History cleared successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
+// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /history/clear [delete]
 func (h *MediaPlayHistoryHandler) ClearUserHistory(c *gin.Context) {
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
@@ -417,4 +417,3 @@ func (h *MediaPlayHistoryHandler) ClearUserHistory(c *gin.Context) {
 
 	responses.RespondOK(c, responses.EmptyResponse{Success: true}, "History cleared successfully")
 }
-

@@ -41,15 +41,16 @@ type Track struct {
 // Season represents a TV season
 type Season struct {
 	Details      MediaDetails
-	Number       int       `json:"seasonNumber"`
-	Title        string    `json:"title,omitempty"`
-	Overview     string    `json:"overview,omitempty"`
-	EpisodeCount int       `json:"episodeCount"`
-	Artwork      Artwork   `json:"artwork,omitempty"`
-	ReleaseDate  time.Time `json:"releaseDate,omitempty"`
-	SeriesName   string    `json:"seriesName,omitempty"`
-	SeriesID     string    `json:"seriesID"`
-	Credits      Credits   `json:"credits,omitempty"`
+	Number       int        `json:"seasonNumber"`
+	Title        string     `json:"title,omitempty"`
+	Overview     string     `json:"overview,omitempty"`
+	EpisodeCount int        `json:"episodeCount"`
+	Episodes     []*Episode `json:"episodes,omitempty"`
+	Artwork      Artwork    `json:"artwork,omitempty"`
+	ReleaseDate  time.Time  `json:"releaseDate,omitempty"`
+	SeriesName   string     `json:"seriesName,omitempty"`
+	SeriesID     string     `json:"seriesID"`
+	Credits      Credits    `json:"credits,omitempty"`
 }
 
 // Episode represents a TV episode
@@ -66,16 +67,16 @@ type Episode struct {
 // Series represents a TV series
 type Series struct {
 	Details       MediaDetails
-	Seasons       []Season `json:"seasons,omitempty"`
-	EpisodeCount  int      `json:"episodeCount"`
-	SeasonCount   int      `json:"seasonCount"`
-	ReleaseYear   int      `json:"releaseYear"`
-	ContentRating string   `json:"contentRating"`
-	Rating        float64  `json:"rating"`
-	Network       string   `json:"network,omitempty"`
-	Status        string   `json:"status,omitempty"` // e.g., "Ended", "Continuing"
-	Genres        []string `json:"genres,omitempty"`
-	Credits       Credits  `json:"credits,omitempty"`
+	Seasons       []*Season `json:"seasons,omitempty"`
+	EpisodeCount  int       `json:"episodeCount"`
+	SeasonCount   int       `json:"seasonCount"`
+	ReleaseYear   int       `json:"releaseYear"`
+	ContentRating string    `json:"contentRating"`
+	Rating        float64   `json:"rating"`
+	Network       string    `json:"network,omitempty"`
+	Status        string    `json:"status,omitempty"` // e.g., "Ended", "Continuing"
+	Genres        []string  `json:"genres,omitempty"`
+	Credits       Credits   `json:"credits,omitempty"`
 }
 
 // Collection represents a collection of media items
