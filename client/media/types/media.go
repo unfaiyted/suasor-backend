@@ -79,50 +79,64 @@ type Series struct {
 	Credits       Credits   `json:"credits,omitempty"`
 }
 
-// Collection represents a collection of media items
-type Collection struct {
-	Details        MediaDetails
-	ItemIDs        []uint64 `json:"itemIDs"`
-	ItemCount      int      `json:"itemCount"`
-	CollectionType string   `json:"collectionType"` // e.g., "movie", "tvshow", "mixed"
-}
-
 // ChangeRecord tracks when and where an item was changed
 type ChangeRecord struct {
 	ClientID   uint64    `json:"clientId"`
 	ItemID     string    `json:"itemId,omitempty"`
-	ChangeType string    `json:"changeType"` // "add", "remove", "update", "reorder"
+	ChangeType string    `json:"changeType"` // "add", "remove", "update", "reorder", "sync"
 	Timestamp  time.Time `json:"timestamp"`
 }
 
-// // PlaylistItem represents an item in a playlist with its position and history
-// type PlaylistItem struct {
-// 	ItemID        string         `json:"itemId"`
-// 	Position      int            `json:"position"`
-// 	LastChanged   time.Time      `json:"lastChanged"`
-// 	ChangeHistory []ChangeRecord `json:"changeHistory,omitempty"`
-// }
-
-type ClientItemList struct {
-	ItemIDs  []uint64 `json:"itemIDs"`
-	ClientID uint64   `json:"clientItemIDs,omitempty"`
+// PlaylistItem represents an item in a playlist with its position and history
+type PlaylistItem struct {
+	ItemID        string         `json:"itemId"`
+	Position      int            `json:"position"`
+	LastChanged   time.Time      `json:"lastChanged"`
+	ChangeHistory []ChangeRecord `json:"changeHistory,omitempty"`
 }
 
-type ClientItemLists []ClientItemList
+// SyncClientState represents the state of a collection or playlist on a particular client
+type SyncClientState struct {
+	// Integration Client's Internal IDs for the items
+	ItemIDs  []string `json:"itemIDs"`
+	ClientID uint64   `json:"clientID"`
+	// Time last synced to this client
+	LastSynced time.Time `json:"lastSynced,omitempty"`
+	// Client-specific playlist/collection ID
+	ExternalID string `json:"externalID,omitempty"`
+}
+
+type SyncClientStates []SyncClientState
+
+// Collection represents a collection of media items
+type Collection struct {
+	Details          MediaDetails
+	ItemIDs          []uint64         `json:"itemIDs"`
+	Items            []PlaylistItem   `json:"items,omitempty"`
+	SyncClientStates SyncClientStates `json:"syncClientStates,omitempty"`
+	ItemCount        int              `json:"itemCount"`
+	CollectionType   string           `json:"collectionType"` // e.g., "movie", "tvshow", "mixed"
+	Owner            uint64           `json:"owner,omitempty"`
+	LastSynced       time.Time        `json:"lastSynced,omitempty"`
+	LastModified     time.Time        `json:"lastModified,omitempty"`
+	ModifiedBy       uint64           `json:"modifiedBy,omitempty"` // Sync Client ID that last modified this collection, 0 for local
+}
 
 // Playlist represents a user-created playlist of media items
 type Playlist struct {
 	Details MediaDetails
 
-	ItemIDs             []uint64        `json:"itemIDs"`
-	SyncedClientItemIDs ClientItemLists `json:"clientItemIDs,omitempty"`
-	ItemCount           int             `json:"itemCount"`
-	Owner               string          `json:"owner,omitempty"`
-	IsPublic            bool            `json:"isPublic"`
-	LastSynced          time.Time       `json:"lastSynced,omitempty"`
+	ItemIDs          []uint64         `json:"itemIDs"`
+	Items            []PlaylistItem   `json:"items,omitempty"`
+	SyncClientStates SyncClientStates `json:"syncClientStates,omitempty"`
+	ItemCount        int              `json:"itemCount"`
+	Owner            uint64           `json:"owner,omitempty"`
+	IsPublic         bool             `json:"isPublic"`
+	LastSynced       time.Time        `json:"lastSynced,omitempty"`
+
 	// Track when and which client last modified this playlist
 	LastModified time.Time `json:"lastModified,omitempty"`
-	ModifiedBy   uint64    `json:"modifiedBy,omitempty"` // Client ID that last modified this playlist
+	ModifiedBy   uint64    `json:"modifiedBy,omitempty"` // Sync Client ID that last modified this playlist
 }
 
 // Movie represents a movie item
@@ -244,3 +258,35 @@ func (s Season) GetMediaType() MediaType  { return MediaTypeSeason }
 
 func (e Episode) GetDetails() MediaDetails { return e.Details }
 func (e Episode) GetMediaType() MediaType  { return MediaTypeEpisode }
+
+// GetSyncClientState returns the sync state for a specific client
+func (states SyncClientStates) GetSyncClientState(clientID uint64) *SyncClientState {
+	for i, state := range states {
+		if state.ClientID == clientID {
+			return &states[i]
+		}
+	}
+	return nil
+}
+
+// AddOrUpdateSyncClientState adds a new sync state or updates an existing one
+func (states *SyncClientStates) AddOrUpdateSyncClientState(clientID uint64, itemIDs []string, externalID string) {
+	// Check if state already exists for this client
+	for i, state := range *states {
+		if state.ClientID == clientID {
+			// Update existing state
+			(*states)[i].ItemIDs = itemIDs
+			(*states)[i].ExternalID = externalID
+			(*states)[i].LastSynced = time.Now()
+			return
+		}
+	}
+	
+	// Add new state
+	*states = append(*states, SyncClientState{
+		ClientID:   clientID,
+		ItemIDs:    itemIDs,
+		ExternalID: externalID,
+		LastSynced: time.Now(),
+	})
+}
