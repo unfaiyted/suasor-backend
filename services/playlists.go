@@ -120,24 +120,24 @@ func (s *playlistService) Delete(ctx context.Context, id uint64) error {
 
 // Playlist-specific operations
 
-func (s *playlistService) GetPlaylistItems(ctx context.Context, playlistID uint64) ([]models.MediaItem[mediatypes.MediaData], error) {
+func (s *playlistService) GetPlaylistItems(ctx context.Context, playlistID uint64) (models.MediaItems, error) {
 	// Get the playlist
 	playlist, err := s.GetByID(ctx, playlistID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get playlist items: %w", err)
+		return models.MediaItems{}, fmt.Errorf("failed to get playlist items: %w", err)
 	}
 
 	// Return empty array if the playlist has no items
 	if len(playlist.Data.Items) == 0 && len(playlist.Data.ItemIDs) == 0 {
-		return []models.MediaItem[mediatypes.MediaData]{}, nil
+		return models.MediaItems{}, nil
 	}
 
-	// Implementation note: In a real application, this would need access to:
+	// Implementation note: this would need access to:
 	// 1. The mediaItemRepo to look up each item by ID
 	// 2. Additional logic to handle the case where the item is stored in another client
 
 	// As a placeholder implementation, we'll just create stub items based on the available IDs
-	var items []models.MediaItem[mediatypes.MediaData]
+	var items models.MediaItems
 
 	// First, try to get items from the Items array (the new format)
 	if len(playlist.Data.Items) > 0 {
@@ -481,4 +481,3 @@ func sortByPosition(items []models.MediaItem[mediatypes.MediaData]) {
 	// which should match the order in the playlist.Data.Items array
 	// if we processed them in order during collection
 }
-
