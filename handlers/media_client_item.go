@@ -15,16 +15,16 @@ import (
 	"suasor/utils"
 )
 
-// MediaItemHandler handles operations on media items stored in the database
+// MediaClientItemHandler handles operations on media items stored in the database
 // It provides access to different types of media (movies, series, music, etc.)
 // using a generic type parameter
-type MediaItemHandler[T types.MediaData] struct {
+type MediaClientItemHandler[T types.MediaData] struct {
 	service services.MediaItemService[T]
 }
 
-// NewMediaItemHandler creates a new media item handler
-func NewMediaItemHandler[T types.MediaData](service services.MediaItemService[T]) *MediaItemHandler[T] {
-	return &MediaItemHandler[T]{service: service}
+// NewMediaClientItemHandler creates a new media item handler
+func NewMediaClientItemHandler[T types.MediaData](service services.MediaItemService[T]) *MediaClientItemHandler[T] {
+	return &MediaClientItemHandler[T]{service: service}
 }
 
 // CreateMediaItem godoc
@@ -38,7 +38,7 @@ func NewMediaItemHandler[T types.MediaData](service services.MediaItemService[T]
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /item/media [post]
-func (h *MediaItemHandler[T]) CreateMediaItem(c *gin.Context) {
+func (h *MediaClientItemHandler[T]) CreateMediaItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -114,7 +114,7 @@ func (h *MediaItemHandler[T]) CreateMediaItem(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /item/media/{id} [put]
-func (h *MediaItemHandler[T]) UpdateMediaItem(c *gin.Context) {
+func (h *MediaClientItemHandler[T]) UpdateMediaItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -175,7 +175,6 @@ func (h *MediaItemHandler[T]) UpdateMediaItem(c *gin.Context) {
 	if err != nil {
 		log.Error().Err(err).Uint64("id", id).Msg("Failed to update media item")
 		responses.RespondInternalError(c, err, "Failed to update media item")
-		return
 	}
 
 	log.Info().
@@ -198,7 +197,7 @@ func (h *MediaItemHandler[T]) UpdateMediaItem(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /item/media/{id} [get]
-func (h *MediaItemHandler[T]) GetMediaItem(c *gin.Context) {
+func (h *MediaClientItemHandler[T]) GetMediaItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -214,7 +213,7 @@ func (h *MediaItemHandler[T]) GetMediaItem(c *gin.Context) {
 }
 
 // Type-specific media item retrieval helper
-func (h *MediaItemHandler[T]) getMediaItem(c *gin.Context, id uint64) {
+func (h *MediaClientItemHandler[T]) getMediaItem(c *gin.Context, id uint64) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -242,7 +241,7 @@ func (h *MediaItemHandler[T]) getMediaItem(c *gin.Context, id uint64) {
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Failure 501 {object} responses.ErrorResponse[any] "Not implemented"
 // @Router /item/media/client/{clientId} [get]
-func (h *MediaItemHandler[T]) GetMediaItemsByClient(c *gin.Context) {
+func (h *MediaClientItemHandler[T]) GetMediaItemsByClient(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -270,7 +269,7 @@ func (h *MediaItemHandler[T]) GetMediaItemsByClient(c *gin.Context) {
 }
 
 // Type-specific media items by client retrieval helper
-func (h *MediaItemHandler[T]) getMediaItemsByClient(c *gin.Context, clientID uint64) {
+func (h *MediaClientItemHandler[T]) getMediaItemsByClient(c *gin.Context, clientID uint64) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -296,7 +295,7 @@ func (h *MediaItemHandler[T]) getMediaItemsByClient(c *gin.Context, clientID uin
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid media item ID"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /item/media/{id} [delete]
-func (h *MediaItemHandler[T]) DeleteMediaItem(c *gin.Context) {
+func (h *MediaClientItemHandler[T]) DeleteMediaItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -312,7 +311,7 @@ func (h *MediaItemHandler[T]) DeleteMediaItem(c *gin.Context) {
 }
 
 // Type-specific media item deletion helper
-func (h *MediaItemHandler[T]) deleteMediaItem(c *gin.Context, id uint64) {
+func (h *MediaClientItemHandler[T]) deleteMediaItem(c *gin.Context, id uint64) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -340,7 +339,7 @@ func (h *MediaItemHandler[T]) deleteMediaItem(c *gin.Context, id uint64) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /item/media/search [get]
-func (h *MediaItemHandler[T]) SearchMediaItems(c *gin.Context) {
+func (h *MediaClientItemHandler[T]) SearchMediaItems(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -376,7 +375,7 @@ func (h *MediaItemHandler[T]) SearchMediaItems(c *gin.Context) {
 }
 
 // Type-specific media items search helper
-func (h *MediaItemHandler[T]) searchMediaItems(c *gin.Context, query string, userID uint64) {
+func (h *MediaClientItemHandler[T]) searchMediaItems(c *gin.Context, query string, userID uint64) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -404,7 +403,7 @@ func (h *MediaItemHandler[T]) searchMediaItems(c *gin.Context, query string, use
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /item/media/recent [get]
-func (h *MediaItemHandler[T]) GetRecentMediaItems(c *gin.Context) {
+func (h *MediaClientItemHandler[T]) GetRecentMediaItems(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -438,7 +437,7 @@ func (h *MediaItemHandler[T]) GetRecentMediaItems(c *gin.Context) {
 }
 
 // Type-specific recent media items retrieval helper
-func (h *MediaItemHandler[T]) getRecentMediaItems(c *gin.Context, userID uint64, limit int) {
+func (h *MediaClientItemHandler[T]) getRecentMediaItems(c *gin.Context, userID uint64, limit int) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -466,7 +465,7 @@ func (h *MediaItemHandler[T]) getRecentMediaItems(c *gin.Context, userID uint64,
 // @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /item/media/external/{source}/{externalId} [get]
-func (h *MediaItemHandler[T]) GetMediaItemByExternalSourceID(c *gin.Context) {
+func (h *MediaClientItemHandler[T]) GetMediaItemByExternalSourceID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -504,7 +503,7 @@ func (h *MediaItemHandler[T]) GetMediaItemByExternalSourceID(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /item/media/genre/{genre} [get]
-func (h *MediaItemHandler[T]) GetMediaItemsByGenre(c *gin.Context) {
+func (h *MediaClientItemHandler[T]) GetMediaItemsByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -575,7 +574,7 @@ func (h *MediaItemHandler[T]) GetMediaItemsByGenre(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /item/media/year/{year} [get]
-func (h *MediaItemHandler[T]) GetMediaItemsByYear(c *gin.Context) {
+func (h *MediaClientItemHandler[T]) GetMediaItemsByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -651,7 +650,7 @@ func (h *MediaItemHandler[T]) GetMediaItemsByYear(c *gin.Context) {
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Failure 501 {object} responses.ErrorResponse[any] "Not implemented"
 // @Router /item/media/person/{personId} [get]
-func (h *MediaItemHandler[T]) GetMediaItemsByPerson(c *gin.Context) {
+func (h *MediaClientItemHandler[T]) GetMediaItemsByPerson(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -701,7 +700,7 @@ func (h *MediaItemHandler[T]) GetMediaItemsByPerson(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /item/media/popular [get]
-func (h *MediaItemHandler[T]) GetPopularMediaItems(c *gin.Context) {
+func (h *MediaClientItemHandler[T]) GetPopularMediaItems(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -747,7 +746,7 @@ func (h *MediaItemHandler[T]) GetPopularMediaItems(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /item/media/top-rated [get]
-func (h *MediaItemHandler[T]) GetTopRatedMediaItems(c *gin.Context) {
+func (h *MediaClientItemHandler[T]) GetTopRatedMediaItems(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -793,7 +792,7 @@ func (h *MediaItemHandler[T]) GetTopRatedMediaItems(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /item/media/all [get]
-func (h *MediaItemHandler[T]) GetAllMediaItems(c *gin.Context) {
+func (h *MediaClientItemHandler[T]) GetAllMediaItems(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -843,7 +842,7 @@ func (h *MediaItemHandler[T]) GetAllMediaItems(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /item/media/latest [get]
-func (h *MediaItemHandler[T]) GetLatestMediaItemsByAdded(c *gin.Context) {
+func (h *MediaClientItemHandler[T]) GetLatestMediaItemsByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 

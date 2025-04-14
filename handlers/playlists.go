@@ -46,12 +46,13 @@ func (h *PlaylistHandler) GetPlaylists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
+	uid, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("Attempt to access playlists without authentication")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
+	userID := uid.(uint64)
 
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	if err != nil {
@@ -198,8 +199,6 @@ func (h *PlaylistHandler) GetPlaylistItems(c *gin.Context) {
 // @Tags playlists
 // @Accept json
 // @Produce json
-// @Param userId query int true "User ID"
-// @Param clientId query int true "Client ID"
 // @Param playlist body object true "Playlist data including name and description"
 // @Success 201 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "Playlist created successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
@@ -209,19 +208,15 @@ func (h *PlaylistHandler) CreatePlaylist(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
+	// Get authenticated user ID
+	userID, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("Attempt to access movie without authentication")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
 
-	clientID, err := strconv.ParseUint(c.Query("clientId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("clientId", c.Query("clientId")).Msg("Invalid client ID")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
-		return
-	}
+	uid := userID.(uint64)
 
 	var req struct {
 		Name        string `json:"name" binding:"required"`
@@ -235,21 +230,25 @@ func (h *PlaylistHandler) CreatePlaylist(c *gin.Context) {
 	}
 
 	log.Debug().
-		Uint64("userID", userID).
-		Uint64("clientID", clientID).
+		Uint64("userID", uid).
 		Str("name", req.Name).
 		Msg("Creating playlist")
 
 	newPlaylist := models.MediaItem[*mediatypes.Playlist]{
-		Type: mediatypes.MediaTypePlaylist,
-		Data: &mediatypes.Playlist{ItemList: mediatypes.ItemList{Details: mediatypes.MediaDetails{Title: req.Name, Description: req.Description}}},
+		Type:  mediatypes.MediaTypePlaylist,
+		Title: req.Name, // Set the title at the MediaItem level
+		Data: &mediatypes.Playlist{
+			ItemList: mediatypes.ItemList{
+				Details: mediatypes.MediaDetails{Title: req.Name, Description: req.Description},
+				Owner:   uid, // Set the owner ID to the current user
+			},
+		},
 	}
 
 	playlist, err := h.service.Create(ctx, &newPlaylist)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("userID", userID).
-			Uint64("clientID", clientID).
+			Uint64("userID", uid).
 			Str("name", req.Name).
 			Msg("Failed to create playlist")
 		responses.RespondInternalError(c, err, "Failed to create playlist")
@@ -257,8 +256,7 @@ func (h *PlaylistHandler) CreatePlaylist(c *gin.Context) {
 	}
 
 	log.Info().
-		Uint64("userID", userID).
-		Uint64("clientID", clientID).
+		Uint64("userID", uid).
 		Str("name", req.Name).
 		Msg("Playlist created successfully")
 
@@ -340,6 +338,7 @@ func (h *PlaylistHandler) UpdatePlaylist(c *gin.Context) {
 
 	playlist.Data.ItemList.Details.Title = req.Name
 	playlist.Data.ItemList.Details.Description = req.Description
+	playlist.Title = req.Name // Update the Title at the MediaItem level too
 
 	updatedPlaylist, err := h.service.Update(ctx, playlist)
 	if err != nil {
@@ -368,8 +367,6 @@ func (h *PlaylistHandler) UpdatePlaylist(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Playlist ID"
-// @Param userId query int true "User ID"
-// @Param clientId query int true "Client ID"
 // @Success 200 {object} responses.APIResponse[any] "Playlist deleted successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
@@ -385,12 +382,13 @@ func (h *PlaylistHandler) DeletePlaylist(c *gin.Context) {
 		return
 	}
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
+	uid, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("Attempt to access playlist without authentication")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
+	userID := uid.(uint64)
 
 	clientID, err := strconv.ParseUint(c.Query("clientId"), 10, 64)
 	if err != nil {
@@ -570,8 +568,6 @@ func (h *PlaylistHandler) RemoveItemFromPlaylist(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Playlist ID"
-// @Param userId query int true "User ID"
-// @Param clientId query int true "Client ID"
 // @Param orderData body object true "New item order data"
 // @Success 200 {object} responses.APIResponse[any] "Playlist items reordered successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
@@ -588,12 +584,13 @@ func (h *PlaylistHandler) ReorderPlaylistItems(c *gin.Context) {
 		return
 	}
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
+	uid, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("Attempt to access playlist without authentication")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
+	userID := uid.(uint64)
 
 	clientID, err := strconv.ParseUint(c.Query("clientId"), 10, 64)
 	if err != nil {

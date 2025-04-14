@@ -11,13 +11,15 @@ import (
 )
 
 type MediaItems struct {
-	Movies   []*MediaItem[*types.Movie]
-	Series   []*MediaItem[*types.Series]
-	Seasons  []*MediaItem[*types.Season]
-	Episodes []*MediaItem[*types.Episode]
-	Artists  []*MediaItem[*types.Artist]
-	Albums   []*MediaItem[*types.Album]
-	Tracks   []*MediaItem[*types.Track]
+	Movies      []*MediaItem[*types.Movie]
+	Series      []*MediaItem[*types.Series]
+	Seasons     []*MediaItem[*types.Season]
+	Episodes    []*MediaItem[*types.Episode]
+	Artists     []*MediaItem[*types.Artist]
+	Albums      []*MediaItem[*types.Album]
+	Tracks      []*MediaItem[*types.Track]
+	Playlists   []*MediaItem[*types.Playlist]
+	Collections []*MediaItem[*types.Collection]
 
 	TotalItems int
 }
@@ -33,11 +35,12 @@ type MediaItem[T types.MediaData] struct {
 	ReleaseDate time.Time       `json:"releaseDate,omitempty"`
 	ReleaseYear int             `json:"releaseYear,omitempty"`
 
-	StreamURL   string    `json:"streamUrl,omitempty" gorm:"size:1024"`
-	DownloadURL string    `json:"downloadUrl,omitempty" gorm:"size:1024"`
-	Data        T         `json:"data" gorm:"type:jsonb"` // Type-specific media data
-	CreatedAt   time.Time `json:"createdAt" gorm:"autoCreateTime"`
-	UpdatedAt   time.Time `json:"updatedAt" gorm:"autoUpdateTime"`
+	StreamURL   string `json:"streamUrl,omitempty" gorm:"size:1024"`
+	DownloadURL string `json:"downloadUrl,omitempty" gorm:"size:1024"`
+	Data        T      `json:"data" gorm:"type:jsonb"` // Type-specific media data
+	// CreatedBy   uint64    `json:"createdBy,omitempty"`
+	CreatedAt time.Time `json:"createdAt" gorm:"autoCreateTime"`
+	UpdatedAt time.Time `json:"updatedAt" gorm:"autoUpdateTime"`
 }
 
 // ExternalID represents an ID that identifies this media item in an external system
@@ -52,9 +55,17 @@ type SyncClient struct {
 
 type SyncClients []SyncClient
 
-func (s SyncClients) GetClientItemID(clientID uint64, clientType client.ClientType) string {
+func (s SyncClients) AddClient(clientID uint64, clientType client.ClientType, itemID string) {
+	s = append(s, SyncClient{
+		ID:     clientID,
+		Type:   clientType,
+		ItemID: itemID,
+	})
+}
+
+func (s SyncClients) GetClientItemID(clientID uint64) string {
 	for _, id := range s {
-		if id.ID == clientID && id.Type == clientType {
+		if id.ID == clientID {
 			return id.ItemID
 		}
 	}
@@ -105,7 +116,27 @@ func (m *MediaItem[T]) Scan(value any) error {
 		return errors.New("type assertion to []byte failed")
 	}
 
-	return json.Unmarshal(bytes, &m)
+	// First unmarshal the common fields
+	type Alias MediaItem[T]
+	aux := &struct {
+		*Alias
+		Data json.RawMessage `json:"data"`
+	}{
+		Alias: (*Alias)(m),
+	}
+
+	if err := json.Unmarshal(bytes, &aux); err != nil {
+		return fmt.Errorf("error unmarshaling media item: %w", err)
+	}
+
+	// Then unmarshal the Data field separately into the appropriate type
+	var mediaData T
+	if err := json.Unmarshal(aux.Data, &mediaData); err != nil {
+		return fmt.Errorf("error unmarshaling data field: %w", err)
+	}
+	m.Data = mediaData
+
+	return nil
 }
 
 // MarshalJSON provides custom JSON serialization

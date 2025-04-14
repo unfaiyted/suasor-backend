@@ -119,11 +119,24 @@ type mediaItemServicesImpl struct {
 	collectionService services.MediaItemService[*mediatypes.Collection]
 	playlistService   services.MediaItemService[*mediatypes.Playlist]
 
-	collectionExtendedService services.CollectionService
+	// Three-pronged architecture services for collections
+	coreCollectionService    services.CoreCollectionService
+	clientCollectionService  services.ClientCollectionService
+	collectionExtendedService services.UserCollectionService
+	
+	// Playlist services
 	playlistExtendedService   services.PlaylistService
 }
 
-func (s *mediaItemServicesImpl) CollectionExtendedService() services.CollectionService {
+func (s *mediaItemServicesImpl) CoreCollectionService() services.CoreCollectionService {
+	return s.coreCollectionService
+}
+
+func (s *mediaItemServicesImpl) ClientCollectionService() services.ClientCollectionService {
+	return s.clientCollectionService
+}
+
+func (s *mediaItemServicesImpl) CollectionExtendedService() services.UserCollectionService {
 	return s.collectionExtendedService
 }
 

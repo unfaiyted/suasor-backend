@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"slices"
@@ -183,19 +184,25 @@ func (states *SyncClientStates) MergeItemsIntoSyncState(clientID uint64, newItem
 
 // ItemList is the common base for collections and playlists
 type ItemList struct {
-	Details MediaDetails
-	Items   []ListItem
+	Details MediaDetails `json:"details"`
+	Items   []ListItem   `json:"items"`
 
-	SyncClientStates SyncClientStates
-	ItemCount        int
-	Owner            uint64
+	SyncClientStates SyncClientStates `json:"syncClientStates"`
+	ItemCount        int              `json:"itemCount"`
+	Owner            uint64           `json:"owner"`
+	SharedWith       []uint64         `json:"sharedWith"`
 
-	IsPublic   bool
-	LastSynced time.Time
+	IsPublic   bool      `json:"isPublic"`
+	LastSynced time.Time `json:"lastSynced"`
 
 	// Track when and which client last modified this playlist
-	LastModified time.Time
-	ModifiedBy   uint64
+	LastModified time.Time `json:"lastModified"`
+	ModifiedBy   uint64    `json:"modifiedBy"`
+
+	// Smart lists
+	IsSmart        bool           `json:"isSmart"`
+	SmartCriteria  map[string]any `json:"smartCriteria"`
+	AutoUpdateTime time.Time      `json:"autoUpdateTime"`
 }
 
 // Interface for ID mapping service
@@ -686,6 +693,28 @@ func (c *Collection) EnsureNoDuplicates() {
 // Playlist represents an ordered collection that can contain duplicates
 type Playlist struct {
 	ItemList
+}
+
+// Scan implements the sql.Scanner interface
+func (p *Playlist) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	bytes, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("expected []byte, got %T", value)
+	}
+
+	// Create a new playlist to unmarshal into
+	var playlist Playlist
+	if err := json.Unmarshal(bytes, &playlist); err != nil {
+		return fmt.Errorf("failed to unmarshal Playlist data: %w", err)
+	}
+
+	// Copy the unmarshaled data to the receiver
+	*p = playlist
+	return nil
 }
 
 // DetectItemOrderConflicts finds conflicts in item ordering

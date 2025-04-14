@@ -16,6 +16,9 @@ type mediaItemRepositoriesImpl struct {
 	artistRepo     repository.MediaItemRepository[*mediatypes.Artist]
 	collectionRepo repository.MediaItemRepository[*mediatypes.Collection]
 	playlistRepo   repository.MediaItemRepository[*mediatypes.Playlist]
+	
+	// User-owned media repositories
+	userMediaPlaylistRepo repository.UserMediaItemRepository[*mediatypes.Playlist]
 }
 
 func (r *mediaItemRepositoriesImpl) AlbumRepo() repository.MediaItemRepository[*mediatypes.Album] {
@@ -47,6 +50,11 @@ func (r *mediaItemRepositoriesImpl) EpisodeRepo() repository.MediaItemRepository
 
 func (r *mediaItemRepositoriesImpl) TrackRepo() repository.MediaItemRepository[*mediatypes.Track] {
 	return r.trackRepo
+}
+
+// UserMediaPlaylistRepo returns the user media playlist repository
+func (r *mediaItemRepositoriesImpl) UserMediaPlaylistRepo() repository.UserMediaItemRepository[*mediatypes.Playlist] {
+	return r.userMediaPlaylistRepo
 }
 
 type mediaItemHandlersImpl struct {

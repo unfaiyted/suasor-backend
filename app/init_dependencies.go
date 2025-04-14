@@ -80,6 +80,9 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		artistRepo:     repository.NewMediaItemRepository[*mediatypes.Artist](db),
 		collectionRepo: repository.NewMediaItemRepository[*mediatypes.Collection](db),
 		playlistRepo:   repository.NewMediaItemRepository[*mediatypes.Playlist](db),
+		
+		// User-owned media repositories
+		userMediaPlaylistRepo: repository.NewUserMediaItemRepository[*mediatypes.Playlist](db),
 	}
 
 	// Store the client factory service
@@ -128,24 +131,104 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		configService: configService,
 	}
 
-	// Initialize media item services
+	// Initialize core media item services
+	movieCoreService := services.NewCoreMediaItemService[*mediatypes.Movie](
+		repository.NewMediaItemRepository[*mediatypes.Movie](db))
+	seriesCoreService := services.NewCoreMediaItemService[*mediatypes.Series](
+		repository.NewMediaItemRepository[*mediatypes.Series](db))
+	episodeCoreService := services.NewCoreMediaItemService[*mediatypes.Episode](
+		repository.NewMediaItemRepository[*mediatypes.Episode](db))
+	trackCoreService := services.NewCoreMediaItemService[*mediatypes.Track](
+		repository.NewMediaItemRepository[*mediatypes.Track](db))
+	albumCoreService := services.NewCoreMediaItemService[*mediatypes.Album](
+		repository.NewMediaItemRepository[*mediatypes.Album](db))
+	artistCoreService := services.NewCoreMediaItemService[*mediatypes.Artist](
+		repository.NewMediaItemRepository[*mediatypes.Artist](db))
+	
+	// Initialize client media item services
+	movieClientService := services.NewClientMediaItemService[*mediatypes.Movie](
+		movieCoreService, 
+		repository.NewClientMediaItemRepository[*mediatypes.Movie](db))
+	seriesClientService := services.NewClientMediaItemService[*mediatypes.Series](
+		seriesCoreService, 
+		repository.NewClientMediaItemRepository[*mediatypes.Series](db))
+	episodeClientService := services.NewClientMediaItemService[*mediatypes.Episode](
+		episodeCoreService, 
+		repository.NewClientMediaItemRepository[*mediatypes.Episode](db))
+	trackClientService := services.NewClientMediaItemService[*mediatypes.Track](
+		trackCoreService, 
+		repository.NewClientMediaItemRepository[*mediatypes.Track](db))
+	albumClientService := services.NewClientMediaItemService[*mediatypes.Album](
+		albumCoreService, 
+		repository.NewClientMediaItemRepository[*mediatypes.Album](db))
+	artistClientService := services.NewClientMediaItemService[*mediatypes.Artist](
+		artistCoreService, 
+		repository.NewClientMediaItemRepository[*mediatypes.Artist](db))
+		
+	// Initialize collection services with three-pronged architecture
+	// Core collection service
+	collectionCoreService := services.NewCoreCollectionService(
+		repository.NewMediaItemRepository[*mediatypes.Collection](db))
+	
+	// Client collection service (extends core)
+	collectionClientService := services.NewClientCollectionService(
+		collectionCoreService,
+		repository.NewClientRepository[clienttypes.MediaClientConfig](db),
+		deps.ClientFactoryService,
+	)
+	
+	// Initialize playlist services
+	// Core service
+	playlistCoreService := services.NewCoreMediaItemService[*mediatypes.Playlist](
+		repository.NewMediaItemRepository[*mediatypes.Playlist](db))
+		
+	// Create repositories for user-owned content
+	collectionUserRepo := repository.NewUserMediaItemRepository[*mediatypes.Collection](db)
+	playlistUserRepo := repository.NewUserMediaItemRepository[*mediatypes.Playlist](db)
+	
+	// Create core repository for media data
+	coreMediaDataRepo := repository.NewMediaItemRepository[mediatypes.MediaData](db)
+	
+	// User collection service (extends core)
+	collectionUserService := services.NewUserCollectionService(
+		collectionCoreService,
+		collectionUserRepo,
+		coreMediaDataRepo,
+	)
+	
+	// Playlist user service
+	playlistUserService := services.NewUserMediaItemService[*mediatypes.Playlist](
+		playlistCoreService, 
+		playlistUserRepo)
+		
+	// Initialize specialized playlist service
+	playlistExtendedService := services.NewPlaylistService(
+		playlistUserRepo,
+		playlistUserService,
+		coreMediaDataRepo,
+	)
+		
+	// Initialize media item services structure with all services
 	deps.MediaItemServices = &mediaItemServicesImpl{
-		movieService:      services.NewMediaItemService[*mediatypes.Movie](deps.MediaItemRepositories.MovieRepo()),
-		seriesService:     services.NewMediaItemService[*mediatypes.Series](deps.MediaItemRepositories.SeriesRepo()),
-		episodeService:    services.NewMediaItemService[*mediatypes.Episode](deps.MediaItemRepositories.EpisodeRepo()),
-		trackService:      services.NewMediaItemService[*mediatypes.Track](deps.MediaItemRepositories.TrackRepo()),
-		albumService:      services.NewMediaItemService[*mediatypes.Album](deps.MediaItemRepositories.AlbumRepo()),
-		artistService:     services.NewMediaItemService[*mediatypes.Artist](deps.MediaItemRepositories.ArtistRepo()),
-		collectionService: services.NewMediaItemService[*mediatypes.Collection](deps.MediaItemRepositories.CollectionRepo()),
-		playlistService:   services.NewMediaItemService[*mediatypes.Playlist](deps.MediaItemRepositories.PlaylistRepo()),
+		// Client-associated media services - use client services
+		movieService:      movieClientService,
+		seriesService:     seriesClientService,
+		episodeService:    episodeClientService,
+		trackService:      trackClientService,
+		albumService:      albumClientService,
+		artistService:     artistClientService,
+		
+		// User-owned media services - use user services
+		collectionService: collectionUserService,
+		playlistService:   playlistUserService,
 
-		collectionExtendedService: services.NewCollectionService(
-			deps.MediaItemRepositories.CollectionRepo(),
-		),
-
-		playlistExtendedService: services.NewPlaylistService(
-			deps.MediaItemRepositories.PlaylistRepo(),
-		),
+		// Extended services
+		collectionExtendedService: collectionUserService, // Using new UserCollectionService directly
+		playlistExtendedService:   playlistExtendedService,
+		
+		// Three-pronged architecture services
+		coreCollectionService: collectionCoreService,
+		clientCollectionService: collectionClientService,
 	}
 
 	// Initialize client handlers

@@ -99,8 +99,13 @@ type MediaItemServices interface {
 	CollectionService() services.MediaItemService[*mediatypes.Collection]
 	PlaylistService() services.MediaItemService[*mediatypes.Playlist]
 
-	CollectionExtendedService() services.CollectionService
+	// Extended services (legacy interfaces)
+	CollectionExtendedService() services.UserCollectionService
 	PlaylistExtendedService() services.PlaylistService
+	
+	// Three-pronged architecture for collections
+	CoreCollectionService() services.CoreCollectionService
+	ClientCollectionService() services.ClientCollectionService
 }
 
 type UserRepositories interface {
@@ -118,6 +123,9 @@ type MediaItemRepositories interface {
 	ArtistRepo() repository.MediaItemRepository[*mediatypes.Artist]
 	CollectionRepo() repository.MediaItemRepository[*mediatypes.Collection]
 	PlaylistRepo() repository.MediaItemRepository[*mediatypes.Playlist]
+	
+	// User-owned media repositories
+	UserMediaPlaylistRepo() repository.UserMediaItemRepository[*mediatypes.Playlist]
 }
 
 type UserServices interface {

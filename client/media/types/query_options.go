@@ -14,12 +14,20 @@ const (
 	SortOrderNone SortOrder = ""
 )
 
+type SortType string
+
+const (
+	SortTypeCreatedAt SortType = "created_at"
+	SortTypeUpdatedAt SortType = "updated_at"
+	SortTypeAddedAt   SortType = "added_at"
+)
+
 // QueryOptions provides parameters for filtering and pagination
 // using typed fields for all filters to ensure type safety
 type QueryOptions struct {
 	Limit                int       `json:"limit,omitempty"`
 	Offset               int       `json:"offset,omitempty"`
-	Sort                 string    `json:"sort,omitempty"`
+	Sort                 SortType  `json:"sort,omitempty"`
 	SortOrder            SortOrder `json:"sortOrder,omitempty"` // "asc" or "desc"
 	Query                string    `json:"query,omitempty"`
 	IncludeWatchProgress bool      `json:"includeWatchProgress,omitempty"`
@@ -45,6 +53,7 @@ type QueryOptions struct {
 	PlayedAfter      time.Time `json:"playedAfter,omitempty"`      // Filter by played date after
 	PlayedBefore     time.Time `json:"playedBefore,omitempty"`     // Filter by played date before
 	MinimumRating    float32   `json:"minimumRating,omitempty"`    // Filter by minimum rating
+	OwnerID          uint64    `json:"ownerId,omitempty"`          // Filter by owner ID
 	ItemIDs          string    `json:"itemIds,omitempty"`          // Filter by external ID (emby, jellyfin, plex, etc.)
 	ExternalSourceID string    `json:"externalSourceID,omitempty"` // Filter by external source ID (TMDB, IMDB, etc.)
 }

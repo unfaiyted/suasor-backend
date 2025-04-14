@@ -1,0 +1,412 @@
+###
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@dev.com",
+  "password": "TestPassword123"
+}
+
+### Validate session
+GET http://localhost:8080/api/v1/auth/validate
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name embyClient
+# @description Create an Emby client for testing playlists
+POST http://localhost:8080/api/v1/admin/client/emby
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Emby Test",
+  "clientType": "emby",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "{{EMBY_TEST_URL}}",
+    "apiKey": "{{EMBY_TEST_API_KEY}}",
+    "username": "{{EMBY_TEST_USER}}",
+    "ssl": false
+  }
+}
+
+###
+# @name embyClient2
+# @description Create a second Emby client for testing sync
+POST http://localhost:8080/api/v1/admin/client/emby
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Emby Test 2",
+  "clientType": "emby",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "{{EMBY_TEST_URL}}",
+    "apiKey": "{{EMBY_TEST_API_KEY}}",
+    "username": "{{EMBY_TEST_USER}}",
+    "ssl": false
+  }
+}
+
+### Test first Emby connection
+# @name testEmbyConnection
+# @require embyClient
+GET http://localhost:8080/api/v1/admin/client/emby/{{embyClient.response.body.$.data.id}}/test
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Test second Emby connection
+# @name testEmbyConnection2
+# @require embyClient2
+GET http://localhost:8080/api/v1/admin/client/emby/{{embyClient2.response.body.$.data.id}}/test
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### 
+# @name getMovies
+# @description Get some movies to add to playlists
+# @require embyClient
+GET http://localhost:8080/api/v1/client/emby/{{embyClient.response.body.$.data.id}}/movie/search?q=some&limit=5
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+#########################################
+# BASIC PLAYLIST OPERATIONS (CENTRAL DB)
+#########################################
+
+###
+# @name getUserProfile
+# @description Get the current user profile to extract user ID
+GET http://localhost:8080/api/v1/user/profile
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name createCentralPlaylist
+# @description Create a new playlist in the central database
+# @require getUserProfile
+# @require embyClient
+POST http://localhost:8080/api/v1/playlists
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Test Playlist",
+  "description": "A test playlist created for HTTP tests",
+  "isPublic": true
+}
+
+###
+# @name getCentralPlaylist
+# @require createCentralPlaylist
+GET http://localhost:8080/api/v1/playlists/{{createCentralPlaylist.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getAllCentralPlaylists
+GET http://localhost:8080/api/v1/playlists
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name updateCentralPlaylist
+# @require createCentralPlaylist
+PUT http://localhost:8080/api/v1/playlists/{{createCentralPlaylist.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Updated Test Playlist",
+  "description": "This playlist has been updated",
+  "isPublic": true
+}
+
+###
+# @name addItemToCentralPlaylist
+# @require createCentralPlaylist
+# @require getMovies
+POST http://localhost:8080/api/v1/playlists/{{createCentralPlaylist.response.body.$.data.id}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "itemId": {{getMovies.response.body.$.data.items[0].id}}
+}
+
+###
+# @name addSecondItemToCentralPlaylist
+# @require createCentralPlaylist
+# @require getMovies
+POST http://localhost:8080/api/v1/playlists/{{createCentralPlaylist.response.body.$.data.id}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "itemId": {{getMovies.response.body.$.data.items[1].id}}
+}
+
+###
+# @name addThirdItemToCentralPlaylist
+# @require createCentralPlaylist
+# @require getMovies
+POST http://localhost:8080/api/v1/playlists/{{createCentralPlaylist.response.body.$.data.id}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "itemId": {{getMovies.response.body.$.data.items[2].id}}
+}
+
+###
+# @name getPlaylistItems
+# @require createCentralPlaylist
+# @require addItemToCentralPlaylist
+# @require addSecondItemToCentralPlaylist
+# @require addThirdItemToCentralPlaylist
+GET http://localhost:8080/api/v1/playlists/{{createCentralPlaylist.response.body.$.data.id}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name reorderPlaylistItems
+# @require getPlaylistItems
+POST http://localhost:8080/api/v1/playlists/{{createCentralPlaylist.response.body.$.data.id}}/reorder
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "itemIds": [
+    {{getMovies.response.body.$.data.items[2].id}},
+    {{getMovies.response.body.$.data.items[0].id}},
+    {{getMovies.response.body.$.data.items[1].id}}
+  ]
+}
+
+###
+# @name getReorderedPlaylistItems
+# @require reorderPlaylistItems
+GET http://localhost:8080/api/v1/playlists/{{createCentralPlaylist.response.body.$.data.id}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name removeItemFromCentralPlaylist
+# @require getPlaylistItems
+DELETE http://localhost:8080/api/v1/playlists/{{createCentralPlaylist.response.body.$.data.id}}/items/{{getMovies.response.body.$.data.items[1].id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPlaylistItemsAfterRemoval
+# @require removeItemFromCentralPlaylist
+GET http://localhost:8080/api/v1/playlists/{{createCentralPlaylist.response.body.$.data.id}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name searchPlaylists
+# @require updateCentralPlaylist
+GET http://localhost:8080/api/v1/playlists/search?query=Updated
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+#########################################
+# CLIENT-SPECIFIC PLAYLIST OPERATIONS
+#########################################
+
+###
+# @name createEmbyPlaylist
+# @require embyClient
+POST http://localhost:8080/api/v1/client/emby/{{embyClient.response.body.$.data.id}}/playlists
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Emby Test Playlist",
+  "description": "A test playlist created specifically in Emby"
+}
+
+###
+# @name getEmbyPlaylist
+# @require createEmbyPlaylist
+GET http://localhost:8080/api/v1/client/emby/{{embyClient.response.body.$.data.id}}/playlists/{{createEmbyPlaylist.response.body.$.data.clientIDs.emby}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name updateEmbyPlaylist
+# @require createEmbyPlaylist
+PUT http://localhost:8080/api/v1/client/emby/{{embyClient.response.body.$.data.id}}/playlists/{{createEmbyPlaylist.response.body.$.data.clientIDs.emby}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Updated Emby Playlist",
+  "description": "This Emby playlist has been updated"
+}
+
+###
+# @name addItemToEmbyPlaylist
+# @require createEmbyPlaylist
+# @require getMovies
+POST http://localhost:8080/api/v1/client/emby/{{embyClient.response.body.$.data.id}}/playlists/{{createEmbyPlaylist.response.body.$.data.clientIDs.emby}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "itemId": "{{getMovies.response.body.$.data.items[0].clientIDs.emby}}"
+}
+
+###
+# @name addSecondItemToEmbyPlaylist
+# @require createEmbyPlaylist
+# @require getMovies
+POST http://localhost:8080/api/v1/client/emby/{{embyClient.response.body.$.data.id}}/playlists/{{createEmbyPlaylist.response.body.$.data.clientIDs.emby}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "itemId": "{{getMovies.response.body.$.data.items[1].clientIDs.emby}}"
+}
+
+###
+# @name getEmbyPlaylistItems
+# @require addItemToEmbyPlaylist
+# @require addSecondItemToEmbyPlaylist
+GET http://localhost:8080/api/v1/client/emby/{{embyClient.response.body.$.data.id}}/playlists/{{createEmbyPlaylist.response.body.$.data.clientIDs.emby}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name removeItemFromEmbyPlaylist
+# @require getEmbyPlaylistItems
+DELETE http://localhost:8080/api/v1/client/emby/{{embyClient.response.body.$.data.id}}/playlists/{{createEmbyPlaylist.response.body.$.data.clientIDs.emby}}/items/{{getMovies.response.body.$.data.items[1].clientIDs.emby}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getEmbyPlaylistsAll
+# @require embyClient
+GET http://localhost:8080/api/v1/client/emby/{{embyClient.response.body.$.data.id}}/playlists
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name searchEmbyPlaylists
+# @require updateEmbyPlaylist
+GET http://localhost:8080/api/v1/client/emby/{{embyClient.response.body.$.data.id}}/playlists/search?query=Updated
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+#########################################
+# SYNC OPERATIONS
+#########################################
+
+###
+# @name createPlaylistForSync
+# @require getUserProfile
+# @require embyClient
+POST http://localhost:8080/api/v1/playlists?userId={{getUserProfile.response.body.$.data.id}}&clientId={{embyClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Sync Test Playlist",
+  "description": "A playlist for testing sync between clients",
+  "isPublic": true
+}
+
+###
+# @name addItemsToSyncPlaylist
+# @require createPlaylistForSync
+# @require getMovies
+POST http://localhost:8080/api/v1/playlists/{{createPlaylistForSync.response.body.$.data.id}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "itemId": {{getMovies.response.body.$.data.items[0].id}}
+}
+
+###
+# @name addSecondItemToSyncPlaylist
+# @require createPlaylistForSync
+# @require getMovies
+POST http://localhost:8080/api/v1/playlists/{{createPlaylistForSync.response.body.$.data.id}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "itemId": {{getMovies.response.body.$.data.items[1].id}}
+}
+
+###
+# @name syncPlaylistToEmby
+# @require createPlaylistForSync
+# @require embyClient
+# @require addItemsToSyncPlaylist
+# @require addSecondItemToSyncPlaylist
+POST http://localhost:8080/api/v1/playlists/{{createPlaylistForSync.response.body.$.data.id}}/sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientId": {{embyClient.response.body.$.data.id}}
+}
+
+###
+# @name checkSyncedPlaylistInEmby
+# @require syncPlaylistToEmby
+GET http://localhost:8080/api/v1/client/emby/{{embyClient.response.body.$.data.id}}/playlists
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name syncPlaylistToEmby2
+# @require createPlaylistForSync
+# @require embyClient2
+# @require addItemsToSyncPlaylist
+# @require addSecondItemToSyncPlaylist
+POST http://localhost:8080/api/v1/playlists/{{createPlaylistForSync.response.body.$.data.id}}/sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientId": {{embyClient2.response.body.$.data.id}}
+}
+
+###
+# @name checkSyncedPlaylistInEmby2
+# @require syncPlaylistToEmby2
+GET http://localhost:8080/api/v1/client/emby/{{embyClient2.response.body.$.data.id}}/playlists
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+#########################################
+# CLEANUP
+#########################################
+
+###
+# @name deleteCentralPlaylist
+# @require createCentralPlaylist
+DELETE http://localhost:8080/api/v1/playlists/{{createCentralPlaylist.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name deleteEmbyPlaylist
+# @require createEmbyPlaylist
+DELETE http://localhost:8080/api/v1/client/emby/{{embyClient.response.body.$.data.id}}/playlists/{{createEmbyPlaylist.response.body.$.data.clientIDs.emby}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name deleteSyncPlaylist
+# @require createPlaylistForSync
+DELETE http://localhost:8080/api/v1/playlists/{{createPlaylistForSync.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

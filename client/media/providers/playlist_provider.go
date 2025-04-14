@@ -10,7 +10,7 @@ import (
 type PlaylistProvider interface {
 	SupportsPlaylists() bool
 	GetPlaylists(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[*types.Playlist], error)
-	
+
 	// Full playlist management capabilities
 	GetPlaylistItems(ctx context.Context, playlistID string, options *types.QueryOptions) ([]models.MediaItem[types.MediaData], error)
 	CreatePlaylist(ctx context.Context, name string, description string) (*models.MediaItem[*types.Playlist], error)
@@ -25,9 +25,9 @@ type PlaylistProvider interface {
 type CollectionProvider interface {
 	SupportsCollections() bool
 	GetCollections(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[*types.Collection], error)
-	
+
 	// Full collection management capabilities
-	GetCollectionItems(ctx context.Context, collectionID string, options *types.QueryOptions) ([]models.MediaItem[types.MediaData], error)
+	GetCollectionItems(ctx context.Context, collectionID string, options *types.QueryOptions) (*models.MediaItems, error)
 	CreateCollection(ctx context.Context, name string, description string, collectionType string) (*models.MediaItem[*types.Collection], error)
 	UpdateCollection(ctx context.Context, collectionID string, name string, description string) (*models.MediaItem[*types.Collection], error)
 	DeleteCollection(ctx context.Context, collectionID string) error
