@@ -18,17 +18,17 @@ import (
 	"suasor/utils"
 )
 
-// ClientCollectionService defines the interface for client-associated collection operations
+// ClientMediaCollectionService defines the interface for client-associated collection operations
 // This service extends CoreCollectionService with operations specific to media collections
 // that are linked to external clients like Plex, Emby, etc.
-type ClientCollectionService interface {
+type ClientMediaCollectionService interface {
 	// Include all core service methods
 	CoreCollectionService
 
 	// Client-specific operations
 	GetCollectionByClientID(ctx context.Context, clientID uint64, collectionID string) (*models.MediaItem[*mediatypes.Collection], error)
 	GetCollectionsByClient(ctx context.Context, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Collection], error)
-	GetCollectionsByMultipleClients(ctx context.Context, clientIDs []uint64, limit int) ([]*models.MediaItem[*mediatypes.Collection], error)
+	GetCollectionsByMultipleClients(ctx context.Context, clientIDs []uint64, limit int) (map[uint64][]*models.MediaItem[*mediatypes.Collection], error)
 
 	// Sync operations
 	SyncCollectionBetweenClients(ctx context.Context, collectionID uint64, sourceClientID uint64, targetClientID uint64) error
@@ -39,21 +39,24 @@ type ClientCollectionService interface {
 }
 
 type clientCollectionService struct {
-	coreService CoreCollectionService
-	clientRepo  repository.ClientRepository[types.MediaClientConfig]
-	factory     *client.ClientFactoryService
+	coreService    CoreCollectionService
+	collectionRepo repository.ClientMediaItemRepository[*mediatypes.Collection]
+	clientRepo     repository.ClientRepository[types.ClientMediaConfig]
+	factory        *client.ClientFactoryService
 }
 
-// NewClientCollectionService creates a new client collection service
-func NewClientCollectionService(
+// NewClientMediaCollectionService creates a new client collection service
+func NewClientMediaCollectionService(
 	coreService CoreCollectionService,
-	clientRepo repository.ClientRepository[types.MediaClientConfig],
+	collectionRepo repository.ClientMediaItemRepository[*mediatypes.Collection],
+	clientRepo repository.ClientRepository[types.ClientMediaConfig],
 	factory *client.ClientFactoryService,
-) ClientCollectionService {
+) ClientMediaCollectionService {
 	return &clientCollectionService{
-		coreService: coreService,
-		clientRepo:  clientRepo,
-		factory:     factory,
+		coreService:    coreService,
+		collectionRepo: collectionRepo,
+		clientRepo:     clientRepo,
+		factory:        factory,
 	}
 }
 
@@ -74,6 +77,10 @@ func (s *clientCollectionService) GetByID(ctx context.Context, id uint64) (*mode
 	return s.coreService.GetByID(ctx, id)
 }
 
+func (s *clientCollectionService) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[*mediatypes.Collection], error) {
+	return s.coreService.GetAll(ctx, limit, offset)
+}
+
 // Delete removes a collection
 func (s *clientCollectionService) Delete(ctx context.Context, id uint64) error {
 	return s.coreService.Delete(ctx, id)
@@ -90,8 +97,8 @@ func (s *clientCollectionService) GetByExternalID(ctx context.Context, source st
 }
 
 // Search finds collections based on a query string
-func (s *clientCollectionService) Search(ctx context.Context, query string, limit int, offset int) ([]*models.MediaItem[*mediatypes.Collection], error) {
-	return s.coreService.Search(ctx, query, limit, offset)
+func (s *clientCollectionService) Search(ctx context.Context, query mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Collection], error) {
+	return s.coreService.Search(ctx, query)
 }
 
 // GetRecentItems retrieves recently added collections
@@ -105,8 +112,8 @@ func (s *clientCollectionService) GetCollectionItems(ctx context.Context, collec
 }
 
 // AddItemToCollection adds an item to a collection
-func (s *clientCollectionService) AddItemToCollection(ctx context.Context, collectionID uint64, item models.MediaItem[mediatypes.MediaData]) error {
-	return s.coreService.AddItemToCollection(ctx, collectionID, item)
+func (s *clientCollectionService) AddItemToCollection(ctx context.Context, collectionID uint64, itemID uint64) error {
+	return s.coreService.AddItemToCollection(ctx, collectionID, itemID)
 }
 
 // RemoveItemFromCollection removes an item from a collection
@@ -120,7 +127,7 @@ func (s *clientCollectionService) UpdateCollectionItems(ctx context.Context, col
 }
 
 // getCollectionClients gets all collection clients for a user
-func (s *clientCollectionService) getCollectionClients(ctx context.Context, userID uint64) ([]media.MediaClient, error) {
+func (s *clientCollectionService) getCollectionClients(ctx context.Context, userID uint64) ([]media.ClientMedia, error) {
 	log := utils.LoggerFromContext(ctx)
 	// Get all media clients for the user
 	clients, err := s.clientRepo.GetByCategory(ctx, types.ClientCategoryMedia, userID)
@@ -131,7 +138,7 @@ func (s *clientCollectionService) getCollectionClients(ctx context.Context, user
 		return nil, err
 	}
 
-	var collectionClients []media.MediaClient
+	var collectionClients []media.ClientMedia
 
 	// Filter and instantiate clients that support collections
 	for _, clientConfig := range clients {
@@ -145,14 +152,14 @@ func (s *clientCollectionService) getCollectionClients(ctx context.Context, user
 					Msg("Failed to initialize client, skipping")
 				continue
 			}
-			mediaClient, ok := client.(media.MediaClient)
+			clientMedia, ok := client.(media.ClientMedia)
 			if !ok {
 				log.Warn().
 					Uint64("clientID", clientId).
 					Msg("Client is not a media client, skipping")
 				continue
 			}
-			collectionClients = append(collectionClients, mediaClient)
+			collectionClients = append(collectionClients, clientMedia)
 		}
 	}
 
@@ -160,26 +167,23 @@ func (s *clientCollectionService) getCollectionClients(ctx context.Context, user
 }
 
 // getSpecificCollectionClient gets a specific collection client
-func (s *clientCollectionService) getSpecificCollectionClient(ctx context.Context, userID, clientID uint64) (media.MediaClient, error) {
+func (s *clientCollectionService) getSpecificCollectionClient(ctx context.Context, clientID uint64) (media.ClientMedia, error) {
 	log := utils.LoggerFromContext(ctx)
 
 	clientConfig, err := s.clientRepo.GetByID(ctx, clientID)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("userID", userID).
 			Uint64("clientID", clientID).
 			Msg("Failed to get client config")
 		return nil, err
 	}
 	log.Debug().
-		Uint64("userID", userID).
 		Uint64("clientID", clientID).
 		Str("clientType", clientConfig.Config.Data.GetType().String()).
 		Msg("Retrieved client config")
 
 	if !clientConfig.Config.Data.SupportsCollections() {
 		log.Warn().
-			Uint64("userID", userID).
 			Uint64("clientID", clientID).
 			Str("clientType", clientConfig.Config.Data.GetType().String()).
 			Msg("Client does not support collections")
@@ -187,7 +191,6 @@ func (s *clientCollectionService) getSpecificCollectionClient(ctx context.Contex
 	}
 
 	log.Debug().
-		Uint64("userID", userID).
 		Uint64("clientID", clientID).
 		Str("clientType", clientConfig.Config.Data.GetType().String()).
 		Msg("Client supports collections")
@@ -195,28 +198,25 @@ func (s *clientCollectionService) getSpecificCollectionClient(ctx context.Contex
 	client, err := s.factory.GetClient(ctx, clientID, clientConfig.Config.Data)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("userID", userID).
 			Uint64("clientID", clientID).
 			Msg("Failed to initialize client")
 		return nil, err
 	}
 
-	mediaClient, ok := client.(media.MediaClient)
+	clientMedia, ok := client.(media.ClientMedia)
 	if !ok {
 		log.Error().
-			Uint64("userID", userID).
 			Uint64("clientID", clientID).
 			Msg("Client is not a media client")
 		return nil, errors.New("client is not a media client")
 	}
 
 	log.Debug().
-		Uint64("userID", userID).
 		Uint64("clientID", clientID).
 		Str("clientType", clientConfig.Config.Data.GetType().String()).
 		Msg("Retrieved client")
 
-	return mediaClient, nil
+	return clientMedia, nil
 }
 
 // GetCollectionByClientID retrieves a collection by its client-specific ID
@@ -227,40 +227,25 @@ func (s *clientCollectionService) GetCollectionByClientID(ctx context.Context, c
 		Str("collectionID", collectionID).
 		Msg("Getting collection by client ID")
 
-	// First check if we already have this collection in our database
-	// by external ID (which would be clientType:collectionID)
-	clientConfig, err := s.clientRepo.GetByID(ctx, clientID)
+	// I already have the collectionID for the client and the client ID we just need to search MediaItem table to see if it exists
+	workingCollection, err := s.collectionRepo.GetByClientItemID(ctx, collectionID, clientID)
 	if err == nil {
-		clientType := clientConfig.Config.Data.GetType().String()
-		externalID := fmt.Sprintf("%s:%s", clientType, collectionID)
-		existingCollection, err := s.GetByExternalID(ctx, clientType, externalID)
-		if err == nil && existingCollection != nil {
-			log.Info().
-				Uint64("clientID", clientID).
-				Str("collectionID", collectionID).
-				Uint64("internalID", existingCollection.ID).
-				Msg("Found existing collection in database")
-			return existingCollection, nil
-		}
+		log.Info().
+			Uint64("clientID", clientID).
+			Str("collectionID", collectionID).
+			Uint64("internalID", workingCollection.ID).
+			Msg("Found existing collection in database")
+		return workingCollection, nil
 	}
 
 	// If not found in database, fetch directly from client
-	client, err := s.getSpecificCollectionClient(ctx, 0, clientID) // userID 0 since we're looking by clientID directly
+	client, err := s.getSpecificCollectionClient(ctx, clientID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get collection client: %w", err)
 	}
 
 	collectionProvider, ok := client.(providers.CollectionProvider)
-	if !ok {
-		log.Warn().
-			Uint64("clientID", clientID).
-			Str("collectionID", collectionID).
-			Msg("Client does not support collections")
-		return nil, ErrUnsupportedFeature
-	}
-
-	// Check if the client supports getting collection by ID
-	if !collectionProvider.SupportsCollections() {
+	if !ok || !collectionProvider.SupportsCollections() {
 		log.Warn().
 			Uint64("clientID", clientID).
 			Str("collectionID", collectionID).
@@ -270,7 +255,8 @@ func (s *clientCollectionService) GetCollectionByClientID(ctx context.Context, c
 
 	// Get the collection directly from the client
 	options := &mediatypes.QueryOptions{
-		ExternalSourceID: collectionID,
+		ItemIDs: collectionID,
+		Limit:   1,
 	}
 
 	collections, err := collectionProvider.GetCollections(ctx, options)
@@ -292,25 +278,24 @@ func (s *clientCollectionService) GetCollectionByClientID(ctx context.Context, c
 	}
 
 	// Get the first matching collection
-	collection := collections[0]
-
-	// Update the collection in our database for future queries
-	clientType := clientConfig.Config.Data.GetType().String()
-	externalID := fmt.Sprintf("%s:%s", clientType, collectionID)
-	collection.SourceID = externalID
-	collection.Source = clientType
+	newCollection := collections[0]
 
 	// Persist or update the collection in our database
-	savedCollection, err := s.Create(ctx, collection)
+	savedCollection, err := s.Create(ctx, newCollection)
 	if err != nil {
 		// Log the error but continue with the client result
 		log.Warn().Err(err).
 			Uint64("clientID", clientID).
 			Str("collectionID", collectionID).
 			Msg("Failed to save collection to database, continuing with client result")
-		return &collection, nil
+		return &newCollection, nil
 	}
 
+	log.Debug().
+		Uint64("clientID", clientID).
+		Str("collectionID", collectionID).
+		Uint64("id", savedCollection.ID).
+		Msg("Collection saved successfully")
 	return savedCollection, nil
 }
 
@@ -322,7 +307,7 @@ func (s *clientCollectionService) GetCollectionsByClient(ctx context.Context, cl
 		Int("limit", limit).
 		Msg("Getting collections by client")
 
-	client, err := s.getSpecificCollectionClient(ctx, 0, clientID) // userID 0 since we're looking by clientID directly
+	client, err := s.getSpecificCollectionClient(ctx, clientID) // userID 0 since we're looking by clientID directly
 	if err != nil {
 		return nil, fmt.Errorf("failed to get collection client: %w", err)
 	}
@@ -362,14 +347,14 @@ func (s *clientCollectionService) GetCollectionsByClient(ctx context.Context, cl
 }
 
 // GetCollectionsByMultipleClients retrieves collections from multiple clients
-func (s *clientCollectionService) GetCollectionsByMultipleClients(ctx context.Context, clientIDs []uint64, limit int) ([]*models.MediaItem[*mediatypes.Collection], error) {
+func (s *clientCollectionService) GetCollectionsByMultipleClients(ctx context.Context, clientIDs []uint64, limit int) (map[uint64][]*models.MediaItem[*mediatypes.Collection], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Interface("clientIDs", clientIDs).
 		Int("limit", limit).
 		Msg("Getting collections from multiple clients")
 
-	var allCollections []*models.MediaItem[*mediatypes.Collection]
+	result := make(map[uint64][]*models.MediaItem[*mediatypes.Collection])
 
 	// Get collections from each client
 	for _, clientID := range clientIDs {
@@ -382,25 +367,16 @@ func (s *clientCollectionService) GetCollectionsByMultipleClients(ctx context.Co
 			continue
 		}
 
-		allCollections = append(allCollections, clientCollections...)
-	}
-
-	// Sort by added date (newer first)
-	sort.Slice(allCollections, func(i, j int) bool {
-		return allCollections[i].Data.GetDetails().AddedAt.After(allCollections[j].Data.GetDetails().AddedAt)
-	})
-
-	// Limit to requested count if specified and we have more collections than requested
-	if limit > 0 && len(allCollections) > limit {
-		allCollections = allCollections[:limit]
+		// Store collections mapped to this client ID
+		result[clientID] = clientCollections
 	}
 
 	log.Info().
-		Int("totalCollections", len(allCollections)).
 		Int("clientCount", len(clientIDs)).
+		Int("resultClientCount", len(result)).
 		Msg("Retrieved collections from multiple clients")
 
-	return allCollections, nil
+	return result, nil
 }
 
 // SyncCollectionBetweenClients syncs a collection between two clients
@@ -425,7 +401,7 @@ func (s *clientCollectionService) SyncCollectionBetweenClients(ctx context.Conte
 	}
 	sourceClientID = sourceSyncClient.ID
 	targetSyncClient, targetExists := workingCollection.SyncClients.GetByClientID(targetClientID)
-	targetClient, err := s.getSpecificCollectionClient(ctx, 0, targetClientID)
+	targetClient, err := s.getSpecificCollectionClient(ctx, targetClientID)
 
 	targetProvider, ok := targetClient.(providers.CollectionProvider)
 	if !ok || !targetProvider.SupportsCollections() {
@@ -443,7 +419,7 @@ func (s *clientCollectionService) SyncCollectionBetweenClients(ctx context.Conte
 	targetClientID = targetSyncClient.ID
 
 	// Get source and target clients
-	sourceClient, err := s.getSpecificCollectionClient(ctx, 0, sourceClientID)
+	sourceClient, err := s.getSpecificCollectionClient(ctx, sourceClientID)
 	if err != nil {
 		return fmt.Errorf("failed to get source client: %w", err)
 	}
@@ -481,34 +457,34 @@ func (s *clientCollectionService) SyncCollectionBetweenClients(ctx context.Conte
 	}
 
 	// Add each item to the new collection
-	for _, item := range items.Items {
-		// Find item in target provider
-		targetItem, err := targetProvider.GetCollectionItems(ctx, item.ID, options)
-		if err != nil {
-			// Log error but continue with other items
-			log.Warn().Err(err).
-				Uint64("collectionID", newCollection.ID).
-				Uint64("itemID", item.ID).
-				Msg("Failed to get item in target client, continuing with others")
-			continue
-		}
-
-		err = targetProvider.AddItemToCollection(ctx, newCollection.ID, item.ID)
-		if err != nil {
-			// Log error but continue with other items
-			log.Warn().Err(err).
-				Uint64("collectionID", newCollection.ID).
-				Uint64("itemID", item.ID).
-				Msg("Failed to add item to collection in target client, continuing with others")
-		}
-	}
+	// for _, item := range items.Items {
+	// 	// Find item in target provider
+	// 	targetItem, err := targetProvider.GetCollectionItems(ctx, item.ID, options)
+	// 	if err != nil {
+	// 		// Log error but continue with other items
+	// 		log.Warn().Err(err).
+	// 			Uint64("collectionID", newCollection.ID).
+	// 			Uint64("itemID", item.ID).
+	// 			Msg("Failed to get item in target client, continuing with others")
+	// 		continue
+	// 	}
+	//
+	// 	err = targetProvider.AddItemToCollection(ctx, newCollection.ID, item.ID)
+	// 	if err != nil {
+	// 		// Log error but continue with other items
+	// 		log.Warn().Err(err).
+	// 			Uint64("collectionID", newCollection.ID).
+	// 			Uint64("itemID", item.ID).
+	// 			Msg("Failed to add item to collection in target client, continuing with others")
+	// 	}
+	// }
 
 	log.Info().
 		Uint64("sourceCollectionID", collectionID).
 		Uint64("targetCollectionID", newCollection.ID).
 		Uint64("sourceClientID", sourceClientID).
 		Uint64("targetClientID", targetClientID).
-		Int("itemCount", len(items.Items)).
+		// Int("itemCount", len(items.Items)).
 		Msg("Collection synced successfully between clients")
 
 	return nil
@@ -571,4 +547,3 @@ func (s *clientCollectionService) GetCollections(ctx context.Context, userID uin
 
 	return allCollections, nil
 }
-

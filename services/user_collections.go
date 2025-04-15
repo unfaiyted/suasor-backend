@@ -20,7 +20,7 @@ type UserCollectionService interface {
 
 	// User-specific operations
 	GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[*mediatypes.Collection], error)
-	SearchUserCollections(ctx context.Context, query string, userID uint64) ([]*models.MediaItem[*mediatypes.Collection], error)
+	SearchUserCollections(ctx context.Context, query mediatypes.QueryOptions, userID uint64) ([]*models.MediaItem[*mediatypes.Collection], error)
 	GetRecentUserCollections(ctx context.Context, limit int) ([]*models.MediaItem[*mediatypes.Collection], error)
 
 	// Smart collections and sharing
@@ -76,8 +76,8 @@ func (s *userCollectionService) Create(ctx context.Context, collection models.Me
 
 	// Add user ownership metadata
 	// TODO:
-	if collection.Data.Owner == 0 && userID != 0 {
-		collection.Data.Owner = userID
+	if collection.Data.OwnerID == 0 && userID != 0 {
+		collection.Data.OwnerID = userID
 		collection.Data.ModifiedBy = userID
 	}
 
@@ -93,7 +93,7 @@ func (s *userCollectionService) Create(ctx context.Context, collection models.Me
 	log.Info().
 		Uint64("id", result.ID).
 		Str("title", result.Title).
-		Uint64("userID", collection.Data.Owner).
+		Uint64("userID", collection.Data.OwnerID).
 		Msg("User collection created successfully")
 
 	return result, nil
@@ -116,18 +116,18 @@ func (s *userCollectionService) Update(ctx context.Context, collection models.Me
 	}
 
 	// Verify ownership - user can only modify their own collections or shared ones
-	if existing.Data.Owner != 0 && collection.Data.Owner != 0 && existing.Data.Owner != collection.Data.Owner {
+	if existing.Data.OwnerID != 0 && collection.Data.OwnerID != 0 && existing.Data.OwnerID != collection.Data.OwnerID {
 		// TODO: Check if the collection is shared with this user before denying
 		log.Warn().
 			Uint64("collectionID", collection.ID).
-			Uint64("ownerID", existing.Data.Owner).
+			Uint64("ownerID", existing.Data.OwnerID).
 			Uint64("requestingUserID", userID).
 			Msg("User attempting to update a collection they don't own")
 		return nil, errors.New("you don't have permission to update this collection")
 	}
 
 	// Preserve owner information
-	collection.Data.Owner = existing.Data.Owner
+	collection.Data.OwnerID = existing.Data.OwnerID
 
 	// Update ModifiedBy field
 	collection.Data.ModifiedBy = userID
@@ -144,7 +144,7 @@ func (s *userCollectionService) Update(ctx context.Context, collection models.Me
 	log.Info().
 		Uint64("id", result.ID).
 		Str("title", result.Title).
-		Uint64("userID", collection.Data.Owner).
+		Uint64("userID", collection.Data.OwnerID).
 		Msg("User collection updated successfully")
 
 	return result, nil
@@ -153,6 +153,10 @@ func (s *userCollectionService) Update(ctx context.Context, collection models.Me
 // GetByID retrieves a collection by its ID
 func (s *userCollectionService) GetByID(ctx context.Context, id uint64) (*models.MediaItem[*mediatypes.Collection], error) {
 	return s.coreService.GetByID(ctx, id)
+}
+
+func (s *userCollectionService) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[*mediatypes.Collection], error) {
+	return s.coreService.GetAll(ctx, limit, offset)
 }
 
 // Delete removes a collection
@@ -170,7 +174,7 @@ func (s *userCollectionService) Delete(ctx context.Context, id uint64) error {
 
 	// TODO: Extract current user ID from context and verify permission
 	// For now, just check that it's a user-owned collection
-	if collection.Data.Owner == 0 {
+	if collection.Data.OwnerID == 0 {
 		log.Warn().
 			Uint64("id", id).
 			Msg("Attempting to delete a collection that isn't user-owned")
@@ -189,7 +193,7 @@ func (s *userCollectionService) Delete(ctx context.Context, id uint64) error {
 	log.Info().
 		Uint64("id", id).
 		Str("title", collection.Title).
-		Uint64("userID", collection.Data.Owner).
+		Uint64("userID", collection.Data.OwnerID).
 		Msg("User collection deleted successfully")
 
 	return nil
@@ -206,8 +210,8 @@ func (s *userCollectionService) GetByExternalID(ctx context.Context, source stri
 }
 
 // Search finds collections based on a query string
-func (s *userCollectionService) Search(ctx context.Context, query string, limit int, offset int) ([]*models.MediaItem[*mediatypes.Collection], error) {
-	return s.coreService.Search(ctx, query, limit, offset)
+func (s *userCollectionService) Search(ctx context.Context, query mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Collection], error) {
+	return s.coreService.Search(ctx, query)
 }
 
 // GetRecentItems retrieves recently added collections
@@ -221,11 +225,11 @@ func (s *userCollectionService) GetCollectionItems(ctx context.Context, collecti
 }
 
 // AddItemToCollection adds an item to a collection
-func (s *userCollectionService) AddItemToCollection(ctx context.Context, collectionID uint64, item models.MediaItem[mediatypes.MediaData]) error {
+func (s *userCollectionService) AddItemToCollection(ctx context.Context, collectionID uint64, itemID uint64) error {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("collectionID", collectionID).
-		Uint64("itemID", item.ID).
+		Uint64("itemID", itemID).
 		Msg("Adding item to user collection")
 
 	// Get the collection
@@ -234,23 +238,28 @@ func (s *userCollectionService) AddItemToCollection(ctx context.Context, collect
 		return fmt.Errorf("failed to add item to user collection: %w", err)
 	}
 
+	log.Debug().
+		Uint64("collectionID", collection.ID).
+		Uint64("itemID", itemID).
+		Msg("Adding item to user collection")
+
 	// TODO: Verify user has permission to modify this collection
 	// Extract user ID from context and check against collection.UserID
 	// or check if the collection is shared with this user
 
 	// Delegate to core service
-	err = s.coreService.AddItemToCollection(ctx, collectionID, item)
+	err = s.coreService.AddItemToCollection(ctx, collectionID, itemID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("collectionID", collectionID).
-			Uint64("itemID", item.ID).
+			Uint64("itemID", itemID).
 			Msg("Failed to add item to user collection")
 		return fmt.Errorf("failed to add item to user collection: %w", err)
 	}
 
 	log.Info().
 		Uint64("collectionID", collectionID).
-		Uint64("itemID", item.ID).
+		Uint64("itemID", itemID).
 		Msg("Item added to user collection successfully")
 
 	return nil
@@ -273,6 +282,10 @@ func (s *userCollectionService) RemoveItemFromCollection(ctx context.Context, co
 	// TODO: Verify user has permission to modify this collection
 	// Extract user ID from context and check against collection.UserID
 	// or check if the collection is shared with this user
+	log.Debug().
+		Uint64("collectionID", collection.ID).
+		Uint64("itemID", itemID).
+		Msg("Removing item from user collection")
 
 	// Delegate to core service
 	err = s.coreService.RemoveItemFromCollection(ctx, collectionID, itemID)
@@ -324,16 +337,16 @@ func (s *userCollectionService) GetByUserID(ctx context.Context, userID uint64) 
 }
 
 // SearchUserCollections searches for collections owned by a specific user
-func (s *userCollectionService) SearchUserCollections(ctx context.Context, query string, userID uint64) ([]*models.MediaItem[*mediatypes.Collection], error) {
+func (s *userCollectionService) SearchUserCollections(ctx context.Context, query mediatypes.QueryOptions, userID uint64) ([]*models.MediaItem[*mediatypes.Collection], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Str("query", query).
+		Str("query", query.Query).
 		Uint64("userID", userID).
 		Msg("Searching user collections")
 
 	options := mediatypes.QueryOptions{
 		MediaType: mediatypes.MediaTypeCollection,
-		Query:     query,
+		Query:     query.Query,
 		OwnerID:   userID,
 	}
 
@@ -341,14 +354,14 @@ func (s *userCollectionService) SearchUserCollections(ctx context.Context, query
 	results, err := s.userRepo.Search(ctx, options)
 	if err != nil {
 		log.Error().Err(err).
-			Str("query", query).
+			Str("query", query.Query).
 			Uint64("userID", userID).
 			Msg("Failed to search user collections")
 		return nil, fmt.Errorf("failed to search user collections: %w", err)
 	}
 
 	log.Info().
-		Str("query", query).
+		Str("query", query.Query).
 		Uint64("userID", userID).
 		Int("count", len(results)).
 		Msg("User collections found")
@@ -404,7 +417,7 @@ func (s *userCollectionService) CreateSmartCollection(ctx context.Context, userI
 					Description: "Smart collection - automatically updates based on criteria",
 					AddedAt:     time.Now(),
 				},
-				Owner:      userID,
+				OwnerID:    userID,
 				ModifiedBy: userID,
 				Items:      []mediatypes.ListItem{},
 				ItemCount:  0,

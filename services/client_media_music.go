@@ -17,8 +17,8 @@ import (
 	"suasor/utils"
 )
 
-// MediaClientMusicService defines operations for interacting with music clients
-type MediaClientMusicService[T types.ClientConfig] interface {
+// ClientMediaMusicService defines operations for interacting with music clients
+type ClientMediaMusicService[T types.ClientConfig] interface {
 	GetAlbumByID(ctx context.Context, userID uint64, clientID uint64, albumID string) (models.MediaItem[*mediatypes.Album], error)
 	GetArtistByID(ctx context.Context, userID uint64, clientID uint64, artistID string) (models.MediaItem[*mediatypes.Artist], error)
 	GetTrackByID(ctx context.Context, userID uint64, clientID uint64, trackID string) (models.MediaItem[*mediatypes.Track], error)
@@ -52,15 +52,15 @@ type MusicSearchResults struct {
 	Tracks  []models.MediaItem[*mediatypes.Track]
 }
 
-type mediaMusicService[T types.MediaClientConfig] struct {
+type mediaMusicService[T types.ClientMediaConfig] struct {
 	repo    repository.ClientRepository[T]
 	factory *client.ClientFactoryService
 }
 
-func NewMediaClientMusicService[T types.MediaClientConfig](
+func NewClientMediaMusicService[T types.ClientMediaConfig](
 	repo repository.ClientRepository[T],
 	factory *client.ClientFactoryService,
-) MediaClientMusicService[T] {
+) ClientMediaMusicService[T] {
 	return &mediaMusicService[T]{
 		repo:    repo,
 		factory: factory,
@@ -68,7 +68,7 @@ func NewMediaClientMusicService[T types.MediaClientConfig](
 }
 
 // getMusicClients gets all music clients for a user
-func (s *mediaMusicService[T]) getMusicClients(ctx context.Context, userID uint64) ([]media.MediaClient, error) {
+func (s *mediaMusicService[T]) getMusicClients(ctx context.Context, userID uint64) ([]media.ClientMedia, error) {
 	// Get all media clients for the user that support music
 	clients, err := s.repo.GetByCategory(ctx, types.ClientCategoryMedia, userID)
 	if err != nil {
@@ -78,7 +78,7 @@ func (s *mediaMusicService[T]) getMusicClients(ctx context.Context, userID uint6
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().Msg("Getting music clients")
 
-	var musicClients []media.MediaClient
+	var musicClients []media.ClientMedia
 
 	// Filter for clients that support music and instantiate them
 	for _, clientConfig := range clients {
@@ -98,7 +98,7 @@ func (s *mediaMusicService[T]) getMusicClients(ctx context.Context, userID uint6
 				continue
 			}
 
-			musicClients = append(musicClients, client.(media.MediaClient))
+			musicClients = append(musicClients, client.(media.ClientMedia))
 		}
 	}
 
@@ -110,7 +110,7 @@ func (s *mediaMusicService[T]) getMusicClients(ctx context.Context, userID uint6
 }
 
 // getSpecificMusicClient gets a specific music client
-func (s *mediaMusicService[T]) getSpecificMusicClient(ctx context.Context, userID, clientID uint64) (media.MediaClient, error) {
+func (s *mediaMusicService[T]) getSpecificMusicClient(ctx context.Context, userID, clientID uint64) (media.ClientMedia, error) {
 	log := utils.LoggerFromContext(ctx)
 
 	clientConfig, err := s.repo.GetByID(ctx, clientID)
@@ -140,7 +140,7 @@ func (s *mediaMusicService[T]) getSpecificMusicClient(ctx context.Context, userI
 		return nil, err
 	}
 
-	return client.(media.MediaClient), nil
+	return client.(media.ClientMedia), nil
 }
 
 func (s *mediaMusicService[T]) GetAlbumByID(ctx context.Context, userID uint64, clientID uint64, albumID string) (models.MediaItem[*mediatypes.Album], error) {

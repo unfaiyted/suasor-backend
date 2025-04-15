@@ -37,16 +37,16 @@ type SwaggerClientRequest struct {
 	Client     interface{}       `json:"client"`
 }
 
-// MediaClientRequest is used for testing a media client connection
-type MediaClientRequest[T types.MediaClientConfig] struct {
+// ClientMediaRequest is used for testing a media client connection
+type ClientMediaRequest[T types.ClientMediaConfig] struct {
 	Name       string                 `json:"name" binding:"required"`
-	ClientType client.MediaClientType `json:"clientType" binding:"required,oneof=plex jellyfin emby subsonic"`
+	ClientType client.ClientMediaType `json:"clientType" binding:"required,oneof=plex jellyfin emby subsonic"`
 	Client     T                      `json:"client" gorm:"serializer:json"`
 }
 
-// SwaggerMediaClientRequest is a concrete version of MediaClientRequest for swagger docs
-type SwaggerMediaClientRequest struct {
+// SwaggerClientMediaRequest is a concrete version of ClientMediaRequest for swagger docs
+type SwaggerClientMediaRequest struct {
 	Name       string                 `json:"name" binding:"required"`
-	ClientType client.MediaClientType `json:"clientType" binding:"required,oneof=plex jellyfin emby subsonic"`
+	ClientType client.ClientMediaType `json:"clientType" binding:"required,oneof=plex jellyfin emby subsonic"`
 	Client     interface{}            `json:"client"`
 }

@@ -32,13 +32,13 @@ func init() {
 
 // SubsonicClient implements MediaContentProvider for Subsonic
 type SubsonicClient struct {
-	media.BaseMediaClient
+	media.BaseClientMedia
 	httpClient *http.Client
 	client     *gosonic.Client
 }
 
 // NewSubsonicClient creates a new Subsonic client
-func NewSubsonicClient(ctx context.Context, clientID uint64, config types.SubsonicConfig) (media.MediaClient, error) {
+func NewSubsonicClient(ctx context.Context, clientID uint64, config types.SubsonicConfig) (media.ClientMedia, error) {
 
 	log := utils.LoggerFromContext(context.Background())
 
@@ -76,13 +76,13 @@ func NewSubsonicClient(ctx context.Context, clientID uint64, config types.Subson
 	}
 
 	return &SubsonicClient{
-		BaseMediaClient: media.BaseMediaClient{
+		BaseClientMedia: media.BaseClientMedia{
 			BaseClient: base.BaseClient{
 				ClientID: clientID,
-				Category: types.MediaClientTypeSubsonic.AsCategory(),
+				Category: types.ClientMediaTypeSubsonic.AsCategory(),
 				Config:   &config,
 			},
-			ClientType: types.MediaClientTypeSubsonic,
+			ClientType: types.ClientMediaTypeSubsonic,
 		},
 		httpClient: httpClient,
 		client:     client,
@@ -91,7 +91,7 @@ func NewSubsonicClient(ctx context.Context, clientID uint64, config types.Subson
 
 // Register the provider factory
 // func init() {
-// 	media.RegisterClient(types.MediaClientTypeSubsonic, NewSubsonicClient)
+// 	media.RegisterClient(types.ClientMediaTypeSubsonic, NewSubsonicClient)
 // }
 
 // Capability methods - Subsonic only supports music

@@ -94,7 +94,7 @@ func (h *ClientsHandler) ListAllClients(c *gin.Context) {
 	var allClients []responses.ClientResponse
 
 	// Define client type categories
-	mediaClientTypes := map[string]bool{
+	clientMediaTypes := map[string]bool{
 		"emby":     true,
 		"jellyfin": true,
 		"plex":     true,
@@ -125,7 +125,7 @@ func (h *ClientsHandler) ListAllClients(c *gin.Context) {
 
 		// If type filter is "media", only return media clients
 		if typeFilter == "media" {
-			return mediaClientTypes[clientType]
+			return clientMediaTypes[clientType]
 		}
 		if typeFilter == "ai" {
 			return aiClientTypes[clientType]

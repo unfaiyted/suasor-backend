@@ -22,8 +22,8 @@ type UserMediaItemService[T types.MediaData] interface {
 	GetUserContent(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[T], error)
 
 	// Specific to user-owned collections/playlists
-	SearchUserContent(ctx context.Context, query string, userID uint64, mediaType types.MediaType) ([]*models.MediaItem[T], error)
-	GetRecentUserContent(ctx context.Context, userID uint64, mediaType types.MediaType, limit int) ([]*models.MediaItem[T], error)
+	SearchUserContent(ctx context.Context, query types.QueryOptions) ([]*models.MediaItem[T], error)
+	GetRecentUserContent(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[T], error)
 }
 
 // userMediaItemService implements UserMediaItemService
@@ -57,6 +57,10 @@ func (s *userMediaItemService[T]) GetByID(ctx context.Context, id uint64) (*mode
 	return s.coreService.GetByID(ctx, id)
 }
 
+func (s *userMediaItemService[T]) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error) {
+	return s.coreService.GetAll(ctx, limit, offset)
+}
+
 func (s *userMediaItemService[T]) Delete(ctx context.Context, id uint64) error {
 	return s.coreService.Delete(ctx, id)
 }
@@ -69,12 +73,12 @@ func (s *userMediaItemService[T]) GetByType(ctx context.Context, mediaType types
 	return s.coreService.GetByType(ctx, mediaType)
 }
 
-func (s *userMediaItemService[T]) Search(ctx context.Context, query string, mediaType types.MediaType, limit int, offset int) ([]*models.MediaItem[T], error) {
-	return s.coreService.Search(ctx, query, mediaType, limit, offset)
+func (s *userMediaItemService[T]) Search(ctx context.Context, query types.QueryOptions) ([]*models.MediaItem[T], error) {
+	return s.coreService.Search(ctx, query)
 }
 
-func (s *userMediaItemService[T]) GetRecentItems(ctx context.Context, mediaType types.MediaType, days int, limit int) ([]*models.MediaItem[T], error) {
-	return s.coreService.GetRecentItems(ctx, mediaType, days, limit)
+func (s *userMediaItemService[T]) GetRecentItems(ctx context.Context, days int, limit int) ([]*models.MediaItem[T], error) {
+	return s.coreService.GetRecentItems(ctx, days, limit)
 }
 
 // User-specific methods
@@ -129,36 +133,29 @@ func (s *userMediaItemService[T]) GetUserContent(ctx context.Context, userID uin
 }
 
 // SearchUserContent searches for user-owned content based on query parameters
-func (s *userMediaItemService[T]) SearchUserContent(ctx context.Context, query string, userID uint64, mediaType types.MediaType) ([]*models.MediaItem[T], error) {
+func (s *userMediaItemService[T]) SearchUserContent(ctx context.Context, query types.QueryOptions) ([]*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Str("query", query).
-		Uint64("userID", userID).
-		Str("type", string(mediaType)).
+		Str("query", query.Query).
+		Uint64("userID", query.OwnerID).
+		Str("type", string(query.MediaType)).
 		Msg("Searching user-owned content")
 
-	// Create query options for the repository
-	options := types.QueryOptions{
-		MediaType: mediaType,
-		Query:     query,
-		OwnerID:   userID,
-	}
-
 	// Delegate to user repository
-	results, err := s.userRepo.Search(ctx, options)
+	results, err := s.userRepo.Search(ctx, query)
 	if err != nil {
 		log.Error().Err(err).
-			Str("query", query).
-			Uint64("userID", userID).
-			Str("type", string(mediaType)).
+			Str("query", query.Query).
+			Uint64("userID", query.OwnerID).
+			Str("type", string(query.MediaType)).
 			Msg("Failed to search user-owned content")
 		return nil, fmt.Errorf("failed to search user content: %w", err)
 	}
 
 	log.Info().
-		Str("query", query).
-		Uint64("userID", userID).
-		Str("type", string(mediaType)).
+		Str("query", query.Query).
+		Uint64("userID", query.OwnerID).
+		Str("type", string(query.MediaType)).
 		Int("count", len(results)).
 		Msg("User-owned content found")
 
@@ -166,8 +163,11 @@ func (s *userMediaItemService[T]) SearchUserContent(ctx context.Context, query s
 }
 
 // GetRecentUserContent retrieves recently created or updated user-owned content
-func (s *userMediaItemService[T]) GetRecentUserContent(ctx context.Context, userID uint64, mediaType types.MediaType, limit int) ([]*models.MediaItem[T], error) {
+func (s *userMediaItemService[T]) GetRecentUserContent(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
+
+	var zero T
+	mediaType := types.GetMediaTypeFromTypeName(zero)
 	log.Debug().
 		Uint64("userID", userID).
 		Str("type", string(mediaType)).
@@ -201,4 +201,3 @@ func (s *userMediaItemService[T]) GetRecentUserContent(ctx context.Context, user
 
 	return results, nil
 }
-

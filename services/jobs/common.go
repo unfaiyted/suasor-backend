@@ -4,10 +4,10 @@ import (
 	clienttypes "suasor/client/types"
 )
 
-// MediaClientInfo is a structure to store media client information
-type MediaClientInfo struct {
+// ClientMediaInfo is a structure to store media client information
+type ClientMediaInfo struct {
 	ClientID   uint64
-	ClientType clienttypes.MediaClientType
+	ClientType clienttypes.ClientMediaType
 	Name       string
 	UserID     uint64
 }

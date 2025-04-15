@@ -16,8 +16,8 @@ import (
 	"suasor/utils"
 )
 
-// MediaClientSeriesService defines service methods for TV series
-type MediaClientSeriesService[T types.ClientConfig] interface {
+// ClientMediaSeriesService defines service methods for TV series
+type ClientMediaSeriesService[T types.ClientConfig] interface {
 	GetSeriesByID(ctx context.Context, userID, clientID uint64, seriesID string) (*models.MediaItem[*mediatypes.Series], error)
 	GetSeasonByID(ctx context.Context, userID, clientID uint64, seasonID string) (*models.MediaItem[*mediatypes.Season], error)
 	GetEpisodeByID(ctx context.Context, userID, clientID uint64, episodeID string) (*models.MediaItem[*mediatypes.Episode], error)
@@ -40,16 +40,16 @@ type MediaClientSeriesService[T types.ClientConfig] interface {
 	GetSeasonsBySeriesID(ctx context.Context, userID, clientID uint64, seriesID string) ([]models.MediaItem[*mediatypes.Season], error)
 }
 
-type mediaSeriesService[T types.MediaClientConfig] struct {
+type mediaSeriesService[T types.ClientMediaConfig] struct {
 	repo    repository.ClientRepository[T]
 	factory *client.ClientFactoryService
 }
 
-// NewMediaClientSeriesService creates a new TV series service
-func NewMediaClientSeriesService[T types.MediaClientConfig](
+// NewClientMediaSeriesService creates a new TV series service
+func NewClientMediaSeriesService[T types.ClientMediaConfig](
 	repo repository.ClientRepository[T],
 	factory *client.ClientFactoryService,
-) MediaClientSeriesService[T] {
+) ClientMediaSeriesService[T] {
 	return &mediaSeriesService[T]{
 		repo:    repo,
 		factory: factory,
@@ -57,14 +57,14 @@ func NewMediaClientSeriesService[T types.MediaClientConfig](
 }
 
 // getSeriesClients gets all clients that support TV shows
-func (s *mediaSeriesService[T]) getSeriesClients(ctx context.Context, userID uint64) ([]media.MediaClient, error) {
+func (s *mediaSeriesService[T]) getSeriesClients(ctx context.Context, userID uint64) ([]media.ClientMedia, error) {
 	// Get all media clients for the user
 	clients, err := s.repo.GetByCategory(ctx, types.ClientCategoryMedia, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	var seriesClients []media.MediaClient
+	var seriesClients []media.ClientMedia
 
 	// Filter and instantiate clients that support TV shows
 	for _, clientConfig := range clients {
@@ -74,7 +74,7 @@ func (s *mediaSeriesService[T]) getSeriesClients(ctx context.Context, userID uin
 				// Log error but continue with other clients
 				continue
 			}
-			seriesClients = append(seriesClients, client.(media.MediaClient))
+			seriesClients = append(seriesClients, client.(media.ClientMedia))
 		}
 	}
 
@@ -82,7 +82,7 @@ func (s *mediaSeriesService[T]) getSeriesClients(ctx context.Context, userID uin
 }
 
 // getSpecificSeriesClient gets a specific TV shows client
-func (s *mediaSeriesService[T]) getSpecificSeriesClient(ctx context.Context, userID, clientID uint64) (media.MediaClient, error) {
+func (s *mediaSeriesService[T]) getSpecificSeriesClient(ctx context.Context, userID, clientID uint64) (media.ClientMedia, error) {
 	log := utils.LoggerFromContext(ctx)
 
 	clientConfig, err := s.repo.GetByID(ctx, clientID)
@@ -104,7 +104,7 @@ func (s *mediaSeriesService[T]) getSpecificSeriesClient(ctx context.Context, use
 		return nil, err
 	}
 
-	return client.(media.MediaClient), nil
+	return client.(media.ClientMedia), nil
 }
 
 // GetSeriesByName searches for TV series by name across all clients

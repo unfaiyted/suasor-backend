@@ -72,18 +72,15 @@ func (j *JellyfinClient) GetMusic(ctx context.Context, options *t.QueryOptions) 
 			}
 
 			track.SetClientInfo(j.ClientID, j.ClientType, *item.Id)
-
+			track.Data.AlbumName = *item.Album.Get()
 			// Set album info if available
-			if item.AlbumId.IsSet() {
-				track.Data.AlbumID = *item.AlbumId.Get()
-			}
-			if item.Album.IsSet() {
-				track.Data.AlbumName = *item.Album.Get()
+			if item.AlbumId.IsSet() && item.ArtistItems != nil && len(item.ArtistItems) > 0 {
+				track.Data.AddSyncClient(j.ClientID, *item.AlbumId.Get(), *item.ArtistItems[0].Id)
 			}
 
 			// Add artist information if available
 			if item.ArtistItems != nil && len(item.ArtistItems) > 0 {
-				track.Data.ArtistID = *item.ArtistItems[0].Id
+				// track.Data.ArtistID = *item.ArtistItems[0].Id
 				track.Data.ArtistName = *item.ArtistItems[0].Name.Get()
 			}
 
@@ -324,16 +321,16 @@ func (j *JellyfinClient) GetMusicTrackByID(ctx context.Context, id string) (mode
 	}
 
 	// Set album info if available
-	if item.AlbumId.IsSet() {
-		track.Data.AlbumID = *item.AlbumId.Get()
+	if item.AlbumId.IsSet() && item.ArtistItems != nil && len(item.ArtistItems) > 0 {
+		track.Data.AddSyncClient(j.ClientID, *item.AlbumId.Get(), *item.ArtistItems[0].Id)
 	}
+
 	if item.Album.IsSet() {
 		track.Data.AlbumName = *item.Album.Get()
 	}
 
 	// Add artist information if available
 	if item.ArtistItems != nil && len(item.ArtistItems) > 0 {
-		track.Data.ArtistID = *item.ArtistItems[0].Id
 		track.Data.ArtistName = *item.ArtistItems[0].Name.Get()
 	}
 

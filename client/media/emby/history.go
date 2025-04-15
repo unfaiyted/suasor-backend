@@ -12,7 +12,7 @@ import (
 )
 
 // GetWatchHistory retrieves watch history from the Emby server
-func (e *EmbyClient) GetPlayHistory(ctx context.Context, options *types.QueryOptions) ([]models.MediaPlayHistory[types.MediaData], error) {
+func (e *EmbyClient) GetPlayHistory(ctx context.Context, options *types.QueryOptions) ([]models.UserMediaItemData[types.MediaData], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -55,7 +55,7 @@ func (e *EmbyClient) GetPlayHistory(ctx context.Context, options *types.QueryOpt
 		Int("totalRecordCount", int(items.TotalRecordCount)).
 		Msg("Successfully retrieved watch history from Emby")
 
-	history := make([]models.MediaPlayHistory[types.MediaData], 0)
+	history := make([]models.UserMediaItemData[types.MediaData], 0)
 	for _, item := range items.Items {
 		if item.UserData != nil && item.UserData.Played {
 			watchItem, err := e.convertToWatchHistoryItem(ctx, &item)

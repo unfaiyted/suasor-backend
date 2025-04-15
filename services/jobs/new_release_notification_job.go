@@ -19,14 +19,16 @@ import (
 
 // NewReleaseNotificationJob identifies and notifies users about new releases
 type NewReleaseNotificationJob struct {
-	jobRepo        repository.JobRepository
-	userRepo       repository.UserRepository
-	configRepo     repository.UserConfigRepository
-	movieRepo      repository.MediaItemRepository[*mediatypes.Movie]
-	seriesRepo     repository.MediaItemRepository[*mediatypes.Series]
-	musicRepo      repository.MediaItemRepository[*mediatypes.Track]
-	historyRepo    repository.MediaPlayHistoryRepository
-	metadataClient interface{} // Using interface{} to avoid import cycles
+	jobRepo            repository.JobRepository
+	userRepo           repository.UserRepository
+	configRepo         repository.UserConfigRepository
+	movieRepo          repository.ClientMediaItemRepository[*mediatypes.Movie]
+	seriesRepo         repository.ClientMediaItemRepository[*mediatypes.Series]
+	musicRepo          repository.ClientMediaItemRepository[*mediatypes.Track]
+	userMovieDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Movie]
+	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series]
+	userMusicDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Track]
+	metadataClient     interface{} // Using interface{} to avoid import cycles
 }
 
 // NewNewReleaseNotificationJob creates a new release notification job
@@ -34,21 +36,25 @@ func NewNewReleaseNotificationJob(
 	jobRepo repository.JobRepository,
 	userRepo repository.UserRepository,
 	configRepo repository.UserConfigRepository,
-	movieRepo repository.MediaItemRepository[*mediatypes.Movie],
-	seriesRepo repository.MediaItemRepository[*mediatypes.Series],
-	musicRepo repository.MediaItemRepository[*mediatypes.Track],
-	historyRepo repository.MediaPlayHistoryRepository,
+	movieRepo repository.ClientMediaItemRepository[*mediatypes.Movie],
+	seriesRepo repository.ClientMediaItemRepository[*mediatypes.Series],
+	musicRepo repository.ClientMediaItemRepository[*mediatypes.Track],
+	userMovieDataRepo repository.UserMediaItemDataRepository[*mediatypes.Movie],
+	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series],
+	userMusicDataRepo repository.UserMediaItemDataRepository[*mediatypes.Track],
 	metadataClient interface{},
 ) *NewReleaseNotificationJob {
 	return &NewReleaseNotificationJob{
-		jobRepo:        jobRepo,
-		userRepo:       userRepo,
-		configRepo:     configRepo,
-		movieRepo:      movieRepo,
-		seriesRepo:     seriesRepo,
-		musicRepo:      musicRepo,
-		historyRepo:    historyRepo,
-		metadataClient: metadataClient,
+		jobRepo:            jobRepo,
+		userRepo:           userRepo,
+		configRepo:         configRepo,
+		movieRepo:          movieRepo,
+		seriesRepo:         seriesRepo,
+		musicRepo:          musicRepo,
+		userMovieDataRepo:  userMovieDataRepo,
+		userSeriesDataRepo: userSeriesDataRepo,
+		userMusicDataRepo:  userMusicDataRepo,
+		metadataClient:     metadataClient,
 	}
 }
 

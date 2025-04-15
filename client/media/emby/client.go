@@ -44,13 +44,13 @@ func init() {
 
 // EmbyClient implements the MediaContentProvider interface
 type EmbyClient struct {
-	media.BaseMediaClient
+	media.BaseClientMedia
 	client *embyclient.APIClient
 	// config *config.EmbyConfig
 }
 
 // NewEmbyClient creates a new Emby client instance
-func NewEmbyClient(ctx context.Context, clientID uint64, cfg config.EmbyConfig) (media.MediaClient, error) {
+func NewEmbyClient(ctx context.Context, clientID uint64, cfg config.EmbyConfig) (media.ClientMedia, error) {
 
 	// Create API client configuration
 	apiConfig := embyclient.NewConfiguration()
@@ -64,7 +64,7 @@ func NewEmbyClient(ctx context.Context, clientID uint64, cfg config.EmbyConfig) 
 	client := embyclient.NewAPIClient(apiConfig)
 
 	embyClient := &EmbyClient{
-		BaseMediaClient: media.BaseMediaClient{
+		BaseClientMedia: media.BaseClientMedia{
 			BaseClient: base.BaseClient{
 				ClientID: clientID,
 				Category: config.ClientTypeEmby.AsCategory(),
@@ -91,7 +91,7 @@ func NewEmbyClient(ctx context.Context, clientID uint64, cfg config.EmbyConfig) 
 
 // Register the provider factory
 // func init() {
-// 	media.RegisterClient(config.MediaClientTypeEmby, NewEmbyClient)
+// 	media.RegisterClient(config.ClientMediaTypeEmby, NewEmbyClient)
 // }
 
 // Capability methods

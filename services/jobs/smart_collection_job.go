@@ -22,7 +22,7 @@ type SmartCollectionJob struct {
 	movieRepo     repository.MediaItemRepository[*mediatypes.Movie]
 	seriesRepo    repository.MediaItemRepository[*mediatypes.Series]
 	musicRepo     repository.MediaItemRepository[*mediatypes.Track]
-	clientRepos   map[clienttypes.MediaClientType]interface{}
+	clientRepos   map[clienttypes.ClientMediaType]interface{}
 	clientFactory *client.ClientFactoryService
 	aiService     interface{} // Using interface{} to avoid import cycles
 }
@@ -42,11 +42,11 @@ func NewSmartCollectionJob(
 	clientFactory *client.ClientFactoryService,
 	aiService interface{},
 ) *SmartCollectionJob {
-	clientRepos := map[clienttypes.MediaClientType]interface{}{
-		clienttypes.MediaClientTypeEmby:     embyRepo,
-		clienttypes.MediaClientTypeJellyfin: jellyfinRepo,
-		clienttypes.MediaClientTypePlex:     plexRepo,
-		clienttypes.MediaClientTypeSubsonic: subsonicRepo,
+	clientRepos := map[clienttypes.ClientMediaType]interface{}{
+		clienttypes.ClientMediaTypeEmby:     embyRepo,
+		clienttypes.ClientMediaTypeJellyfin: jellyfinRepo,
+		clienttypes.ClientMediaTypePlex:     plexRepo,
+		clienttypes.ClientMediaTypeSubsonic: subsonicRepo,
 	}
 
 	return &SmartCollectionJob{
@@ -133,7 +133,7 @@ func (j *SmartCollectionJob) processUserCollections(ctx context.Context, user mo
 	}
 
 	// Get the user's clients
-	clients, err := j.getUserMediaClients(ctx, user.ID)
+	clients, err := j.getUserClientMedias(ctx, user.ID)
 	if err != nil {
 		j.completeJobRun(ctx, jobRun.ID, models.JobStatusFailed, fmt.Sprintf("Error getting media clients: %v", err))
 		return err
@@ -238,7 +238,7 @@ func (j *SmartCollectionJob) completeJobRun(ctx context.Context, jobRunID uint64
 // SmartCollectionClientInfo holds information about a media client for collection operations
 type SmartCollectionClientInfo struct {
 	ClientID   uint64
-	ClientType clienttypes.MediaClientType
+	ClientType clienttypes.ClientMediaType
 	Name       string
 	Connection interface{} // The client connection
 }
@@ -268,8 +268,8 @@ type CollectionStats struct {
 	itemsRemoved int
 }
 
-// getUserMediaClients returns all media clients for a user
-func (j *SmartCollectionJob) getUserMediaClients(ctx context.Context, userID uint64) ([]SmartCollectionClientInfo, error) {
+// getUserClientMedias returns all media clients for a user
+func (j *SmartCollectionJob) getUserClientMedias(ctx context.Context, userID uint64) ([]SmartCollectionClientInfo, error) {
 	// In a real implementation, we would:
 	// 1. Query each client repository for clients belonging to this user
 	// 2. Create client connections for each client
@@ -279,13 +279,13 @@ func (j *SmartCollectionJob) getUserMediaClients(ctx context.Context, userID uin
 	return []SmartCollectionClientInfo{
 		{
 			ClientID:   1,
-			ClientType: clienttypes.MediaClientTypeEmby,
+			ClientType: clienttypes.ClientMediaTypeEmby,
 			Name:       "Home Emby Server",
 			Connection: nil, // Would be an actual client in a real implementation
 		},
 		{
 			ClientID:   2,
-			ClientType: clienttypes.MediaClientTypePlex,
+			ClientType: clienttypes.ClientMediaTypePlex,
 			Name:       "Home Plex Server",
 			Connection: nil,
 		},

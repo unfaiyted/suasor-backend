@@ -15,13 +15,16 @@ import (
 
 // UserActivityAnalysisJob analyzes user activity patterns to generate insights
 type UserActivityAnalysisJob struct {
-	jobRepo     repository.JobRepository
-	userRepo    repository.UserRepository
-	configRepo  repository.UserConfigRepository
-	historyRepo repository.MediaPlayHistoryRepository
-	movieRepo   repository.MediaItemRepository[*mediatypes.Movie]
-	seriesRepo  repository.MediaItemRepository[*mediatypes.Series]
-	musicRepo   repository.MediaItemRepository[*mediatypes.Track]
+	jobRepo             repository.JobRepository
+	userRepo            repository.UserRepository
+	configRepo          repository.UserConfigRepository
+	userMovieDataRepo   repository.UserMediaItemDataRepository[*mediatypes.Movie]
+	userSeriesDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Series]
+	userEpisodeDataRepo repository.UserMediaItemDataRepository[*mediatypes.Episode]
+	userMusicDataRepo   repository.UserMediaItemDataRepository[*mediatypes.Track]
+	movieRepo           repository.MediaItemRepository[*mediatypes.Movie]
+	seriesRepo          repository.MediaItemRepository[*mediatypes.Series]
+	musicRepo           repository.MediaItemRepository[*mediatypes.Track]
 }
 
 // NewUserActivityAnalysisJob creates a new user activity analysis job
@@ -29,19 +32,25 @@ func NewUserActivityAnalysisJob(
 	jobRepo repository.JobRepository,
 	userRepo repository.UserRepository,
 	configRepo repository.UserConfigRepository,
-	historyRepo repository.MediaPlayHistoryRepository,
+	userMovieDataRepo repository.UserMediaItemDataRepository[*mediatypes.Movie],
+	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series],
+	userEpisodeDataRepo repository.UserMediaItemDataRepository[*mediatypes.Episode],
+	userMusicDataRepo repository.UserMediaItemDataRepository[*mediatypes.Track],
 	movieRepo repository.MediaItemRepository[*mediatypes.Movie],
 	seriesRepo repository.MediaItemRepository[*mediatypes.Series],
 	musicRepo repository.MediaItemRepository[*mediatypes.Track],
 ) *UserActivityAnalysisJob {
 	return &UserActivityAnalysisJob{
-		jobRepo:     jobRepo,
-		userRepo:    userRepo,
-		configRepo:  configRepo,
-		historyRepo: historyRepo,
-		movieRepo:   movieRepo,
-		seriesRepo:  seriesRepo,
-		musicRepo:   musicRepo,
+		jobRepo:             jobRepo,
+		userRepo:            userRepo,
+		configRepo:          configRepo,
+		userMovieDataRepo:   userMovieDataRepo,
+		userSeriesDataRepo:  userSeriesDataRepo,
+		userEpisodeDataRepo: userEpisodeDataRepo,
+		userMusicDataRepo:   userMusicDataRepo,
+		movieRepo:           movieRepo,
+		seriesRepo:          seriesRepo,
+		musicRepo:           musicRepo,
 	}
 }
 
@@ -190,8 +199,8 @@ func (j *UserActivityAnalysisJob) analyzeActivityTimes(ctx context.Context, user
 
 	// Mock implementation
 	return map[string]interface{}{
-		"peakDays": []string{"Saturday", "Sunday"},
-		"peakHours": []int{20, 21, 22}, // 8pm-11pm
+		"peakDays":              []string{"Saturday", "Sunday"},
+		"peakHours":             []int{20, 21, 22}, // 8pm-11pm
 		"averageSessionMinutes": 85,
 		"weekdayVsWeekend": map[string]float64{
 			"weekday": 0.35, // 35% of activity on weekdays
@@ -247,7 +256,7 @@ func (j *UserActivityAnalysisJob) analyzeBingeWatching(ctx context.Context, user
 
 	// Mock implementation
 	return map[string]interface{}{
-		"bingeFrequency": "weekly",
+		"bingeFrequency":          "weekly",
 		"averageEpisodesPerBinge": 4.2,
 		"mostBingedSeries": []string{
 			"Stranger Things",
@@ -255,10 +264,10 @@ func (j *UserActivityAnalysisJob) analyzeBingeWatching(ctx context.Context, user
 			"The Office",
 		},
 		"bingesByDayOfWeek": map[string]float64{
-			"Friday":  0.30,
+			"Friday":   0.30,
 			"Saturday": 0.45,
-			"Sunday":  0.15,
-			"Other":   0.10,
+			"Sunday":   0.15,
+			"Other":    0.10,
 		},
 	}, nil
 }
@@ -372,8 +381,8 @@ func (j *UserActivityAnalysisJob) GetUserActivityReport(ctx context.Context, use
 			"hours": 127.5,
 			"trend": "+12% from last month",
 		},
-		"favoriteGenres": []string{"Sci-Fi", "Action", "Comedy"},
-		"mostWatchedShow": "Stranger Things",
+		"favoriteGenres":   []string{"Sci-Fi", "Action", "Comedy"},
+		"mostWatchedShow":  "Stranger Things",
 		"mostWatchedMovie": "Inception",
 		"activityByDayOfWeek": map[string]float64{
 			"Monday":    0.05,
@@ -401,8 +410,8 @@ func (j *UserActivityAnalysisJob) GetGlobalActivityReport(ctx context.Context) (
 
 	// Mock implementation
 	return map[string]interface{}{
-		"lastUpdated": time.Now().Format(time.RFC3339),
-		"totalActiveUsers": 125,
+		"lastUpdated":                 time.Now().Format(time.RFC3339),
+		"totalActiveUsers":            125,
 		"averageUserWatchTimePerWeek": 8.5,
 		"mostPopularContent": map[string][]string{
 			"movies": {"The Avengers", "Inception", "The Dark Knight"},
@@ -416,3 +425,4 @@ func (j *UserActivityAnalysisJob) GetGlobalActivityReport(ctx context.Context) (
 		},
 	}, nil
 }
+

@@ -11,22 +11,22 @@ const (
 	ClientCategoryUnknown    ClientCategory = "unknown"
 )
 
-// MediaClientType represents different types of media clients
-type MediaClientType string
+// ClientMediaType represents different types of media clients
+type ClientMediaType string
 
 const (
-	MediaClientTypePlex     MediaClientType = "plex"
-	MediaClientTypeJellyfin MediaClientType = "jellyfin"
-	MediaClientTypeEmby     MediaClientType = "emby"
-	MediaClientTypeSubsonic MediaClientType = "subsonic"
-	MediaClientTypeUnknown  MediaClientType = "unknown"
+	ClientMediaTypePlex     ClientMediaType = "plex"
+	ClientMediaTypeJellyfin ClientMediaType = "jellyfin"
+	ClientMediaTypeEmby     ClientMediaType = "emby"
+	ClientMediaTypeSubsonic ClientMediaType = "subsonic"
+	ClientMediaTypeUnknown  ClientMediaType = "unknown"
 )
 
-func (c MediaClientType) AsGenericType() ClientType {
+func (c ClientMediaType) AsGenericType() ClientType {
 	return ClientType(c)
 }
 
-func (c MediaClientType) AsCategory() ClientCategory {
+func (c ClientMediaType) AsCategory() ClientCategory {
 	return ClientCategoryMedia
 }
 
@@ -40,15 +40,15 @@ const (
 	AutomationClientTypeUnknown AutomationClientType = "unknown"
 )
 
-func (c MediaClientType) AsGenericClient() ClientType {
+func (c ClientMediaType) AsGenericClient() ClientType {
 	switch c {
-	case MediaClientTypePlex:
+	case ClientMediaTypePlex:
 		return ClientTypePlex
-	case MediaClientTypeJellyfin:
+	case ClientMediaTypeJellyfin:
 		return ClientTypeJellyfin
-	case MediaClientTypeEmby:
+	case ClientMediaTypeEmby:
 		return ClientTypeEmby
-	case MediaClientTypeSubsonic:
+	case ClientMediaTypeSubsonic:
 		return ClientTypeSubsonic
 	default:
 		return ClientTypeUnknown
@@ -113,11 +113,11 @@ func (c ClientType) String() string {
 
 func (c ClientType) AsCategory() ClientCategory {
 	// Media clients
-	mediaClients := map[ClientType]bool{
+	clientMedias := map[ClientType]bool{
 		ClientTypeEmby: true, ClientTypeJellyfin: true,
 		ClientTypePlex: true, ClientTypeSubsonic: true,
 	}
-	if mediaClients[c] {
+	if clientMedias[c] {
 		return ClientCategoryMedia
 	}
 
@@ -157,18 +157,18 @@ func (c ClientType) GetCategory() ClientCategory {
 	return c.AsCategory()
 }
 
-func (c ClientType) AsMediaClientType() MediaClientType {
+func (c ClientType) AsClientMediaType() ClientMediaType {
 	switch c {
 	case ClientTypeEmby:
-		return MediaClientTypeEmby
+		return ClientMediaTypeEmby
 	case ClientTypeJellyfin:
-		return MediaClientTypeJellyfin
+		return ClientMediaTypeJellyfin
 	case ClientTypePlex:
-		return MediaClientTypePlex
+		return ClientMediaTypePlex
 	case ClientTypeSubsonic:
-		return MediaClientTypeSubsonic
+		return ClientMediaTypeSubsonic
 	default:
-		return MediaClientTypeUnknown
+		return ClientMediaTypeUnknown
 	}
 }
 
@@ -183,7 +183,7 @@ func (c ClientCategory) IsMedia() bool {
 	return c == ClientCategoryMedia
 }
 
-func (c MediaClientType) String() string {
+func (c ClientMediaType) String() string {
 	return string(c)
 }
 

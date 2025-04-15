@@ -180,7 +180,7 @@ func (m *MediaItem[T]) UnmarshalJSON(data []byte) error {
 }
 
 // SetClientInfo adds or updates client ID information for this media item
-func (m *MediaItem[T]) SetClientInfo(clientID uint64, clientType client.MediaClientType, clientItemKey string) {
+func (m *MediaItem[T]) SetClientInfo(clientID uint64, clientType client.ClientMediaType, clientItemKey string) {
 	// Add to SyncClients
 	found := false
 	genericType := clientType.AsGenericType()

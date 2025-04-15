@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
-	
+
 	"suasor/client/media/types"
 	"suasor/repository"
 	"suasor/types/models"
@@ -16,16 +16,16 @@ import (
 type ClientMediaItemService[T types.MediaData] interface {
 	// Include all core service methods
 	CoreMediaItemService[T]
-	
+
 	// Client-specific operations
 	GetByClientID(ctx context.Context, clientID uint64) ([]*models.MediaItem[T], error)
 	GetByClientItemID(ctx context.Context, itemID string, clientID uint64) (*models.MediaItem[T], error)
 	GetByClientAndType(ctx context.Context, clientID uint64, mediaType types.MediaType) ([]*models.MediaItem[T], error)
-	
+
 	// Multi-client operations
 	GetByMultipleClients(ctx context.Context, clientIDs []uint64) ([]*models.MediaItem[T], error)
-	SearchAcrossClients(ctx context.Context, query string, clientIDs []uint64, mediaType types.MediaType) ([]*models.MediaItem[T], error)
-	
+	SearchAcrossClients(ctx context.Context, query types.QueryOptions, clientIDs []uint64) (map[uint64][]*models.MediaItem[T], error)
+
 	// Sync operations
 	SyncItemBetweenClients(ctx context.Context, itemID uint64, sourceClientID uint64, targetClientID uint64, targetItemID string) error
 }
@@ -61,6 +61,10 @@ func (s *clientMediaItemService[T]) GetByID(ctx context.Context, id uint64) (*mo
 	return s.coreService.GetByID(ctx, id)
 }
 
+func (s *clientMediaItemService[T]) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error) {
+	return s.coreService.GetAll(ctx, limit, offset)
+}
+
 func (s *clientMediaItemService[T]) Delete(ctx context.Context, id uint64) error {
 	return s.coreService.Delete(ctx, id)
 }
@@ -73,12 +77,12 @@ func (s *clientMediaItemService[T]) GetByType(ctx context.Context, mediaType typ
 	return s.coreService.GetByType(ctx, mediaType)
 }
 
-func (s *clientMediaItemService[T]) Search(ctx context.Context, query string, mediaType types.MediaType, limit int, offset int) ([]*models.MediaItem[T], error) {
-	return s.coreService.Search(ctx, query, mediaType, limit, offset)
+func (s *clientMediaItemService[T]) Search(ctx context.Context, query types.QueryOptions) ([]*models.MediaItem[T], error) {
+	return s.coreService.Search(ctx, query)
 }
 
-func (s *clientMediaItemService[T]) GetRecentItems(ctx context.Context, mediaType types.MediaType, days int, limit int) ([]*models.MediaItem[T], error) {
-	return s.coreService.GetRecentItems(ctx, mediaType, days, limit)
+func (s *clientMediaItemService[T]) GetRecentItems(ctx context.Context, days int, limit int) ([]*models.MediaItem[T], error) {
+	return s.coreService.GetRecentItems(ctx, days, limit)
 }
 
 // Client-specific methods
@@ -89,7 +93,7 @@ func (s *clientMediaItemService[T]) GetByClientID(ctx context.Context, clientID 
 	log.Debug().
 		Uint64("clientID", clientID).
 		Msg("Getting media items by client ID")
-		
+
 	// Delegate to client repository
 	results, err := s.clientRepo.GetByClientID(ctx, clientID)
 	if err != nil {
@@ -98,12 +102,12 @@ func (s *clientMediaItemService[T]) GetByClientID(ctx context.Context, clientID 
 			Msg("Failed to get media items by client ID")
 		return nil, err
 	}
-	
+
 	log.Info().
 		Uint64("clientID", clientID).
 		Int("count", len(results)).
 		Msg("Media items retrieved by client ID")
-		
+
 	return results, nil
 }
 
@@ -114,7 +118,7 @@ func (s *clientMediaItemService[T]) GetByClientItemID(ctx context.Context, itemI
 		Str("itemID", itemID).
 		Uint64("clientID", clientID).
 		Msg("Getting media item by client item ID")
-		
+
 	// Delegate to client repository
 	result, err := s.clientRepo.GetByClientItemID(ctx, itemID, clientID)
 	if err != nil {
@@ -124,13 +128,13 @@ func (s *clientMediaItemService[T]) GetByClientItemID(ctx context.Context, itemI
 			Msg("Failed to get media item by client item ID")
 		return nil, err
 	}
-	
+
 	log.Debug().
 		Str("itemID", itemID).
 		Uint64("clientID", clientID).
 		Uint64("id", result.ID).
 		Msg("Media item retrieved by client item ID")
-		
+
 	return result, nil
 }
 
@@ -141,7 +145,7 @@ func (s *clientMediaItemService[T]) GetByClientAndType(ctx context.Context, clie
 		Uint64("clientID", clientID).
 		Str("type", string(mediaType)).
 		Msg("Getting media items by client and type")
-		
+
 	// Delegate to client repository
 	results, err := s.clientRepo.GetByType(ctx, mediaType, clientID)
 	if err != nil {
@@ -151,13 +155,13 @@ func (s *clientMediaItemService[T]) GetByClientAndType(ctx context.Context, clie
 			Msg("Failed to get media items by client and type")
 		return nil, err
 	}
-	
+
 	log.Info().
 		Uint64("clientID", clientID).
 		Str("type", string(mediaType)).
 		Int("count", len(results)).
 		Msg("Media items retrieved by client and type")
-		
+
 	return results, nil
 }
 
@@ -167,7 +171,7 @@ func (s *clientMediaItemService[T]) GetByMultipleClients(ctx context.Context, cl
 	log.Debug().
 		Interface("clientIDs", clientIDs).
 		Msg("Getting media items by multiple clients")
-		
+
 	// Delegate to client repository
 	results, err := s.clientRepo.GetByMultipleClients(ctx, clientIDs)
 	if err != nil {
@@ -176,49 +180,54 @@ func (s *clientMediaItemService[T]) GetByMultipleClients(ctx context.Context, cl
 			Msg("Failed to get media items by multiple clients")
 		return nil, err
 	}
-	
+
 	log.Info().
 		Interface("clientIDs", clientIDs).
 		Int("count", len(results)).
 		Msg("Media items retrieved by multiple clients")
-		
+
 	return results, nil
 }
 
 // SearchAcrossClients searches for media items across multiple clients
-func (s *clientMediaItemService[T]) SearchAcrossClients(ctx context.Context, query string, clientIDs []uint64, mediaType types.MediaType) ([]*models.MediaItem[T], error) {
+// Maps by [clientID] for each of the set of MeidaItems[T]
+func (s *clientMediaItemService[T]) SearchAcrossClients(ctx context.Context, query types.QueryOptions, clientIDs []uint64) (map[uint64][]*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Str("query", query).
+		Str("query", query.Query).
 		Interface("clientIDs", clientIDs).
-		Str("type", string(mediaType)).
+		Str("type", string(query.MediaType)).
 		Msg("Searching media items across clients")
-		
+
 	// Create query options for the repository
 	options := types.QueryOptions{
-		MediaType: mediaType,
-		Query:     query,
-		ClientIDs: clientIDs,
+		MediaType: query.MediaType,
+		Query:     query.Query,
 	}
-	
-	// Delegate to client repository
-	results, err := s.clientRepo.Search(ctx, options)
-	if err != nil {
-		log.Error().Err(err).
-			Str("query", query).
-			Interface("clientIDs", clientIDs).
-			Str("type", string(mediaType)).
-			Msg("Failed to search media items across clients")
-		return nil, err
+
+	var results map[uint64][]*models.MediaItem[T]
+
+	for _, clientID := range clientIDs {
+		// Delegate to client repository
+		clientResult, err := s.clientRepo.Search(ctx, options)
+		if err != nil {
+			log.Error().Err(err).
+				Str("query", query.Query).
+				Interface("clientIDs", clientIDs).
+				Str("type", string(query.MediaType)).
+				Msg("Failed to search media items across clients")
+			return nil, err
+		}
+		results[clientID] = clientResult
 	}
-	
+
 	log.Info().
-		Str("query", query).
+		Str("query", query.Query).
 		Interface("clientIDs", clientIDs).
-		Str("type", string(mediaType)).
+		Str("type", string(query.MediaType)).
 		Int("count", len(results)).
 		Msg("Media items found across clients")
-		
+
 	return results, nil
 }
 
@@ -231,7 +240,7 @@ func (s *clientMediaItemService[T]) SyncItemBetweenClients(ctx context.Context, 
 		Uint64("targetClientID", targetClientID).
 		Str("targetItemID", targetItemID).
 		Msg("Syncing item between clients")
-		
+
 	// Delegate to client repository
 	err := s.clientRepo.SyncItemBetweenClients(ctx, itemID, sourceClientID, targetClientID, targetItemID)
 	if err != nil {
@@ -242,12 +251,12 @@ func (s *clientMediaItemService[T]) SyncItemBetweenClients(ctx context.Context, 
 			Msg("Failed to sync item between clients")
 		return fmt.Errorf("failed to sync item between clients: %w", err)
 	}
-	
+
 	log.Info().
 		Uint64("itemID", itemID).
 		Uint64("sourceClientID", sourceClientID).
 		Uint64("targetClientID", targetClientID).
 		Msg("Item synced between clients successfully")
-		
+
 	return nil
 }

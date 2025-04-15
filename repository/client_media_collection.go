@@ -11,7 +11,7 @@ import (
 type ClientRepositoryCollection interface {
 	AllRepos() ClientRepoCollection
 	GetAllByCategory(ctx context.Context, category types.ClientCategory) ClientRepoCollection
-	GetAllMediaClientsForUser(ctx context.Context, userID uint64) (MediaClients, error)
+	GetAllClientMediasForUser(ctx context.Context, userID uint64) (ClientMedias, error)
 	GetAllMetadataClientsForUser(ctx context.Context, userID uint64) (MetadataClients, error)
 	GetAllAutomationClientsForUser(ctx context.Context, userID uint64) (AutomationClients, error)
 }
@@ -69,7 +69,7 @@ func (c *clientRepoCollection) GetAllByCategory(ctx context.Context, category ty
 	return c.AllRepos()
 }
 
-type MediaClients struct {
+type ClientMedias struct {
 	Emby     []*models.Client[*types.EmbyConfig]
 	Jellyfin []*models.Client[*types.JellyfinConfig]
 	Plex     []*models.Client[*types.PlexConfig]
@@ -92,8 +92,8 @@ type MetadataClients struct {
 	// Tmdb []*models.Client[*types.TmdbConfig]
 }
 
-func (c *clientRepoCollection) GetAllMediaClientsForUser(ctx context.Context, userID uint64) (MediaClients, error) {
-	var clientConfigs = MediaClients{}
+func (c *clientRepoCollection) GetAllClientMediasForUser(ctx context.Context, userID uint64) (ClientMedias, error) {
+	var clientConfigs = ClientMedias{}
 
 	embyRepoClients, err := c.embyRepo.GetByUserID(ctx, userID)
 	if err != nil {

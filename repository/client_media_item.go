@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"strings"
 	"suasor/client/media/types"
+	clienttypes "suasor/client/types"
 	"suasor/types/models"
 	"suasor/utils"
 
@@ -38,13 +39,13 @@ type ClientMediaItemRepository[T types.MediaData] interface {
 	GetByClientItemID(ctx context.Context, externalID string, clientID uint64) (*models.MediaItem[T], error)
 	GetByClientID(ctx context.Context, clientID uint64) ([]*models.MediaItem[T], error)
 	GetByType(ctx context.Context, mediaType types.MediaType, clientID uint64) ([]*models.MediaItem[T], error)
-	
+
 	// User and client combined operations
 	GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error)
-	
+
 	// Search operation
 	Search(ctx context.Context, options types.QueryOptions) ([]*models.MediaItem[T], error)
-	
+
 	// Advanced operations
 	GetByMultipleClients(ctx context.Context, clientIDs []uint64) ([]*models.MediaItem[T], error)
 	SyncItemBetweenClients(ctx context.Context, itemID uint64, sourceClientID uint64, targetClientID uint64, targetItemID string) error
@@ -258,31 +259,31 @@ func (r *clientMediaItemRepository[T]) Search(ctx context.Context, options types
 
 	// Build the query
 	query := r.db.WithContext(ctx)
-	
+
 	// Add type filter if provided
 	if options.MediaType != "" {
 		query = query.Where("type = ?", options.MediaType)
 	}
-	
+
 	// Add client filter if specified
 	if options.ClientID > 0 {
 		query = query.Where("sync_clients @> ?", fmt.Sprintf(`[{"id":%d}]`, options.ClientID))
 	}
-	
+
 	// Add text search on title
 	if options.Query != "" {
 		query = query.Where("title ILIKE ?", "%"+options.Query+"%")
 	}
-	
+
 	// Add pagination
 	if options.Limit > 0 {
 		query = query.Limit(options.Limit)
 	}
-	
+
 	if options.Offset > 0 {
 		query = query.Offset(options.Offset)
 	}
-	
+
 	// Order by most recently created
 	query = query.Order("created_at DESC")
 
@@ -305,20 +306,20 @@ func (r *clientMediaItemRepository[T]) GetByMultipleClients(ctx context.Context,
 	}
 
 	var items []*models.MediaItem[T]
-	
+
 	// Build a query with OR conditions for each client ID
 	query := r.db.WithContext(ctx)
-	
+
 	// Create array of client pattern conditions
 	clientPatterns := make([]string, len(clientIDs))
 	for i, clientID := range clientIDs {
 		clientPatterns[i] = fmt.Sprintf("sync_clients @> '[{\"id\":%d}]'", clientID)
 	}
 	combinedCondition := "(" + strings.Join(clientPatterns, " OR ") + ")"
-	
+
 	// Apply the combined condition
 	query = query.Where(combinedCondition)
-	
+
 	if err := query.Find(&items).Error; err != nil {
 		return nil, fmt.Errorf("failed to get media items by multiple clients: %w", err)
 	}
@@ -344,7 +345,7 @@ func (r *clientMediaItemRepository[T]) SyncItemBetweenClients(ctx context.Contex
 		}
 		return fmt.Errorf("failed to find media item for sync: %w", err)
 	}
-	
+
 	// Check if this item already has the source client
 	hasSourceClient := false
 	for _, client := range item.SyncClients {
@@ -353,11 +354,11 @@ func (r *clientMediaItemRepository[T]) SyncItemBetweenClients(ctx context.Contex
 			break
 		}
 	}
-	
+
 	if !hasSourceClient {
 		return fmt.Errorf("item is not associated with source client")
 	}
-	
+
 	// Check if the target client is already in the SyncClients array
 	for i, client := range item.SyncClients {
 		if client.ID == targetClientID {
@@ -370,17 +371,31 @@ func (r *clientMediaItemRepository[T]) SyncItemBetweenClients(ctx context.Contex
 			return nil
 		}
 	}
-	
+	targetSyncClient := r.getSyncClientByClientID(ctx, targetClientID, targetItemID)
+
 	// If we get here, the target client isn't in the array yet, so add it
-	item.SyncClients = append(item.SyncClients, models.ClientMapping{
-		ID:     targetClientID,
-		ItemID: targetItemID,
-	})
-	
+	item.SyncClients = append(item.SyncClients, *targetSyncClient)
+
 	// Update the item
 	if err := r.db.WithContext(ctx).Save(&item).Error; err != nil {
 		return fmt.Errorf("failed to add new client mapping: %w", err)
 	}
-	
+
 	return nil
+}
+
+func (s *clientMediaItemRepository[T]) getSyncClientByClientID(ctx context.Context, clientID uint64, targetItemID string) *models.SyncClient {
+	var clientType string
+
+	// Raw SQL approach
+	row := s.db.WithContext(ctx).Raw("SELECT type FROM clients WHERE id = ?", clientID).Row()
+	if err := row.Scan(&clientType); err != nil {
+		return nil
+	}
+
+	return &models.SyncClient{
+		ID:     clientID,
+		ItemID: targetItemID,
+		Type:   clienttypes.ClientType(clientType),
+	}
 }

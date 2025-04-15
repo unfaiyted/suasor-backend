@@ -1,12 +1,12 @@
-// app/dependencies.go
+// app/media_impl.go
 package app
 
 import (
 	mediatypes "suasor/client/media/types"
-	"suasor/handlers"
 	"suasor/repository"
 )
 
+// mediaItemRepositoriesImpl implements the legacy MediaItemRepositories interface for backward compatibility
 type mediaItemRepositoriesImpl struct {
 	movieRepo      repository.MediaItemRepository[*mediatypes.Movie]
 	seriesRepo     repository.MediaItemRepository[*mediatypes.Series]
@@ -57,77 +57,115 @@ func (r *mediaItemRepositoriesImpl) UserMediaPlaylistRepo() repository.UserMedia
 	return r.userMediaPlaylistRepo
 }
 
-type mediaItemHandlersImpl struct {
-	movieHandler      *handlers.MediaItemHandler[*mediatypes.Movie]
-	seriesHandler     *handlers.MediaItemHandler[*mediatypes.Series]
-	episodeHandler    *handlers.MediaItemHandler[*mediatypes.Episode]
-	trackHandler      *handlers.MediaItemHandler[*mediatypes.Track]
-	albumHandler      *handlers.MediaItemHandler[*mediatypes.Album]
-	artistHandler     *handlers.MediaItemHandler[*mediatypes.Artist]
-	collectionHandler *handlers.MediaItemHandler[*mediatypes.Collection]
-	playlistHandler   *handlers.MediaItemHandler[*mediatypes.Playlist]
+// Note: Core repositories and service implementations are now defined in media_data_factory.go
+// to avoid duplication and ensure consistency across the codebase.
 
+// NOTE: Legacy media item handlers implementation is commented out
+// since it's no longer needed with the new three-pronged architecture
+// and also has some type compatibility issues.
+/*
+// Specialized media handlers
+type legacyMediaItemHandlersImpl struct {
+	// Three-pronged architecture handlers
+	coreHandlers   CoreMediaItemHandlers
+	userHandlers   UserMediaItemHandlers
+	clientHandlers ClientMediaItemHandlers
+	
 	// Specialized handlers
-	musicHandler              *handlers.MusicSpecificHandler
-	seriesSpecificHandler     *handlers.SeriesSpecificHandler
-	playlistSpecificHandler   *handlers.PlaylistHandler
-	collectionSpecificHandler *handlers.CollectionHandler
+	musicHandler *handlers.CoreMusicHandler
+	seriesHandler *handlers.ClientMediaSeriesHandler[*clienttypes.JellyfinConfig]
+	seasonHandler *handlers.CoreUserMediaItemDataHandler[*mediatypes.Season]
 }
 
-func (h *mediaItemHandlersImpl) MovieHandler() *handlers.MediaItemHandler[*mediatypes.Movie] {
-	return h.movieHandler
+// Implementations that simulate the old handler interface by delegating to the new architecture
+func (h *legacyMediaItemHandlersImpl) MovieHandler() *handlers.CoreMovieHandler {
+	// Properly delegate to the core movie handler using the core service
+	return handlers.NewCoreMovieHandler(
+		h.coreHandlers.MovieCoreHandler().Service(),
+	)
 }
 
-func (h *mediaItemHandlersImpl) SeriesHandler() *handlers.MediaItemHandler[*mediatypes.Series] {
-	return h.seriesHandler
+func (h *legacyMediaItemHandlersImpl) SeriesHandler() *handlers.CoreMovieHandler {
+	// This is a mismatch in the legacy interface - the actual return type should be adjusted
+	// For now, we're returning a movie handler to maintain compatibility
+	return handlers.NewCoreMovieHandler(
+		h.coreHandlers.MovieCoreHandler().Service(),
+	)
 }
 
-func (h *mediaItemHandlersImpl) EpisodeHandler() *handlers.MediaItemHandler[*mediatypes.Episode] {
-	return h.episodeHandler
+func (h *legacyMediaItemHandlersImpl) EpisodeHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Episode] {
+	return h.coreHandlers.EpisodeCoreHandler()
 }
 
-// SeasonHandler returns the season handler (not implemented in this structure)
-func (h *mediaItemHandlersImpl) SeasonHandler() *handlers.MediaItemHandler[*mediatypes.Season] {
-	// Season handler is not directly implemented
-	return nil
+func (h *legacyMediaItemHandlersImpl) SeasonHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Season] {
+	return h.seasonHandler
 }
 
-func (h *mediaItemHandlersImpl) TrackHandler() *handlers.MediaItemHandler[*mediatypes.Track] {
-	return h.trackHandler
+func (h *legacyMediaItemHandlersImpl) TrackHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Track] {
+	return h.coreHandlers.TrackCoreHandler()
 }
 
-func (h *mediaItemHandlersImpl) AlbumHandler() *handlers.MediaItemHandler[*mediatypes.Album] {
-	return h.albumHandler
+func (h *legacyMediaItemHandlersImpl) AlbumHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Album] {
+	return h.coreHandlers.AlbumCoreHandler()
 }
 
-func (h *mediaItemHandlersImpl) ArtistHandler() *handlers.MediaItemHandler[*mediatypes.Artist] {
-	return h.artistHandler
+func (h *legacyMediaItemHandlersImpl) ArtistHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Artist] {
+	return h.coreHandlers.ArtistCoreHandler()
 }
 
-func (h *mediaItemHandlersImpl) CollectionHandler() *handlers.MediaItemHandler[*mediatypes.Collection] {
-	return h.collectionHandler
+func (h *legacyMediaItemHandlersImpl) CollectionHandler() *handlers.CoreCollectionHandler {
+	// Properly initialize the collection handler with proper services
+	return handlers.NewCoreCollectionHandler(
+		h.coreHandlers.CollectionCoreHandler().Service(),
+		services.NewCoreCollectionService(nil), // This is a placeholder, pass nil for simplicity
+	)
 }
 
-func (h *mediaItemHandlersImpl) PlaylistHandler() *handlers.MediaItemHandler[*mediatypes.Playlist] {
-	return h.playlistHandler
+func (h *legacyMediaItemHandlersImpl) PlaylistHandler() *handlers.CorePlaylistHandler {
+	// Properly initialize the playlist handler with proper services
+	return handlers.NewCorePlaylistHandler(
+		h.coreHandlers.PlaylistCoreHandler().Service(),
+		services.NewPlaylistService(nil, nil, nil), // This is a placeholder, pass nil for simplicity
+	)
 }
 
-// MusicHandler returns the specialized music handler
-func (h *mediaItemHandlersImpl) MusicHandler() *handlers.MusicSpecificHandler {
+func (h *legacyMediaItemHandlersImpl) GetCoreHandlers() CoreMediaItemHandlers {
+	return h.coreHandlers
+}
+
+func (h *legacyMediaItemHandlersImpl) GetUserHandlers() UserMediaItemHandlers {
+	return h.userHandlers
+}
+
+func (h *legacyMediaItemHandlersImpl) GetClientHandlers() ClientMediaItemHandlers {
+	return h.clientHandlers
+}
+
+func (h *legacyMediaItemHandlersImpl) MusicHandler() *handlers.CoreMusicHandler {
 	return h.musicHandler
 }
 
-// SeriesSpecificHandler returns the specialized series handler
-func (h *mediaItemHandlersImpl) SeriesSpecificHandler() *handlers.SeriesSpecificHandler {
-	return h.seriesSpecificHandler
+func (h *legacyMediaItemHandlersImpl) SeriesSpecificHandler() *handlers.ClientMediaSeriesHandler[*clienttypes.JellyfinConfig] {
+	return h.seriesHandler
 }
 
-// PlaylistSpecificHandler returns the specialized playlist handler
-func (h *mediaItemHandlersImpl) PlaylistSpecificHandler() *handlers.PlaylistHandler {
-	return h.playlistSpecificHandler
+// These handlers are specialized versions of the generic handlers
+// They provide domain-specific functionality beyond the basic CRUD operations
+func (h *legacyMediaItemHandlersImpl) PlaylistSpecificHandler() *handlers.CorePlaylistHandler {
+	// Reuse the same implementation as the standard playlist handler
+	// but we could extend this with additional specialized functionality if needed
+	return handlers.NewCorePlaylistHandler(
+		h.coreHandlers.PlaylistCoreHandler().Service(),
+		services.NewPlaylistService(nil, nil, nil), // This is a placeholder, pass nil for simplicity
+	)
 }
 
-// CollectionSpecificHandler returns the specialized collection handler
-func (h *mediaItemHandlersImpl) CollectionSpecificHandler() *handlers.CollectionHandler {
-	return h.collectionSpecificHandler
+func (h *legacyMediaItemHandlersImpl) CollectionSpecificHandler() *handlers.CoreCollectionHandler {
+	// Reuse the same implementation as the standard collection handler
+	// but we could extend this with additional specialized functionality if needed
+	return handlers.NewCoreCollectionHandler(
+		h.coreHandlers.CollectionCoreHandler().Service(),
+		services.NewCoreCollectionService(nil), // This is a placeholder, pass nil for simplicity
+	)
 }
+*/

@@ -22,7 +22,7 @@ type movieHandlerInterface interface {
 	SearchMovies(c *gin.Context)
 }
 
-func RegisterMediaClientRoutes(rg *gin.RouterGroup, deps *app.AppDependencies) {
+func RegisterClientMediaRoutes(rg *gin.RouterGroup, deps *app.AppDependencies) {
 
 	// Initialize handlers
 	mediaHandler := deps.ClientMediaHandlers

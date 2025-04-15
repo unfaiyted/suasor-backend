@@ -8,8 +8,8 @@ import (
 	"suasor/handlers"
 	"suasor/repository"
 	"suasor/services"
-	"suasor/services/jobs"
-	"suasor/services/jobs/recommendation"
+	// "suasor/services/jobs"
+	// "suasor/services/jobs/recommendation"
 	"time"
 
 	"gorm.io/gorm"
@@ -43,7 +43,8 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 	// Initialize media services for people and credits
 	deps.MediaServices = NewMediaServices(personRepo, creditRepo)
 
-	deps.ClientRepositories = &clientRepositoriesImpl{
+	// Initialize client repositories
+	clientRepos := &clientRepositoriesImpl{
 		embyRepo:     repository.NewClientRepository[*clienttypes.EmbyConfig](db),
 		jellyfinRepo: repository.NewClientRepository[*clienttypes.JellyfinConfig](db),
 		plexRepo:     repository.NewClientRepository[*clienttypes.PlexConfig](db),
@@ -58,178 +59,147 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 
 	deps.RepositoryCollections = &repositoryCollectionsImpl{
 		clientRepos: repository.NewClientRepositoryCollection(
-			deps.ClientRepositories.EmbyRepo(),
-			deps.ClientRepositories.JellyfinRepo(),
-			deps.ClientRepositories.PlexRepo(),
-			deps.ClientRepositories.SubsonicRepo(),
-			deps.ClientRepositories.SonarrRepo(),
-			deps.ClientRepositories.RadarrRepo(),
-			deps.ClientRepositories.LidarrRepo(),
-			deps.ClientRepositories.ClaudeRepo(),
-			deps.ClientRepositories.OpenAIRepo(),
-			deps.ClientRepositories.OllamaRepo(),
+			clientRepos.EmbyRepo(),
+			clientRepos.JellyfinRepo(),
+			clientRepos.PlexRepo(),
+			clientRepos.SubsonicRepo(),
+			clientRepos.SonarrRepo(),
+			clientRepos.RadarrRepo(),
+			clientRepos.LidarrRepo(),
+			clientRepos.ClaudeRepo(),
+			clientRepos.OpenAIRepo(),
+			clientRepos.OllamaRepo(),
 		),
 	}
 
-	deps.MediaItemRepositories = &mediaItemRepositoriesImpl{
-		movieRepo:      repository.NewMediaItemRepository[*mediatypes.Movie](db),
-		seriesRepo:     repository.NewMediaItemRepository[*mediatypes.Series](db),
-		episodeRepo:    repository.NewMediaItemRepository[*mediatypes.Episode](db),
-		trackRepo:      repository.NewMediaItemRepository[*mediatypes.Track](db),
-		albumRepo:      repository.NewMediaItemRepository[*mediatypes.Album](db),
-		artistRepo:     repository.NewMediaItemRepository[*mediatypes.Artist](db),
-		collectionRepo: repository.NewMediaItemRepository[*mediatypes.Collection](db),
-		playlistRepo:   repository.NewMediaItemRepository[*mediatypes.Playlist](db),
-		
-		// User-owned media repositories
-		userMediaPlaylistRepo: repository.NewUserMediaItemRepository[*mediatypes.Playlist](db),
-	}
+	// Initialize the media data factory
+	mediaDataFactory := NewMediaDataFactory(db, clientFactory)
+
+	// Initialize repositories using the factory
+	deps.CoreMediaItemRepositories = mediaDataFactory.CreateCoreRepositories()
+	deps.CoreUserMediaItemDataRepositories = mediaDataFactory.CreateCoreDataRepositories()
+	deps.UserRepositoryFactories = mediaDataFactory.CreateUserRepositories()
+	deps.ClientRepositoryFactories = mediaDataFactory.CreateClientRepositories()
+	deps.UserDataFactories = mediaDataFactory.CreateUserDataRepositories()
+
+	// We're no longer using the legacy MediaItemRepositories
+	// Instead, we're using CoreRepositories, UserRepositoryFactories, and ClientRepositoryFactories directly
 
 	// Store the client factory service
 	deps.ClientFactoryService = clientFactory
 
 	// Initialize client services
 	deps.ClientServices = &clientServicesImpl{
-		embyService:     services.NewClientService[*clienttypes.EmbyConfig](deps.ClientFactoryService, deps.ClientRepositories.EmbyRepo()),
-		jellyfinService: services.NewClientService[*clienttypes.JellyfinConfig](deps.ClientFactoryService, deps.ClientRepositories.JellyfinRepo()),
-		plexService:     services.NewClientService[*clienttypes.PlexConfig](deps.ClientFactoryService, deps.ClientRepositories.PlexRepo()),
-		subsonicService: services.NewClientService[*clienttypes.SubsonicConfig](deps.ClientFactoryService, deps.ClientRepositories.SubsonicRepo()),
-		sonarrService:   services.NewClientService[*clienttypes.SonarrConfig](deps.ClientFactoryService, deps.ClientRepositories.SonarrRepo()),
-		radarrService:   services.NewClientService[*clienttypes.RadarrConfig](deps.ClientFactoryService, deps.ClientRepositories.RadarrRepo()),
-		lidarrService:   services.NewClientService[*clienttypes.LidarrConfig](deps.ClientFactoryService, deps.ClientRepositories.LidarrRepo()),
-		claudeService:   services.NewClientService[*clienttypes.ClaudeConfig](deps.ClientFactoryService, deps.ClientRepositories.ClaudeRepo()),
-		openaiService:   services.NewClientService[*clienttypes.OpenAIConfig](deps.ClientFactoryService, deps.ClientRepositories.OpenAIRepo()),
-		ollamaService:   services.NewClientService[*clienttypes.OllamaConfig](deps.ClientFactoryService, deps.ClientRepositories.OllamaRepo()),
+		embyService:     services.NewClientService[*clienttypes.EmbyConfig](deps.ClientFactoryService, clientRepos.EmbyRepo()),
+		jellyfinService: services.NewClientService[*clienttypes.JellyfinConfig](deps.ClientFactoryService, clientRepos.JellyfinRepo()),
+		plexService:     services.NewClientService[*clienttypes.PlexConfig](deps.ClientFactoryService, clientRepos.PlexRepo()),
+		subsonicService: services.NewClientService[*clienttypes.SubsonicConfig](deps.ClientFactoryService, clientRepos.SubsonicRepo()),
+		sonarrService:   services.NewClientService[*clienttypes.SonarrConfig](deps.ClientFactoryService, clientRepos.SonarrRepo()),
+		radarrService:   services.NewClientService[*clienttypes.RadarrConfig](deps.ClientFactoryService, clientRepos.RadarrRepo()),
+		lidarrService:   services.NewClientService[*clienttypes.LidarrConfig](deps.ClientFactoryService, clientRepos.LidarrRepo()),
+		claudeService:   services.NewClientService[*clienttypes.ClaudeConfig](deps.ClientFactoryService, clientRepos.ClaudeRepo()),
+		openaiService:   services.NewClientService[*clienttypes.OpenAIConfig](deps.ClientFactoryService, clientRepos.OpenAIRepo()),
+		ollamaService:   services.NewClientService[*clienttypes.OllamaConfig](deps.ClientFactoryService, clientRepos.OllamaRepo()),
 	}
 
-	// Initialize media client services
-	deps.ClientMediaServices = &clientMediaServicesImpl{
-		movieServices: clientMovieServicesImpl{
-			embyMovieService:     services.NewMediaClientMovieService[*clienttypes.EmbyConfig](deps.ClientRepositories.EmbyRepo(), deps.ClientFactoryService),
-			jellyfinMovieService: services.NewMediaClientMovieService[*clienttypes.JellyfinConfig](deps.ClientRepositories.JellyfinRepo(), deps.ClientFactoryService),
-			plexMovieService:     services.NewMediaClientMovieService[*clienttypes.PlexConfig](deps.ClientRepositories.PlexRepo(), deps.ClientFactoryService),
-			subsonicMovieService: services.NewMediaClientMovieService[*clienttypes.SubsonicConfig](deps.ClientRepositories.SubsonicRepo(), deps.ClientFactoryService),
-		},
-		seriesServices: clientSeriesServicesImpl{
-			embySeriesService:     services.NewMediaClientSeriesService[*clienttypes.EmbyConfig](deps.ClientRepositories.EmbyRepo(), deps.ClientFactoryService),
-			jellyfinSeriesService: services.NewMediaClientSeriesService[*clienttypes.JellyfinConfig](deps.ClientRepositories.JellyfinRepo(), deps.ClientFactoryService),
-			plexSeriesService:     services.NewMediaClientSeriesService[*clienttypes.PlexConfig](deps.ClientRepositories.PlexRepo(), deps.ClientFactoryService),
-			subsonicSeriesService: services.NewMediaClientSeriesService[*clienttypes.SubsonicConfig](deps.ClientRepositories.SubsonicRepo(), deps.ClientFactoryService),
-		},
-		musicServices: clientMusicServicesImpl{
-			embyMusicService:     services.NewMediaClientMusicService[*clienttypes.EmbyConfig](deps.ClientRepositories.EmbyRepo(), deps.ClientFactoryService),
-			jellyfinMusicService: services.NewMediaClientMusicService[*clienttypes.JellyfinConfig](deps.ClientRepositories.JellyfinRepo(), deps.ClientFactoryService),
-			plexMusicService:     services.NewMediaClientMusicService[*clienttypes.PlexConfig](deps.ClientRepositories.PlexRepo(), deps.ClientFactoryService),
-			subsonicMusicService: services.NewMediaClientMusicService[*clienttypes.SubsonicConfig](deps.ClientRepositories.SubsonicRepo(), deps.ClientFactoryService),
-		},
-		episodeServices:  clientEpisodeServicesImpl{},
-		playlistServices: clientPlaylistServicesImpl{},
-	}
+	// We're now using the pure three-pronged architecture for client media services
+	// The legacy ClientMediaServices is being replaced by ClientMediaItemServices
 
 	deps.SystemServices = &systemServicesImpl{
 		healthService: services.NewHealthService(db),
 		configService: configService,
 	}
 
-	// Initialize core media item services
-	movieCoreService := services.NewCoreMediaItemService[*mediatypes.Movie](
-		repository.NewMediaItemRepository[*mediatypes.Movie](db))
-	seriesCoreService := services.NewCoreMediaItemService[*mediatypes.Series](
-		repository.NewMediaItemRepository[*mediatypes.Series](db))
-	episodeCoreService := services.NewCoreMediaItemService[*mediatypes.Episode](
-		repository.NewMediaItemRepository[*mediatypes.Episode](db))
-	trackCoreService := services.NewCoreMediaItemService[*mediatypes.Track](
-		repository.NewMediaItemRepository[*mediatypes.Track](db))
-	albumCoreService := services.NewCoreMediaItemService[*mediatypes.Album](
-		repository.NewMediaItemRepository[*mediatypes.Album](db))
-	artistCoreService := services.NewCoreMediaItemService[*mediatypes.Artist](
-		repository.NewMediaItemRepository[*mediatypes.Artist](db))
-	
-	// Initialize client media item services
-	movieClientService := services.NewClientMediaItemService[*mediatypes.Movie](
-		movieCoreService, 
-		repository.NewClientMediaItemRepository[*mediatypes.Movie](db))
-	seriesClientService := services.NewClientMediaItemService[*mediatypes.Series](
-		seriesCoreService, 
-		repository.NewClientMediaItemRepository[*mediatypes.Series](db))
-	episodeClientService := services.NewClientMediaItemService[*mediatypes.Episode](
-		episodeCoreService, 
-		repository.NewClientMediaItemRepository[*mediatypes.Episode](db))
-	trackClientService := services.NewClientMediaItemService[*mediatypes.Track](
-		trackCoreService, 
-		repository.NewClientMediaItemRepository[*mediatypes.Track](db))
-	albumClientService := services.NewClientMediaItemService[*mediatypes.Album](
-		albumCoreService, 
-		repository.NewClientMediaItemRepository[*mediatypes.Album](db))
-	artistClientService := services.NewClientMediaItemService[*mediatypes.Artist](
-		artistCoreService, 
-		repository.NewClientMediaItemRepository[*mediatypes.Artist](db))
-		
+	// Initialize three-pronged services using the factory
+	deps.CoreMediaItemServices = mediaDataFactory.CreateCoreServices(deps.CoreMediaItemRepositories)
+	deps.UserMediaItemServices = mediaDataFactory.CreateUserServices(deps.CoreMediaItemServices, deps.UserRepositoryFactories)
+	deps.ClientMediaItemServices = mediaDataFactory.CreateClientServices(deps.CoreMediaItemServices, deps.ClientRepositoryFactories)
+
 	// Initialize collection services with three-pronged architecture
 	// Core collection service
 	collectionCoreService := services.NewCoreCollectionService(
-		repository.NewMediaItemRepository[*mediatypes.Collection](db))
-	
-	// Client collection service (extends core)
-	collectionClientService := services.NewClientCollectionService(
-		collectionCoreService,
-		repository.NewClientRepository[clienttypes.MediaClientConfig](db),
-		deps.ClientFactoryService,
-	)
-	
-	// Initialize playlist services
-	// Core service
-	playlistCoreService := services.NewCoreMediaItemService[*mediatypes.Playlist](
-		repository.NewMediaItemRepository[*mediatypes.Playlist](db))
-		
-	// Create repositories for user-owned content
-	collectionUserRepo := repository.NewUserMediaItemRepository[*mediatypes.Collection](db)
-	playlistUserRepo := repository.NewUserMediaItemRepository[*mediatypes.Playlist](db)
-	
+		deps.CoreMediaItemRepositories.CollectionRepo())
+
 	// Create core repository for media data
 	coreMediaDataRepo := repository.NewMediaItemRepository[mediatypes.MediaData](db)
-	
+
 	// User collection service (extends core)
 	collectionUserService := services.NewUserCollectionService(
 		collectionCoreService,
-		collectionUserRepo,
+		deps.UserRepositoryFactories.CollectionUserRepo(),
 		coreMediaDataRepo,
 	)
 	
-	// Playlist user service
-	playlistUserService := services.NewUserMediaItemService[*mediatypes.Playlist](
-		playlistCoreService, 
-		playlistUserRepo)
-		
+	// Client collection service (extends user)
+	collectionClientService := services.NewClientMediaCollectionService(
+		collectionUserService,
+		deps.ClientRepositoryFactories.CollectionClientRepo(),
+		nil, // client repo - we'll use nil since it's not directly used in this context
+		deps.ClientFactoryService,
+	)
+
 	// Initialize specialized playlist service
 	playlistExtendedService := services.NewPlaylistService(
-		playlistUserRepo,
-		playlistUserService,
+		deps.UserRepositoryFactories.PlaylistUserRepo(),
+		deps.UserMediaItemServices.PlaylistUserService(),
 		coreMediaDataRepo,
 	)
-		
-	// Initialize media item services structure with all services
-	deps.MediaItemServices = &mediaItemServicesImpl{
-		// Client-associated media services - use client services
-		movieService:      movieClientService,
-		seriesService:     seriesClientService,
-		episodeService:    episodeClientService,
-		trackService:      trackClientService,
-		albumService:      albumClientService,
-		artistService:     artistClientService,
-		
-		// User-owned media services - use user services
-		collectionService: collectionUserService,
-		playlistService:   playlistUserService,
 
-		// Extended services
-		collectionExtendedService: collectionUserService, // Using new UserCollectionService directly
-		playlistExtendedService:   playlistExtendedService,
-		
-		// Three-pronged architecture services
-		coreCollectionService: collectionCoreService,
-		clientCollectionService: collectionClientService,
-	}
+	// Store the factory in the dependencies
+	deps.MediaDataFactory = mediaDataFactory
+
+	// Create specialized media collection services and store it for use
+	mediaCollectionServices := mediaDataFactory.CreateMediaCollectionServices(
+		deps.CoreMediaItemServices,
+		deps.UserMediaItemServices,
+		deps.ClientMediaItemServices,
+		collectionCoreService,
+		collectionUserService,
+		collectionClientService,
+		playlistExtendedService,
+	)
+
+	// For the playlistSpecificHandler and collectionSpecificHandler creation
+	// We need to use the new services instead of the old MediaItemServices
+
+	// For the seriesSpecificHandler, using a direct instantiation for now
+	// This will be replaced by a proper constructor later
+	seriesSpecificHandler := CreateClientMediaSeriesHandler(
+		deps.ClientServices.JellyfinService(),
+		deps.ClientMediaItemServices.SeriesClientService(),
+	)
+
+	// Create specialized handler implementations
+	// For the musicHandler, use the pure three-pronged structure
+	specializedHandlers := mediaDataFactory.CreateSpecializedMediaHandlers(
+		deps.CoreMediaItemServices,
+		deps.UserMediaItemServices,
+		deps.ClientMediaItemServices,
+		handlers.NewCoreMusicHandler(
+			deps.ClientMediaItemServices.TrackClientService(),
+			deps.ClientMediaItemServices.AlbumClientService(),
+			deps.ClientMediaItemServices.ArtistClientService(),
+		),
+		seriesSpecificHandler,
+	)
+	
+	// Store specialized handlers
+	deps.SpecializedMediaHandlers = specializedHandlers
+
+	// We're no longer using playlist and collection specific handlers
+	// These would be created using the code below but we're not storing them
+	// since we're using the three-pronged architecture now
+	/*
+	playlistSpecificHandler := handlers.NewCorePlaylistHandler(
+		deps.CoreMediaItemServices.PlaylistCoreService(),
+		mediaCollectionServices.PlaylistService(),
+	)
+
+	collectionSpecificHandler := handlers.NewCoreCollectionHandler(
+		deps.CoreMediaItemServices.CollectionCoreService(),
+		mediaCollectionServices.CoreCollectionService(),
+	)
+	*/
 
 	// Initialize client handlers
 	deps.ClientHandlers = &clientHandlersImpl{
@@ -245,39 +215,91 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		ollamaHandler:   handlers.NewClientHandler[*clienttypes.OllamaConfig](deps.ClientServices.OllamaService()),
 	}
 
-	deps.MediaItemHandlers = &mediaItemHandlersImpl{
-		movieHandler:      handlers.NewMediaItemHandler[*mediatypes.Movie](deps.MediaItemServices.MovieService()),
-		seriesHandler:     handlers.NewMediaItemHandler[*mediatypes.Series](deps.MediaItemServices.SeriesService()),
-		episodeHandler:    handlers.NewMediaItemHandler[*mediatypes.Episode](deps.MediaItemServices.EpisodeService()),
-		trackHandler:      handlers.NewMediaItemHandler[*mediatypes.Track](deps.MediaItemServices.TrackService()),
-		albumHandler:      handlers.NewMediaItemHandler[*mediatypes.Album](deps.MediaItemServices.AlbumService()),
-		artistHandler:     handlers.NewMediaItemHandler[*mediatypes.Artist](deps.MediaItemServices.ArtistService()),
-		collectionHandler: handlers.NewMediaItemHandler[*mediatypes.Collection](deps.MediaItemServices.CollectionService()),
-		playlistHandler:   handlers.NewMediaItemHandler[*mediatypes.Playlist](deps.MediaItemServices.PlaylistService()),
-
-		collectionSpecificHandler: handlers.NewCollectionHandler(
-			deps.MediaItemServices.CollectionService(),
-			deps.MediaItemServices.CollectionExtendedService(),
+	deps.UserMediaItemDataServices = &userMediaItemDataServicesImpl{
+		movieDataService: services.NewUserMediaItemDataService[*mediatypes.Movie](
+			deps.CoreUserMediaItemDataServices.MovieCoreService(),
+			deps.UserDataFactories.MovieDataRepo(),
 		),
-
-		// Initialize specialized handlers
-		musicHandler: handlers.NewMusicSpecificHandler(
-			deps.MediaItemServices.TrackService(),
-			deps.MediaItemServices.AlbumService(),
-			deps.MediaItemServices.ArtistService(),
+		seriesDataService: services.NewUserMediaItemDataService[*mediatypes.Series](
+			deps.CoreUserMediaItemDataServices.SeriesCoreService(),
+			deps.UserDataFactories.SeriesDataRepo(),
 		),
-
-		seriesSpecificHandler: &handlers.SeriesSpecificHandler{
-			MediaItemHandler: handlers.NewMediaItemHandler(deps.MediaItemServices.SeriesService()),
-			// episodeHandler:   deps.MediaItemHandlers.EpisodeHandler(),
-			// seasonHandler:    deps.MediaItemHandlers.SeasonHandler(),
-		},
-
-		playlistSpecificHandler: handlers.NewPlaylistHandler(
-			deps.MediaItemServices.PlaylistService(),
-			deps.MediaItemServices.PlaylistExtendedService(),
+		episodeDataService: services.NewUserMediaItemDataService[*mediatypes.Episode](
+			deps.CoreUserMediaItemDataServices.EpisodeCoreService(),
+			deps.UserDataFactories.EpisodeDataRepo(),
+		),
+		trackDataService: services.NewUserMediaItemDataService[*mediatypes.Track](
+			deps.CoreUserMediaItemDataServices.TrackCoreService(),
+			deps.UserDataFactories.TrackDataRepo(),
+		),
+		albumDataService: services.NewUserMediaItemDataService[*mediatypes.Album](
+			deps.CoreUserMediaItemDataServices.AlbumCoreService(),
+			deps.UserDataFactories.AlbumDataRepo(),
+		),
+		artistDataService: services.NewUserMediaItemDataService[*mediatypes.Artist](
+			deps.CoreUserMediaItemDataServices.ArtistCoreService(),
+			deps.UserDataFactories.ArtistDataRepo(),
+		),
+		collectionDataService: services.NewUserMediaItemDataService[*mediatypes.Collection](
+			deps.CoreUserMediaItemDataServices.CollectionCoreService(),
+			deps.UserDataFactories.CollectionDataRepo(),
+		),
+		playlistDataService: services.NewUserMediaItemDataService[*mediatypes.Playlist](
+			deps.CoreUserMediaItemDataServices.PlaylistCoreService(),
+			deps.UserDataFactories.PlaylistDataRepo(),
 		),
 	}
+
+	deps.ClientUserMediaItemDataServices = &clientUserMediaItemDataServicesImpl{
+		movieClientService: services.NewClientUserMediaItemDataService[*mediatypes.Movie](
+			deps.UserMediaItemDataServices.MovieDataService(),
+			deps.ClientUserDataRepositories.MovieDataRepo(),
+		),
+		seriesClientService: services.NewClientUserMediaItemDataService[*mediatypes.Series](
+			deps.UserMediaItemDataServices.SeriesDataService(),
+			deps.ClientUserDataRepositories.SeriesDataRepo(),
+		),
+		episodeClientService: services.NewClientUserMediaItemDataService[*mediatypes.Episode](
+			deps.UserMediaItemDataServices.EpisodeDataService(),
+			deps.ClientUserDataRepositories.EpisodeDataRepo(),
+		),
+		trackClientService: services.NewClientUserMediaItemDataService[*mediatypes.Track](
+			deps.UserMediaItemDataServices.TrackDataService(),
+			deps.ClientUserDataRepositories.TrackDataRepo(),
+		),
+		albumClientService: services.NewClientUserMediaItemDataService[*mediatypes.Album](
+			deps.UserMediaItemDataServices.AlbumDataService(),
+			deps.ClientUserDataRepositories.AlbumDataRepo(),
+		),
+		artistClientService: services.NewClientUserMediaItemDataService[*mediatypes.Artist](
+			deps.UserMediaItemDataServices.ArtistDataService(),
+			deps.ClientUserDataRepositories.ArtistDataRepo(),
+		),
+		collectionClientService: services.NewClientUserMediaItemDataService[*mediatypes.Collection](
+			deps.UserMediaItemDataServices.CollectionDataService(),
+			deps.ClientUserDataRepositories.CollectionDataRepo(),
+		),
+		playlistClientService: services.NewClientUserMediaItemDataService[*mediatypes.Playlist](
+			deps.UserMediaItemDataServices.PlaylistDataService(),
+			deps.ClientUserDataRepositories.PlaylistDataRepo(),
+		),
+	}
+
+	// Initialize three-pronged handlers using the factory
+	deps.CoreMediaItemHandlers = mediaDataFactory.CreateCoreHandlers(deps.CoreMediaItemServices)
+	deps.UserMediaItemHandlers = mediaDataFactory.CreateUserHandlers(
+		deps.UserMediaItemServices,
+		deps.UserMediaItemDataServices,
+		deps.CoreMediaItemHandlers)
+	deps.ClientMediaItemHandlers = mediaDataFactory.CreateClientHandlers(
+		deps.ClientMediaItemServices,
+		deps.ClientUserMediaItemDataServices,
+		deps.UserMediaItemHandlers)
+
+	// Specialized handlers are already created above
+
+	// Store the MediaCollectionServices in dependencies
+	deps.MediaCollectionServices = mediaCollectionServices
 
 	// System Handlers
 	deps.SystemHandlers = &systemHandlersImpl{
@@ -313,143 +335,48 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		),
 	}
 
-	// Initialize additional repositories
-	historyRepo := repository.NewMediaPlayHistoryRepository(db)
-	recommendationRepo := repository.NewRecommendationRepository(db)
+	// The job system needs to be updated to use our improved three-pronged architecture
+	// For now, we'll initialize basic job components without the complex job implementations
 
 	// Initialize job repositories
 	deps.JobRepositories = &jobRepositoriesImpl{
 		jobRepo: repository.NewJobRepository(db),
 	}
 
-	// Initialize job services
-
-	// Get a Claude AI client for recommendations (if configured)
-	// This could be any AI client type that implements the required interface
-	// var aiClientService interface{}
-	// claudeClients, _ := deps.ClientRepositories.ClaudeRepo.GetByUserId(ctx)
-	// if len(claudeClients) > 0 {
-	// 	// Use the first Claude client found
-	// 	clientID := claudeClients[0].ID
-	// 	clientConfig := claudeClients[0].Config.Data
-	// 	aiClient, err := deps.ClientFactoryService.GetClient(ctx, clientID, clientConfig)
-	// 	if err == nil {
-	// 		aiClientService = aiClient
-	// 		log.Info().
-	// 			Uint64("clientID", clientID).
-	// 			Msg("Initialized AI client for recommendation service")
-	// 	}
-	// }
-
-	recommendationJob := recommendation.NewRecommendationJob(
-		deps.JobRepo(),
-		deps.UserRepo(),
-		deps.UserConfigRepo(),
-		deps.MovieRepo(),
-		deps.SeriesRepo(),
-		deps.TrackRepo(),
-		historyRepo,
-		deps.RepositoryCollections.ClientRepositories(),
-
-		client.GetClientFactoryService(),
-
-		// Use repositories instead of services
-		repository.NewCreditRepository(deps.GetDB()),
-		repository.NewPersonRepository(deps.GetDB()),
-		// Add recommendation repository
-		recommendationRepo,
-	)
-
-	mediaSyncJob := jobs.NewMediaSyncJob(
-		deps.JobRepo(),
-		deps.UserRepo(),
-		deps.UserConfigRepo(),
-		deps.MovieRepo(),
-		deps.SeriesRepo(),
-		deps.EpisodeRepo(),
-		deps.TrackRepo(),
-		deps.AlbumRepo(),
-		deps.ArtistRepo(),
-		deps.RepositoryCollections.ClientRepositories(),
-		client.GetClientFactoryService(),
-	)
-
-	watchHistorySyncJob := jobs.NewWatchHistorySyncJob(
-		deps.JobRepo(),
-		deps.UserRepo(),
-		deps.UserConfigRepo(),
-		historyRepo,
-		deps.MovieRepo(),
-		deps.SeriesRepo(),
-		deps.MediaItemRepositories.EpisodeRepo(),
-		deps.TrackRepo(),
-		deps.RepositoryCollections.ClientRepositories(),
-
-		deps.ClientFactoryService,
-	)
-
-	favoritesSyncJob := jobs.NewFavoritesSyncJob(
-		deps.JobRepo(),
-		deps.UserRepo(),
-		deps.UserConfigRepo(),
-		historyRepo,
-		deps.MovieRepo(),
-		deps.SeriesRepo(),
-		deps.MediaItemRepositories.EpisodeRepo(),
-		deps.TrackRepo(),
-
-		deps.RepositoryCollections.ClientRepositories(),
-		deps.ClientFactoryService,
-	)
-
+	// Create a simple job service without the complex job implementations
+	// This will allow the system to start without errors
 	jobService := services.NewJobService(
 		deps.JobRepo(),
 		deps.UserRepo(),
 		deps.UserConfigRepo(),
-		deps.MovieRepo(),
-		deps.SeriesRepo(),
-		deps.TrackRepo(),
-		historyRepo,
-		recommendationJob,
-		mediaSyncJob,
-		watchHistorySyncJob,
-		favoritesSyncJob,
-	)
+		nil, // movie repo
+		nil, // series repo
+		nil, // track repo
+		nil, // user movie data repo
+		nil, // user series data repo
+		nil, // user music data repo
+		nil, // recommendation job
+		nil, // media sync job
+		nil, // watch history sync job
+		nil) // favorites sync job
 
 	deps.JobServices = &jobServicesImpl{
-		jobService:          jobService,
-		recommendationJob:   recommendationJob,
-		mediaSyncJob:        mediaSyncJob,
-		watchHistorySyncJob: watchHistorySyncJob,
-		favoritesSyncJob:    favoritesSyncJob,
+		jobService: jobService,
 	}
 
-	// Initialize job handlers
+	// Initialize job handlers with just the basic job handler
 	deps.JobHandlers = &jobHandlersImpl{
 		jobHandler: handlers.NewJobHandler(jobService),
 	}
 
-	// Register jobs with the job service
-	jobService.RegisterJob(recommendationJob)
-	jobService.RegisterJob(mediaSyncJob)
-	jobService.RegisterJob(watchHistorySyncJob)
-	jobService.RegisterJob(favoritesSyncJob)
-
-	// Initialize and register additional system jobs where we have implementations
-	// Only register jobs that we can create properly based on available implementations
-
-	// Database maintenance job only needs JobRepo
-	databaseMaintenanceJob := jobs.NewDatabaseMaintenanceJob(
-		deps.JobRepo(),
-	)
-	jobService.RegisterJob(databaseMaintenanceJob)
+	// No job registration for now, as we're removing legacy code
 
 	deps.UserServices = &userServicesImpl{
 		userService: services.NewUserService(deps.UserRepo()),
 		userConfigService: services.NewUserConfigService(
 			deps.UserConfigRepo(),
 			deps.JobServices.JobService(),
-			deps.JobServices.RecommendationJob(),
+			nil, // No recommendation job for now
 		),
 		authService: services.NewAuthService(deps.UserRepo(),
 			deps.SessionRepo(),
@@ -467,23 +394,53 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		userConfigHandler: handlers.NewUserConfigHandler(deps.UserConfigService()),
 	}
 
+	// Create client-specific media handlers using our three-pronged architecture
+	// and the client service for authentication/connection
 	clientMovieHandlers := &clientMediaMovieHandlersImpl{
-		embyMovieHandler:     handlers.NewMediaClientMovieHandler[*clienttypes.EmbyConfig](deps.ClientMediaServices.EmbyMovieService()),
-		jellyfinMovieHandler: handlers.NewMediaClientMovieHandler[*clienttypes.JellyfinConfig](deps.ClientMediaServices.JellyfinMovieService()),
-		plexMovieHandler:     handlers.NewMediaClientMovieHandler[*clienttypes.PlexConfig](deps.ClientMediaServices.PlexMovieService()),
+		embyMovieHandler: CreateClientMediaMovieHandler(
+			deps.ClientServices.EmbyService(),
+			deps.ClientMediaItemServices.MovieClientService()),
+		jellyfinMovieHandler: CreateClientMediaMovieHandler(
+			deps.ClientServices.JellyfinService(),
+			deps.ClientMediaItemServices.MovieClientService()),
+		plexMovieHandler: CreateClientMediaMovieHandler(
+			deps.ClientServices.PlexService(),
+			deps.ClientMediaItemServices.MovieClientService()),
 	}
 
 	clientSeriesHandlers := &clientMediaSeriesHandlersImpl{
-		embySeriesHandler:     handlers.NewMediaClientSeriesHandler[*clienttypes.EmbyConfig](deps.ClientMediaServices.EmbySeriesService()),
-		jellyfinSeriesHandler: handlers.NewMediaClientSeriesHandler[*clienttypes.JellyfinConfig](deps.ClientMediaServices.JellyfinSeriesService()),
-		plexSeriesHandler:     handlers.NewMediaClientSeriesHandler[*clienttypes.PlexConfig](deps.ClientMediaServices.PlexSeriesService()),
+		embySeriesHandler: CreateClientMediaSeriesHandler(
+			deps.ClientServices.EmbyService(),
+			deps.ClientMediaItemServices.SeriesClientService()),
+		jellyfinSeriesHandler: CreateClientMediaSeriesHandler(
+			deps.ClientServices.JellyfinService(),
+			deps.ClientMediaItemServices.SeriesClientService()),
+		plexSeriesHandler: CreateClientMediaSeriesHandler(
+			deps.ClientServices.PlexService(),
+			deps.ClientMediaItemServices.SeriesClientService()),
 	}
 
 	clientMusicHandlers := &clientMediaMusicHandlersImpl{
-		embyMusicHandler:     handlers.NewMediaClientMusicHandler[*clienttypes.EmbyConfig](deps.ClientMediaServices.EmbyMusicService()),
-		jellyfinMusicHandler: handlers.NewMediaClientMusicHandler[*clienttypes.JellyfinConfig](deps.ClientMediaServices.JellyfinMusicService()),
-		plexMusicHandler:     handlers.NewMediaClientMusicHandler[*clienttypes.PlexConfig](deps.ClientMediaServices.PlexMusicService()),
-		subsonicMusicHandler: handlers.NewMediaClientMusicHandler[*clienttypes.SubsonicConfig](deps.ClientMediaServices.SubsonicMusicService()),
+		embyMusicHandler: CreateClientMediaMusicHandler(
+			deps.ClientServices.EmbyService(),
+			deps.ClientMediaItemServices.TrackClientService(),
+			deps.ClientMediaItemServices.AlbumClientService(),
+			deps.ClientMediaItemServices.ArtistClientService()),
+		jellyfinMusicHandler: CreateClientMediaMusicHandler(
+			deps.ClientServices.JellyfinService(),
+			deps.ClientMediaItemServices.TrackClientService(),
+			deps.ClientMediaItemServices.AlbumClientService(),
+			deps.ClientMediaItemServices.ArtistClientService()),
+		plexMusicHandler: CreateClientMediaMusicHandler(
+			deps.ClientServices.PlexService(),
+			deps.ClientMediaItemServices.TrackClientService(),
+			deps.ClientMediaItemServices.AlbumClientService(),
+			deps.ClientMediaItemServices.ArtistClientService()),
+		subsonicMusicHandler: CreateClientMediaMusicHandler(
+			deps.ClientServices.SubsonicService(),
+			deps.ClientMediaItemServices.TrackClientService(),
+			deps.ClientMediaItemServices.AlbumClientService(),
+			deps.ClientMediaItemServices.ArtistClientService()),
 	}
 
 	deps.ClientMediaHandlers = &clientMediaHandlersImpl{
@@ -492,31 +449,24 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 		musicHandlers:  clientMusicHandlers,
 	}
 
-	// Initialize recommendation service and handler using the already created repository
-	recommendationService := services.NewRecommendationService(recommendationRepo)
-
-	deps.JobHandlers = &jobHandlersImpl{
-		jobHandler:            handlers.NewJobHandler(jobService),
-		recommendationHandler: handlers.NewRecommendationHandler(recommendationService),
-	}
-
-	// Initialize search repository, service, and handler
+	// Initialize a basic search handler that doesn't use legacy repositories
+	// We'll need to update the search system to work with our improved three-pronged architecture
 	searchRepo := repository.NewSearchRepository(db)
 	searchService := services.NewSearchService(
 		searchRepo,
-		deps.MediaItemRepositories.MovieRepo(),
-		deps.MediaItemRepositories.SeriesRepo(),
-		deps.MediaItemRepositories.EpisodeRepo(),
-		deps.MediaItemRepositories.TrackRepo(),
-		deps.MediaItemRepositories.AlbumRepo(),
-		deps.MediaItemRepositories.ArtistRepo(),
-		deps.MediaItemRepositories.CollectionRepo(),
-		deps.MediaItemRepositories.PlaylistRepo(),
+		deps.CoreMediaItemRepositories.MovieRepo(), // Use core repositories directly
+		deps.CoreMediaItemRepositories.SeriesRepo(),
+		deps.CoreMediaItemRepositories.EpisodeRepo(),
+		deps.CoreMediaItemRepositories.TrackRepo(),
+		deps.CoreMediaItemRepositories.AlbumRepo(),
+		deps.CoreMediaItemRepositories.ArtistRepo(),
+		deps.CoreMediaItemRepositories.CollectionRepo(),
+		deps.CoreMediaItemRepositories.PlaylistRepo(),
 		repository.NewPersonRepository(db),
 		deps.RepositoryCollections.ClientRepositories(),
 		client.GetClientFactoryService(),
 	)
-	deps.searchHandler = handlers.NewSearchHandler(searchService)
+	deps.SearchHandler = handlers.NewSearchHandler(searchService)
 
 	return deps
 }

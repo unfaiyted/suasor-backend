@@ -17,8 +17,8 @@ import (
 	"suasor/utils"
 )
 
-// MediaClientPlaylistService defines operations for interacting with playlist clients
-type MediaClientPlaylistService[T types.ClientConfig] interface {
+// ClientMediaPlaylistService defines operations for interacting with playlist clients
+type ClientMediaPlaylistService[T types.ClientConfig] interface {
 	// Basic playlist operations
 	GetPlaylistByID(ctx context.Context, userID uint64, clientID uint64, playlistID string) (*models.MediaItem[*mediatypes.Playlist], error)
 	GetPlaylists(ctx context.Context, userID uint64, count int) ([]models.MediaItem[*mediatypes.Playlist], error)
@@ -37,16 +37,16 @@ type MediaClientPlaylistService[T types.ClientConfig] interface {
 	SyncPlaylist(ctx context.Context, userID uint64, clientID uint64, playlistID string) error
 }
 
-type mediaPlaylistService[T types.MediaClientConfig] struct {
+type mediaPlaylistService[T types.ClientMediaConfig] struct {
 	repo    repository.ClientRepository[T]
 	factory *client.ClientFactoryService
 }
 
-// NewMediaClientPlaylistService creates a new media playlist service
-func NewMediaClientPlaylistService[T types.MediaClientConfig](
+// NewClientMediaPlaylistService creates a new media playlist service
+func NewClientMediaPlaylistService[T types.ClientMediaConfig](
 	repo repository.ClientRepository[T],
 	factory *client.ClientFactoryService,
-) MediaClientPlaylistService[T] {
+) ClientMediaPlaylistService[T] {
 	return &mediaPlaylistService[T]{
 		repo:    repo,
 		factory: factory,
@@ -54,7 +54,7 @@ func NewMediaClientPlaylistService[T types.MediaClientConfig](
 }
 
 // getPlaylistClients gets all playlist clients for a user
-func (s *mediaPlaylistService[T]) getPlaylistClients(ctx context.Context, userID uint64) ([]media.MediaClient, error) {
+func (s *mediaPlaylistService[T]) getPlaylistClients(ctx context.Context, userID uint64) ([]media.ClientMedia, error) {
 	repo := s.repo
 	// Get all media clients for the user
 	clients, err := repo.GetByCategory(ctx, types.ClientCategoryMedia, userID)
@@ -62,7 +62,7 @@ func (s *mediaPlaylistService[T]) getPlaylistClients(ctx context.Context, userID
 		return nil, err
 	}
 
-	var playlistClients []media.MediaClient
+	var playlistClients []media.ClientMedia
 
 	// Filter and instantiate clients that support playlists
 	for _, clientConfig := range clients {
@@ -73,7 +73,7 @@ func (s *mediaPlaylistService[T]) getPlaylistClients(ctx context.Context, userID
 				// Log error but continue with other clients
 				continue
 			}
-			playlistClients = append(playlistClients, client.(media.MediaClient))
+			playlistClients = append(playlistClients, client.(media.ClientMedia))
 		}
 	}
 
@@ -81,7 +81,7 @@ func (s *mediaPlaylistService[T]) getPlaylistClients(ctx context.Context, userID
 }
 
 // getSpecificPlaylistClient gets a specific playlist client
-func (s *mediaPlaylistService[T]) getSpecificPlaylistClient(ctx context.Context, userID, clientID uint64) (media.MediaClient, error) {
+func (s *mediaPlaylistService[T]) getSpecificPlaylistClient(ctx context.Context, userID, clientID uint64) (media.ClientMedia, error) {
 	log := utils.LoggerFromContext(ctx)
 
 	clientConfig, err := (s.repo).GetByID(ctx, clientID)
@@ -118,7 +118,7 @@ func (s *mediaPlaylistService[T]) getSpecificPlaylistClient(ctx context.Context,
 		Uint64("clientID", clientID).
 		Str("clientType", clientConfig.Config.Data.GetType().String()).
 		Msg("Retrieved client")
-	return client.(media.MediaClient), nil
+	return client.(media.ClientMedia), nil
 }
 
 func (s *mediaPlaylistService[T]) GetPlaylistByID(ctx context.Context, userID uint64, clientID uint64, playlistID string) (*models.MediaItem[*mediatypes.Playlist], error) {
@@ -641,20 +641,20 @@ func (s *mediaPlaylistService[T]) SearchPlaylists(ctx context.Context, userID ui
 	return allPlaylists, nil
 }
 
-// EnhancedMediaClientPlaylistService extends the basic playlist service with advanced item ID mapping
+// EnhancedClientMediaPlaylistService extends the basic playlist service with advanced item ID mapping
 // This version is aware of the MediaItemRepository and can translate IDs between clients
-type EnhancedMediaClientPlaylistService[T types.MediaClientConfig] struct {
+type EnhancedClientMediaPlaylistService[T types.ClientMediaConfig] struct {
 	mediaPlaylistService[T]
-	mediaItemRepo repository.MediaItemRepository[mediatypes.MediaData]
+	mediaItemRepo repository.ClientMediaItemRepository[mediatypes.MediaData]
 }
 
-// NewEnhancedMediaClientPlaylistService creates a new enhanced playlist service with item ID mapping
-func NewEnhancedMediaClientPlaylistService[T types.MediaClientConfig](
+// NewEnhancedClientMediaPlaylistService creates a new enhanced playlist service with item ID mapping
+func NewEnhancedClientMediaPlaylistService[T types.ClientMediaConfig](
 	repo repository.ClientRepository[T],
 	factory *client.ClientFactoryService,
-	mediaItemRepo repository.MediaItemRepository[mediatypes.MediaData],
-) MediaClientPlaylistService[T] {
-	return &EnhancedMediaClientPlaylistService[T]{
+	mediaItemRepo repository.ClientMediaItemRepository[mediatypes.MediaData],
+) ClientMediaPlaylistService[T] {
+	return &EnhancedClientMediaPlaylistService[T]{
 		mediaPlaylistService: mediaPlaylistService[T]{
 			repo:    repo,
 			factory: factory,
@@ -664,7 +664,7 @@ func NewEnhancedMediaClientPlaylistService[T types.MediaClientConfig](
 }
 
 // AddItemToPlaylist adds an item to a playlist with proper ID translation
-func (s *EnhancedMediaClientPlaylistService[T]) AddItemToPlaylist(ctx context.Context, userID uint64, clientID uint64, playlistID string, itemID string) error {
+func (s *EnhancedClientMediaPlaylistService[T]) AddItemToPlaylist(ctx context.Context, userID uint64, clientID uint64, playlistID string, itemID string) error {
 	log := utils.LoggerFromContext(ctx)
 	client, err := s.getSpecificPlaylistClient(ctx, userID, clientID)
 	if err != nil {

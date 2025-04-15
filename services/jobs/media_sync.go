@@ -22,12 +22,12 @@ type MediaSyncJob struct {
 	jobRepo         repository.JobRepository
 	userRepo        repository.UserRepository
 	configRepo      repository.UserConfigRepository
-	movieRepo       repository.MediaItemRepository[*mediatypes.Movie]
-	seriesRepo      repository.MediaItemRepository[*mediatypes.Series]
-	episodeRepo     repository.MediaItemRepository[*mediatypes.Episode]
-	musicRepo       repository.MediaItemRepository[*mediatypes.Track]
-	albumRepo       repository.MediaItemRepository[*mediatypes.Album]
-	artistRepo      repository.MediaItemRepository[*mediatypes.Artist]
+	movieRepo       repository.ClientMediaItemRepository[*mediatypes.Movie]
+	seriesRepo      repository.ClientMediaItemRepository[*mediatypes.Series]
+	episodeRepo     repository.ClientMediaItemRepository[*mediatypes.Episode]
+	musicRepo       repository.ClientMediaItemRepository[*mediatypes.Track]
+	albumRepo       repository.ClientMediaItemRepository[*mediatypes.Album]
+	artistRepo      repository.ClientMediaItemRepository[*mediatypes.Artist]
 	clientRepos     repository.ClientRepositoryCollection
 	clientFactories *client.ClientFactoryService
 }
@@ -37,12 +37,12 @@ func NewMediaSyncJob(
 	jobRepo repository.JobRepository,
 	userRepo repository.UserRepository,
 	configRepo repository.UserConfigRepository,
-	movieRepo repository.MediaItemRepository[*mediatypes.Movie],
-	seriesRepo repository.MediaItemRepository[*mediatypes.Series],
-	episodeRepo repository.MediaItemRepository[*mediatypes.Episode],
-	musicRepo repository.MediaItemRepository[*mediatypes.Track],
-	albumRepo repository.MediaItemRepository[*mediatypes.Album],
-	artistRepo repository.MediaItemRepository[*mediatypes.Artist],
+	movieRepo repository.ClientMediaItemRepository[*mediatypes.Movie],
+	seriesRepo repository.ClientMediaItemRepository[*mediatypes.Series],
+	episodeRepo repository.ClientMediaItemRepository[*mediatypes.Episode],
+	musicRepo repository.ClientMediaItemRepository[*mediatypes.Track],
+	albumRepo repository.ClientMediaItemRepository[*mediatypes.Album],
+	artistRepo repository.ClientMediaItemRepository[*mediatypes.Artist],
 	clientRepos repository.ClientRepositoryCollection,
 	clientFactories *client.ClientFactoryService,
 ) *MediaSyncJob {
@@ -218,7 +218,7 @@ func (j *MediaSyncJob) runSyncJob(ctx context.Context, syncJob models.MediaSyncJ
 	j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 0, "Starting media sync")
 
 	// Get the client from the database
-	mediaClient, err := j.getMediaClient(ctx, syncJob.ClientID, syncJob.ClientType)
+	clientMedia, err := j.getClientMedia(ctx, syncJob.ClientID, syncJob.ClientType)
 	if err != nil {
 		errorMsg := fmt.Sprintf("Failed to get media client: %v", err)
 		j.completeJobRun(ctx, jobRun.ID, models.JobStatusFailed, errorMsg)
@@ -232,17 +232,17 @@ func (j *MediaSyncJob) runSyncJob(ctx context.Context, syncJob models.MediaSyncJ
 	// Normalize media type to handle both singular and plural forms
 	switch mediaType {
 	case "movie", "movies":
-		syncError = j.syncMovies(ctx, mediaClient, jobRun.ID, syncJob.ClientID)
+		syncError = j.syncMovies(ctx, clientMedia, jobRun.ID, syncJob.ClientID)
 	case "series", "serie", "tvshows", "tvshow", "tv", "shows", "show":
-		syncError = j.syncSeries(ctx, mediaClient, jobRun.ID, syncJob.ClientID)
+		syncError = j.syncSeries(ctx, clientMedia, jobRun.ID, syncJob.ClientID)
 	case "episode", "episodes":
-		syncError = j.syncEpisodes(ctx, mediaClient, jobRun.ID, syncJob.ClientID)
+		syncError = j.syncEpisodes(ctx, clientMedia, jobRun.ID, syncJob.ClientID)
 	case "music", "tracks", "track", "songs", "song":
-		syncError = j.syncMusic(ctx, mediaClient, jobRun.ID, syncJob.ClientID)
+		syncError = j.syncMusic(ctx, clientMedia, jobRun.ID, syncJob.ClientID)
 	case "artist", "artists":
-		syncError = j.syncArtists(ctx, mediaClient, jobRun.ID, syncJob.ClientID)
+		syncError = j.syncArtists(ctx, clientMedia, jobRun.ID, syncJob.ClientID)
 	case "album", "albums":
-		syncError = j.syncAlbums(ctx, mediaClient, jobRun.ID, syncJob.ClientID)
+		syncError = j.syncAlbums(ctx, clientMedia, jobRun.ID, syncJob.ClientID)
 	default:
 		syncError = fmt.Errorf("unsupported media type: %s", syncJob.MediaType)
 	}
@@ -309,8 +309,8 @@ func (j *MediaSyncJob) getClientConfig(ctx context.Context, clientID uint64, cli
 	return config, nil
 }
 
-// getMediaClient gets a media client from the database and initializes it
-func (j *MediaSyncJob) getMediaClient(ctx context.Context, clientID uint64, clientType string) (media.MediaClient, error) {
+// getClientMedia gets a media client from the database and initializes it
+func (j *MediaSyncJob) getClientMedia(ctx context.Context, clientID uint64, clientType string) (media.ClientMedia, error) {
 	// Use the type to get the client config by id
 	clientConfig, err := j.getClientConfig(ctx, clientID, clientType)
 	if err != nil {
@@ -329,27 +329,27 @@ func (j *MediaSyncJob) getMediaClient(ctx context.Context, clientID uint64, clie
 	}
 
 	// Cast to media client
-	mediaClient, ok := client.(media.MediaClient)
+	clientMedia, ok := client.(media.ClientMedia)
 	if !ok {
 		return nil, fmt.Errorf("client is not a media client")
 	}
 
-	return mediaClient, nil
+	return clientMedia, nil
 }
 
 // syncMovies syncs movies from the client to the database
-func (j *MediaSyncJob) syncMovies(ctx context.Context, mediaClient media.MediaClient, jobRunID uint64, clientID uint64) error {
+func (j *MediaSyncJob) syncMovies(ctx context.Context, clientMedia media.ClientMedia, jobRunID uint64, clientID uint64) error {
 	// Update job progress
 	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 10, "Fetching movies from client")
 
 	// Check if client supports movies
-	movieProvider, ok := mediaClient.(providers.MovieProvider)
+	movieProvider, ok := clientMedia.(providers.MovieProvider)
 	if !ok {
 		return fmt.Errorf("client doesn't support movies")
 	}
 
 	// Get all movies from the client
-	clientType := mediaClient.(client.Client).GetType().AsMediaClientType()
+	clientType := clientMedia.(client.Client).GetType().AsClientMediaType()
 	movies, err := movieProvider.GetMovies(ctx, &mediatypes.QueryOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to get movies: %w", err)
@@ -387,18 +387,18 @@ func (j *MediaSyncJob) syncMovies(ctx context.Context, mediaClient media.MediaCl
 }
 
 // syncSeries syncs TV series from the client to the database
-func (j *MediaSyncJob) syncSeries(ctx context.Context, mediaClient media.MediaClient, jobRunID uint64, clientID uint64) error {
+func (j *MediaSyncJob) syncSeries(ctx context.Context, clientMedia media.ClientMedia, jobRunID uint64, clientID uint64) error {
 	// Update job progress
 	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 10, "Fetching series from client")
 
 	// Check if client supports series
-	seriesProvider, ok := mediaClient.(providers.SeriesProvider)
+	seriesProvider, ok := clientMedia.(providers.SeriesProvider)
 	if !ok {
 		return fmt.Errorf("client doesn't support series")
 	}
 
 	// Get all series from the client
-	clientType := mediaClient.(client.Client).GetType().AsMediaClientType()
+	clientType := clientMedia.(client.Client).GetType().AsClientMediaType()
 	series, err := seriesProvider.GetSeries(ctx, &mediatypes.QueryOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to get series: %w", err)
@@ -436,18 +436,18 @@ func (j *MediaSyncJob) syncSeries(ctx context.Context, mediaClient media.MediaCl
 }
 
 // syncEpisodes syncs TV episodes from the client to the database
-func (j *MediaSyncJob) syncEpisodes(ctx context.Context, mediaClient media.MediaClient, jobRunID uint64, clientID uint64) error {
+func (j *MediaSyncJob) syncEpisodes(ctx context.Context, clientMedia media.ClientMedia, jobRunID uint64, clientID uint64) error {
 	// Update job progress
 	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 10, "Fetching episodes from client")
 
 	// Check if client supports episodes
-	seriesProvider, ok := mediaClient.(providers.SeriesProvider)
+	seriesProvider, ok := clientMedia.(providers.SeriesProvider)
 	if !ok {
 		return fmt.Errorf("client doesn't support episodes")
 	}
 
 	// Get all episodes from the client
-	clientType := mediaClient.(client.Client).GetType().AsMediaClientType()
+	clientType := clientMedia.(client.Client).GetType().AsClientMediaType()
 
 	// Initialize a slice to hold all episodes
 	var allEpisodes []models.MediaItem[*mediatypes.Episode]
@@ -556,18 +556,18 @@ func (j *MediaSyncJob) syncEpisodes(ctx context.Context, mediaClient media.Media
 }
 
 // syncMusic syncs music tracks from the client to the database
-func (j *MediaSyncJob) syncMusic(ctx context.Context, mediaClient media.MediaClient, jobRunID uint64, clientID uint64) error {
+func (j *MediaSyncJob) syncMusic(ctx context.Context, clientMedia media.ClientMedia, jobRunID uint64, clientID uint64) error {
 	// Update job progress
 	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 10, "Fetching music from client")
 
 	// Check if client supports music
-	musicProvider, ok := mediaClient.(providers.MusicProvider)
+	musicProvider, ok := clientMedia.(providers.MusicProvider)
 	if !ok {
 		return fmt.Errorf("client doesn't support music")
 	}
 
 	// Get all tracks from the client
-	clientType := mediaClient.(client.Client).GetType().AsMediaClientType()
+	clientType := clientMedia.(client.Client).GetType().AsClientMediaType()
 	tracks, err := musicProvider.GetMusic(ctx, &mediatypes.QueryOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to get tracks: %w", err)
@@ -605,18 +605,18 @@ func (j *MediaSyncJob) syncMusic(ctx context.Context, mediaClient media.MediaCli
 }
 
 // syncAlbums syncs music albums from the client to the database
-func (j *MediaSyncJob) syncAlbums(ctx context.Context, mediaClient media.MediaClient, jobRunID uint64, clientID uint64) error {
+func (j *MediaSyncJob) syncAlbums(ctx context.Context, clientMedia media.ClientMedia, jobRunID uint64, clientID uint64) error {
 	// Update job progress
 	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 10, "Fetching albums from client")
 
 	// Check if client supports albums
-	musicProvider, ok := mediaClient.(providers.MusicProvider)
+	musicProvider, ok := clientMedia.(providers.MusicProvider)
 	if !ok {
 		return fmt.Errorf("client doesn't support albums")
 	}
 
 	// Get all albums from the client
-	clientType := mediaClient.(client.Client).GetType().AsMediaClientType()
+	clientType := clientMedia.(client.Client).GetType().AsClientMediaType()
 	albums, err := musicProvider.GetMusicAlbums(ctx, &mediatypes.QueryOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to get albums: %w", err)
@@ -654,18 +654,18 @@ func (j *MediaSyncJob) syncAlbums(ctx context.Context, mediaClient media.MediaCl
 }
 
 // syncArtists syncs music artists from the client to the database
-func (j *MediaSyncJob) syncArtists(ctx context.Context, mediaClient media.MediaClient, jobRunID uint64, clientID uint64) error {
+func (j *MediaSyncJob) syncArtists(ctx context.Context, clientMedia media.ClientMedia, jobRunID uint64, clientID uint64) error {
 	// Update job progress
 	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 10, "Fetching artists from client")
 
 	// Check if client supports artists
-	musicProvider, ok := mediaClient.(providers.MusicProvider)
+	musicProvider, ok := clientMedia.(providers.MusicProvider)
 	if !ok {
 		return fmt.Errorf("client doesn't support artists")
 	}
 
 	// Get all artists from the client
-	clientType := mediaClient.(client.Client).GetType().AsMediaClientType()
+	clientType := clientMedia.(client.Client).GetType().AsClientMediaType()
 	artists, err := musicProvider.GetMusicArtists(ctx, &mediatypes.QueryOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to get artists: %w", err)
@@ -703,7 +703,7 @@ func (j *MediaSyncJob) syncArtists(ctx context.Context, mediaClient media.MediaC
 }
 
 // processMovieBatch processes a batch of movies and saves them to the database
-func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []models.MediaItem[*mediatypes.Movie], clientID uint64, clientType clienttypes.MediaClientType) error {
+func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []models.MediaItem[*mediatypes.Movie], clientID uint64, clientType clienttypes.ClientMediaType) error {
 	for _, movie := range movies {
 		// Skip if movie has no client ID information
 		if len(movie.SyncClients) == 0 {
@@ -795,9 +795,9 @@ func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []models.Me
 }
 
 // processSeriesBatch processes a batch of series and saves them to the database
-func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.MediaItem[*mediatypes.Series], clientID uint64, clientType clienttypes.MediaClientType) error {
+func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.MediaItem[*mediatypes.Series], clientID uint64, clientType clienttypes.ClientMediaType) error {
 	// Try to get a series provider for this client to fetch season details
-	mediaClient, err := j.getMediaClient(ctx, clientID, clientType.String())
+	clientMedia, err := j.getClientMedia(ctx, clientID, clientType.String())
 	if err != nil {
 		// Just log the error but continue processing with what we have
 		log.Printf("Failed to get media client for season details: %v", err)
@@ -805,8 +805,8 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.M
 
 	// Cast to series provider if possible
 	var seriesProvider providers.SeriesProvider
-	if mediaClient != nil {
-		if sp, ok := mediaClient.(providers.SeriesProvider); ok {
+	if clientMedia != nil {
+		if sp, ok := clientMedia.(providers.SeriesProvider); ok {
 			seriesProvider = sp
 		}
 	}
@@ -964,7 +964,7 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.M
 }
 
 // processEpisodeBatch processes a batch of episodes and saves them to the database
-func (j *MediaSyncJob) processEpisodeBatch(ctx context.Context, episodes []models.MediaItem[*mediatypes.Episode], clientID uint64, clientType clienttypes.MediaClientType) error {
+func (j *MediaSyncJob) processEpisodeBatch(ctx context.Context, episodes []models.MediaItem[*mediatypes.Episode], clientID uint64, clientType clienttypes.ClientMediaType) error {
 	for _, episode := range episodes {
 		// Skip if episode has no client ID information
 		if len(episode.SyncClients) == 0 {
@@ -1056,7 +1056,7 @@ func (j *MediaSyncJob) processEpisodeBatch(ctx context.Context, episodes []model
 }
 
 // processTrackBatch processes a batch of music tracks and saves them to the database
-func (j *MediaSyncJob) processTrackBatch(ctx context.Context, tracks []models.MediaItem[*mediatypes.Track], clientID uint64, clientType clienttypes.MediaClientType) error {
+func (j *MediaSyncJob) processTrackBatch(ctx context.Context, tracks []models.MediaItem[*mediatypes.Track], clientID uint64, clientType clienttypes.ClientMediaType) error {
 	for _, track := range tracks {
 		// Skip if track has no client ID information
 		if len(track.SyncClients) == 0 {
@@ -1148,7 +1148,7 @@ func (j *MediaSyncJob) processTrackBatch(ctx context.Context, tracks []models.Me
 }
 
 // processAlbumBatch processes a batch of music albums and saves them to the database
-func (j *MediaSyncJob) processAlbumBatch(ctx context.Context, albums []models.MediaItem[*mediatypes.Album], clientID uint64, clientType clienttypes.MediaClientType) error {
+func (j *MediaSyncJob) processAlbumBatch(ctx context.Context, albums []models.MediaItem[*mediatypes.Album], clientID uint64, clientType clienttypes.ClientMediaType) error {
 	for _, album := range albums {
 		// Skip if album has no client ID information
 		if len(album.SyncClients) == 0 {
@@ -1240,7 +1240,7 @@ func (j *MediaSyncJob) processAlbumBatch(ctx context.Context, albums []models.Me
 }
 
 // processArtistBatch processes a batch of music artists and saves them to the database
-func (j *MediaSyncJob) processArtistBatch(ctx context.Context, artists []models.MediaItem[*mediatypes.Artist], clientID uint64, clientType clienttypes.MediaClientType) error {
+func (j *MediaSyncJob) processArtistBatch(ctx context.Context, artists []models.MediaItem[*mediatypes.Artist], clientID uint64, clientType clienttypes.ClientMediaType) error {
 	for _, artist := range artists {
 		// Skip if artist has no client ID information
 		if len(artist.SyncClients) == 0 {

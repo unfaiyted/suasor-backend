@@ -15816,7 +15816,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/types.ClientCategory"
                 },
                 "clientType": {
-                    "$ref": "#/definitions/types.MediaClientType"
+                    "$ref": "#/definitions/types.ClientMediaType"
                 },
                 "enabled": {
                     "type": "boolean",
@@ -15892,7 +15892,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/types.ClientCategory"
                 },
                 "clientType": {
-                    "$ref": "#/definitions/types.MediaClientType"
+                    "$ref": "#/definitions/types.ClientMediaType"
                 },
                 "enabled": {
                     "type": "boolean",
@@ -15982,7 +15982,7 @@ const docTemplate = `{
                 }
             }
         },
-        "types.MediaClientType": {
+        "types.ClientMediaType": {
             "type": "string",
             "enum": [
                 "plex",
@@ -15992,11 +15992,11 @@ const docTemplate = `{
                 "unknown"
             ],
             "x-enum-varnames": [
-                "MediaClientTypePlex",
-                "MediaClientTypeJellyfin",
-                "MediaClientTypeEmby",
-                "MediaClientTypeSubsonic",
-                "MediaClientTypeUnknown"
+                "ClientMediaTypePlex",
+                "ClientMediaTypeJellyfin",
+                "ClientMediaTypeEmby",
+                "ClientMediaTypeSubsonic",
+                "ClientMediaTypeUnknown"
             ]
         },
         "types.MediaDetails": {
@@ -16255,7 +16255,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/types.ClientCategory"
                 },
                 "clientType": {
-                    "$ref": "#/definitions/types.MediaClientType"
+                    "$ref": "#/definitions/types.ClientMediaType"
                 },
                 "enabled": {
                     "type": "boolean",
@@ -16468,7 +16468,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/types.ClientCategory"
                 },
                 "clientType": {
-                    "$ref": "#/definitions/types.MediaClientType"
+                    "$ref": "#/definitions/types.ClientMediaType"
                 },
                 "enabled": {
                     "type": "boolean",

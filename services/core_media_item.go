@@ -19,14 +19,15 @@ type CoreMediaItemService[T types.MediaData] interface {
 	Update(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error)
 	GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error)
 	Delete(ctx context.Context, id uint64) error
+	GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error)
 
 	// Basic query operations
 	GetByExternalID(ctx context.Context, source string, externalID string) (*models.MediaItem[T], error)
 	GetByType(ctx context.Context, mediaType types.MediaType) ([]*models.MediaItem[T], error)
 
 	// Search operations
-	Search(ctx context.Context, query string, mediaType types.MediaType, limit int, offset int) ([]*models.MediaItem[T], error)
-	GetRecentItems(ctx context.Context, mediaType types.MediaType, days int, limit int) ([]*models.MediaItem[T], error)
+	Search(ctx context.Context, query types.QueryOptions) ([]*models.MediaItem[T], error)
+	GetRecentItems(ctx context.Context, days int, limit int) ([]*models.MediaItem[T], error)
 }
 
 // coreMediaItemService implements CoreMediaItemService
@@ -195,28 +196,28 @@ func (s *coreMediaItemService[T]) GetByType(ctx context.Context, mediaType types
 }
 
 // Search finds media items based on a query string
-func (s *coreMediaItemService[T]) Search(ctx context.Context, query string, mediaType types.MediaType, limit int, offset int) ([]*models.MediaItem[T], error) {
+func (s *coreMediaItemService[T]) Search(ctx context.Context, query types.QueryOptions) ([]*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Str("query", query).
-		Str("type", string(mediaType)).
-		Int("limit", limit).
-		Int("offset", offset).
+		Str("query", query.Query).
+		Str("type", string(query.MediaType)).
+		Int("limit", query.Limit).
+		Int("offset", query.Offset).
 		Msg("Searching media items")
 
 	// Delegate to repository
-	results, err := s.repo.Search(ctx, query, mediaType, limit, offset)
+	results, err := s.repo.Search(ctx, query)
 	if err != nil {
 		log.Error().Err(err).
-			Str("query", query).
-			Str("type", string(mediaType)).
+			Str("query", query.Query).
+			Str("type", string(query.MediaType)).
 			Msg("Failed to search media items")
 		return nil, err
 	}
 
 	log.Info().
-		Str("query", query).
-		Str("type", string(mediaType)).
+		Str("query", query.Query).
+		Str("type", string(query.MediaType)).
 		Int("count", len(results)).
 		Msg("Media items found")
 
@@ -224,8 +225,12 @@ func (s *coreMediaItemService[T]) Search(ctx context.Context, query string, medi
 }
 
 // GetRecentItems retrieves recently added items of a specific type
-func (s *coreMediaItemService[T]) GetRecentItems(ctx context.Context, mediaType types.MediaType, days int, limit int) ([]*models.MediaItem[T], error) {
+func (s *coreMediaItemService[T]) GetRecentItems(ctx context.Context, days int, limit int) ([]*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
+
+	var zero T
+	mediaType := types.GetMediaTypeFromTypeName(zero)
+
 	log.Debug().
 		Str("type", string(mediaType)).
 		Int("days", days).
@@ -259,4 +264,28 @@ func (s *coreMediaItemService[T]) validateMediaItem(item *models.MediaItem[T]) e
 	// Delegate to repository
 	// return s.repo.ValidateMediaItem(item)
 	return nil
+}
+
+func (s *coreMediaItemService[T]) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error) {
+	log := utils.LoggerFromContext(ctx)
+	log.Debug().
+		Int("limit", limit).
+		Int("offset", offset).
+		Msg("Getting all media items")
+
+	// Delegate to repository
+	results, err := s.repo.GetAll(ctx, limit, offset)
+	if err != nil {
+		log.Error().Err(err).
+			Int("limit", limit).
+			Int("offset", offset).
+			Msg("Failed to get all media items")
+		return nil, fmt.Errorf("failed to get all media items: %w", err)
+	}
+
+	log.Info().
+		Int("count", len(results)).
+		Msg("All media items retrieved successfully")
+
+	return results, nil
 }

@@ -338,7 +338,7 @@ func hasAnyTypedFilter(options *t.QueryOptions) bool {
 		len(options.Tags) > 0 ||
 		options.RecentlyAdded ||
 		options.RecentlyPlayed ||
-		options.Unwatched ||
+		options.Watched ||
 		!options.DateAddedAfter.IsZero() ||
 		!options.DateAddedBefore.IsZero() ||
 		!options.ReleasedAfter.IsZero() ||
@@ -404,4 +404,3 @@ func buildQueryString(options *t.QueryOptions) string {
 	// Join all parts with spaces
 	return strings.Join(queryParts, " ")
 }
-

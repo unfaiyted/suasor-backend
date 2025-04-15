@@ -412,7 +412,7 @@ func (j *RecommendationJob) generateAISeriesRecommendations(
 }
 
 // processSeriesHistory analyzes TV series watch history to build preferences
-func (j *RecommendationJob) processSeriesHistory(ctx context.Context, profile *UserPreferenceProfile, histories []models.MediaPlayHistory[*mediatypes.Series]) {
+func (j *RecommendationJob) processSeriesHistory(ctx context.Context, profile *UserPreferenceProfile, histories []*models.UserMediaItemData[*mediatypes.Series]) {
 	log := utils.LoggerFromContext(ctx)
 
 	// Maps for processing

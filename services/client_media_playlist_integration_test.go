@@ -36,41 +36,41 @@ func init() {
 	}
 }
 
-// MockMediaClientConfig implements MediaClientConfig for testing
-type MockPlaylistMediaClientConfig struct {
+// MockClientMediaConfig implements ClientMediaConfig for testing
+type MockPlaylistClientMediaConfig struct {
 	SupportsPlaylistsVal bool
 }
 
-func (m MockPlaylistMediaClientConfig) GetCategory() types.ClientCategory {
+func (m MockPlaylistClientMediaConfig) GetCategory() types.ClientCategory {
 	return types.ClientCategory("media")
 }
 
-func (m MockPlaylistMediaClientConfig) SupportsPlaylists() bool {
+func (m MockPlaylistClientMediaConfig) SupportsPlaylists() bool {
 	return m.SupportsPlaylistsVal
 }
 
-func (m MockPlaylistMediaClientConfig) SupportsMovies() bool {
+func (m MockPlaylistClientMediaConfig) SupportsMovies() bool {
 	return false
 }
 
-func (m MockPlaylistMediaClientConfig) SupportsTVShows() bool {
+func (m MockPlaylistClientMediaConfig) SupportsTVShows() bool {
 	return false
 }
 
-func (m MockPlaylistMediaClientConfig) SupportsMusic() bool {
+func (m MockPlaylistClientMediaConfig) SupportsMusic() bool {
 	return false
 }
 
-func (m MockPlaylistMediaClientConfig) GetConfigType() string {
+func (m MockPlaylistClientMediaConfig) GetConfigType() string {
 	return "mock"
 }
 
 // Add the missing GetClientType method
-func (m MockPlaylistMediaClientConfig) GetClientType() types.MediaClientType {
-	return types.MediaClientType("mock")
+func (m MockPlaylistClientMediaConfig) GetClientType() types.ClientMediaType {
+	return types.ClientMediaType("mock")
 }
 
-// MockPlaylistClient implements both media.MediaClient and providers.PlaylistProvider
+// MockPlaylistClient implements both media.ClientMedia and providers.PlaylistProvider
 type MockPlaylistClient struct {
 	mock.Mock
 	clientID uint64
@@ -92,7 +92,7 @@ func (m *MockPlaylistClient) SupportsHistory() bool {
 	return false
 }
 
-// Add this method to implement the MediaClient interface fully
+// Add this method to implement the ClientMedia interface fully
 func (m *MockPlaylistClient) SupportsMovies() bool {
 	return false
 }
@@ -109,20 +109,20 @@ func (m *MockPlaylistClient) GetPlaylists(ctx context.Context, options *mediatyp
 
 // MockClientRepository implements repository.ClientRepository
 type MockPlaylistClientRepository struct {
-	clients map[uint64]*models.Client[types.MediaClientConfig]
+	clients map[uint64]*models.Client[types.ClientMediaConfig]
 }
 
 func NewMockPlaylistClientRepository() *MockPlaylistClientRepository {
 	return &MockPlaylistClientRepository{
-		clients: make(map[uint64]*models.Client[types.MediaClientConfig]),
+		clients: make(map[uint64]*models.Client[types.ClientMediaConfig]),
 	}
 }
 
-func (m *MockPlaylistClientRepository) AddClient(client *models.Client[types.MediaClientConfig]) {
+func (m *MockPlaylistClientRepository) AddClient(client *models.Client[types.ClientMediaConfig]) {
 	m.clients[client.ID] = client
 }
 
-func (m *MockPlaylistClientRepository) GetByID(ctx context.Context, id uint64, userID uint64) (*models.Client[types.MediaClientConfig], error) {
+func (m *MockPlaylistClientRepository) GetByID(ctx context.Context, id uint64, userID uint64) (*models.Client[types.ClientMediaConfig], error) {
 	client, exists := m.clients[id]
 	if !exists || client.UserID != userID {
 		return nil, assert.AnError
@@ -130,8 +130,8 @@ func (m *MockPlaylistClientRepository) GetByID(ctx context.Context, id uint64, u
 	return client, nil
 }
 
-func (m *MockPlaylistClientRepository) GetByCategory(ctx context.Context, category string, userID uint64) ([]models.Client[types.MediaClientConfig], error) {
-	var results []models.Client[types.MediaClientConfig]
+func (m *MockPlaylistClientRepository) GetByCategory(ctx context.Context, category string, userID uint64) ([]models.Client[types.ClientMediaConfig], error) {
+	var results []models.Client[types.ClientMediaConfig]
 	for _, client := range m.clients {
 		if client.UserID == userID {
 			results = append(results, *client)
@@ -141,7 +141,7 @@ func (m *MockPlaylistClientRepository) GetByCategory(ctx context.Context, catego
 }
 
 // Fix the Create method signature
-func (m *MockPlaylistClientRepository) Create(ctx context.Context, client models.Client[types.MediaClientConfig]) (*models.Client[types.MediaClientConfig], error) {
+func (m *MockPlaylistClientRepository) Create(ctx context.Context, client models.Client[types.ClientMediaConfig]) (*models.Client[types.ClientMediaConfig], error) {
 	clientCopy := client
 	m.clients[client.ID] = &clientCopy
 	return &clientCopy, nil
@@ -149,16 +149,16 @@ func (m *MockPlaylistClientRepository) Create(ctx context.Context, client models
 
 // MockClientFactory implements client factory
 type MockPlaylistClientFactoryService struct {
-	clients map[uint64]media.MediaClient
+	clients map[uint64]media.ClientMedia
 }
 
 func NewMockPlaylistClientFactoryService() *MockPlaylistClientFactoryService {
 	return &MockPlaylistClientFactoryService{
-		clients: make(map[uint64]media.MediaClient),
+		clients: make(map[uint64]media.ClientMedia),
 	}
 }
 
-func (m *MockPlaylistClientFactoryService) AddClient(clientID uint64, client media.MediaClient) {
+func (m *MockPlaylistClientFactoryService) AddClient(clientID uint64, client media.ClientMedia) {
 	m.clients[clientID] = client
 }
 
@@ -215,19 +215,19 @@ func TestMediaPlaylistServiceIntegration(t *testing.T) {
 	mockFactory.AddClient(clientID, mockClient)
 
 	// Create the service
-	service := NewMediaClientPlaylistService(mockRepo, mockFactory)
+	service := NewClientMediaPlaylistService(mockRepo, mockFactory)
 
 	// Set up expectations
 	mockClient.On("GetPlaylists", mock.Anything, mock.Anything).Return(testPlaylists, nil)
 
 	// Create client repository and add test client
-	mockRepo.AddClient(&models.Client[types.MediaClientConfig]{
+	mockRepo.AddClient(&models.Client[types.ClientMediaConfig]{
 		BaseModel: models.BaseModel{
 			ID: clientID,
 		},
 		UserID: userID,
-		Config: models.ClientConfigWrapper[types.MediaClientConfig]{
-			Data: MockPlaylistMediaClientConfig{
+		Config: models.ClientConfigWrapper[types.ClientMediaConfig]{
+			Data: MockPlaylistClientMediaConfig{
 				SupportsPlaylistsVal: true,
 			},
 		},
@@ -300,7 +300,7 @@ func TestMediaPlaylistServiceIntegration(t *testing.T) {
 }
 
 // Let's add integration tests for all media client types that support playlists
-func TestMediaClientPlaylistsIntegration(t *testing.T) {
+func TestClientMediaPlaylistsIntegration(t *testing.T) {
 	// Skip if not running integration tests
 	if os.Getenv("INTEGRATION") != "true" {
 		t.Skip("Skipping integration test. Set INTEGRATION=true to run")
@@ -314,18 +314,18 @@ func TestMediaClientPlaylistsIntegration(t *testing.T) {
 	testCases := []struct {
 		name          string
 		testEnvPrefix string
-		newClientFunc func(context.Context, uint64, interface{}) (media.MediaClient, error)
+		newClientFunc func(context.Context, uint64, interface{}) (media.ClientMedia, error)
 		configFactory func(baseURL, apiKey, user, password string) interface{}
 	}{
 		{
 			name:          "Emby",
 			testEnvPrefix: "EMBY_TEST",
-			newClientFunc: func(ctx context.Context, id uint64, config interface{}) (media.MediaClient, error) {
+			newClientFunc: func(ctx context.Context, id uint64, config interface{}) (media.ClientMedia, error) {
 				return media.NewEmbyClient(ctx, id, config.(types.EmbyConfig))
 			},
 			configFactory: func(baseURL, apiKey, user, password string) interface{} {
 				return types.EmbyConfig{
-					BaseMediaClientConfig: types.BaseMediaClientConfig{
+					BaseClientMediaConfig: types.BaseClientMediaConfig{
 						BaseURL: baseURL,
 						APIKey:  apiKey,
 					},
@@ -337,12 +337,12 @@ func TestMediaClientPlaylistsIntegration(t *testing.T) {
 		{
 			name:          "Jellyfin",
 			testEnvPrefix: "JELLYFIN_TEST",
-			newClientFunc: func(ctx context.Context, id uint64, config interface{}) (media.MediaClient, error) {
+			newClientFunc: func(ctx context.Context, id uint64, config interface{}) (media.ClientMedia, error) {
 				return media.NewJellyfinClient(ctx, id, config.(types.JellyfinConfig))
 			},
 			configFactory: func(baseURL, apiKey, user, password string) interface{} {
 				return types.JellyfinConfig{
-					BaseMediaClientConfig: types.BaseMediaClientConfig{
+					BaseClientMediaConfig: types.BaseClientMediaConfig{
 						BaseURL: baseURL,
 						APIKey:  apiKey,
 					},
@@ -354,12 +354,12 @@ func TestMediaClientPlaylistsIntegration(t *testing.T) {
 		{
 			name:          "Plex",
 			testEnvPrefix: "PLEX_TEST",
-			newClientFunc: func(ctx context.Context, id uint64, config interface{}) (media.MediaClient, error) {
+			newClientFunc: func(ctx context.Context, id uint64, config interface{}) (media.ClientMedia, error) {
 				return media.NewPlexClient(ctx, id, config.(types.PlexConfig))
 			},
 			configFactory: func(baseURL, apiKey, user, password string) interface{} {
 				return types.PlexConfig{
-					BaseMediaClientConfig: types.BaseMediaClientConfig{
+					BaseClientMediaConfig: types.BaseClientMediaConfig{
 						BaseURL: baseURL,
 						APIKey:  apiKey,
 					},

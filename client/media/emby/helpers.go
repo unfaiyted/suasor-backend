@@ -30,7 +30,8 @@ func applyQueryOptions(queryParams *embyclient.ItemsServiceApiGetItemsOpts, opti
 	}
 
 	if options.Sort != "" {
-		queryParams.SortBy = optional.NewString(options.Sort)
+		// TODO: Look into mapping the SortBy to emby definitions
+		queryParams.SortBy = optional.NewString(string(options.Sort))
 		if options.SortOrder == "desc" {
 			queryParams.SortOrder = optional.NewString("Descending")
 		} else {
@@ -112,8 +113,8 @@ func applyQueryOptions(queryParams *embyclient.ItemsServiceApiGetItemsOpts, opti
 	}
 
 	// Unwatched filter
-	if options.Unwatched {
-		queryParams.IsPlayed = optional.NewBool(false)
+	if options.Watched {
+		queryParams.IsPlayed = optional.NewBool(true)
 	}
 
 	// Date filters

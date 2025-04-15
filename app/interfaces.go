@@ -1,4 +1,4 @@
-// app/dependencies.go
+// app/interfaces.go
 package app
 
 import (
@@ -26,8 +26,8 @@ type ClientServices interface {
 	AllServices() map[string]services.ClientService[types.ClientConfig]
 }
 
-// Using repository.ClientRepoCollection
-
+// ClientRepositories provides access to client repositories
+// These repositories store client configurations by client type
 type ClientRepositories interface {
 	EmbyRepo() repository.ClientRepository[*types.EmbyConfig]
 	JellyfinRepo() repository.ClientRepository[*types.JellyfinConfig]
@@ -45,6 +45,73 @@ type RepositoryCollections interface {
 	ClientRepositories() repository.ClientRepositoryCollection
 }
 
+// Three-pronged repository interfaces
+type CoreMediaItemRepositories interface {
+	MovieRepo() repository.MediaItemRepository[*mediatypes.Movie]
+	SeriesRepo() repository.MediaItemRepository[*mediatypes.Series]
+	EpisodeRepo() repository.MediaItemRepository[*mediatypes.Episode]
+	TrackRepo() repository.MediaItemRepository[*mediatypes.Track]
+	AlbumRepo() repository.MediaItemRepository[*mediatypes.Album]
+	ArtistRepo() repository.MediaItemRepository[*mediatypes.Artist]
+	CollectionRepo() repository.MediaItemRepository[*mediatypes.Collection]
+	PlaylistRepo() repository.MediaItemRepository[*mediatypes.Playlist]
+}
+
+type CoreUserMediaItemDataRepositories interface {
+	MovieDataRepo() repository.CoreUserMediaItemDataRepository[*mediatypes.Movie]
+	SeriesDataRepo() repository.CoreUserMediaItemDataRepository[*mediatypes.Series]
+	EpisodeDataRepo() repository.CoreUserMediaItemDataRepository[*mediatypes.Episode]
+	TrackDataRepo() repository.CoreUserMediaItemDataRepository[*mediatypes.Track]
+	AlbumDataRepo() repository.CoreUserMediaItemDataRepository[*mediatypes.Album]
+	ArtistDataRepo() repository.CoreUserMediaItemDataRepository[*mediatypes.Artist]
+	CollectionDataRepo() repository.CoreUserMediaItemDataRepository[*mediatypes.Collection]
+	PlaylistDataRepo() repository.CoreUserMediaItemDataRepository[*mediatypes.Playlist]
+}
+
+type UserRepositoryFactories interface {
+	MovieUserRepo() repository.UserMediaItemRepository[*mediatypes.Movie]
+	SeriesUserRepo() repository.UserMediaItemRepository[*mediatypes.Series]
+	EpisodeUserRepo() repository.UserMediaItemRepository[*mediatypes.Episode]
+	TrackUserRepo() repository.UserMediaItemRepository[*mediatypes.Track]
+	AlbumUserRepo() repository.UserMediaItemRepository[*mediatypes.Album]
+	ArtistUserRepo() repository.UserMediaItemRepository[*mediatypes.Artist]
+	CollectionUserRepo() repository.UserMediaItemRepository[*mediatypes.Collection]
+	PlaylistUserRepo() repository.UserMediaItemRepository[*mediatypes.Playlist]
+}
+
+type ClientUserDataRepositories interface {
+	MovieDataRepo() repository.ClientUserMediaItemDataRepository[*mediatypes.Movie]
+	SeriesDataRepo() repository.ClientUserMediaItemDataRepository[*mediatypes.Series]
+	EpisodeDataRepo() repository.ClientUserMediaItemDataRepository[*mediatypes.Episode]
+	TrackDataRepo() repository.ClientUserMediaItemDataRepository[*mediatypes.Track]
+	AlbumDataRepo() repository.ClientUserMediaItemDataRepository[*mediatypes.Album]
+	ArtistDataRepo() repository.ClientUserMediaItemDataRepository[*mediatypes.Artist]
+	CollectionDataRepo() repository.ClientUserMediaItemDataRepository[*mediatypes.Collection]
+	PlaylistDataRepo() repository.ClientUserMediaItemDataRepository[*mediatypes.Playlist]
+}
+
+type ClientRepositoryFactories interface {
+	MovieClientRepo() repository.ClientMediaItemRepository[*mediatypes.Movie]
+	SeriesClientRepo() repository.ClientMediaItemRepository[*mediatypes.Series]
+	EpisodeClientRepo() repository.ClientMediaItemRepository[*mediatypes.Episode]
+	TrackClientRepo() repository.ClientMediaItemRepository[*mediatypes.Track]
+	AlbumClientRepo() repository.ClientMediaItemRepository[*mediatypes.Album]
+	ArtistClientRepo() repository.ClientMediaItemRepository[*mediatypes.Artist]
+	CollectionClientRepo() repository.ClientMediaItemRepository[*mediatypes.Collection]
+	PlaylistClientRepo() repository.ClientMediaItemRepository[*mediatypes.Playlist]
+}
+
+type UserDataFactories interface {
+	MovieDataRepo() repository.UserMediaItemDataRepository[*mediatypes.Movie]
+	SeriesDataRepo() repository.UserMediaItemDataRepository[*mediatypes.Series]
+	EpisodeDataRepo() repository.UserMediaItemDataRepository[*mediatypes.Episode]
+	TrackDataRepo() repository.UserMediaItemDataRepository[*mediatypes.Track]
+	AlbumDataRepo() repository.UserMediaItemDataRepository[*mediatypes.Album]
+	ArtistDataRepo() repository.UserMediaItemDataRepository[*mediatypes.Artist]
+	CollectionDataRepo() repository.UserMediaItemDataRepository[*mediatypes.Collection]
+	PlaylistDataRepo() repository.UserMediaItemDataRepository[*mediatypes.Playlist]
+}
+
 type ClientMediaServices interface {
 	ClientMovieServies
 	ClientSeriesServices
@@ -58,17 +125,17 @@ type ClientAutomationServices interface {
 }
 
 type ClientMovieServies interface {
-	EmbyMovieService() services.MediaClientMovieService[*types.EmbyConfig]
-	JellyfinMovieService() services.MediaClientMovieService[*types.JellyfinConfig]
-	PlexMovieService() services.MediaClientMovieService[*types.PlexConfig]
-	SubsonicMovieService() services.MediaClientMovieService[*types.SubsonicConfig]
+	EmbyMovieService() services.ClientMediaMovieService[*types.EmbyConfig]
+	JellyfinMovieService() services.ClientMediaMovieService[*types.JellyfinConfig]
+	PlexMovieService() services.ClientMediaMovieService[*types.PlexConfig]
+	SubsonicMovieService() services.ClientMediaMovieService[*types.SubsonicConfig]
 }
 
 type ClientSeriesServices interface {
-	EmbySeriesService() services.MediaClientSeriesService[*types.EmbyConfig]
-	JellyfinSeriesService() services.MediaClientSeriesService[*types.JellyfinConfig]
-	PlexSeriesService() services.MediaClientSeriesService[*types.PlexConfig]
-	SubsonicSeriesService() services.MediaClientSeriesService[*types.SubsonicConfig]
+	EmbySeriesService() services.ClientMediaSeriesService[*types.EmbyConfig]
+	JellyfinSeriesService() services.ClientMediaSeriesService[*types.JellyfinConfig]
+	PlexSeriesService() services.ClientMediaSeriesService[*types.PlexConfig]
+	SubsonicSeriesService() services.ClientMediaSeriesService[*types.SubsonicConfig]
 }
 
 type ClientEpisodeServices interface {
@@ -76,36 +143,103 @@ type ClientEpisodeServices interface {
 }
 
 type ClientMusicServices interface {
-	EmbyMusicService() services.MediaClientMusicService[*types.EmbyConfig]
-	JellyfinMusicService() services.MediaClientMusicService[*types.JellyfinConfig]
-	PlexMusicService() services.MediaClientMusicService[*types.PlexConfig]
-	SubsonicMusicService() services.MediaClientMusicService[*types.SubsonicConfig]
+	EmbyMusicService() services.ClientMediaMusicService[*types.EmbyConfig]
+	JellyfinMusicService() services.ClientMediaMusicService[*types.JellyfinConfig]
+	PlexMusicService() services.ClientMediaMusicService[*types.PlexConfig]
+	SubsonicMusicService() services.ClientMediaMusicService[*types.SubsonicConfig]
 }
 
 type ClientPlaylistServices interface {
-	EmbyPlaylistService() services.MediaClientPlaylistService[*types.EmbyConfig]
-	JellyfinPlaylistService() services.MediaClientPlaylistService[*types.JellyfinConfig]
-	PlexPlaylistService() services.MediaClientPlaylistService[*types.PlexConfig]
-	SubsonicPlaylistService() services.MediaClientPlaylistService[*types.SubsonicConfig]
+	EmbyPlaylistService() services.ClientMediaPlaylistService[*types.EmbyConfig]
+	JellyfinPlaylistService() services.ClientMediaPlaylistService[*types.JellyfinConfig]
+	PlexPlaylistService() services.ClientMediaPlaylistService[*types.PlexConfig]
+	SubsonicPlaylistService() services.ClientMediaPlaylistService[*types.SubsonicConfig]
 }
 
-type MediaItemServices interface {
-	MovieService() services.MediaItemService[*mediatypes.Movie]
-	SeriesService() services.MediaItemService[*mediatypes.Series]
-	EpisodeService() services.MediaItemService[*mediatypes.Episode]
-	TrackService() services.MediaItemService[*mediatypes.Track]
-	AlbumService() services.MediaItemService[*mediatypes.Album]
-	ArtistService() services.MediaItemService[*mediatypes.Artist]
-	CollectionService() services.MediaItemService[*mediatypes.Collection]
-	PlaylistService() services.MediaItemService[*mediatypes.Playlist]
+// Three-pronged architecture for service interfaces
 
-	// Extended services (legacy interfaces)
-	CollectionExtendedService() services.UserCollectionService
-	PlaylistExtendedService() services.PlaylistService
-	
-	// Three-pronged architecture for collections
+// Core-layer services
+type CoreMediaItemServices interface {
+	MovieCoreService() services.CoreMediaItemService[*mediatypes.Movie]
+	SeriesCoreService() services.CoreMediaItemService[*mediatypes.Series]
+	EpisodeCoreService() services.CoreMediaItemService[*mediatypes.Episode]
+	TrackCoreService() services.CoreMediaItemService[*mediatypes.Track]
+	AlbumCoreService() services.CoreMediaItemService[*mediatypes.Album]
+	ArtistCoreService() services.CoreMediaItemService[*mediatypes.Artist]
+	CollectionCoreService() services.CoreMediaItemService[*mediatypes.Collection]
+	PlaylistCoreService() services.CoreMediaItemService[*mediatypes.Playlist]
+}
+
+// Core-Data-layer services (extend core)
+type CoreUserMediaItemDataServices interface {
+	MovieCoreService() services.CoreUserMediaItemDataService[*mediatypes.Movie]
+	SeriesCoreService() services.CoreUserMediaItemDataService[*mediatypes.Series]
+	EpisodeCoreService() services.CoreUserMediaItemDataService[*mediatypes.Episode]
+	TrackCoreService() services.CoreUserMediaItemDataService[*mediatypes.Track]
+	AlbumCoreService() services.CoreUserMediaItemDataService[*mediatypes.Album]
+	ArtistCoreService() services.CoreUserMediaItemDataService[*mediatypes.Artist]
+	CollectionCoreService() services.CoreUserMediaItemDataService[*mediatypes.Collection]
+	PlaylistCoreService() services.CoreUserMediaItemDataService[*mediatypes.Playlist]
+}
+
+// User-layer services (extend core)
+type UserMediaItemServices interface {
+	MovieUserService() services.UserMediaItemService[*mediatypes.Movie]
+	SeriesUserService() services.UserMediaItemService[*mediatypes.Series]
+	EpisodeUserService() services.UserMediaItemService[*mediatypes.Episode]
+	TrackUserService() services.UserMediaItemService[*mediatypes.Track]
+	AlbumUserService() services.UserMediaItemService[*mediatypes.Album]
+	ArtistUserService() services.UserMediaItemService[*mediatypes.Artist]
+	CollectionUserService() services.UserMediaItemService[*mediatypes.Collection]
+	PlaylistUserService() services.UserMediaItemService[*mediatypes.Playlist]
+}
+
+type UserMediaItemDataServices interface {
+	MovieDataService() services.UserMediaItemDataService[*mediatypes.Movie]
+	SeriesDataService() services.UserMediaItemDataService[*mediatypes.Series]
+	EpisodeDataService() services.UserMediaItemDataService[*mediatypes.Episode]
+	TrackDataService() services.UserMediaItemDataService[*mediatypes.Track]
+	AlbumDataService() services.UserMediaItemDataService[*mediatypes.Album]
+	ArtistDataService() services.UserMediaItemDataService[*mediatypes.Artist]
+	CollectionDataService() services.UserMediaItemDataService[*mediatypes.Collection]
+	PlaylistDataService() services.UserMediaItemDataService[*mediatypes.Playlist]
+}
+
+// Client-layer services (extend core)
+type ClientMediaItemServices interface {
+	MovieClientService() services.ClientMediaItemService[*mediatypes.Movie]
+	SeriesClientService() services.ClientMediaItemService[*mediatypes.Series]
+	EpisodeClientService() services.ClientMediaItemService[*mediatypes.Episode]
+	TrackClientService() services.ClientMediaItemService[*mediatypes.Track]
+	AlbumClientService() services.ClientMediaItemService[*mediatypes.Album]
+	ArtistClientService() services.ClientMediaItemService[*mediatypes.Artist]
+	CollectionClientService() services.ClientMediaItemService[*mediatypes.Collection]
+	PlaylistClientService() services.ClientMediaItemService[*mediatypes.Playlist]
+}
+
+type ClientUserMediaItemDataServices interface {
+	MovieDataService() services.ClientUserMediaItemDataService[*mediatypes.Movie]
+	SeriesDataService() services.ClientUserMediaItemDataService[*mediatypes.Series]
+	EpisodeDataService() services.ClientUserMediaItemDataService[*mediatypes.Episode]
+	TrackDataService() services.ClientUserMediaItemDataService[*mediatypes.Track]
+	AlbumDataService() services.ClientUserMediaItemDataService[*mediatypes.Album]
+	ArtistDataService() services.ClientUserMediaItemDataService[*mediatypes.Artist]
+	CollectionDataService() services.ClientUserMediaItemDataService[*mediatypes.Collection]
+	PlaylistDataService() services.ClientUserMediaItemDataService[*mediatypes.Playlist]
+}
+
+// Specialized collection and playlist services
+type MediaCollectionServices interface {
 	CoreCollectionService() services.CoreCollectionService
-	ClientCollectionService() services.ClientCollectionService
+	UserCollectionService() services.UserCollectionService
+	ClientCollectionService() services.ClientMediaCollectionService
+
+	CorePlaylistService() services.CoreMediaItemService[*mediatypes.Playlist]
+	UserPlaylistService() services.UserMediaItemService[*mediatypes.Playlist]
+	ClientPlaylistService() services.ClientMediaItemService[*mediatypes.Playlist]
+
+	// Extended services with additional functionality
+	PlaylistService() services.PlaylistService
 }
 
 type UserRepositories interface {
@@ -123,7 +257,7 @@ type MediaItemRepositories interface {
 	ArtistRepo() repository.MediaItemRepository[*mediatypes.Artist]
 	CollectionRepo() repository.MediaItemRepository[*mediatypes.Collection]
 	PlaylistRepo() repository.MediaItemRepository[*mediatypes.Playlist]
-	
+
 	// User-owned media repositories
 	UserMediaPlaylistRepo() repository.UserMediaItemRepository[*mediatypes.Playlist]
 }
@@ -150,22 +284,64 @@ type ClientHandlers interface {
 	OllamaHandler() *handlers.ClientHandler[*types.OllamaConfig]
 }
 
-type MediaItemHandlers interface {
-	MovieHandler() *handlers.MediaItemHandler[*mediatypes.Movie]
-	SeriesHandler() *handlers.MediaItemHandler[*mediatypes.Series]
-	EpisodeHandler() *handlers.MediaItemHandler[*mediatypes.Episode]
-	SeasonHandler() *handlers.MediaItemHandler[*mediatypes.Season]
-	TrackHandler() *handlers.MediaItemHandler[*mediatypes.Track]
-	AlbumHandler() *handlers.MediaItemHandler[*mediatypes.Album]
-	ArtistHandler() *handlers.MediaItemHandler[*mediatypes.Artist]
-	CollectionHandler() *handlers.MediaItemHandler[*mediatypes.Collection]
-	PlaylistHandler() *handlers.MediaItemHandler[*mediatypes.Playlist]
+// Three-pronged architecture for handler interfaces
 
-	// Specialized handlers
-	MusicHandler() *handlers.MusicSpecificHandler
-	SeriesSpecificHandler() *handlers.SeriesSpecificHandler
-	PlaylistSpecificHandler() *handlers.PlaylistHandler
-	CollectionSpecificHandler() *handlers.CollectionHandler
+// Core-layer handlers
+type CoreMediaItemHandlers interface {
+	MovieCoreHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Movie]
+	SeriesCoreHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Series]
+	EpisodeCoreHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Episode]
+	TrackCoreHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Track]
+	AlbumCoreHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Album]
+	ArtistCoreHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Artist]
+	CollectionCoreHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Collection]
+	PlaylistCoreHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Playlist]
+}
+
+// Core-Data-layer handlers (extend core)
+type CoreMediaItemDataHandlers interface {
+	MovieCoreDataHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Movie]
+	SeriesCoreDataHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Series]
+	EpisodeCoreDataHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Episode]
+	TrackCoreDataHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Track]
+	AlbumCoreDataHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Album]
+	ArtistCoreDataHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Artist]
+	CollectionCoreDataHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Collection]
+	PlaylistCoreDataHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Playlist]
+}
+
+// User-layer handlers (extend core)
+type UserMediaItemHandlers interface {
+	MovieUserHandler() *handlers.UserUserMediaItemDataHandler[*mediatypes.Movie]
+	SeriesUserHandler() *handlers.UserUserMediaItemDataHandler[*mediatypes.Series]
+	EpisodeUserHandler() *handlers.UserUserMediaItemDataHandler[*mediatypes.Episode]
+	TrackUserHandler() *handlers.UserUserMediaItemDataHandler[*mediatypes.Track]
+	AlbumUserHandler() *handlers.UserUserMediaItemDataHandler[*mediatypes.Album]
+	ArtistUserHandler() *handlers.UserUserMediaItemDataHandler[*mediatypes.Artist]
+	CollectionUserHandler() *handlers.UserUserMediaItemDataHandler[*mediatypes.Collection]
+	PlaylistUserHandler() *handlers.UserUserMediaItemDataHandler[*mediatypes.Playlist]
+}
+
+// Client-layer handlers (extend user)
+type ClientMediaItemHandlers interface {
+	MovieClientHandler() *handlers.ClientUserMediaItemDataHandler[*mediatypes.Movie]
+	SeriesClientHandler() *handlers.ClientUserMediaItemDataHandler[*mediatypes.Series]
+	EpisodeClientHandler() *handlers.ClientUserMediaItemDataHandler[*mediatypes.Episode]
+	TrackClientHandler() *handlers.ClientUserMediaItemDataHandler[*mediatypes.Track]
+	AlbumClientHandler() *handlers.ClientUserMediaItemDataHandler[*mediatypes.Album]
+	ArtistClientHandler() *handlers.ClientUserMediaItemDataHandler[*mediatypes.Artist]
+	CollectionClientHandler() *handlers.ClientUserMediaItemDataHandler[*mediatypes.Collection]
+	PlaylistClientHandler() *handlers.ClientUserMediaItemDataHandler[*mediatypes.Playlist]
+}
+
+// Specialized media handlers for specific domains
+type SpecializedMediaHandlers interface {
+	// Domain-specific handlers
+	MusicHandler() *handlers.CoreMusicHandler
+	SeriesSpecificHandler() *handlers.ClientMediaSeriesHandler[*types.JellyfinConfig] // Using JellyfinConfig as default
+
+	// Season handler (special case)
+	SeasonHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Season]
 }
 
 type ClientMediaHandlers interface {
@@ -177,35 +353,35 @@ type ClientMediaHandlers interface {
 }
 
 type ClientMediaMovieHandlers interface {
-	EmbyMovieHandler() *handlers.MediaClientMovieHandler[*types.EmbyConfig]
-	JellyfinMovieHandler() *handlers.MediaClientMovieHandler[*types.JellyfinConfig]
-	PlexMovieHandler() *handlers.MediaClientMovieHandler[*types.PlexConfig]
+	EmbyMovieHandler() *handlers.ClientMediaMovieHandler[*types.EmbyConfig]
+	JellyfinMovieHandler() *handlers.ClientMediaMovieHandler[*types.JellyfinConfig]
+	PlexMovieHandler() *handlers.ClientMediaMovieHandler[*types.PlexConfig]
 }
 
 type ClientMediaSeriesHandlers interface {
-	EmbySeriesHandler() *handlers.MediaClientSeriesHandler[*types.EmbyConfig]
-	JellyfinSeriesHandler() *handlers.MediaClientSeriesHandler[*types.JellyfinConfig]
-	PlexSeriesHandler() *handlers.MediaClientSeriesHandler[*types.PlexConfig]
+	EmbySeriesHandler() *handlers.ClientMediaSeriesHandler[*types.EmbyConfig]
+	JellyfinSeriesHandler() *handlers.ClientMediaSeriesHandler[*types.JellyfinConfig]
+	PlexSeriesHandler() *handlers.ClientMediaSeriesHandler[*types.PlexConfig]
 }
 
 type ClientMediaEpisodeHandlers interface {
-	// EmbyEpisodeHandler() *handlers.MediaClientEpisodeHandler[*types.EmbyConfig]
-	// JellyfinEpisodeHandler() *handlers.MediaClientEpisodeHandler[*types.JellyfinConfig]
-	// PlexEpisodeHandler() *handlers.MediaClientEpisodeHandler[*types.PlexConfig]
+	// EmbyEpisodeHandler() *handlers.ClientMediaEpisodeHandler[*types.EmbyConfig]
+	// JellyfinEpisodeHandler() *handlers.ClientMediaEpisodeHandler[*types.JellyfinConfig]
+	// PlexEpisodeHandler() *handlers.ClientMediaEpisodeHandler[*types.PlexConfig]
 }
 
 type ClientMediaMusicHandlers interface {
-	EmbyMusicHandler() *handlers.MediaClientMusicHandler[*types.EmbyConfig]
-	JellyfinMusicHandler() *handlers.MediaClientMusicHandler[*types.JellyfinConfig]
-	PlexMusicHandler() *handlers.MediaClientMusicHandler[*types.PlexConfig]
-	SubsonicMusicHandler() *handlers.MediaClientMusicHandler[*types.SubsonicConfig]
+	EmbyMusicHandler() *handlers.ClientMediaMusicHandler[*types.EmbyConfig]
+	JellyfinMusicHandler() *handlers.ClientMediaMusicHandler[*types.JellyfinConfig]
+	PlexMusicHandler() *handlers.ClientMediaMusicHandler[*types.PlexConfig]
+	SubsonicMusicHandler() *handlers.ClientMediaMusicHandler[*types.SubsonicConfig]
 }
 
 type ClientMediaPlaylistHandlers interface {
-	EmbyPlaylistHandler() *handlers.MediaClientPlaylistHandler[*types.EmbyConfig]
-	JellyfinPlaylistHandler() *handlers.MediaClientPlaylistHandler[*types.JellyfinConfig]
-	PlexPlaylistHandler() *handlers.MediaClientPlaylistHandler[*types.PlexConfig]
-	SubsonicPlaylistHandler() *handlers.MediaClientPlaylistHandler[*types.SubsonicConfig]
+	EmbyPlaylistHandler() *handlers.ClientMediaPlaylistHandler[*types.EmbyConfig]
+	JellyfinPlaylistHandler() *handlers.ClientMediaPlaylistHandler[*types.JellyfinConfig]
+	PlexPlaylistHandler() *handlers.ClientMediaPlaylistHandler[*types.PlexConfig]
+	SubsonicPlaylistHandler() *handlers.ClientMediaPlaylistHandler[*types.SubsonicConfig]
 }
 
 type UserHandlers interface {

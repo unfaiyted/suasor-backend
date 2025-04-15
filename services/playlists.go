@@ -24,19 +24,19 @@ type PlaylistService interface {
 	Delete(ctx context.Context, id uint64) error
 
 	// Playlist-specific operations
-	GetPlaylistItems(ctx context.Context, playlistID uint64) ([]models.MediaItem[mediatypes.MediaData], error)
+	GetPlaylistItems(ctx context.Context, playlistID uint64) ([]*models.MediaItem[mediatypes.MediaData], error)
 	AddItemToPlaylist(ctx context.Context, playlistID uint64, itemID uint64) error
 	RemoveItemFromPlaylist(ctx context.Context, playlistID uint64, itemID uint64) error
 	ReorderPlaylistItems(ctx context.Context, playlistID uint64, itemIDs []string) error
-	UpdatePlaylistItems(ctx context.Context, playlistID uint64, items []models.MediaItem[mediatypes.MediaData]) error
-	SearchPlaylists(ctx context.Context, query string, userID uint64) ([]*models.MediaItem[*mediatypes.Playlist], error)
+	UpdatePlaylistItems(ctx context.Context, playlistID uint64, items []*models.MediaItem[mediatypes.MediaData]) error
+	SearchPlaylists(ctx context.Context, query mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Playlist], error)
 	GetRecentPlaylists(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Playlist], error)
 	SyncPlaylist(ctx context.Context, playlistID uint64, targetClientIDs []uint64) error
 }
 
 type playlistService struct {
-	userRepo     repository.UserMediaItemRepository[*mediatypes.Playlist]
-	userService  UserMediaItemService[*mediatypes.Playlist]
+	userRepo      repository.UserMediaItemRepository[*mediatypes.Playlist]
+	userService   UserMediaItemService[*mediatypes.Playlist]
 	coreMediaRepo repository.MediaItemRepository[mediatypes.MediaData] // For fetching playlist items
 }
 
@@ -47,8 +47,8 @@ func NewPlaylistService(
 	coreMediaRepo repository.MediaItemRepository[mediatypes.MediaData],
 ) PlaylistService {
 	return &playlistService{
-		userRepo:     userRepo,
-		userService:  userService,
+		userRepo:      userRepo,
+		userService:   userService,
 		coreMediaRepo: coreMediaRepo,
 	}
 }
@@ -90,8 +90,8 @@ func (s *playlistService) Create(ctx context.Context, playlist *models.MediaItem
 	playlist.Data.ItemList.ItemCount = len(playlist.Data.ItemList.Items)
 
 	// Set owner if not set
-	if playlist.Data.ItemList.Owner == 0 && playlist.Data.Owner != 0 {
-		playlist.Data.ItemList.Owner = playlist.Data.Owner
+	if playlist.Data.ItemList.OwnerID == 0 && playlist.Data.OwnerID != 0 {
+		playlist.Data.ItemList.OwnerID = playlist.Data.OwnerID
 	}
 
 	// Set title at MediaItem level to match the Data.ItemList.Details.Title
@@ -227,7 +227,7 @@ func (s *playlistService) Delete(ctx context.Context, id uint64) error {
 	}
 
 	// TODO: Verify the current user has permission to delete this playlist
-	// This would check if the current user ID matches playlist.Data.ItemList.Owner
+	// This would check if the current user ID matches playlist.Data.ItemList.OwnerID
 
 	// Use the user service
 	err = s.userService.Delete(ctx, id)
@@ -248,7 +248,7 @@ func (s *playlistService) Delete(ctx context.Context, id uint64) error {
 
 // Playlist-specific operations
 
-func (s *playlistService) GetPlaylistItems(ctx context.Context, playlistID uint64) ([]models.MediaItem[mediatypes.MediaData], error) {
+func (s *playlistService) GetPlaylistItems(ctx context.Context, playlistID uint64) ([]*models.MediaItem[mediatypes.MediaData], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("playlistID", playlistID).
@@ -257,12 +257,12 @@ func (s *playlistService) GetPlaylistItems(ctx context.Context, playlistID uint6
 	// Get the playlist
 	playlist, err := s.GetByID(ctx, playlistID)
 	if err != nil {
-		return []models.MediaItem[mediatypes.MediaData]{}, fmt.Errorf("failed to get playlist items: %w", err)
+		return []*models.MediaItem[mediatypes.MediaData]{}, fmt.Errorf("failed to get playlist items: %w", err)
 	}
 
 	// Return empty array if the playlist has no items
 	if len(playlist.Data.ItemList.Items) == 0 {
-		return []models.MediaItem[mediatypes.MediaData]{}, nil
+		return []*models.MediaItem[mediatypes.MediaData]{}, nil
 	}
 
 	// Extract item IDs for batch retrieval
@@ -277,7 +277,7 @@ func (s *playlistService) GetPlaylistItems(ctx context.Context, playlistID uint6
 		log.Error().Err(err).
 			Uint64("playlistID", playlistID).
 			Msg("Failed to fetch actual playlist items")
-		
+
 		// In case of error, still provide stub items
 		log.Warn().Msg("Providing stub items as fallback")
 		return createStubItems(playlist.Data.ItemList.Items), nil
@@ -289,24 +289,24 @@ func (s *playlistService) GetPlaylistItems(ctx context.Context, playlistID uint6
 			Int("requested", len(itemIDs)).
 			Int("received", len(actualItems)).
 			Msg("Some playlist items could not be retrieved, using stubs for missing items")
-		
+
 		// Create a map of found items
 		foundItems := make(map[uint64]models.MediaItem[mediatypes.MediaData])
 		for _, item := range actualItems {
-			foundItems[item.ID] = item
+			foundItems[item.ID] = *item
 		}
-		
+
 		// Create result array with actual items where available, stubs where not
-		var result []models.MediaItem[mediatypes.MediaData]
+		var result []*models.MediaItem[mediatypes.MediaData]
 		for _, listItem := range playlist.Data.ItemList.Items {
 			if actualItem, found := foundItems[listItem.ItemID]; found {
-				result = append(result, actualItem)
+				result = append(result, &actualItem)
 			} else {
 				// Create a stub for this missing item
 				result = append(result, createStubItem(listItem))
 			}
 		}
-		
+
 		return result, nil
 	}
 
@@ -316,7 +316,7 @@ func (s *playlistService) GetPlaylistItems(ctx context.Context, playlistID uint6
 	for i, item := range playlist.Data.ItemList.Items {
 		positionMap[item.ItemID] = i
 	}
-	
+
 	// Sort the actual items
 	sort.Slice(actualItems, func(i, j int) bool {
 		return positionMap[actualItems[i].ID] < positionMap[actualItems[j].ID]
@@ -348,7 +348,7 @@ func (s *playlistService) AddItemToPlaylist(ctx context.Context, playlistID uint
 
 	// Add the item using the built-in AddItem method
 	// 0 indicates application level modification
-	playlist.Data.AddItem(newItem, 0)
+	playlist.Data.AddItem(newItem)
 
 	// Store the update
 	_, err = s.Update(ctx, playlist)
@@ -501,7 +501,7 @@ func (s *playlistService) ReorderPlaylistItems(ctx context.Context, playlistID u
 	return nil
 }
 
-func (s *playlistService) UpdatePlaylistItems(ctx context.Context, playlistID uint64, items []models.MediaItem[mediatypes.MediaData]) error {
+func (s *playlistService) UpdatePlaylistItems(ctx context.Context, playlistID uint64, items []*models.MediaItem[mediatypes.MediaData]) error {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("playlistID", playlistID).
@@ -560,26 +560,28 @@ func (s *playlistService) UpdatePlaylistItems(ctx context.Context, playlistID ui
 	return nil
 }
 
-func (s *playlistService) SearchPlaylists(ctx context.Context, query string, userID uint64) ([]*models.MediaItem[*mediatypes.Playlist], error) {
+func (s *playlistService) SearchPlaylists(ctx context.Context, query mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Playlist], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Str("query", query).
-		Uint64("userID", userID).
+		Str("query", query.Query).
+		Uint64("userID", query.OwnerID).
 		Msg("Searching playlists")
 
+	query.MediaType = mediatypes.MediaTypePlaylist
+
 	// Delegate to the user service
-	results, err := s.userService.SearchUserContent(ctx, query, userID, mediatypes.MediaTypePlaylist)
+	results, err := s.userService.SearchUserContent(ctx, query)
 	if err != nil {
 		log.Error().Err(err).
-			Str("query", query).
-			Uint64("userID", userID).
+			Str("query", query.Query).
+			Uint64("userID", query.OwnerID).
 			Msg("Failed to search playlists")
 		return nil, fmt.Errorf("failed to search playlists: %w", err)
 	}
 
 	log.Info().
-		Str("query", query).
-		Uint64("userID", userID).
+		Str("query", query.Query).
+		Uint64("userID", query.OwnerID).
 		Int("count", len(results)).
 		Msg("Playlists found")
 
@@ -594,7 +596,7 @@ func (s *playlistService) GetRecentPlaylists(ctx context.Context, userID uint64,
 		Msg("Getting recent playlists")
 
 	// Delegate to the user service
-	results, err := s.userService.GetRecentUserContent(ctx, userID, mediatypes.MediaTypePlaylist, limit)
+	results, err := s.userService.GetRecentUserContent(ctx, userID, limit)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -664,30 +666,31 @@ func (s *playlistService) SyncPlaylist(ctx context.Context, playlistID uint64, t
 	}
 
 	log.Warn().Msg("Playlist sync partially implemented - requires job implementation")
-	
+
 	// This would be implemented in a job that handles the actual sync
 	return errors.New("playlist sync requires implementation in the playlist sync job")
 }
 
-// Helper functions
-
-// createStubItems creates stub media items for all items in a playlist
-func createStubItems(listItems []mediatypes.ListItem) []models.MediaItem[mediatypes.MediaData] {
-	var items []models.MediaItem[mediatypes.MediaData]
-	for _, listItem := range listItems {
-		items = append(items, createStubItem(listItem))
-	}
-	return items
-}
-
-// createStubItem creates a stub media item for a list item
-func createStubItem(listItem mediatypes.ListItem) models.MediaItem[mediatypes.MediaData] {
-	return models.MediaItem[mediatypes.MediaData]{
-		ID:          listItem.ItemID,
-		Type:        mediatypes.MediaTypeTrack, // Placeholder, would get actual type from DB
-		ReleaseYear: 0,                         // Would be populated from DB
-		CreatedAt:   listItem.LastChanged,      // Use last changed time as a proxy
-		UpdatedAt:   listItem.LastChanged,
-		// Would populate other fields from the actual item in the database
-	}
-}
+//
+// // Helper functions
+//
+// // createStubItems creates stub media items for all items in a playlist
+// func createStubItems(listItems []mediatypes.ListItem) []models.MediaItem[mediatypes.MediaData] {
+// 	var items []models.MediaItem[mediatypes.MediaData]
+// 	for _, listItem := range listItems {
+// 		items = append(items, createStubItem(listItem))
+// 	}
+// 	return items
+// }
+//
+// // createStubItem creates a stub media item for a list item
+// func createStubItem(listItem mediatypes.ListItem) models.MediaItem[mediatypes.MediaData] {
+// 	return models.MediaItem[mediatypes.MediaData]{
+// 		ID:          listItem.ItemID,
+// 		Type:        mediatypes.MediaTypeTrack, // Placeholder, would get actual type from DB
+// 		ReleaseYear: 0,                         // Would be populated from DB
+// 		CreatedAt:   listItem.LastChanged,      // Use last changed time as a proxy
+// 		UpdatedAt:   listItem.LastChanged,
+// 		// Would populate other fields from the actual item in the database
+// 	}
+// }

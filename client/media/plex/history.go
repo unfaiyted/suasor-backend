@@ -9,7 +9,7 @@ import (
 )
 
 // GetWatchHistory retrieves watch history from Plex
-func (c *PlexClient) GetPlayHistory(ctx context.Context, options *types.QueryOptions) ([]models.MediaPlayHistory[types.MediaData], error) {
+func (c *PlexClient) GetPlayHistory(ctx context.Context, options *types.QueryOptions) ([]models.UserMediaItemData[types.MediaData], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -24,5 +24,5 @@ func (c *PlexClient) GetPlayHistory(ctx context.Context, options *types.QueryOpt
 		Msg("Watch history retrieval not yet implemented for Plex")
 
 	// This would require querying Plex for watch history
-	return []models.MediaPlayHistory[types.MediaData]{}, fmt.Errorf("Watch history retrieval not yet implemented for Plex")
+	return []models.UserMediaItemData[types.MediaData]{}, fmt.Errorf("Watch history retrieval not yet implemented for Plex")
 }

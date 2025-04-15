@@ -795,7 +795,7 @@ func (j *RecommendationJob) generateAIMovieRecommendations(
 }
 
 // processMovieHistory analyzes movie watch history to build preferences
-func (j *RecommendationJob) processMovieHistory(ctx context.Context, profile *UserPreferenceProfile, histories []models.MediaPlayHistory[*mediatypes.Movie]) {
+func (j *RecommendationJob) processMovieHistory(ctx context.Context, profile *UserPreferenceProfile, histories []*models.UserMediaItemData[*mediatypes.Movie]) {
 	log := utils.LoggerFromContext(ctx)
 
 	// Maps for processing

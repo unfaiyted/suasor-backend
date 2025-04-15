@@ -83,7 +83,9 @@ func (e *EmbyClient) GetMusicArtists(ctx context.Context, options *types.QueryOp
 			opts.StartIndex = optional.NewInt32(int32(options.Offset))
 		}
 		if options.Sort != "" {
-			opts.SortBy = optional.NewString(options.Sort)
+			// TODO: work on translating types to external sortBy,
+			// they dont have any type definitions on this so we might need to look into it a bit
+			opts.SortBy = optional.NewString(string(options.Sort))
 			if options.SortOrder == "desc" {
 				opts.SortOrder = optional.NewString("Descending")
 			} else {

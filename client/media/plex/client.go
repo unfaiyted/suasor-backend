@@ -31,19 +31,19 @@ func init() {
 
 // PlexClient implements MediaContentProvider for Plex
 type PlexClient struct {
-	media.BaseMediaClient
+	media.BaseClientMedia
 	httpClient *http.Client
 	plexAPI    *plexgo.PlexAPI
 }
 
 // NewPlexClient creates a new Plex client
-func NewPlexClient(ctx context.Context, clientID uint64, config client.PlexConfig) (media.MediaClient, error) {
+func NewPlexClient(ctx context.Context, clientID uint64, config client.PlexConfig) (media.ClientMedia, error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
 		Uint64("clientID", clientID).
-		Str("clientType", string(client.MediaClientTypePlex)).
+		Str("clientType", string(client.ClientMediaTypePlex)).
 		Str("baseURL", config.BaseURL).
 		Msg("Initializing Plex API client")
 
@@ -54,10 +54,10 @@ func NewPlexClient(ctx context.Context, clientID uint64, config client.PlexConfi
 	)
 
 	pClient := &PlexClient{
-		BaseMediaClient: media.BaseMediaClient{
+		BaseClientMedia: media.BaseClientMedia{
 			BaseClient: base.BaseClient{
 				ClientID: clientID,
-				Category: client.MediaClientTypePlex.AsCategory(),
+				Category: client.ClientMediaTypePlex.AsCategory(),
 				Config:   &config,
 			},
 		},
@@ -66,7 +66,7 @@ func NewPlexClient(ctx context.Context, clientID uint64, config client.PlexConfi
 
 	log.Info().
 		Uint64("clientID", clientID).
-		Str("clientType", string(client.MediaClientTypePlex)).
+		Str("clientType", string(client.ClientMediaTypePlex)).
 		Str("baseUrl", config.BaseURL).
 		Msg("Successfully created Plex client")
 

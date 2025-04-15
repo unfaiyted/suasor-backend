@@ -13,7 +13,7 @@ import (
 
 // processMusicHistory analyzes music play history to build preferences
 // This is a full implementation of music history processing
-func (j *RecommendationJob) processMusicHistoryImpl(ctx context.Context, profile *UserPreferenceProfile, histories []models.MediaPlayHistory[*mediatypes.Track]) {
+func (j *RecommendationJob) processMusicHistoryImpl(ctx context.Context, profile *UserPreferenceProfile, histories []models.UserMediaItemData[*mediatypes.Track]) {
 	log := utils.LoggerFromContext(ctx)
 
 	// Maps for processing
@@ -605,7 +605,7 @@ func (j *RecommendationJob) generateAIMusicRecommendations(
 }
 
 // processMusicHistory analyzes music play history to build preferences
-func (j *RecommendationJob) processMusicHistory(ctx context.Context, profile *UserPreferenceProfile, histories []models.MediaPlayHistory[*mediatypes.Track]) {
+func (j *RecommendationJob) processMusicHistory(ctx context.Context, profile *UserPreferenceProfile, histories []*models.UserMediaItemData[*mediatypes.Track]) {
 	log := utils.LoggerFromContext(ctx)
 
 	// Maps for processing

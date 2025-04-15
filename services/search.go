@@ -20,8 +20,8 @@ type SearchService interface {
 	// SearchMedia searches local database media items
 	SearchMedia(ctx context.Context, userID uint64, options types.QueryOptions) (responses.SearchResults, error)
 
-	// SearchMediaClients searches all media clients for a user
-	SearchMediaClients(ctx context.Context, userID uint64, options types.QueryOptions) (responses.SearchResults, error)
+	// SearchClientMedias searches all media clients for a user
+	SearchClientMedias(ctx context.Context, userID uint64, options types.QueryOptions) (responses.SearchResults, error)
 
 	// SearchMetadataClients searches all metadata clients for a user
 	SearchMetadataClients(ctx context.Context, userID uint64, options types.QueryOptions) (responses.SearchResults, error)
@@ -96,7 +96,7 @@ func (s *searchService) SearchAll(ctx context.Context, userID uint64, options ty
 	}
 
 	// Search media clients
-	clientResults, err := s.SearchMediaClients(ctx, userID, options)
+	clientResults, err := s.SearchClientMedias(ctx, userID, options)
 	if err != nil {
 		log.Error().Err(err).Msg("Error searching media clients")
 		// Continue with other searches despite error
@@ -214,13 +214,13 @@ func (s *searchService) SearchMedia(ctx context.Context, userID uint64, options 
 	return results, nil
 }
 
-// SearchMediaClients searches media clients for a user
-func (s *searchService) SearchMediaClients(ctx context.Context, userID uint64, options types.QueryOptions) (responses.SearchResults, error) {
+// SearchClientMedias searches media clients for a user
+func (s *searchService) SearchClientMedias(ctx context.Context, userID uint64, options types.QueryOptions) (responses.SearchResults, error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Uint64("userID", userID).Str("query", options.Query).Msg("Searching media clients")
 
 	// Get all client configs for the user
-	clients, err := s.clientRepos.GetAllMediaClientsForUser(ctx, userID)
+	clients, err := s.clientRepos.GetAllClientMediasForUser(ctx, userID)
 	if err != nil {
 		return responses.SearchResults{}, fmt.Errorf("failed to get client configs: %w", err)
 	}
@@ -232,9 +232,9 @@ func (s *searchService) SearchMediaClients(ctx context.Context, userID uint64, o
 		return responses.SearchResults{}, fmt.Errorf("failed to get client: %w", err)
 	}
 
-	mediaClient := client.(mediaclient.MediaClient)
+	clientMedia := client.(mediaclient.ClientMedia)
 
-	mediaClient.Search(ctx, &options)
+	clientMedia.Search(ctx, &options)
 
 	results := responses.SearchResults{}
 

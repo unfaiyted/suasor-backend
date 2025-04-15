@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"sort"
-	
+
 	"suasor/client"
 	"suasor/client/media"
 	"suasor/client/media/providers"
@@ -17,8 +17,8 @@ import (
 
 var ErrUnsupportedFeature = errors.New("feature not supported by this media client")
 
-// MediaClientMovieService defines operations for interacting with movie clients
-type MediaClientMovieService[T types.ClientConfig] interface {
+// ClientMediaMovieService defines operations for interacting with movie clients
+type ClientMediaMovieService[T types.ClientConfig] interface {
 	GetMovieByID(ctx context.Context, userID uint64, clientID uint64, movieID string) (*models.MediaItem[*mediatypes.Movie], error)
 	GetMoviesByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[*mediatypes.Movie], error)
 	GetMoviesByYear(ctx context.Context, userID uint64, year int) ([]models.MediaItem[*mediatypes.Movie], error)
@@ -31,16 +31,16 @@ type MediaClientMovieService[T types.ClientConfig] interface {
 	SearchMovies(ctx context.Context, userID uint64, query string) ([]models.MediaItem[*mediatypes.Movie], error)
 }
 
-type mediaMovieService[T types.MediaClientConfig] struct {
+type mediaMovieService[T types.ClientMediaConfig] struct {
 	repo    repository.ClientRepository[T]
 	factory *client.ClientFactoryService
 }
 
-// NewMediaClientMovieService creates a new media movie service
-func NewMediaClientMovieService[T types.MediaClientConfig](
+// NewClientMediaMovieService creates a new media movie service
+func NewClientMediaMovieService[T types.ClientMediaConfig](
 	repo repository.ClientRepository[T],
 	factory *client.ClientFactoryService,
-) MediaClientMovieService[T] {
+) ClientMediaMovieService[T] {
 	return &mediaMovieService[T]{
 		repo:    repo,
 		factory: factory,
@@ -48,7 +48,7 @@ func NewMediaClientMovieService[T types.MediaClientConfig](
 }
 
 // getMovieClients gets all movie clients for a user
-func (s *mediaMovieService[T]) getMovieClients(ctx context.Context, userID uint64) ([]media.MediaClient, error) {
+func (s *mediaMovieService[T]) getMovieClients(ctx context.Context, userID uint64) ([]media.ClientMedia, error) {
 	repo := s.repo
 	// Get all media clients for the user
 	clients, err := repo.GetByCategory(ctx, types.ClientCategoryMedia, userID)
@@ -56,7 +56,7 @@ func (s *mediaMovieService[T]) getMovieClients(ctx context.Context, userID uint6
 		return nil, err
 	}
 
-	var movieClients []media.MediaClient
+	var movieClients []media.ClientMedia
 
 	// Filter and instantiate clients that support movies
 	for _, clientConfig := range clients {
@@ -67,7 +67,7 @@ func (s *mediaMovieService[T]) getMovieClients(ctx context.Context, userID uint6
 				// Log error but continue with other clients
 				continue
 			}
-			movieClients = append(movieClients, client.(media.MediaClient))
+			movieClients = append(movieClients, client.(media.ClientMedia))
 		}
 	}
 
@@ -75,7 +75,7 @@ func (s *mediaMovieService[T]) getMovieClients(ctx context.Context, userID uint6
 }
 
 // getSpecificMovieClient gets a specific movie client
-func (s *mediaMovieService[T]) getSpecificMovieClient(ctx context.Context, userID, clientID uint64) (media.MediaClient, error) {
+func (s *mediaMovieService[T]) getSpecificMovieClient(ctx context.Context, userID, clientID uint64) (media.ClientMedia, error) {
 	log := utils.LoggerFromContext(ctx)
 
 	// TODO: Should see if the factory has already loaded the client. If not, then load it
@@ -113,7 +113,7 @@ func (s *mediaMovieService[T]) getSpecificMovieClient(ctx context.Context, userI
 		Uint64("clientID", clientID).
 		Str("clientType", clientConfig.Config.Data.GetType().String()).
 		Msg("Retrieved client")
-	return client.(media.MediaClient), nil
+	return client.(media.ClientMedia), nil
 }
 
 func (s *mediaMovieService[T]) GetMovieByID(ctx context.Context, userID uint64, clientID uint64, movieID string) (*models.MediaItem[*mediatypes.Movie], error) {
@@ -453,3 +453,4 @@ func (s *mediaMovieService[T]) SearchMovies(ctx context.Context, userID uint64, 
 
 	return allMovies, nil
 }
+

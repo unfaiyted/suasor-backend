@@ -41,7 +41,7 @@ type MovieRecommendations struct {
 }
 
 // getRecentlyWatchedMovies gets the most recently watched movies from Emby
-func getRecentlyWatchedMovies(ctx context.Context, embyClient media.MediaClient, count int) ([]models.MediaItem[mediatypes.Movie], error) {
+func getRecentlyWatchedMovies(ctx context.Context, embyClient media.ClientMedia, count int) ([]models.MediaItem[mediatypes.Movie], error) {
 	// Get the movie provider interface directly
 	movieProvider, ok := embyClient.(providers.MovieProvider)
 	if !ok {
@@ -65,7 +65,7 @@ func getRecentlyWatchedMovies(ctx context.Context, embyClient media.MediaClient,
 }
 
 // getFavoriteMovies gets the user's favorite movies from Emby
-func getFavoriteMovies(ctx context.Context, embyClient media.MediaClient) ([]models.MediaItem[mediatypes.Movie], error) {
+func getFavoriteMovies(ctx context.Context, embyClient media.ClientMedia) ([]models.MediaItem[mediatypes.Movie], error) {
 	// Get the movie provider interface
 	movieProvider, ok := embyClient.(providers.MovieProvider)
 	if !ok {
@@ -85,7 +85,7 @@ func getFavoriteMovies(ctx context.Context, embyClient media.MediaClient) ([]mod
 }
 
 // checkIfMovieExists checks if a movie exists in the Emby library
-func checkIfMovieExists(ctx context.Context, embyClient media.MediaClient, title string, year int) (bool, string, error) {
+func checkIfMovieExists(ctx context.Context, embyClient media.ClientMedia, title string, year int) (bool, string, error) {
 	// Get the movie provider interface
 	movieProvider, ok := embyClient.(providers.MovieProvider)
 	if !ok {
@@ -540,7 +540,7 @@ func main() {
 
 	// Create Emby config
 	embyConfig := clienttypes.EmbyConfig{
-		BaseMediaClientConfig: clienttypes.BaseMediaClientConfig{
+		BaseClientMediaConfig: clienttypes.BaseClientMediaConfig{
 			BaseURL: embyServerURL,
 			APIKey:  embyAPIKey,
 		},

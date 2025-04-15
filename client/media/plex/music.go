@@ -131,12 +131,11 @@ func (c *PlexClient) GetMusic(ctx context.Context, options *types.QueryOptions) 
 								Data: &types.Track{
 									Details:    c.createChildMetadataFromPlexItem(&item),
 									Number:     *item.Index,
-									ArtistID:   artist.RatingKey,
 									ArtistName: artist.Title,
-									AlbumID:    *album.RatingKey,
 									AlbumName:  *album.Title,
 								},
 							}
+							track.Data.AddSyncClient(c.ClientID, *item.RatingKey, *item.ParentRatingKey)
 							track.SetClientInfo(c.ClientID, c.ClientType, *item.RatingKey)
 							tracks = append(tracks, track)
 
@@ -351,12 +350,12 @@ func (c *PlexClient) GetMusicAlbums(ctx context.Context, options *types.QueryOpt
 					album := models.MediaItem[*types.Album]{
 						Data: &types.Album{
 							Details:    c.createChildMetadataFromPlexItem(&item),
-							ArtistID:   artist.RatingKey,
 							ArtistName: artist.Title,
 							TrackCount: *item.LeafCount,
 						},
 					}
 
+					album.Data.AddSyncClient(c.ClientID, *item.RatingKey)
 					album.SetClientInfo(c.ClientID, c.ClientType, *item.RatingKey)
 					albums = append(albums, album)
 
@@ -494,13 +493,12 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (models.M
 		Data: &types.Track{
 			AlbumName:  albumName,
 			ArtistName: artistName,
-			ArtistID:   artistID,
-			AlbumID:    *item.ParentRatingKey,
 			Number:     int(*item.Index),
 			Details:    c.createMediaDetailsFromPlexItem(&item),
 		},
 	}
 
+	track.Data.AddSyncClient(c.ClientID, *item.ParentRatingKey, artistID)
 	track.SetClientInfo(c.ClientID, c.ClientType, item.RatingKey)
 
 	log.Info().

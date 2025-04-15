@@ -328,10 +328,8 @@ func (c *PlexClient) GetSeriesEpisodes(ctx context.Context, showID string, seaso
 
 		episode := models.MediaItem[*types.Episode]{
 			Data: &types.Episode{
-				ShowID:       showID,
 				Number:       int64(*item.Index),
 				SeasonNumber: int(*item.ParentIndex),
-				SeasonID:     *item.ParentKey,
 				Details: types.MediaDetails{
 					Description: *item.Summary,
 					Title:       *item.Title,
@@ -343,6 +341,7 @@ func (c *PlexClient) GetSeriesEpisodes(ctx context.Context, showID string, seaso
 				},
 			},
 		}
+		episode.Data.AddSyncClient(c.ClientID, showID, *item.ParentRatingKey)
 		episode.SetClientInfo(c.ClientID, c.ClientType, *item.RatingKey)
 
 		// Add studio if available
@@ -520,7 +519,8 @@ func (c *PlexClient) GetEpisodeByID(ctx context.Context, id string) (models.Medi
 
 	// Add show ID if available (via grandparentRatingKey)
 	if item.GrandparentRatingKey != nil {
-		episode.Data.ShowID = *item.GrandparentRatingKey
+		episode.Data.AddSyncClient(c.ClientID, *item.GrandparentRatingKey, *item.ParentRatingKey)
+		// episode.Data.ShowID = *item.GrandparentRatingKey
 	}
 
 	// Add studio if available

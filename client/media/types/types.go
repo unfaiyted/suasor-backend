@@ -1,6 +1,7 @@
 package types
 
 import (
+	"reflect"
 	"time"
 )
 
@@ -114,4 +115,32 @@ const (
 	MediaTypePlaylist   MediaType = "playlist"
 	MediaTypeCollection MediaType = "collection"
 	MediaTypeAll        MediaType = "all"
+	MediaTypeUnknown    MediaType = "unknown"
 )
+
+func GetMediaTypeFromTypeName(ofType any) MediaType {
+	typeName := reflect.TypeOf(ofType).String()
+
+	switch typeName {
+	case "*types.Movie":
+		return MediaTypeMovie
+	case "*types.Series":
+		return MediaTypeSeries
+	case "*types.Season":
+		return MediaTypeSeason
+	case "*types.Episode":
+		return MediaTypeEpisode
+	case "*types.Artist":
+		return MediaTypeArtist
+	case "*types.Album":
+		return MediaTypeAlbum
+	case "*types.Track":
+		return MediaTypeTrack
+	case "*types.Playlist":
+		return MediaTypePlaylist
+	case "*types.Collection":
+		return MediaTypeCollection
+	default:
+		return MediaTypeUnknown
+	}
+}

@@ -66,7 +66,7 @@ func (j *RecommendationJob) buildUserPreferenceProfile(ctx context.Context, user
 	}
 
 	// Get user's movie watch history
-	movieHistory, err := j.historyRepo.GetByUserIDAndTypeMovie(ctx, userID, 100, 0)
+	movieHistory, err := j.userMovieDataRepo.GetUserHistory(ctx, userID, 100, 0)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get movie history")
 		return nil, fmt.Errorf("failed to get movie history: %w", err)
@@ -76,7 +76,7 @@ func (j *RecommendationJob) buildUserPreferenceProfile(ctx context.Context, user
 	j.processMovieHistory(ctx, profile, movieHistory)
 
 	// Get user's series watch history
-	seriesHistory, err := j.historyRepo.GetByUserIDAndTypeSeries(ctx, userID, 100, 0)
+	seriesHistory, err := j.userSeriesDataRepo.GetUserHistory(ctx, userID, 100, 0)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get series history")
 		// Don't return - continue with what we have
@@ -86,13 +86,13 @@ func (j *RecommendationJob) buildUserPreferenceProfile(ctx context.Context, user
 	}
 
 	// Get user's music play history
-	musicHistory, err := j.historyRepo.GetByUserIDAndTypeMusic(ctx, userID, 100, 0)
+	musicHistory, err := j.userMusicDataRepo.GetUserHistory(ctx, userID, 100, 0)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get music history")
 		// Don't return - continue with what we have
 	} else {
 		// Process music history using implementation from music.go
-		j.processMusicHistoryImpl(ctx, profile, musicHistory)
+		j.processMusicHistory(ctx, profile, musicHistory)
 	}
 
 	// Calculate advanced metrics across all media types

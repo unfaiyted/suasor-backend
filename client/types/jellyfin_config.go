@@ -4,7 +4,7 @@ import "encoding/json"
 
 // @Description Jellyfin media server configuration
 type JellyfinConfig struct {
-	BaseMediaClientConfig
+	BaseClientMediaConfig
 	UserID   string `json:"userID,omitempty" mapstructure:"userID" example:"your-internal-user-id"`
 	Username string `json:"username" mapstructure:"username" example:"admin"`
 }
@@ -27,24 +27,24 @@ func (c *JellyfinConfig) UnmarshalJSON(data []byte) error {
 	}
 
 	// Ensure Type is always the correct constant
-	c.ClientType = MediaClientTypeJellyfin
+	c.ClientType = ClientMediaTypeJellyfin
 	c.Type = ClientTypeJellyfin
 	return nil
 }
 
 func NewJellyfinConfig() JellyfinConfig {
 	return JellyfinConfig{
-		BaseMediaClientConfig: BaseMediaClientConfig{
+		BaseClientMediaConfig: BaseClientMediaConfig{
 			BaseClientConfig: BaseClientConfig{
 				Type: ClientTypeJellyfin,
 			},
-			ClientType: MediaClientTypeJellyfin,
+			ClientType: ClientMediaTypeJellyfin,
 		},
 	}
 }
 
-func (JellyfinConfig) GetClientType() MediaClientType {
-	return MediaClientTypeJellyfin
+func (JellyfinConfig) GetClientType() ClientMediaType {
+	return ClientMediaTypeJellyfin
 }
 func (JellyfinConfig) GetCategory() ClientCategory {
 	return ClientCategoryMedia

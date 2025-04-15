@@ -7,61 +7,66 @@ import (
 // MusicArtist represents a music artist
 type Artist struct {
 	Details        MediaDetails
-	Albums         []string `json:"albumIDs,omitempty"`
+	Albums         []*Album `json:"albums,omitempty"`
+	AlbumIDs       []uint64 `json:"albumIDs,omitempty"`
 	AlbumCount     int      `json:"albumCount"`
 	Biography      string   `json:"biography,omitempty"`
 	SimilarArtists []string `json:"similarArtists,omitempty"`
 }
 
-// MusicAlbum represents a music album
-type Album struct {
-	Details    MediaDetails
-	ArtistID   string  `json:"artistID"`
-	ArtistName string  `json:"artistName"`
-	TrackCount int     `json:"trackCount"`
-	Credits    Credits `json:"credits,omitempty"`
+type SyncClient struct {
+	// ID of the client that this external ID belongs to (optional for service IDs like TMDB)
+	ID uint64 `json:"clientId,omitempty"`
+	// The actual ID value in the external system
+	ItemID string `json:"itemId"`
 }
 
-// MusicTrack represents a music track
-type Track struct {
-	Details    MediaDetails
-	AlbumID    string  `json:"albumID"`
-	ArtistID   string  `json:"artistID"`
-	AlbumName  string  `json:"albumName"`
-	AlbumTitle string  `json:"albumTitle,omitempty"`
-	Duration   int     `json:"duration,omitempty"`
-	ArtistName string  `json:"artistName,omitempty"`
-	Number     int     `json:"trackNumber,omitempty"`
-	DiscNumber int     `json:"discNumber,omitempty"`
-	Composer   string  `json:"composer,omitempty"`
-	Lyrics     string  `json:"lyrics,omitempty"`
-	Credits    Credits `json:"credits,omitempty"`
+type SyncClients []SyncClient
+
+func (s SyncClients) AddClient(clientID uint64, itemID string) {
+	// check if client ID already exists
+	found := false
+	for i, cID := range s {
+		if cID.ID == clientID {
+			// Update existing ID
+			s[i].ItemID = itemID
+			found = true
+			break
+		}
+	}
+	if !found {
+		// Add new ID if not found
+		s = append(s, SyncClient{
+			ID:     clientID,
+			ItemID: itemID,
+		})
+	}
+}
+
+func (s SyncClients) GetClientItemID(clientID uint64) string {
+	for _, cID := range s {
+		if cID.ID == clientID {
+			return cID.ItemID
+		}
+	}
+	return ""
 }
 
 // Season represents a TV season
 type Season struct {
 	Details      MediaDetails
-	Number       int        `json:"seasonNumber"`
-	Title        string     `json:"title,omitempty"`
-	Overview     string     `json:"overview,omitempty"`
-	EpisodeCount int        `json:"episodeCount"`
-	Episodes     []*Episode `json:"episodes,omitempty"`
-	Artwork      Artwork    `json:"artwork,omitempty"`
-	ReleaseDate  time.Time  `json:"releaseDate,omitempty"`
-	SeriesName   string     `json:"seriesName,omitempty"`
-	SeriesID     string     `json:"seriesID"`
-	Credits      Credits    `json:"credits,omitempty"`
-}
-
-// Episode represents a TV episode
-type Episode struct {
-	Details      MediaDetails
-	Number       int64   `json:"number"`
-	ShowID       string  `json:"showID"`
-	SeasonID     string  `json:"seasonID"`
-	SeasonNumber int     `json:"seasonNumber"`
-	ShowTitle    string  `json:"showTitle,omitempty"`
-	Credits      Credits `json:"credits,omitempty"`
+	Number       int         `json:"seasonNumber"`
+	Title        string      `json:"title,omitempty"`
+	Overview     string      `json:"overview,omitempty"`
+	EpisodeCount int         `json:"episodeCount"`
+	Episodes     []*Episode  `json:"episodes,omitempty"`
+	EpisodeIDs   []uint64    `json:"episodeIDs,omitempty"`
+	Artwork      Artwork     `json:"artwork,omitempty"`
+	ReleaseDate  time.Time   `json:"releaseDate,omitempty"`
+	SeriesName   string      `json:"seriesName,omitempty"`
+	SeriesID     uint64      `json:"seriesID"`
+	SyncSeries   SyncClients `json:"syncSeries,omitempty"`
+	Credits      Credits     `json:"credits,omitempty"`
 }
 
 // Series represents a TV series

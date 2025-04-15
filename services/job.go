@@ -77,7 +77,9 @@ type jobService struct {
 	movieRepo           repository.MediaItemRepository[*mediatypes.Movie]
 	seriesRepo          repository.MediaItemRepository[*mediatypes.Series]
 	musicRepo           repository.MediaItemRepository[*mediatypes.Track]
-	historyRepo         repository.MediaPlayHistoryRepository
+	userMovieDataRepo   repository.UserMediaItemDataRepository[*mediatypes.Movie]
+	userSeriesDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Series]
+	userMusicDataRepo   repository.UserMediaItemDataRepository[*mediatypes.Track]
 	scheduler           *scheduler.Scheduler
 	jobs                map[string]scheduler.Job
 	recommendationJob   *recommendation.RecommendationJob
@@ -94,7 +96,9 @@ func NewJobService(
 	movieRepo repository.MediaItemRepository[*mediatypes.Movie],
 	seriesRepo repository.MediaItemRepository[*mediatypes.Series],
 	musicRepo repository.MediaItemRepository[*mediatypes.Track],
-	historyRepo repository.MediaPlayHistoryRepository,
+	userMovieDataRepo repository.UserMediaItemDataRepository[*mediatypes.Movie],
+	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series],
+	userMusicDataRepo repository.UserMediaItemDataRepository[*mediatypes.Track],
 	recommendationJob *recommendation.RecommendationJob,
 	mediaSyncJob *jobs.MediaSyncJob,
 	watchHistorySyncJob *jobs.WatchHistorySyncJob,
@@ -107,7 +111,9 @@ func NewJobService(
 		movieRepo:           movieRepo,
 		seriesRepo:          seriesRepo,
 		musicRepo:           musicRepo,
-		historyRepo:         historyRepo,
+		userMovieDataRepo:   userMovieDataRepo,
+		userSeriesDataRepo:  userSeriesDataRepo,
+		userMusicDataRepo:   userMusicDataRepo,
 		scheduler:           scheduler.NewScheduler(),
 		jobs:                make(map[string]scheduler.Job),
 		recommendationJob:   recommendationJob,
@@ -361,4 +367,3 @@ func getJobType(job scheduler.Job) models.JobType {
 		return models.JobType("unknown")
 	}
 }
-

@@ -176,9 +176,9 @@ func testGetAndSearchMedia(t *testing.T, ctx context.Context, client providers.A
 		artistID := artists[0].ExternalID
 		require.NoError(t, err)
 		// conver to media provider
-		mediaClient, ok := client.(providers.MediaProvider)
+		clientMedia, ok := client.(providers.MediaProvider)
 		require.True(t, ok)
-		artist, err := mediaClient.GetMediaByID(ctx, artistID)
+		artist, err := clientMedia.GetMediaByID(ctx, artistID)
 		require.NoError(t, err)
 
 		// Validate the result
@@ -349,8 +349,8 @@ func testAddUpdateDeleteMedia(t *testing.T, ctx context.Context, client provider
 	}
 
 	// Add the artist
-	mediaClient, ok := client.(providers.MediaProvider)
-	addedArtist, err := mediaClient.AddMedia(ctx, addRequest)
+	clientMedia, ok := client.(providers.MediaProvider)
+	addedArtist, err := clientMedia.AddMedia(ctx, addRequest)
 	require.NoError(t, err)
 	t.Logf("Added artist: %s (ID: %d)", addedArtist.Title, addedArtist.ExternalID)
 
@@ -359,14 +359,14 @@ func testAddUpdateDeleteMedia(t *testing.T, ctx context.Context, client provider
 		Monitored: false,
 	}
 
-	updatedArtist, err := mediaClient.UpdateMedia(ctx, addedArtist.ExternalID, updateRequest)
+	updatedArtist, err := clientMedia.UpdateMedia(ctx, addedArtist.ExternalID, updateRequest)
 	require.NoError(t, err)
 	assert.Equal(t, addedArtist.ExternalID, updatedArtist.ExternalID)
 	assert.False(t, updatedArtist.Monitored)
 	t.Logf("Updated artist monitoring status to: %v", updatedArtist.Monitored)
 
 	// Delete the artist
-	err = mediaClient.DeleteMedia(ctx, addedArtist.ExternalID)
+	err = clientMedia.DeleteMedia(ctx, addedArtist.ExternalID)
 	require.NoError(t, err)
 	t.Logf("Deleted artist with ID: %d", addedArtist.ExternalID)
 }

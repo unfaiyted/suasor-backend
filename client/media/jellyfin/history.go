@@ -10,7 +10,7 @@ import (
 	"suasor/utils"
 )
 
-func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOptions) ([]models.MediaPlayHistory[t.MediaData], error) {
+func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOptions) ([]models.UserMediaItemData[t.MediaData], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -51,7 +51,7 @@ func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOpt
 		Msg("Successfully retrieved watch history from Jellyfin")
 
 	// Convert results to expected format
-	historyItems := make([]models.MediaPlayHistory[t.MediaData], 0)
+	historyItems := make([]models.UserMediaItemData[t.MediaData], 0)
 	for _, item := range result.Items {
 
 		userDataReq := j.client.ItemsAPI.GetItemUserData(ctx, *item.Id)
@@ -66,7 +66,7 @@ func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOpt
 			Int32("playCount", userData.GetPlayCount()).
 			Msg("Successfully retrieved user item data from Jellyfin")
 
-		historyItem := models.MediaPlayHistory[t.MediaData]{
+		historyItem := models.UserMediaItemData[t.MediaData]{
 			PlayedPercentage: *userData.PlayedPercentage.Get(),
 			LastPlayedAt:     *userData.LastPlayedDate.Get(), // Default to now if not available
 		}

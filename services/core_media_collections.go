@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"suasor/client/media/types"
 	mediatypes "suasor/client/media/types"
 	"suasor/repository"
 	"suasor/types/models"
@@ -19,18 +20,18 @@ type CoreCollectionService interface {
 	Create(ctx context.Context, collection models.MediaItem[*mediatypes.Collection]) (*models.MediaItem[*mediatypes.Collection], error)
 	Update(ctx context.Context, collection models.MediaItem[*mediatypes.Collection]) (*models.MediaItem[*mediatypes.Collection], error)
 	GetByID(ctx context.Context, id uint64) (*models.MediaItem[*mediatypes.Collection], error)
-	GetItemsByID(ctx context.Context, collectionID uint64) (*models.MediaItems, error)
+	GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[*mediatypes.Collection], error)
 	Delete(ctx context.Context, id uint64) error
 
 	// Query operations
 	GetByType(ctx context.Context, mediaType mediatypes.MediaType) ([]*models.MediaItem[*mediatypes.Collection], error)
 	GetByExternalID(ctx context.Context, source string, externalID string) (*models.MediaItem[*mediatypes.Collection], error)
-	Search(ctx context.Context, query string, limit int, offset int) ([]*models.MediaItem[*mediatypes.Collection], error)
+	Search(ctx context.Context, query types.QueryOptions) ([]*models.MediaItem[*mediatypes.Collection], error)
 	GetRecentItems(ctx context.Context, days int, limit int) ([]*models.MediaItem[*mediatypes.Collection], error)
 
 	// Collection-specific operations
 	GetCollectionItems(ctx context.Context, collectionID uint64) (*models.MediaItems, error)
-	AddItemToCollection(ctx context.Context, collectionID uint64, item models.MediaItem[mediatypes.MediaData]) error
+	AddItemToCollection(ctx context.Context, collectionID uint64, itemId uint64) error
 	RemoveItemFromCollection(ctx context.Context, collectionID uint64, itemID uint64) error
 	UpdateCollectionItems(ctx context.Context, collectionID uint64, items []models.MediaItem[mediatypes.MediaData]) error
 }
@@ -151,6 +152,11 @@ func (s *coreCollectionService) GetByID(ctx context.Context, id uint64) (*models
 	return result, nil
 }
 
+// GetAll returns all collections
+func (s *coreCollectionService) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[*mediatypes.Collection], error) {
+	return s.repo.GetAll(ctx, limit, offset)
+}
+
 // Delete removes a collection
 func (s *coreCollectionService) Delete(ctx context.Context, id uint64) error {
 	log := utils.LoggerFromContext(ctx)
@@ -218,25 +224,25 @@ func (s *coreCollectionService) GetByExternalID(ctx context.Context, source stri
 }
 
 // Search finds collections based on a query string
-func (s *coreCollectionService) Search(ctx context.Context, query string, limit int, offset int) ([]*models.MediaItem[*mediatypes.Collection], error) {
+func (s *coreCollectionService) Search(ctx context.Context, query types.QueryOptions) ([]*models.MediaItem[*mediatypes.Collection], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Str("query", query).
-		Int("limit", limit).
-		Int("offset", offset).
+		Str("query", query.Query).
+		Int("limit", query.Limit).
+		Int("offset", query.Offset).
 		Msg("Searching collections")
 
 	// Use repository search with collection type filter
-	results, err := s.repo.Search(ctx, query, mediatypes.MediaTypeCollection, limit, offset)
+	results, err := s.repo.Search(ctx, query)
 	if err != nil {
 		log.Error().Err(err).
-			Str("query", query).
+			Str("query", query.Query).
 			Msg("Failed to search collections")
 		return nil, fmt.Errorf("failed to search collections: %w", err)
 	}
 
 	log.Info().
-		Str("query", query).
+		Str("query", query.Query).
 		Int("count", len(results)).
 		Msg("Collections found")
 
@@ -306,11 +312,11 @@ func (s *coreCollectionService) GetCollectionItems(ctx context.Context, collecti
 }
 
 // AddItemToCollection adds an item to a collection
-func (s *coreCollectionService) AddItemToCollection(ctx context.Context, collectionID uint64, item models.MediaItem[mediatypes.MediaData]) error {
+func (s *coreCollectionService) AddItemToCollection(ctx context.Context, collectionID uint64, itemID uint64) error {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("collectionID", collectionID).
-		Uint64("itemID", item.ID).
+		Uint64("itemID", itemID).
 		Msg("Adding item to collection")
 
 	// Get the collection
@@ -320,14 +326,14 @@ func (s *coreCollectionService) AddItemToCollection(ctx context.Context, collect
 	}
 
 	// Check if the item already exists in the collection
-	_, _, found := collection.Data.FindItemByID(item.ID)
+	_, _, found := collection.Data.FindItemByID(itemID)
 	if found {
 		return errors.New("item already exists in collection")
 	}
 
 	// Create a new ListItem
 	newItem := mediatypes.ListItem{
-		ItemID:      item.ID,
+		ItemID:      itemID,
 		Position:    len(collection.Data.Items),
 		LastChanged: time.Now(),
 	}
@@ -340,14 +346,14 @@ func (s *coreCollectionService) AddItemToCollection(ctx context.Context, collect
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("collectionID", collectionID).
-			Uint64("itemID", item.ID).
+			Uint64("itemID", itemID).
 			Msg("Failed to update collection after adding item")
 		return fmt.Errorf("failed to update collection after adding item: %w", err)
 	}
 
 	log.Info().
 		Uint64("collectionID", collectionID).
-		Uint64("itemID", item.ID).
+		Uint64("itemID", itemID).
 		Msg("Item added to collection successfully")
 
 	return nil
@@ -442,30 +448,31 @@ func (s *coreCollectionService) UpdateCollectionItems(ctx context.Context, colle
 	return nil
 }
 
-func (s *coreCollectionService) GetItemsByID(ctx context.Context, collectionID uint64) (*models.MediaItems, error) {
-	log := utils.LoggerFromContext(ctx)
-	log.Debug().
-		Uint64("collectionID", collectionID).
-		Msg("Getting collection items")
-
-	// Get the collection
-	collection, err := s.GetByID(ctx, collectionID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get collection: %w", err)
-	}
-
-	// Search for
-	items := collection.Data.Items
-	if len(items) == 0 {
-		return &models.MediaItems{}, nil
-	}
-	// get item ids out of the collection
-	itemIDs := collection.Data.GetItemIDs()
-
-	mediaItems, err := s.repo.GetMixedMediaItemsByIDs(ctx, itemIDs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get mixed media items: %w", err)
-	}
-
-	return mediaItems, nil
-}
+// func (s *coreCollectionService) GetItemsByID(ctx context.Context, collectionID uint64) (*models., error) {
+//
+// 	log := utils.LoggerFromContext(ctx)
+// 	log.Debug().
+// 		Uint64("collectionID", collectionID).
+// 		Msg("Getting collection items")
+//
+// 	// Get the collection
+// 	collection, err := s.GetByID(ctx, collectionID)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to get collection: %w", err)
+// 	}
+//
+// 	// Search for
+// 	items := collection.Data.Items
+// 	if len(items) == 0 {
+// 		return &models.MediaItems{}, nil
+// 	}
+// 	// get item ids out of the collection
+// 	itemIDs := collection.Data.GetItemIDs()
+//
+// 	mediaItems, err := s.repo.GetMixedMediaItemsByIDs(ctx, itemIDs)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to get mixed media items: %w", err)
+// 	}
+//
+// 	return mediaItems, nil
+// }

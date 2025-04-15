@@ -48,7 +48,7 @@ func Setup(ctx context.Context, deps *app.AppDependencies) *gin.Engine {
 		RegisterUserRoutes(authenticated, deps)
 		RegisterUserConfigRoutes(authenticated, deps)
 		RegisterMediaItemRoutes(authenticated, deps)
-		RegisterMediaClientRoutes(authenticated, deps)
+		RegisterClientMediaRoutes(authenticated, deps)
 		RegisterDirectMediaItemRoutes(authenticated, deps) // Register direct media item routes (non-client specific)
 		RegisterMediaPlayHistoryRoutes(authenticated, deps) // Register media play history routes
 		RegisterMetadataRoutes(authenticated)      // Register metadata routes

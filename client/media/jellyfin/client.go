@@ -30,13 +30,13 @@ func init() {
 
 // JellyfinClient implements the MediaContentProvider interface
 type JellyfinClient struct {
-	media.BaseMediaClient
+	media.BaseClientMedia
 	client *jellyfin.APIClient
 	config client.JellyfinConfig
 }
 
 // NewJellyfinClient creates a new Jellyfin client instance
-func NewJellyfinClient(ctx context.Context, clientID uint64, config client.JellyfinConfig) (media.MediaClient, error) {
+func NewJellyfinClient(ctx context.Context, clientID uint64, config client.JellyfinConfig) (media.ClientMedia, error) {
 
 	// Create API client configuration
 	apiConfig := &jellyfin.Configuration{
@@ -47,10 +47,10 @@ func NewJellyfinClient(ctx context.Context, clientID uint64, config client.Jelly
 	jfClient := jellyfin.NewAPIClient(apiConfig)
 
 	jellyfinClient := &JellyfinClient{
-		BaseMediaClient: media.BaseMediaClient{
+		BaseClientMedia: media.BaseClientMedia{
 			BaseClient: base.BaseClient{
 				ClientID: clientID,
-				Category: client.MediaClientTypeJellyfin.AsCategory(),
+				Category: client.ClientMediaTypeJellyfin.AsCategory(),
 				Type:     client.ClientTypeJellyfin,
 				Config:   &config,
 			},
@@ -74,7 +74,7 @@ func NewJellyfinClient(ctx context.Context, clientID uint64, config client.Jelly
 
 // Register the client factory
 // func init() {
-// 	media.RegisterClient(client.MediaClientTypeJellyfin, NewJellyfinClient)
+// 	media.RegisterClient(client.ClientMediaTypeJellyfin, NewJellyfinClient)
 // }
 
 // Capability methods

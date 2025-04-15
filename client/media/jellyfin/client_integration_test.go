@@ -388,7 +388,7 @@ func testGetWatchHistory(t *testing.T, ctx context.Context, client providers.His
 }
 
 // Test getting genres
-func testGetGenres(t *testing.T, ctx context.Context, client media.MediaClient) {
+func testGetGenres(t *testing.T, ctx context.Context, client media.ClientMedia) {
 	// Movie genres
 	movieProvider, ok := client.(providers.MovieProvider)
 	if ok {

@@ -288,3 +288,41 @@ func (r *userMediaItemRepository[T]) GetUserContent(ctx context.Context, userID 
 
 	return items, nil
 }
+
+func (r *userMediaItemRepository[T]) GetRecentItems(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[T], error) {
+	log := utils.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("userID", userID).
+		Int("limit", limit).
+		Msg("Getting recent user-owned content")
+
+	var items []*models.MediaItem[T]
+
+	// Query for all user-owned content types
+	query := r.db.WithContext(ctx).Where(
+		"(type = ? OR type = ?) AND (data->'ItemList'->>'Owner')::integer = ?",
+		types.MediaTypePlaylist,
+		types.MediaTypeCollection,
+		userID,
+	)
+
+	// Add limit if provided
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+
+	// Order by most recently updated
+	query = query.Order("updated_at DESC")
+
+	if err := query.Find(&items).Error; err != nil {
+		log.Error().Err(err).Msg("Failed to get recent user-owned content")
+		return nil, fmt.Errorf("failed to get recent user content: %w", err)
+	}
+
+	log.Info().
+		Int("count", len(items)).
+		Uint64("userID", userID).
+		Msg("Recent user-owned content retrieved successfully")
+
+	return items, nil
+}

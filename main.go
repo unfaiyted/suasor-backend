@@ -66,7 +66,8 @@ func main() {
 		log.Fatal().Err(err).Msg("Failed to connect to database:")
 	}
 
-	deps := app.InitializeDependencies(db, configService)
+	// Initialize application dependencies with the improved architecture
+	deps := app.Initialize(ctx, db, configService)
 
 	// Start the job scheduler
 	log.Info().Msg("Starting job scheduler")

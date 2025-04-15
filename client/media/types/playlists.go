@@ -11,7 +11,7 @@ import (
 
 // ChangeRecord tracks when and where an item was changed
 type ChangeRecord struct {
-	ClientID   uint64    `json:"clientId"`
+	ClientID   uint64    `json:"clientId"` // 0 = internal client
 	ItemID     string    `json:"itemId,omitempty"`
 	ChangeType string    `json:"changeType"` // "add", "remove", "update", "reorder", "sync"
 	Timestamp  time.Time `json:"timestamp"`
@@ -189,7 +189,7 @@ type ItemList struct {
 
 	SyncClientStates SyncClientStates `json:"syncClientStates"`
 	ItemCount        int              `json:"itemCount"`
-	Owner            uint64           `json:"owner"`
+	OwnerID          uint64           `json:"owner"`
 	SharedWith       []uint64         `json:"sharedWith"`
 
 	IsPublic   bool      `json:"isPublic"`
@@ -197,7 +197,7 @@ type ItemList struct {
 
 	// Track when and which client last modified this playlist
 	LastModified time.Time `json:"lastModified"`
-	ModifiedBy   uint64    `json:"modifiedBy"`
+	ModifiedBy   uint64    `json:"modifiedBy"` // client ID
 
 	// Smart lists
 	IsSmart        bool           `json:"isSmart"`
@@ -246,7 +246,7 @@ func (il *ItemList) NormalizePositions() {
 }
 
 // Add a new item
-func (il *ItemList) AddItem(item ListItem, clientID uint64) {
+func (il *ItemList) AddItem(item ListItem) {
 	// Set position to end if not specified
 	if item.Position < 0 || item.Position > len(il.Items) {
 		item.Position = len(il.Items)
@@ -262,7 +262,33 @@ func (il *ItemList) AddItem(item ListItem, clientID uint64) {
 
 	// Add change record if not present
 	if len(item.ChangeHistory) == 0 {
-		item.AddChangeRecord(clientID, "add")
+		item.AddChangeRecord(0, "add")
+	}
+
+	il.Items = append(il.Items, item)
+	il.ensureItemsOrdered()
+	il.ItemCount = len(il.Items)
+	il.LastModified = time.Now()
+	il.ModifiedBy = 0
+}
+
+func (il *ItemList) AddItemWithClientID(item ListItem, clientID uint64) {
+	// Set position to end if not specified
+	if item.Position < 0 || item.Position > len(il.Items) {
+		item.Position = len(il.Items)
+	}
+
+	// Shift positions of items that come after
+	for i := range il.Items {
+		if il.Items[i].Position >= item.Position {
+			il.Items[i].Position++
+			il.Items[i].LastChanged = time.Now()
+		}
+	}
+
+	// Add change record if not present
+	if len(item.ChangeHistory) == 0 {
+		item.AddChangeRecord(0, "add")
 	}
 
 	il.Items = append(il.Items, item)
@@ -430,7 +456,7 @@ func (il *ItemList) ApplyClientChanges(clientID uint64, clientItems SyncListItem
 			}
 		} else {
 			// New item - add it
-			il.AddItem(newItem, clientID)
+			il.AddItemWithClientID(newItem, clientID)
 		}
 	}
 
@@ -571,7 +597,7 @@ func (il *ItemList) ApplyChangesFromMultipleClients(
 			}
 		} else {
 			// Add new item
-			il.AddItem(item, il.ModifiedBy)
+			il.AddItemWithClientID(item, il.ModifiedBy)
 		}
 	}
 
@@ -645,7 +671,7 @@ func (c *Collection) AddItem(item ListItem, clientID uint64) {
 	}
 
 	// Call parent implementation
-	c.ItemList.AddItem(item, clientID)
+	c.ItemList.AddItemWithClientID(item, clientID)
 
 	// Update the map
 	c.itemMap[item.ItemID] = len(c.Items) - 1
@@ -696,7 +722,7 @@ type Playlist struct {
 }
 
 // Scan implements the sql.Scanner interface
-func (p *Playlist) Scan(value interface{}) error {
+func (p *Playlist) Scan(value any) error {
 	if value == nil {
 		return nil
 	}

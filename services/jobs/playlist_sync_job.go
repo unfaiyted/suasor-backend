@@ -21,7 +21,7 @@ import (
 // PlaylistClientInfo holds information about a media client that supports playlists
 type PlaylistClientInfo struct {
 	ClientID   uint64
-	ClientType clienttypes.MediaClientType
+	ClientType clienttypes.ClientMediaType
 	Name       string
 	IsPrimary  bool
 }
@@ -36,13 +36,16 @@ type PlaylistSyncStats struct {
 
 // PlaylistSyncJob synchronizes playlists between different media clients
 type PlaylistSyncJob struct {
-	jobRepo          repository.JobRepository
-	userRepo         repository.UserRepository
-	configRepo       repository.UserConfigRepository
-	clientRepos      map[clienttypes.MediaClientType]interface{}
-	clientFactory    *client.ClientFactoryService
-	mediaItemRepo    repository.MediaItemRepository[mediatypes.MediaData]
-	mediaHistoryRepo repository.MediaPlayHistoryRepository
+	jobRepo            repository.JobRepository
+	userRepo           repository.UserRepository
+	configRepo         repository.UserConfigRepository
+	clientRepos        map[clienttypes.ClientMediaType]interface{}
+	clientFactory      *client.ClientFactoryService
+	mediaItemRepo      repository.ClientMediaItemRepository[mediatypes.MediaData]
+	userMediaDataRepo  repository.UserMediaItemDataRepository[mediatypes.MediaData]
+	userMovieDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Movie]
+	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series]
+	userMusicDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Track]
 }
 
 // NewPlaylistSyncJob creates a new playlist sync job
@@ -50,25 +53,31 @@ func NewPlaylistSyncJob(
 	jobRepo repository.JobRepository,
 	userRepo repository.UserRepository,
 	configRepo repository.UserConfigRepository,
-	embyRepo interface{},
-	jellyfinRepo interface{},
-	plexRepo interface{},
-	subsonicRepo interface{},
+	embyRepo repository.ClientMediaItemRepository[*mediatypes.Movie],
+	jellyfinRepo repository.ClientMediaItemRepository[*mediatypes.Movie],
+	plexRepo repository.ClientMediaItemRepository[*mediatypes.Movie],
+	subsonicRepo repository.ClientMediaItemRepository[*mediatypes.Movie],
 	clientFactory *client.ClientFactoryService,
+	userMovieDataRepo repository.UserMediaItemDataRepository[*mediatypes.Movie],
+	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series],
+	userMusicDataRepo repository.UserMediaItemDataRepository[*mediatypes.Track],
 ) *PlaylistSyncJob {
-	clientRepos := map[clienttypes.MediaClientType]interface{}{
-		clienttypes.MediaClientTypeEmby:     embyRepo,
-		clienttypes.MediaClientTypeJellyfin: jellyfinRepo,
-		clienttypes.MediaClientTypePlex:     plexRepo,
-		clienttypes.MediaClientTypeSubsonic: subsonicRepo,
+	clientRepos := map[clienttypes.ClientMediaType]interface{}{
+		clienttypes.ClientMediaTypeEmby:     embyRepo,
+		clienttypes.ClientMediaTypeJellyfin: jellyfinRepo,
+		clienttypes.ClientMediaTypePlex:     plexRepo,
+		clienttypes.ClientMediaTypeSubsonic: subsonicRepo,
 	}
 
 	return &PlaylistSyncJob{
-		jobRepo:       jobRepo,
-		userRepo:      userRepo,
-		configRepo:    configRepo,
-		clientRepos:   clientRepos,
-		clientFactory: clientFactory,
+		jobRepo:            jobRepo,
+		userRepo:           userRepo,
+		configRepo:         configRepo,
+		clientRepos:        clientRepos,
+		clientFactory:      clientFactory,
+		userMovieDataRepo:  userMovieDataRepo,
+		userSeriesDataRepo: userSeriesDataRepo,
+		userMusicDataRepo:  userMusicDataRepo,
 	}
 }
 
@@ -143,7 +152,7 @@ func (j *PlaylistSyncJob) processUserPlaylists(ctx context.Context, user models.
 	}
 
 	// Get all media clients for this user
-	clients, err := j.getUserMediaClients(ctx, user.ID)
+	clients, err := j.getUserClientMedias(ctx, user.ID)
 	if err != nil {
 		j.completeJobRun(ctx, jobRun.ID, models.JobStatusFailed, fmt.Sprintf("Error getting media clients: %v", err))
 		return err
@@ -235,9 +244,9 @@ func findMatchingMediaItems[T mediatypes.MediaData](items []*models.MediaItem[T]
 	return matches
 }
 
-// getUserMediaClients returns all media clients for a user
+// getUserClientMedias returns all media clients for a user
 // This is a placeholder implementation
-func (j *PlaylistSyncJob) getUserMediaClients(ctx context.Context, userID uint64) ([]PlaylistClientInfo, error) {
+func (j *PlaylistSyncJob) getUserClientMedias(ctx context.Context, userID uint64) ([]PlaylistClientInfo, error) {
 	// For a real implementation, you would:
 	// 1. Query each client repository for clients belonging to this user
 	// 2. Determine which clients support playlist functionality
@@ -247,13 +256,13 @@ func (j *PlaylistSyncJob) getUserMediaClients(ctx context.Context, userID uint64
 	return []PlaylistClientInfo{
 		{
 			ClientID:   1,
-			ClientType: clienttypes.MediaClientTypeEmby,
+			ClientType: clienttypes.ClientMediaTypeEmby,
 			Name:       "Home Emby Server",
 			IsPrimary:  true,
 		},
 		{
 			ClientID:   2,
-			ClientType: clienttypes.MediaClientTypePlex,
+			ClientType: clienttypes.ClientMediaTypePlex,
 			Name:       "Home Plex Server",
 			IsPrimary:  false,
 		},
@@ -281,9 +290,9 @@ func (j *PlaylistSyncJob) performPlaylistSync(ctx context.Context, userID uint64
 	}
 
 	// Get all user media clients that support playlists
-	playlistClients := make(map[uint64]media.MediaClient)
+	playlistClients := make(map[uint64]media.ClientMedia)
 	for _, clientInfo := range clients {
-		client, err := j.getMediaClient(ctx, userID, clientInfo.ClientID)
+		client, err := j.getClientMedia(ctx, userID, clientInfo.ClientID)
 		if err != nil {
 			logger.Printf("Error getting client %d: %v", clientInfo.ClientID, err)
 			continue
@@ -342,12 +351,12 @@ func (j *PlaylistSyncJob) performPlaylistSync(ctx context.Context, userID uint64
 	return stats, nil
 }
 
-// getMediaClient gets a media client by ID
-func (j *PlaylistSyncJob) getMediaClient(ctx context.Context, userID, clientID uint64) (media.MediaClient, error) {
+// getClientMedia gets a media client by ID
+func (j *PlaylistSyncJob) getClientMedia(ctx context.Context, userID, clientID uint64) (media.ClientMedia, error) {
 	// This is a simplified implementation
 	// In a real implementation, we would use the client factory to get the client
-	clientType := clienttypes.MediaClientTypePlex // Just an example
-	repo := j.clientRepos[clientType].(repository.ClientRepository[clienttypes.MediaClientConfig])
+	clientType := clienttypes.ClientMediaTypePlex // Just an example
+	repo := j.clientRepos[clientType].(repository.ClientRepository[clienttypes.ClientMediaConfig])
 
 	clientConfig, err := repo.GetByID(ctx, clientID)
 	if err != nil {
@@ -359,7 +368,7 @@ func (j *PlaylistSyncJob) getMediaClient(ctx context.Context, userID, clientID u
 		return nil, err
 	}
 
-	return client.(media.MediaClient), nil
+	return client.(media.ClientMedia), nil
 }
 
 // syncPrimaryToClients syncs playlists from the primary client to all other clients
@@ -369,7 +378,7 @@ func (j *PlaylistSyncJob) syncPrimaryToClients(
 	primaryClient PlaylistClientInfo,
 	clients []PlaylistClientInfo,
 	clientPlaylists map[uint64][]models.MediaItem[*mediatypes.Playlist],
-	playlistClients map[uint64]media.MediaClient,
+	playlistClients map[uint64]media.ClientMedia,
 ) PlaylistSyncStats {
 	stats := PlaylistSyncStats{}
 	logger := log.Logger{} // Ideally use structured logging from context
@@ -445,18 +454,18 @@ func (j *PlaylistSyncJob) syncClientsToPrimary(
 	primaryClient PlaylistClientInfo,
 	clients []PlaylistClientInfo,
 	clientPlaylists map[uint64][]models.MediaItem[*mediatypes.Playlist],
-	playlistClients map[uint64]media.MediaClient,
+	playlistClients map[uint64]media.ClientMedia,
 ) PlaylistSyncStats {
 	stats := PlaylistSyncStats{}
 	logger := log.Logger{} // Ideally use structured logging from context
 
-	primaryMediaClient, ok := playlistClients[primaryClient.ClientID]
+	primaryClientMedia, ok := playlistClients[primaryClient.ClientID]
 	if !ok {
 		logger.Printf("Primary client %d not found in playlist clients", primaryClient.ClientID)
 		return stats
 	}
 
-	primaryProvider := primaryMediaClient.(providers.PlaylistProvider)
+	primaryProvider := primaryClientMedia.(providers.PlaylistProvider)
 	primaryPlaylistMap := make(map[string]*models.MediaItem[*mediatypes.Playlist])
 
 	// Create a map of primary playlist titles for easier lookup
@@ -517,7 +526,7 @@ func (j *PlaylistSyncJob) syncBidirectional(
 	userID uint64,
 	clients []PlaylistClientInfo,
 	clientPlaylists map[uint64][]models.MediaItem[*mediatypes.Playlist],
-	playlistClients map[uint64]media.MediaClient,
+	playlistClients map[uint64]media.ClientMedia,
 ) PlaylistSyncStats {
 	stats := PlaylistSyncStats{}
 	logger := log.Logger{} // Ideally use structured logging from context
@@ -809,7 +818,7 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 	}
 
 	// Get all clients for this user
-	clients, err := j.getUserMediaClients(ctx, userID)
+	clients, err := j.getUserClientMedias(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("error getting media clients: %w", err)
 	}
@@ -828,7 +837,7 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 	}
 
 	// Get source client
-	sourceClient, err := j.getMediaClient(ctx, userID, sourceClientID)
+	sourceClient, err := j.getClientMedia(ctx, userID, sourceClientID)
 	if err != nil {
 		return fmt.Errorf("error getting source client: %w", err)
 	}
@@ -905,7 +914,7 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 		}
 
 		// Get target client
-		targetClient, err := j.getMediaClient(ctx, userID, clientInfo.ClientID)
+		targetClient, err := j.getClientMedia(ctx, userID, clientInfo.ClientID)
 		if err != nil {
 			logger.Printf("Error getting target client %d: %v", clientInfo.ClientID, err)
 			continue
@@ -971,17 +980,17 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 
 // InitSyncServices initializes additional services needed for sync
 func (j *PlaylistSyncJob) InitSyncServices(
-	mediaItemRepo repository.MediaItemRepository[mediatypes.MediaData],
-	mediaHistoryRepo repository.MediaPlayHistoryRepository,
+	mediaItemRepo repository.ClientMediaItemRepository[mediatypes.MediaData],
+	mediaHistoryRepo repository.UserMediaItemDataRepository[mediatypes.MediaData],
 ) {
 	// Store these repositories for use in sync operations
 	j.mediaItemRepo = mediaItemRepo
-	j.mediaHistoryRepo = mediaHistoryRepo
+	// j.mediaHistoryRepo = mediaHistoryRepo
 }
 
 // GetClientPlaylists gets all playlists from a specific client
 func (j *PlaylistSyncJob) GetClientPlaylists(ctx context.Context, userID uint64, clientID uint64) ([]mediatypes.Playlist, error) {
-	// In a real implementation, we would:
+	// In a final implementation, we would:
 	// 1. Get the client connection
 	// 2. Fetch all playlists from the client
 	// 3. Format them into a consistent structure
@@ -1084,4 +1093,3 @@ func parseUint64OrZero(s string) uint64 {
 	}
 	return val
 }
-

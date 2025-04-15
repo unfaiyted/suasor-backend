@@ -57,7 +57,7 @@ func TestEmbyClientIntegration(t *testing.T) {
 
 	// Create client configuration
 	config := client.EmbyConfig{
-		BaseMediaClientConfig: client.BaseMediaClientConfig{
+		BaseClientMediaConfig: client.BaseClientMediaConfig{
 			BaseURL: baseURL,
 			APIKey: apiKey,
 		},

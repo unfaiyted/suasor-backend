@@ -212,7 +212,7 @@ type NotificationStats struct {
 // PlaylistClientInfo holds basic client information for playlist sync operations
 // type PlaylistClientInfo struct {
 // 	ClientID   uint64
-// 	ClientType clienttypes.MediaClientType
+// 	ClientType clienttypes.ClientMediaType
 // 	Name       string
 // 	IsPrimary  bool
 // }

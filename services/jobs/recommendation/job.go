@@ -17,16 +17,18 @@ import (
 
 // RecommendationJob creates recommendations for users based on their preferences
 type RecommendationJob struct {
-	jobRepo             repository.JobRepository
-	userRepo            repository.UserRepository
-	configRepo          repository.UserConfigRepository
-	movieRepo           repository.MediaItemRepository[*mediatypes.Movie]
-	seriesRepo          repository.MediaItemRepository[*mediatypes.Series]
-	musicRepo           repository.MediaItemRepository[*mediatypes.Track]
-	historyRepo         repository.MediaPlayHistoryRepository
-	clientRepos         repository.ClientRepositoryCollection
-	clientFactories     *client.ClientFactoryService
-	recommendationRepo  repository.RecommendationRepository // Added for storing recommendations
+	jobRepo            repository.JobRepository
+	userRepo           repository.UserRepository
+	configRepo         repository.UserConfigRepository
+	movieRepo          repository.ClientMediaItemRepository[*mediatypes.Movie]
+	seriesRepo         repository.ClientMediaItemRepository[*mediatypes.Series]
+	musicRepo          repository.ClientMediaItemRepository[*mediatypes.Track]
+	userMovieDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Movie]
+	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series]
+	userMusicDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Track]
+	clientRepos        repository.ClientRepositoryCollection
+	clientFactories    *client.ClientFactoryService
+	recommendationRepo repository.RecommendationRepository // Added for storing recommendations
 
 	// New repositories for credits and people
 	creditRepo repository.CreditRepository // Will be implemented in the future
@@ -38,10 +40,12 @@ func NewRecommendationJob(
 	jobRepo repository.JobRepository,
 	userRepo repository.UserRepository,
 	configRepo repository.UserConfigRepository,
-	movieRepo repository.MediaItemRepository[*mediatypes.Movie],
-	seriesRepo repository.MediaItemRepository[*mediatypes.Series],
-	musicRepo repository.MediaItemRepository[*mediatypes.Track],
-	historyRepo repository.MediaPlayHistoryRepository,
+	movieRepo repository.ClientMediaItemRepository[*mediatypes.Movie],
+	seriesRepo repository.ClientMediaItemRepository[*mediatypes.Series],
+	musicRepo repository.ClientMediaItemRepository[*mediatypes.Track],
+	userMovieDataRepo repository.UserMediaItemDataRepository[*mediatypes.Movie],
+	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series],
+	userMusicDataRepo repository.UserMediaItemDataRepository[*mediatypes.Track],
 	clientRepos repository.ClientRepositoryCollection,
 	clientFactories *client.ClientFactoryService,
 	// Optional repositories for credits and people - can be nil for now
@@ -57,7 +61,9 @@ func NewRecommendationJob(
 		movieRepo:          movieRepo,
 		seriesRepo:         seriesRepo,
 		musicRepo:          musicRepo,
-		historyRepo:        historyRepo,
+		userMovieDataRepo:  userMovieDataRepo,
+		userSeriesDataRepo: userSeriesDataRepo,
+		userMusicDataRepo:  userMusicDataRepo,
 		clientRepos:        clientRepos,
 		clientFactories:    clientFactories,
 		creditRepo:         creditRepo,

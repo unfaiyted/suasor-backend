@@ -4,26 +4,26 @@ import "encoding/json"
 
 // @Description Supersonic music server configuration
 type SubsonicConfig struct {
-	BaseMediaClientConfig
+	BaseClientMediaConfig
 	Username string `json:"username" mapstructure:"username" example:"admin" binding:"required_if=Enabled true"`
 	Password string `json:"password" mapstructure:"password" example:"your-password" binding:"required_if=Enabled true"`
 }
 
 func NewSubsonicConfig() SubsonicConfig {
 	return SubsonicConfig{
-		BaseMediaClientConfig: BaseMediaClientConfig{
+		BaseClientMediaConfig: BaseClientMediaConfig{
 			BaseClientConfig: BaseClientConfig{
 				Type: ClientTypeSubsonic,
 			},
-			ClientType: MediaClientTypeSubsonic,
+			ClientType: ClientMediaTypeSubsonic,
 		},
 	}
 }
 
 func (SubsonicConfig) isClientConfig()      {}
-func (SubsonicConfig) isMediaClientConfig() {}
-func (SubsonicConfig) GetClientType() MediaClientType {
-	return MediaClientTypeSubsonic
+func (SubsonicConfig) isClientMediaConfig() {}
+func (SubsonicConfig) GetClientType() ClientMediaType {
+	return ClientMediaTypeSubsonic
 }
 func (SubsonicConfig) GetCategory() ClientCategory {
 	return ClientCategoryMedia
@@ -62,7 +62,7 @@ func (c *SubsonicConfig) UnmarshalJSON(data []byte) error {
 	}
 
 	// Ensure Type is always the correct constant
-	c.ClientType = MediaClientTypeSubsonic
+	c.ClientType = ClientMediaTypeSubsonic
 	c.Type = ClientTypeSubsonic
 	return nil
 }

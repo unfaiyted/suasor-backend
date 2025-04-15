@@ -21,39 +21,39 @@ type Client[T client.ClientConfig] struct {
 }
 
 func (c Client[T]) SupportsMovies() bool {
-	if mediaConfig, ok := any(c.Config.Data).(client.MediaClientConfig); ok {
+	if mediaConfig, ok := any(c.Config.Data).(client.ClientMediaConfig); ok {
 		return mediaConfig.SupportsMovies()
 	}
 	return false
 }
 
 func (c Client[T]) SupportsSeries() bool {
-	if mediaConfig, ok := any(c.Config.Data).(client.MediaClientConfig); ok {
+	if mediaConfig, ok := any(c.Config.Data).(client.ClientMediaConfig); ok {
 		return mediaConfig.SupportsSeries()
 	}
 	return false
 }
 
 func (c Client[T]) SupportsMusic() bool {
-	if mediaConfig, ok := any(c.Config.Data).(client.MediaClientConfig); ok {
+	if mediaConfig, ok := any(c.Config.Data).(client.ClientMediaConfig); ok {
 		return mediaConfig.SupportsMusic()
 	}
 	return false
 }
 func (c Client[T]) SupportsPlaylists() bool {
-	if mediaConfig, ok := any(c.Config.Data).(client.MediaClientConfig); ok {
+	if mediaConfig, ok := any(c.Config.Data).(client.ClientMediaConfig); ok {
 		return mediaConfig.SupportsPlaylists()
 	}
 	return false
 }
 func (c Client[T]) SupportsCollections() bool {
-	if mediaConfig, ok := any(c.Config.Data).(client.MediaClientConfig); ok {
+	if mediaConfig, ok := any(c.Config.Data).(client.ClientMediaConfig); ok {
 		return mediaConfig.SupportsCollections()
 	}
 	return false
 }
 func (c Client[T]) SupportsHistory() bool {
-	if mediaConfig, ok := any(c.Config.Data).(client.MediaClientConfig); ok {
+	if mediaConfig, ok := any(c.Config.Data).(client.ClientMediaConfig); ok {
 		return mediaConfig.SupportsHistory()
 	}
 	return false
@@ -62,7 +62,7 @@ func (c Client[T]) SupportsHistory() bool {
 func (c Client[T]) GetClientType() client.ClientType {
 	if automationConfig, ok := any(c.Config.Data).(client.AutomationClientConfig); ok {
 		return automationConfig.GetClientType().AsGenericClient()
-	} else if mediaConfig, ok := any(c.Config.Data).(client.MediaClientConfig); ok {
+	} else if mediaConfig, ok := any(c.Config.Data).(client.ClientMediaConfig); ok {
 		return mediaConfig.GetClientType().AsGenericClient()
 	}
 	return client.ClientTypeUnknown
