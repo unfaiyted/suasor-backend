@@ -3,31 +3,31 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"suasor/app"
+	"suasor/app/container"
 	"suasor/handlers"
 )
 
 // RegisterMediaItemRoutes configures routes for media items, people, and credits
-func RegisterMediaItemRoutes(r *gin.RouterGroup, deps *app.AppDependencies) {
+func RegisterMediaItemRoutes(r *gin.RouterGroup, c *container.Container) {
 	// Original media item routes
-	mediaItemHandler := deps.MediaItemHandlers.MovieHandler()
+	// mediaItemHandler := container.MustGet[handlers.MediaItemHandler](c)
 
-	clients := r.Group("/item")
+	// clients := r.Group("/item")
 
 	// mediaItem client routes
-	mediaItem := clients.Group("/media")
-	{
-		mediaItem.POST("", mediaItemHandler.CreateMediaItem)
-		mediaItem.GET("/:id", mediaItemHandler.GetMediaItem)
-		mediaItem.PUT("/:id", mediaItemHandler.UpdateMediaItem)
-		mediaItem.DELETE("/:id", mediaItemHandler.DeleteMediaItem)
-		mediaItem.GET("/search", mediaItemHandler.SearchMediaItems)
-		mediaItem.GET("/recent", mediaItemHandler.GetRecentMediaItems)
-		mediaItem.GET("/client/:clientId", mediaItemHandler.GetMediaItemsByClient)
-	}
+	// mediaItem := clients.Group("/media")
+	// {
+	// 	mediaItem.POST("", mediaItemHandler.CreateMediaItem)
+	// 	mediaItem.GET("/:id", mediaItemHandler.GetMediaItem)
+	// 	mediaItem.PUT("/:id", mediaItemHandler.UpdateMediaItem)
+	// 	mediaItem.DELETE("/:id", mediaItemHandler.DeleteMediaItem)
+	// 	mediaItem.GET("/search", mediaItemHandler.SearchMediaItems)
+	// 	mediaItem.GET("/recent", mediaItemHandler.GetRecentMediaItems)
+	// 	mediaItem.GET("/client/:clientId", mediaItemHandler.GetMediaItemsByClient)
+	// }
 
 	// People handlers
-	peopleHandler := handlers.NewPeopleHandler(deps.MediaServices.PersonService())
+	peopleHandler := container.MustGet[handlers.PeopleHandler](c)
 
 	// People routes
 	people := r.Group("/people")
@@ -46,7 +46,7 @@ func RegisterMediaItemRoutes(r *gin.RouterGroup, deps *app.AppDependencies) {
 	}
 
 	// Credit handlers
-	creditHandler := handlers.NewCreditHandler(deps.MediaServices.CreditService())
+	creditHandler := container.MustGet[handlers.CreditHandler](c)
 
 	// Credit routes
 	credits := r.Group("/credits")

@@ -1,15 +1,15 @@
 package router
 
 import (
+	"suasor/app/container"
 	"suasor/handlers"
-	"suasor/services"
 
 	"github.com/gin-gonic/gin"
 )
 
 // RegisterJobRoutes registers job-related routes
-func RegisterJobRoutes(r *gin.RouterGroup, jobService services.JobService) {
-	jobHandler := handlers.NewJobHandler(jobService)
+func RegisterJobRoutes(r *gin.RouterGroup, c *container.Container) {
+	jobHandler := container.MustGet[handlers.JobHandler](c)
 
 	jobs := r.Group("/jobs")
 	{
@@ -37,4 +37,3 @@ func RegisterJobRoutes(r *gin.RouterGroup, jobService services.JobService) {
 		jobs.PUT("/recommendations/:id/viewed", jobHandler.UpdateRecommendationViewedStatus)
 	}
 }
-

@@ -1,3 +1,4 @@
+// handlers/client_media_item.go
 package handlers
 
 import (
@@ -15,22 +16,31 @@ import (
 	"suasor/utils"
 )
 
-// ClientMediaItemHandler handles operations on media items stored in the database
-// It provides access to different types of media (movies, series, music, etc.)
-// using a generic type parameter
+// ClientMediaItemHandler handles operations on media items associated with external clients
+// It extends UserMediaItemHandler to inherit both core and user-level functionality
+// This is the third prong in the three-pronged architecture
 type ClientMediaItemHandler[T types.MediaData] struct {
-	service services.ClientMediaItemService[T]
+	UserMediaItemHandler[T] // Embed the user handler
+	clientService           services.ClientMediaItemService[T]
 }
 
-// NewClientMediaItemHandler creates a new media item handler
-func NewClientMediaItemHandler[T types.MediaData](service services.ClientMediaItemService[T]) *ClientMediaItemHandler[T] {
-	return &ClientMediaItemHandler[T]{service: service}
+// NewClientMediaItemHandler creates a new client media item handler
+func NewClientMediaItemHandler[T types.MediaData](
+	clientService services.ClientMediaItemService[T],
+) *ClientMediaItemHandler[T] {
+	// Create an embedded user handler that itself embeds the core handler
+	userHandler := NewUserMediaItemHandler(clientService)
+	
+	return &ClientMediaItemHandler[T]{
+		UserMediaItemHandler: *userHandler,
+		clientService:        clientService,
+	}
 }
 
 // CreateMediaItem godoc
-// @Summary Create a new media item
-// @Description Creates a new media item in the database
-// @Tags media-items
+// @Summary Create a new media item associated with a client
+// @Description Creates a new media item in the database with client association
+// @Tags client-media
 // @Accept json
 // @Produce json
 // @Param mediaItem body object true "Media item data with type, client info, and type-specific data"
@@ -61,7 +71,7 @@ func (h *ClientMediaItemHandler[T]) CreateMediaItem(c *gin.Context) {
 		Str("mediaType", string(mediaType)).
 		Uint64("clientId", req.ClientID).
 		Str("clientType", req.ClientType).
-		Msg("Creating media item")
+		Msg("Creating client media item")
 
 	// Create the media item
 	var mediaData T
@@ -86,9 +96,9 @@ func (h *ClientMediaItemHandler[T]) CreateMediaItem(c *gin.Context) {
 		mediaItem.AddExternalID("client", req.ExternalID)
 	}
 
-	result, err := h.service.Create(ctx, mediaItem)
+	result, err := h.clientService.Create(ctx, mediaItem)
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to create media item")
+		log.Error().Err(err).Msg("Failed to create client media item")
 		responses.RespondInternalError(c, err, "Failed to create media item")
 		return
 	}
@@ -96,15 +106,15 @@ func (h *ClientMediaItemHandler[T]) CreateMediaItem(c *gin.Context) {
 	log.Info().
 		Uint64("id", result.ID).
 		Str("type", string(result.Type)).
-		Msg("Media item created successfully")
+		Msg("Client media item created successfully")
 
 	responses.RespondCreated(c, result, "Media item created successfully")
 }
 
 // UpdateMediaItem godoc
-// @Summary Update an existing media item
-// @Description Updates a media item in the database by ID
-// @Tags media-items
+// @Summary Update an existing client media item
+// @Description Updates a client media item in the database by ID
+// @Tags client-media
 // @Accept json
 // @Produce json
 // @Param id path int true "Media item ID"
@@ -144,7 +154,7 @@ func (h *ClientMediaItemHandler[T]) UpdateMediaItem(c *gin.Context) {
 		Str("mediaType", req.Type).
 		Uint64("clientId", req.ClientID).
 		Str("clientType", req.ClientType).
-		Msg("Updating media item")
+		Msg("Updating client media item")
 
 	// Update the media item
 	mediaType := types.MediaType(req.Type)
@@ -171,67 +181,25 @@ func (h *ClientMediaItemHandler[T]) UpdateMediaItem(c *gin.Context) {
 		mediaItem.AddExternalID("client", req.ExternalID)
 	}
 
-	result, err := h.service.Update(ctx, mediaItem)
+	result, err := h.clientService.Update(ctx, mediaItem)
 	if err != nil {
-		log.Error().Err(err).Uint64("id", id).Msg("Failed to update media item")
+		log.Error().Err(err).Uint64("id", id).Msg("Failed to update client media item")
 		responses.RespondInternalError(c, err, "Failed to update media item")
+		return
 	}
 
 	log.Info().
 		Uint64("id", result.ID).
 		Str("type", string(result.Type)).
-		Msg("Media item updated successfully")
+		Msg("Client media item updated successfully")
 
 	responses.RespondOK(c, result, "Media item updated successfully")
-}
-
-// GetMediaItem godoc
-// @Summary Get a media item by ID
-// @Description Retrieves a media item from the database by its ID
-// @Tags media-items
-// @Accept json
-// @Produce json
-// @Param id path int true "Media item ID"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[any]] "Media item retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid media item ID"
-// @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /item/media/{id} [get]
-func (h *ClientMediaItemHandler[T]) GetMediaItem(c *gin.Context) {
-	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid media item ID")
-		responses.RespondBadRequest(c, err, "Invalid media item ID")
-		return
-	}
-
-	log.Debug().Uint64("id", id).Msg("Retrieving media item by ID")
-	h.getMediaItem(c, id)
-}
-
-// Type-specific media item retrieval helper
-func (h *ClientMediaItemHandler[T]) getMediaItem(c *gin.Context, id uint64) {
-	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-
-	item, err := h.service.GetByID(ctx, id)
-	if err != nil {
-		log.Warn().Err(err).Uint64("id", id).Msg("Media item not found")
-		responses.RespondNotFound(c, err, "Media item not found")
-		return
-	}
-
-	log.Info().Uint64("id", id).Str("type", string(item.Type)).Msg("Media item retrieved successfully")
-	responses.RespondOK(c, item, "Media item retrieved successfully")
 }
 
 // GetMediaItemsByClient godoc
 // @Summary Get media items by client
 // @Description Retrieves all media items for a specific client
-// @Tags media-items
+// @Tags client-media
 // @Accept json
 // @Produce json
 // @Param clientId path int true "Client ID"
@@ -239,8 +207,7 @@ func (h *ClientMediaItemHandler[T]) getMediaItem(c *gin.Context, id uint64) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[any]] "Media items retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid client ID"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Failure 501 {object} responses.ErrorResponse[any] "Not implemented"
-// @Router /item/media/client/{clientId} [get]
+// @Router /client/{clientId}/media [get]
 func (h *ClientMediaItemHandler[T]) GetMediaItemsByClient(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -252,92 +219,167 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemsByClient(c *gin.Context) {
 		return
 	}
 
-	mediaType := c.Query("type") // Optional media type filter
+	typeParam := c.Query("type") // Optional media type filter
+	
 	log.Debug().
 		Uint64("clientId", clientID).
-		Str("mediaType", mediaType).
+		Str("mediaType", typeParam).
 		Msg("Getting media items by client")
 
-	if mediaType != "" {
-		h.getMediaItemsByClient(c, clientID)
-		return
+	var items []*models.MediaItem[T]
+	
+	if typeParam != "" {
+		// If media type is specified, get media items by client and type
+		mediaType := types.MediaType(typeParam)
+		items, err = h.clientService.GetByClientAndType(ctx, clientID, mediaType)
+	} else {
+		// Otherwise, get all media items for the client
+		items, err = h.clientService.GetByClientID(ctx, clientID)
 	}
-
-	// If no specific type, we'll need to collect all types and merge
-	log.Warn().Uint64("clientId", clientID).Msg("Fetching all media types not yet implemented")
-	responses.RespondNotImplemented(c, nil, "Fetching all media types not yet implemented")
-}
-
-// Type-specific media items by client retrieval helper
-func (h *ClientMediaItemHandler[T]) getMediaItemsByClient(c *gin.Context, clientID uint64) {
-	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-
-	items, err := h.service.GetByClientID(ctx, clientID)
+	
 	if err != nil {
-		log.Error().Err(err).Uint64("clientId", clientID).Msg("Failed to retrieve media items by client")
+		log.Error().Err(err).
+			Uint64("clientId", clientID).
+			Str("type", typeParam).
+			Msg("Failed to retrieve media items by client")
 		responses.RespondInternalError(c, err, "Failed to retrieve media items by client")
 		return
 	}
 
-	log.Info().Uint64("clientId", clientID).Int("count", len(items)).Msg("Media items retrieved by client successfully")
+	log.Info().
+		Uint64("clientId", clientID).
+		Int("count", len(items)).
+		Msg("Media items retrieved by client successfully")
+	
 	responses.RespondOK(c, items, "Media items retrieved successfully")
 }
 
-// DeleteMediaItem godoc
-// @Summary Delete a media item
-// @Description Deletes a media item from the database by ID
-// @Tags media-items
+// GetMediaItemByClientItemID godoc
+// @Summary Get media item by client-specific ID
+// @Description Retrieves a media item using its client-specific ID
+// @Tags client-media
 // @Accept json
 // @Produce json
-// @Param id path int true "Media item ID"
-// @Success 200 {object} responses.APIResponse[any] "Media item deleted successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid media item ID"
+// @Param clientId path int true "Client ID"
+// @Param itemId path string true "Client-specific item ID"
+// @Success 200 {object} responses.APIResponse[models.MediaItem[any]] "Media item retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /item/media/{id} [delete]
-func (h *ClientMediaItemHandler[T]) DeleteMediaItem(c *gin.Context) {
+// @Router /client/{clientId}/media/item/{itemId} [get]
+func (h *ClientMediaItemHandler[T]) GetMediaItemByClientItemID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	clientID, err := strconv.ParseUint(c.Param("clientId"), 10, 64)
 	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid media item ID")
-		responses.RespondBadRequest(c, err, "Invalid media item ID")
+		log.Warn().Err(err).Str("clientId", c.Param("clientId")).Msg("Invalid client ID")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
-	log.Debug().Uint64("id", id).Msg("Deleting media item")
-	h.deleteMediaItem(c, id)
-}
-
-// Type-specific media item deletion helper
-func (h *ClientMediaItemHandler[T]) deleteMediaItem(c *gin.Context, id uint64) {
-	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-
-	err := h.service.Delete(ctx, id)
-	if err != nil {
-		log.Error().Err(err).Uint64("id", id).Msg("Failed to delete media item")
-		responses.RespondInternalError(c, err, "Failed to delete media item")
+	itemID := c.Param("itemId")
+	if itemID == "" {
+		log.Warn().Msg("Client item ID is required")
+		responses.RespondBadRequest(c, nil, "Client item ID is required")
 		return
 	}
 
-	log.Info().Uint64("id", id).Msg("Media item deleted successfully")
-	responses.RespondOK(c, responses.EmptyResponse{Success: true}, "Media item deleted successfully")
+	log.Debug().
+		Uint64("clientId", clientID).
+		Str("itemId", itemID).
+		Msg("Getting media item by client item ID")
+
+	item, err := h.clientService.GetByClientItemID(ctx, itemID, clientID)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("clientId", clientID).
+			Str("itemId", itemID).
+			Msg("Failed to retrieve media item by client item ID")
+		responses.RespondNotFound(c, err, "Media item not found")
+		return
+	}
+
+	log.Info().
+		Uint64("clientId", clientID).
+		Str("itemId", itemID).
+		Uint64("id", item.ID).
+		Msg("Media item retrieved by client item ID successfully")
+	
+	responses.RespondOK(c, item, "Media item retrieved successfully")
 }
 
-// SearchMediaItems godoc
-// @Summary Search for media items
-// @Description Searches for media items by title or other criteria
-// @Tags media-items
+// GetMediaItemsByMultipleClients godoc
+// @Summary Get media items from multiple clients
+// @Description Retrieves media items associated with any of the specified clients
+// @Tags client-media
 // @Accept json
 // @Produce json
-// @Param q query string true "Search query"
+// @Param clientIds query string true "Comma-separated list of client IDs"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[any]] "Media items retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /client/:mediaType/search [get]
-func (h *ClientMediaItemHandler[T]) SearchMediaItems(c *gin.Context) {
+// @Router /client/media/multi [get]
+func (h *ClientMediaItemHandler[T]) GetMediaItemsByMultipleClients(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	clientIDsStr := c.Query("clientIds")
+	if clientIDsStr == "" {
+		log.Warn().Msg("Client IDs parameter is required")
+		responses.RespondBadRequest(c, nil, "Client IDs parameter is required")
+		return
+	}
+
+	// Parse comma-separated list of client IDs
+	clientIDStrs := strings.Split(clientIDsStr, ",")
+	clientIDs := make([]uint64, 0, len(clientIDStrs))
+	
+	for _, idStr := range clientIDStrs {
+		id, err := strconv.ParseUint(strings.TrimSpace(idStr), 10, 64)
+		if err != nil {
+			log.Warn().Err(err).Str("clientId", idStr).Msg("Invalid client ID format")
+			responses.RespondBadRequest(c, err, "Invalid client ID format")
+			return
+		}
+		clientIDs = append(clientIDs, id)
+	}
+
+	log.Debug().
+		Interface("clientIds", clientIDs).
+		Msg("Getting media items by multiple clients")
+
+	items, err := h.clientService.GetByMultipleClients(ctx, clientIDs)
+	if err != nil {
+		log.Error().Err(err).
+			Interface("clientIds", clientIDs).
+			Msg("Failed to retrieve media items by multiple clients")
+		responses.RespondInternalError(c, err, "Failed to retrieve media items")
+		return
+	}
+
+	log.Info().
+		Interface("clientIds", clientIDs).
+		Int("count", len(items)).
+		Msg("Media items retrieved by multiple clients successfully")
+	
+	responses.RespondOK(c, items, "Media items retrieved successfully")
+}
+
+// SearchAcrossClients godoc
+// @Summary Search for media items across multiple clients
+// @Description Searches for media items across multiple clients based on query parameters
+// @Tags client-media
+// @Accept json
+// @Produce json
+// @Param q query string true "Search query"
+// @Param clientIds query string true "Comma-separated list of client IDs"
+// @Param type query string false "Media type filter"
+// @Success 200 {object} responses.APIResponse[map[string][]models.MediaItem[any]] "Media items retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /client/media/search [get]
+func (h *ClientMediaItemHandler[T]) SearchAcrossClients(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -348,151 +390,127 @@ func (h *ClientMediaItemHandler[T]) SearchMediaItems(c *gin.Context) {
 		return
 	}
 
-	var zero T
-	mediaType := types.GetMediaTypeFromTypeName(zero)
+	clientIDsStr := c.Query("clientIds")
+	if clientIDsStr == "" {
+		log.Warn().Msg("Client IDs parameter is required")
+		responses.RespondBadRequest(c, nil, "Client IDs parameter is required")
+		return
+	}
 
-	options := &types.QueryOptions{
+	// Parse comma-separated list of client IDs
+	clientIDStrs := strings.Split(clientIDsStr, ",")
+	clientIDs := make([]uint64, 0, len(clientIDStrs))
+	
+	for _, idStr := range clientIDStrs {
+		id, err := strconv.ParseUint(strings.TrimSpace(idStr), 10, 64)
+		if err != nil {
+			log.Warn().Err(err).Str("clientId", idStr).Msg("Invalid client ID format")
+			responses.RespondBadRequest(c, err, "Invalid client ID format")
+			return
+		}
+		clientIDs = append(clientIDs, id)
+	}
+
+	// Get media type from query parameters
+	mediaTypeStr := c.Query("type")
+	var mediaType types.MediaType
+	if mediaTypeStr != "" {
+		mediaType = types.MediaType(mediaTypeStr)
+	}
+
+	log.Debug().
+		Str("query", query).
+		Interface("clientIds", clientIDs).
+		Str("type", string(mediaType)).
+		Msg("Searching media items across clients")
+
+	// Create query options
+	options := types.QueryOptions{
 		Query:     query,
 		MediaType: mediaType,
 	}
 
-	h.searchMediaItems(c, *options)
-	return
-	// log.Warn().Msg("Searching across all media types not yet implemented")
-	// responses.RespondNotImplemented(c, nil, "Searching across all media types not yet implemented")
-}
-
-// Type-specific media items search helper
-func (h *ClientMediaItemHandler[T]) searchMediaItems(c *gin.Context, query types.QueryOptions) {
-	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-
-	items, err := h.service.Search(ctx, query)
+	// Search across clients
+	results, err := h.clientService.SearchAcrossClients(ctx, options, clientIDs)
 	if err != nil {
-		log.Error().Err(err).Str("query", query.Query).Uint64("userId", query.OwnerID).Msg("Failed to search media items")
+		log.Error().Err(err).
+			Str("query", query).
+			Interface("clientIds", clientIDs).
+			Msg("Failed to search media items across clients")
 		responses.RespondInternalError(c, err, "Failed to search media items")
 		return
 	}
 
-	log.Info().Str("query", query.Query).Uint64("userId", query.OwnerID).Int("count", len(items)).Msg("Media items search completed successfully")
-	responses.RespondOK(c, items, "Media items retrieved successfully")
+	log.Info().
+		Str("query", query).
+		Interface("clientIds", clientIDs).
+		Int("clientCount", len(results)).
+		Msg("Media items search across clients completed successfully")
+	
+	responses.RespondOK(c, results, "Media items retrieved successfully")
 }
 
-// GetRecentMediaItems godoc
-// @Summary Get recently added media items
-// @Description Retrieves recently added media items for a user
-// @Tags media-items
+// SyncItemBetweenClients godoc
+// @Summary Sync a media item between clients
+// @Description Creates or updates a mapping between a media item and a target client
+// @Tags client-media
 // @Accept json
 // @Produce json
-// @Param limit query int false "Maximum number of items to return"
-// @Param days query int false "Number of days to look back"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[any]] "Recent media items retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /item/media/recent [get]
-func (h *ClientMediaItemHandler[T]) GetRecentMediaItems(c *gin.Context) {
-	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
-		return
-	}
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
-	days, err := strconv.Atoi(c.DefaultQuery("days", "30"))
-	if err != nil {
-		days = 30
-	}
-
-	mediaType := c.Query("type") // Optional media type filter
-	log.Debug().
-		Uint64("userId", userID).
-		Int("limit", limit).
-		Str("mediaType", mediaType).
-		Msg("Getting recent media items")
-
-	if mediaType != "" {
-		h.getRecentMediaItems(c, days, limit)
-		return
-	}
-
-	// If no specific type, get recent items across all types (not implemented here)
-	log.Warn().Msg("Fetching recent items across all media types not yet implemented")
-	responses.RespondNotImplemented(c, nil, "Fetching recent items across all media types not yet implemented")
-}
-
-// Type-specific recent media items retrieval helper
-func (h *ClientMediaItemHandler[T]) getRecentMediaItems(c *gin.Context, days int, limit int) {
-	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-
-	items, err := h.service.GetRecentItems(ctx, days, limit)
-	if err != nil {
-		log.Error().Err(err).Int("limit", limit).Msg("Failed to retrieve recent media items")
-		responses.RespondInternalError(c, err, "Failed to retrieve recent media items")
-		return
-	}
-
-	log.Info().Int("days", days).Int("limit", limit).Int("count", len(items)).Msg("Recent media items retrieved successfully")
-	responses.RespondOK(c, items, "Recent media items retrieved successfully")
-}
-
-// GetMediaItemByExternalSourceID godoc
-// @Summary Get a media item by external source ID
-// @Description Retrieves a media item using its external source ID (e.g., TMDB ID)
-// @Tags media-items
-// @Accept json
-// @Produce json
-// @Param source path string true "External source name (e.g., tmdb, imdb)"
-// @Param externalId path string true "External ID from the source"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[any]] "Media item retrieved successfully"
+// @Param syncRequest body object true "Sync request with source and target client info"
+// @Success 200 {object} responses.APIResponse[any] "Item synced successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /item/media/external/{source}/{externalId} [get]
-func (h *ClientMediaItemHandler[T]) GetMediaItemByExternalSourceID(c *gin.Context) {
+// @Router /client/media/sync [post]
+func (h *ClientMediaItemHandler[T]) SyncItemBetweenClients(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
-	source := c.Param("source")
-	externalID := c.Param("externalId")
+	var req struct {
+		ItemID         uint64 `json:"itemId" binding:"required"`
+		SourceClientID uint64 `json:"sourceClientId" binding:"required"`
+		TargetClientID uint64 `json:"targetClientId" binding:"required"`
+		TargetItemID   string `json:"targetItemId" binding:"required"`
+	}
 
-	if source == "" || externalID == "" {
-		log.Warn().Str("source", source).Str("externalId", externalID).Msg("Source and externalId are required")
-		responses.RespondBadRequest(c, nil, "Source and externalId are required")
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Warn().Err(err).Msg("Invalid request body for SyncItemBetweenClients")
+		responses.RespondBadRequest(c, err, "Invalid request format")
 		return
 	}
 
-	log.Debug().Str("source", source).Str("externalId", externalID).Msg("Retrieving media item by external ID")
-	item, err := h.service.GetByExternalID(ctx, source, externalID)
+	log.Debug().
+		Uint64("itemId", req.ItemID).
+		Uint64("sourceClientId", req.SourceClientID).
+		Uint64("targetClientId", req.TargetClientID).
+		Str("targetItemId", req.TargetItemID).
+		Msg("Syncing item between clients")
+
+	err := h.clientService.SyncItemBetweenClients(ctx, req.ItemID, req.SourceClientID, req.TargetClientID, req.TargetItemID)
 	if err != nil {
-		log.Warn().Err(err).Str("source", source).Str("externalId", externalID).Msg("Media item not found by external ID")
-		responses.RespondNotFound(c, err, "Media item not found")
+		log.Error().Err(err).
+			Uint64("itemId", req.ItemID).
+			Uint64("sourceClientId", req.SourceClientID).
+			Uint64("targetClientId", req.TargetClientID).
+			Msg("Failed to sync item between clients")
+		responses.RespondInternalError(c, err, "Failed to sync item between clients")
 		return
 	}
 
-	log.Info().Uint64("id", item.ID).Str("source", source).Str("externalId", externalID).Msg("Media item retrieved by external ID")
-	responses.RespondOK(c, item, "Media item retrieved successfully")
+	log.Info().
+		Uint64("itemId", req.ItemID).
+		Uint64("sourceClientId", req.SourceClientID).
+		Uint64("targetClientId", req.TargetClientID).
+		Msg("Item synced between clients successfully")
+	
+	responses.RespondOK(c, nil, "Item synced successfully")
 }
 
-// GetMediaItemsByGenre godoc
-// @Summary Get media items by genre
-// @Description Retrieves media items that belong to a specific genre
-// @Tags media-items
-// @Accept json
-// @Produce json
-// @Param genre path string true "Genre name"
-// @Param limit query int false "Maximum number of items to return"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[any]] "Media items retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /item/media/genre/{genre} [get]
+// Additional methods from the original implementation can be kept but should be 
+// organized to properly inherit from the embedded handlers and avoid duplication.
+// Only client-specific methods that truly extend the functionality should remain here.
+
+// GetMediaItemsByGenre - This method could be refactored to use the inherited Search method when appropriate
 func (h *ClientMediaItemHandler[T]) GetMediaItemsByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -523,7 +541,7 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemsByGenre(c *gin.Context) {
 		Limit:     limit,
 	}
 	// Filter by genre using the search functionality
-	items, err := h.service.Search(ctx, options)
+	items, err := h.clientService.Search(ctx, options)
 	if err != nil {
 		log.Error().Err(err).Str("genre", genre).Msg("Failed to retrieve media items")
 		responses.RespondInternalError(c, err, "Failed to retrieve media items")
@@ -550,19 +568,7 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemsByGenre(c *gin.Context) {
 	responses.RespondOK(c, filtered, "Media items retrieved successfully")
 }
 
-// GetMediaItemsByYear godoc
-// @Summary Get media items by release year
-// @Description Retrieves media items released in a specific year
-// @Tags media-items
-// @Accept json
-// @Produce json
-// @Param year path int true "Release year"
-// @Param userId query int true "User ID"
-// @Param limit query int false "Maximum number of items to return"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[any]] "Media items retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /item/media/year/{year} [get]
+// GetMediaItemsByYear keeps client-specific logic for year filtering
 func (h *ClientMediaItemHandler[T]) GetMediaItemsByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -600,14 +606,12 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemsByYear(c *gin.Context) {
 		Msg("Getting media items by year")
 
 	// Filter by year using the search functionality
-	// This is a basic implementation - ideally this would be a more efficient query
-
 	options := &types.QueryOptions{
 		Year:  year,
 		Limit: limit,
 	}
 
-	items, err := h.service.Search(ctx, *options)
+	items, err := h.clientService.Search(ctx, *options)
 	if err != nil {
 		log.Error().Err(err).Int("year", year).Uint64("userId", userID).Msg("Failed to retrieve media items")
 		responses.RespondInternalError(c, err, "Failed to retrieve media items")
@@ -630,246 +634,5 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemsByYear(c *gin.Context) {
 	responses.RespondOK(c, filtered, "Media items retrieved successfully")
 }
 
-// GetMediaItemsByPerson godoc
-// @Summary Get media items by person
-// @Description Retrieves media items associated with a specific person (actor, director, etc.)
-// @Tags media-items
-// @Accept json
-// @Produce json
-// @Param personId path int true "Person ID"
-// @Param role query string false "Role filter (actor, director, etc.)"
-// @Param userId query int true "User ID"
-// @Param limit query int false "Maximum number of items to return"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[any]] "Media items retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Failure 501 {object} responses.ErrorResponse[any] "Not implemented"
-// @Router /item/media/person/{personId} [get]
-func (h *ClientMediaItemHandler[T]) GetMediaItemsByPerson(c *gin.Context) {
-	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-
-	personID := c.Param("personId")
-	role := c.Query("role") // Optional role filter (actor, director, etc.)
-
-	if personID == "" {
-		log.Warn().Msg("Person ID is required")
-		responses.RespondBadRequest(c, nil, "Person ID is required")
-		return
-	}
-
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
-		return
-	}
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
-
-	log.Debug().
-		Str("personId", personID).
-		Str("role", role).
-		Uint64("userId", userID).
-		Int("limit", limit).
-		Msg("Request for media items by person")
-
-	// This would ideally be implemented at the repository level with a proper join to the credits table
-	// For now, we'll respond with not implemented
-	log.Info().Str("personId", personID).Msg("Person-based filtering not yet implemented")
-	responses.RespondNotImplemented(c, nil, "Person-based filtering not yet implemented")
-}
-
-// GetPopularMediaItems godoc
-// @Summary Get popular media items
-// @Description Retrieves popular media items based on play counts, ratings, etc.
-// @Tags media-items
-// @Accept json
-// @Produce json
-// @Param limit query int false "Maximum number of items to return"
-// @Param days query int false "Number of days to look back"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[any]] "Popular media items retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /item/media/popular [get]
-func (h *ClientMediaItemHandler[T]) GetPopularMediaItems(c *gin.Context) {
-	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-
-	count, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		count = 10
-	}
-	days, err := strconv.Atoi(c.DefaultQuery("days", "30"))
-	if err != nil {
-		days = 30
-	}
-
-	log.Debug().
-		Int("limit", count).
-		Msg("Getting popular media items")
-
-	// This could be implemented based on play counts, ratings, etc.
-	// For now, we'll just return recent items as a fallback
-	items, err := h.service.GetRecentItems(ctx, days, count)
-	if err != nil {
-		log.Error().Err(err).Int("days", days).Msg("Failed to retrieve popular media items")
-		responses.RespondInternalError(c, err, "Failed to retrieve popular media items")
-		return
-	}
-
-	log.Info().Int("days", days).Int("count", len(items)).Msg("Popular media items retrieved successfully")
-	responses.RespondOK(c, items, "Popular media items retrieved successfully")
-}
-
-// GetTopRatedMediaItems godoc
-// @Summary Get top rated media items
-// @Description Retrieves media items with the highest ratings
-// @Tags media-items
-// @Accept json
-// @Produce json
-// @Param limit query int false "Maximum number of items to return"
-// @Param days query int false "Number of days to look back"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[any]] "Top rated media items retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /item/media/top-rated [get]
-func (h *ClientMediaItemHandler[T]) GetTopRatedMediaItems(c *gin.Context) {
-	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
-		return
-	}
-
-	count, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		count = 10
-	}
-
-	log.Debug().
-		Uint64("userId", userID).
-		Int("limit", count).
-		Msg("Getting top rated media items")
-
-	options := &types.QueryOptions{
-		Sort:      "rating",
-		SortOrder: "desc",
-		Limit:     count,
-	}
-	items, err := h.service.Search(ctx, *options)
-	if err != nil {
-		log.Error().Err(err).Uint64("userId", userID).Msg("Failed to retrieve top rated media items")
-		responses.RespondInternalError(c, err, "Failed to retrieve top rated media items")
-		return
-	}
-
-	log.Info().Uint64("userId", userID).Int("count", len(items)).Msg("Top rated media items retrieved successfully")
-	responses.RespondOK(c, items, "Top rated media items retrieved successfully")
-}
-
-// GetAllMediaItems godoc
-// @Summary Get all media items
-// @Description Retrieves all media items with optional filtering
-// @Tags media-items
-// @Accept json
-// @Produce json
-// @Param limit query int false "Maximum number of items to return"
-// @Param offset query int false "Offset for pagination"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[any]] "Media items retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /item/media/all [get]
-func (h *ClientMediaItemHandler[T]) GetAllMediaItems(c *gin.Context) {
-	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
-	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
-	if err != nil {
-		offset = 0
-	}
-
-	log.Debug().
-		Int("limit", limit).
-		Msg("Getting all media items")
-
-	items, err := h.service.GetAll(ctx, limit, offset)
-	if err != nil {
-		log.Error().Err(err).Int("limit", limit).Msg("Failed to retrieve media items")
-		responses.RespondInternalError(c, err, "Failed to retrieve media items")
-		return
-	}
-
-	// Limit the results
-	totalCount := len(items)
-	if totalCount > limit {
-		items = items[:limit]
-	}
-
-	log.Info().Int("totalCount", totalCount).Int("returnedCount", len(items)).Msg("Media items retrieved successfully")
-	responses.RespondOK(c, items, "Media items retrieved successfully")
-}
-
-// GetLatestMediaItemsByAdded godoc
-// @Summary Get latest media items by added
-// @Description Retrieves recently added media items for a user
-// @Tags media-items
-// @Accept json
-// @Produce json
-// @Param limit query int false "Maximum number of items to return"
-// @Param days query int false "Number of days to look back"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[any]] "Media items retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /item/media/latest [get]
-func (h *ClientMediaItemHandler[T]) GetLatestMediaItemsByAdded(c *gin.Context) {
-	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
-		return
-	}
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
-	days, err := strconv.Atoi(c.DefaultQuery("days", "30"))
-	if err != nil {
-		days = 30
-	}
-
-	log.Debug().
-		Uint64("userId", userID).
-		Int("limit", limit).
-		Msg("Getting latest media items by added")
-
-	// Get all media items for the user
-	recentMediaItems, err := h.service.GetRecentItems(ctx, days, limit)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userId", userID).
-			Msg("Failed to retrieve media items")
-		responses.RespondInternalError(c, err, "Failed to retrieve media items")
-		return
-	}
-	log.Info().
-		Uint64("userId", userID).
-		Int("count", len(recentMediaItems)).
-		Msg("Media items retrieved successfully")
-
-	responses.RespondOK(c, recentMediaItems, "Media items retrieved successfully")
-}
+// Other handlers like GetPopularMediaItems, GetTopRatedMediaItems would inherit from the user/core handlers.
+// We'd only add methods here that are truly client-specific.

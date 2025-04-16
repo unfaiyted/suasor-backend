@@ -20,6 +20,7 @@ type CoreMediaItemService[T types.MediaData] interface {
 	GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error)
 	Delete(ctx context.Context, id uint64) error
 	GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error)
+	GetByClientItemID(ctx context.Context, clientItemID string, clientID uint64) (*models.MediaItem[T], error)
 
 	// Basic query operations
 	GetByExternalID(ctx context.Context, source string, externalID string) (*models.MediaItem[T], error)

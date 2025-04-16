@@ -27,7 +27,7 @@ func SetupCollectionRoutes(rg *gin.RouterGroup, app *app.App) {
 		collections.GET("", coreCollectionHandler.GetAll)
 		collections.GET("/:id", coreCollectionHandler.GetByID)
 		collections.GET("/:id/items", coreCollectionHandler.GetCollectionItems)
-		
+
 		// Search and filtering
 		collections.GET("/search", coreCollectionHandler.Search)
 		collections.GET("/genre/:genre", coreCollectionHandler.GetByGenre)
@@ -39,12 +39,12 @@ func SetupCollectionRoutes(rg *gin.RouterGroup, app *app.App) {
 	{
 		// Get user's collections
 		userCollections.GET("", userCollectionHandler.GetUserCollections)
-		
+
 		// Collection CRUD operations
 		userCollections.POST("", userCollectionHandler.CreateCollection)
 		userCollections.PUT("/:id", userCollectionHandler.UpdateCollection)
 		userCollections.DELETE("/:id", userCollectionHandler.DeleteCollection)
-		
+
 		// Collection item management
 		userCollections.POST("/:id/items", userCollectionHandler.AddItemToCollection)
 		userCollections.DELETE("/:id/items/:itemId", userCollectionHandler.RemoveItemFromCollection)
@@ -58,3 +58,4 @@ func SetupCollectionRoutes(rg *gin.RouterGroup, app *app.App) {
 func getCollectionHandler[T interface{}](clientMedia *handlers.ClientMediaHandler[T]) *handlers.ClientMediaCollectionHandler[T] {
 	return handlers.NewClientMediaCollectionHandler[T](clientMedia.CollectionService())
 }
+

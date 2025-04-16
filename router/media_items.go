@@ -2,45 +2,63 @@ package router
 
 import (
 	"fmt"
-	"suasor/app"
+	"suasor/app/container"
+	"suasor/app/handlers"
 	"suasor/types/responses"
 
 	"github.com/gin-gonic/gin"
 )
 
-type MediaItemHandlerInterface interface {
-	GetMediaItem(c *gin.Context)
-	GetMediaItemsByPerson(c *gin.Context)
-	GetMediaItemsByYear(c *gin.Context)
-	GetLatestMediaItemsByAdded(c *gin.Context)
-	GetAllMediaItems(c *gin.Context)
-	GetMediaItemsByClient(c *gin.Context)
-	GetMediaItemsByGenre(c *gin.Context)
-	GetMediaItemByExternalSourceID(c *gin.Context)
-	GetPopularMediaItems(c *gin.Context)
-	GetTopRatedMediaItems(c *gin.Context)
-	SearchMediaItems(c *gin.Context)
+// type MediaItemHandlerInterface interface {
+// 	GetMediaItem(c *gin.Context)
+// 	GetByPerson(c *gin.Context)
+// 	GetByYear(c *gin.Context)
+// 	GetLatestByAdded(c *gin.Context)
+// 	GetAll(c *gin.Context)
+// 	GetByClient(c *gin.Context)
+// 	GetByGenre(c *gin.Context)
+// 	GetMediaItemByExternalSourceID(c *gin.Context)
+// 	GetPopular(c *gin.Context)
+// 	GetTopRated(c *gin.Context)
+// 	Search(c *gin.Context)
+// }
+
+type CoreMediaItemHandler interface {
+	GetAll(c *gin.Context)
+	GetByID(c *gin.Context)
+	GetByClientItemID(c *gin.Context)
+	GetByExternalID(c *gin.Context)
+	Search(c *gin.Context)
+	GetRecentlyAdded(c *gin.Context)
+	GetByType(c *gin.Context)
+	GetByPerson(c *gin.Context)
+	GetByYear(c *gin.Context)
+	GetLatestByAdded(c *gin.Context)
+	GetByClient(c *gin.Context)
+	GetByGenre(c *gin.Context)
+	GetPopular(c *gin.Context)
+	GetTopRated(c *gin.Context)
 }
 
-// RegisterDirectMediaItemRoutes configures routes for direct media item access
+// RegisterLocalMediaItemRoutes configures routes for direct media item access
 // These routes access the local database media items rather than client-specific items
-func RegisterDirectMediaItemRoutes(rg *gin.RouterGroup, deps *app.AppDependencies) {
+func RegisterLocalMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) {
 	// Get handlers
-	mediaHandlers := deps.MediaItemHandlers
+	mediaHandlers := container.MustGet[handlers.MediaItemHandlers](c)
 
-	handlerMap := map[string]MediaItemHandlerInterface{
-		"movies": mediaHandlers.MovieHandler(),
-		"series": mediaHandlers.SeriesHandler(),
+	handlerMap := map[string]CoreMediaItemHandler{
+		"movies": mediaHandlers.MovieCoreHandler(),
+		"series": mediaHandlers.SeriesCoreHandler(),
 
-		"tracks":  mediaHandlers.TrackHandler(),
-		"albums":  mediaHandlers.AlbumHandler(),
-		"artists": mediaHandlers.ArtistHandler(),
+		"tracks":  mediaHandlers.TrackCoreHandler(),
+		"albums":  mediaHandlers.AlbumCoreHandler(),
+		"artists": mediaHandlers.ArtistCoreHandler(),
 
-		"collections": mediaHandlers.CollectionHandler(),
-		"playlists":   mediaHandlers.PlaylistHandler(),
+		"collections": mediaHandlers.CollectionCoreHandler(),
+		"playlists":   mediaHandlers.PlaylistCoreHandler(),
 	}
 
-	getHandler := func(c *gin.Context) MediaItemHandlerInterface {
+	getHandler := func(c *gin.Context) CoreMediaItemHandler {
 		mediaType := c.Param("mediaType")
 		handler, exists := handlerMap[mediaType]
 		if !exists {
@@ -56,7 +74,7 @@ func RegisterDirectMediaItemRoutes(rg *gin.RouterGroup, deps *app.AppDependencie
 		// Get media item by ID
 		media.GET("/:id", func(c *gin.Context) {
 			if handler := getHandler(c); handler != nil {
-				handler.GetMediaItem(c)
+				handler.GetByID(c)
 			}
 		})
 
@@ -65,44 +83,44 @@ func RegisterDirectMediaItemRoutes(rg *gin.RouterGroup, deps *app.AppDependencie
 			handler := getHandler(c)
 			// Check for search query
 			if q := c.Query("q"); q != "" {
-				handler.SearchMediaItems(c)
+				handler.Search(c)
 			} else {
-				handler.GetAllMediaItems(c)
+				handler.GetAll(c)
 			}
 		})
 
 		// Get media by genre
 		media.GET("/genre/:genre", func(c *gin.Context) {
 			if handler := getHandler(c); handler != nil {
-				handler.GetMediaItemsByGenre(c)
+				handler.GetByGenre(c)
 			}
 		})
 
 		// Get media by year
 		media.GET("/year/:year", func(c *gin.Context) {
 			if handler := getHandler(c); handler != nil {
-				handler.GetMediaItemsByYear(c)
+				handler.GetByYear(c)
 			}
 		})
 
 		// Get popular media
 		media.GET("/popular", func(c *gin.Context) {
 			if handler := getHandler(c); handler != nil {
-				handler.GetPopularMediaItems(c)
+				handler.GetPopular(c)
 			}
 		})
 
 		// Get latest media
 		media.GET("/latest", func(c *gin.Context) {
 			if handler := getHandler(c); handler != nil {
-				handler.GetLatestMediaItemsByAdded(c)
+				handler.GetLatestByAdded(c)
 			}
 		})
 
 		// Get top rated media
 		media.GET("/top-rated", func(c *gin.Context) {
 			if handler := getHandler(c); handler != nil {
-				handler.GetTopRatedMediaItems(c)
+				handler.GetTopRated(c)
 			}
 		})
 
@@ -115,14 +133,14 @@ func RegisterDirectMediaItemRoutes(rg *gin.RouterGroup, deps *app.AppDependencie
 
 			// For now, we just search tracks
 			if handler := getHandler(c); handler != nil {
-				handler.SearchMediaItems(c)
+				handler.Search(c)
 			}
 		})
 
 		// Get by external ID
 		media.GET("/external/:source/:externalId", func(c *gin.Context) {
 			if handler := getHandler(c); handler != nil {
-				handler.GetMediaItemByExternalSourceID(c)
+				handler.GetByExternalID(c)
 			}
 		})
 		// Recommended items
@@ -138,7 +156,7 @@ func RegisterDirectMediaItemRoutes(rg *gin.RouterGroup, deps *app.AppDependencie
 			c.Request.URL.Query().Set("role", role)
 			handler := getHandler(c)
 			if handler != nil {
-				handler.GetMediaItemsByPerson(c)
+				handler.GetByPerson(c)
 			}
 		})
 
@@ -148,18 +166,18 @@ func RegisterDirectMediaItemRoutes(rg *gin.RouterGroup, deps *app.AppDependencie
 	series := rg.Group("/series")
 	{
 		// Get specialized series handler
-		seriesHandler := mediaHandlers.SeriesHandler()
+		seriesHandler := mediaHandlers.SeriesCoreHandler()
 		seriesSpecificHandler := mediaHandlers.SeriesSpecificHandler()
 
 		// Get series by ID - use base handler
-		series.GET("/:id", seriesHandler.GetMediaItem)
+		series.GET("/:id", seriesHandler.GetByID)
 
 		// Get all series - use base handler
 		series.GET("", func(c *gin.Context) {
 			if q := c.Query("q"); q != "" {
-				seriesHandler.SearchMediaItems(c)
+				seriesHandler.Search(c)
 			} else {
-				seriesHandler.GetAllMediaItems(c)
+				seriesHandler.GetAll(c)
 			}
 		})
 
@@ -185,12 +203,12 @@ func RegisterDirectMediaItemRoutes(rg *gin.RouterGroup, deps *app.AppDependencie
 		series.GET("/network/:network", seriesSpecificHandler.GetSeriesByNetwork)
 
 		// Standard handlers from the base MediaItemHandler
-		series.GET("/genre/:genre", seriesHandler.GetMediaItemsByGenre)
-		series.GET("/year/:year", seriesHandler.GetMediaItemsByYear)
-		series.GET("/popular", seriesHandler.GetPopularMediaItems)
-		series.GET("/latest", seriesHandler.GetRecentMediaItems)
-		series.GET("/top-rated", seriesHandler.GetTopRatedMediaItems)
-		series.GET("/external/:source/:externalId", seriesHandler.GetMediaItemByExternalSourceID)
+		series.GET("/genre/:genre", seriesHandler.GetByGenre)
+		series.GET("/year/:year", seriesHandler.GetByYear)
+		series.GET("/popular", seriesHandler.GetPopular)
+		series.GET("/latest", seriesHandler.GetLatestByAdded)
+		series.GET("/top-rated", seriesHandler.GetTopRated)
+		series.GET("/external/:source/:externalId", seriesHandler.GetByExternalID)
 	}
 
 	// Music routes
@@ -214,9 +232,9 @@ func RegisterDirectMediaItemRoutes(rg *gin.RouterGroup, deps *app.AppDependencie
 			tracks.GET("", func(c *gin.Context) {
 				// Check for search query
 				if q := c.Query("q"); q != "" {
-					trackHandler.SearchMediaItems(c)
+					trackHandler.Search(c)
 				} else {
-					trackHandler.GetAllMediaItems(c)
+					trackHandler.GetAll(c)
 				}
 			})
 
@@ -224,10 +242,10 @@ func RegisterDirectMediaItemRoutes(rg *gin.RouterGroup, deps *app.AppDependencie
 			tracks.GET("/most-played", musicHandler.GetMostPlayedTracks)
 
 			// Get tracks by genre
-			tracks.GET("/genre/:genre", trackHandler.GetMediaItemsByGenre)
+			tracks.GET("/genre/:genre", trackHandler.GetByGenre)
 
 			// Get latest tracks
-			tracks.GET("/latest", trackHandler.GetRecentMediaItems)
+			tracks.GET("/latest", trackHandler.GetRecent)
 
 			// Get by external ID
 			tracks.GET("/external/:source/:externalId", trackHandler.GetMediaItemByExternalSourceID)
@@ -246,16 +264,16 @@ func RegisterDirectMediaItemRoutes(rg *gin.RouterGroup, deps *app.AppDependencie
 			albums.GET("/top-rated", musicHandler.GetTopRatedAlbums)
 
 			// Get albums by genre
-			albums.GET("/genre/:genre", albumHandler.GetMediaItemsByGenre)
+			albums.GET("/genre/:genre", albumHandler.GetByGenre)
 
 			// Get albums by year
-			albums.GET("/year/:year", albumHandler.GetMediaItemsByYear)
+			albums.GET("/year/:year", albumHandler.GetByYear)
 
 			// Get latest albums
-			albums.GET("/latest", albumHandler.GetRecentMediaItems)
+			albums.GET("/latest", albumHandler.GetRecent)
 
 			// Get popular albums
-			albums.GET("/popular", albumHandler.GetPopularMediaItems)
+			albums.GET("/popular", albumHandler.GetPopular)
 
 			// Get by external ID
 			albums.GET("/external/:source/:externalId", albumHandler.GetMediaItemByExternalSourceID)
@@ -271,9 +289,9 @@ func RegisterDirectMediaItemRoutes(rg *gin.RouterGroup, deps *app.AppDependencie
 			artists.GET("", func(c *gin.Context) {
 				// Check for search query
 				if q := c.Query("q"); q != "" {
-					artistHandler.SearchMediaItems(c)
+					artistHandler.Search(c)
 				} else {
-					artistHandler.GetAllMediaItems(c)
+					artistHandler.GetAll(c)
 				}
 			})
 
@@ -284,10 +302,10 @@ func RegisterDirectMediaItemRoutes(rg *gin.RouterGroup, deps *app.AppDependencie
 			artists.GET("/:id/similar", musicHandler.GetSimilarArtists)
 
 			// Get artists by genre
-			artists.GET("/genre/:genre", artistHandler.GetMediaItemsByGenre)
+			artists.GET("/genre/:genre", artistHandler.GetByGenre)
 
 			// Get popular artists
-			artists.GET("/popular", artistHandler.GetPopularMediaItems)
+			artists.GET("/popular", artistHandler.GetPopular)
 
 			// Get by external ID
 			artists.GET("/external/:source/:externalId", artistHandler.GetMediaItemByExternalSourceID)
@@ -305,25 +323,25 @@ func RegisterDirectMediaItemRoutes(rg *gin.RouterGroup, deps *app.AppDependencie
 	{
 		// Get specialized playlist handler
 		playlistHandler := mediaHandlers.PlaylistSpecificHandler()
-		
+
 		// Basic CRUD operations
 		playlists.GET("", playlistHandler.GetPlaylists)
 		playlists.GET("/:id", playlistHandler.GetPlaylistByID)
 		playlists.POST("", playlistHandler.CreatePlaylist)
 		playlists.PUT("/:id", playlistHandler.UpdatePlaylist)
 		playlists.DELETE("/:id", playlistHandler.DeletePlaylist)
-		
+
 		// Playlist items management
 		playlists.GET("/:id/items", playlistHandler.GetPlaylistItems)
 		playlists.POST("/:id/items", playlistHandler.AddItemToPlaylist)
 		playlists.DELETE("/:id/items/:itemId", playlistHandler.RemoveItemFromPlaylist)
-		
+
 		// Playlist reordering
 		playlists.POST("/:id/reorder", playlistHandler.ReorderPlaylistItems)
-		
+
 		// Search playlists
 		playlists.GET("/search", playlistHandler.SearchPlaylists)
-		
+
 		// Sync playlist across clients
 		playlists.POST("/:id/sync", playlistHandler.SyncPlaylist)
 	}
@@ -333,14 +351,14 @@ func RegisterDirectMediaItemRoutes(rg *gin.RouterGroup, deps *app.AppDependencie
 	{
 		// Get specialized collection handler
 		collectionHandler := mediaHandlers.CollectionSpecificHandler()
-		
+
 		// Basic CRUD operations
 		collections.GET("", collectionHandler.GetCollections)
 		collections.GET("/:id", collectionHandler.GetCollectionByID)
-		
+
 		// Collection items management
 		collections.GET("/:id/items", collectionHandler.GetCollectionItems)
-		
+
 		// Special collection types
 		collections.GET("/smart", collectionHandler.GetSmartCollections)
 		collections.GET("/featured", collectionHandler.GetFeaturedCollections)

@@ -19,9 +19,9 @@
   "db": {
     "host": "localhost",
     "maxConns": 20,
-    "name": "shortendb",
-    "password": "yourpassword",
-    "port": "5432",
+    "name": "suasor",
+    "password": "password",
+    "port": "5433",
     "timeout": 30,
     "user": "postgres"
   },

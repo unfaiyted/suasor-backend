@@ -17,7 +17,7 @@ import (
 // This is the client layer of the three-pronged architecture
 type ClientUserMediaItemDataHandler[T types.MediaData] struct {
 	service     services.ClientUserMediaItemDataService[T]
-	userHandler *UserUserMediaItemDataHandler[T]
+	userHandler *UserMediaItemDataHandler[T]
 }
 
 // NewClientUserMediaItemDataHandler creates a new client user media item data handler
@@ -510,4 +510,3 @@ func (h *ClientUserMediaItemDataHandler[T]) GetFavorites(c *gin.Context) {
 func (h *ClientUserMediaItemDataHandler[T]) ClearUserHistory(c *gin.Context) {
 	h.userHandler.ClearUserHistory(c)
 }
-

@@ -31,6 +31,7 @@ type MediaItemRepository[T types.MediaData] interface {
 	Create(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error)
 	Update(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error)
 	GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error)
+	GetByClientItemID(ctx context.Context, clientItemID string, clientID uint64) (*models.MediaItem[T], error)
 	GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error)
 	Delete(ctx context.Context, id uint64) error
 
@@ -507,4 +508,25 @@ func (r *mediaItemRepository[T]) GetAll(ctx context.Context, limit int, offset i
 	}
 
 	return items, nil
+}
+
+func (r *mediaItemRepository[T]) GetByClientItemID(ctx context.Context, clientItemID string, clientID uint64) (*models.MediaItem[T], error) {
+	log := utils.LoggerFromContext(ctx)
+	log.Debug().
+		Str("clientItemID", clientItemID).
+		Uint64("clientID", clientID).
+		Msg("Getting media item by client item ID")
+
+	var item *models.MediaItem[T]
+	if err := r.db.WithContext(ctx).
+		Where("client_id = ?", clientID).
+		Where("client_item_id = ?", clientItemID).
+		First(&item).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("media item not found")
+		}
+		return nil, fmt.Errorf("failed to get media item by client item ID: %w", err)
+	}
+
+	return item, nil
 }

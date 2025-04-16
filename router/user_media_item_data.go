@@ -1,67 +1,49 @@
 package router
 
 import (
-	"suasor/app"
+	"suasor/app/container"
+	apphandlers "suasor/app/handlers"
+	mediatypes "suasor/client/media/types"
 	"suasor/handlers"
-	"suasor/client/media/types"
 
 	"github.com/gin-gonic/gin"
 )
 
-// UserMediaItemDataHandlerInterface defines the interface for user media item data handlers
-type UserMediaItemDataHandlerInterface interface {
-	// Core methods
-	GetMediaItemDataByID(c *gin.Context)
-	CheckUserMediaItemData(c *gin.Context)
-	GetMediaItemDataByUserAndMedia(c *gin.Context)
-	DeleteMediaItemData(c *gin.Context)
-	
-	// User methods
-	GetMediaPlayHistory(c *gin.Context)
-	GetContinueWatching(c *gin.Context)
-	GetRecentHistory(c *gin.Context)
-	RecordMediaPlay(c *gin.Context)
-	ToggleFavorite(c *gin.Context)
-	UpdateUserRating(c *gin.Context)
-	GetFavorites(c *gin.Context)
-	ClearUserHistory(c *gin.Context)
-	
-	// Client methods
-	SyncClientItemData(c *gin.Context)
-	GetClientItemData(c *gin.Context)
-	GetMediaItemDataByClientID(c *gin.Context)
-	RecordClientPlay(c *gin.Context)
-	GetPlaybackState(c *gin.Context)
-	UpdatePlaybackState(c *gin.Context)
-}
+// // UserMediaItemDataHandlerInterface defines the interface for user media item data handlers
+// type UserMediaItemDataHandlerInterface interface {
+// 	// Core methods
+// 	GetMediaItemDataByID(c *gin.Context)
+// 	CheckUserMediaItemData(c *gin.Context)
+// 	GetMediaItemDataByUserAndMedia(c *gin.Context)
+// 	DeleteMediaItemData(c *gin.Context)
+//
+// 	// User methods
+// 	GetMediaPlayHistory(c *gin.Context)
+// 	GetContinueWatching(c *gin.Context)
+// 	GetRecentHistory(c *gin.Context)
+// 	RecordMediaPlay(c *gin.Context)
+// 	ToggleFavorite(c *gin.Context)
+// 	UpdateUserRating(c *gin.Context)
+// 	GetFavorites(c *gin.Context)
+// 	ClearUserHistory(c *gin.Context)
+//
+// 	// Client methods
+// 	SyncClientItemData(c *gin.Context)
+// 	GetClientItemData(c *gin.Context)
+// 	GetMediaItemDataByClientID(c *gin.Context)
+// 	RecordClientPlay(c *gin.Context)
+// 	GetPlaybackState(c *gin.Context)
+// 	UpdatePlaybackState(c *gin.Context)
+// }
 
 // RegisterUserMediaItemDataRoutes configures routes for user media item data
-func RegisterUserMediaItemDataRoutes(rg *gin.RouterGroup, deps *app.AppDependencies) {
+func RegisterUserMediaItemDataRoutes(rg *gin.RouterGroup, c *container.Container) {
 	// Get handlers
-	mediaHandlers := deps.UserMediaItemDataHandlers
-	
-	handlerMap := map[string]UserMediaItemDataHandlerInterface{
-		"movies": mediaHandlers.MovieHandler(),
-		"series": mediaHandlers.SeriesHandler(),
-		"tracks": mediaHandlers.TrackHandler(),
-		"albums": mediaHandlers.AlbumHandler(),
-		"artists": mediaHandlers.ArtistHandler(),
-		"episodes": mediaHandlers.EpisodeHandler(),
-	}
-	
-	getHandler := func(c *gin.Context) UserMediaItemDataHandlerInterface {
-		mediaType := c.Param("mediaType")
-		handler, exists := handlerMap[mediaType]
-		if !exists {
-			// Default to movie handler if type not specified or invalid
-			return mediaHandlers.MovieHandler()
-		}
-		return handler
-	}
-	
+	mediaHandlers := container.MustGet[apphandlers.UserMediaItemHandlers](c)
+
 	// Base routes for all media types
 	userMediaData := rg.Group("/user-media-data")
-	
+
 	// Core routes
 	userMediaData.GET("/:id", func(c *gin.Context) {
 		getHandler(c).GetMediaItemDataByID(c)
@@ -75,7 +57,7 @@ func RegisterUserMediaItemDataRoutes(rg *gin.RouterGroup, deps *app.AppDependenc
 	userMediaData.DELETE("/:id", func(c *gin.Context) {
 		getHandler(c).DeleteMediaItemData(c)
 	})
-	
+
 	// User-specific routes
 	userMediaData.GET("/history", func(c *gin.Context) {
 		getHandler(c).GetMediaPlayHistory(c)
@@ -101,7 +83,7 @@ func RegisterUserMediaItemDataRoutes(rg *gin.RouterGroup, deps *app.AppDependenc
 	userMediaData.DELETE("/clear", func(c *gin.Context) {
 		getHandler(c).ClearUserHistory(c)
 	})
-	
+
 	// Client-specific routes
 	clientData := userMediaData.Group("/client/:clientId")
 	{
@@ -124,50 +106,53 @@ func RegisterUserMediaItemDataRoutes(rg *gin.RouterGroup, deps *app.AppDependenc
 			getHandler(c).UpdatePlaybackState(c)
 		})
 	}
-	
+
 	// Media-type specific routes
-	registerMovieUserMediaItemDataRoutes(userMediaData, mediaHandlers.MovieHandler())
-	registerSeriesUserMediaItemDataRoutes(userMediaData, mediaHandlers.SeriesHandler())
-	registerMusicUserMediaItemDataRoutes(userMediaData, mediaHandlers.TrackHandler())
+	registerMovieUserMediaItemDataRoutes(userMediaData,
+		container.MustGet[handlers.UserMediaItemDataHandler[*mediatypes.Movie]](c))
+	registerSeriesUserMediaItemDataRoutes(userMediaData,
+		container.MustGet[handlers.UserMediaItemDataHandler[*mediatypes.Series]](c))
+	registerMusicUserMediaItemDataRoutes(userMediaData,
+		container.MustGet[handlers.UserMediaItemDataHandler[*mediatypes.Track]](c))
 }
 
 // registerMovieUserMediaItemDataRoutes configures movie-specific routes
-func registerMovieUserMediaItemDataRoutes(rg *gin.RouterGroup, handler UserMediaItemDataHandlerInterface) {
+func registerMovieUserMediaItemDataRoutes(rg *gin.RouterGroup, handler handlers.UserMediaItemDataHandler[*mediatypes.Movie]) {
 	movies := rg.Group("/movies")
 	{
 		// Get movie history
 		movies.GET("/history", handler.GetMediaPlayHistory)
-		
+
 		// Get continue watching movies
 		movies.GET("/continue-watching", handler.GetContinueWatching)
-		
+
 		// Get favorite movies
 		movies.GET("/favorites", handler.GetFavorites)
 	}
 }
 
 // registerSeriesUserMediaItemDataRoutes configures series-specific routes
-func registerSeriesUserMediaItemDataRoutes(rg *gin.RouterGroup, handler UserMediaItemDataHandlerInterface) {
+func registerSeriesUserMediaItemDataRoutes(rg *gin.RouterGroup, handler handlers.UserMediaItemDataHandler[*mediatypes.Series]) {
 	series := rg.Group("/series")
 	{
 		// Get series history
 		series.GET("/history", handler.GetMediaPlayHistory)
-		
+
 		// Get continue watching series
 		series.GET("/continue-watching", handler.GetContinueWatching)
-		
+
 		// Get favorite series
 		series.GET("/favorites", handler.GetFavorites)
 	}
 }
 
 // registerMusicUserMediaItemDataRoutes configures music-specific routes
-func registerMusicUserMediaItemDataRoutes(rg *gin.RouterGroup, handler UserMediaItemDataHandlerInterface) {
+func registerMusicUserMediaItemDataRoutes(rg *gin.RouterGroup, handler handlers.UserMediaItemDataHandler[*mediatypes.Track]) {
 	music := rg.Group("/music")
 	{
 		// Get music history
 		music.GET("/history", handler.GetMediaPlayHistory)
-		
+
 		// Get favorite music
 		music.GET("/favorites", handler.GetFavorites)
 	}

@@ -4,11 +4,11 @@ import (
 	"suasor/handlers"
 
 	"github.com/gin-gonic/gin"
-	"suasor/app"
+	"suasor/app/container"
 )
 
-func RegisterUserConfigRoutes(rg *gin.RouterGroup, deps *app.AppDependencies) {
-	configHandlers := handlers.NewUserConfigHandler(deps.UserConfigService())
+func RegisterUserConfigRoutes(rg *gin.RouterGroup, c *container.Container) {
+	configHandlers := container.MustGet[handlers.UserConfigHandler](c)
 	configs := rg.Group("/config/user")
 	{
 

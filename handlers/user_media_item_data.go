@@ -16,7 +16,7 @@ import (
 
 // UserUserMediaItemDataHandler handles user-specific operations for user media item data
 // This is the user layer of the three-pronged architecture
-type UserUserMediaItemDataHandler[T types.MediaData] struct {
+type UserMediaItemDataHandler[T types.MediaData] struct {
 	service     services.UserMediaItemDataService[T]
 	coreHandler *CoreUserMediaItemDataHandler[T]
 }
@@ -25,8 +25,8 @@ type UserUserMediaItemDataHandler[T types.MediaData] struct {
 func NewUserUserMediaItemDataHandler[T types.MediaData](
 	service services.UserMediaItemDataService[T],
 	coreHandler *CoreUserMediaItemDataHandler[T],
-) *UserUserMediaItemDataHandler[T] {
-	return &UserUserMediaItemDataHandler[T]{
+) *UserMediaItemDataHandler[T] {
+	return &UserMediaItemDataHandler[T]{
 		service:     service,
 		coreHandler: coreHandler,
 	}
@@ -48,7 +48,7 @@ func NewUserUserMediaItemDataHandler[T types.MediaData](
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/history [get]
-func (h *UserUserMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) {
+func (h *UserMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -118,7 +118,7 @@ func (h *UserUserMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/continue-watching [get]
-func (h *UserUserMediaItemDataHandler[T]) GetContinueWatching(c *gin.Context) {
+func (h *UserMediaItemDataHandler[T]) GetContinueWatching(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -175,7 +175,7 @@ func (h *UserUserMediaItemDataHandler[T]) GetContinueWatching(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/recent [get]
-func (h *UserUserMediaItemDataHandler[T]) GetRecentHistory(c *gin.Context) {
+func (h *UserMediaItemDataHandler[T]) GetRecentHistory(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -229,7 +229,7 @@ func (h *UserUserMediaItemDataHandler[T]) GetRecentHistory(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/record [post]
-func (h *UserUserMediaItemDataHandler[T]) RecordMediaPlay(c *gin.Context) {
+func (h *UserMediaItemDataHandler[T]) RecordMediaPlay(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -298,7 +298,7 @@ func (h *UserUserMediaItemDataHandler[T]) RecordMediaPlay(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/media/{mediaItemId}/favorite [put]
-func (h *UserUserMediaItemDataHandler[T]) ToggleFavorite(c *gin.Context) {
+func (h *UserMediaItemDataHandler[T]) ToggleFavorite(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -362,7 +362,7 @@ func (h *UserUserMediaItemDataHandler[T]) ToggleFavorite(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/media/{mediaItemId}/rating [put]
-func (h *UserUserMediaItemDataHandler[T]) UpdateUserRating(c *gin.Context) {
+func (h *UserMediaItemDataHandler[T]) UpdateUserRating(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -432,7 +432,7 @@ func (h *UserUserMediaItemDataHandler[T]) UpdateUserRating(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/favorites [get]
-func (h *UserUserMediaItemDataHandler[T]) GetFavorites(c *gin.Context) {
+func (h *UserMediaItemDataHandler[T]) GetFavorites(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -479,7 +479,7 @@ func (h *UserUserMediaItemDataHandler[T]) GetFavorites(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/clear [delete]
-func (h *UserUserMediaItemDataHandler[T]) ClearUserHistory(c *gin.Context) {
+func (h *UserMediaItemDataHandler[T]) ClearUserHistory(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -510,19 +510,18 @@ func (h *UserUserMediaItemDataHandler[T]) ClearUserHistory(c *gin.Context) {
 
 // Core handler method forwarding
 
-func (h *UserUserMediaItemDataHandler[T]) GetMediaItemDataByID(c *gin.Context) {
+func (h *UserMediaItemDataHandler[T]) GetMediaItemDataByID(c *gin.Context) {
 	h.coreHandler.GetMediaItemDataByID(c)
 }
 
-func (h *UserUserMediaItemDataHandler[T]) CheckUserMediaItemData(c *gin.Context) {
+func (h *UserMediaItemDataHandler[T]) CheckUserMediaItemData(c *gin.Context) {
 	h.coreHandler.CheckUserMediaItemData(c)
 }
 
-func (h *UserUserMediaItemDataHandler[T]) GetMediaItemDataByUserAndMedia(c *gin.Context) {
+func (h *UserMediaItemDataHandler[T]) GetMediaItemDataByUserAndMedia(c *gin.Context) {
 	h.coreHandler.GetMediaItemDataByUserAndMedia(c)
 }
 
-func (h *UserUserMediaItemDataHandler[T]) DeleteMediaItemData(c *gin.Context) {
+func (h *UserMediaItemDataHandler[T]) DeleteMediaItemData(c *gin.Context) {
 	h.coreHandler.DeleteMediaItemData(c)
 }
-

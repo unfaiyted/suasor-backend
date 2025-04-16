@@ -3,19 +3,22 @@ package router
 
 import (
 	"context"
-	"suasor/app"
+	"suasor/app/container"
 	"suasor/router/middleware"
+	"suasor/services"
 	"suasor/utils"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
-func Setup(ctx context.Context, deps *app.AppDependencies) *gin.Engine {
+func Setup(ctx context.Context, c *container.Container) *gin.Engine {
 	r := gin.Default()
 	log := utils.LoggerFromContext(ctx)
 
-	appConfig := deps.SystemServices.ConfigService().GetConfig()
+	configService := container.MustGet[services.ConfigService](c)
+	appConfig := configService.GetConfig()
+
 	// CORS config
 	config := cors.DefaultConfig()
 	config.AllowOrigins = appConfig.Auth.AllowedOrigins
@@ -32,39 +35,40 @@ func Setup(ctx context.Context, deps *app.AppDependencies) *gin.Engine {
 	v1 := r.Group("/api/v1")
 
 	// TODO: should I fix this? It doesent technically need a repo, but ti does interact with the database?
+	healthService := container.MustGet[services.HealthService](c)
+	authService := container.MustGet[services.AuthService](c)
 
-	RegisterHealthRoutes(v1, deps.SystemServices.HealthService())
-	RegisterAuthRoutes(v1, deps.AuthService())
-	
+	RegisterHealthRoutes(v1, healthService)
+	RegisterAuthRoutes(v1, authService)
+
 	// Serve static avatar files
-	avatarPath := deps.SystemServices.ConfigService().GetConfig().App.AvatarPath
-	r.Static("/uploads/avatars", avatarPath)
+	r.Static("/uploads/avatars", appConfig.App.AvatarPath)
 
 	// Protected Routes
 	authenticated := v1.Group("")
-	authenticated.Use(middleware.VerifyToken(deps.AuthService()))
+	authenticated.Use(middleware.VerifyToken(authService))
 	{
 		// Register all routes
-		RegisterUserRoutes(authenticated, deps)
-		RegisterUserConfigRoutes(authenticated, deps)
-		RegisterMediaItemRoutes(authenticated, deps)
-		RegisterClientMediaRoutes(authenticated, deps)
-		RegisterDirectMediaItemRoutes(authenticated, deps) // Register direct media item routes (non-client specific)
-		RegisterMediaPlayHistoryRoutes(authenticated, deps) // Register media play history routes
-		RegisterMetadataRoutes(authenticated)      // Register metadata routes
-		RegisterAIRoutes(authenticated, deps)      // Register AI routes
-		RegisterClientsRoutes(authenticated, deps) // Register all clients route
-		RegisterJobRoutes(authenticated, deps.JobServices.JobService()) // Register job routes
-		RegisterRecommendationRoutes(authenticated, deps) // Register recommendation routes
-		RegisterSearchRoutes(authenticated, deps.SearchHandler()) // Register search routes
+		RegisterUserRoutes(authenticated, c)
+		RegisterUserConfigRoutes(authenticated, c)
+		RegisterMediaItemRoutes(authenticated, c)
+		RegisterClientMediaRoutes(authenticated, c)
+		RegisterLocalMediaItemRoutes(authenticated, c)    // Register direct media item routes (non-client specific)
+		RegisterUserMediaItemDataRoutes(authenticated, c) // Register media play history routes
+		RegisterMetadataRoutes(authenticated)             // Register metadata routes
+		RegisterAIRoutes(authenticated, c)                // Register AI routes
+		RegisterClientsRoutes(authenticated, c)           // Register all clients route
+		RegisterJobRoutes(authenticated, c)               // Register job routes
+		RegisterRecommendationRoutes(authenticated, c)    // Register recommendation routes
+		RegisterSearchRoutes(authenticated, c)            // Register search routes
 	}
 
 	//Admin Routes
 	adminRoutes := v1.Group("/admin")
-	adminRoutes.Use(middleware.VerifyToken(deps.AuthService()), middleware.RequireRole("admin"))
+	adminRoutes.Use(middleware.VerifyToken(authService), middleware.RequireRole("admin"))
 	{
-		RegisterConfigRoutes(adminRoutes, deps.SystemServices.ConfigService())
-		RegisterClientRoutes(adminRoutes, deps)
+		RegisterConfigRoutes(adminRoutes, configService)
+		RegisterClientRoutes(adminRoutes, c)
 	}
 
 	return r

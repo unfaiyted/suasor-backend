@@ -2,11 +2,13 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"suasor/app/container"
 	"suasor/handlers"
 )
 
 // RegisterSearchRoutes registers all search-related routes
-func RegisterSearchRoutes(rg *gin.RouterGroup, handler *handlers.SearchHandler) {
+func RegisterSearchRoutes(rg *gin.RouterGroup, c *container.Container) {
+	handler := container.MustGet[handlers.SearchHandler](c)
 	searchGroup := rg.Group("/search")
 	{
 		// Main search endpoint
@@ -18,4 +20,3 @@ func RegisterSearchRoutes(rg *gin.RouterGroup, handler *handlers.SearchHandler) 
 		searchGroup.GET("/suggestions", handler.GetSearchSuggestions)
 	}
 }
-

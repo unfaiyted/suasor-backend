@@ -1,1 +1,550 @@
+// handlers/user_media_item.go
 package handlers
+
+import (
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+
+	"suasor/client/media/types"
+	"suasor/services"
+	"suasor/types/models"
+	"suasor/types/responses"
+	"suasor/utils"
+)
+
+// UserMediaItemHandler handles operations for user-owned media items
+// This handler extends CoreMediaItemHandler with operations specific to media items
+// that are owned by users, such as playlists and collections
+type UserMediaItemHandler[T types.MediaData] struct {
+	CoreMediaItemHandler[T] // Embed the core handler
+	userService             services.UserMediaItemService[T]
+}
+
+// NewUserMediaItemHandler creates a new user media item handler
+func NewUserMediaItemHandler[T types.MediaData](
+	userService services.UserMediaItemService[T],
+) *UserMediaItemHandler[T] {
+	// Create an embedded core handler
+	coreHandler := NewCoreMediaItemHandler(userService)
+
+	return &UserMediaItemHandler[T]{
+		CoreMediaItemHandler: *coreHandler,
+		userService:          userService,
+	}
+}
+
+// GetByUserID godoc
+// @Summary Get media items by user ID
+// @Description Retrieves media items owned by a specific user
+// @Tags user-media
+// @Accept json
+// @Produce json
+// @Param userID path int true "User ID"
+// @Param limit query int false "Maximum number of items to return (default 20)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "User media items retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 404 {object} responses.ErrorResponse[any] "User not found"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /users/{userID}/media [get]
+func (h *UserMediaItemHandler[T]) GetByUserID(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	userID, err := strconv.ParseUint(c.Param("userID"), 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str("userID", c.Param("userID")).Msg("Invalid user ID")
+		responses.RespondBadRequest(c, err, "Invalid user ID")
+		return
+	}
+
+	log.Debug().
+		Uint64("userID", userID).
+		Msg("Getting media items by user ID")
+
+	// Get media items by user ID
+	items, err := h.userService.GetByUserID(ctx, userID)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", userID).
+			Msg("Failed to retrieve user's media items")
+		responses.RespondInternalError(c, err, "Failed to retrieve user's media items")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", userID).
+		Int("count", len(items)).
+		Msg("User's media items retrieved successfully")
+	responses.RespondOK(c, items, "User's media items retrieved successfully")
+}
+
+// GetUserContent godoc
+// @Summary Get all user-owned content
+// @Description Retrieves all types of content owned by a user (playlists, collections, etc.)
+// @Tags user-media
+// @Accept json
+// @Produce json
+// @Param userID path int true "User ID"
+// @Param limit query int false "Maximum number of items to return (default 20)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "User content retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 404 {object} responses.ErrorResponse[any] "User not found"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /users/{userID}/content [get]
+func (h *UserMediaItemHandler[T]) GetUserContent(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	userID, err := strconv.ParseUint(c.Param("userID"), 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str("userID", c.Param("userID")).Msg("Invalid user ID")
+		responses.RespondBadRequest(c, err, "Invalid user ID")
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	if err != nil {
+		limit = 20
+	}
+
+	log.Debug().
+		Uint64("userID", userID).
+		Int("limit", limit).
+		Msg("Getting all user-owned content")
+
+	// Get all user-owned content
+	items, err := h.userService.GetUserContent(ctx, userID, limit)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", userID).
+			Msg("Failed to retrieve user's content")
+		responses.RespondInternalError(c, err, "Failed to retrieve user's content")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", userID).
+		Int("count", len(items)).
+		Msg("User's content retrieved successfully")
+	responses.RespondOK(c, items, "User's content retrieved successfully")
+}
+
+// SearchUserContent godoc
+// @Summary Search user-owned content
+// @Description Searches for content owned by a user based on query parameters
+// @Tags user-media
+// @Accept json
+// @Produce json
+// @Param userID path int true "User ID"
+// @Param q query string true "Search query"
+// @Param type query string false "Media type filter"
+// @Param limit query int false "Maximum number of items to return (default 20)"
+// @Param offset query int false "Offset for pagination (default 0)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "User content found successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 404 {object} responses.ErrorResponse[any] "User not found"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /users/{userID}/content/search [get]
+func (h *UserMediaItemHandler[T]) SearchUserContent(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	userID, err := strconv.ParseUint(c.Param("userID"), 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str("userID", c.Param("userID")).Msg("Invalid user ID")
+		responses.RespondBadRequest(c, err, "Invalid user ID")
+		return
+	}
+
+	query := c.Query("q")
+	if query == "" {
+		log.Warn().Msg("Search query is required")
+		responses.RespondBadRequest(c, nil, "Search query is required")
+		return
+	}
+
+	// Get media type from query parameters
+	mediaTypeStr := c.Query("type")
+	var mediaType types.MediaType
+	if mediaTypeStr != "" {
+		mediaType = types.MediaType(mediaTypeStr)
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	if err != nil {
+		limit = 20
+	}
+
+	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	if err != nil {
+		offset = 0
+	}
+
+	log.Debug().
+		Uint64("userID", userID).
+		Str("query", query).
+		Str("type", string(mediaType)).
+		Int("limit", limit).
+		Int("offset", offset).
+		Msg("Searching user-owned content")
+
+	// Create query options
+	options := types.QueryOptions{
+		Query:     query,
+		MediaType: mediaType,
+		OwnerID:   userID,
+		Limit:     limit,
+		Offset:    offset,
+	}
+
+	// Search user-owned content
+	items, err := h.userService.SearchUserContent(ctx, options)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", userID).
+			Str("query", query).
+			Msg("Failed to search user's content")
+		responses.RespondInternalError(c, err, "Failed to search user's content")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", userID).
+		Str("query", query).
+		Int("count", len(items)).
+		Msg("User's content search completed successfully")
+	responses.RespondOK(c, items, "User's content found successfully")
+}
+
+// GetRecentUserContent godoc
+// @Summary Get recently created or updated user content
+// @Description Retrieves recently created or updated content owned by a user
+// @Tags user-media
+// @Accept json
+// @Produce json
+// @Param userID path int true "User ID"
+// @Param limit query int false "Maximum number of items to return (default 20)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "Recent user content retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 404 {object} responses.ErrorResponse[any] "User not found"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /users/{userID}/content/recent [get]
+func (h *UserMediaItemHandler[T]) GetRecentUserContent(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	userID, err := strconv.ParseUint(c.Param("userID"), 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str("userID", c.Param("userID")).Msg("Invalid user ID")
+		responses.RespondBadRequest(c, err, "Invalid user ID")
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	if err != nil {
+		limit = 20
+	}
+
+	log.Debug().
+		Uint64("userID", userID).
+		Int("limit", limit).
+		Msg("Getting recent user-owned content")
+
+	// Get recent user content
+	items, err := h.userService.GetRecentUserContent(ctx, userID, limit)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", userID).
+			Msg("Failed to retrieve recent user content")
+		responses.RespondInternalError(c, err, "Failed to retrieve recent user content")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", userID).
+		Int("count", len(items)).
+		Msg("Recent user content retrieved successfully")
+	responses.RespondOK(c, items, "Recent user content retrieved successfully")
+}
+
+// CreateUserMediaItem godoc
+// @Summary Create a new user-owned media item
+// @Description Creates a new media item owned by a user
+// @Tags user-media
+// @Accept json
+// @Produce json
+// @Param userID path int true "User ID"
+// @Param mediaItem body models.MediaItem[types.MediaData] true "Media item to create"
+// @Success 201 {object} responses.APIResponse[models.MediaItem[types.MediaData]] "Media item created successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 404 {object} responses.ErrorResponse[any] "User not found"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /users/{userID}/media [post]
+func (h *UserMediaItemHandler[T]) CreateUserMediaItem(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	userID, err := strconv.ParseUint(c.Param("userID"), 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str("userID", c.Param("userID")).Msg("Invalid user ID")
+		responses.RespondBadRequest(c, err, "Invalid user ID")
+		return
+	}
+
+	// Bind the request body to a media item struct
+	var mediaItem models.MediaItem[T]
+	if err := c.ShouldBindJSON(&mediaItem); err != nil {
+		log.Warn().Err(err).Msg("Invalid media item data")
+		responses.RespondBadRequest(c, err, "Invalid media item data")
+		return
+	}
+
+	// Ensure the media item is associated with the user
+	// This will depend on your data structure, but generally for user-owned content
+	// you'll need to set owner ID in the appropriate field within the data property
+	// For example, if ItemList is the structure for playlists/collections:
+	if mediaItem.Data != nil {
+		// Assuming your media data might have an ItemList property for collections/playlists
+		// Check if we can set the owner field
+		if itemList, ok := hasItemList(mediaItem.Data); ok {
+			itemList.OwnerID = userID
+		}
+	}
+
+	log.Debug().
+		Uint64("userID", userID).
+		Str("type", string(mediaItem.Type)).
+		Msg("Creating user-owned media item")
+
+	// Create the media item
+	createdItem, err := h.userService.Create(ctx, mediaItem)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", userID).
+			Msg("Failed to create user-owned media item")
+		responses.RespondInternalError(c, err, "Failed to create media item")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", userID).
+		Uint64("itemID", createdItem.ID).
+		Str("type", string(createdItem.Type)).
+		Msg("User-owned media item created successfully")
+	responses.RespondCreated(c, createdItem, "Media item created successfully")
+}
+
+// UpdateUserMediaItem godoc
+// @Summary Update a user-owned media item
+// @Description Updates an existing media item owned by a user
+// @Tags user-media
+// @Accept json
+// @Produce json
+// @Param userID path int true "User ID"
+// @Param id path int true "Media Item ID"
+// @Param mediaItem body models.MediaItem[types.MediaData] true "Updated media item data"
+// @Success 200 {object} responses.APIResponse[models.MediaItem[types.MediaData]] "Media item updated successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
+// @Failure 403 {object} responses.ErrorResponse[any] "Not authorized to update this media item"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /users/{userID}/media/{id} [put]
+func (h *UserMediaItemHandler[T]) UpdateUserMediaItem(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	userID, err := strconv.ParseUint(c.Param("userID"), 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str("userID", c.Param("userID")).Msg("Invalid user ID")
+		responses.RespondBadRequest(c, err, "Invalid user ID")
+		return
+	}
+
+	itemID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid media item ID")
+		responses.RespondBadRequest(c, err, "Invalid media item ID")
+		return
+	}
+
+	// Bind the request body to a media item struct
+	var mediaItem models.MediaItem[T]
+	if err := c.ShouldBindJSON(&mediaItem); err != nil {
+		log.Warn().Err(err).Msg("Invalid media item data")
+		responses.RespondBadRequest(c, err, "Invalid media item data")
+		return
+	}
+
+	// Ensure the ID in the path matches the ID in the body
+	mediaItem.ID = itemID
+
+	// First, get the existing item to verify ownership
+	existingItem, err := h.userService.GetByID(ctx, itemID)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", userID).
+			Uint64("itemID", itemID).
+			Msg("Failed to retrieve existing media item")
+		responses.RespondNotFound(c, err, "Media item not found")
+		return
+	}
+
+	// Verify that the user owns this item
+	// This will depend on your data structure
+	if !isUserOwned(existingItem.Data, userID) {
+		log.Warn().
+			Uint64("userID", userID).
+			Uint64("itemID", itemID).
+			Msg("User not authorized to update this media item")
+		responses.RespondForbidden(c, nil, "Not authorized to update this media item")
+		return
+	}
+
+	// Ensure the item maintains the same owner
+	if mediaItem.Data != nil {
+		// Assuming your media data might have an ItemList property for collections/playlists
+		// Check if we can set the owner field
+		if itemList, ok := hasItemList(mediaItem.Data); ok {
+			itemList.Owner = userID
+		}
+	}
+
+	log.Debug().
+		Uint64("userID", userID).
+		Uint64("itemID", itemID).
+		Str("type", string(mediaItem.Type)).
+		Msg("Updating user-owned media item")
+
+	// Update the media item
+	updatedItem, err := h.userService.Update(ctx, mediaItem)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", userID).
+			Uint64("itemID", itemID).
+			Msg("Failed to update user-owned media item")
+		responses.RespondInternalError(c, err, "Failed to update media item")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", userID).
+		Uint64("itemID", updatedItem.ID).
+		Str("type", string(updatedItem.Type)).
+		Msg("User-owned media item updated successfully")
+	responses.RespondOK(c, updatedItem, "Media item updated successfully")
+}
+
+// DeleteUserMediaItem godoc
+// @Summary Delete a user-owned media item
+// @Description Deletes a media item owned by a user
+// @Tags user-media
+// @Accept json
+// @Produce json
+// @Param userID path int true "User ID"
+// @Param id path int true "Media Item ID"
+// @Success 200 {object} responses.APIResponse[any] "Media item deleted successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
+// @Failure 403 {object} responses.ErrorResponse[any] "Not authorized to delete this media item"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /users/{userID}/media/{id} [delete]
+func (h *UserMediaItemHandler[T]) DeleteUserMediaItem(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	userID, err := strconv.ParseUint(c.Param("userID"), 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str("userID", c.Param("userID")).Msg("Invalid user ID")
+		responses.RespondBadRequest(c, err, "Invalid user ID")
+		return
+	}
+
+	itemID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid media item ID")
+		responses.RespondBadRequest(c, err, "Invalid media item ID")
+		return
+	}
+
+	// First, get the existing item to verify ownership
+	existingItem, err := h.userService.GetByID(ctx, itemID)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", userID).
+			Uint64("itemID", itemID).
+			Msg("Failed to retrieve existing media item")
+		responses.RespondNotFound(c, err, "Media item not found")
+		return
+	}
+
+	// Verify that the user owns this item
+	if !isUserOwned(existingItem.Data, userID) {
+		log.Warn().
+			Uint64("userID", userID).
+			Uint64("itemID", itemID).
+			Msg("User not authorized to delete this media item")
+		responses.RespondForbidden(c, nil, "Not authorized to delete this media item")
+		return
+	}
+
+	log.Debug().
+		Uint64("userID", userID).
+		Uint64("itemID", itemID).
+		Str("type", string(existingItem.Type)).
+		Msg("Deleting user-owned media item")
+
+	// Delete the media item
+	if err := h.userService.Delete(ctx, itemID); err != nil {
+		log.Error().Err(err).
+			Uint64("userID", userID).
+			Uint64("itemID", itemID).
+			Msg("Failed to delete user-owned media item")
+		responses.RespondInternalError(c, err, "Failed to delete media item")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", userID).
+		Uint64("itemID", itemID).
+		Msg("User-owned media item deleted successfully")
+	responses.RespondOK(c, nil, "Media item deleted successfully")
+}
+
+// Helper function to check if a mediaData has an ItemList property
+// and returns the ItemList for modification
+func hasItemList(mediaData T) (*types.ItemList, bool) {
+	// Implementation depends on your specific types.MediaData structure
+	// This is just a placeholder - you'll need to implement based on your actual structure
+
+	// For playlist type
+	if playlist, ok := any(mediaData).(*types.Playlist); ok && playlist != nil {
+		return &playlist.ItemList, true
+	}
+
+	// For collection type
+	if collection, ok := any(mediaData).(*types.Collection); ok && collection != nil {
+		return &collection.ItemList, true
+	}
+
+	return nil, false
+}
+
+// Helper function to check if a mediaData item is owned by a specific user
+func isUserOwned(mediaData T, userID uint64) bool {
+	// Implementation depends on your specific types.MediaData structure
+	// This is just a placeholder - you'll need to implement based on your actual structure
+
+	// Check for playlist ownership
+	if playlist, ok := any(mediaData).(*types.Playlist); ok && playlist != nil {
+		return playlist.ItemList.Owner == userID
+	}
+
+	// Check for collection ownership
+	if collection, ok := any(mediaData).(*types.Collection); ok && collection != nil {
+		return collection.ItemList.Owner == userID
+	}
+
+	return false
+}
+
