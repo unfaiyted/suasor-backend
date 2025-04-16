@@ -32,14 +32,14 @@ func createMovieMediaItem[T mediatypes.Movie](clientID uint64, clientType client
 	return mediaItem
 }
 
-// ClientMediaMovieHandler handles movie-related operations for media clients
-type ClientMediaMovieHandler[T clienttypes.ClientMediaConfig] struct {
-	movieService services.ClientMediaMovieService[T]
+// ClientMovieHandler handles movie-related operations for media clients
+type ClientMovieHandler[T clienttypes.ClientMediaConfig] struct {
+	movieService services.ClientMovieService[T]
 }
 
-// NewClientMediaMovieHandler creates a new media client movie handler
-func NewClientMediaMovieHandler[T clienttypes.ClientMediaConfig](movieService services.ClientMediaMovieService[T]) *ClientMediaMovieHandler[T] {
-	return &ClientMediaMovieHandler[T]{
+// NewClientMovieHandler creates a new media client movie handler
+func NewClientMovieHandler[T clienttypes.ClientMediaConfig](movieService services.ClientMovieService[T]) *ClientMovieHandler[T] {
+	return &ClientMovieHandler[T]{
 		movieService: movieService,
 	}
 }
@@ -58,7 +58,7 @@ func NewClientMediaMovieHandler[T clienttypes.ClientMediaConfig](movieService se
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/media/{clientID}/movies/{movieID} [get]
-func (h *ClientMediaMovieHandler[T]) GetMovieByID(c *gin.Context) {
+func (h *ClientMovieHandler[T]) GetMovieByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting movie by ID")
@@ -120,7 +120,7 @@ func (h *ClientMediaMovieHandler[T]) GetMovieByID(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /movies/genre/{genre} [get]
-func (h *ClientMediaMovieHandler[T]) GetMoviesByGenre(c *gin.Context) {
+func (h *ClientMovieHandler[T]) GetMoviesByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting movies by genre")
@@ -173,7 +173,7 @@ func (h *ClientMediaMovieHandler[T]) GetMoviesByGenre(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /movies/year/{year} [get]
-func (h *ClientMediaMovieHandler[T]) GetMoviesByYear(c *gin.Context) {
+func (h *ClientMovieHandler[T]) GetMoviesByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting movies by year")
@@ -230,7 +230,7 @@ func (h *ClientMediaMovieHandler[T]) GetMoviesByYear(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /movies/actor/{actor} [get]
-func (h *ClientMediaMovieHandler[T]) GetMoviesByActor(c *gin.Context) {
+func (h *ClientMovieHandler[T]) GetMoviesByActor(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting movies by actor")
@@ -281,7 +281,7 @@ func (h *ClientMediaMovieHandler[T]) GetMoviesByActor(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /movies/director/{director} [get]
-func (h *ClientMediaMovieHandler[T]) GetMoviesByDirector(c *gin.Context) {
+func (h *ClientMovieHandler[T]) GetMoviesByDirector(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting movies by director")
@@ -334,7 +334,7 @@ func (h *ClientMediaMovieHandler[T]) GetMoviesByDirector(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /movies/rating [get]
-func (h *ClientMediaMovieHandler[T]) GetMoviesByRating(c *gin.Context) {
+func (h *ClientMovieHandler[T]) GetMoviesByRating(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting movies by rating")
@@ -402,7 +402,7 @@ func (h *ClientMediaMovieHandler[T]) GetMoviesByRating(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /movies/latest/{count} [get]
-func (h *ClientMediaMovieHandler[T]) GetLatestMoviesByAdded(c *gin.Context) {
+func (h *ClientMovieHandler[T]) GetLatestMoviesByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting latest movies by added date")
@@ -460,7 +460,7 @@ func (h *ClientMediaMovieHandler[T]) GetLatestMoviesByAdded(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /movies/popular/{count} [get]
-func (h *ClientMediaMovieHandler[T]) GetPopularMovies(c *gin.Context) {
+func (h *ClientMovieHandler[T]) GetPopularMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting popular movies")
@@ -518,7 +518,7 @@ func (h *ClientMediaMovieHandler[T]) GetPopularMovies(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /movies/top-rated/{count} [get]
-func (h *ClientMediaMovieHandler[T]) GetTopRatedMovies(c *gin.Context) {
+func (h *ClientMovieHandler[T]) GetTopRatedMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting top rated movies")
@@ -576,7 +576,7 @@ func (h *ClientMediaMovieHandler[T]) GetTopRatedMovies(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /movies/search [get]
-func (h *ClientMediaMovieHandler[T]) SearchMovies(c *gin.Context) {
+func (h *ClientMovieHandler[T]) SearchMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Searching movies")
@@ -636,6 +636,6 @@ func (h *ClientMediaMovieHandler[T]) SearchMovies(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/media/{clientID}/movies/{source}/{externalID} [get]
-func (h *ClientMediaMovieHandler[T]) GetMovieByExternalID(c *gin.Context) {
+func (h *ClientMovieHandler[T]) GetMovieByExternalID(c *gin.Context) {
 
 }

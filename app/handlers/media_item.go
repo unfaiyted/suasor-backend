@@ -47,9 +47,15 @@ type ClientMediaItemHandlers interface {
 	PlaylistClientHandler() *handlers.ClientMediaItemHandler[*mediatypes.Playlist]
 }
 
-// SpecializedMediaHandlers defines specialized handlers for specific domains
-type SpecializedMediaHandlers interface {
-	MusicHandler() *handlers.CoreMusicHandler
-	MovieSpecificHandler() *handlers.CoreMovieHandler
-	SeriesSpecificHandler() *handlers.CoreSeriesHandler
+type CoreMediaTypeHandlers interface {
+	MusicCoreHandler() *handlers.CoreMusicHandler
+	MovieCoreHandler() *handlers.CoreMovieHandler
+	SeriesCoreHandler() *handlers.CoreSeriesHandler
+}
+
+type UserMediaTypeHandlers interface {
+	MusicUserHandler() *handlers.UserMusicHandler
+	MovieUserHandler() *handlers.UserMovieHandler
+	SeriesUserHandler() *handlers.UserSeriesHandler
+}
 }

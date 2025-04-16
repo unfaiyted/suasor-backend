@@ -17,8 +17,8 @@ import (
 	"suasor/utils"
 )
 
-// ClientMediaMusicService defines operations for interacting with music clients
-type ClientMediaMusicService[T types.ClientConfig] interface {
+// ClientMusicService defines operations for interacting with music clients
+type ClientMusicService[T types.ClientConfig] interface {
 	GetAlbumByID(ctx context.Context, userID uint64, clientID uint64, albumID string) (models.MediaItem[*mediatypes.Album], error)
 	GetArtistByID(ctx context.Context, userID uint64, clientID uint64, artistID string) (models.MediaItem[*mediatypes.Artist], error)
 	GetTrackByID(ctx context.Context, userID uint64, clientID uint64, trackID string) (models.MediaItem[*mediatypes.Track], error)
@@ -57,10 +57,10 @@ type mediaMusicService[T types.ClientMediaConfig] struct {
 	factory *client.ClientFactoryService
 }
 
-func NewClientMediaMusicService[T types.ClientMediaConfig](
+func NewClientMusicService[T types.ClientMediaConfig](
 	repo repository.ClientRepository[T],
 	factory *client.ClientFactoryService,
-) ClientMediaMusicService[T] {
+) ClientMusicService[T] {
 	return &mediaMusicService[T]{
 		repo:    repo,
 		factory: factory,
@@ -916,3 +916,4 @@ func (s *mediaMusicService[T]) GetPopularArtists(ctx context.Context, userID uin
 
 	return allArtists, nil
 }
+

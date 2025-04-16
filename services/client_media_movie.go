@@ -17,8 +17,8 @@ import (
 
 var ErrUnsupportedFeature = errors.New("feature not supported by this media client")
 
-// ClientMediaMovieService defines operations for interacting with movie clients
-type ClientMediaMovieService[T types.ClientConfig] interface {
+// ClientMovieService defines operations for interacting with movie clients
+type ClientMovieService[T types.ClientConfig] interface {
 	GetMovieByID(ctx context.Context, userID uint64, clientID uint64, movieID string) (*models.MediaItem[*mediatypes.Movie], error)
 	GetMoviesByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[*mediatypes.Movie], error)
 	GetMoviesByYear(ctx context.Context, userID uint64, year int) ([]models.MediaItem[*mediatypes.Movie], error)
@@ -36,11 +36,11 @@ type mediaMovieService[T types.ClientMediaConfig] struct {
 	factory *client.ClientFactoryService
 }
 
-// NewClientMediaMovieService creates a new media movie service
-func NewClientMediaMovieService[T types.ClientMediaConfig](
+// NewClientMovieService creates a new media movie service
+func NewClientMovieService[T types.ClientMediaConfig](
 	repo repository.ClientRepository[T],
 	factory *client.ClientFactoryService,
-) ClientMediaMovieService[T] {
+) ClientMovieService[T] {
 	return &mediaMovieService[T]{
 		repo:    repo,
 		factory: factory,
@@ -453,4 +453,3 @@ func (s *mediaMovieService[T]) SearchMovies(ctx context.Context, userID uint64, 
 
 	return allMovies, nil
 }
-

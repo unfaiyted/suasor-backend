@@ -32,14 +32,14 @@ func createSeriesMediaItem[T mediatypes.Series](clientID uint64, clientType clie
 	return mediaItem
 }
 
-// ClientMediaSeriesHandler handles series-related operations for media clients
-type ClientMediaSeriesHandler[T interface{ clienttypes.ClientMediaConfig }] struct {
-	seriesService services.ClientMediaSeriesService[T]
+// ClientSeriesHandler handles series-related operations for media clients
+type ClientSeriesHandler[T interface{ clienttypes.ClientMediaConfig }] struct {
+	seriesService services.ClientSeriesService[T]
 }
 
-// NewClientMediaSeriesHandler creates a new media client series handler
-func NewClientMediaSeriesHandler[T interface{ clienttypes.ClientMediaConfig }](seriesService services.ClientMediaSeriesService[T]) *ClientMediaSeriesHandler[T] {
-	return &ClientMediaSeriesHandler[T]{
+// NewClientSeriesHandler creates a new media client series handler
+func NewClientSeriesHandler[T interface{ clienttypes.ClientMediaConfig }](seriesService services.ClientSeriesService[T]) *ClientSeriesHandler[T] {
+	return &ClientSeriesHandler[T]{
 		seriesService: seriesService,
 	}
 }
@@ -58,7 +58,7 @@ func NewClientMediaSeriesHandler[T interface{ clienttypes.ClientMediaConfig }](s
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/media/{clientID}/series/{seriesID} [get]
-func (h *ClientMediaSeriesHandler[T]) GetSeriesByID(c *gin.Context) {
+func (h *ClientSeriesHandler[T]) GetSeriesByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting series by ID")
@@ -120,7 +120,7 @@ func (h *ClientMediaSeriesHandler[T]) GetSeriesByID(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /series/genre/{genre} [get]
-func (h *ClientMediaSeriesHandler[T]) GetSeriesByGenre(c *gin.Context) {
+func (h *ClientSeriesHandler[T]) GetSeriesByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting series by genre")
@@ -172,7 +172,7 @@ func (h *ClientMediaSeriesHandler[T]) GetSeriesByGenre(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /series/year/{year} [get]
-func (h *ClientMediaSeriesHandler[T]) GetSeriesByYear(c *gin.Context) {
+func (h *ClientSeriesHandler[T]) GetSeriesByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting series by year")
@@ -229,7 +229,7 @@ func (h *ClientMediaSeriesHandler[T]) GetSeriesByYear(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /series/actor/{actor} [get]
-func (h *ClientMediaSeriesHandler[T]) GetSeriesByActor(c *gin.Context) {
+func (h *ClientSeriesHandler[T]) GetSeriesByActor(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting series by actor")
@@ -280,7 +280,7 @@ func (h *ClientMediaSeriesHandler[T]) GetSeriesByActor(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /series/creator/{creator} [get]
-func (h *ClientMediaSeriesHandler[T]) GetSeriesByCreator(c *gin.Context) {
+func (h *ClientSeriesHandler[T]) GetSeriesByCreator(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting series by creator")
@@ -333,7 +333,7 @@ func (h *ClientMediaSeriesHandler[T]) GetSeriesByCreator(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /series/rating [get]
-func (h *ClientMediaSeriesHandler[T]) GetSeriesByRating(c *gin.Context) {
+func (h *ClientSeriesHandler[T]) GetSeriesByRating(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting series by rating")
@@ -401,7 +401,7 @@ func (h *ClientMediaSeriesHandler[T]) GetSeriesByRating(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /series/latest/{count} [get]
-func (h *ClientMediaSeriesHandler[T]) GetLatestSeriesByAdded(c *gin.Context) {
+func (h *ClientSeriesHandler[T]) GetLatestSeriesByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting latest series by added date")
@@ -459,7 +459,7 @@ func (h *ClientMediaSeriesHandler[T]) GetLatestSeriesByAdded(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /series/popular/{count} [get]
-func (h *ClientMediaSeriesHandler[T]) GetPopularSeries(c *gin.Context) {
+func (h *ClientSeriesHandler[T]) GetPopularSeries(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting popular series")
@@ -517,7 +517,7 @@ func (h *ClientMediaSeriesHandler[T]) GetPopularSeries(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /series/top-rated/{count} [get]
-func (h *ClientMediaSeriesHandler[T]) GetTopRatedSeries(c *gin.Context) {
+func (h *ClientSeriesHandler[T]) GetTopRatedSeries(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting top rated series")
@@ -575,7 +575,7 @@ func (h *ClientMediaSeriesHandler[T]) GetTopRatedSeries(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /series/search [get]
-func (h *ClientMediaSeriesHandler[T]) SearchSeries(c *gin.Context) {
+func (h *ClientSeriesHandler[T]) SearchSeries(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Searching series")
@@ -634,7 +634,7 @@ func (h *ClientMediaSeriesHandler[T]) SearchSeries(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/media/{clientID}/series/{seriesID}/seasons [get]
-func (h *ClientMediaSeriesHandler[T]) GetSeasonsBySeriesID(c *gin.Context) {
+func (h *ClientSeriesHandler[T]) GetSeasonsBySeriesID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting seasons by series ID")

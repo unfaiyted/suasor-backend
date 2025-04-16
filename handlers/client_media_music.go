@@ -70,14 +70,14 @@ func createArtistMediaItem(clientID uint64, clientType clienttypes.ClientMediaTy
 	return mediaItem
 }
 
-// ClientMediaMusicHandler handles music-related operations for media clients
-type ClientMediaMusicHandler[T clienttypes.ClientMediaConfig] struct {
-	musicService services.ClientMediaMusicService[T]
+// ClientMusicHandler handles music-related operations for media clients
+type ClientMusicHandler[T clienttypes.ClientMediaConfig] struct {
+	musicService services.ClientMusicService[T]
 }
 
-// NewClientMediaMusicHandler creates a new media client music handler
-func NewClientMediaMusicHandler[T clienttypes.ClientMediaConfig](musicService services.ClientMediaMusicService[T]) *ClientMediaMusicHandler[T] {
-	return &ClientMediaMusicHandler[T]{
+// NewClientMusicHandler creates a new media client music handler
+func NewClientMusicHandler[T clienttypes.ClientMediaConfig](musicService services.ClientMusicService[T]) *ClientMusicHandler[T] {
+	return &ClientMusicHandler[T]{
 		musicService: musicService,
 	}
 }
@@ -96,7 +96,7 @@ func NewClientMediaMusicHandler[T clienttypes.ClientMediaConfig](musicService se
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/music/tracks/{trackID} [get]
-func (h *ClientMediaMusicHandler[T]) GetTrackByID(c *gin.Context) {
+func (h *ClientMusicHandler[T]) GetTrackByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting track by ID")
@@ -160,7 +160,7 @@ func (h *ClientMediaMusicHandler[T]) GetTrackByID(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/music/albums/{albumID} [get]
-func (h *ClientMediaMusicHandler[T]) GetAlbumByID(c *gin.Context) {
+func (h *ClientMusicHandler[T]) GetAlbumByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting album by ID")
@@ -224,7 +224,7 @@ func (h *ClientMediaMusicHandler[T]) GetAlbumByID(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/music/artists/{artistID} [get]
-func (h *ClientMediaMusicHandler[T]) GetArtistByID(c *gin.Context) {
+func (h *ClientMusicHandler[T]) GetArtistByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting artist by ID")
@@ -288,7 +288,7 @@ func (h *ClientMediaMusicHandler[T]) GetArtistByID(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/music/albums/{albumID}/tracks [get]
-func (h *ClientMediaMusicHandler[T]) GetTracksByAlbum(c *gin.Context) {
+func (h *ClientMusicHandler[T]) GetTracksByAlbum(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting tracks by album")
@@ -353,7 +353,7 @@ func (h *ClientMediaMusicHandler[T]) GetTracksByAlbum(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/music/artists/{artistID}/albums [get]
-func (h *ClientMediaMusicHandler[T]) GetAlbumsByArtist(c *gin.Context) {
+func (h *ClientMusicHandler[T]) GetAlbumsByArtist(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting albums by artist")
@@ -416,7 +416,7 @@ func (h *ClientMediaMusicHandler[T]) GetAlbumsByArtist(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /music/artists/genre/{genre} [get]
-func (h *ClientMediaMusicHandler[T]) GetArtistsByGenre(c *gin.Context) {
+func (h *ClientMusicHandler[T]) GetArtistsByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting artists by genre")
@@ -467,7 +467,7 @@ func (h *ClientMediaMusicHandler[T]) GetArtistsByGenre(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /music/albums/genre/{genre} [get]
-func (h *ClientMediaMusicHandler[T]) GetAlbumsByGenre(c *gin.Context) {
+func (h *ClientMusicHandler[T]) GetAlbumsByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting albums by genre")
@@ -518,7 +518,7 @@ func (h *ClientMediaMusicHandler[T]) GetAlbumsByGenre(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /music/tracks/genre/{genre} [get]
-func (h *ClientMediaMusicHandler[T]) GetTracksByGenre(c *gin.Context) {
+func (h *ClientMusicHandler[T]) GetTracksByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting tracks by genre")
@@ -570,7 +570,7 @@ func (h *ClientMediaMusicHandler[T]) GetTracksByGenre(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /music/albums/year/{year} [get]
-func (h *ClientMediaMusicHandler[T]) GetAlbumsByYear(c *gin.Context) {
+func (h *ClientMusicHandler[T]) GetAlbumsByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting albums by year")
@@ -628,7 +628,7 @@ func (h *ClientMediaMusicHandler[T]) GetAlbumsByYear(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /music/albums/latest/{count} [get]
-func (h *ClientMediaMusicHandler[T]) GetLatestAlbumsByAdded(c *gin.Context) {
+func (h *ClientMusicHandler[T]) GetLatestAlbumsByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting latest albums by added date")
@@ -686,7 +686,7 @@ func (h *ClientMediaMusicHandler[T]) GetLatestAlbumsByAdded(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /music/albums/popular/{count} [get]
-func (h *ClientMediaMusicHandler[T]) GetPopularAlbums(c *gin.Context) {
+func (h *ClientMusicHandler[T]) GetPopularAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting popular albums")
@@ -744,7 +744,7 @@ func (h *ClientMediaMusicHandler[T]) GetPopularAlbums(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /music/artists/popular/{count} [get]
-func (h *ClientMediaMusicHandler[T]) GetPopularArtists(c *gin.Context) {
+func (h *ClientMusicHandler[T]) GetPopularArtists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting popular artists")
@@ -802,7 +802,7 @@ func (h *ClientMediaMusicHandler[T]) GetPopularArtists(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /music/search [get]
-func (h *ClientMediaMusicHandler[T]) SearchMusic(c *gin.Context) {
+func (h *ClientMusicHandler[T]) SearchMusic(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Searching music")

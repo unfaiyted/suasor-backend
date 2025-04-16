@@ -32,14 +32,14 @@ func createPlaylistMediaItem[T mediatypes.Playlist](clientID uint64, clientType 
 	return mediaItem
 }
 
-// ClientMediaPlaylistHandler handles playlist-related operations for media clients
-type ClientMediaPlaylistHandler[T clienttypes.ClientMediaConfig] struct {
-	playlistService services.ClientMediaPlaylistService[T]
+// ClientPlaylistHandler handles playlist-related operations for media clients
+type ClientPlaylistHandler[T clienttypes.ClientMediaConfig] struct {
+	playlistService services.ClientPlaylistService[T]
 }
 
-// NewClientMediaPlaylistHandler creates a new media client playlist handler
-func NewClientMediaPlaylistHandler[T clienttypes.ClientMediaConfig](playlistService services.ClientMediaPlaylistService[T]) *ClientMediaPlaylistHandler[T] {
-	return &ClientMediaPlaylistHandler[T]{
+// NewClientPlaylistHandler creates a new media client playlist handler
+func NewClientPlaylistHandler[T clienttypes.ClientMediaConfig](playlistService services.ClientPlaylistService[T]) *ClientPlaylistHandler[T] {
+	return &ClientPlaylistHandler[T]{
 		playlistService: playlistService,
 	}
 }
@@ -58,7 +58,7 @@ func NewClientMediaPlaylistHandler[T clienttypes.ClientMediaConfig](playlistServ
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/playlists/{playlistID} [get]
-func (h *ClientMediaPlaylistHandler[T]) GetPlaylistByID(c *gin.Context) {
+func (h *ClientPlaylistHandler[T]) GetPlaylistByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting playlist by ID")
@@ -122,7 +122,7 @@ func (h *ClientMediaPlaylistHandler[T]) GetPlaylistByID(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/playlists [get]
-func (h *ClientMediaPlaylistHandler[T]) GetPlaylists(c *gin.Context) {
+func (h *ClientPlaylistHandler[T]) GetPlaylists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting all playlists")
@@ -187,7 +187,7 @@ func (h *ClientMediaPlaylistHandler[T]) GetPlaylists(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/playlists [post]
-func (h *ClientMediaPlaylistHandler[T]) CreatePlaylist(c *gin.Context) {
+func (h *ClientPlaylistHandler[T]) CreatePlaylist(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Creating playlist")
@@ -262,7 +262,7 @@ func (h *ClientMediaPlaylistHandler[T]) CreatePlaylist(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/playlists/{playlistID} [put]
-func (h *ClientMediaPlaylistHandler[T]) UpdatePlaylist(c *gin.Context) {
+func (h *ClientPlaylistHandler[T]) UpdatePlaylist(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Updating playlist")
@@ -339,7 +339,7 @@ func (h *ClientMediaPlaylistHandler[T]) UpdatePlaylist(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/playlists/{playlistID} [delete]
-func (h *ClientMediaPlaylistHandler[T]) DeletePlaylist(c *gin.Context) {
+func (h *ClientPlaylistHandler[T]) DeletePlaylist(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Deleting playlist")
@@ -404,7 +404,7 @@ func (h *ClientMediaPlaylistHandler[T]) DeletePlaylist(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/playlists/{playlistID}/items [post]
-func (h *ClientMediaPlaylistHandler[T]) AddItemToPlaylist(c *gin.Context) {
+func (h *ClientPlaylistHandler[T]) AddItemToPlaylist(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Adding item to playlist")
@@ -483,7 +483,7 @@ func (h *ClientMediaPlaylistHandler[T]) AddItemToPlaylist(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/playlists/{playlistID}/items/{itemID} [delete]
-func (h *ClientMediaPlaylistHandler[T]) RemoveItemFromPlaylist(c *gin.Context) {
+func (h *ClientPlaylistHandler[T]) RemoveItemFromPlaylist(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Removing item from playlist")
@@ -550,7 +550,7 @@ func (h *ClientMediaPlaylistHandler[T]) RemoveItemFromPlaylist(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /playlists/search [get]
-func (h *ClientMediaPlaylistHandler[T]) SearchPlaylists(c *gin.Context) {
+func (h *ClientPlaylistHandler[T]) SearchPlaylists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Searching playlists")

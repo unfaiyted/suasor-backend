@@ -18,10 +18,10 @@ import (
 	"suasor/utils"
 )
 
-// ClientMediaCollectionService defines the interface for client-associated collection operations
+// ClientCollectionService defines the interface for client-associated collection operations
 // This service extends CoreCollectionService with operations specific to media collections
 // that are linked to external clients like Plex, Emby, etc.
-type ClientMediaCollectionService interface {
+type ClientCollectionService interface {
 	// Include all core service methods
 	CoreCollectionService
 
@@ -45,13 +45,13 @@ type clientCollectionService struct {
 	factory        *client.ClientFactoryService
 }
 
-// NewClientMediaCollectionService creates a new client collection service
-func NewClientMediaCollectionService(
+// NewClientCollectionService creates a new client collection service
+func NewClientCollectionService(
 	coreService CoreCollectionService,
 	collectionRepo repository.ClientMediaItemRepository[*mediatypes.Collection],
 	clientRepo repository.ClientRepository[types.ClientMediaConfig],
 	factory *client.ClientFactoryService,
-) ClientMediaCollectionService {
+) ClientCollectionService {
 	return &clientCollectionService{
 		coreService:    coreService,
 		collectionRepo: collectionRepo,

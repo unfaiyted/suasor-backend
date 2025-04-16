@@ -17,8 +17,8 @@ import (
 	"suasor/utils"
 )
 
-// ClientMediaPlaylistService defines operations for interacting with playlist clients
-type ClientMediaPlaylistService[T types.ClientConfig] interface {
+// ClientPlaylistService defines operations for interacting with playlist clients
+type ClientPlaylistService[T types.ClientConfig] interface {
 	// Basic playlist operations
 	GetPlaylistByID(ctx context.Context, userID uint64, clientID uint64, playlistID string) (*models.MediaItem[*mediatypes.Playlist], error)
 	GetPlaylists(ctx context.Context, userID uint64, count int) ([]models.MediaItem[*mediatypes.Playlist], error)
@@ -42,11 +42,11 @@ type mediaPlaylistService[T types.ClientMediaConfig] struct {
 	factory *client.ClientFactoryService
 }
 
-// NewClientMediaPlaylistService creates a new media playlist service
-func NewClientMediaPlaylistService[T types.ClientMediaConfig](
+// NewClientPlaylistService creates a new media playlist service
+func NewClientPlaylistService[T types.ClientMediaConfig](
 	repo repository.ClientRepository[T],
 	factory *client.ClientFactoryService,
-) ClientMediaPlaylistService[T] {
+) ClientPlaylistService[T] {
 	return &mediaPlaylistService[T]{
 		repo:    repo,
 		factory: factory,
@@ -641,20 +641,20 @@ func (s *mediaPlaylistService[T]) SearchPlaylists(ctx context.Context, userID ui
 	return allPlaylists, nil
 }
 
-// EnhancedClientMediaPlaylistService extends the basic playlist service with advanced item ID mapping
+// EnhancedClientPlaylistService extends the basic playlist service with advanced item ID mapping
 // This version is aware of the MediaItemRepository and can translate IDs between clients
-type EnhancedClientMediaPlaylistService[T types.ClientMediaConfig] struct {
+type EnhancedClientPlaylistService[T types.ClientMediaConfig] struct {
 	mediaPlaylistService[T]
 	mediaItemRepo repository.ClientMediaItemRepository[mediatypes.MediaData]
 }
 
-// NewEnhancedClientMediaPlaylistService creates a new enhanced playlist service with item ID mapping
-func NewEnhancedClientMediaPlaylistService[T types.ClientMediaConfig](
+// NewEnhancedClientPlaylistService creates a new enhanced playlist service with item ID mapping
+func NewEnhancedClientPlaylistService[T types.ClientMediaConfig](
 	repo repository.ClientRepository[T],
 	factory *client.ClientFactoryService,
 	mediaItemRepo repository.ClientMediaItemRepository[mediatypes.MediaData],
-) ClientMediaPlaylistService[T] {
-	return &EnhancedClientMediaPlaylistService[T]{
+) ClientPlaylistService[T] {
+	return &EnhancedClientPlaylistService[T]{
 		mediaPlaylistService: mediaPlaylistService[T]{
 			repo:    repo,
 			factory: factory,
@@ -664,7 +664,7 @@ func NewEnhancedClientMediaPlaylistService[T types.ClientMediaConfig](
 }
 
 // AddItemToPlaylist adds an item to a playlist with proper ID translation
-func (s *EnhancedClientMediaPlaylistService[T]) AddItemToPlaylist(ctx context.Context, userID uint64, clientID uint64, playlistID string, itemID string) error {
+func (s *EnhancedClientPlaylistService[T]) AddItemToPlaylist(ctx context.Context, userID uint64, clientID uint64, playlistID string, itemID string) error {
 	log := utils.LoggerFromContext(ctx)
 	client, err := s.getSpecificPlaylistClient(ctx, userID, clientID)
 	if err != nil {

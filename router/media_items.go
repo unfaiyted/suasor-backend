@@ -45,6 +45,7 @@ type CoreMediaItemHandler interface {
 func RegisterLocalMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) {
 	// Get handlers
 	mediaHandlers := container.MustGet[handlers.MediaItemHandlers](c)
+	mediaTypeHandlers := container.MustGet[handlers.MediaTypeHandlers](c)
 
 	handlerMap := map[string]CoreMediaItemHandler{
 		"movies": mediaHandlers.MovieCoreHandler(),
@@ -167,7 +168,7 @@ func RegisterLocalMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) {
 	{
 		// Get specialized series handler
 		seriesHandler := mediaHandlers.SeriesCoreHandler()
-		seriesSpecificHandler := mediaHandlers.SeriesSpecificHandler()
+		seriesSpecificHandler := mediaTypeHandlers.SeriesCoreHandler()
 
 		// Get series by ID - use base handler
 		series.GET("/:id", seriesHandler.GetByID)
@@ -215,18 +216,18 @@ func RegisterLocalMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) {
 	music := rg.Group("/music")
 	{
 		// Get specialized music handler - this should always be available
-		musicHandler := mediaHandlers.MusicHandler()
+		musicHandler := mediaTypeHandlers.MusicCoreHandler()
 
 		// Get album and artist handlers
-		albumHandler := mediaHandlers.AlbumHandler()
-		artistHandler := mediaHandlers.ArtistHandler()
-		trackHandler := mediaHandlers.TrackHandler()
+		albumHandler := mediaHandlers.AlbumCoreHandler()
+		artistHandler := mediaHandlers.ArtistCoreHandler()
+		trackHandler := mediaHandlers.TrackCoreHandler()
 
 		// Tracks routes
 		tracks := music.Group("/tracks")
 		{
 			// Get track by ID
-			tracks.GET("/:id", trackHandler.GetMediaItem)
+			tracks.GET("/:id", trackHandler.GetByID)
 
 			// Get all tracks with optional filtering
 			tracks.GET("", func(c *gin.Context) {
@@ -239,16 +240,16 @@ func RegisterLocalMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) {
 			})
 
 			// Most played tracks
-			tracks.GET("/most-played", musicHandler.GetMostPlayedTracks)
+			tracks.GET("/most-played", musicHandler.GetMostPlayed)
 
 			// Get tracks by genre
 			tracks.GET("/genre/:genre", trackHandler.GetByGenre)
 
 			// Get latest tracks
-			tracks.GET("/latest", trackHandler.GetRecent)
+			tracks.GET("/latest", trackHandler.GetLatestByAdded)
 
 			// Get by external ID
-			tracks.GET("/external/:source/:externalId", trackHandler.GetMediaItemByExternalSourceID)
+			tracks.GET("/external/:source/:externalId", trackHandler.GetByExternalID)
 		}
 
 		// Albums routes
@@ -318,49 +319,4 @@ func RegisterLocalMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) {
 		music.GET("/recommendations/genre", musicHandler.GetGenreRecommendations)
 	}
 
-	// Playlist routes
-	playlists := rg.Group("/playlists")
-	{
-		// Get specialized playlist handler
-		playlistHandler := mediaHandlers.PlaylistSpecificHandler()
-
-		// Basic CRUD operations
-		playlists.GET("", playlistHandler.GetPlaylists)
-		playlists.GET("/:id", playlistHandler.GetPlaylistByID)
-		playlists.POST("", playlistHandler.CreatePlaylist)
-		playlists.PUT("/:id", playlistHandler.UpdatePlaylist)
-		playlists.DELETE("/:id", playlistHandler.DeletePlaylist)
-
-		// Playlist items management
-		playlists.GET("/:id/items", playlistHandler.GetPlaylistItems)
-		playlists.POST("/:id/items", playlistHandler.AddItemToPlaylist)
-		playlists.DELETE("/:id/items/:itemId", playlistHandler.RemoveItemFromPlaylist)
-
-		// Playlist reordering
-		playlists.POST("/:id/reorder", playlistHandler.ReorderPlaylistItems)
-
-		// Search playlists
-		playlists.GET("/search", playlistHandler.SearchPlaylists)
-
-		// Sync playlist across clients
-		playlists.POST("/:id/sync", playlistHandler.SyncPlaylist)
-	}
-
-	// Collections routes
-	collections := rg.Group("/collections")
-	{
-		// Get specialized collection handler
-		collectionHandler := mediaHandlers.CollectionSpecificHandler()
-
-		// Basic CRUD operations
-		collections.GET("", collectionHandler.GetCollections)
-		collections.GET("/:id", collectionHandler.GetCollectionByID)
-
-		// Collection items management
-		collections.GET("/:id/items", collectionHandler.GetCollectionItems)
-
-		// Special collection types
-		collections.GET("/smart", collectionHandler.GetSmartCollections)
-		collections.GET("/featured", collectionHandler.GetFeaturedCollections)
-	}
 }

@@ -32,14 +32,14 @@ func createCollectionMediaItem[T mediatypes.Collection](clientID uint64, clientT
 	return mediaItem
 }
 
-// ClientMediaCollectionHandler handles collection-related operations for media clients
-type ClientMediaCollectionHandler[T clienttypes.ClientMediaConfig] struct {
-	collectionService services.ClientMediaCollectionService
+// ClientCollectionHandler handles collection-related operations for media clients
+type ClientCollectionHandler[T clienttypes.ClientMediaConfig] struct {
+	collectionService services.ClientCollectionService
 }
 
-// NewClientMediaCollectionHandler creates a new media client collection handler
-func NewClientMediaCollectionHandler[T clienttypes.ClientMediaConfig](collectionService services.ClientMediaCollectionService) *ClientMediaCollectionHandler[T] {
-	return &ClientMediaCollectionHandler[T]{
+// NewClientCollectionHandler creates a new media client collection handler
+func NewClientCollectionHandler[T clienttypes.ClientMediaConfig](collectionService services.ClientCollectionService) *ClientCollectionHandler[T] {
+	return &ClientCollectionHandler[T]{
 		collectionService: collectionService,
 	}
 }
@@ -58,7 +58,7 @@ func NewClientMediaCollectionHandler[T clienttypes.ClientMediaConfig](collection
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/media/{clientID}/collections/{collectionID} [get]
-func (h *ClientMediaCollectionHandler[T]) GetCollectionByID(c *gin.Context) {
+func (h *ClientCollectionHandler[T]) GetCollectionByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting collection by ID")
@@ -90,7 +90,7 @@ func (h *ClientMediaCollectionHandler[T]) GetCollectionByID(c *gin.Context) {
 		Msg("Retrieving collection by ID")
 
 	// This is a placeholder. In actual implementations, you would implement a GetCollectionByID method
-	// in the services.ClientMediaCollectionService interface.
+	// in the services.ClientCollectionService interface.
 	responses.RespondNotImplemented(c, nil, "Get collection by ID not implemented")
 }
 
@@ -108,7 +108,7 @@ func (h *ClientMediaCollectionHandler[T]) GetCollectionByID(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /clients/media/{clientID}/collections [get]
-func (h *ClientMediaCollectionHandler[T]) GetCollections(c *gin.Context) {
+func (h *ClientCollectionHandler[T]) GetCollections(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting all collections")
@@ -142,6 +142,6 @@ func (h *ClientMediaCollectionHandler[T]) GetCollections(c *gin.Context) {
 		Msg("Retrieving collections")
 
 	// This is a placeholder. In actual implementations, you would implement a GetCollections method
-	// in the services.ClientMediaCollectionService interface.
+	// in the services.ClientCollectionService interface.
 	responses.RespondNotImplemented(c, nil, "Get collections not implemented")
 }
