@@ -13,6 +13,7 @@ import (
 
 // CorePlaylistHandler handles operations for playlists in the database
 type CorePlaylistHandler struct {
+	CoreMediaItemHandler[mediatypes.Playlist]
 	playlistService services.CoreMediaItemService[*mediatypes.Playlist]
 	coreService     services.PlaylistService
 }
@@ -121,7 +122,7 @@ func (h *CorePlaylistHandler) GetByID(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Playlist not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /playlists/{id}/tracks [get]
-func (h *CorePlaylistHandler) GetPlaylistTracks(c *gin.Context) {
+func (h *CorePlaylistHandler) GetItems(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 

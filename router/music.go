@@ -2,25 +2,28 @@
 package router
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
-	"suasor/app"
+	"suasor/app/container"
+	apphandlers "suasor/app/handlers"
 	"suasor/handlers"
+	"suasor/types/responses"
 )
 
-// SetupMusicRoutes sets up the routes for music-related operations
-func SetupMusicRoutes(rg *gin.RouterGroup, app *app.App) {
-	// Initialize handlers
-	coreMusicHandler := handlers.NewCoreMusicHandler(
-		app.Services().MediaItemServices().CoreTrackService(),
-		app.Services().MediaItemServices().CoreAlbumService(),
-		app.Services().MediaItemServices().CoreArtistService(),
-	)
+type ClientMusicHandlerInterface interface {
+	GetTopTracks(c *gin.Context)
+	GetRecentlyAddedTracks(c *gin.Context)
+	GetTopAlbums(c *gin.Context)
+	GetTopArtists(c *gin.Context)
+	GetFavoriteArtists(c *gin.Context)
+}
 
-	userMusicHandler := handlers.NewUserMusicHandler(
-		app.Services().MediaItemServices().UserTrackService(),
-		app.Services().MediaItemServices().UserAlbumService(),
-		app.Services().MediaItemServices().UserArtistService(),
-	)
+// SetupMusicRoutes sets up the routes for music-related operations
+func RegisterMusicRoutes(rg *gin.RouterGroup, c *container.Container) {
+	// Initialize handlers
+	coreMusicHandler := container.MustGet[handlers.CoreMusicHandler](c)
+	userMusicHandler := container.MustGet[handlers.UserMusicHandler](c)
+	clientMusicHandler := container.MustGet[apphandlers.ClientMusicHandlers](c)
 
 	// Core music routes (database-focused)
 	// Tracks
@@ -64,11 +67,49 @@ func SetupMusicRoutes(rg *gin.RouterGroup, app *app.App) {
 		userArtists.GET("/favorites", userMusicHandler.GetFavoriteArtists)
 	}
 
-	// Client-specific routes are handled in router/media.go
+	clientHandlerMap := map[string]ClientMusicHandlerInterface{
+		"emby":     clientMusicHandler.EmbyMusicHandler(),
+		"jellyfin": clientMusicHandler.JellyfinMusicHandler(),
+		"plex":     clientMusicHandler.PlexMusicHandler(),
+		"subsonic": clientMusicHandler.SubsonicMusicHandler(),
+	}
+
+	getClientHandler := func(c *gin.Context) ClientMusicHandlerInterface {
+		clientType := c.Param("clientType")
+		handler, exists := clientHandlerMap[clientType]
+		if !exists {
+			err := fmt.Errorf("unsupported client type: %s", clientType)
+			responses.RespondBadRequest(c, err, "Unsupported client type")
+			return nil
+		}
+		return handler
+	}
+
 	// These routes follow the pattern /clients/media/{clientID}/music/...
+	clientMusic := rg.Group("/clients/:clientType/:clientID/music")
+	{
+		// Tracks
+		clientMusic.GET("/tracks/top", func(c *gin.Context) {
+			getClientHandler(c).GetTopTracks(c)
+		})
+
+		clientMusic.GET("/tracks/recently-added", func(c *gin.Context) {
+			getClientHandler(c).GetRecentlyAddedTracks(c)
+		})
+
+		// Albums
+		clientMusic.GET("/albums/top", func(c *gin.Context) {
+			getClientHandler(c).GetTopAlbums(c)
+		})
+
+		// Artists
+		clientMusic.GET("/artists/top", func(c *gin.Context) {
+			getClientHandler(c).GetTopArtists(c)
+		})
+		clientMusic.GET("/artists/favorites", func(c *gin.Context) {
+			getClientHandler(c).GetFavoriteArtists(c)
+		})
+	}
+
 }
 
-// Music-specific helper functions
-func getMusicHandler[T interface{}](clientMedia *handlers.ClientMediaHandler[T]) *handlers.ClientMediaMusicHandler[T] {
-	return handlers.NewClientMediaMusicHandler[T](clientMedia.MusicService())
-}

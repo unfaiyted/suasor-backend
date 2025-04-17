@@ -2,14 +2,11 @@
 package handlers
 
 import (
-	"strconv"
-	"strings"
-
 	"github.com/gin-gonic/gin"
+	"strconv"
 
 	"suasor/client/media/types"
 	"suasor/services"
-	"suasor/types/models"
 	"suasor/types/responses"
 	"suasor/utils"
 )

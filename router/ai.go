@@ -1,11 +1,20 @@
 package router
 
 import (
-	"github.com/gin-gonic/gin"
 	"suasor/app/container"
+	// "suasor/app/handlers"
 	apphandlers "suasor/app/handlers"
-	"suasor/handlers"
+	// "suasor/handlers"
+
+	"github.com/gin-gonic/gin"
 )
+
+type AIHandlerInterface interface {
+	RequestRecommendation(c *gin.Context)
+	AnalyzeContent(c *gin.Context)
+	StartConversation(c *gin.Context)
+	SendConversationMessage(c *gin.Context)
+}
 
 // RegisterAIRoutes registers routes for AI operations
 func RegisterAIRoutes(r *gin.RouterGroup, c *container.Container) {
@@ -15,13 +24,13 @@ func RegisterAIRoutes(r *gin.RouterGroup, c *container.Container) {
 	openai := handlers.OpenAIHandler()
 	ollama := handlers.OllamaHandler()
 
-	handlerMap := map[string]handlers.AIHandler[*handlers.ClientMediaItemDataHandlers]{
+	handlerMap := map[string]AIHandlerInterface{
 		"claude": claude,
 		"openai": openai,
 		"ollama": ollama,
 	}
 
-	getHandler := func(c *gin.Context) handlers.AIHandler[*handlers.ClientMediaItemDataHandlers] {
+	getHandler := func(c *gin.Context) AIHandlerInterface {
 		clientType := c.Param("clientType")
 		handler, exists := handlerMap[clientType]
 		if !exists {
@@ -35,14 +44,22 @@ func RegisterAIRoutes(r *gin.RouterGroup, c *container.Container) {
 	client := ai.Group(":clientType")
 	{
 		// Recommendations and analysis endpoints
-		client.POST("/recommendations", handler.RequestRecommendation)
-		client.POST("/analyze", handler.AnalyzeContent)
+		client.POST("/recommendations", func(c *gin.Context) {
+			getHandler(c).RequestRecommendation(c)
+		})
+		client.POST("/analyze", func(c *gin.Context) {
+			getHandler(c).AnalyzeContent(c)
+		})
 
 		// Conversational recommendation endpoints
 		conversation := client.Group("/conversation")
 		{
-			conversation.POST("/start", handler.StartConversation)
-			conversation.POST("/message", handler.SendConversationMessage)
+			conversation.POST("/start", func(c *gin.Context) {
+				getHandler(c).StartConversation(c)
+			})
+			conversation.POST("/message", func(c *gin.Context) {
+				getHandler(c).SendConversationMessage(c)
+			})
 		}
 	}
 }

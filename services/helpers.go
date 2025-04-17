@@ -25,3 +25,5 @@ func createStubItem(listItem mediatypes.ListItem) *models.MediaItem[mediatypes.M
 		// Would populate other fields from the actual item in the database
 	}
 }
+
+func createMediaItems(actualItems []mediatypes.ListItem) []*models.MediaItems {

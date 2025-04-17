@@ -14,6 +14,7 @@ import (
 
 // CoreMovieHandler handles operations for movies in the database
 type CoreMovieHandler struct {
+	CoreMediaItemHandler[mediatypes.Movie]
 	movieService services.CoreMediaItemService[*mediatypes.Movie]
 }
 
@@ -483,4 +484,3 @@ func (h *CoreMovieHandler) GetRecentlyAdded(c *gin.Context) {
 		Msg("Recently added movies retrieved successfully")
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }
-

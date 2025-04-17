@@ -855,3 +855,364 @@ func (h *ClientMusicHandler[T]) SearchMusic(c *gin.Context) {
 		Msg("Music search completed successfully")
 	responses.RespondOK(c, response, "Music retrieved successfully")
 }
+
+// GetTopTracks godoc
+// @Summary Get top tracks from a client
+// @Description Retrieves the most popular tracks from a client
+// @Tags music
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientType path string true "Client Type"
+// @Param clientID path int true "Client ID"
+// @Param limit query int false "Number of tracks to retrieve (default 10)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved"
+// @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
+// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Router /clients/{clientType}/{clientID}/music/tracks/top [get]
+func (h *ClientMusicHandler[T]) GetTopTracks(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Getting top tracks")
+
+	// Get authenticated user ID
+	userID, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("Attempt to access top tracks without authentication")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
+		return
+	}
+
+	uid := userID.(uint64)
+
+	// Parse client ID from URL
+	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	if err != nil {
+		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
+		return
+	}
+
+	// Parse limit parameter (optional)
+	limitStr := c.DefaultQuery("limit", "10")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
+		responses.RespondBadRequest(c, err, "Invalid limit parameter")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Int("limit", limit).
+		Msg("Retrieving top tracks")
+
+	tracks, err := h.musicService.GetTopTracks(ctx, uid, clientID, limit)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", uid).
+			Uint64("clientID", clientID).
+			Int("limit", limit).
+			Msg("Failed to retrieve top tracks")
+		responses.RespondInternalError(c, err, "Failed to retrieve top tracks")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Int("trackCount", len(tracks)).
+		Msg("Top tracks retrieved successfully")
+	responses.RespondOK(c, tracks, "Top tracks retrieved successfully")
+}
+
+// GetRecentlyAddedTracks godoc
+// @Summary Get recently added tracks from a client
+// @Description Retrieves the most recently added tracks from a client
+// @Tags music
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientType path string true "Client Type"
+// @Param clientID path int true "Client ID"
+// @Param limit query int false "Number of tracks to retrieve (default 10)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved"
+// @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
+// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Router /clients/{clientType}/{clientID}/music/tracks/recently-added [get]
+func (h *ClientMusicHandler[T]) GetRecentlyAddedTracks(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Getting recently added tracks")
+
+	// Get authenticated user ID
+	userID, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("Attempt to access recently added tracks without authentication")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
+		return
+	}
+
+	uid := userID.(uint64)
+
+	// Parse client ID from URL
+	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	if err != nil {
+		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
+		return
+	}
+
+	// Parse limit parameter (optional)
+	limitStr := c.DefaultQuery("limit", "10")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
+		responses.RespondBadRequest(c, err, "Invalid limit parameter")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Int("limit", limit).
+		Msg("Retrieving recently added tracks")
+
+	tracks, err := h.musicService.GetRecentlyAddedTracks(ctx, uid, clientID, limit)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", uid).
+			Uint64("clientID", clientID).
+			Int("limit", limit).
+			Msg("Failed to retrieve recently added tracks")
+		responses.RespondInternalError(c, err, "Failed to retrieve recently added tracks")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Int("trackCount", len(tracks)).
+		Msg("Recently added tracks retrieved successfully")
+	responses.RespondOK(c, tracks, "Recently added tracks retrieved successfully")
+}
+
+// GetTopAlbums godoc
+// @Summary Get top albums from a client
+// @Description Retrieves the most popular albums from a client
+// @Tags music
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientType path string true "Client Type"
+// @Param clientID path int true "Client ID"
+// @Param limit query int false "Number of albums to retrieve (default 10)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved"
+// @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
+// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Router /clients/{clientType}/{clientID}/music/albums/top [get]
+// This method name remains unchanged to match the interface in the router
+func (h *ClientMusicHandler[T]) GetTopAlbums(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Getting top albums")
+
+	// Get authenticated user ID
+	userID, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("Attempt to access top albums without authentication")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
+		return
+	}
+
+	uid := userID.(uint64)
+
+	// Parse client ID from URL
+	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	if err != nil {
+		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
+		return
+	}
+
+	// Parse limit parameter (optional)
+	limitStr := c.DefaultQuery("limit", "10")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
+		responses.RespondBadRequest(c, err, "Invalid limit parameter")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Int("limit", limit).
+		Msg("Retrieving top albums")
+
+	albums, err := h.musicService.GetTopAlbumsForClient(ctx, uid, clientID, limit)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", uid).
+			Uint64("clientID", clientID).
+			Int("limit", limit).
+			Msg("Failed to retrieve top albums")
+		responses.RespondInternalError(c, err, "Failed to retrieve top albums")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Int("albumCount", len(albums)).
+		Msg("Top albums retrieved successfully")
+	responses.RespondOK(c, albums, "Top albums retrieved successfully")
+}
+
+// GetTopArtists godoc
+// @Summary Get top artists from a client
+// @Description Retrieves the most popular artists from a client
+// @Tags music
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientType path string true "Client Type"
+// @Param clientID path int true "Client ID"
+// @Param limit query int false "Number of artists to retrieve (default 10)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Artist]] "Artists retrieved"
+// @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
+// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Router /clients/{clientType}/{clientID}/music/artists/top [get]
+func (h *ClientMusicHandler[T]) GetTopArtists(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Getting top artists")
+
+	// Get authenticated user ID
+	userID, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("Attempt to access top artists without authentication")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
+		return
+	}
+
+	uid := userID.(uint64)
+
+	// Parse client ID from URL
+	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	if err != nil {
+		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
+		return
+	}
+
+	// Parse limit parameter (optional)
+	limitStr := c.DefaultQuery("limit", "10")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
+		responses.RespondBadRequest(c, err, "Invalid limit parameter")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Int("limit", limit).
+		Msg("Retrieving top artists")
+
+	artists, err := h.musicService.GetTopArtists(ctx, uid, clientID, limit)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", uid).
+			Uint64("clientID", clientID).
+			Int("limit", limit).
+			Msg("Failed to retrieve top artists")
+		responses.RespondInternalError(c, err, "Failed to retrieve top artists")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Int("artistCount", len(artists)).
+		Msg("Top artists retrieved successfully")
+	responses.RespondOK(c, artists, "Top artists retrieved successfully")
+}
+
+// GetFavoriteArtists godoc
+// @Summary Get favorite artists from a client
+// @Description Retrieves the user's favorite artists from a client
+// @Tags music
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientType path string true "Client Type"
+// @Param clientID path int true "Client ID"
+// @Param limit query int false "Number of artists to retrieve (default 10)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Artist]] "Artists retrieved"
+// @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
+// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Router /clients/{clientType}/{clientID}/music/artists/favorites [get]
+func (h *ClientMusicHandler[T]) GetFavoriteArtists(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Getting favorite artists")
+
+	// Get authenticated user ID
+	userID, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("Attempt to access favorite artists without authentication")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
+		return
+	}
+
+	uid := userID.(uint64)
+
+	// Parse client ID from URL
+	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	if err != nil {
+		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
+		return
+	}
+
+	// Parse limit parameter (optional)
+	limitStr := c.DefaultQuery("limit", "10")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
+		responses.RespondBadRequest(c, err, "Invalid limit parameter")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Int("limit", limit).
+		Msg("Retrieving favorite artists")
+
+	artists, err := h.musicService.GetFavoriteArtists(ctx, uid, clientID, limit)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", uid).
+			Uint64("clientID", clientID).
+			Int("limit", limit).
+			Msg("Failed to retrieve favorite artists")
+		responses.RespondInternalError(c, err, "Failed to retrieve favorite artists")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Int("artistCount", len(artists)).
+		Msg("Favorite artists retrieved successfully")
+	responses.RespondOK(c, artists, "Favorite artists retrieved successfully")
+}

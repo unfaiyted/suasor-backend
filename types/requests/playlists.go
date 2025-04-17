@@ -24,3 +24,11 @@ type PlaylistAddTrackRequest struct {
 type PlaylistRemoveTrackRequest struct {
 	TrackID uint64 `json:"trackId"`
 }
+
+type PlaylistReorderRequest struct {
+	ItemIDs []uint64 `json:"itemIds"`
+}
+
+type PlaylistSearchRequest struct {
+	Query string `json:"query"`
+}

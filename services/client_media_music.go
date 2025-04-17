@@ -27,14 +27,19 @@ type ClientMusicService[T types.ClientConfig] interface {
 	GetAlbumsByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[*mediatypes.Album], error)
 	GetArtistsByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[*mediatypes.Artist], error)
 	GetRandomAlbums(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Album], error)
+	GetTopAlbumsForClient(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Album], error)
 	GetTopAlbums(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Album], error)
 	GetPopularAlbums(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Album], error)
 	GetPopularArtists(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Artist], error)
+	GetTopArtists(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Artist], error)
+	GetFavoriteArtists(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Artist], error)
 	GetTracksByAlbum(ctx context.Context, userID uint64, clientID uint64, albumID string) ([]models.MediaItem[*mediatypes.Track], error)
 	GetAlbumsByArtist(ctx context.Context, userID uint64, clientID uint64, artistID string) ([]models.MediaItem[*mediatypes.Album], error)
 	GetTracksByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[*mediatypes.Track], error)
 	GetAlbumsByYear(ctx context.Context, userID uint64, year int) ([]models.MediaItem[*mediatypes.Album], error)
 	GetLatestAlbumsByAdded(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Album], error)
+	GetTopTracks(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Track], error)
+	GetRecentlyAddedTracks(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Track], error)
 	SearchMusic(ctx context.Context, userID uint64, query string) (MusicSearchResults, error)
 }
 
@@ -543,6 +548,7 @@ func (s *mediaMusicService[T]) GetRandomAlbums(ctx context.Context, userID uint6
 	return allAlbums, nil
 }
 
+// GetTopAlbums retrieves top albums across all clients
 func (s *mediaMusicService[T]) GetTopAlbums(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Album], error) {
 	// Get music clients
 	clients, err := s.getMusicClients(ctx, userID)
@@ -602,6 +608,51 @@ func (s *mediaMusicService[T]) GetTopAlbums(ctx context.Context, userID uint64, 
 		Msg("Retrieved top albums")
 
 	return allAlbums, nil
+}
+
+// GetTopAlbumsForClient retrieves top albums from a specific client
+func (s *mediaMusicService[T]) GetTopAlbumsForClient(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Album], error) {
+	log := utils.LoggerFromContext(ctx)
+
+	// Get the specific client
+	client, err := s.getSpecificMusicClient(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if client implements MusicProvider
+	musicClient, ok := client.(providers.MusicProvider)
+	if !ok {
+		return nil, fmt.Errorf("client does not implement music provider interface")
+	}
+
+	// Configure for top albums
+	options := &mediatypes.QueryOptions{
+		Sort:      "playCount", // or "rating" depending on what the client supports
+		SortOrder: mediatypes.SortOrderDesc,
+		Limit:     limit,
+	}
+
+	albums, err := musicClient.GetMusicAlbums(ctx, options)
+	if err != nil {
+		// Try a different sort if the first fails
+		options.Sort = "rating"
+		albums, err = musicClient.GetMusicAlbums(ctx, options)
+		if err != nil {
+			log.Error().
+				Err(err).
+				Uint64("clientID", clientID).
+				Msg("Failed to retrieve top albums")
+			return nil, err
+		}
+	}
+
+	log.Debug().
+		Int("albumCount", len(albums)).
+		Uint64("clientID", clientID).
+		Msg("Retrieved top albums from client")
+
+	return albums, nil
 }
 
 func (s *mediaMusicService[T]) SearchMusic(ctx context.Context, userID uint64, query string) (MusicSearchResults, error) {
@@ -917,3 +968,172 @@ func (s *mediaMusicService[T]) GetPopularArtists(ctx context.Context, userID uin
 	return allArtists, nil
 }
 
+// GetTopArtists retrieves top artists from a specific client
+func (s *mediaMusicService[T]) GetTopArtists(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Artist], error) {
+	log := utils.LoggerFromContext(ctx)
+
+	// Get the specific client
+	client, err := s.getSpecificMusicClient(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if client implements MusicProvider
+	musicClient, ok := client.(providers.MusicProvider)
+	if !ok {
+		return nil, fmt.Errorf("client does not implement music provider interface")
+	}
+
+	// Configure for top artists
+	options := &mediatypes.QueryOptions{
+		Sort:      "popularity", // This should be supported by the client
+		SortOrder: mediatypes.SortOrderDesc,
+		Limit:     limit,
+	}
+
+	artists, err := musicClient.GetMusicArtists(ctx, options)
+	if err != nil {
+		// Try a different approach if the first fails
+		options.Sort = "playCount"
+		artists, err = musicClient.GetMusicArtists(ctx, options)
+		if err != nil {
+			log.Error().
+				Err(err).
+				Uint64("clientID", clientID).
+				Msg("Failed to retrieve top artists")
+			return nil, err
+		}
+	}
+
+	log.Debug().
+		Int("artistCount", len(artists)).
+		Uint64("clientID", clientID).
+		Msg("Retrieved top artists from client")
+
+	return artists, nil
+}
+
+// GetFavoriteArtists retrieves favorite artists from a specific client
+func (s *mediaMusicService[T]) GetFavoriteArtists(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Artist], error) {
+	log := utils.LoggerFromContext(ctx)
+
+	// Get the specific client
+	client, err := s.getSpecificMusicClient(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if client implements MusicProvider
+	musicClient, ok := client.(providers.MusicProvider)
+	if !ok {
+		return nil, fmt.Errorf("client does not implement music provider interface")
+	}
+
+	// Configure for favorite artists
+	options := &mediatypes.QueryOptions{
+		Favorites: true,
+		Limit:     limit,
+	}
+
+	artists, err := musicClient.GetMusicArtists(ctx, options)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("clientID", clientID).
+			Msg("Failed to retrieve favorite artists")
+		return nil, err
+	}
+
+	log.Debug().
+		Int("artistCount", len(artists)).
+		Uint64("clientID", clientID).
+		Msg("Retrieved favorite artists from client")
+
+	return artists, nil
+}
+
+// GetTopTracks retrieves top tracks from a specific client
+func (s *mediaMusicService[T]) GetTopTracks(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Track], error) {
+	log := utils.LoggerFromContext(ctx)
+
+	// Get the specific client
+	client, err := s.getSpecificMusicClient(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if client implements MusicProvider
+	musicClient, ok := client.(providers.MusicProvider)
+	if !ok {
+		return nil, fmt.Errorf("client does not implement music provider interface")
+	}
+
+	// Configure for top tracks
+	options := &mediatypes.QueryOptions{
+		Sort:      "playCount", // This should be supported by the client
+		SortOrder: mediatypes.SortOrderDesc,
+		Limit:     limit,
+	}
+
+	tracks, err := musicClient.GetMusic(ctx, options)
+	if err != nil {
+		// Try a different approach if the first fails
+		options.Sort = "popularity"
+		tracks, err = musicClient.GetMusic(ctx, options)
+		if err != nil {
+			log.Error().
+				Err(err).
+				Uint64("clientID", clientID).
+				Msg("Failed to retrieve top tracks")
+			return nil, err
+		}
+	}
+
+	log.Debug().
+		Int("trackCount", len(tracks)).
+		Uint64("clientID", clientID).
+		Msg("Retrieved top tracks from client")
+
+	return tracks, nil
+}
+
+// GetRecentlyAddedTracks retrieves recently added tracks from a specific client
+func (s *mediaMusicService[T]) GetRecentlyAddedTracks(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Track], error) {
+	log := utils.LoggerFromContext(ctx)
+
+	// Get the specific client
+	client, err := s.getSpecificMusicClient(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if client implements MusicProvider
+	musicClient, ok := client.(providers.MusicProvider)
+	if !ok {
+		return nil, fmt.Errorf("client does not implement music provider interface")
+	}
+
+	// Configure for recently added tracks
+	options := &mediatypes.QueryOptions{
+		RecentlyAdded: true,
+		Sort:          "dateAdded",
+		SortOrder:     mediatypes.SortOrderDesc,
+		Limit:         limit,
+	}
+
+	tracks, err := musicClient.GetMusic(ctx, options)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("clientID", clientID).
+			Msg("Failed to retrieve recently added tracks")
+		return nil, err
+	}
+
+	log.Debug().
+		Int("trackCount", len(tracks)).
+		Uint64("clientID", clientID).
+		Msg("Retrieved recently added tracks from client")
+
+	return tracks, nil
+}

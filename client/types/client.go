@@ -183,6 +183,18 @@ func (c ClientCategory) IsMedia() bool {
 	return c == ClientCategoryMedia
 }
 
+func (c ClientCategory) IsAutomation() bool {
+	return c == ClientCategoryAutomation
+}
+
+func (c ClientCategory) IsAI() bool {
+	return c == ClientCategoryAI
+}
+
+func (c ClientCategory) IsMetadata() bool {
+	return c == ClientCategoryMetadata
+}
+
 func (c ClientMediaType) String() string {
 	return string(c)
 }

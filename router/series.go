@@ -2,23 +2,34 @@
 package router
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
-	"suasor/app"
+	"suasor/app/container"
+	apphandlers "suasor/app/handlers"
 	"suasor/handlers"
+	"suasor/types/responses"
 )
 
-// SetupSeriesRoutes sets up the routes for series-related operations
-func SetupSeriesRoutes(rg *gin.RouterGroup, app *app.App) {
-	// Initialize handlers
-	coreSeriesHandler := handlers.NewCoreSeriesHandler(
-		app.Services().MediaItemServices().CoreSeriesService(),
-		app.Services().MediaItemServices().CoreSeasonService(),
-		app.Services().MediaItemServices().CoreEpisodeService(),
-	)
+type ClientSeriesHandlerInterface interface {
+	GetSeriesByID(c *gin.Context)
+	GetSeriesByGenre(c *gin.Context)
+	GetSeriesByYear(c *gin.Context)
+	GetSeriesByActor(c *gin.Context)
+	GetSeriesByCreator(c *gin.Context)
+	GetSeriesByRating(c *gin.Context)
+	GetLatestSeriesByAdded(c *gin.Context)
+	GetPopularSeries(c *gin.Context)
+	GetTopRatedSeries(c *gin.Context)
+	SearchSeries(c *gin.Context)
+	GetSeasonsBySeriesID(c *gin.Context)
+}
 
-	userSeriesHandler := handlers.NewUserSeriesHandler(
-		app.Services().MediaItemServices().UserSeriesService(),
-	)
+// RegisterSeriesRoutes sets up the routes for series-related operations
+func RegisterSeriesRoutes(rg *gin.RouterGroup, c *container.Container) {
+	// Initialize handlers
+	coreSeriesHandler := container.MustGet[handlers.CoreSeriesHandler](c)
+	userSeriesHandler := container.MustGet[handlers.UserSeriesHandler](c)
+	clientSeriesHandler := container.MustGet[apphandlers.ClientSeriesHandlers](c)
 
 	// Core series routes (database-focused)
 	series := rg.Group("/series")
@@ -31,16 +42,23 @@ func SetupSeriesRoutes(rg *gin.RouterGroup, app *app.App) {
 		series.GET("/:id/seasons", coreSeriesHandler.GetSeasonsBySeriesID)
 		series.GET("/:id/seasons/:seasonNumber/episodes", coreSeriesHandler.GetEpisodesBySeriesIDAndSeasonNumber)
 		series.GET("/:id/episodes", coreSeriesHandler.GetAllEpisodes)
-		
+
 		// Specialized metadata filters
 		series.GET("/network/:network", coreSeriesHandler.GetSeriesByNetwork)
-		series.GET("/genre/:genre", coreSeriesHandler.GetSeriesByGenre)
-		series.GET("/year/:year", coreSeriesHandler.GetSeriesByYear)
-		
+		series.GET("/genre/:genre", coreSeriesHandler.GetByGenre)
+		series.GET("/year/:year", coreSeriesHandler.GetByYear)
+
 		// Discovery endpoints
 		series.GET("/recently-aired", coreSeriesHandler.GetRecentlyAiredEpisodes)
-		series.GET("/popular", coreSeriesHandler.GetPopularSeries)
-		series.GET("/top-rated", coreSeriesHandler.GetTopRatedSeries)
+		series.GET("/popular", coreSeriesHandler.GetPopular)
+		series.GET("/top-rated", coreSeriesHandler.GetTopRated)
+
+		// Search
+		series.GET("/search", func(c *gin.Context) {
+			// This is a universal search route that might redirect to client-specific search
+			// Later we might want to add a centralized search service that combines results
+			clientSeriesHandler.PlexSeriesHandler().SearchSeries(c)
+		})
 	}
 
 	// User-specific series routes
@@ -50,20 +68,85 @@ func SetupSeriesRoutes(rg *gin.RouterGroup, app *app.App) {
 		userSeries.GET("/favorites", userSeriesHandler.GetFavoriteSeries)
 		userSeries.GET("/watched", userSeriesHandler.GetWatchedSeries)
 		userSeries.GET("/watchlist", userSeriesHandler.GetWatchlistSeries)
-		
+
 		// User interactions with series
 		userSeries.PATCH("/:id", userSeriesHandler.UpdateSeriesUserData)
-		
+
 		// Personalized recommendations
-		userSeries.GET("/continue-watching", userSeriesHandler.GetContinueWatchingSeries)
-		userSeries.GET("/next-up", userSeriesHandler.GetNextUpEpisodes)
+		// userSeries.GET("/continue-watching", userSeriesHandler.GetContinueWatching)
+		// userSeries.GET("/next-up", userSeriesHandler.GetNextUpEpisodes)
 	}
 
-	// Client-specific routes are handled in router/media.go
-	// These routes follow the pattern /clients/media/{clientID}/series/...
-}
+	// Set up client-specific handler map for dynamic routing
+	clientHandlerMap := map[string]ClientSeriesHandlerInterface{
+		"emby":     clientSeriesHandler.EmbySeriesHandler(),
+		"jellyfin": clientSeriesHandler.JellyfinSeriesHandler(),
+		"plex":     clientSeriesHandler.PlexSeriesHandler(),
+	}
 
-// Series-specific helper functions
-func getSeriesHandler[T interface{}](clientMedia *handlers.ClientMediaHandler[T]) *handlers.ClientMediaSeriesHandler[T] {
-	return handlers.NewClientMediaSeriesHandler[T](clientMedia.SeriesService())
+	getClientHandler := func(c *gin.Context) ClientSeriesHandlerInterface {
+		clientType := c.Param("clientType")
+		handler, exists := clientHandlerMap[clientType]
+		if !exists {
+			err := fmt.Errorf("unsupported client type: %s", clientType)
+			responses.RespondBadRequest(c, err, "Unsupported client type")
+			return nil
+		}
+		return handler
+	}
+
+	// Client-specific series routes
+	// These routes follow the pattern /clients/:clientType/:clientID/series/...
+	clientSeries := rg.Group("/clients/:clientType/:clientID/series")
+	{
+		// Basic operations
+		clientSeries.GET("/:seriesID", func(c *gin.Context) {
+			getClientHandler(c).GetSeriesByID(c)
+		})
+
+		// Seasons and episodes
+		clientSeries.GET("/:seriesID/seasons", func(c *gin.Context) {
+			getClientHandler(c).GetSeasonsBySeriesID(c)
+		})
+
+		// Discovery endpoints
+		clientSeries.GET("/popular/:count", func(c *gin.Context) {
+			getClientHandler(c).GetPopularSeries(c)
+		})
+
+		clientSeries.GET("/top-rated/:count", func(c *gin.Context) {
+			getClientHandler(c).GetTopRatedSeries(c)
+		})
+
+		clientSeries.GET("/latest/:count", func(c *gin.Context) {
+			getClientHandler(c).GetLatestSeriesByAdded(c)
+		})
+
+		// Filters
+		clientSeries.GET("/genre/:genre", func(c *gin.Context) {
+			getClientHandler(c).GetSeriesByGenre(c)
+		})
+
+		clientSeries.GET("/year/:year", func(c *gin.Context) {
+			getClientHandler(c).GetSeriesByYear(c)
+		})
+
+		clientSeries.GET("/actor/:actor", func(c *gin.Context) {
+			getClientHandler(c).GetSeriesByActor(c)
+		})
+
+		clientSeries.GET("/creator/:creator", func(c *gin.Context) {
+			getClientHandler(c).GetSeriesByCreator(c)
+		})
+
+		// Search endpoint
+		clientSeries.GET("/search", func(c *gin.Context) {
+			getClientHandler(c).SearchSeries(c)
+		})
+
+		// Rating-based filtering
+		clientSeries.GET("/rating", func(c *gin.Context) {
+			getClientHandler(c).GetSeriesByRating(c)
+		})
+	}
 }

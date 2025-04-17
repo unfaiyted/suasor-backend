@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"suasor/app/container"
+	apprepos "suasor/app/repository"
 	"suasor/client"
 	"suasor/client/media"
 	"suasor/client/media/providers"
@@ -20,51 +22,34 @@ import (
 
 // WatchHistorySyncJob synchronizes watched media history from external clients
 type WatchHistorySyncJob struct {
-	jobRepo             repository.JobRepository
-	userRepo            repository.UserRepository
-	configRepo          repository.UserConfigRepository
-	userMovieDataRepo   repository.CoreUserMediaItemDataRepository[*mediatypes.Movie]
-	userSeriesDataRepo  repository.CoreUserMediaItemDataRepository[*mediatypes.Series]
-	userEpisodeDataRepo repository.CoreUserMediaItemDataRepository[*mediatypes.Episode]
-	userMusicDataRepo   repository.CoreUserMediaItemDataRepository[*mediatypes.Track]
-	movieRepo           repository.ClientMediaItemRepository[*mediatypes.Movie]
-	seriesRepo          repository.ClientMediaItemRepository[*mediatypes.Series]
-	episodeRepo         repository.ClientMediaItemRepository[*mediatypes.Episode]
-	musicRepo           repository.ClientMediaItemRepository[*mediatypes.Track]
-	clientRepos         repository.ClientRepositoryCollection
-	clientFactories     *client.ClientFactoryService
+	ctx             context.Context
+	c               *container.Container
+	jobRepo         repository.JobRepository
+	userRepo        repository.UserRepository
+	userConfigRepo  repository.UserConfigRepository
+	clientRepos     apprepos.ClientRepositories
+	dataRepos       apprepos.UserMediaDataRepositories
+	clientItemRepos apprepos.ClientMediaItemRepositories
+	itemRepos       apprepos.CoreMediaItemRepositories
+	clientFactories *client.ClientFactoryService
 }
 
 // NewWatchHistorySyncJob creates a new watch history sync job
 func NewWatchHistorySyncJob(
-	jobRepo repository.JobRepository,
-	userRepo repository.UserRepository,
-	configRepo repository.UserConfigRepository,
-	userMovieDataRepo repository.CoreUserMediaItemDataRepository[*mediatypes.Movie],
-	userSeriesDataRepo repository.CoreUserMediaItemDataRepository[*mediatypes.Series],
-	userEpisodeDataRepo repository.CoreUserMediaItemDataRepository[*mediatypes.Episode],
-	userMusicDataRepo repository.CoreUserMediaItemDataRepository[*mediatypes.Track],
-	movieRepo repository.ClientMediaItemRepository[*mediatypes.Movie],
-	seriesRepo repository.ClientMediaItemRepository[*mediatypes.Series],
-	episodeRepo repository.ClientMediaItemRepository[*mediatypes.Episode],
-	musicRepo repository.ClientMediaItemRepository[*mediatypes.Track],
-	clientRepos repository.ClientRepositoryCollection,
-	clientFactories *client.ClientFactoryService,
+	ctx context.Context,
+	c *container.Container,
 ) *WatchHistorySyncJob {
 	return &WatchHistorySyncJob{
-		jobRepo:             jobRepo,
-		userRepo:            userRepo,
-		configRepo:          configRepo,
-		userMovieDataRepo:   userMovieDataRepo,
-		userSeriesDataRepo:  userSeriesDataRepo,
-		userEpisodeDataRepo: userEpisodeDataRepo,
-		userMusicDataRepo:   userMusicDataRepo,
-		movieRepo:           movieRepo,
-		seriesRepo:          seriesRepo,
-		episodeRepo:         episodeRepo,
-		musicRepo:           musicRepo,
-		clientRepos:         clientRepos,
-		clientFactories:     clientFactories,
+		ctx:             ctx,
+		c:               c,
+		jobRepo:         container.MustGet[repository.JobRepository](c),
+		userRepo:        container.MustGet[repository.UserRepository](c),
+		userConfigRepo:  container.MustGet[repository.UserConfigRepository](c),
+		clientRepos:     container.MustGet[apprepos.ClientRepositories](c),
+		dataRepos:       container.MustGet[apprepos.UserMediaDataRepositories](c),
+		clientItemRepos: container.MustGet[apprepos.ClientMediaItemRepositories](c),
+		itemRepos:       container.MustGet[apprepos.CoreMediaItemRepositories](c),
+		clientFactories: container.MustGet[*client.ClientFactoryService](c),
 	}
 }
 
@@ -111,7 +96,7 @@ func (j *WatchHistorySyncJob) processUserHistory(ctx context.Context, user model
 	}
 
 	// Get user configuration
-	_, err := j.configRepo.GetUserConfig(ctx, user.ID)
+	_, err := j.userConfigRepo.GetUserConfig(ctx, user.ID)
 	if err != nil {
 		return fmt.Errorf("error getting user config: %w", err)
 	}
@@ -133,40 +118,38 @@ func (j *WatchHistorySyncJob) processUserHistory(ctx context.Context, user model
 	}
 
 	// Get all media clients for the user
-	clients, err := j.getUserClientMedias(ctx, user.ID)
+	clients, err := j.clientRepos.GetAllMediaClientsForUser(ctx, user.ID)
 	if err != nil {
 		errorMsg := fmt.Sprintf("Error getting media clients: %v", err)
 		j.completeJobRun(ctx, jobRun.ID, models.JobStatusFailed, errorMsg)
 		return fmt.Errorf(errorMsg)
 	}
 
-	if len(clients) == 0 {
+	if clients.Total == 0 {
 		j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 100, "No media clients found")
 		j.completeJobRun(ctx, jobRun.ID, models.JobStatusCompleted, "No media clients found")
 		return nil
 	}
 
-	j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 10, fmt.Sprintf("Found %d media clients", len(clients)))
+	j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 10, fmt.Sprintf("Found %d media clients", clients.Total))
 
 	// Process each client
-	totalClients := len(clients)
 	processedClients := 0
 	var lastError error
 
-	for i, client := range clients {
+	for i, clientConfig := range clients.Emby {
 		// Update progress
-		progress := 10 + int(float64(i)/float64(totalClients)*80.0)
+		progress := 10 + int(float64(i)/float64(clients.Total)*80.0)
 		j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, progress,
-			fmt.Sprintf("Processing client %d/%d: %s", i+1, totalClients, client.Name))
+			fmt.Sprintf("Processing client %d/%d: %s", i+1, clients.Total, clientConfig.Name))
 
 		// Sync watch history for this client
-		err := j.syncClientHistory(ctx, user.ID, client, jobRun.ID)
+		err := j.syncClientHistory(ctx, user.ID, clientConfig, jobRun.ID)
 		if err != nil {
-			log.Printf("Error syncing history for client %s: %v", client.Name, err)
+			log.Printf("Error syncing history for client %s: %v", clientConfig.Name, err)
 			lastError = err
 			continue
 		}
-
 		processedClients++
 	}
 
@@ -174,13 +157,13 @@ func (j *WatchHistorySyncJob) processUserHistory(ctx context.Context, user model
 	if lastError != nil {
 		errorMsg := fmt.Sprintf("Completed with errors: %v", lastError)
 		j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 100,
-			fmt.Sprintf("Processed %d/%d clients with errors", processedClients, totalClients))
+			fmt.Sprintf("Processed %d/%d clients with errors", processedClients, clients.Total))
 		j.completeJobRun(ctx, jobRun.ID, models.JobStatusFailed, errorMsg)
 		return lastError
 	}
 
 	j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 100,
-		fmt.Sprintf("Successfully processed %d/%d clients", processedClients, totalClients))
+		fmt.Sprintf("Successfully processed %d/%d clients", processedClients, clients.Total))
 	j.completeJobRun(ctx, jobRun.ID, models.JobStatusCompleted, "")
 	return nil
 }
@@ -239,92 +222,92 @@ func (j *WatchHistorySyncJob) RunManualSync(ctx context.Context, userID uint64) 
 }
 
 // getUserClientMedias returns all media clients for a user
-func (j *WatchHistorySyncJob) getUserClientMedias(ctx context.Context, userID uint64) ([]ClientMediaInfo, error) {
-	log := utils.LoggerFromContext(ctx)
-	log.Info().Uint64("userID", userID).Msg("Getting media clients for user")
-
-	var clients []ClientMediaInfo
-
-	// Get all media client types from the repository collection
-	mediaCategoryClients := j.clientRepos.GetAllByCategory(ctx, clienttypes.ClientCategoryMedia)
-
-	// Emby clients
-	embyClients, err := mediaCategoryClients.EmbyRepo.GetByUserID(ctx, userID)
-	if err != nil {
-		log.Warn().Err(err).Msg("Error getting Emby clients")
-	} else {
-		for _, c := range embyClients {
-			clients = append(clients, ClientMediaInfo{
-				ClientID:   c.ID,
-				ClientType: clienttypes.ClientMediaTypeEmby,
-				Name:       c.Name,
-				UserID:     userID,
-			})
-		}
-	}
-
-	// Jellyfin clients
-	jellyfinClients, err := mediaCategoryClients.JellyfinRepo.GetByUserID(ctx, userID)
-	if err != nil {
-		log.Warn().Err(err).Msg("Error getting Jellyfin clients")
-	} else {
-		for _, c := range jellyfinClients {
-			clients = append(clients, ClientMediaInfo{
-				ClientID:   c.ID,
-				ClientType: clienttypes.ClientMediaTypeJellyfin,
-				Name:       c.Name,
-				UserID:     userID,
-			})
-		}
-	}
-
-	// Plex clients
-	plexClients, err := mediaCategoryClients.PlexRepo.GetByUserID(ctx, userID)
-	if err != nil {
-		log.Warn().Err(err).Msg("Error getting Plex clients")
-	} else {
-		for _, c := range plexClients {
-			clients = append(clients, ClientMediaInfo{
-				ClientID:   c.ID,
-				ClientType: clienttypes.ClientMediaTypePlex,
-				Name:       c.Name,
-				UserID:     userID,
-			})
-		}
-	}
-
-	// Subsonic clients (primarily for music)
-	subsonicClients, err := mediaCategoryClients.SubsonicRepo.GetByUserID(ctx, userID)
-	if err != nil {
-		log.Warn().Err(err).Msg("Error getting Subsonic clients")
-	} else {
-		for _, c := range subsonicClients {
-			clients = append(clients, ClientMediaInfo{
-				ClientID:   c.ID,
-				ClientType: clienttypes.ClientMediaTypeSubsonic,
-				Name:       c.Name,
-				UserID:     userID,
-			})
-		}
-	}
-
-	log.Info().Int("clientCount", len(clients)).Msg("Found media clients")
-	return clients, nil
-}
+// func (j *WatchHistorySyncJob) getUserClients(ctx context.Context, userID uint64) ([]ClientMediaInfo, error) {
+// 	log := utils.LoggerFromContext(ctx)
+// 	log.Info().Uint64("userID", userID).Msg("Getting media clients for user")
+//
+// 	var clients []ClientMediaInfo
+//
+// 	// Emby clients
+// 	embyClients, err := j.clientRepos.EmbyRepo.GetByUserID(ctx, userID)
+// 	if err != nil {
+// 		log.Warn().Err(err).Msg("Error getting Emby clients")
+// 	} else {
+// 		for _, c := range embyClients {
+// 			clients = append(clients, ClientMediaInfo{
+// 				ClientID:   c.ID,
+// 				ClientType: clienttypes.ClientMediaTypeEmby,
+// 				Name:       c.Name,
+// 				UserID:     userID,
+// 			})
+// 		}
+// 	}
+//
+// 	// Jellyfin clients
+// 	jellyfinClients, err := mediaCategoryClients.JellyfinRepo.GetByUserID(ctx, userID)
+// 	if err != nil {
+// 		log.Warn().Err(err).Msg("Error getting Jellyfin clients")
+// 	} else {
+// 		for _, c := range jellyfinClients {
+// 			clients = append(clients, ClientMediaInfo{
+// 				ClientID:   c.ID,
+// 				ClientType: clienttypes.ClientMediaTypeJellyfin,
+// 				Name:       c.Name,
+// 				UserID:     userID,
+// 			})
+// 		}
+// 	}
+//
+// 	// Plex clients
+// 	plexClients, err := mediaCategoryClients.PlexRepo.GetByUserID(ctx, userID)
+// 	if err != nil {
+// 		log.Warn().Err(err).Msg("Error getting Plex clients")
+// 	} else {
+// 		for _, c := range plexClients {
+// 			clients = append(clients, ClientMediaInfo{
+// 				ClientID:   c.ID,
+// 				ClientType: clienttypes.ClientMediaTypePlex,
+// 				Name:       c.Name,
+// 				UserID:     userID,
+// 			})
+// 		}
+// 	}
+//
+// 	// Subsonic clients (primarily for music)
+// 	subsonicClients, err := mediaCategoryClients.SubsonicRepo.GetByUserID(ctx, userID)
+// 	if err != nil {
+// 		log.Warn().Err(err).Msg("Error getting Subsonic clients")
+// 	} else {
+// 		for _, c := range subsonicClients {
+// 			clients = append(clients, ClientMediaInfo{
+// 				ClientID:   c.ID,
+// 				ClientType: clienttypes.ClientMediaTypeSubsonic,
+// 				Name:       c.Name,
+// 				UserID:     userID,
+// 			})
+// 		}
+// 	}
+//
+// 	log.Info().Int("clientCount", len(clients)).Msg("Found media clients")
+// 	return clients, nil
+// }
 
 // syncClientHistory syncs watch history for a specific client
-func (j *WatchHistorySyncJob) syncClientHistory(ctx context.Context, userID uint64, client ClientMediaInfo, jobRunID uint64) error {
+func (j *WatchHistorySyncJob) syncClientHistory(ctx context.Context, userID uint64, clientConfig models.Client[clienttypes.ClientConfig], jobRunID uint64) error {
 	// Log the start of synchronization
 	log := utils.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("userID", userID).
-		Uint64("clientID", client.ClientID).
-		Str("clientName", client.Name).
-		Str("clientType", string(client.ClientType)).
+		Uint64("clientID", clientConfig.ID).
+		Str("clientName", clientConfig.Name).
+		Str("clientType", string(clientConfig.GetType())).
 		Msg("Syncing watch history")
 
+	// userConfig, err := j.userConfigRepo.GetUserConfig(ctx, userID)
+	// clientConfig := j.clientRepos.
+
 	// Get the client using client factory
-	clientMedia, err := j.getClientMedia(ctx, client.ClientID, string(client.ClientType))
+	clientMedia, err := j.clientFactories.GetClient(ctx, clientConfig.ID, clientConfig.GetConfig())
 	if err != nil {
 		return fmt.Errorf("failed to get media client: %w", err)
 	}
@@ -341,17 +324,13 @@ func (j *WatchHistorySyncJob) syncClientHistory(ctx context.Context, userID uint
 	// Skip if client doesn't support history
 	if !historyProvider.SupportsHistory() {
 		log.Warn().
-			Str("clientName", client.Name).
+			Str("clientName", clientConfig.Name).
 			Msg("Client doesn't support history - skipping")
 		return nil
 	}
 
 	// Get play history items from the client
-	playHistory, err := historyProvider.GetPlayHistory(ctx, &mediatypes.QueryOptions{
-		Limit:     100, // Limit to 100 most recent items
-		Sort:      "lastPlayedDate",
-		SortOrder: "desc",
-	})
+	playHistory, err := historyProvider.GetPlayHistory(ctx, &mediatypes.QueryOptions{})
 
 	if err != nil {
 		return fmt.Errorf("failed to get play history: %w", err)
@@ -434,7 +413,7 @@ func (j *WatchHistorySyncJob) processMovieHistory(ctx context.Context, userID, c
 	}
 
 	// Look up the movie in our database
-	movieItem, err := j.movieRepo.GetByClientItemID(ctx, clientItemID, clientID)
+	movieItem, err := j.itemRepos.MovieRepo().GetByClientItemID(ctx, clientItemID, clientID)
 	if err != nil {
 		// If we can't find the movie, it might not be synced yet
 		log.Warn().
@@ -461,7 +440,7 @@ func (j *WatchHistorySyncJob) processMovieHistory(ctx context.Context, userID, c
 	historyRecord.Associate(movieItem)
 
 	// Save to database
-	item, err := j.userMovieDataRepo.Create(ctx, &historyRecord)
+	item, err := j.dataRepos.MovieDataRepo().Create(ctx, &historyRecord)
 	if err != nil {
 		return fmt.Errorf("failed to save movie history: %w", err)
 	}
@@ -493,7 +472,7 @@ func (j *WatchHistorySyncJob) processSeriesHistory(ctx context.Context, userID, 
 	}
 
 	// Look up the series in our database
-	seriesItem, err := j.seriesRepo.GetByClientItemID(ctx, clientItemID, clientID)
+	seriesItem, err := j.itemRepos.SeriesRepo().GetByClientItemID(ctx, clientItemID, clientID)
 	if err != nil {
 		// If we can't find the series, it might not be synced yet
 		log.Warn().
@@ -520,7 +499,7 @@ func (j *WatchHistorySyncJob) processSeriesHistory(ctx context.Context, userID, 
 	historyRecord.Associate(seriesItem)
 
 	// Save to database
-	item, err := j.userSeriesDataRepo.Create(ctx, &historyRecord)
+	item, err := j.dataRepos.SeriesDataRepo().Create(ctx, &historyRecord)
 	if err != nil {
 		return fmt.Errorf("failed to save series history: %w", err)
 	}
@@ -553,7 +532,7 @@ func (j *WatchHistorySyncJob) processEpisodeHistory(ctx context.Context, userID,
 	}
 
 	// Look up the episode in our database
-	episodeItem, err := j.episodeRepo.GetByClientItemID(ctx, clientItemID, clientID)
+	episodeItem, err := j.itemRepos.EpisodeRepo().GetByClientItemID(ctx, clientItemID, clientID)
 	if err != nil {
 		// If we can't find the episode, it might not be synced yet
 		log.Warn().
@@ -580,7 +559,7 @@ func (j *WatchHistorySyncJob) processEpisodeHistory(ctx context.Context, userID,
 	historyRecord.Associate(episodeItem)
 
 	// Save to database
-	item, err := j.userEpisodeDataRepo.Create(ctx, &historyRecord)
+	item, err := j.dataRepos.EpisodeDataRepo().Create(ctx, &historyRecord)
 	if err != nil {
 		return fmt.Errorf("failed to save episode history: %w", err)
 	}
@@ -613,7 +592,7 @@ func (j *WatchHistorySyncJob) processMusicHistory(ctx context.Context, userID, c
 	}
 
 	// Look up the track in our database
-	trackItem, err := j.musicRepo.GetByClientItemID(ctx, clientItemID, clientID)
+	trackItem, err := j.itemRepos.TrackRepo().GetByClientItemID(ctx, clientItemID, clientID)
 	if err != nil {
 		// If we can't find the track, it might not be synced yet
 		log.Warn().
@@ -640,7 +619,7 @@ func (j *WatchHistorySyncJob) processMusicHistory(ctx context.Context, userID, c
 	historyRecord.Associate(trackItem)
 
 	// Save to database
-	item, err := j.userMusicDataRepo.Create(ctx, &historyRecord)
+	item, err := j.dataRepos.TrackDataRepo().Create(ctx, &historyRecord)
 	if err != nil {
 		return fmt.Errorf("failed to save track history: %w", err)
 	}
@@ -656,59 +635,61 @@ func (j *WatchHistorySyncJob) processMusicHistory(ctx context.Context, userID, c
 }
 
 // getClientMedia gets a media client from the client factory
-func (j *WatchHistorySyncJob) getClientMedia(ctx context.Context, clientID uint64, clientType string) (media.ClientMedia, error) {
-	log := utils.LoggerFromContext(ctx)
-
-	// Get the client config from the repository
-	var clientConfig clienttypes.ClientConfig
-
-	mediaCategoryClients := j.clientRepos.GetAllByCategory(ctx, clienttypes.ClientCategoryMedia)
-
-	switch clienttypes.ClientMediaType(clientType) {
-	case clienttypes.ClientMediaTypeEmby:
-		c, err := mediaCategoryClients.EmbyRepo.GetByID(ctx, clientID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get emby client: %w", err)
-		}
-		clientConfig = c.GetConfig()
-	case clienttypes.ClientMediaTypeJellyfin:
-		c, err := mediaCategoryClients.JellyfinRepo.GetByID(ctx, clientID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get jellyfin client: %w", err)
-		}
-		clientConfig = c.GetConfig()
-	case clienttypes.ClientMediaTypePlex:
-		c, err := mediaCategoryClients.PlexRepo.GetByID(ctx, clientID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get plex client: %w", err)
-		}
-		clientConfig = c.GetConfig()
-	case clienttypes.ClientMediaTypeSubsonic:
-		c, err := mediaCategoryClients.SubsonicRepo.GetByID(ctx, clientID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get subsonic client: %w", err)
-		}
-		clientConfig = c.GetConfig()
-	default:
-		return nil, fmt.Errorf("unsupported client type: %s", clientType)
-	}
-
-	// Get the client instance
-	clientInstance, err := j.clientFactories.GetClient(ctx, clientID, clientConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get client: %w", err)
-	}
-
-	// Cast to media client
-	clientMedia, ok := clientInstance.(media.ClientMedia)
-	if !ok {
-		return nil, fmt.Errorf("client is not a media client")
-	}
-
-	log.Info().
-		Uint64("clientID", clientID).
-		Str("clientType", clientType).
-		Msg("Successfully retrieved and initialized media client")
-
-	return clientMedia, nil
-}
+// func (j *WatchHistorySyncJob) getClientMedia(ctx context.Context, clientID uint64, clientType string) (media.ClientMedia, error) {
+// 	log := utils.LoggerFromContext(ctx)
+//
+// 	// Get the client config from the repository
+// 	var clientConfig clienttypes.ClientConfig
+//
+// 	mediaCategoryClients, err := j.clientRepos.GetAllMediaClientsForUser(ctx, userID)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to get media clients for user: %w", err)
+// 	}
+// 	switch clienttypes.ClientMediaType(clientType) {
+// 	case clienttypes.ClientMediaTypeEmby:
+// 		c, err := mediaCategoryClients.EmbyRepo.GetByID(ctx, clientID)
+// 		if err != nil {
+// 			return nil, fmt.Errorf("failed to get emby client: %w", err)
+// 		}
+// 		clientConfig = c.GetConfig()
+// 	case clienttypes.ClientMediaTypeJellyfin:
+// 		c, err := mediaCategoryClients.JellyfinRepo.GetByID(ctx, clientID)
+// 		if err != nil {
+// 			return nil, fmt.Errorf("failed to get jellyfin client: %w", err)
+// 		}
+// 		clientConfig = c.GetConfig()
+// 	case clienttypes.ClientMediaTypePlex:
+// 		c, err := mediaCategoryClients.PlexRepo.GetByID(ctx, clientID)
+// 		if err != nil {
+// 			return nil, fmt.Errorf("failed to get plex client: %w", err)
+// 		}
+// 		clientConfig = c.GetConfig()
+// 	case clienttypes.ClientMediaTypeSubsonic:
+// 		c, err := mediaCategoryClients.SubsonicRepo.GetByID(ctx, clientID)
+// 		if err != nil {
+// 			return nil, fmt.Errorf("failed to get subsonic client: %w", err)
+// 		}
+// 		clientConfig = c.GetConfig()
+// 	default:
+// 		return nil, fmt.Errorf("unsupported client type: %s", clientType)
+// 	}
+//
+// 	// Get the client instance
+// 	clientInstance, err := j.clientFactories.GetClient(ctx, clientID, clientConfig)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to get client: %w", err)
+// 	}
+//
+// 	// Cast to media client
+// 	clientMedia, ok := clientInstance.(media.ClientMedia)
+// 	if !ok {
+// 		return nil, fmt.Errorf("client is not a media client")
+// 	}
+//
+// 	log.Info().
+// 		Uint64("clientID", clientID).
+// 		Str("clientType", clientType).
+// 		Msg("Successfully retrieved and initialized media client")
+//
+// 	return clientMedia, nil
+// }

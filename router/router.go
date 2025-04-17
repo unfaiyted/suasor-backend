@@ -38,7 +38,9 @@ func Setup(ctx context.Context, c *container.Container) *gin.Engine {
 	healthService := container.MustGet[services.HealthService](c)
 	authService := container.MustGet[services.AuthService](c)
 
+	// {base}/health
 	RegisterHealthRoutes(v1, healthService)
+	// {base}/auth
 	RegisterAuthRoutes(v1, authService)
 
 	// Serve static avatar files
@@ -48,26 +50,47 @@ func Setup(ctx context.Context, c *container.Container) *gin.Engine {
 	authenticated := v1.Group("")
 	authenticated.Use(middleware.VerifyToken(authService))
 	{
-		// Register all routes
+		// User Centric Data
+		// {base}/user/
 		RegisterUserRoutes(authenticated, c)
+
+		// {base}/user-config/
 		RegisterUserConfigRoutes(authenticated, c)
-		RegisterMediaItemRoutes(authenticated, c)
-		RegisterClientMediaRoutes(authenticated, c)
-		RegisterLocalMediaItemRoutes(authenticated, c)    // Register direct media item routes (non-client specific)
-		RegisterUserMediaItemDataRoutes(authenticated, c) // Register media play history routes
-		RegisterMetadataRoutes(authenticated)             // Register metadata routes
-		RegisterAIRoutes(authenticated, c)                // Register AI routes
-		RegisterClientsRoutes(authenticated, c)           // Register all clients route
-		RegisterJobRoutes(authenticated, c)               // Register job routes
-		RegisterRecommendationRoutes(authenticated, c)    // Register recommendation routes
-		RegisterSearchRoutes(authenticated, c)            // Register search routes
+
+		// {base}/media-data/
+		RegisterMediaItemDataRoutes(authenticated, c) // Register media play history routes
+
+		// {base}/media/
+		RegisterMediaRoutes(authenticated, c)
+
+		// {base}/people/
+		RegisterPeopleBasedRoutes(authenticated, c)
+
+		// {base}/metadata/
+		RegisterMetadataRoutes(authenticated, c) // Register metadata routes
+
+		// {base}/playlists or {base}/collections
+		RegisterMediaListRoutes(authenticated, c)
+
+		// {base}/ai/
+		RegisterAIRoutes(authenticated, c) // Register AI routes
+		// {base}/clients/
+		RegisterClientsRoutes(authenticated, c) // Register all clients route
+		// {base}/jobs/
+		RegisterJobRoutes(authenticated, c) // Register job routes
+		// {base}/recommendations/
+		RegisterRecommendationRoutes(authenticated, c) // Register recommendation routes
+		// {base}/search/
+		RegisterSearchRoutes(authenticated, c) // Register search routes
 	}
 
 	//Admin Routes
 	adminRoutes := v1.Group("/admin")
 	adminRoutes.Use(middleware.VerifyToken(authService), middleware.RequireRole("admin"))
 	{
+		// {base}/admin/config/
 		RegisterConfigRoutes(adminRoutes, configService)
+		// {base}/admin/client/
 		RegisterClientRoutes(adminRoutes, c)
 	}
 

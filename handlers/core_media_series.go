@@ -14,6 +14,7 @@ import (
 
 // CoreSeriesHandler handles operations for series items in the database
 type CoreSeriesHandler struct {
+	CoreMediaItemHandler[mediatypes.Series]
 	seriesService  services.CoreMediaItemService[*mediatypes.Series]
 	seasonService  services.CoreMediaItemService[*mediatypes.Season]
 	episodeService services.CoreMediaItemService[*mediatypes.Episode]
@@ -447,4 +448,3 @@ func (h *CoreSeriesHandler) GetSeriesByNetwork(c *gin.Context) {
 
 	responses.RespondOK(c, filteredSeries, "Series retrieved successfully")
 }
-

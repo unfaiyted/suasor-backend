@@ -18,25 +18,12 @@ type ClientRepository[T types.ClientConfig] interface {
 	Update(ctx context.Context, client models.Client[T]) (*models.Client[T], error)
 
 	// Common operations
+	GetAll(ctx context.Context) []*models.Client[T]
 	GetByID(ctx context.Context, id uint64) (*models.Client[T], error)
 	GetByUserID(ctx context.Context, userID uint64) ([]*models.Client[T], error)
 	GetByCategory(ctx context.Context, clientType types.ClientCategory, userID uint64) ([]*models.Client[T], error)
 	GetByType(ctx context.Context, clientType types.ClientType, userID uint64) ([]*models.Client[T], error)
 	Delete(ctx context.Context, id, userID uint64) error
-}
-
-// ClientRepoCollection is a struct that contains all typed client repositories
-type ClientRepoCollection struct {
-	EmbyRepo     ClientRepository[*types.EmbyConfig]
-	JellyfinRepo ClientRepository[*types.JellyfinConfig]
-	PlexRepo     ClientRepository[*types.PlexConfig]
-	SubsonicRepo ClientRepository[*types.SubsonicConfig]
-	SonarrRepo   ClientRepository[*types.SonarrConfig]
-	RadarrRepo   ClientRepository[*types.RadarrConfig]
-	LidarrRepo   ClientRepository[*types.LidarrConfig]
-	ClaudeRepo   ClientRepository[*types.ClaudeConfig]
-	OpenAIRepo   ClientRepository[*types.OpenAIConfig]
-	OllamaRepo   ClientRepository[*types.OllamaConfig]
 }
 
 type clientRepository[T types.ClientConfig] struct {

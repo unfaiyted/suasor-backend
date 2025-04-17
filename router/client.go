@@ -4,7 +4,8 @@ package router
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"suasor/app"
+	"suasor/app/container"
+	"suasor/app/handlers"
 	"suasor/types/responses"
 	"suasor/utils"
 )
@@ -22,20 +23,22 @@ type ClientHandlerInterface interface {
 }
 
 // SetupClientRoutes configures routes for client endpoints
-func RegisterClientRoutes(r *gin.RouterGroup, deps *app.AppDependencies) {
+func RegisterClientRoutes(r *gin.RouterGroup, c *container.Container) {
+
+	clientHandlers := container.MustGet[handlers.ClientHandlers](c)
 
 	// Create a map of client type to handler using the interface
 	handlerMap := map[string]ClientHandlerInterface{
-		"emby":     deps.ClientHandlers.EmbyHandler(),
-		"jellyfin": deps.ClientHandlers.JellyfinHandler(),
-		"subsonic": deps.ClientHandlers.SubsonicHandler(),
-		"plex":     deps.ClientHandlers.PlexHandler(),
+		"emby":     clientHandlers.EmbyClientHandler(),
+		"jellyfin": clientHandlers.JellyfinClientHandler(),
+		"subsonic": clientHandlers.SubsonicClientHandler(),
+		"plex":     clientHandlers.PlexClientHandler(),
 
-		"sonarr": deps.ClientHandlers.SonarrHandler(),
-		"radarr": deps.ClientHandlers.RadarrHandler(),
-		"lidarr": deps.ClientHandlers.LidarrHandler(),
+		"sonarr": clientHandlers.SonarrClientHandler(),
+		"radarr": clientHandlers.RadarrClientHandler(),
+		"lidarr": clientHandlers.LidarrClientHandler(),
 
-		"claude": deps.ClientHandlers.ClaudeHandler(),
+		"claude": clientHandlers.ClaudeClientHandler(),
 	}
 
 	// Helper function to get the appropriate handler

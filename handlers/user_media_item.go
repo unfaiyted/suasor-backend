@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"net/http"
 
 	"suasor/client/media/types"
 	"suasor/services"
@@ -304,10 +305,12 @@ func (h *UserMediaItemHandler[T]) CreateUserMediaItem(c *gin.Context) {
 	// This will depend on your data structure, but generally for user-owned content
 	// you'll need to set owner ID in the appropriate field within the data property
 	// For example, if ItemList is the structure for playlists/collections:
-	if mediaItem.Data != nil {
+	if &mediaItem.Data != nil {
 		// Assuming your media data might have an ItemList property for collections/playlists
 		// Check if we can set the owner field
-		if itemList, ok := hasItemList(mediaItem.Data); ok {
+		// Playlist and collections have an ItemList property
+		// TODO move logic to playlist handling
+		if itemList, ok := h.hasItemList(mediaItem.Data); ok {
 			itemList.OwnerID = userID
 		}
 	}
@@ -392,7 +395,7 @@ func (h *UserMediaItemHandler[T]) UpdateUserMediaItem(c *gin.Context) {
 
 	// Verify that the user owns this item
 	// This will depend on your data structure
-	if !isUserOwned(existingItem.Data, userID) {
+	if !h.isUserOwned(existingItem.Data, userID) {
 		log.Warn().
 			Uint64("userID", userID).
 			Uint64("itemID", itemID).
@@ -402,11 +405,11 @@ func (h *UserMediaItemHandler[T]) UpdateUserMediaItem(c *gin.Context) {
 	}
 
 	// Ensure the item maintains the same owner
-	if mediaItem.Data != nil {
+	if &mediaItem.Data != nil {
 		// Assuming your media data might have an ItemList property for collections/playlists
 		// Check if we can set the owner field
-		if itemList, ok := hasItemList(mediaItem.Data); ok {
-			itemList.Owner = userID
+		if itemList, ok := h.hasItemList(mediaItem.Data); ok {
+			itemList.OwnerID = userID
 		}
 	}
 
@@ -479,7 +482,7 @@ func (h *UserMediaItemHandler[T]) DeleteUserMediaItem(c *gin.Context) {
 	}
 
 	// Verify that the user owns this item
-	if !isUserOwned(existingItem.Data, userID) {
+	if !h.isUserOwned(existingItem.Data, userID) {
 		log.Warn().
 			Uint64("userID", userID).
 			Uint64("itemID", itemID).
@@ -508,12 +511,12 @@ func (h *UserMediaItemHandler[T]) DeleteUserMediaItem(c *gin.Context) {
 		Uint64("userID", userID).
 		Uint64("itemID", itemID).
 		Msg("User-owned media item deleted successfully")
-	responses.RespondOK(c, nil, "Media item deleted successfully")
+	responses.RespondOK(c, http.StatusOK, "Media item deleted successfully")
 }
 
 // Helper function to check if a mediaData has an ItemList property
 // and returns the ItemList for modification
-func hasItemList(mediaData T) (*types.ItemList, bool) {
+func (h *UserMediaItemHandler[T]) hasItemList(mediaData T) (*types.ItemList, bool) {
 	// Implementation depends on your specific types.MediaData structure
 	// This is just a placeholder - you'll need to implement based on your actual structure
 
@@ -531,20 +534,19 @@ func hasItemList(mediaData T) (*types.ItemList, bool) {
 }
 
 // Helper function to check if a mediaData item is owned by a specific user
-func isUserOwned(mediaData T, userID uint64) bool {
+func (h *UserMediaItemHandler[T]) isUserOwned(mediaData T, userID uint64) bool {
 	// Implementation depends on your specific types.MediaData structure
 	// This is just a placeholder - you'll need to implement based on your actual structure
 
 	// Check for playlist ownership
 	if playlist, ok := any(mediaData).(*types.Playlist); ok && playlist != nil {
-		return playlist.ItemList.Owner == userID
+		return playlist.ItemList.OwnerID == userID
 	}
 
 	// Check for collection ownership
 	if collection, ok := any(mediaData).(*types.Collection); ok && collection != nil {
-		return collection.ItemList.Owner == userID
+		return collection.ItemList.OwnerID == userID
 	}
 
 	return false
 }
-

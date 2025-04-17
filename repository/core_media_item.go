@@ -28,9 +28,10 @@ import (
 // This focuses solely on the media items themselves without user or client associations
 type MediaItemRepository[T types.MediaData] interface {
 	// Core CRUD operations
-	Create(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error)
-	Update(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error)
+	Create(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error)
+	Update(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error)
 	GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error)
+	GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error)
 	GetByClientItemID(ctx context.Context, clientItemID string, clientID uint64) (*models.MediaItem[T], error)
 	GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error)
 	Delete(ctx context.Context, id uint64) error
@@ -38,8 +39,8 @@ type MediaItemRepository[T types.MediaData] interface {
 	// Batch operations
 	GetMediaItemsByIDs(ctx context.Context, ids []uint64) ([]*models.MediaItem[T], error)
 	GetMixedMediaItemsByIDs(ctx context.Context, ids []uint64) (*models.MediaItems, error)
-	BatchCreate(ctx context.Context, items []models.MediaItem[T]) ([]*models.MediaItem[T], error)
-	BatchUpdate(ctx context.Context, items []models.MediaItem[T]) ([]*models.MediaItem[T], error)
+	BatchCreate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error)
+	BatchUpdate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error)
 
 	// Query operations
 	GetByType(ctx context.Context, mediaType types.MediaType) ([]*models.MediaItem[T], error)
@@ -47,8 +48,8 @@ type MediaItemRepository[T types.MediaData] interface {
 	Search(ctx context.Context, query types.QueryOptions) ([]*models.MediaItem[T], error)
 
 	// Specialized queries
-	GetRecentItems(ctx context.Context, mediaType types.MediaType, days int, limit int) ([]*models.MediaItem[T], error)
-	GetPopularItems(ctx context.Context, mediaType types.MediaType, limit int) ([]*models.MediaItem[T], error)
+	GetRecentItems(ctx context.Context, days int, limit int) ([]*models.MediaItem[T], error)
+	GetPopularItems(ctx context.Context, limit int) ([]*models.MediaItem[T], error)
 	GetItemsByAttributes(ctx context.Context, attributes map[string]interface{}, limit int) ([]*models.MediaItem[T], error)
 }
 
@@ -62,7 +63,7 @@ func NewMediaItemRepository[T types.MediaData](db *gorm.DB) MediaItemRepository[
 }
 
 // Create adds a new media item to the database
-func (r *mediaItemRepository[T]) Create(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error) {
+func (r *mediaItemRepository[T]) Create(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Str("type", string(item.Type)).
@@ -71,11 +72,11 @@ func (r *mediaItemRepository[T]) Create(ctx context.Context, item models.MediaIt
 	if err := r.db.WithContext(ctx).Create(&item).Error; err != nil {
 		return nil, fmt.Errorf("failed to create media item: %w", err)
 	}
-	return &item, nil
+	return item, nil
 }
 
 // Update modifies an existing media item
-func (r *mediaItemRepository[T]) Update(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error) {
+func (r *mediaItemRepository[T]) Update(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("id", item.ID).
@@ -98,7 +99,7 @@ func (r *mediaItemRepository[T]) Update(ctx context.Context, item models.MediaIt
 	if err := r.db.WithContext(ctx).Save(&item).Error; err != nil {
 		return nil, fmt.Errorf("failed to update media item: %w", err)
 	}
-	return &item, nil
+	return item, nil
 }
 
 // GetByID retrieves a media item by its ID
@@ -158,7 +159,7 @@ func (r *mediaItemRepository[T]) GetMediaItemsByIDs(ctx context.Context, ids []u
 }
 
 // BatchCreate adds multiple media items to the database
-func (r *mediaItemRepository[T]) BatchCreate(ctx context.Context, items []models.MediaItem[T]) ([]*models.MediaItem[T], error) {
+func (r *mediaItemRepository[T]) BatchCreate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Int("count", len(items)).
@@ -179,7 +180,7 @@ func (r *mediaItemRepository[T]) BatchCreate(ctx context.Context, items []models
 			tx.Rollback()
 			return nil, fmt.Errorf("failed to create media item: %w", err)
 		}
-		createdItems = append(createdItems, &items[i])
+		createdItems = append(createdItems, items[i])
 	}
 
 	// Commit the transaction
@@ -191,7 +192,7 @@ func (r *mediaItemRepository[T]) BatchCreate(ctx context.Context, items []models
 }
 
 // BatchUpdate modifies multiple media items
-func (r *mediaItemRepository[T]) BatchUpdate(ctx context.Context, items []models.MediaItem[T]) ([]*models.MediaItem[T], error) {
+func (r *mediaItemRepository[T]) BatchUpdate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Int("count", len(items)).
@@ -225,7 +226,7 @@ func (r *mediaItemRepository[T]) BatchUpdate(ctx context.Context, items []models
 			return nil, fmt.Errorf("failed to update media item: %w", err)
 		}
 
-		updatedItems = append(updatedItems, &items[i])
+		updatedItems = append(updatedItems, items[i])
 	}
 
 	// Commit the transaction
@@ -325,8 +326,12 @@ func (r *mediaItemRepository[T]) Search(ctx context.Context, query types.QueryOp
 }
 
 // GetRecentItems retrieves recently added items of a specific type
-func (r *mediaItemRepository[T]) GetRecentItems(ctx context.Context, mediaType types.MediaType, days int, limit int) ([]*models.MediaItem[T], error) {
+func (r *mediaItemRepository[T]) GetRecentItems(ctx context.Context, days int, limit int) ([]*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
+
+	var zero T
+	mediaType := types.GetMediaTypeFromTypeName(zero)
+
 	log.Debug().
 		Str("type", string(mediaType)).
 		Int("days", days).
@@ -360,8 +365,12 @@ func (r *mediaItemRepository[T]) GetRecentItems(ctx context.Context, mediaType t
 // GetPopularItems retrieves popular items of a specific type
 // Note: This implementation assumes a "play_count" or similar field in the data JSON
 // You may need to adapt this based on your actual schema
-func (r *mediaItemRepository[T]) GetPopularItems(ctx context.Context, mediaType types.MediaType, limit int) ([]*models.MediaItem[T], error) {
+func (r *mediaItemRepository[T]) GetPopularItems(ctx context.Context, limit int) ([]*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
+
+	var zero T
+	mediaType := types.GetMediaTypeFromTypeName(zero)
+
 	log.Debug().
 		Str("type", string(mediaType)).
 		Int("limit", limit).
@@ -529,4 +538,35 @@ func (r *mediaItemRepository[T]) GetByClientItemID(ctx context.Context, clientIt
 	}
 
 	return item, nil
+}
+
+func (r *mediaItemRepository[T]) GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error) {
+	var items []*models.MediaItem[T]
+	log := utils.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("userID", userID).
+		Msg("Getting media items by user ID")
+
+	var zero T
+	mediaType := types.GetMediaTypeFromTypeName(zero)
+
+	if mediaType == types.MediaTypePlaylist || mediaType == types.MediaTypeCollection {
+
+		// Should for now be limited to user-owned playlists and collections
+		query := r.db.WithContext(ctx).
+			Where("type IN (?) AND data->'ItemList'->>'Owner' = ?", mediaType, userID)
+
+		if err := query.Find(&items).Error; err != nil {
+			log.Error().Err(err).Msg("Failed to get media items")
+			return nil, fmt.Errorf("failed to get media items for user: %w", err)
+		}
+
+		log.Info().
+			Int("count", len(items)).
+			Msg("Media items retrieved successfully")
+
+		return items, nil
+	}
+	return nil, fmt.Errorf("media type not supported")
+
 }

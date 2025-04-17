@@ -17,7 +17,8 @@ import (
 
 // UserPlaylistHandler handles user-specific operations for playlists
 type UserPlaylistHandler struct {
-	userPlaylistService services.UserMediaItemService[*mediatypes.Playlist]
+	mediaItemService    services.UserMediaItemService[*mediatypes.Playlist]
+	userPlaylistService services.UserPlaylistService
 	playlistService     services.PlaylistService
 }
 
@@ -43,7 +44,7 @@ func NewUserPlaylistHandler(
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/playlists [get]
-func (h *UserPlaylistHandler) GetUserPlaylists(c *gin.Context) {
+func (h *UserPlaylistHandler) GetAll(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -91,7 +92,7 @@ func (h *UserPlaylistHandler) GetUserPlaylists(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/playlists [post]
-func (h *UserPlaylistHandler) CreatePlaylist(c *gin.Context) {
+func (h *UserPlaylistHandler) Create(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -188,7 +189,7 @@ func (h *UserPlaylistHandler) CreatePlaylist(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Playlist not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/playlists/{id} [put]
-func (h *UserPlaylistHandler) UpdatePlaylist(c *gin.Context) {
+func (h *UserPlaylistHandler) Update(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -282,7 +283,7 @@ func (h *UserPlaylistHandler) UpdatePlaylist(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Playlist not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/playlists/{id} [delete]
-func (h *UserPlaylistHandler) DeletePlaylist(c *gin.Context) {
+func (h *UserPlaylistHandler) Delete(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -363,7 +364,7 @@ func (h *UserPlaylistHandler) DeletePlaylist(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Playlist not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/playlists/{id}/tracks [post]
-func (h *UserPlaylistHandler) AddTrackToPlaylist(c *gin.Context) {
+func (h *UserPlaylistHandler) AddItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -465,7 +466,7 @@ func (h *UserPlaylistHandler) AddTrackToPlaylist(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Playlist not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/playlists/{id}/tracks/{trackId} [delete]
-func (h *UserPlaylistHandler) RemoveTrackFromPlaylist(c *gin.Context) {
+func (h *UserPlaylistHandler) RemoveItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -549,4 +550,103 @@ func (h *UserPlaylistHandler) RemoveTrackFromPlaylist(c *gin.Context) {
 		Uint64("trackID", trackID).
 		Msg("Track removed from playlist successfully")
 	responses.RespondOK(c, updatedPlaylist, "Track removed from playlist successfully")
+}
+
+// Reorder godoc
+// @Summary Reorder playlist items
+// @Description Reorders the items in a playlist
+// @Tags playlists
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Playlist ID"
+// @Param request body requests.PlaylistReorderRequest true "Reorder request"
+// @Success 200 {object} responses.APIResponse[models.MediaItem[*types.Playlist]] "Playlist reordered successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
+// @Failure 403 {object} responses.ErrorResponse[any] "Forbidden"
+// @Failure 404 {object} responses.ErrorResponse[any] "Playlist not found"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /user/playlists/{id}/reorder [post]
+func (h *UserPlaylistHandler) ReorderItems(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	// Get authenticated user ID
+	userID, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("Attempt to reorder playlist without authentication")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
+		return
+	}
+
+	uid := userID.(uint64)
+
+	// Parse playlist ID
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid playlist ID")
+		responses.RespondBadRequest(c, err, "Invalid playlist ID")
+		return
+	}
+
+	// Parse request body
+	var req requests.PlaylistReorderRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Warn().Err(err).Msg("Invalid request body")
+		responses.RespondBadRequest(c, err, "Invalid request body")
+		return
+	}
+
+	log.Debug().
+		Uint64("userID", uid).
+		Uint64("playlistID", id).
+		Msg("Reordering playlist items")
+
+	// Get existing playlist
+	existingPlaylist, err := h.userPlaylistService.GetByID(ctx, id)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("playlistID", id).
+			Msg("Failed to retrieve playlist")
+		responses.RespondNotFound(c, err, "Playlist not found")
+		return
+	}
+
+	// Check if user owns the playlist
+	if existingPlaylist.Data.OwnerID != uid {
+		log.Warn().
+			Uint64("userID", uid).
+			Uint64("ownerID", existingPlaylist.Data.OwnerID).
+			Uint64("playlistID", id).
+			Msg("User does not own the playlist")
+		responses.RespondForbidden(c, nil, "You do not have permission to reorder this playlist")
+		return
+	}
+
+	// Reorder playlist items
+	err = h.userPlaylistService.ReorderItems(ctx, id, req.ItemIDs)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("playlistID", id).
+			Msg("Failed to reorder playlist items")
+		responses.RespondInternalError(c, err, "Failed to reorder playlist items")
+		return
+	}
+
+	// Get updated playlist
+	updatedPlaylist, err := h.userPlaylistService.GetByID(ctx, id)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("playlistID", id).
+			Msg("Failed to retrieve updated playlist")
+		responses.RespondInternalError(c, err, "Failed to retrieve updated playlist")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("playlistID", id).
+		Msg("Playlist reordered successfully")
+	responses.RespondOK(c, updatedPlaylist, "Playlist reordered successfully")
 }

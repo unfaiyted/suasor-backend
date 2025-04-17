@@ -9,6 +9,41 @@ import (
 	"errors"
 )
 
+type Clients struct {
+	Emby     []*Client[*client.EmbyConfig]
+	Jellyfin []*Client[*client.JellyfinConfig]
+	Plex     []*Client[*client.PlexConfig]
+	Subsonic []*Client[*client.SubsonicConfig]
+	Sonarr   []*Client[*client.SonarrConfig]
+	Radarr   []*Client[*client.RadarrConfig]
+	Lidarr   []*Client[*client.LidarrConfig]
+	Claude   []*Client[*client.ClaudeConfig]
+	OpenAI   []*Client[*client.OpenAIConfig]
+	Ollama   []*Client[*client.OllamaConfig]
+
+	Total int
+}
+
+type AIClients struct {
+	Claude []*Client[*client.ClaudeConfig]
+	OpenAI []*Client[*client.OpenAIConfig]
+	Ollama []*Client[*client.OllamaConfig]
+
+	Total int
+}
+
+type AutomationClients struct {
+	Sonarr []*Client[*client.SonarrConfig]
+	Radarr []*Client[*client.RadarrConfig]
+	Lidarr []*Client[*client.LidarrConfig]
+
+	Total int
+}
+
+type MetadataClients struct {
+	// Tmdb []*Client[*client.TmdbConfig]
+}
+
 // Client represents a download client configuration
 type Client[T client.ClientConfig] struct {
 	BaseModel
@@ -18,6 +53,10 @@ type Client[T client.ClientConfig] struct {
 	Config    ClientConfigWrapper[T] `json:"config" gorm:"type:jsonb"`
 	Name      string                 `json:"name" gorm:"not null"`
 	IsEnabled bool                   `json:"isEnabled" gorm:"default:true"`
+}
+
+func (c Client[T]) GetConfig() T {
+	return c.Config.Data
 }
 
 func (c Client[T]) SupportsMovies() bool {

@@ -43,7 +43,7 @@ func NewUserCollectionHandler(
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/collections [get]
-func (h *UserCollectionHandler) GetUserCollections(c *gin.Context) {
+func (h *UserCollectionHandler) GetUser(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -91,7 +91,7 @@ func (h *UserCollectionHandler) GetUserCollections(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/collections [post]
-func (h *UserCollectionHandler) CreateCollection(c *gin.Context) {
+func (h *UserCollectionHandler) Create(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -169,7 +169,7 @@ func (h *UserCollectionHandler) CreateCollection(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Collection not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/collections/{id} [put]
-func (h *UserCollectionHandler) UpdateCollection(c *gin.Context) {
+func (h *UserCollectionHandler) Update(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -263,7 +263,7 @@ func (h *UserCollectionHandler) UpdateCollection(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Collection not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/collections/{id} [delete]
-func (h *UserCollectionHandler) DeleteCollection(c *gin.Context) {
+func (h *UserCollectionHandler) Delete(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -344,7 +344,7 @@ func (h *UserCollectionHandler) DeleteCollection(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Collection not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/collections/{id}/items [post]
-func (h *UserCollectionHandler) AddItemToCollection(c *gin.Context) {
+func (h *UserCollectionHandler) AddItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -447,7 +447,7 @@ func (h *UserCollectionHandler) AddItemToCollection(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Collection not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/collections/{id}/items/{itemId} [delete]
-func (h *UserCollectionHandler) RemoveItemFromCollection(c *gin.Context) {
+func (h *UserCollectionHandler) RemoveItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 

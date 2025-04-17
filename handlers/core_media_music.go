@@ -14,9 +14,10 @@ import (
 
 // CoreMusicHandler handles operations for music items in the database
 type CoreMusicHandler struct {
+	CoreMediaItemHandler[mediatypes.Artist]
+	artistService services.CoreMediaItemService[*mediatypes.Artist]
 	trackService  services.CoreMediaItemService[*mediatypes.Track]
 	albumService  services.CoreMediaItemService[*mediatypes.Album]
-	artistService services.CoreMediaItemService[*mediatypes.Artist]
 }
 
 // NewCoreMusicHandler creates a new core music handler

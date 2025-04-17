@@ -38,13 +38,20 @@ type MediaDataFactory interface {
 	// --- HANDLER FACTORIES --- //
 
 	// (MediaItem) Handlers
-	CreateCoreMediaItemHandlers(coreServices services.CoreMediaItemServices) handlers.CoreMediaItemHandlers
-	CreateUserMediaItemHandlers(userServices services.UserMediaItemServices, userDataServices services.UserMediaItemServices, coreHandlers handlers.CoreMediaItemHandlers) handlers.UserMediaItemHandlers
-	CreateClientMediaItemHandlers(clientServices services.ClientMediaItemServices, dataServices services.UserMediaItemServices, userHandlers handlers.UserMediaItemHandlers) handlers.ClientMediaItemHandlers
+	CreateCoreMediaItemHandlers(
+		coreServices services.CoreMediaItemServices,
+	) handlers.CoreMediaItemHandlers
+	CreateUserMediaItemHandlers(
+		userServices services.UserMediaItemServices,
+		coreHandlers handlers.CoreMediaItemHandlers,
+	) handlers.UserMediaItemHandlers
+	CreateClientMediaItemHandlers(clientServices services.ClientMediaItemServices,
+		dataServices services.UserMediaItemServices,
+		userHandlers handlers.UserMediaItemHandlers,
+	) handlers.ClientMediaItemHandlers
 
 	// (MediaData) Handlers
 	CreateCoreDataHandlers(coreServices services.CoreUserMediaItemDataServices) handlers.CoreMediaItemDataHandlers
 	CreateUserDataHandlers(userServices services.UserMediaItemDataServices, coreDataHandlers handlers.CoreMediaItemDataHandlers) handlers.UserMediaItemDataHandlers
 	CreateClientDataHandlers(dataServices services.ClientUserMediaItemDataServices, userDataHandlers handlers.UserMediaItemDataHandlers) handlers.ClientMediaItemDataHandlers
 }
-

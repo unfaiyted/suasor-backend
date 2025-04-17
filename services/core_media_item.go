@@ -290,3 +290,29 @@ func (s *coreMediaItemService[T]) GetAll(ctx context.Context, limit int, offset 
 
 	return results, nil
 }
+
+func (s *coreMediaItemService[T]) GetByClientItemID(ctx context.Context, clientItemID string, clientID uint64) (*models.MediaItem[T], error) {
+	log := utils.LoggerFromContext(ctx)
+	log.Debug().
+		Str("clientItemID", clientItemID).
+		Uint64("clientID", clientID).
+		Msg("Getting media item by client item ID")
+
+	// Delegate to repository
+	result, err := s.repo.GetByClientItemID(ctx, clientItemID, clientID)
+	if err != nil {
+		log.Error().Err(err).
+			Str("clientItemID", clientItemID).
+			Uint64("clientID", clientID).
+			Msg("Failed to get media item by client item ID")
+		return nil, err
+	}
+
+	log.Debug().
+		Str("clientItemID", clientItemID).
+		Uint64("clientID", clientID).
+		Str("type", string(result.Type)).
+		Msg("Media item retrieved by client item ID")
+
+	return result, nil
+}

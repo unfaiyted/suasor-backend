@@ -104,7 +104,7 @@ func (h *UserMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) {
 	responses.RespondOK(c, history, "Play history retrieved successfully")
 }
 
-// GetContinueWatching godoc
+// GetContinuePlaying godoc
 // @Summary Get a user's continue watching list
 // @Description Get media items that a user has started but not completed
 // @Tags History
@@ -118,7 +118,7 @@ func (h *UserMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/continue-watching [get]
-func (h *UserMediaItemDataHandler[T]) GetContinueWatching(c *gin.Context) {
+func (h *UserMediaItemDataHandler[T]) GetContinuePlaying(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 

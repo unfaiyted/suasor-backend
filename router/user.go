@@ -8,7 +8,7 @@ import (
 
 func RegisterUserRoutes(rg *gin.RouterGroup, c *container.Container) {
 	userHandlers := container.MustGet[handlers.UserHandler](c)
-	users := rg.Group("/users")
+	users := rg.Group("/user")
 	{
 		// Public routes
 		users.POST("/register", userHandlers.Register)

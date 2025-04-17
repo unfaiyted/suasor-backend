@@ -28,16 +28,14 @@ import (
 // This specifically focuses on playlists, collections, and other user-owned media
 // (as opposed to media from external clients)
 type UserMediaItemRepository[T types.MediaData] interface {
+	MediaItemRepository[T]
 	// Basic CRUD operations
-	Create(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error)
-	Update(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error)
 	GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error)
 	Delete(ctx context.Context, id uint64) error
 
 	// User-specific operations
 	GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error)
 	GetUserContent(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[T], error)
-	GetRecentItems(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[T], error)
 
 	// General retrieval operations
 	GetByType(ctx context.Context, mediaType types.MediaType) ([]*models.MediaItem[T], error)
@@ -54,16 +52,51 @@ func NewUserMediaItemRepository[T types.MediaData](db *gorm.DB) UserMediaItemRep
 	return &userMediaItemRepository[T]{db: db}
 }
 
+func (r *userMediaItemRepository[T]) GetItemsByAttributes(ctx context.Context, attributes map[string]interface{}, limit int) ([]*models.MediaItem[T], error) {
+	return r.GetItemsByAttributes(ctx, attributes, limit)
+}
+
+func (r *userMediaItemRepository[T]) GetMixedMediaItemsByIDs(ctx context.Context, ids []uint64) (*models.MediaItems, error) {
+	return r.GetMixedMediaItemsByIDs(ctx, ids)
+}
+
+func (r *userMediaItemRepository[T]) GetPopularItems(ctx context.Context, limit int) ([]*models.MediaItem[T], error) {
+	options := types.QueryOptions{
+		MediaType: types.MediaTypeAll,
+		Limit:     limit,
+	}
+	return r.Search(ctx, options)
+}
+
+func (r *userMediaItemRepository[T]) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error) {
+	return r.GetAll(ctx, limit, offset)
+}
+func (r *userMediaItemRepository[T]) GetMediaItemsByIDs(ctx context.Context, ids []uint64) ([]*models.MediaItem[T], error) {
+	return r.GetMediaItemsByIDs(ctx, ids)
+}
+
+func (r *userMediaItemRepository[T]) GetByClientItemID(ctx context.Context, clientItemID string, clientID uint64) (*models.MediaItem[T], error) {
+	return r.GetByClientItemID(ctx, clientItemID, clientID)
+}
+
+func (r *userMediaItemRepository[T]) BatchCreate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error) {
+	return r.BatchCreate(ctx, items)
+}
+
+func (r *userMediaItemRepository[T]) BatchUpdate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error) {
+	return r.BatchUpdate(ctx, items)
+}
+
 // Create adds a new user-owned media item to the database
-func (r *userMediaItemRepository[T]) Create(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error) {
+func (r *userMediaItemRepository[T]) Create(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error) {
 	if err := r.db.WithContext(ctx).Create(&item).Error; err != nil {
 		return nil, fmt.Errorf("failed to create %s media item: %w", item.Type, err)
 	}
-	return &item, nil
+	return item, nil
 }
 
 // Update modifies an existing user-owned media item
-func (r *userMediaItemRepository[T]) Update(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error) {
+func (r *userMediaItemRepository[T]) Update(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error) {
 	// Get existing record first to check if it exists and preserve createdAt
 	var existing models.MediaItem[T]
 
@@ -81,7 +114,7 @@ func (r *userMediaItemRepository[T]) Update(ctx context.Context, item models.Med
 	if err := r.db.WithContext(ctx).Save(&item).Error; err != nil {
 		return nil, fmt.Errorf("failed to update media item: %w", err)
 	}
-	return &item, nil
+	return item, nil
 }
 
 // GetByID retrieves a user-owned media item by its ID
@@ -289,15 +322,16 @@ func (r *userMediaItemRepository[T]) GetUserContent(ctx context.Context, userID 
 	return items, nil
 }
 
-func (r *userMediaItemRepository[T]) GetRecentItems(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[T], error) {
+func (r *userMediaItemRepository[T]) GetRecentItems(ctx context.Context, days int, limit int) ([]*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Uint64("userID", userID).
 		Int("limit", limit).
 		Msg("Getting recent user-owned content")
 
 	var items []*models.MediaItem[T]
+	userID := ctx.Value("userID").(uint64)
 
+	// TODO: Add logic to filter on days
 	// Query for all user-owned content types
 	query := r.db.WithContext(ctx).Where(
 		"(type = ? OR type = ?) AND (data->'ItemList'->>'Owner')::integer = ?",

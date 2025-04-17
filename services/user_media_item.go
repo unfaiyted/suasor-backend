@@ -57,6 +57,10 @@ func (s *userMediaItemService[T]) GetByID(ctx context.Context, id uint64) (*mode
 	return s.coreService.GetByID(ctx, id)
 }
 
+func (s *userMediaItemService[T]) GetByClientItemID(ctx context.Context, clientItemID string, clientID uint64) (*models.MediaItem[T], error) {
+	return s.coreService.GetByClientItemID(ctx, clientItemID, clientID)
+}
+
 func (s *userMediaItemService[T]) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error) {
 	return s.coreService.GetAll(ctx, limit, offset)
 }
