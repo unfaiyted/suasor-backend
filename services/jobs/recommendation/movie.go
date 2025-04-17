@@ -856,7 +856,7 @@ func (j *RecommendationJob) processMovieHistory(ctx context.Context, profile *Us
 
 		// Get detailed movie information if available
 		if history.MediaItemID > 0 {
-			movie, err := j.movieRepo.GetByID(ctx, history.MediaItemID)
+			movie, err := j.itemRepos.MovieRepo().GetByID(ctx, history.MediaItemID)
 			if err != nil || movie == nil || movie.Data == nil {
 				continue
 			}

@@ -174,4 +174,3 @@ func (h *ClientMediaItemHelper) SyncClientsList(ctx context.Context, clientID ui
 
 	return mapping, nil
 }
-

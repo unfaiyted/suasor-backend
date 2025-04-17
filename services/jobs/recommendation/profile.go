@@ -66,7 +66,7 @@ func (j *RecommendationJob) buildUserPreferenceProfile(ctx context.Context, user
 	}
 
 	// Get user's movie watch history
-	movieHistory, err := j.userMovieDataRepo.GetUserHistory(ctx, userID, 100, 0)
+	movieHistory, err := j.dataRepos.MovieDataRepo().GetUserHistory(ctx, userID, 100, 0)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get movie history")
 		return nil, fmt.Errorf("failed to get movie history: %w", err)
@@ -76,7 +76,7 @@ func (j *RecommendationJob) buildUserPreferenceProfile(ctx context.Context, user
 	j.processMovieHistory(ctx, profile, movieHistory)
 
 	// Get user's series watch history
-	seriesHistory, err := j.userSeriesDataRepo.GetUserHistory(ctx, userID, 100, 0)
+	seriesHistory, err := j.dataRepos.SeriesDataRepo().GetUserHistory(ctx, userID, 100, 0)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get series history")
 		// Don't return - continue with what we have
@@ -86,7 +86,7 @@ func (j *RecommendationJob) buildUserPreferenceProfile(ctx context.Context, user
 	}
 
 	// Get user's music play history
-	musicHistory, err := j.userMusicDataRepo.GetUserHistory(ctx, userID, 100, 0)
+	musicHistory, err := j.dataRepos.TrackDataRepo().GetUserHistory(ctx, userID, 100, 0)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get music history")
 		// Don't return - continue with what we have

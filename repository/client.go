@@ -18,7 +18,6 @@ type ClientRepository[T types.ClientConfig] interface {
 	Update(ctx context.Context, client models.Client[T]) (*models.Client[T], error)
 
 	// Common operations
-	GetAll(ctx context.Context) []*models.Client[T]
 	GetByID(ctx context.Context, id uint64) (*models.Client[T], error)
 	GetByUserID(ctx context.Context, userID uint64) ([]*models.Client[T], error)
 	GetByCategory(ctx context.Context, clientType types.ClientCategory, userID uint64) ([]*models.Client[T], error)

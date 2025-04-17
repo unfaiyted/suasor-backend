@@ -73,7 +73,7 @@ func (j *RecommendationJob) processMusicHistoryImpl(ctx context.Context, profile
 
 		// Get detailed music information if available
 		if history.MediaItemID > 0 {
-			track, err := j.musicRepo.GetByID(ctx, history.MediaItemID)
+			track, err := j.itemRepos.TrackRepo().GetByID(ctx, history.MediaItemID)
 			if err != nil || track == nil || track.Data == nil {
 				continue
 			}
@@ -665,7 +665,7 @@ func (j *RecommendationJob) processMusicHistory(ctx context.Context, profile *Us
 
 		// Get detailed music information if available
 		if history.MediaItemID > 0 {
-			track, err := j.musicRepo.GetByID(ctx, history.MediaItemID)
+			track, err := j.itemRepos.TrackRepo().GetByID(ctx, history.MediaItemID)
 			if err != nil || track == nil || track.Data == nil {
 				continue
 			}

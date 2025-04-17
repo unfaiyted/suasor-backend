@@ -168,10 +168,6 @@ func (c *Client[T]) GetCategory() client.ClientCategory {
 	return c.Category
 }
 
-func (c *Client[T]) GetConfig() client.ClientConfig {
-	return c.Config.Data
-}
-
 func (c *Client[T]) GetName() string {
 	return c.Name
 }

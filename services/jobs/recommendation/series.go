@@ -20,7 +20,7 @@ func (j *RecommendationJob) generateSeriesRecommendations(ctx context.Context, j
 		Msg("Generating TV series recommendations")
 
 	// Get existing series in the user's library
-	seriesList, err := j.seriesRepo.GetByUserID(ctx, user.ID)
+	seriesList, err := j.itemRepos.SeriesRepo().GetByUserID(ctx, user.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get user's TV series")
 		return err
@@ -472,7 +472,7 @@ func (j *RecommendationJob) processSeriesHistory(ctx context.Context, profile *U
 
 		// Get detailed series information if available
 		if history.MediaItemID > 0 {
-			series, err := j.seriesRepo.GetByID(ctx, history.MediaItemID)
+			series, err := j.itemRepos.SeriesRepo().GetByID(ctx, history.MediaItemID)
 			if err != nil || series == nil || series.Data == nil {
 				continue
 			}

@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"suasor/app/container"
+	apprepos "suasor/app/repository"
 	"suasor/client"
 	"suasor/client/ai"
-	mediatypes "suasor/client/media/types"
 	"suasor/repository"
 	"suasor/types/models"
 	"suasor/utils"
@@ -17,58 +18,47 @@ import (
 
 // RecommendationJob creates recommendations for users based on their preferences
 type RecommendationJob struct {
+	ctx                context.Context
+	c                  *container.Container
 	jobRepo            repository.JobRepository
 	userRepo           repository.UserRepository
-	configRepo         repository.UserConfigRepository
-	movieRepo          repository.ClientMediaItemRepository[*mediatypes.Movie]
-	seriesRepo         repository.ClientMediaItemRepository[*mediatypes.Series]
-	musicRepo          repository.ClientMediaItemRepository[*mediatypes.Track]
-	userMovieDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Movie]
-	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series]
-	userMusicDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Track]
-	clientRepos        repository.ClientRepositoryCollection
-	clientFactories    *client.ClientFactoryService
-	recommendationRepo repository.RecommendationRepository // Added for storing recommendations
+	userConfigRepo     repository.UserConfigRepository
+	recommendationRepo repository.RecommendationRepository
+	clientRepos        apprepos.ClientRepositories
+	itemRepos          apprepos.CoreMediaItemRepositories
+	clientItemRepos    apprepos.ClientMediaItemRepositories
+	dataRepos          apprepos.UserMediaDataRepositories
 
 	// New repositories for credits and people
-	creditRepo repository.CreditRepository // Will be implemented in the future
-	peopleRepo repository.PersonRepository // Will be implemented in the future
+	clientFactories *client.ClientFactoryService
+	creditRepo      repository.CreditRepository // Will be implemented in the future
+	peopleRepo      repository.PersonRepository // Will be implemented in the future
 }
 
 // NewRecommendationJob creates a new recommendation job
 func NewRecommendationJob(
+	ctx context.Context,
+	c *container.Container,
 	jobRepo repository.JobRepository,
 	userRepo repository.UserRepository,
-	configRepo repository.UserConfigRepository,
-	movieRepo repository.ClientMediaItemRepository[*mediatypes.Movie],
-	seriesRepo repository.ClientMediaItemRepository[*mediatypes.Series],
-	musicRepo repository.ClientMediaItemRepository[*mediatypes.Track],
-	userMovieDataRepo repository.UserMediaItemDataRepository[*mediatypes.Movie],
-	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series],
-	userMusicDataRepo repository.UserMediaItemDataRepository[*mediatypes.Track],
-	clientRepos repository.ClientRepositoryCollection,
+	userConfigRepo repository.UserConfigRepository,
+	recommendationRepo repository.RecommendationRepository,
 	clientFactories *client.ClientFactoryService,
-	// Optional repositories for credits and people - can be nil for now
 	creditRepo repository.CreditRepository,
 	peopleRepo repository.PersonRepository,
-	// Added for storing recommendations
-	recommendationRepo repository.RecommendationRepository,
+
 ) *RecommendationJob {
 	return &RecommendationJob{
-		jobRepo:            jobRepo,
-		userRepo:           userRepo,
-		configRepo:         configRepo,
-		movieRepo:          movieRepo,
-		seriesRepo:         seriesRepo,
-		musicRepo:          musicRepo,
-		userMovieDataRepo:  userMovieDataRepo,
-		userSeriesDataRepo: userSeriesDataRepo,
-		userMusicDataRepo:  userMusicDataRepo,
-		clientRepos:        clientRepos,
-		clientFactories:    clientFactories,
-		creditRepo:         creditRepo,
-		peopleRepo:         peopleRepo,
-		recommendationRepo: recommendationRepo,
+		ctx:                ctx,
+		c:                  c,
+		jobRepo:            container.MustGet[repository.JobRepository](c),
+		userRepo:           container.MustGet[repository.UserRepository](c),
+		userConfigRepo:     container.MustGet[repository.UserConfigRepository](c),
+		recommendationRepo: container.MustGet[repository.RecommendationRepository](c),
+		clientFactories:    container.MustGet[*client.ClientFactoryService](c),
+		clientRepos:        container.MustGet[apprepos.ClientRepositories](c),
+		creditRepo:         container.MustGet[repository.CreditRepository](c),
+		peopleRepo:         container.MustGet[repository.PersonRepository](c),
 	}
 }
 
@@ -78,7 +68,7 @@ func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.
 	logger := log.Logger{} // would ideally use structured logging from context
 
 	// Get user config to check for default AI client
-	config, err := j.configRepo.GetUserConfig(ctx, userID)
+	config, err := j.userConfigRepo.GetUserConfig(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("error getting user config: %w", err)
 	}
@@ -86,7 +76,7 @@ func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.
 	// First try to get the default AI client if set
 	if config.DefaultClients != nil && config.DefaultClients.AIClientID > 0 {
 		// Try Claude repository first
-		claudeRepo := j.clientRepos.AllRepos().ClaudeRepo
+		claudeRepo := j.clientRepos.ClaudeRepo()
 		if claudeRepo != nil {
 			claudeClient, err := claudeRepo.GetByID(ctx, config.DefaultClients.AIClientID)
 			if err == nil && claudeClient != nil {
@@ -100,7 +90,7 @@ func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.
 		}
 
 		// Try OpenAI repository next
-		openAIRepo := j.clientRepos.AllRepos().OpenAIRepo
+		openAIRepo := j.clientRepos.OpenAIRepo()
 		if openAIRepo != nil {
 			openAIClient, err := openAIRepo.GetByID(ctx, config.DefaultClients.AIClientID)
 			if err == nil && openAIClient != nil {
@@ -114,7 +104,7 @@ func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.
 		}
 
 		// Try Ollama repository next
-		ollamaRepo := j.clientRepos.AllRepos().OllamaRepo
+		ollamaRepo := j.clientRepos.OllamaRepo()
 		if ollamaRepo != nil {
 			ollamaClient, err := ollamaRepo.GetByID(ctx, config.DefaultClients.AIClientID)
 			if err == nil && ollamaClient != nil {
@@ -132,10 +122,8 @@ func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.
 			config.DefaultClients.AIClientID, userID)
 	}
 
-	// If default client not set or couldn't be loaded, try to get any AI client
-
 	// Try Claude clients first
-	claudeRepo := j.clientRepos.AllRepos().ClaudeRepo
+	claudeRepo := j.clientRepos.ClaudeRepo()
 	if claudeRepo != nil {
 		claudeClients, err := claudeRepo.GetByUserID(ctx, userID)
 		if err == nil && len(claudeClients) > 0 {
@@ -151,7 +139,7 @@ func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.
 	}
 
 	// Try OpenAI clients next
-	openAIRepo := j.clientRepos.AllRepos().OpenAIRepo
+	openAIRepo := j.clientRepos.OpenAIRepo()
 	if openAIRepo != nil {
 		openAIClients, err := openAIRepo.GetByUserID(ctx, userID)
 		if err == nil && len(openAIClients) > 0 {
@@ -167,7 +155,7 @@ func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.
 	}
 
 	// Try Ollama clients next
-	ollamaRepo := j.clientRepos.AllRepos().OllamaRepo
+	ollamaRepo := j.clientRepos.OllamaRepo()
 	if ollamaRepo != nil {
 		ollamaClients, err := ollamaRepo.GetByUserID(ctx, userID)
 		if err == nil && len(ollamaClients) > 0 {
@@ -261,7 +249,7 @@ func (j *RecommendationJob) processUserRecommendations(ctx context.Context, jobR
 	log.Info().Msg("Processing recommendations for user")
 
 	// Get user configuration
-	config, err := j.configRepo.GetUserConfig(ctx, user.ID)
+	config, err := j.userConfigRepo.GetUserConfig(ctx, user.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get user configuration")
 		return err

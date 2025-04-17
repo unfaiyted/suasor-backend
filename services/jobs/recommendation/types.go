@@ -154,4 +154,3 @@ type MovieRecommendation struct {
 	RecommendedBy    string    `json:"recommendedBy"`    // Recommendation source (AI, similar users, etc.)
 	Timestamp        time.Time `json:"timestamp"`        // When the recommendation was generated
 }
-
