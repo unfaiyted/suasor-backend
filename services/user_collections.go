@@ -20,8 +20,7 @@ type UserCollectionService interface {
 
 	// User-specific operations
 	GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[*mediatypes.Collection], error)
-	SearchUserCollections(ctx context.Context, query mediatypes.QueryOptions, userID uint64) ([]*models.MediaItem[*mediatypes.Collection], error)
-	GetRecentUserCollections(ctx context.Context, limit int) ([]*models.MediaItem[*mediatypes.Collection], error)
+	GetRecent(ctx context.Context, days int, limit int) ([]*models.MediaItem[*mediatypes.Collection], error)
 
 	// Smart collections and sharing
 	CreateSmartCollection(ctx context.Context, userID uint64, name string, criteria map[string]interface{}) (*models.MediaItem[*mediatypes.Collection], error)
@@ -370,7 +369,7 @@ func (s *userCollectionService) SearchUserCollections(ctx context.Context, query
 }
 
 // GetRecentUserCollections retrieves recently updated collections for a user
-func (s *userCollectionService) GetRecentUserCollections(ctx context.Context, limit int) ([]*models.MediaItem[*mediatypes.Collection], error) {
+func (s *userCollectionService) GetRecent(ctx context.Context, days int, limit int) ([]*models.MediaItem[*mediatypes.Collection], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	userID := ctx.Value("userID").(uint64)
@@ -381,7 +380,7 @@ func (s *userCollectionService) GetRecentUserCollections(ctx context.Context, li
 		Msg("Getting recent user collections")
 
 	// Use the repository directly for user-specific recent content
-	results, err := s.userRepo.GetRecentItems(ctx, userID, limit)
+	results, err := s.userRepo.GetRecentItems(ctx, days, limit)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).

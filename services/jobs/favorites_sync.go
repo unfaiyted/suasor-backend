@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"suasor/app/container"
+	apprepos "suasor/app/repository"
 	"suasor/client"
 	"suasor/client/media"
 	"suasor/client/media/providers"
@@ -17,55 +19,34 @@ import (
 	"suasor/utils"
 )
 
-// Using ClientMediaInfo from common.go
-
 // FavoritesSyncJob synchronizes favorite/liked media from external clients
 type FavoritesSyncJob struct {
-	jobRepo             repository.JobRepository
-	userRepo            repository.UserRepository
-	configRepo          repository.UserConfigRepository
-	userMovieDataRepo   repository.UserMediaItemDataRepository[*mediatypes.Movie]
-	userSeriesDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Series]
-	userEpisodeDataRepo repository.UserMediaItemDataRepository[*mediatypes.Episode]
-	userMusicDataRepo   repository.UserMediaItemDataRepository[*mediatypes.Track]
-	movieRepo           repository.ClientMediaItemRepository[*mediatypes.Movie]
-	seriesRepo          repository.ClientMediaItemRepository[*mediatypes.Series]
-	episodeRepo         repository.ClientMediaItemRepository[*mediatypes.Episode]
-	musicRepo           repository.ClientMediaItemRepository[*mediatypes.Track]
-	clientRepos         repository.ClientRepositoryCollection
-	clientFactories     *client.ClientFactoryService
+	ctx             context.Context
+	c               *container.Container
+	jobRepo         repository.JobRepository
+	userRepo        repository.UserRepository
+	userConfigRepo  repository.UserConfigRepository
+	clientRepos     apprepos.ClientRepositories
+	dataRepos       apprepos.UserMediaDataRepositories
+	clientItemRepos apprepos.ClientMediaItemRepositories
+	itemRepos       apprepos.CoreMediaItemRepositories
+	clientFactories *client.ClientFactoryService
 }
 
 // NewFavoritesSyncJob creates a new favorites sync job
 func NewFavoritesSyncJob(
-	jobRepo repository.JobRepository,
-	userRepo repository.UserRepository,
-	configRepo repository.UserConfigRepository,
-	userMovieDataRepo repository.UserMediaItemDataRepository[*mediatypes.Movie],
-	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series],
-	userEpisodeDataRepo repository.UserMediaItemDataRepository[*mediatypes.Episode],
-	userMusicDataRepo repository.UserMediaItemDataRepository[*mediatypes.Track],
-	movieRepo repository.ClientMediaItemRepository[*mediatypes.Movie],
-	seriesRepo repository.ClientMediaItemRepository[*mediatypes.Series],
-	episodeRepo repository.ClientMediaItemRepository[*mediatypes.Episode],
-	musicRepo repository.ClientMediaItemRepository[*mediatypes.Track],
-	clientRepos repository.ClientRepositoryCollection,
-	clientFactories *client.ClientFactoryService,
+	ctx context.Context,
+	c *container.Container,
 ) *FavoritesSyncJob {
 	return &FavoritesSyncJob{
-		jobRepo:             jobRepo,
-		userRepo:            userRepo,
-		configRepo:          configRepo,
-		userMovieDataRepo:   userMovieDataRepo,
-		userSeriesDataRepo:  userSeriesDataRepo,
-		userEpisodeDataRepo: userEpisodeDataRepo,
-		userMusicDataRepo:   userMusicDataRepo,
-		movieRepo:           movieRepo,
-		seriesRepo:          seriesRepo,
-		episodeRepo:         episodeRepo,
-		musicRepo:           musicRepo,
-		clientRepos:         clientRepos,
-		clientFactories:     clientFactories,
+		jobRepo:         container.MustGet[repository.JobRepository](c),
+		userRepo:        container.MustGet[repository.UserRepository](c),
+		userConfigRepo:  container.MustGet[repository.UserConfigRepository](c),
+		clientRepos:     container.MustGet[apprepos.ClientRepositories](c),
+		dataRepos:       container.MustGet[apprepos.UserMediaDataRepositories](c),
+		clientItemRepos: container.MustGet[apprepos.ClientMediaItemRepositories](c),
+		itemRepos:       container.MustGet[apprepos.CoreMediaItemRepositories](c),
+		clientFactories: container.MustGet[*client.ClientFactoryService](c),
 	}
 }
 
@@ -112,7 +93,7 @@ func (j *FavoritesSyncJob) processUserFavorites(ctx context.Context, user models
 	}
 
 	// Get user configuration
-	config, err := j.configRepo.GetUserConfig(ctx, user.ID)
+	config, err := j.userConfigRepo.GetUserConfig(ctx, user.ID)
 	if err != nil {
 		return fmt.Errorf("error getting user config: %w", err)
 	}
@@ -254,10 +235,9 @@ func (j *FavoritesSyncJob) getUserClientMedias(ctx context.Context, userID uint6
 	var clients []ClientMediaInfo
 
 	// Get all media client types from the repository collection
-	mediaCategoryClients := j.clientRepos.GetAllByCategory(ctx, clienttypes.ClientCategoryMedia)
 
 	// Emby clients
-	embyClients, err := mediaCategoryClients.EmbyRepo.GetByUserID(ctx, userID)
+	embyClients, err := j.clientRepos.EmbyRepo().GetByUserID(ctx, userID)
 	if err != nil {
 		log.Warn().Err(err).Msg("Error getting Emby clients")
 	} else {
@@ -272,7 +252,7 @@ func (j *FavoritesSyncJob) getUserClientMedias(ctx context.Context, userID uint6
 	}
 
 	// Jellyfin clients
-	jellyfinClients, err := mediaCategoryClients.JellyfinRepo.GetByUserID(ctx, userID)
+	jellyfinClients, err := j.clientRepos.JellyfinRepo().GetByUserID(ctx, userID)
 	if err != nil {
 		log.Warn().Err(err).Msg("Error getting Jellyfin clients")
 	} else {
@@ -287,7 +267,7 @@ func (j *FavoritesSyncJob) getUserClientMedias(ctx context.Context, userID uint6
 	}
 
 	// Plex clients
-	plexClients, err := mediaCategoryClients.PlexRepo.GetByUserID(ctx, userID)
+	plexClients, err := j.clientRepos.PlexRepo().GetByUserID(ctx, userID)
 	if err != nil {
 		log.Warn().Err(err).Msg("Error getting Plex clients")
 	} else {
@@ -302,7 +282,7 @@ func (j *FavoritesSyncJob) getUserClientMedias(ctx context.Context, userID uint6
 	}
 
 	// Subsonic clients (primarily for music)
-	subsonicClients, err := mediaCategoryClients.SubsonicRepo.GetByUserID(ctx, userID)
+	subsonicClients, err := j.clientRepos.SubsonicRepo().GetByUserID(ctx, userID)
 	if err != nil {
 		log.Warn().Err(err).Msg("Error getting Subsonic clients")
 	} else {
@@ -428,7 +408,7 @@ func (j *FavoritesSyncJob) syncMovieFavorites(ctx context.Context, userID, clien
 		}
 
 		// Get the movie from database
-		existingMovie, err := j.movieRepo.GetByClientItemID(ctx, clientItemID, clientID)
+		existingMovie, err := j.itemRepos.MovieRepo().GetByClientItemID(ctx, clientItemID, clientID)
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -440,12 +420,12 @@ func (j *FavoritesSyncJob) syncMovieFavorites(ctx context.Context, userID, clien
 
 		// Create or update history record to mark as favorite
 		// First, check if there's already a history record
-		hasViewed, err := j.userMovieDataRepo.HasUserViewedMedia(ctx, userID, existingMovie.ID)
+		hasViewed, err := j.dataRepos.MovieDataRepo().HasUserViewedMedia(ctx, userID, existingMovie.ID)
 
 		// Create or update history
 		if hasViewed {
 			// Get existing history (we'll need to implement a method to get history by user and media item)
-			playCount, _ := j.userMovieDataRepo.GetItemPlayCount(ctx, userID, existingMovie.ID)
+			playCount, _ := j.dataRepos.MovieDataRepo().GetItemPlayCount(ctx, userID, existingMovie.ID)
 
 			// Create new history record (timestamp is needed since we don't have a way to update existing record)
 			historyRecord := models.UserMediaItemData[*mediatypes.Movie]{
@@ -463,7 +443,7 @@ func (j *FavoritesSyncJob) syncMovieFavorites(ctx context.Context, userID, clien
 			historyRecord.Associate(existingMovie)
 
 			// Save to database
-			item, err := j.userMovieDataRepo.Create(ctx, &historyRecord)
+			item, err := j.dataRepos.MovieDataRepo().Create(ctx, &historyRecord)
 			if err != nil {
 				log.Warn().
 					Err(err).
@@ -493,7 +473,7 @@ func (j *FavoritesSyncJob) syncMovieFavorites(ctx context.Context, userID, clien
 			historyRecord.Associate(existingMovie)
 
 			// Save to database
-			item, err := j.userMovieDataRepo.Create(ctx, &historyRecord)
+			item, err := j.dataRepos.MovieDataRepo().Create(ctx, &historyRecord)
 			if err != nil {
 				log.Warn().
 					Err(err).
@@ -510,7 +490,7 @@ func (j *FavoritesSyncJob) syncMovieFavorites(ctx context.Context, userID, clien
 
 		// Also update the movie's favorite status in the MediaItem
 		existingMovie.Data.Details.IsFavorite = true
-		_, err = j.movieRepo.Update(ctx, *existingMovie)
+		_, err = j.itemRepos.MovieRepo().Update(ctx, existingMovie)
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -579,7 +559,7 @@ func (j *FavoritesSyncJob) syncSeriesFavorites(ctx context.Context, userID, clie
 		}
 
 		// Get the series from database
-		existingSeries, err := j.seriesRepo.GetByClientItemID(ctx, clientItemID, clientID)
+		existingSeries, err := j.itemRepos.SeriesRepo().GetByClientItemID(ctx, clientItemID, clientID)
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -591,12 +571,12 @@ func (j *FavoritesSyncJob) syncSeriesFavorites(ctx context.Context, userID, clie
 
 		// Create or update history record to mark as favorite
 		// First, check if there's already a history record
-		hasViewed, err := j.userSeriesDataRepo.HasUserViewedMedia(ctx, userID, existingSeries.ID)
+		hasViewed, err := j.dataRepos.SeriesDataRepo().HasUserViewedMedia(ctx, userID, existingSeries.ID)
 
 		// Create or update history
 		if hasViewed {
 			// Get existing play count
-			playCount, _ := j.userSeriesDataRepo.GetItemPlayCount(ctx, userID, existingSeries.ID)
+			playCount, _ := j.dataRepos.SeriesDataRepo().GetItemPlayCount(ctx, userID, existingSeries.ID)
 
 			// Create new history record (timestamp is needed since we don't have a way to update existing record)
 			historyRecord := models.UserMediaItemData[*mediatypes.Series]{
@@ -614,7 +594,7 @@ func (j *FavoritesSyncJob) syncSeriesFavorites(ctx context.Context, userID, clie
 			historyRecord.Associate(existingSeries)
 
 			// Save to database
-			item, err := j.userSeriesDataRepo.Create(ctx, &historyRecord)
+			item, err := j.dataRepos.SeriesDataRepo().Create(ctx, &historyRecord)
 			if err != nil {
 				log.Warn().
 					Err(err).
@@ -622,6 +602,7 @@ func (j *FavoritesSyncJob) syncSeriesFavorites(ctx context.Context, userID, clie
 					Msg("Failed to update series favorite status in history")
 				continue
 			}
+
 			log.Debug().
 				Str("seriesTitle", existingSeries.Title).
 				Time("watchedAt", item.PlayedAt).
@@ -644,7 +625,7 @@ func (j *FavoritesSyncJob) syncSeriesFavorites(ctx context.Context, userID, clie
 			historyRecord.Associate(existingSeries)
 
 			// Save to database
-			item, err := j.userSeriesDataRepo.Create(ctx, &historyRecord)
+			item, err := j.dataRepos.SeriesDataRepo().Create(ctx, &historyRecord)
 			if err != nil {
 				log.Warn().
 					Err(err).
@@ -661,7 +642,7 @@ func (j *FavoritesSyncJob) syncSeriesFavorites(ctx context.Context, userID, clie
 
 		// Also update the series's favorite status in the MediaItem
 		existingSeries.Data.Details.IsFavorite = true
-		_, err = j.seriesRepo.Update(ctx, *existingSeries)
+		_, err = j.itemRepos.SeriesRepo().Update(ctx, existingSeries)
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -738,7 +719,7 @@ func (j *FavoritesSyncJob) syncMusicFavorites(ctx context.Context, userID, clien
 		}
 
 		// Get the track from database
-		existingTrack, err := j.musicRepo.GetByClientItemID(ctx, clientItemID, clientID)
+		existingTrack, err := j.itemRepos.TrackRepo().GetByClientItemID(ctx, clientItemID, clientID)
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -750,12 +731,12 @@ func (j *FavoritesSyncJob) syncMusicFavorites(ctx context.Context, userID, clien
 
 		// Create or update history record to mark as favorite
 		// First, check if there's already a history record
-		hasPlayed, err := j.userMusicDataRepo.HasUserViewedMedia(ctx, userID, existingTrack.ID)
+		hasPlayed, err := j.dataRepos.TrackDataRepo().HasUserViewedMedia(ctx, userID, existingTrack.ID)
 
 		// Create or update history
 		if hasPlayed {
 			// Get existing play count
-			playCount, _ := j.userMusicDataRepo.GetItemPlayCount(ctx, userID, existingTrack.ID)
+			playCount, _ := j.dataRepos.TrackDataRepo().GetItemPlayCount(ctx, userID, existingTrack.ID)
 
 			// Create new history record (timestamp is needed since we don't have a way to update existing record)
 			historyRecord := models.UserMediaItemData[*mediatypes.Track]{
@@ -773,7 +754,7 @@ func (j *FavoritesSyncJob) syncMusicFavorites(ctx context.Context, userID, clien
 			historyRecord.Associate(existingTrack)
 
 			// Save to database
-			item, err := j.userMusicDataRepo.Create(ctx, &historyRecord)
+			item, err := j.dataRepos.TrackDataRepo().Create(ctx, &historyRecord)
 			if err != nil {
 				log.Warn().
 					Err(err).
@@ -803,7 +784,7 @@ func (j *FavoritesSyncJob) syncMusicFavorites(ctx context.Context, userID, clien
 			historyRecord.Associate(existingTrack)
 
 			// Save to database
-			item, err := j.userMusicDataRepo.Create(ctx, &historyRecord)
+			item, err := j.dataRepos.TrackDataRepo().Create(ctx, &historyRecord)
 			if err != nil {
 				log.Warn().
 					Err(err).
@@ -820,7 +801,7 @@ func (j *FavoritesSyncJob) syncMusicFavorites(ctx context.Context, userID, clien
 
 		// Also update the track's favorite status in the MediaItem
 		existingTrack.Data.Details.IsFavorite = true
-		_, err = j.musicRepo.Update(ctx, *existingTrack)
+		_, err = j.itemRepos.TrackRepo().Update(ctx, existingTrack)
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -846,29 +827,27 @@ func (j *FavoritesSyncJob) getClientMedia(ctx context.Context, clientID uint64, 
 	// Get the client config from the repository
 	var clientConfig clienttypes.ClientConfig
 
-	mediaCategoryClients := j.clientRepos.GetAllByCategory(ctx, clienttypes.ClientCategoryMedia)
-
 	switch clienttypes.ClientMediaType(clientType) {
 	case clienttypes.ClientMediaTypeEmby:
-		c, err := mediaCategoryClients.EmbyRepo.GetByID(ctx, clientID)
+		c, err := j.clientRepos.EmbyRepo().GetByID(ctx, clientID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get emby client: %w", err)
 		}
 		clientConfig = c.GetConfig()
 	case clienttypes.ClientMediaTypeJellyfin:
-		c, err := mediaCategoryClients.JellyfinRepo.GetByID(ctx, clientID)
+		c, err := j.clientRepos.JellyfinRepo().GetByID(ctx, clientID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get jellyfin client: %w", err)
 		}
 		clientConfig = c.GetConfig()
 	case clienttypes.ClientMediaTypePlex:
-		c, err := mediaCategoryClients.PlexRepo.GetByID(ctx, clientID)
+		c, err := j.clientRepos.PlexRepo().GetByID(ctx, clientID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get plex client: %w", err)
 		}
 		clientConfig = c.GetConfig()
 	case clienttypes.ClientMediaTypeSubsonic:
-		c, err := mediaCategoryClients.SubsonicRepo.GetByID(ctx, clientID)
+		c, err := j.clientRepos.SubsonicRepo().GetByID(ctx, clientID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get subsonic client: %w", err)
 		}

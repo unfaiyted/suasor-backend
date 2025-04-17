@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"suasor/app/container"
+	apprepos "suasor/app/repository"
 	mediatypes "suasor/client/media/types"
 	"suasor/repository"
 	"suasor/types/models"
@@ -20,49 +22,42 @@ type UserPlaylistService interface {
 	PlaylistService
 
 	// User-specific operations
-	GetUserPlaylists(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[*mediatypes.Playlist], error)
-	SearchUserPlaylists(ctx context.Context, userID uint64, query string) ([]*models.MediaItem[*mediatypes.Playlist], error)
-	GetRecentUserPlaylists(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Playlist], error)
-	GetFavoritePlaylists(ctx context.Context, userID uint64) ([]*models.MediaItem[*mediatypes.Playlist], error)
+	GetFavorite(ctx context.Context, userID uint64) ([]*models.MediaItem[*mediatypes.Playlist], error)
 
 	// Smart playlist operations
-	CreateSmartPlaylist(ctx context.Context, userID uint64, name string, description string, criteria map[string]interface{}) (*models.MediaItem[*mediatypes.Playlist], error)
-	UpdateSmartPlaylistCriteria(ctx context.Context, playlistID uint64, criteria map[string]interface{}) (*models.MediaItem[*mediatypes.Playlist], error)
-	RefreshSmartPlaylist(ctx context.Context, playlistID uint64) (*models.MediaItem[*mediatypes.Playlist], error)
+	CreateSmartList(ctx context.Context, userID uint64, name string, description string, criteria map[string]interface{}) (*models.MediaItem[*mediatypes.Playlist], error)
+	UpdateSmartCriteria(ctx context.Context, playlistID uint64, criteria map[string]interface{}) (*models.MediaItem[*mediatypes.Playlist], error)
+	RefreshSmartList(ctx context.Context, playlistID uint64) (*models.MediaItem[*mediatypes.Playlist], error)
 
 	// Playlist sharing and collaboration
-	SharePlaylistWithUser(ctx context.Context, playlistID uint64, targetUserID uint64, permissionLevel string) error
-	GetSharedPlaylists(ctx context.Context, userID uint64) ([]*models.MediaItem[*mediatypes.Playlist], error)
-	GetPlaylistCollaborators(ctx context.Context, playlistID uint64) ([]models.PlaylistCollaborator, error)
-	RemovePlaylistCollaborator(ctx context.Context, playlistID uint64, userID uint64) error
+	ShareWithUser(ctx context.Context, playlistID uint64, targetUserID uint64, permissionLevel string) error
+	GetShared(ctx context.Context, userID uint64) ([]*models.MediaItem[*mediatypes.Playlist], error)
+	GetCollaborators(ctx context.Context, playlistID uint64) ([]models.PlaylistCollaborator, error)
+	RemoveCollaborator(ctx context.Context, playlistID uint64, userID uint64) error
 
 	// Sync with media clients
-	SyncPlaylistToClients(ctx context.Context, playlistID uint64, clientIDs []uint64) error
-	GetPlaylistSyncStatus(ctx context.Context, playlistID uint64) (*models.PlaylistSyncStatus, error)
-	ImportClientPlaylist(ctx context.Context, userID uint64, clientID uint64, clientPlaylistID string) (*models.MediaItem[*mediatypes.Playlist], error)
+	SyncToClients(ctx context.Context, playlistID uint64, clientIDs []uint64) error
+	GetSyncStatus(ctx context.Context, playlistID uint64) (*models.PlaylistSyncStatus, error)
+	ImportClientList(ctx context.Context, userID uint64, clientID uint64, clientPlaylistID string) (*models.MediaItem[*mediatypes.Playlist], error)
 }
 
 type userPlaylistService struct {
-	playlistService PlaylistService
-	userRepo        repository.UserMediaItemRepository[*mediatypes.Playlist]
-	userDataRepo    repository.UserMediaItemDataRepository[*mediatypes.Playlist]
-	mediaItemRepo   repository.MediaItemRepository[*mediatypes.Playlist]
+	PlaylistService
+
+	userItemRepo repository.UserMediaItemRepository[*mediatypes.Playlist]
+	userDataRepo repository.UserMediaItemDataRepository[*mediatypes.Playlist]
+	itemRepo     repository.MediaItemRepository[*mediatypes.Playlist]
 }
 
 // NewUserPlaylistService creates a new user playlist service
 func NewUserPlaylistService(
-	playlistService PlaylistService,
-	userRepo repository.UserMediaItemRepository[*mediatypes.Playlist],
-	userDataRepo repository.UserMediaItemDataRepository,
-	clientService ClientPlaylistService[any],
-	mediaItemRepo repository.MediaItemRepository[mediatypes.MediaData],
+	ctx context.Context,
+	c *container.Container,
 ) UserPlaylistService {
 	return &userPlaylistService{
-		playlistService: playlistService,
-		userRepo:        userRepo,
-		userDataRepo:    userDataRepo,
-		clientService:   clientService,
-		mediaItemRepo:   mediaItemRepo,
+		userItemRepo: container.MustGet[repository.UserMediaItemRepository[*mediatypes.Playlist]](c),
+		userDataRepo: container.MustGet[repository.UserMediaItemDataRepository[*mediatypes.Playlist]](c),
+		itemRepo:     container.MustGet[repository.MediaItemRepository[*mediatypes.Playlist]](c),
 	}
 }
 
@@ -89,7 +84,7 @@ func (s *userPlaylistService) Create(ctx context.Context, playlist *models.Media
 	}
 
 	// Delegate to core service
-	return s.playlistService.Create(ctx, playlist)
+	return s.Create(ctx, playlist)
 }
 
 func (s *userPlaylistService) Update(ctx context.Context, playlist *models.MediaItem[*mediatypes.Playlist]) (*models.MediaItem[*mediatypes.Playlist], error) {
@@ -107,7 +102,7 @@ func (s *userPlaylistService) Update(ctx context.Context, playlist *models.Media
 	}
 
 	// Check ownership or collaboration permission
-	if !s.hasPlaylistWritePermission(ctx, userID, existing) {
+	if !s.hasWritePermission(ctx, userID, existing) {
 		log.Warn().
 			Uint64("playlistID", playlist.ID).
 			Uint64("ownerID", existing.Data.OwnerID).
@@ -121,15 +116,15 @@ func (s *userPlaylistService) Update(ctx context.Context, playlist *models.Media
 	playlist.Data.ItemList.LastModified = time.Now()
 
 	// Delegate to core service
-	return s.playlistService.Update(ctx, playlist)
+	return s.Update(ctx, playlist)
 }
 
 func (s *userPlaylistService) GetByID(ctx context.Context, id uint64) (*models.MediaItem[*mediatypes.Playlist], error) {
-	return s.playlistService.GetByID(ctx, id)
+	return s.GetByID(ctx, id)
 }
 
 func (s *userPlaylistService) GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[*mediatypes.Playlist], error) {
-	return s.playlistService.GetByUserID(ctx, userID)
+	return s.GetByUserID(ctx, userID)
 }
 
 func (s *userPlaylistService) Delete(ctx context.Context, id uint64) error {
@@ -156,11 +151,11 @@ func (s *userPlaylistService) Delete(ctx context.Context, id uint64) error {
 	}
 
 	// Delegate to core service for deletion
-	return s.playlistService.Delete(ctx, id)
+	return s.Delete(ctx, id)
 }
 
 func (s *userPlaylistService) GetPlaylistItems(ctx context.Context, playlistID uint64) ([]*models.MediaItem[mediatypes.MediaData], error) {
-	return s.playlistService.GetPlaylistItems(ctx, playlistID)
+	return s.GetPlaylistItems(ctx, playlistID)
 }
 
 func (s *userPlaylistService) AddItemToPlaylist(ctx context.Context, playlistID uint64, itemID uint64) error {
@@ -178,7 +173,7 @@ func (s *userPlaylistService) AddItemToPlaylist(ctx context.Context, playlistID 
 	}
 
 	// Check if user has write permission
-	if !s.hasPlaylistWritePermission(ctx, userID, playlist) {
+	if !s.hasWritePermission(ctx, userID, playlist) {
 		log.Warn().
 			Uint64("playlistID", playlistID).
 			Uint64("ownerID", playlist.Data.OwnerID).
@@ -188,7 +183,7 @@ func (s *userPlaylistService) AddItemToPlaylist(ctx context.Context, playlistID 
 	}
 
 	// Delegate to core service
-	return s.playlistService.AddItemToPlaylist(ctx, playlistID, itemID)
+	return s.AddItemToPlaylist(ctx, playlistID, itemID)
 }
 
 func (s *userPlaylistService) RemoveItemFromPlaylist(ctx context.Context, playlistID uint64, itemID uint64) error {
@@ -206,7 +201,7 @@ func (s *userPlaylistService) RemoveItemFromPlaylist(ctx context.Context, playli
 	}
 
 	// Check if user has write permission
-	if !s.hasPlaylistWritePermission(ctx, userID, playlist) {
+	if !s.hasWritePermission(ctx, userID, playlist) {
 		log.Warn().
 			Uint64("playlistID", playlistID).
 			Uint64("ownerID", playlist.Data.OwnerID).
@@ -216,7 +211,7 @@ func (s *userPlaylistService) RemoveItemFromPlaylist(ctx context.Context, playli
 	}
 
 	// Delegate to core service
-	return s.playlistService.RemoveItemFromPlaylist(ctx, playlistID, itemID)
+	return s.RemoveItemFromPlaylist(ctx, playlistID, itemID)
 }
 
 func (s *userPlaylistService) ReorderPlaylistItems(ctx context.Context, playlistID uint64, itemIDs []string) error {
@@ -234,7 +229,7 @@ func (s *userPlaylistService) ReorderPlaylistItems(ctx context.Context, playlist
 	}
 
 	// Check if user has write permission
-	if !s.hasPlaylistWritePermission(ctx, userID, playlist) {
+	if !s.hasWritePermission(ctx, userID, playlist) {
 		log.Warn().
 			Uint64("playlistID", playlistID).
 			Uint64("ownerID", playlist.Data.OwnerID).
@@ -244,7 +239,7 @@ func (s *userPlaylistService) ReorderPlaylistItems(ctx context.Context, playlist
 	}
 
 	// Delegate to core service
-	return s.playlistService.ReorderItems(ctx, playlistID, itemIDs)
+	return s.ReorderItems(ctx, playlistID, itemIDs)
 }
 
 func (s *userPlaylistService) UpdateItems(ctx context.Context, playlistID uint64, items []*models.MediaItem[mediatypes.MediaData]) error {
@@ -262,7 +257,7 @@ func (s *userPlaylistService) UpdateItems(ctx context.Context, playlistID uint64
 	}
 
 	// Check if user has write permission
-	if !s.hasPlaylistWritePermission(ctx, userID, playlist) {
+	if !s.hasWritePermission(ctx, userID, playlist) {
 		log.Warn().
 			Uint64("playlistID", playlistID).
 			Uint64("ownerID", playlist.Data.OwnerID).
@@ -272,15 +267,15 @@ func (s *userPlaylistService) UpdateItems(ctx context.Context, playlistID uint64
 	}
 
 	// Delegate to core service
-	return s.playlistService.UpdateItems(ctx, playlistID, items)
+	return s.UpdateItems(ctx, playlistID, items)
 }
 
 func (s *userPlaylistService) Search(ctx context.Context, query mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Playlist], error) {
-	return s.playlistService.Search(ctx, query)
+	return s.Search(ctx, query)
 }
 
 func (s *userPlaylistService) GetRecent(ctx context.Context, days int, limit int) ([]*models.MediaItem[*mediatypes.Playlist], error) {
-	return s.playlistService.GetRecent(ctx, days, limit)
+	return s.GetRecent(ctx, days, limit)
 }
 
 func (s *userPlaylistService) Sync(ctx context.Context, playlistID uint64, targetClientIDs []uint64) error {
@@ -297,7 +292,7 @@ func (s *userPlaylistService) Sync(ctx context.Context, playlistID uint64, targe
 	}
 
 	// Delegate to core service
-	return s.playlistService.Sync(ctx, playlistID, targetClientIDs)
+	return s.Sync(ctx, playlistID, targetClientIDs)
 }
 
 // User-specific operations
@@ -312,7 +307,7 @@ func (s *userPlaylistService) GetUser(ctx context.Context, userID uint64, limit 
 		Msg("Getting user playlists with pagination")
 
 	// Get all playlists for this user
-	playlists, err := s.userRepo.GetByUserIDPaginated(ctx, userID, limit, offset)
+	playlists, err := s.userItemRepo.GetByUserID(ctx, userID, limit, offset)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -413,7 +408,7 @@ func (s *userPlaylistService) GetFavoritePlaylists(ctx context.Context, userID u
 // Smart playlist operations
 
 // CreateSmartPlaylist creates a playlist that updates automatically based on criteria
-func (s *userPlaylistService) CreateSmartPlaylist(ctx context.Context, userID uint64, name string, description string, criteria map[string]interface{}) (*models.MediaItem[*mediatypes.Playlist], error) {
+func (s *userPlaylistService) CreateSmartList(ctx context.Context, userID uint64, name string, description string, criteria map[string]interface{}) (*models.MediaItem[*mediatypes.Playlist], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
@@ -442,7 +437,6 @@ func (s *userPlaylistService) CreateSmartPlaylist(ctx context.Context, userID ui
 				SmartCriteria:  criteria,
 				AutoUpdateTime: now,
 			},
-			OwnerID: userID,
 		},
 	}
 
@@ -611,7 +605,7 @@ func (s *userPlaylistService) RefreshSmartPlaylist(ctx context.Context, playlist
 // Playlist sharing and collaboration
 
 // SharePlaylistWithUser shares a playlist with another user
-func (s *userPlaylistService) SharePlaylistWithUser(ctx context.Context, playlistID uint64, targetUserID uint64, permissionLevel string) error {
+func (s *userPlaylistService) ShareWithUser(ctx context.Context, playlistID uint64, targetUserID uint64, permissionLevel string) error {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("playlistID", playlistID).
@@ -1091,7 +1085,7 @@ func (s *userPlaylistService) hasPlaylistReadPermission(ctx context.Context, use
 }
 
 // hasPlaylistWritePermission checks if the user has write permission for a playlist
-func (s *userPlaylistService) hasPlaylistWritePermission(ctx context.Context, userID uint64, playlist *models.MediaItem[*mediatypes.Playlist]) bool {
+func (s *userPlaylistService) hasWritePermission(ctx context.Context, userID uint64, playlist *models.MediaItem[*mediatypes.Playlist]) bool {
 	// The owner always has write permission
 	if playlist.Data.OwnerID == userID {
 		return true
@@ -1107,3 +1101,4 @@ func (s *userPlaylistService) hasPlaylistWritePermission(ctx context.Context, us
 	// No write permission found
 	return false
 }
+
