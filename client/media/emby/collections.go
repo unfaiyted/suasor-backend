@@ -114,9 +114,10 @@ func (e *EmbyClient) GetCollections(ctx context.Context, options *types.QueryOpt
 		IncludeItemTypes: optional.NewString(includeItemTypes),
 		Recursive:        optional.NewBool(true),
 	}
-	applyQueryOptions(&queryParams, options)
-	// Get collections
 
+	ApplyClientQueryOptions(&queryParams, options)
+
+	// Get collections
 	results, _, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
 	if err != nil {
 		log.Error().
@@ -353,11 +354,9 @@ func (e *EmbyClient) GetCollectionItems(ctx context.Context, collectionID string
 		return nil, nil
 	}
 
-	// Convert items to model format
-	items := models.MediaItems{}
-
-	for _, item := range response.Items {
-		e.convertItemToMediaItems(ctx, &item, &items)
+	items, err := GetMixedMediaItems(e, ctx, response.Items)
+	if err != nil {
+		return nil, err
 	}
 
 	log.Info().
@@ -365,5 +364,5 @@ func (e *EmbyClient) GetCollectionItems(ctx context.Context, collectionID string
 		Int("itemCount", items.TotalItems).
 		Msg("Successfully retrieved collection items from Emby")
 
-	return &items, nil
+	return items, nil
 }

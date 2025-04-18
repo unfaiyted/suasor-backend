@@ -92,96 +92,96 @@ func (b *BaseClientMedia) ToMediaItem(ctx context.Context, item media.MediaData,
 	return mediaItem, nil
 }
 
-func (b *BaseClientMedia) ToMediaItemEpisode(ctx context.Context, item media.Episode, itemID string) (models.MediaItem[media.Episode], error) {
-	mediaItem := models.MediaItem[media.Episode]{
-		Data: item,
-		Type: item.GetMediaType(),
-	}
-	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
-
-	return mediaItem, nil
-}
-
-func (b *BaseClientMedia) ToMediaItemSeason(ctx context.Context, item media.Season, itemID string) (models.MediaItem[media.Season], error) {
-	mediaItem := models.MediaItem[media.Season]{
-		Data: item,
-		Type: item.GetMediaType(),
-	}
-	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
-
-	return mediaItem, nil
-}
-
-func (b *BaseClientMedia) ToMediaItemPlaylist(ctx context.Context, item media.Playlist, itemID string) (models.MediaItem[media.Playlist], error) {
-	mediaItem := models.MediaItem[media.Playlist]{
-		Data: item,
-		Type: item.GetMediaType(),
-	}
-	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
-
-	return mediaItem, nil
-}
-
-func (b *BaseClientMedia) ToMediaItemCollection(ctx context.Context, item media.Collection, itemID string) (models.MediaItem[media.Collection], error) {
-	mediaItem := models.MediaItem[media.Collection]{
-		Data: item,
-		Type: item.GetMediaType(),
-	}
-	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
-
-	return mediaItem, nil
-}
-
-func (b *BaseClientMedia) ToMediaItemMovie(ctx context.Context, item media.Movie, itemID string) (models.MediaItem[media.Movie], error) {
-	mediaItem := models.MediaItem[media.Movie]{
-		Data: item,
-		Type: item.GetMediaType(),
-	}
-	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
-
-	return mediaItem, nil
-}
-
-func (b *BaseClientMedia) ToMediaItemSeries(ctx context.Context, item media.Series, itemID string) (models.MediaItem[media.Series], error) {
-	mediaItem := models.MediaItem[media.Series]{
-		Data: item,
-		Type: item.GetMediaType(),
-	}
-
-	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
-
-	return mediaItem, nil
-}
-
-func (b *BaseClientMedia) ToMediaItemTrack(ctx context.Context, item media.Track, itemID string) (models.MediaItem[media.Track], error) {
-	mediaItem := models.MediaItem[media.Track]{
-		Data: item,
-		Type: item.GetMediaType(),
-	}
-	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
-
-	return mediaItem, nil
-}
-
-func (b *BaseClientMedia) ToMediaItemAlbum(ctx context.Context, item media.Album, itemID string) (models.MediaItem[media.Album], error) {
-	mediaItem := models.MediaItem[media.Album]{
-		Data: item,
-		Type: item.GetMediaType(),
-	}
-	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
-
-	return mediaItem, nil
-}
-
-func (b *BaseClientMedia) ToMediaItemArtist(ctx context.Context, item media.Artist, itemID string) (models.MediaItem[media.Artist], error) {
-	mediaItem := models.MediaItem[media.Artist]{
-		Data: item,
-		Type: item.GetMediaType(),
-	}
-	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
-
-	return mediaItem, nil
-}
+// func (b *BaseClientMedia) ToMediaItemEpisode(ctx context.Context, item media.Episode, itemID string) (models.MediaItem[media.Episode], error) {
+// 	mediaItem := models.MediaItem[media.Episode]{
+// 		Data: item,
+// 		Type: item.GetMediaType(),
+// 	}
+// 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
+//
+// 	return mediaItem, nil
+// }
+//
+// func (b *BaseClientMedia) ToMediaItemSeason(ctx context.Context, item media.Season, itemID string) (models.MediaItem[media.Season], error) {
+// 	mediaItem := models.MediaItem[media.Season]{
+// 		Data: item,
+// 		Type: item.GetMediaType(),
+// 	}
+// 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
+//
+// 	return mediaItem, nil
+// }
+//
+// func (b *BaseClientMedia) ToMediaItemPlaylist(ctx context.Context, item media.Playlist, itemID string) (models.MediaItem[media.Playlist], error) {
+// 	mediaItem := models.MediaItem[media.Playlist]{
+// 		Data: item,
+// 		Type: item.GetMediaType(),
+// 	}
+// 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
+//
+// 	return mediaItem, nil
+// }
+//
+// func (b *BaseClientMedia) ToMediaItemCollection(ctx context.Context, item media.Collection, itemID string) (models.MediaItem[media.Collection], error) {
+// 	mediaItem := models.MediaItem[media.Collection]{
+// 		Data: item,
+// 		Type: item.GetMediaType(),
+// 	}
+// 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
+//
+// 	return mediaItem, nil
+// }
+//
+// func (b *BaseClientMedia) ToMediaItemMovie(ctx context.Context, item media.Movie, itemID string) (models.MediaItem[media.Movie], error) {
+// 	mediaItem := models.MediaItem[media.Movie]{
+// 		Data: item,
+// 		Type: item.GetMediaType(),
+// 	}
+// 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
+//
+// 	return mediaItem, nil
+// }
+//
+// func (b *BaseClientMedia) ToMediaItemSeries(ctx context.Context, item media.Series, itemID string) (models.MediaItem[media.Series], error) {
+// 	mediaItem := models.MediaItem[media.Series]{
+// 		Data: item,
+// 		Type: item.GetMediaType(),
+// 	}
+//
+// 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
+//
+// 	return mediaItem, nil
+// }
+//
+// func (b *BaseClientMedia) ToMediaItemTrack(ctx context.Context, item media.Track, itemID string) (models.MediaItem[media.Track], error) {
+// 	mediaItem := models.MediaItem[media.Track]{
+// 		Data: item,
+// 		Type: item.GetMediaType(),
+// 	}
+// 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
+//
+// 	return mediaItem, nil
+// }
+//
+// func (b *BaseClientMedia) ToMediaItemAlbum(ctx context.Context, item media.Album, itemID string) (models.MediaItem[media.Album], error) {
+// 	mediaItem := models.MediaItem[media.Album]{
+// 		Data: item,
+// 		Type: item.GetMediaType(),
+// 	}
+// 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
+//
+// 	return mediaItem, nil
+// }
+//
+// func (b *BaseClientMedia) ToMediaItemArtist(ctx context.Context, item media.Artist, itemID string) (models.MediaItem[media.Artist], error) {
+// 	mediaItem := models.MediaItem[media.Artist]{
+// 		Data: item,
+// 		Type: item.GetMediaType(),
+// 	}
+// 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
+//
+// 	return mediaItem, nil
+// }
 
 func (b *BaseClientMedia) TestConnection(ctx context.Context) (bool, error) {
 	return false, nil

@@ -24,6 +24,60 @@ type MediaItems struct {
 	TotalItems int
 }
 
+// AddMovie adds a movie to the media items
+func (m *MediaItems) AddMovie(item *MediaItem[*types.Movie]) {
+	m.Movies = append(m.Movies, item)
+	m.TotalItems++
+}
+
+// AddSeries adds a series to the media items
+func (m *MediaItems) AddSeries(item *MediaItem[*types.Series]) {
+	m.Series = append(m.Series, item)
+	m.TotalItems++
+}
+
+// AddSeason adds a season to the media items
+func (m *MediaItems) AddSeason(item *MediaItem[*types.Season]) {
+	m.Seasons = append(m.Seasons, item)
+	m.TotalItems++
+}
+
+// AddEpisode adds an episode to the media items
+func (m *MediaItems) AddEpisode(item *MediaItem[*types.Episode]) {
+	m.Episodes = append(m.Episodes, item)
+	m.TotalItems++
+}
+
+// AddArtist adds an artist to the media items
+func (m *MediaItems) AddArtist(item *MediaItem[*types.Artist]) {
+	m.Artists = append(m.Artists, item)
+	m.TotalItems++
+}
+
+// AddAlbum adds an album to the media items
+func (m *MediaItems) AddAlbum(item *MediaItem[*types.Album]) {
+	m.Albums = append(m.Albums, item)
+	m.TotalItems++
+}
+
+// AddTrack adds a track to the media items
+func (m *MediaItems) AddTrack(item *MediaItem[*types.Track]) {
+	m.Tracks = append(m.Tracks, item)
+	m.TotalItems++
+}
+
+// AddPlaylist adds a playlist to the media items
+func (m *MediaItems) AddPlaylist(item *MediaItem[*types.Playlist]) {
+	m.Playlists = append(m.Playlists, item)
+	m.TotalItems++
+}
+
+// AddCollection adds a collection to the media items
+func (m *MediaItems) AddCollection(item *MediaItem[*types.Collection]) {
+	m.Collections = append(m.Collections, item)
+	m.TotalItems++
+}
+
 // MediaItem is the base type for all media items
 type MediaItem[T types.MediaData] struct {
 	BaseModel
@@ -41,6 +95,10 @@ type MediaItem[T types.MediaData] struct {
 	StreamURL   string `json:"streamUrl,omitempty" gorm:"size:1024"`
 	DownloadURL string `json:"downloadUrl,omitempty" gorm:"size:1024"`
 	Data        T      `json:"data" gorm:"type:jsonb"` // Type-specific media data
+}
+
+func (m *MediaItem[T]) SetData(data T) {
+	m.Data = data
 }
 
 // ExternalID represents an ID that identifies this media item in an external system

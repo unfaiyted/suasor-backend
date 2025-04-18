@@ -13,7 +13,7 @@ import (
 )
 
 // GetMovies retrieves movies from the Emby server
-func (e *EmbyClient) GetMovies(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[*types.Movie], error) {
+func (e *EmbyClient) GetMovies(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Movie], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -37,7 +37,7 @@ func (e *EmbyClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 	}
 
 	// Apply options
-	applyQueryOptions(&queryParams, options)
+	ApplyClientQueryOptions(&queryParams, options)
 
 	// Call the Emby API
 	items, resp, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
@@ -57,10 +57,12 @@ func (e *EmbyClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 		Msg("Successfully retrieved movies from Emby")
 
 	// Convert results to expected format
-	itemMovies := make([]models.MediaItem[*types.Movie], 0)
+	itemMovies := make([]*models.MediaItem[*types.Movie], 0)
 	for _, item := range items.Items {
 		if item.Type_ == "Movie" {
-			itemMovie, err := e.convertToMovie(ctx, &item)
+			// itemMovie, err := e.convertToMovie(ctx, &item)
+			itemMovie, err := GetItem[*types.Movie](ctx, e, &item)
+			mediaItemMovie, err := GetMediaItem[*types.Movie](ctx, e, itemMovie, item.Id)
 			if err != nil {
 				log.Warn().
 					Err(err).
@@ -70,7 +72,7 @@ func (e *EmbyClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 				continue
 			}
 
-			itemMovies = append(itemMovies, itemMovie)
+			itemMovies = append(itemMovies, mediaItemMovie)
 		}
 	}
 
@@ -82,7 +84,8 @@ func (e *EmbyClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 }
 
 // GetMovieByID retrieves a specific movie by ID
-func (e *EmbyClient) GetMovieByID(ctx context.Context, id string) (models.MediaItem[*types.Movie], error) {
+func (e *EmbyClient) GetMovieByID(ctx context.Context, id string) (*models.MediaItem[*types.Movie], error) {
+
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -95,7 +98,7 @@ func (e *EmbyClient) GetMovieByID(ctx context.Context, id string) (models.MediaI
 	userID := e.getUserID()
 	if userID == "" {
 		log.Error().Msg("User ID is required for Emby queries but was not provided or resolved")
-		return models.MediaItem[*types.Movie]{}, fmt.Errorf("failed to fetch movie: missing user ID")
+		return &models.MediaItem[*types.Movie]{}, fmt.Errorf("failed to fetch movie: missing user ID")
 	}
 
 	// Create query parameters
@@ -115,7 +118,7 @@ func (e *EmbyClient) GetMovieByID(ctx context.Context, id string) (models.MediaI
 			Str("apiEndpoint", "/Items").
 			Str("movieID", id).
 			Msg("Failed to fetch movie from Emby")
-		return models.MediaItem[*types.Movie]{}, fmt.Errorf("failed to fetch movie: %w", err)
+		return &models.MediaItem[*types.Movie]{}, fmt.Errorf("failed to fetch movie: %w", err)
 	}
 
 	// Check if any items were returned
@@ -124,7 +127,7 @@ func (e *EmbyClient) GetMovieByID(ctx context.Context, id string) (models.MediaI
 			Str("movieID", id).
 			Int("statusCode", resp.StatusCode).
 			Msg("No movie found with the specified ID")
-		return models.MediaItem[*types.Movie]{}, fmt.Errorf("movie with ID %s not found", id)
+		return &models.MediaItem[*types.Movie]{}, fmt.Errorf("movie with ID %s not found", id)
 	}
 
 	item := items.Items[0]
@@ -135,20 +138,22 @@ func (e *EmbyClient) GetMovieByID(ctx context.Context, id string) (models.MediaI
 			Str("movieID", id).
 			Str("actualType", item.Type_).
 			Msg("Item with specified ID is not a movie")
-		return models.MediaItem[*types.Movie]{}, fmt.Errorf("item with ID %s is not a movie", id)
+		return &models.MediaItem[*types.Movie]{}, fmt.Errorf("item with ID %s is not a movie", id)
 	}
 
-	movie, err := e.convertToMovie(ctx, &item)
+	itemMovie, err := GetItem[*types.Movie](ctx, e, &item)
+	mediaItemMovie, err := GetMediaItem[*types.Movie](ctx, e, itemMovie, item.Id)
+
 	if err != nil {
 		log.Error().
 			Err(err).
 			Str("movieID", id).
 			Str("movieName", item.Name).
 			Msg("Error converting Emby item to movie format")
-		return models.MediaItem[*types.Movie]{}, fmt.Errorf("error converting movie data: %w", err)
+		return &models.MediaItem[*types.Movie]{}, fmt.Errorf("error converting movie data: %w", err)
 	}
 
-	return movie, nil
+	return mediaItemMovie, nil
 }
 
 // GetMovieGenres retrieves movie genres from the Emby server

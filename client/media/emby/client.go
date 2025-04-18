@@ -12,6 +12,7 @@ import (
 	types "suasor/client/media/types"
 	config "suasor/client/types"
 	embyclient "suasor/internal/clients/embyAPI"
+	"suasor/types/models"
 	"suasor/utils"
 )
 
@@ -45,8 +46,8 @@ func init() {
 // EmbyClient implements the MediaContentProvider interface
 type EmbyClient struct {
 	media.BaseClientMedia
-	client *embyclient.APIClient
-	// config *config.EmbyConfig
+	client          *embyclient.APIClient
+	factoryRegistry *media.ClientItemRegistry
 }
 
 // NewEmbyClient creates a new Emby client instance
@@ -213,4 +214,51 @@ func (c *EmbyClient) TestConnection(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("failed to retrieve Emby server version")
 	}
 	return true, nil
+}
+
+func GetItem[T types.MediaData](
+	client *EmbyClient,
+	ctx context.Context,
+	item *embyclient.BaseItemDto,
+) (T, error) {
+	return media.ConvertTo[*EmbyClient, *embyclient.BaseItemDto, T](
+		media.GlobalMediaRegistry, client, ctx, item)
+}
+
+func GetMediaItem[T types.MediaData](
+	client *EmbyClient,
+	item T,
+	itemID string,
+) (*models.MediaItem[T], error) {
+	mediaItem := models.MediaItem[T]{
+		Data: item,
+		Type: item.GetMediaType(),
+	}
+	mediaItem.SetClientInfo(client.ClientID, client.ClientType, itemID)
+
+	return &mediaItem, nil
+}
+
+func GetMediaItemData[T types.MediaData](e *EmbyClient, ctx context.Context, item *embyclient.BaseItemDto) (*models.UserMediaItemData[T], error) {
+
+	// mediaItem, err := convertTo[T](e, ctx, item, e.getFactory[T])
+
+	baseItem, err := GetItem[T](e, ctx, item)
+	mediaItem, err := GetMediaItem[T](e, baseItem, item.Id)
+
+	if err != nil {
+		return nil, err
+	}
+	mediaItemData := models.UserMediaItemData[T]{
+		Type:             types.MediaType(item.Type_),
+		PlayedAt:         item.UserData.LastPlayedDate,
+		PlayedPercentage: item.UserData.PlayedPercentage,
+		IsFavorite:       item.UserData.IsFavorite,
+		PlayCount:        item.UserData.PlayCount,
+		PositionSeconds:  int(item.UserData.PlaybackPositionTicks / 10000000),
+	}
+	mediaItemData.Item.SetClientInfo(e.ClientID, e.ClientType, item.Id)
+	mediaItemData.Associate(mediaItem)
+
+	return &mediaItemData, err
 }

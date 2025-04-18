@@ -13,7 +13,7 @@ import (
 )
 
 // GetPlaylists retrieves playlists from the Emby server
-func (e *EmbyClient) GetPlaylists(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[*types.Playlist], error) {
+func (e *EmbyClient) GetPlaylists(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Playlist], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -26,7 +26,7 @@ func (e *EmbyClient) GetPlaylists(ctx context.Context, options *types.QueryOptio
 		Recursive:        optional.NewBool(true),
 	}
 
-	applyQueryOptions(&queryParams, options)
+	ApplyClientQueryOptions(&queryParams, options)
 
 	items, resp, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
 	if err != nil {
@@ -44,10 +44,11 @@ func (e *EmbyClient) GetPlaylists(ctx context.Context, options *types.QueryOptio
 		Int("totalRecordCount", int(items.TotalRecordCount)).
 		Msg("Successfully retrieved playlists from Emby")
 
-	playlists := make([]models.MediaItem[*types.Playlist], 0)
+	playlists := make([]*models.MediaItem[*types.Playlist], 0)
 	for _, item := range items.Items {
 		if item.Type_ == "Playlist" {
-			playlist, err := e.convertToPlaylist(&item)
+			itemPlaylist, err := GetItem[*types.Playlist](ctx, e, &item)
+			playlist, err := GetMediaItem[*types.Playlist](ctx, e, itemPlaylist, item.Id)
 			if err != nil {
 				log.Warn().
 					Err(err).

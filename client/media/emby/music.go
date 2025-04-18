@@ -13,7 +13,7 @@ import (
 )
 
 // GetMusic retrieves music tracks from the Emby server
-func (e *EmbyClient) GetMusic(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[*types.Track], error) {
+func (e *EmbyClient) GetMusic(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Track], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -26,7 +26,7 @@ func (e *EmbyClient) GetMusic(ctx context.Context, options *types.QueryOptions) 
 		Recursive:        optional.NewBool(true),
 	}
 
-	applyQueryOptions(&queryParams, options)
+	ApplyClientQueryOptions(&queryParams, options)
 
 	items, resp, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
 	if err != nil {
@@ -44,9 +44,12 @@ func (e *EmbyClient) GetMusic(ctx context.Context, options *types.QueryOptions) 
 		Int("totalRecordCount", int(items.TotalRecordCount)).
 		Msg("Successfully retrieved music tracks from Emby")
 
-	tracks := make([]models.MediaItem[*types.Track], 0)
+	tracks := make([]*models.MediaItem[*types.Track], 0)
 	for _, item := range items.Items {
-		track, err := e.convertToTrack(&item)
+
+		itemTrack, err := GetItem[*types.Track](ctx, e, &item)
+		mediaItemTrack, err := GetMediaItem[*types.Track](ctx, e, itemTrack, item.Id)
+
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -55,14 +58,14 @@ func (e *EmbyClient) GetMusic(ctx context.Context, options *types.QueryOptions) 
 				Msg("Error converting Emby item to music track format")
 			continue
 		}
-		tracks = append(tracks, track)
+		tracks = append(tracks, mediaItemTrack)
 	}
 
 	return tracks, nil
 }
 
 // GetMusicArtists retrieves music artists from the Emby server
-func (e *EmbyClient) GetMusicArtists(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[*types.Artist], error) {
+func (e *EmbyClient) GetMusicArtists(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Artist], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -110,9 +113,10 @@ func (e *EmbyClient) GetMusicArtists(ctx context.Context, options *types.QueryOp
 		Int("totalRecordCount", int(result.TotalRecordCount)).
 		Msg("Successfully retrieved music artists from Emby")
 
-	artists := make([]models.MediaItem[*types.Artist], 0)
+	artists := make([]*models.MediaItem[*types.Artist], 0)
 	for _, item := range result.Items {
-		artist, err := e.convertToMusicArtist(&item)
+		itemArtist, err := GetItem[*types.Artist](ctx, e, &item)
+		mediaItemArtist, err := GetMediaItem[*types.Artist](ctx, e, itemArtist, item.Id)
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -121,14 +125,14 @@ func (e *EmbyClient) GetMusicArtists(ctx context.Context, options *types.QueryOp
 				Msg("Error converting Emby item to music artist format")
 			continue
 		}
-		artists = append(artists, artist)
+		artists = append(artists, mediaItemArtist)
 	}
 
 	return artists, nil
 }
 
 // GetAlbums retrieves music albums from the Emby server
-func (e *EmbyClient) GetMusicAlbums(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[*types.Album], error) {
+func (e *EmbyClient) GetMusicAlbums(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Album], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -141,7 +145,7 @@ func (e *EmbyClient) GetMusicAlbums(ctx context.Context, options *types.QueryOpt
 		Recursive:        optional.NewBool(true),
 	}
 
-	applyQueryOptions(&queryParams, options)
+	ApplyClientQueryOptions(&queryParams, options)
 
 	items, resp, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
 	if err != nil {
@@ -159,9 +163,10 @@ func (e *EmbyClient) GetMusicAlbums(ctx context.Context, options *types.QueryOpt
 		Int("totalRecordCount", int(items.TotalRecordCount)).
 		Msg("Successfully retrieved music albums from Emby")
 
-	albums := make([]models.MediaItem[*types.Album], 0)
+	albums := make([]*models.MediaItem[*types.Album], 0)
 	for _, item := range items.Items {
-		album, err := e.convertToAlbum(&item)
+		itemAlbum, err := GetItem[*types.Album](ctx, e, &item)
+		mediaItemAlbum, err := GetMediaItem[*types.Album](ctx, e, itemAlbum, item.Id)
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -170,14 +175,14 @@ func (e *EmbyClient) GetMusicAlbums(ctx context.Context, options *types.QueryOpt
 				Msg("Error converting Emby item to music album format")
 			continue
 		}
-		albums = append(albums, album)
+		albums = append(albums, mediaItemAlbum)
 	}
 
 	return albums, nil
 }
 
 // GetMusicTrackByID retrieves a specific music track by ID
-func (e *EmbyClient) GetMusicTrackByID(ctx context.Context, id string) (models.MediaItem[*types.Track], error) {
+func (e *EmbyClient) GetMusicTrackByID(ctx context.Context, id string) (*models.MediaItem[*types.Track], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -199,7 +204,7 @@ func (e *EmbyClient) GetMusicTrackByID(ctx context.Context, id string) (models.M
 			Str("apiEndpoint", "/Items").
 			Str("trackID", id).
 			Msg("Failed to fetch music track from Emby")
-		return models.MediaItem[*types.Track]{}, fmt.Errorf("failed to fetch music track: %w", err)
+		return &models.MediaItem[*types.Track]{}, fmt.Errorf("failed to fetch music track: %w", err)
 	}
 
 	if len(items.Items) == 0 {
@@ -207,7 +212,7 @@ func (e *EmbyClient) GetMusicTrackByID(ctx context.Context, id string) (models.M
 			Str("trackID", id).
 			Int("statusCode", resp.StatusCode).
 			Msg("No music track found with the specified ID")
-		return models.MediaItem[*types.Track]{}, fmt.Errorf("music track with ID %s not found", id)
+		return &models.MediaItem[*types.Track]{}, fmt.Errorf("music track with ID %s not found", id)
 	}
 
 	item := items.Items[0]
@@ -216,10 +221,13 @@ func (e *EmbyClient) GetMusicTrackByID(ctx context.Context, id string) (models.M
 			Str("trackID", id).
 			Str("actualType", item.Type_).
 			Msg("Item with specified ID is not a music track")
-		return models.MediaItem[*types.Track]{}, fmt.Errorf("item with ID %s is not a music track", id)
+		return &models.MediaItem[*types.Track]{}, fmt.Errorf("item with ID %s is not a music track", id)
 	}
 
-	return e.convertToTrack(&item)
+	itemTrack, err := GetItem[*types.Track](ctx, e, &item)
+	mediaItemTrack, err := GetMediaItem[*types.Track](ctx, e, itemTrack, item.Id)
+
+	return mediaItemTrack, nil
 }
 
 // GetMusicGenres retrieves music genres from the Emby server
