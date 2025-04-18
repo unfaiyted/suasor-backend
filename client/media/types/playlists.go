@@ -190,7 +190,8 @@ type ItemList struct {
 	SyncClientStates SyncClientStates `json:"syncClientStates"`
 	ItemCount        int              `json:"itemCount"`
 	OwnerID          uint64           `json:"owner"`
-	SharedWith       []uint64         `json:"sharedWith"`
+	// ListCollaboratorIDs
+	SharedWith []int64 `json:"sharedWith"`
 
 	IsPublic   bool      `json:"isPublic"`
 	LastSynced time.Time `json:"lastSynced"`

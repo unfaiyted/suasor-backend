@@ -34,7 +34,6 @@ type UserMediaItemRepository[T types.MediaData] interface {
 	Delete(ctx context.Context, id uint64) error
 
 	// User-specific operations
-	GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error)
 	GetUserContent(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[T], error)
 
 	// General retrieval operations
@@ -77,6 +76,10 @@ func (r *userMediaItemRepository[T]) GetMediaItemsByIDs(ctx context.Context, ids
 
 func (r *userMediaItemRepository[T]) GetByClientItemID(ctx context.Context, clientItemID string, clientID uint64) (*models.MediaItem[T], error) {
 	return r.GetByClientItemID(ctx, clientItemID, clientID)
+}
+
+func (r *userMediaItemRepository[T]) GetByIDs(ctx context.Context, ids []uint64) ([]*models.MediaItem[T], error) {
+	return r.GetByIDs(ctx, ids)
 }
 
 func (r *userMediaItemRepository[T]) BatchCreate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error) {
@@ -156,7 +159,7 @@ func (r *userMediaItemRepository[T]) GetByExternalID(ctx context.Context, source
 
 // GetByUserID retrieves all user-owned media items for a specific user
 // This is a key method specifically for playlists and collections
-func (r *userMediaItemRepository[T]) GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error) {
+func (r *userMediaItemRepository[T]) GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error) {
 	var items []*models.MediaItem[T]
 	log := utils.LoggerFromContext(ctx)
 
@@ -166,12 +169,15 @@ func (r *userMediaItemRepository[T]) GetByUserID(ctx context.Context, userID uin
 
 	// Query for items where the Owner field in the JSON data matches the user ID
 	// This covers both playlists and collections
-	query := r.db.WithContext(ctx).Where(
-		"(type = ? OR type = ?) AND (data->'ItemList'->>'Owner')::integer = ?",
-		types.MediaTypePlaylist,
-		types.MediaTypeCollection,
-		userID,
-	)
+	query := r.db.WithContext(ctx).
+		Limit(limit).
+		Offset(offset).
+		Where(
+			"(type = ? OR type = ?) AND (data->'ItemList'->>'Owner')::integer = ?",
+			types.MediaTypePlaylist,
+			types.MediaTypeCollection,
+			userID,
+		)
 
 	if err := query.Find(&items).Error; err != nil {
 		log.Error().Err(err).Msg("Failed to get user-owned media items")

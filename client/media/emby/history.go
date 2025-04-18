@@ -12,7 +12,7 @@ import (
 )
 
 // GetWatchHistory retrieves watch history from the Emby server
-func (e *EmbyClient) GetPlayHistory(ctx context.Context, options *types.QueryOptions) ([]models.UserMediaItemData[types.MediaData], error) {
+func (e *EmbyClient) GetPlayHistory(ctx context.Context, options *types.QueryOptions) (*models.MediaItemDatas, error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().
@@ -55,10 +55,22 @@ func (e *EmbyClient) GetPlayHistory(ctx context.Context, options *types.QueryOpt
 		Int("totalRecordCount", int(items.TotalRecordCount)).
 		Msg("Successfully retrieved watch history from Emby")
 
-	history := make([]models.UserMediaItemData[types.MediaData], 0)
-	for _, item := range items.Items {
-		if item.UserData != nil && item.UserData.Played {
-			watchItem, err := e.convertToWatchHistoryItem(ctx, &item)
+	history := convertToMediaItemDatas(e, ctx, items.Items)
+
+	return history, nil
+}
+
+func convertToMediaItemDatas(e *EmbyClient, ctx context.Context, items []embyclient.BaseItemDto) *models.MediaItemDatas {
+	log := utils.LoggerFromContext(ctx)
+	datas := &models.MediaItemDatas{}
+
+	if items == nil {
+		return datas
+	}
+
+	for _, item := range items {
+		if item.Type_ == "Movie" {
+			movie, err := convertToMediaItemData[*types.Movie](e, ctx, &item)
 			if err != nil {
 				log.Warn().
 					Err(err).
@@ -67,13 +79,97 @@ func (e *EmbyClient) GetPlayHistory(ctx context.Context, options *types.QueryOpt
 					Msg("Error converting Emby item to watch history format")
 				continue
 			}
-			history = append(history, watchItem)
+			datas.AddMovie(movie)
+		} else if item.Type_ == "Episode" {
+			episode, err := convertToMediaItemData[*types.Episode](e, ctx, &item)
+			if err != nil {
+				log.Warn().
+					Err(err).
+					Str("itemID", item.Id).
+					Str("itemName", item.Name).
+					Msg("Error converting Emby item to watch history format")
+				continue
+			}
+			datas.AddEpisode(episode)
+		} else if item.Type_ == "Audio" {
+			track, err := convertToMediaItemData[*types.Track](e, ctx, &item)
+			if err != nil {
+				log.Warn().
+					Err(err).
+					Str("itemID", item.Id).
+					Str("itemName", item.Name).
+					Msg("Error converting Emby item to watch history format")
+				continue
+			}
+			datas.AddTrack(track)
+		} else if item.Type_ == "Playlist" {
+			playlist, err := convertToMediaItemData[*types.Playlist](e, ctx, &item)
+			if err != nil {
+				log.Warn().
+					Err(err).
+					Str("itemID", item.Id).
+					Str("itemName", item.Name).
+					Msg("Error converting Emby item to watch history format")
+				continue
+			}
+			datas.AddPlaylist(playlist)
+		} else if item.Type_ == "Series" {
+			series, err := convertToMediaItemData[*types.Series](e, ctx, &item)
+			if err != nil {
+				log.Warn().
+					Err(err).
+					Str("itemID", item.Id).
+					Str("itemName", item.Name).
+					Msg("Error converting Emby item to watch history format")
+				continue
+			}
+			datas.AddSeries(series)
+		} else if item.Type_ == "Season" {
+			season, err := convertToMediaItemData[*types.Season](e, ctx, &item)
+			if err != nil {
+				log.Warn().
+					Err(err).
+					Str("itemID", item.Id).
+					Str("itemName", item.Name).
+					Msg("Error converting Emby item to watch history format")
+				continue
+			}
+			datas.AddSeason(season)
+		} else if item.Type_ == "Collection" {
+			collection, err := convertToMediaItemData[*types.Collection](e, ctx, &item)
+			if err != nil {
+				log.Warn().
+					Err(err).
+					Str("itemID", item.Id).
+					Str("itemName", item.Name).
+					Msg("Error converting Emby item to watch history format")
+				continue
+			}
+			datas.AddCollection(collection)
 		}
+
 	}
 
-	log.Info().
-		Int("historyItemsReturned", len(history)).
-		Msg("Completed GetWatchHistory request")
+	return datas
+}
 
-	return history, nil
+func convertToMediaItemData[T types.MediaData](e *EmbyClient, ctx context.Context, item *embyclient.BaseItemDto) (*models.UserMediaItemData[T], error) {
+
+	var mediaItemData *models.UserMediaItemData[T]
+	mediaItemData.IsFavorite = item.UserData.IsFavorite
+	mediaItemData.PlayedPercentage = item.UserData.PlayedPercentage
+	mediaItemData.Completed = item.UserData.Played
+	mediaItemData.PlayCount = item.UserData.PlayCount
+	// mediaItemData.UserRating = item.UserData.Rating
+	// mediaItemData.Watchlist = item.UserData.Watchlist
+	mediaItemData.PlayedAt = item.UserData.LastPlayedDate
+
+	mediaItem, err := convertTo[T](e, ctx, item)
+	if err != nil {
+		return nil, err
+	}
+
+	mediaItemData.Associate(mediaItem)
+
+	return mediaItemData, err
 }

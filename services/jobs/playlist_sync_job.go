@@ -313,10 +313,10 @@ func (j *PlaylistSyncJob) performPlaylistSync(ctx context.Context, userID uint64
 	}
 
 	// 1. Fetch all playlists from all clients
-	clientPlaylists := make(map[uint64][]models.MediaItem[*mediatypes.Playlist])
+	clientPlaylists := make(map[uint64][]*models.MediaItem[*mediatypes.Playlist])
 	for clientID, client := range playlistClients {
 		provider := client.(providers.PlaylistProvider)
-		playlists, err := provider.GetPlaylists(ctx, &mediatypes.QueryOptions{})
+		playlists, err := provider.Search(ctx, &mediatypes.QueryOptions{})
 		if err != nil {
 			logger.Printf("Error fetching playlists from client %d: %v", clientID, err)
 			continue
@@ -375,10 +375,10 @@ func (j *PlaylistSyncJob) getClientMedia(ctx context.Context, userID, clientID u
 func (j *PlaylistSyncJob) syncPrimaryToClients(
 	ctx context.Context,
 	userID uint64,
-	primaryClient PlaylistClientInfo,
-	clients []PlaylistClientInfo,
-	clientPlaylists map[uint64][]models.MediaItem[*mediatypes.Playlist],
-	playlistClients map[uint64]media.ClientMedia,
+	primaryClient *PlaylistClientInfo,
+	clients []*PlaylistClientInfo,
+	clientPlaylists map[uint64][]*models.MediaItem[*mediatypes.Playlist],
+	playlistClients map[uint64]*media.ClientMedia,
 ) PlaylistSyncStats {
 	stats := PlaylistSyncStats{}
 	logger := log.Logger{} // Ideally use structured logging from context
@@ -852,7 +852,7 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 		ExternalSourceID: playlistID,
 	}
 
-	sourcePlaylists, err := sourceProvider.GetPlaylists(ctx, options)
+	sourcePlaylists, err := sourceProvider.Search(ctx, options)
 	if err != nil {
 		return fmt.Errorf("error getting source playlist: %w", err)
 	}
@@ -927,7 +927,7 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 		}
 
 		// Check if playlist already exists in target
-		targetPlaylists, err := targetProvider.GetPlaylists(ctx, &mediatypes.QueryOptions{})
+		targetPlaylists, err := targetProvider.Search(ctx, &mediatypes.QueryOptions{})
 		if err != nil {
 			logger.Printf("Error getting playlists from target client %d: %v", clientInfo.ClientID, err)
 			continue

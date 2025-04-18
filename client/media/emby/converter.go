@@ -10,58 +10,103 @@ import (
 	"suasor/utils"
 )
 
-func (e *EmbyClient) convertToWatchHistoryItem(ctx context.Context, item *embyclient.BaseItemDto) (models.UserMediaItemData[types.MediaData], error) {
-	if item == nil || item.UserData == nil {
-		return models.UserMediaItemData[types.MediaData]{}, fmt.Errorf("cannot convert nil item to watch history item")
+func convertTo[T types.MediaData](e *EmbyClient, ctx context.Context, item *embyclient.BaseItemDto) (*models.MediaItem[T], error) {
+
+	var mediaItem *models.MediaItem[T]
+
+	if item.Type_ == "Movie" {
+		movie, err := e.convertToMovie(ctx, item)
+		if err != nil {
+			return nil, err
+		}
+		mediaItem = movie
+	} else if item.Type_ == "Episode" {
+		mediaItem, err := e.convertToEpisode(item)
+		if err != nil {
+			return nil, err
+		}
+	} else if item.Type_ == "Audio" {
+		mediaItem, err := e.convertToTrack(item)
+		if err != nil {
+			return nil, err
+		}
+	} else if item.Type_ == "Playlist" {
+		mediaItem, err := convertToPlaylist(item)
+		if err != nil {
+			return nil, err
+		}
+	} else if item.Type_ == "Series" {
+		mediaItem, err := convertToSeries(item)
+		if err != nil {
+			return nil, err
+		}
+	} else if item.Type_ == "Season" {
+		mediaItem, err := convertToSeason(ctx, item, item.ParentId)
+		if err != nil {
+			return nil, err
+		}
+	} else if item.Type_ == "Collection" {
+		mediaItem, err := convertToCollection(item)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	// TODO: Needs to properly handle other types
-	var watchData models.MediaItem[types.MediaData]
-	watchData.SetClientInfo(e.ClientID, e.ClientType, item.Id)
-	// TODO: find emby types list
-	if item.Type_ == "Movie" {
-		mediaItemMovie, err := e.convertToMovie(ctx, item)
-		if err != nil {
-			return models.UserMediaItemData[types.MediaData]{}, err
-		}
-		watchData.SetData(&watchData, mediaItemMovie.GetData())
-	} else if item.Type_ == "Episode" {
-		mediaItemEpisode, err := e.convertToEpisode(item)
-		if err != nil {
-			return models.UserMediaItemData[types.MediaData]{}, err
-		}
-		watchData.SetData(&watchData, mediaItemEpisode.GetData())
-	} else if item.Type_ == "Audio" {
-		mediaItemMusic, err := e.convertToTrack(item)
-		if err != nil {
-			return models.UserMediaItemData[types.MediaData]{}, err
-		}
-		watchData.SetData(&watchData, mediaItemMusic.GetData())
-	} else if item.Type_ == "Playlist" {
-		mediaItemPlaylist, err := e.convertToPlaylist(item)
-		if err != nil {
-			return models.UserMediaItemData[types.MediaData]{}, err
-		}
-		watchData.SetData(&watchData, mediaItemPlaylist.GetData())
-	} else if item.Type_ == "Series" {
-		mediaItemSeries, err := e.convertToSeries(item)
-		if err != nil {
-			return models.UserMediaItemData[types.MediaData]{}, err
-		}
-		watchData.SetData(&watchData, mediaItemSeries.GetData())
-	} else if item.Type_ == "Season" {
-		mediaItemSeason, err := e.convertToSeason(ctx, item, item.ParentId)
-		if err != nil {
-			return models.UserMediaItemData[types.MediaData]{}, err
-		}
-		watchData.SetData(&watchData, mediaItemSeason.GetData())
-	} else if item.Type_ == "Collection" {
-		mediaItemCollection, err := e.convertToCollection(item)
-		if err != nil {
-			return models.UserMediaItemData[types.MediaData]{}, err
-		}
-		watchData.SetData(&watchData, mediaItemCollection.GetData())
+	return mediaItem, err
+}
+
+func (e *EmbyClient) extractUserItemData(ctx context.Context, item *embyclient.BaseItemDto) (*models.MediaItemDatas, error) {
+	if item == nil || item.UserData == nil {
+		return &models.MediaItemDatas{}, fmt.Errorf("cannot convert nil item to watch history item")
 	}
+
+	// mediaItem, err := convertTo[types.MediaData](e, ctx, item)
+
+	// var watchData *models.MediaItemDatas
+
+	// if item.Type_ == "Movie" {
+	// 	mediaItemMovie, err := e.convertToMovie(ctx, item)
+	// 	if err != nil {
+	// 		return &models.MediaItemDatas{}, err
+	// 	}
+	// 	watchData.SetData(&watchData, mediaItemMovie.GetData())
+	// } else if item.Type_ == "Episode" {
+	// 	mediaItemEpisode, err := e.convertToEpisode(item)
+	// 	if err != nil {
+	// 		return models.UserMediaItemData[types.MediaData]{}, err
+	// 	}
+	// 	watchData.SetData(&watchData, mediaItemEpisode.GetData())
+	// } else if item.Type_ == "Audio" {
+	// 	mediaItemMusic, err := e.convertToTrack(item)
+	// 	if err != nil {
+	// 		return models.UserMediaItemData[types.MediaData]{}, err
+	// 	}
+	// 	watchData.SetData(&watchData, mediaItemMusic.GetData())
+	// } else if item.Type_ == "Playlist" {
+	// 	mediaItemPlaylist, err := e.convertToPlaylist(item)
+	// 	if err != nil {
+	// 		return models.UserMediaItemData[types.MediaData]{}, err
+	// 	}
+	// 	watchData.SetData(&watchData, mediaItemPlaylist.GetData())
+	// } else if item.Type_ == "Series" {
+	// 	mediaItemSeries, err := e.convertToSeries(item)
+	// 	if err != nil {
+	// 		return models.UserMediaItemData[types.MediaData]{}, err
+	// 	}
+	// 	watchData.SetData(&watchData, mediaItemSeries.GetData())
+	// } else if item.Type_ == "Season" {
+	// 	mediaItemSeason, err := e.convertToSeason(ctx, item, item.ParentId)
+	// 	if err != nil {
+	// 		return models.UserMediaItemData[types.MediaData]{}, err
+	// 	}
+	// 	watchData.SetData(&watchData, mediaItemSeason.GetData())
+	// } else if item.Type_ == "Collection" {
+	// 	mediaItemCollection, err := e.convertToCollection(item)
+	// 	if err != nil {
+	// 		return models.UserMediaItemData[types.MediaData]{}, err
+	// 	}
+	// 	watchData.SetData(&watchData, mediaItemCollection.GetData())
+	// }
 
 	watchItem := models.UserMediaItemData[types.MediaData]{
 		Item:            &watchData,

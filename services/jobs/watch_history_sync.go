@@ -21,8 +21,6 @@ import (
 
 // WatchHistorySyncJob synchronizes watched media history from external clients
 type WatchHistorySyncJob struct {
-	ctx             context.Context
-	c               *container.Container
 	jobRepo         repository.JobRepository
 	userRepo        repository.UserRepository
 	userConfigRepo  repository.UserConfigRepository
@@ -39,8 +37,6 @@ func NewWatchHistorySyncJob(
 	c *container.Container,
 ) *WatchHistorySyncJob {
 	return &WatchHistorySyncJob{
-		ctx:             ctx,
-		c:               c,
 		jobRepo:         container.MustGet[repository.JobRepository](c),
 		userRepo:        container.MustGet[repository.UserRepository](c),
 		userConfigRepo:  container.MustGet[repository.UserConfigRepository](c),

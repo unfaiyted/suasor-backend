@@ -26,21 +26,21 @@ type MediaItems struct {
 
 // MediaItem is the base type for all media items
 type MediaItem[T types.MediaData] struct {
+	BaseModel
 	ID          uint64      `json:"id" gorm:"primaryKey;autoIncrement"` // Internal ID
 	SyncClients SyncClients `json:"syncClients" gorm:"type:jsonb"`      // Client IDs for this item (mapping client to their IDs)
 	ExternalIDs ExternalIDs `json:"externalIds" gorm:"type:jsonb"`      // External IDs for this item (TMDB, IMDB, etc.)
+	OwnerID     uint64      `json:"ownerId"`                            // ID of the user that owns this item, 0 for system owned items
 
-	Type        types.MediaType `json:"type" gorm:"type:varchar(50)"` // Type of media (movie, show, episode, etc.)
-	Title       string          `json:"title"`
-	ReleaseDate time.Time       `json:"releaseDate,omitempty"`
-	ReleaseYear int             `json:"releaseYear,omitempty"`
+	Type types.MediaType `json:"type" gorm:"type:varchar(50)"` // Type of media (movie, show, episode, etc.)
+
+	Title       string    `json:"title"`
+	ReleaseDate time.Time `json:"releaseDate,omitempty"`
+	ReleaseYear int       `json:"releaseYear,omitempty"`
 
 	StreamURL   string `json:"streamUrl,omitempty" gorm:"size:1024"`
 	DownloadURL string `json:"downloadUrl,omitempty" gorm:"size:1024"`
 	Data        T      `json:"data" gorm:"type:jsonb"` // Type-specific media data
-	// CreatedBy   uint64    `json:"createdBy,omitempty"`
-	CreatedAt time.Time `json:"createdAt" gorm:"autoCreateTime"`
-	UpdatedAt time.Time `json:"updatedAt" gorm:"autoUpdateTime"`
 }
 
 // ExternalID represents an ID that identifies this media item in an external system
@@ -280,8 +280,8 @@ func (m *MediaItem[T]) GetData() T {
 	return m.Data
 }
 
-func (m *MediaItem[T]) SetData(i *MediaItem[T], data T) {
-	i.Data = data
+func (m *MediaItem[T]) SetData(data T) {
+	m.Data = data
 }
 
 func (m *MediaItem[T]) AsEpisode() (MediaItem[types.Episode], bool) {
@@ -363,6 +363,19 @@ func (m *MediaItem[T]) AsPlaylist() (MediaItem[types.Playlist], bool) {
 	playlist, ok := any(m).(MediaItem[types.Playlist])
 
 	return playlist, ok
+}
+
+// IsList returns true if the media item is a list
+func (m *MediaItem[T]) IsList() bool {
+	return m.Type == types.MediaTypePlaylist || m.Type == types.MediaTypeCollection
+}
+
+// IsPlaylist returns true if the media item is a playlist
+func (m *MediaItem[T]) IsPlaylist() bool {
+	return m.Type == types.MediaTypePlaylist
+}
+func (m *MediaItem[T]) IsCollection() bool {
+	return m.Type == types.MediaTypeCollection
 }
 
 // CreateMediaItem creates a new MediaItem of the appropriate type

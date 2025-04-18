@@ -4,11 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"suasor/app/container"
-	apprepos "suasor/app/repository"
 	mediatypes "suasor/client/media/types"
 	"suasor/repository"
 	"suasor/types/models"
@@ -17,33 +15,35 @@ import (
 
 // UserPlaylistService defines the interface for user-owned playlist operations
 // This service extends PlaylistService with operations specific to user-owned playlists
-type UserPlaylistService interface {
+type UserListService[T mediatypes.ListData] interface {
 	// Include all core playlist service methods
-	PlaylistService
+	CoreListService[T]
 
 	// User-specific operations
 	GetFavorite(ctx context.Context, userID uint64) ([]*models.MediaItem[*mediatypes.Playlist], error)
+	GetRecentByUser(ctx context.Context, userID uint64, days int, limit int) ([]*models.MediaItem[*mediatypes.Playlist], error)
 
 	// Smart playlist operations
-	CreateSmartList(ctx context.Context, userID uint64, name string, description string, criteria map[string]interface{}) (*models.MediaItem[*mediatypes.Playlist], error)
+	CreateSmartList(ctx context.Context,
+		userID uint64, name string,
+		description string,
+		criteria map[string]interface{},
+	) (*models.MediaItem[*mediatypes.Playlist], error)
 	UpdateSmartCriteria(ctx context.Context, playlistID uint64, criteria map[string]interface{}) (*models.MediaItem[*mediatypes.Playlist], error)
 	RefreshSmartList(ctx context.Context, playlistID uint64) (*models.MediaItem[*mediatypes.Playlist], error)
 
 	// Playlist sharing and collaboration
 	ShareWithUser(ctx context.Context, playlistID uint64, targetUserID uint64, permissionLevel string) error
 	GetShared(ctx context.Context, userID uint64) ([]*models.MediaItem[*mediatypes.Playlist], error)
-	GetCollaborators(ctx context.Context, playlistID uint64) ([]models.PlaylistCollaborator, error)
+	GetCollaborators(ctx context.Context, playlistID uint64) ([]models.ListCollaborator, error)
 	RemoveCollaborator(ctx context.Context, playlistID uint64, userID uint64) error
 
-	// Sync with media clients
+	// Playlist sync
 	SyncToClients(ctx context.Context, playlistID uint64, clientIDs []uint64) error
 	GetSyncStatus(ctx context.Context, playlistID uint64) (*models.PlaylistSyncStatus, error)
-	ImportClientList(ctx context.Context, userID uint64, clientID uint64, clientPlaylistID string) (*models.MediaItem[*mediatypes.Playlist], error)
 }
 
 type userPlaylistService struct {
-	PlaylistService
-
 	userItemRepo repository.UserMediaItemRepository[*mediatypes.Playlist]
 	userDataRepo repository.UserMediaItemDataRepository[*mediatypes.Playlist]
 	itemRepo     repository.MediaItemRepository[*mediatypes.Playlist]
@@ -307,7 +307,7 @@ func (s *userPlaylistService) GetUser(ctx context.Context, userID uint64, limit 
 		Msg("Getting user playlists with pagination")
 
 	// Get all playlists for this user
-	playlists, err := s.userItemRepo.GetByUserID(ctx, userID, limit, offset)
+	playlists, err := s.itemRepo.GetByUserID(ctx, userID, limit, offset)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -339,19 +339,26 @@ func (s *userPlaylistService) SearchUserPlaylists(ctx context.Context, userID ui
 	}
 
 	// Delegate to core service with owner filter
-	return s.SearchPlaylists(ctx, options)
+	return s.Search(ctx, options)
 }
 
 // GetRecentUserPlaylists retrieves recently updated playlists for a user
-func (s *userPlaylistService) GetRecentUserPlaylists(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Playlist], error) {
+func (s *userPlaylistService) GetRecentByUser(ctx context.Context, userID uint64, days int, limit int) ([]*models.MediaItem[*mediatypes.Playlist], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Int("limit", limit).
 		Msg("Getting recent user playlists")
 
-	// Delegate to core service
-	return s.GetRecentPlaylists(ctx, userID, limit)
+	options := mediatypes.QueryOptions{
+		MediaType: mediatypes.MediaTypePlaylist,
+		OwnerID:   userID,
+		Limit:     limit,
+		Sort:      "updated_at",
+		SortOrder: "desc",
+	}
+	return s.itemRepo.Search(ctx, options)
+
 }
 
 // GetFavoritePlaylists retrieves playlists marked as favorite by the user
@@ -361,8 +368,11 @@ func (s *userPlaylistService) GetFavoritePlaylists(ctx context.Context, userID u
 		Uint64("userID", userID).
 		Msg("Getting favorite playlists")
 
+	limit := 0
+	offset := 0
+
 	// Use user data repository to get all favorites of type playlist
-	favoritePlaylistIDs, err := s.userDataRepo.GetFavoritesByType(ctx, userID, string(mediatypes.MediaTypePlaylist))
+	userFavoritePlayData, err := s.userDataRepo.GetFavorites(ctx, userID, limit, offset)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -370,26 +380,13 @@ func (s *userPlaylistService) GetFavoritePlaylists(ctx context.Context, userID u
 		return nil, fmt.Errorf("failed to get favorite playlists: %w", err)
 	}
 
-	if len(favoritePlaylistIDs) == 0 {
-		// No favorites found
-		return []*models.MediaItem[*mediatypes.Playlist]{}, nil
-	}
-
-	// Convert to uint64 array
-	var playlistIDs []uint64
-	for _, idStr := range favoritePlaylistIDs {
-		id, err := strconv.ParseUint(idStr, 10, 64)
-		if err != nil {
-			log.Warn().
-				Str("idStr", idStr).
-				Msg("Invalid playlist ID in favorites")
-			continue
-		}
-		playlistIDs = append(playlistIDs, id)
+	var ids []uint64
+	for _, data := range userFavoritePlayData {
+		ids = append(ids, data.MediaItemID)
 	}
 
 	// Fetch the playlists by IDs
-	playlists, err := s.userRepo.GetByIDs(ctx, playlistIDs)
+	playlists, err := s.itemRepo.GetByIDs(ctx, ids)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -495,7 +492,7 @@ func (s *userPlaylistService) UpdateSmartPlaylistCriteria(ctx context.Context, p
 
 	// Verify user has permission to modify this playlist
 	userID := ctx.Value("userID").(uint64)
-	if !s.hasPlaylistWritePermission(ctx, userID, playlist) {
+	if !s.hasWritePermission(ctx, userID, playlist) {
 		log.Warn().
 			Uint64("playlistID", playlistID).
 			Uint64("ownerID", playlist.Data.OwnerID).
@@ -570,7 +567,7 @@ func (s *userPlaylistService) RefreshSmartPlaylist(ctx context.Context, playlist
 	}
 
 	// Get the criteria
-	criteria := playlist.Data.SmartCriteria
+	// criteria := playlist.Data.SmartCriteria
 
 	// In a real implementation, this would:
 	// 1. Translate the criteria into a database query
@@ -636,36 +633,36 @@ func (s *userPlaylistService) ShareWithUser(ctx context.Context, playlistID uint
 	}
 
 	// Add the target user to the shared users list if not already present
-	collaborator := models.PlaylistCollaborator{
-		UserID:          targetUserID,
-		PermissionLevel: permissionLevel,
-		SharedAt:        time.Now(),
-		SharedBy:        userID,
-	}
-
-	// Initialize the shared with array if it doesn't exist
-	if playlist.Data.SharedWith == nil {
-		playlist.Data.SharedWith = []models.PlaylistCollaborator{collaborator}
-	} else {
-		// Check if already shared
-		alreadyShared := false
-		for i, collab := range playlist.Data.SharedWith {
-			if collab.UserID == targetUserID {
-				alreadyShared = true
-				// Update permission level if it's different
-				if collab.PermissionLevel != permissionLevel {
-					playlist.Data.SharedWith[i].PermissionLevel = permissionLevel
-					playlist.Data.SharedWith[i].SharedAt = time.Now()
-					playlist.Data.SharedWith[i].SharedBy = userID
-				}
-				break
-			}
-		}
-
-		if !alreadyShared {
-			playlist.Data.SharedWith = append(playlist.Data.SharedWith, collaborator)
-		}
-	}
+	// collaborator := models.ListCollaborator{
+	// 	UserID:          targetUserID,
+	// 	PermissionLevel: permissionLevel,
+	// 	SharedAt:        time.Now(),
+	// 	SharedBy:        userID,
+	// }
+	//
+	// // Initialize the shared with array if it doesn't exist
+	// if playlist.Data.SharedWith == nil {
+	// 	playlist.Data.SharedWith = []models.ListCollaborator{collaborator}
+	// } else {
+	// 	// Check if already shared
+	// 	alreadyShared := false
+	// 	for i, collab := range playlist.Data.SharedWith {
+	// 		if collab.UserID == targetUserID {
+	// 			alreadyShared = true
+	// 			// Update permission level if it's different
+	// 			if collab.PermissionLevel != permissionLevel {
+	// 				playlist.Data.SharedWith[i].PermissionLevel = permissionLevel
+	// 				playlist.Data.SharedWith[i].SharedAt = time.Now()
+	// 				playlist.Data.SharedWith[i].SharedBy = userID
+	// 			}
+	// 			break
+	// 		}
+	// 	}
+	//
+	// 	if !alreadyShared {
+	// 		playlist.Data.SharedWith = append(playlist.Data.SharedWith, collaborator)
+	// 	}
+	// }
 
 	// Update the playlist
 	_, err = s.Update(ctx, playlist)
@@ -693,43 +690,45 @@ func (s *userPlaylistService) GetSharedPlaylists(ctx context.Context, userID uin
 		Uint64("userID", userID).
 		Msg("Getting playlists shared with user")
 
+	// TODO:
 	// In a real implementation, this would query the database for playlists where
 	// the user is in the SharedWith array
 	// For now, we'll scan through all playlists to find ones shared with this user
-	allPlaylists, err := s.userRepo.GetAll(ctx, 1000, 0)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", userID).
-			Msg("Failed to get all playlists")
-		return nil, fmt.Errorf("failed to get shared playlists: %w", err)
-	}
-
-	var sharedPlaylists []*models.MediaItem[*mediatypes.Playlist]
-	for _, playlist := range allPlaylists {
-		// Skip playlists owned by this user (those are covered by GetUserPlaylists)
-		if playlist.Data.OwnerID == userID {
-			continue
-		}
-
-		// Check if this playlist is shared with the user
-		for _, collab := range playlist.Data.SharedWith {
-			if collab.UserID == userID {
-				sharedPlaylists = append(sharedPlaylists, playlist)
-				break
-			}
-		}
-	}
-
-	log.Info().
-		Uint64("userID", userID).
-		Int("count", len(sharedPlaylists)).
-		Msg("Retrieved playlists shared with user")
-
-	return sharedPlaylists, nil
+	// allPlaylists, err := s.userRepo.GetAll(ctx, 1000, 0)
+	// if err != nil {
+	// 	log.Error().Err(err).
+	// 		Uint64("userID", userID).
+	// 		Msg("Failed to get all playlists")
+	// 	return nil, fmt.Errorf("failed to get shared playlists: %w", err)
+	// }
+	//
+	// var sharedPlaylists []*models.MediaItem[*mediatypes.Playlist]
+	// for _, playlist := range allPlaylists {
+	// 	// Skip playlists owned by this user (those are covered by GetUserPlaylists)
+	// 	if playlist.Data.OwnerID == userID {
+	// 		continue
+	// 	}
+	//
+	// 	// Check if this playlist is shared with the user
+	// 	for _, collab := range playlist.Data.SharedWith {
+	// 		if collab.UserID == userID {
+	// 			sharedPlaylists = append(sharedPlaylists, playlist)
+	// 			break
+	// 		}
+	// 	}
+	// }
+	//
+	// log.Info().
+	// 	Uint64("userID", userID).
+	// 	Int("count", len(sharedPlaylists)).
+	// 	Msg("Retrieved playlists shared with user")
+	//
+	// return sharedPlaylists, nil
+	return nil, nil
 }
 
 // GetPlaylistCollaborators retrieves the list of users a playlist is shared with
-func (s *userPlaylistService) GetPlaylistCollaborators(ctx context.Context, playlistID uint64) ([]models.PlaylistCollaborator, error) {
+func (s *userPlaylistService) GetPlaylistCollaborators(ctx context.Context, playlistID uint64) ([]models.ListCollaborator, error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("playlistID", playlistID).
@@ -754,10 +753,12 @@ func (s *userPlaylistService) GetPlaylistCollaborators(ctx context.Context, play
 
 	// Return the shared with array (may be nil)
 	if playlist.Data.SharedWith == nil {
-		return []models.PlaylistCollaborator{}, nil
+		return []models.ListCollaborator{}, nil
 	}
 
-	return playlist.Data.SharedWith, nil
+	// return playlist.Data.SharedWith, nil
+	// TODO: implement all of the collaborator stuff
+	return nil, nil
 }
 
 // RemovePlaylistCollaborator removes a user from the playlist's collaborators
@@ -794,15 +795,15 @@ func (s *userPlaylistService) RemovePlaylistCollaborator(ctx context.Context, pl
 	}
 
 	// Find and remove the collaborator
-	var newCollaborators []models.PlaylistCollaborator
+	// var newCollaborators []models.ListCollaborator
 	found := false
-	for _, collab := range playlist.Data.SharedWith {
-		if collab.UserID != collaboratorID {
-			newCollaborators = append(newCollaborators, collab)
-		} else {
-			found = true
-		}
-	}
+	// for _, collab := range playlist.Data.SharedWith {
+	// if collab.UserID != collaboratorID {
+	// 	newCollaborators = append(newCollaborators, collab)
+	// } else {
+	// 	found = true
+	// }
+	// }
 
 	if !found {
 		log.Info().
@@ -813,7 +814,7 @@ func (s *userPlaylistService) RemovePlaylistCollaborator(ctx context.Context, pl
 	}
 
 	// Update the playlist with the new collaborators list
-	playlist.Data.SharedWith = newCollaborators
+	// playlist.Data.SharedWith = newCollaborators
 	_, err = s.Update(ctx, playlist)
 	if err != nil {
 		log.Error().Err(err).
@@ -843,7 +844,8 @@ func (s *userPlaylistService) SyncPlaylistToClients(ctx context.Context, playlis
 
 	// This uses the same approach as the base service's SyncPlaylist method
 	// But could be extended with user-specific validation and tracking
-	return s.SyncPlaylist(ctx, playlistID, clientIDs)
+	// return s.SyncPlaylist(ctx, playlistID, clientIDs)
+	return nil
 }
 
 // GetPlaylistSyncStatus retrieves the sync status of a playlist across clients
@@ -871,164 +873,38 @@ func (s *userPlaylistService) GetPlaylistSyncStatus(ctx context.Context, playlis
 	}
 
 	// Create a sync status object
-	status := &models.PlaylistSyncStatus{
-		PlaylistID:   playlistID,
-		LastSynced:   playlist.Data.LastSynced,
-		ClientStates: make(map[uint64]models.ClientSyncState),
-	}
+	// status := &models.PlaylistSyncStatus{
+	// 	PlaylistID:   playlistID,
+	// 	LastSynced:   playlist.Data.LastSynced,
+	// 	ClientStates: make(map[uint64]models.ClientSyncState),
+	// }
+	//
+	// // Add state information for each client
+	// for _, state := range playlist.Data.SyncClientStates {
+	// 	clientState := models.ClientSyncState{
+	// 		ClientID:     state.ClientID,
+	// 		ClientListID: state.ClientListID,
+	// 		LastSynced:   state.LastSynced,
+	// 		SyncStatus:   "unknown",
+	// 		ItemCount:    len(state.Items),
+	// 	}
+	//
+	// 	// Determine sync status
+	// 	if state.LastSynced.IsZero() {
+	// 		clientState.SyncStatus = "never_synced"
+	// 	} else if state.LastSynced.Before(playlist.Data.LastModified) {
+	// 		clientState.SyncStatus = "out_of_sync"
+	// 	} else {
+	// 		clientState.SyncStatus = "in_sync"
+	// 	}
+	//
+	// 	status.ClientStates[state.ClientID] = clientState
+	// }
 
-	// Add state information for each client
-	for _, state := range playlist.Data.SyncClientStates {
-		clientState := models.ClientSyncState{
-			ClientID:     state.ClientID,
-			ClientListID: state.ClientListID,
-			LastSynced:   state.LastSynced,
-			SyncStatus:   "unknown",
-			ItemCount:    len(state.Items),
-		}
+	// return status, nil
+	// TODO: Implement and test playlist sync status
+	return nil, nil
 
-		// Determine sync status
-		if state.LastSynced.IsZero() {
-			clientState.SyncStatus = "never_synced"
-		} else if state.LastSynced.Before(playlist.Data.LastModified) {
-			clientState.SyncStatus = "out_of_sync"
-		} else {
-			clientState.SyncStatus = "in_sync"
-		}
-
-		status.ClientStates[state.ClientID] = clientState
-	}
-
-	return status, nil
-}
-
-// ImportClientPlaylist imports a playlist from a client into the user's local playlists
-func (s *userPlaylistService) ImportClientPlaylist(ctx context.Context, userID uint64, clientID uint64, clientPlaylistID string) (*models.MediaItem[*mediatypes.Playlist], error) {
-	log := utils.LoggerFromContext(ctx)
-	log.Debug().
-		Uint64("userID", userID).
-		Uint64("clientID", clientID).
-		Str("clientPlaylistID", clientPlaylistID).
-		Msg("Importing client playlist")
-
-	// Get the client playlist
-	clientPlaylist, err := s.clientService.GetPlaylistByID(ctx, userID, clientID, clientPlaylistID)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", userID).
-			Uint64("clientID", clientID).
-			Str("clientPlaylistID", clientPlaylistID).
-			Msg("Failed to get client playlist")
-		return nil, fmt.Errorf("failed to import client playlist: %w", err)
-	}
-
-	// Create a new playlist based on the client playlist
-	now := time.Now()
-	playlist := &models.MediaItem[*mediatypes.Playlist]{
-		Title: fmt.Sprintf("%s (Imported)", clientPlaylist.Data.Details.Title),
-		Type:  mediatypes.MediaTypePlaylist,
-		Data: &mediatypes.Playlist{
-			ItemList: mediatypes.ItemList{
-				Details: mediatypes.MediaDetails{
-					Title:       fmt.Sprintf("%s (Imported)", clientPlaylist.Data.Details.Title),
-					Description: fmt.Sprintf("Imported from %s on %s", clientPlaylist.Data.Details.Title, now.Format(time.RFC3339)),
-					AddedAt:     now,
-					ImageURL:    clientPlaylist.Data.Details.ImageURL,
-				},
-				OwnerID:      userID,
-				ModifiedBy:   userID,
-				Items:        []mediatypes.ListItem{},
-				ItemCount:    0,
-				LastModified: now,
-			},
-			OwnerID: userID,
-		},
-	}
-
-	// Link this playlist to the client playlist
-	if clientPlaylist.SyncClients != nil {
-		playlist.SyncClients = append(playlist.SyncClients, models.SyncClient{
-			ID:            clientID,
-			ItemID:        clientPlaylistID,
-			LastSynced:    now,
-			SyncDirection: "import",
-		})
-	}
-
-	// Create the local playlist
-	created, err := s.Create(ctx, playlist)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", userID).
-			Uint64("clientID", clientID).
-			Str("clientPlaylistID", clientPlaylistID).
-			Msg("Failed to create local playlist")
-		return nil, fmt.Errorf("failed to create local playlist during import: %w", err)
-	}
-
-	// Get the items from the client playlist
-	clientItems, err := s.clientService.GetPlaylistItems(ctx, userID, clientID, clientPlaylistID)
-	if err != nil {
-		log.Warn().Err(err).
-			Uint64("userID", userID).
-			Uint64("clientID", clientID).
-			Str("clientPlaylistID", clientPlaylistID).
-			Msg("Failed to get client playlist items, importing empty playlist")
-		return created, nil
-	}
-
-	// Add the items to the local playlist
-	// This would typically involve translating client item IDs to local item IDs
-	// For now, just attempt to add items directly
-	for _, item := range clientItems {
-		// Get client item ID
-		clientItemID, found := item.GetClientItemID(clientID)
-		if !found {
-			log.Warn().
-				Uint64("itemID", item.ID).
-				Msg("No client item ID found for this item, skipping")
-			continue
-		}
-
-		// Look up the item in our repository
-		localItem, err := s.mediaItemRepo.GetByClientItemID(ctx, clientItemID, clientID)
-		if err != nil {
-			log.Warn().Err(err).
-				Str("clientItemID", clientItemID).
-				Uint64("clientID", clientID).
-				Msg("Failed to find local item for client item, skipping")
-			continue
-		}
-
-		// Add the local item to the playlist
-		err = s.AddItemToPlaylist(ctx, created.ID, localItem.ID)
-		if err != nil {
-			log.Warn().Err(err).
-				Uint64("playlistID", created.ID).
-				Uint64("itemID", localItem.ID).
-				Msg("Failed to add item to imported playlist")
-			// Continue with other items
-		}
-	}
-
-	// Get the updated playlist with items
-	updated, err := s.GetByID(ctx, created.ID)
-	if err != nil {
-		log.Warn().Err(err).
-			Uint64("playlistID", created.ID).
-			Msg("Failed to get updated playlist after import")
-		return created, nil
-	}
-
-	log.Info().
-		Uint64("userID", userID).
-		Uint64("clientID", clientID).
-		Str("clientPlaylistID", clientPlaylistID).
-		Uint64("localPlaylistID", updated.ID).
-		Int("itemCount", updated.Data.ItemCount).
-		Msg("Client playlist imported successfully")
-
-	return updated, nil
 }
 
 func (s *playlistService) Delete(ctx context.Context, id uint64) error {
@@ -1102,3 +978,10 @@ func (s *userPlaylistService) hasWritePermission(ctx context.Context, userID uin
 	return false
 }
 
+func (s *userPlaylistService) GetCollaborators(userID string, playlistID string) ([]UserCollaboration, error) {
+	var collabs []UserCollaboration
+	// note yet implemented
+
+	return collabs, nil
+
+}

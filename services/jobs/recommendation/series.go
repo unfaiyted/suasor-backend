@@ -19,8 +19,11 @@ func (j *RecommendationJob) generateSeriesRecommendations(ctx context.Context, j
 		Uint64("userID", user.ID).
 		Msg("Generating TV series recommendations")
 
+	limit := 0
+	offset := 0
+
 	// Get existing series in the user's library
-	seriesList, err := j.itemRepos.SeriesRepo().GetByUserID(ctx, user.ID)
+	seriesList, err := j.itemRepos.SeriesRepo().GetByUserID(ctx, user.ID, limit, offset)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get user's TV series")
 		return err

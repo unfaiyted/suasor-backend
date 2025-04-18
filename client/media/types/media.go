@@ -166,6 +166,18 @@ type MediaData interface {
 	GetMediaType() MediaType
 }
 
+type ListData interface {
+	MediaData
+	isListData()
+	GetDetails() MediaDetails
+	GetItemList() ItemList
+	SetItemList(ItemList)
+	GetMediaType() MediaType
+}
+
+func (Collection) isListData() {}
+func (Playlist) isListData()   {}
+
 func (Movie) isMediaData()      {}
 func (Series) isMediaData()     {}
 func (Episode) isMediaData()    {}
@@ -189,11 +201,15 @@ func (a Artist) GetMediaType() MediaType  { return MediaTypeArtist }
 func (m Movie) GetDetails() MediaDetails { return m.Details }
 func (m Movie) GetMediaType() MediaType  { return MediaTypeMovie }
 
-func (c Collection) GetDetails() MediaDetails { return c.Details }
-func (c Collection) GetMediaType() MediaType  { return MediaTypeCollection }
+func (c Collection) GetDetails() MediaDetails       { return c.ItemList.Details }
+func (c Collection) GetItemList() ItemList          { return c.ItemList }
+func (c *Collection) SetItemList(itemList ItemList) { c.ItemList = itemList }
+func (c Collection) GetMediaType() MediaType        { return MediaTypeCollection }
 
-func (p Playlist) GetDetails() MediaDetails { return p.Details }
-func (p Playlist) GetMediaType() MediaType  { return MediaTypePlaylist }
+func (p Playlist) GetDetails() MediaDetails       { return p.ItemList.Details }
+func (p Playlist) GetItemList() ItemList          { return p.ItemList }
+func (p *Playlist) SetItemList(itemList ItemList) { p.ItemList = itemList }
+func (p Playlist) GetMediaType() MediaType        { return MediaTypePlaylist }
 
 func (t Series) GetDetails() MediaDetails { return t.Details }
 func (t Series) GetMediaType() MediaType  { return MediaTypeSeries }

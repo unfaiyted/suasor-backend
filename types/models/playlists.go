@@ -1,6 +1,8 @@
 package models
 
-type PlaylistCollaborator struct {
+type ListCollaborator struct {
+	BaseModel
+	ListID        uint64 `json:"listId"`
 	UserID        uint64 `json:"userId"`
 	Permission    string `json:"permission"`
 	SharedAt      string `json:"sharedAt"`

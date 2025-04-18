@@ -18,7 +18,7 @@ type UserMediaItemService[T types.MediaData] interface {
 	CoreMediaItemService[T]
 
 	// User-specific operations
-	GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error)
+	GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error)
 	GetUserContent(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[T], error)
 
 	// Specific to user-owned collections/playlists
@@ -88,14 +88,14 @@ func (s *userMediaItemService[T]) GetRecentItems(ctx context.Context, days int, 
 // User-specific methods
 
 // GetByUserID retrieves all user-owned media items for a specific user
-func (s *userMediaItemService[T]) GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error) {
+func (s *userMediaItemService[T]) GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Msg("Getting media items by user ID")
 
 	// Delegate to user repository
-	results, err := s.userRepo.GetByUserID(ctx, userID)
+	results, err := s.userRepo.GetByUserID(ctx, userID, limit, offset)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).

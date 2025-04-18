@@ -19,7 +19,7 @@ type PlaylistService interface {
 	Create(ctx context.Context, playlist *models.MediaItem[*mediatypes.Playlist]) (*models.MediaItem[*mediatypes.Playlist], error)
 	Update(ctx context.Context, playlist *models.MediaItem[*mediatypes.Playlist]) (*models.MediaItem[*mediatypes.Playlist], error)
 	GetByID(ctx context.Context, id uint64) (*models.MediaItem[*mediatypes.Playlist], error)
-	GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[*mediatypes.Playlist], error)
+	GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[*mediatypes.Playlist], error)
 	Delete(ctx context.Context, id uint64) error
 
 	// Playlist-specific operations
@@ -197,14 +197,13 @@ func (s *playlistService) GetByID(ctx context.Context, id uint64) (*models.Media
 	return result, nil
 }
 
-func (s *playlistService) GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[*mediatypes.Playlist], error) {
+func (s *playlistService) GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[*mediatypes.Playlist], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Msg("Getting playlists by user ID")
-
 	// Use the user service
-	return s.repo.GetByUserID(ctx, userID)
+	return s.repo.GetByUserID(ctx, userID, limit, offset)
 }
 
 // Playlist-specific operations

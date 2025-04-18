@@ -31,13 +31,13 @@ type MediaItemRepository[T types.MediaData] interface {
 	Create(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error)
 	Update(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error)
 	GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error)
-	GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error)
+	GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error)
 	GetByClientItemID(ctx context.Context, clientItemID string, clientID uint64) (*models.MediaItem[T], error)
 	GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error)
 	Delete(ctx context.Context, id uint64) error
 
 	// Batch operations
-	GetMediaItemsByIDs(ctx context.Context, ids []uint64) ([]*models.MediaItem[T], error)
+	GetByIDs(ctx context.Context, ids []uint64) ([]*models.MediaItem[T], error)
 	GetMixedMediaItemsByIDs(ctx context.Context, ids []uint64) (*models.MediaItems, error)
 	BatchCreate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error)
 	BatchUpdate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error)
@@ -142,7 +142,7 @@ func (r *mediaItemRepository[T]) Delete(ctx context.Context, id uint64) error {
 }
 
 // GetMediaItemsByIDs retrieves multiple media items by their IDs
-func (r *mediaItemRepository[T]) GetMediaItemsByIDs(ctx context.Context, ids []uint64) ([]*models.MediaItem[T], error) {
+func (r *mediaItemRepository[T]) GetByIDs(ctx context.Context, ids []uint64) ([]*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Int("count", len(ids)).
@@ -540,7 +540,7 @@ func (r *mediaItemRepository[T]) GetByClientItemID(ctx context.Context, clientIt
 	return item, nil
 }
 
-func (r *mediaItemRepository[T]) GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error) {
+func (r *mediaItemRepository[T]) GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error) {
 	var items []*models.MediaItem[T]
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
@@ -555,6 +555,13 @@ func (r *mediaItemRepository[T]) GetByUserID(ctx context.Context, userID uint64)
 		// Should for now be limited to user-owned playlists and collections
 		query := r.db.WithContext(ctx).
 			Where("type IN (?) AND data->'ItemList'->>'Owner' = ?", mediaType, userID)
+
+		if limit > 0 {
+			query = query.Limit(limit)
+		}
+		if offset > 0 {
+			query = query.Offset(offset)
+		}
 
 		if err := query.Find(&items).Error; err != nil {
 			log.Error().Err(err).Msg("Failed to get media items")

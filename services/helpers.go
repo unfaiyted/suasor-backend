@@ -17,11 +17,12 @@ func createStubItems(listItems []mediatypes.ListItem) []*models.MediaItem[mediat
 // createStubItem creates a stub media item for a list item
 func createStubItem(listItem mediatypes.ListItem) *models.MediaItem[mediatypes.MediaData] {
 	return &models.MediaItem[mediatypes.MediaData]{
-		ID:          listItem.ItemID,
+		BaseModel: models.BaseModel{
+			ID:        listItem.ItemID,
+			CreatedAt: listItem.LastChanged,
+			UpdatedAt: listItem.LastChanged,
+		},
 		Type:        mediatypes.MediaTypeTrack, // Placeholder, would get actual type from DB
 		ReleaseYear: 0,                         // Would be populated from DB
-		CreatedAt:   listItem.LastChanged,      // Use last changed time as a proxy
-		UpdatedAt:   listItem.LastChanged,
-		// Would populate other fields from the actual item in the database
 	}
 }
