@@ -2,6 +2,7 @@
 package di
 
 import (
+	"context"
 	"gorm.io/gorm"
 	"suasor/app/container"
 	apprepos "suasor/app/repository"
@@ -10,7 +11,7 @@ import (
 )
 
 // RegisterRepositories registers all repository dependencies
-func RegisterRepositories(c *container.Container) {
+func RegisterRepositories(ctx context.Context, c *container.Container) {
 	// User repositories
 	container.RegisterFactory[repository.UserRepository](c, func(c *container.Container) repository.UserRepository {
 		db := container.MustGet[*gorm.DB](c)
@@ -133,4 +134,3 @@ func registerClientRepositories(c *container.Container) {
 		)
 	})
 }
-

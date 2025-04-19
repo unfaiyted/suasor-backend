@@ -438,7 +438,7 @@ func (j *MediaSyncJob) syncEpisodes(ctx context.Context, clientMedia media.Clien
 	clientType := clientMedia.(client.Client).GetType().AsClientMediaType()
 
 	// Initialize a slice to hold all episodes
-	var allEpisodes []models.MediaItem[*mediatypes.Episode]
+	var allEpisodes []*models.MediaItem[*mediatypes.Episode]
 
 	// First get all series
 	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 15, "Fetching series list")
@@ -691,7 +691,7 @@ func (j *MediaSyncJob) syncArtists(ctx context.Context, clientMedia media.Client
 }
 
 // processMovieBatch processes a batch of movies and saves them to the database
-func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []models.MediaItem[*mediatypes.Movie], clientID uint64, clientType clienttypes.ClientMediaType) error {
+func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []*models.MediaItem[*mediatypes.Movie], clientID uint64, clientType clienttypes.ClientMediaType) error {
 	for _, movie := range movies {
 		// Skip if movie has no client ID information
 		if len(movie.SyncClients) == 0 {
@@ -771,7 +771,7 @@ func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []models.Me
 			movie.ReleaseYear = movie.Data.Details.ReleaseYear
 
 			// Create the movie
-			_, err = j.itemRepos.MovieRepo().Create(ctx, &movie)
+			_, err = j.itemRepos.MovieRepo().Create(ctx, movie)
 			if err != nil {
 				log.Printf("Error creating movie: %v", err)
 				continue
@@ -783,7 +783,7 @@ func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []models.Me
 }
 
 // processSeriesBatch processes a batch of series and saves them to the database
-func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.MediaItem[*mediatypes.Series], clientID uint64, clientType clienttypes.ClientMediaType) error {
+func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []*models.MediaItem[*mediatypes.Series], clientID uint64, clientType clienttypes.ClientMediaType) error {
 	// Try to get a series provider for this client to fetch season details
 	clientMedia, err := j.getClientMedia(ctx, clientID, clientType.String())
 	if err != nil {
@@ -940,7 +940,7 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.M
 			}
 
 			// Create the series
-			_, err = j.itemRepos.SeriesRepo().Create(ctx, &s)
+			_, err = j.itemRepos.SeriesRepo().Create(ctx, s)
 			if err != nil {
 				log.Printf("Error creating series: %v", err)
 				continue
@@ -952,7 +952,7 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []models.M
 }
 
 // processEpisodeBatch processes a batch of episodes and saves them to the database
-func (j *MediaSyncJob) processEpisodeBatch(ctx context.Context, episodes []models.MediaItem[*mediatypes.Episode], clientID uint64, clientType clienttypes.ClientMediaType) error {
+func (j *MediaSyncJob) processEpisodeBatch(ctx context.Context, episodes []*models.MediaItem[*mediatypes.Episode], clientID uint64, clientType clienttypes.ClientMediaType) error {
 	for _, episode := range episodes {
 		// Skip if episode has no client ID information
 		if len(episode.SyncClients) == 0 {
@@ -1032,7 +1032,7 @@ func (j *MediaSyncJob) processEpisodeBatch(ctx context.Context, episodes []model
 			episode.ReleaseYear = episode.Data.Details.ReleaseYear
 
 			// Create the episode
-			_, err = j.itemRepos.EpisodeRepo().Create(ctx, &episode)
+			_, err = j.itemRepos.EpisodeRepo().Create(ctx, episode)
 			if err != nil {
 				log.Printf("Error creating episode: %v", err)
 				continue
@@ -1044,7 +1044,7 @@ func (j *MediaSyncJob) processEpisodeBatch(ctx context.Context, episodes []model
 }
 
 // processTrackBatch processes a batch of music tracks and saves them to the database
-func (j *MediaSyncJob) processTrackBatch(ctx context.Context, tracks []models.MediaItem[*mediatypes.Track], clientID uint64, clientType clienttypes.ClientMediaType) error {
+func (j *MediaSyncJob) processTrackBatch(ctx context.Context, tracks []*models.MediaItem[*mediatypes.Track], clientID uint64, clientType clienttypes.ClientMediaType) error {
 	for _, track := range tracks {
 		// Skip if track has no client ID information
 		if len(track.SyncClients) == 0 {
@@ -1124,7 +1124,7 @@ func (j *MediaSyncJob) processTrackBatch(ctx context.Context, tracks []models.Me
 			track.ReleaseYear = track.Data.Details.ReleaseYear
 
 			// Create the track
-			_, err = j.itemRepos.TrackRepo().Create(ctx, &track)
+			_, err = j.itemRepos.TrackRepo().Create(ctx, track)
 			if err != nil {
 				log.Printf("Error creating track: %v", err)
 				continue
@@ -1136,7 +1136,7 @@ func (j *MediaSyncJob) processTrackBatch(ctx context.Context, tracks []models.Me
 }
 
 // processAlbumBatch processes a batch of music albums and saves them to the database
-func (j *MediaSyncJob) processAlbumBatch(ctx context.Context, albums []models.MediaItem[*mediatypes.Album], clientID uint64, clientType clienttypes.ClientMediaType) error {
+func (j *MediaSyncJob) processAlbumBatch(ctx context.Context, albums []*models.MediaItem[*mediatypes.Album], clientID uint64, clientType clienttypes.ClientMediaType) error {
 	for _, album := range albums {
 		// Skip if album has no client ID information
 		if len(album.SyncClients) == 0 {
@@ -1216,7 +1216,7 @@ func (j *MediaSyncJob) processAlbumBatch(ctx context.Context, albums []models.Me
 			album.ReleaseYear = album.Data.Details.ReleaseYear
 
 			// Create the album
-			_, err = j.itemRepos.AlbumRepo().Create(ctx, &album)
+			_, err = j.itemRepos.AlbumRepo().Create(ctx, album)
 			if err != nil {
 				log.Printf("Error creating album: %v", err)
 				continue
@@ -1228,7 +1228,7 @@ func (j *MediaSyncJob) processAlbumBatch(ctx context.Context, albums []models.Me
 }
 
 // processArtistBatch processes a batch of music artists and saves them to the database
-func (j *MediaSyncJob) processArtistBatch(ctx context.Context, artists []models.MediaItem[*mediatypes.Artist], clientID uint64, clientType clienttypes.ClientMediaType) error {
+func (j *MediaSyncJob) processArtistBatch(ctx context.Context, artists []*models.MediaItem[*mediatypes.Artist], clientID uint64, clientType clienttypes.ClientMediaType) error {
 	for _, artist := range artists {
 		// Skip if artist has no client ID information
 		if len(artist.SyncClients) == 0 {
@@ -1304,7 +1304,7 @@ func (j *MediaSyncJob) processArtistBatch(ctx context.Context, artists []models.
 			artist.Title = artist.Data.Details.Title
 
 			// Create the artist
-			_, err = j.itemRepos.ArtistRepo().Create(ctx, &artist)
+			_, err = j.itemRepos.ArtistRepo().Create(ctx, artist)
 			if err != nil {
 				log.Printf("Error creating artist: %v", err)
 				continue

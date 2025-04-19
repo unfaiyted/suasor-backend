@@ -361,7 +361,7 @@ func (e *EmbyClient) GetCollectionItems(ctx context.Context, collectionID string
 
 	log.Info().
 		Str("collectionID", collectionID).
-		Int("itemCount", items.TotalItems).
+		Int("itemCount", items.GetTotalItems()).
 		Msg("Successfully retrieved collection items from Emby")
 
 	return items, nil

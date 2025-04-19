@@ -7,11 +7,16 @@ import (
 // MusicArtist represents a music artist
 type Artist struct {
 	Details        MediaDetails
-	Albums         []*Album `json:"albums,omitempty"`
-	AlbumIDs       []uint64 `json:"albumIDs,omitempty"`
-	AlbumCount     int      `json:"albumCount"`
-	Biography      string   `json:"biography,omitempty"`
-	SimilarArtists []string `json:"similarArtists,omitempty"`
+	Albums         []*Album          `json:"albums,omitempty"`
+	AlbumIDs       []uint64          `json:"albumIDs,omitempty"`
+	AlbumCount     int               `json:"albumCount"`
+	Biography      string            `json:"biography,omitempty"`
+	SimilarArtists []ArtistReference `json:"similarArtists,omitempty"`
+}
+
+type ArtistReference struct {
+	Name string `json:"name"`
+	ID   uint64 `json:"id"`
 }
 
 type SyncClient struct {
@@ -170,6 +175,11 @@ type MediaData interface {
 	GetMediaType() MediaType
 }
 
+func NewItem[T MediaData]() T {
+	var zero T
+	return zero
+}
+
 func (Movie) isMediaData()      {}
 func (Series) isMediaData()     {}
 func (Episode) isMediaData()    {}
@@ -182,22 +192,35 @@ func (Playlist) isMediaData()   {}
 
 func (t Track) GetDetails() MediaDetails { return t.Details }
 func (t Track) GetMediaType() MediaType  { return MediaTypeTrack }
+func (t Track) GetTitle() string         { return t.Details.Title }
 
 func (a Album) GetDetails() MediaDetails { return a.Details }
 func (a Album) GetMediaType() MediaType  { return MediaTypeAlbum }
 
+func (a Album) GetTitle() string { return a.Details.Title }
+
 func (a Artist) GetDetails() MediaDetails { return a.Details }
 func (a Artist) GetMediaType() MediaType  { return MediaTypeArtist }
+
+func (a Artist) GetTitle() string { return a.Details.Title }
 
 // Then in each media type
 func (m Movie) GetDetails() MediaDetails { return m.Details }
 func (m Movie) GetMediaType() MediaType  { return MediaTypeMovie }
 
+func (m Movie) GetTitle() string { return m.Details.Title }
+
 func (t Series) GetDetails() MediaDetails { return t.Details }
 func (t Series) GetMediaType() MediaType  { return MediaTypeSeries }
+
+func (t Series) GetTitle() string { return t.Details.Title }
 
 func (s Season) GetDetails() MediaDetails { return s.Details }
 func (s Season) GetMediaType() MediaType  { return MediaTypeSeason }
 
+func (s Season) GetTitle() string { return s.Details.Title }
+
 func (e Episode) GetDetails() MediaDetails { return e.Details }
 func (e Episode) GetMediaType() MediaType  { return MediaTypeEpisode }
+
+func (e Episode) GetTitle() string { return e.Details.Title }

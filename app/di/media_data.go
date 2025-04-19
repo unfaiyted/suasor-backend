@@ -2,6 +2,7 @@
 package di
 
 import (
+	"context"
 	"gorm.io/gorm"
 	"suasor/app/container"
 	"suasor/app/di/factories"
@@ -12,7 +13,7 @@ import (
 )
 
 // RegisterMediaData registers the media data factory and all media-related repositories
-func RegisterMediaData(c *container.Container) {
+func RegisterMediaData(ctx context.Context, c *container.Container) {
 
 	//  (Factory) MediaDataFactory
 	container.RegisterFactory[factories.MediaDataFactory](c, func(c *container.Container) factories.MediaDataFactory {

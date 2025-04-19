@@ -25,14 +25,16 @@ type movieHandlerInterface interface {
 
 // Define playlist handler interface
 type playlistHandlerInterface interface {
-	GetPlaylistByID(c *gin.Context)
-	GetPlaylists(c *gin.Context)
-	CreatePlaylist(c *gin.Context)
-	UpdatePlaylist(c *gin.Context)
-	DeletePlaylist(c *gin.Context)
-	AddItemToPlaylist(c *gin.Context)
-	RemoveItemFromPlaylist(c *gin.Context)
-	SearchPlaylists(c *gin.Context)
+	GetAll(c *gin.Context)
+	GetByID(c *gin.Context)
+	GetItemsbyPlaylistID(c *gin.Context)
+	GetByGenre(c *gin.Context)
+	Create(c *gin.Context)
+	Update(c *gin.Context)
+	Delete(c *gin.Context)
+	AddItem(c *gin.Context)
+	RemoveItem(c *gin.Context)
+	Search(c *gin.Context)
 }
 
 // Define music handler interface

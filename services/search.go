@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	apprepos "suasor/app/repository"
 	"suasor/client"
 	mediaclient "suasor/client/media"
 	"suasor/client/media/types"
@@ -39,46 +40,25 @@ type SearchService interface {
 // searchService implements SearchService
 type searchService struct {
 	searchRepo           repository.SearchRepository
-	movieRepo            repository.MediaItemRepository[*types.Movie]
-	seriesRepo           repository.MediaItemRepository[*types.Series]
-	episodeRepo          repository.MediaItemRepository[*types.Episode]
-	trackRepo            repository.MediaItemRepository[*types.Track]
-	albumRepo            repository.MediaItemRepository[*types.Album]
-	artistRepo           repository.MediaItemRepository[*types.Artist]
-	collectionRepo       repository.MediaItemRepository[*types.Collection]
-	playlistRepo         repository.MediaItemRepository[*types.Playlist]
+	clientRepos          apprepos.ClientRepositories
+	itemRepos            apprepos.CoreMediaItemRepositories
 	personRepo           repository.PersonRepository
-	clientRepos          repository.ClientRepositoryCollection
 	clientFactoryService *client.ClientFactoryService
 }
 
 // NewSearchService creates a new search service instance
 func NewSearchService(
 	searchRepo repository.SearchRepository,
-	movieRepo repository.MediaItemRepository[*types.Movie],
-	seriesRepo repository.MediaItemRepository[*types.Series],
-	episodeRepo repository.MediaItemRepository[*types.Episode],
-	trackRepo repository.MediaItemRepository[*types.Track],
-	albumRepo repository.MediaItemRepository[*types.Album],
-	artistRepo repository.MediaItemRepository[*types.Artist],
-	collectionRepo repository.MediaItemRepository[*types.Collection],
-	playlistRepo repository.MediaItemRepository[*types.Playlist],
+	clientRepos apprepos.ClientRepositories,
+	itemRepos apprepos.CoreMediaItemRepositories,
 	personRepo repository.PersonRepository,
-	clientRepos repository.ClientRepositoryCollection,
 	clientFactoryService *client.ClientFactoryService,
 ) SearchService {
 	return &searchService{
 		searchRepo:           searchRepo,
-		movieRepo:            movieRepo,
-		seriesRepo:           seriesRepo,
-		episodeRepo:          episodeRepo,
-		trackRepo:            trackRepo,
-		albumRepo:            albumRepo,
-		artistRepo:           artistRepo,
-		collectionRepo:       collectionRepo,
-		playlistRepo:         playlistRepo,
-		personRepo:           personRepo,
 		clientRepos:          clientRepos,
+		itemRepos:            itemRepos,
+		personRepo:           personRepo,
 		clientFactoryService: clientFactoryService,
 	}
 }
@@ -130,7 +110,7 @@ func (s *searchService) SearchMedia(ctx context.Context, userID uint64, options 
 	results := responses.SearchResults{}
 
 	// Search movies
-	movies, err := s.movieRepo.Search(ctx, options)
+	movies, err := s.itemRepos.MovieRepo().Search(ctx, options)
 	if err != nil {
 		log.Error().Err(err).Msg("Error searching movies")
 	} else {
@@ -138,7 +118,7 @@ func (s *searchService) SearchMedia(ctx context.Context, userID uint64, options 
 	}
 
 	// Search series
-	series, err := s.seriesRepo.Search(ctx, options)
+	series, err := s.itemRepos.SeriesRepo().Search(ctx, options)
 	if err != nil {
 		log.Error().Err(err).Msg("Error searching series")
 	} else {
@@ -147,7 +127,7 @@ func (s *searchService) SearchMedia(ctx context.Context, userID uint64, options 
 
 	// Search episodes if requested
 	if options.MediaType == "episode" || options.MediaType == "" {
-		episodes, err := s.episodeRepo.Search(ctx, options)
+		episodes, err := s.itemRepos.EpisodeRepo().Search(ctx, options)
 		if err != nil {
 			log.Error().Err(err).Msg("Error searching episodes")
 		} else {
@@ -158,7 +138,7 @@ func (s *searchService) SearchMedia(ctx context.Context, userID uint64, options 
 	// Search music if requested
 	if options.MediaType == "music" || options.MediaType == "" {
 		// Search tracks
-		tracks, err := s.trackRepo.Search(ctx, options)
+		tracks, err := s.itemRepos.TrackRepo().Search(ctx, options)
 		if err != nil {
 			log.Error().Err(err).Msg("Error searching tracks")
 		} else {
@@ -166,7 +146,7 @@ func (s *searchService) SearchMedia(ctx context.Context, userID uint64, options 
 		}
 
 		// Search albums
-		albums, err := s.albumRepo.Search(ctx, options)
+		albums, err := s.itemRepos.AlbumRepo().Search(ctx, options)
 		if err != nil {
 			log.Error().Err(err).Msg("Error searching albums")
 		} else {
@@ -174,7 +154,7 @@ func (s *searchService) SearchMedia(ctx context.Context, userID uint64, options 
 		}
 
 		// Search artists
-		artists, err := s.artistRepo.Search(ctx, options)
+		artists, err := s.itemRepos.ArtistRepo().Search(ctx, options)
 		if err != nil {
 			log.Error().Err(err).Msg("Error searching artists")
 		} else {
@@ -183,7 +163,7 @@ func (s *searchService) SearchMedia(ctx context.Context, userID uint64, options 
 	}
 
 	// Search collections
-	collections, err := s.collectionRepo.Search(ctx, options)
+	collections, err := s.itemRepos.CollectionRepo().Search(ctx, options)
 	if err != nil {
 		log.Error().Err(err).Msg("Error searching collections")
 	} else {
@@ -191,7 +171,7 @@ func (s *searchService) SearchMedia(ctx context.Context, userID uint64, options 
 	}
 
 	// Search playlists
-	playlists, err := s.playlistRepo.Search(ctx, options)
+	playlists, err := s.itemRepos.PlaylistRepo().Search(ctx, options)
 	if err != nil {
 		log.Error().Err(err).Msg("Error searching playlists")
 	} else {
@@ -220,7 +200,7 @@ func (s *searchService) SearchClientMedias(ctx context.Context, userID uint64, o
 	log.Info().Uint64("userID", userID).Str("query", options.Query).Msg("Searching media clients")
 
 	// Get all client configs for the user
-	clients, err := s.clientRepos.GetAllClientMediasForUser(ctx, userID)
+	clients, err := s.clientRepos.GetAllMediaClientsForUser(ctx, userID)
 	if err != nil {
 		return responses.SearchResults{}, fmt.Errorf("failed to get client configs: %w", err)
 	}

@@ -237,7 +237,7 @@ func RegisterLocalMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) {
 			})
 
 			// Most played tracks
-			tracks.GET("/most-played", musicHandler.GetMostPlayed)
+			tracks.GET("/most-played", trackHandler.GetMostPlayed)
 
 			// Get tracks by genre
 			tracks.GET("/genre/:genre", trackHandler.GetByGenre)
@@ -253,13 +253,13 @@ func RegisterLocalMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) {
 		albums := music.Group("/albums")
 		{
 			// Get album by ID
-			albums.GET("/:id", albumHandler.GetMediaItem)
+			albums.GET("/:id", albumHandler.GetByID)
 
 			// Get album tracks - use specialized handler
-			albums.GET("/:id/tracks", musicHandler.GetTracksByAlbumID)
+			albums.GET("/:id/tracks", musicHandler.GetAlbumTracks)
 
 			// Get top rated albums - use specialized handler
-			albums.GET("/top-rated", musicHandler.GetTopRatedAlbums)
+			// albums.GET("/top-rated", musicHandler.GetTopRatedAlbums)
 
 			// Get albums by genre
 			albums.GET("/genre/:genre", albumHandler.GetByGenre)
@@ -268,20 +268,20 @@ func RegisterLocalMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) {
 			albums.GET("/year/:year", albumHandler.GetByYear)
 
 			// Get latest albums
-			albums.GET("/latest", albumHandler.GetRecent)
+			albums.GET("/latest", albumHandler.GetLatestByAdded)
 
 			// Get popular albums
 			albums.GET("/popular", albumHandler.GetPopular)
 
 			// Get by external ID
-			albums.GET("/external/:source/:externalId", albumHandler.GetMediaItemByExternalSourceID)
+			albums.GET("/external/:source/:externalId", albumHandler.GetByExternalSourceID)
 		}
 
 		// Artists routes
 		artists := music.Group("/artists")
 		{
 			// Get artist by ID
-			artists.GET("/:id", artistHandler.GetMediaItem)
+			artists.GET("/:id", artistHandler.GetByID)
 
 			// Get all artists with optional filtering
 			artists.GET("", func(c *gin.Context) {

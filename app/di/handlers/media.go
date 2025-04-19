@@ -2,35 +2,38 @@
 package handlers
 
 import (
+	"context"
 	"suasor/app/container"
+	"suasor/app/di/factories"
+	apphandlers "suasor/app/handlers"
+	"suasor/app/services"
 	"suasor/handlers"
 )
 
 // RegisterMediaHandlers registers all media-related handlers
-func RegisterMediaHandlers(c *container.Container) {
+func RegisterMediaHandlers(ctx context.Context, c *container.Container) {
 	// Register core media item handlers
-	container.RegisterFactory[interfaces.CoreMediaItemHandlers](c, func(c *container.Container) interfaces.CoreMediaItemHandlers {
-		factory := container.MustGet[interfaces.MediaDataFactory](c)
-		coreServices := container.MustGet[interfaces.CoreMediaItemServices](c)
-		return factory.CreateCoreHandlers(coreServices)
+	container.RegisterFactory[apphandlers.CoreMediaItemHandlers](c, func(c *container.Container) apphandlers.CoreMediaItemHandlers {
+		factory := container.MustGet[factories.MediaDataFactory](c)
+		coreServices := container.MustGet[services.CoreMediaItemServices](c)
+		return factory.CreateCoreMediaItemHandlers(coreServices)
 	})
 
 	// Register user media item handlers
-	container.RegisterFactory[interfaces.UserMediaItemHandlers](c, func(c *container.Container) interfaces.UserMediaItemHandlers {
-		factory := container.MustGet[interfaces.MediaDataFactory](c)
-		userServices := container.MustGet[interfaces.UserMediaItemServices](c)
-		userDataServices := container.MustGet[interfaces.UserMediaItemDataServices](c)
-		coreHandlers := container.MustGet[interfaces.CoreMediaItemHandlers](c)
-		return factory.CreateUserHandlers(userServices, userDataServices, coreHandlers)
+	container.RegisterFactory[apphandlers.UserMediaItemHandlers](c, func(c *container.Container) apphandlers.UserMediaItemHandlers {
+		factory := container.MustGet[factories.MediaDataFactory](c)
+		userServices := container.MustGet[services.UserMediaItemServices](c)
+		coreHandlers := container.MustGet[apphandlers.CoreMediaItemHandlers](c)
+		return factory.CreateUserMediaItemHandlers(userServices, coreHandlers)
 	})
 
 	// Register client media item handlers
-	container.RegisterFactory[interfaces.ClientMediaItemHandlers](c, func(c *container.Container) interfaces.ClientMediaItemHandlers {
-		factory := container.MustGet[interfaces.MediaDataFactory](c)
-		clientServices := container.MustGet[interfaces.ClientMediaItemServices](c)
-		clientDataServices := container.MustGet[interfaces.ClientUserMediaItemDataServices](c)
-		userHandlers := container.MustGet[interfaces.UserMediaItemHandlers](c)
-		return factory.CreateClientHandlers(clientServices, clientDataServices, userHandlers)
+	container.RegisterFactory[apphandlers.ClientMediaItemHandlers](c, func(c *container.Container) apphandlers.ClientMediaItemHandlers {
+		factory := container.MustGet[factories.MediaDataFactory](c)
+		clientServices := container.MustGet[services.ClientMediaItemServices](c)
+		userServices := container.MustGet[services.UserMediaItemServices](c)
+		userHandlers := container.MustGet[apphandlers.UserMediaItemHandlers](c)
+		return factory.CreateClientMediaItemHandlers(clientServices, userServices, userHandlers)
 	})
 
 	// Register specialized handlers
@@ -41,7 +44,7 @@ func RegisterMediaHandlers(c *container.Container) {
 func registerSpecializedMediaHandlers(c *container.Container) {
 	// Core music handler
 	container.RegisterFactory[*handlers.CoreMusicHandler](c, func(c *container.Container) *handlers.CoreMusicHandler {
-		clientServices := container.MustGet[interfaces.ClientMediaItemServices](c)
+		clientServices := container.MustGet[services.ClientMediaItemServices](c)
 		return handlers.NewCoreMusicHandler(
 			clientServices.TrackClientService(),
 			clientServices.AlbumClientService(),
@@ -51,13 +54,17 @@ func registerSpecializedMediaHandlers(c *container.Container) {
 
 	// Core movie handler
 	container.RegisterFactory[*handlers.CoreMovieHandler](c, func(c *container.Container) *handlers.CoreMovieHandler {
-		coreMovieService := container.MustGet[interfaces.CoreMediaItemServices](c).MovieCoreService()
+		coreMovieService := container.MustGet[services.CoreMediaItemServices](c).MovieCoreService()
 		return handlers.NewCoreMovieHandler(coreMovieService)
 	})
 
 	// Core series handler
 	container.RegisterFactory[*handlers.CoreSeriesHandler](c, func(c *container.Container) *handlers.CoreSeriesHandler {
-		coreSeriesService := container.MustGet[interfaces.CoreMediaItemServices](c).SeriesCoreService()
-		return handlers.NewCoreSeriesHandler(coreSeriesService)
+		coreServices := container.MustGet[services.CoreMediaItemServices](c)
+		return handlers.NewCoreSeriesHandler(
+			coreServices.SeriesCoreService(),
+			nil, // We don't have a Season service yet defined in the interfaces
+			coreServices.EpisodeCoreService(),
+		)
 	})
 }

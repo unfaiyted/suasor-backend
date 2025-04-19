@@ -2,6 +2,7 @@
 package app
 
 import (
+	"context"
 	"gorm.io/gorm"
 	"suasor/app/container"
 	"suasor/app/di"
@@ -13,9 +14,17 @@ type AppDependencies struct {
 	container *container.Container
 }
 
-func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *AppDependencies {
+func (deps *AppDependencies) GetContainer() *container.Container {
+	container := deps.container
+	if container == nil {
+		panic("Container not initialized")
+	}
+	return container
+}
+
+func InitializeDependencies(ctx context.Context, db *gorm.DB, configService services.ConfigService) *AppDependencies {
 	// Create and initialize the container using the new DI structure
-	c := di.Initialize(db, configService)
+	c := di.Initialize(ctx, db, configService)
 
 	// Create the application dependencies with the initialized container
 	deps := &AppDependencies{
@@ -25,4 +34,3 @@ func InitializeDependencies(db *gorm.DB, configService services.ConfigService) *
 
 	return deps
 }
-

@@ -40,6 +40,7 @@ type QueryOptions struct {
 	Director        string    `json:"director,omitempty"`        // Filter by director name/ID
 	Studio          string    `json:"studio,omitempty"`          // Filter by studio
 	Creator         string    `json:"creator,omitempty"`         // Filter by content creator
+	Role            string    `json:"role,omitempty"`            // Filter by role (actor, director, etc.)
 	MediaType       MediaType `json:"mediaType,omitempty"`       // Filter by media type (movie, show, music, etc.)
 	ContentRating   string    `json:"contentRating,omitempty"`   // Filter by content rating (PG, PG-13, etc.)
 	Tags            []string  `json:"tags,omitempty"`            // Filter by tags
@@ -62,6 +63,7 @@ type QueryOptions struct {
 	IsPublic         bool   `json:"isPublic,omitempty"`         // Filter by public status
 	OwnerID          uint64 `json:"ownerId,omitempty"`          // Filter by owner ID
 	ClientID         uint64 `json:"clientId,omitempty"`         // Filter by client ID
+	PersonID         uint64 `json:"personId,omitempty"`         // Filter by person ID
 	ItemIDs          string `json:"itemIds,omitempty"`          // Filter by external ID (emby, jellyfin, plex, etc.)
 	ExternalSourceID string `json:"externalSourceID,omitempty"` // Filter by external source ID (TMDB, IMDB, etc.)
 }

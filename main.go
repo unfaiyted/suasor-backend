@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"suasor/app"
+	"suasor/app/container"
 	"suasor/database"
 	"suasor/repository"
 	"suasor/router"
@@ -67,20 +68,23 @@ func main() {
 	}
 
 	// Initialize application dependencies with the improved architecture
-	deps := app.Initialize(ctx, db, configService)
+	deps := app.InitializeDependencies(ctx, db, configService)
+
+	jobService := container.MustGet[services.JobService](deps.GetContainer())
+	log.Info().Msg("Job service initialized")
 
 	// Start the job scheduler
 	log.Info().Msg("Starting job scheduler")
-	if err := deps.JobServices.JobService().StartScheduler(); err != nil {
+	if err := jobService.StartScheduler(); err != nil {
 		log.Error().Err(err).Msg("Failed to start job scheduler")
 	}
 
 	// Sync job schedules from database
-	if err := deps.JobServices.JobService().SyncDatabaseJobs(ctx); err != nil {
+	if err := jobService.SyncDatabaseJobs(ctx); err != nil {
 		log.Error().Err(err).Msg("Failed to sync job schedules from database")
 	}
 
-	r := router.Setup(ctx, deps)
+	r := router.Setup(ctx, deps.GetContainer())
 
 	r.Use(middleware.LoggerMiddleware())
 

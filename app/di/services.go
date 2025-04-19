@@ -2,8 +2,12 @@
 package di
 
 import (
+	"context"
 	"gorm.io/gorm"
 	"suasor/app/container"
+	"suasor/app/di/factories"
+	apprepository "suasor/app/repository"
+	appservices "suasor/app/services"
 	"suasor/client"
 	mediatypes "suasor/client/media/types"
 	"suasor/client/types"
@@ -12,19 +16,19 @@ import (
 )
 
 // RegisterServices registers all service dependencies
-func RegisterServices(c *container.Container) {
+func RegisterServices(ctx context.Context, c *container.Container) {
 	// Register system services
-	registerSystemServices(c)
+	registerSystemServices(ctx, c)
 
 	// Register client services
-	registerClientServices(c)
+	registerClientServices(ctx, c)
 
 	// Register three-pronged architecture services
-	registerThreeProngedServices(c)
+	registerThreeProngedServices(ctx, c)
 }
 
 // Register system-level services
-func registerSystemServices(c *container.Container) {
+func registerSystemServices(ctx context.Context, c *container.Container) {
 	// Health service
 	container.RegisterFactory[services.HealthService](c, func(c *container.Container) services.HealthService {
 		db := container.MustGet[*gorm.DB](c)
@@ -32,18 +36,15 @@ func registerSystemServices(c *container.Container) {
 	})
 
 	// Media services
-	container.RegisterFactory[interfaces.MediaServices](c, func(c *container.Container) interfaces.MediaServices {
-		personRepo := container.MustGet[repository.PersonRepository](c)
-		creditRepo := container.MustGet[repository.CreditRepository](c)
-		return &mediaServicesImpl{
-			personRepo: personRepo,
-			creditRepo: creditRepo,
-		}
+	container.RegisterFactory[appservices.PeopleServices](c, func(c *container.Container) appservices.PeopleServices {
+		personService := container.MustGet[services.PersonService](c)
+		creditService := container.MustGet[services.CreditService](c)
+		return appservices.NewPeopleServices(&personService, &creditService)
 	})
 }
 
 // Register client-specific services
-func registerClientServices(c *container.Container) {
+func registerClientServices(ctx context.Context, c *container.Container) {
 	// Media clients
 	container.RegisterFactory[services.ClientService[*types.EmbyConfig]](c, func(c *container.Container) services.ClientService[*types.EmbyConfig] {
 		clientFactory := container.MustGet[client.ClientFactoryService](c)
@@ -109,46 +110,70 @@ func registerClientServices(c *container.Container) {
 }
 
 // Register services for the three-pronged architecture
-func registerThreeProngedServices(c *container.Container) {
+func registerThreeProngedServices(ctx context.Context, c *container.Container) {
 	// Core media item services
-	container.RegisterFactory[interfaces.CoreMediaItemServices](c, func(c *container.Container) interfaces.CoreMediaItemServices {
-		factory := container.MustGet[interfaces.MediaDataFactory](c)
-		repos := container.MustGet[interfaces.CoreMediaItemRepositories](c)
+	container.RegisterFactory[appservices.CoreMediaItemServices](c, func(c *container.Container) appservices.CoreMediaItemServices {
+		factory := container.MustGet[factories.MediaDataFactory](c)
+		repos := container.MustGet[apprepository.CoreMediaItemRepositories](c)
 		return factory.CreateCoreServices(repos)
 	})
 
 	// User media item services
-	container.RegisterFactory[interfaces.UserMediaItemServices](c, func(c *container.Container) interfaces.UserMediaItemServices {
-		factory := container.MustGet[interfaces.MediaDataFactory](c)
-		coreServices := container.MustGet[interfaces.CoreMediaItemServices](c)
-		userRepos := container.MustGet[interfaces.UserRepositoryFactories](c)
+	container.RegisterFactory[appservices.UserMediaItemServices](c, func(c *container.Container) appservices.UserMediaItemServices {
+		factory := container.MustGet[factories.MediaDataFactory](c)
+		coreServices := container.MustGet[appservices.CoreMediaItemServices](c)
+		userRepos := container.MustGet[apprepository.UserMediaItemRepositories](c)
 		return factory.CreateUserServices(coreServices, userRepos)
 	})
 
 	// Client media item services
-	container.RegisterFactory[interfaces.ClientMediaItemServices](c, func(c *container.Container) interfaces.ClientMediaItemServices {
-		factory := container.MustGet[interfaces.MediaDataFactory](c)
-		coreServices := container.MustGet[interfaces.CoreMediaItemServices](c)
-		clientRepos := container.MustGet[interfaces.ClientRepositoryFactories](c)
+	container.RegisterFactory[appservices.ClientMediaItemServices](c, func(c *container.Container) appservices.ClientMediaItemServices {
+		factory := container.MustGet[factories.MediaDataFactory](c)
+		coreServices := container.MustGet[appservices.CoreMediaItemServices](c)
+		clientRepos := container.MustGet[apprepository.ClientMediaItemRepositories](c)
 		return factory.CreateClientServices(coreServices, clientRepos)
 	})
 
 	// Collection services
-	container.RegisterFactory[services.CoreCollectionService](c, func(c *container.Container) services.CoreCollectionService {
-		repos := container.MustGet[interfaces.CoreMediaItemRepositories](c)
-		return services.NewCoreCollectionService(repos.CollectionRepo())
+	container.RegisterFactory[services.CoreListService[*mediatypes.Collection]](c, func(c *container.Container) services.CoreListService[*mediatypes.Collection] {
+		repos := container.MustGet[apprepository.CoreMediaItemRepositories](c)
+		return services.NewCoreListService(repos.CollectionRepo())
 	})
 
-	container.RegisterFactory[services.UserCollectionService](c, func(c *container.Container) services.UserCollectionService {
-		coreService := container.MustGet[services.CoreCollectionService](c)
-		userRepos := container.MustGet[interfaces.UserRepositoryFactories](c)
-		mediaDataRepo := container.MustGet[repository.MediaItemRepository[mediatypes.MediaData]](c)
-		return services.NewUserCollectionService(coreService, userRepos.CollectionUserRepo(), mediaDataRepo)
+	container.RegisterFactory[services.UserListService[*mediatypes.Collection]](c, func(c *container.Container) services.UserListService[*mediatypes.Collection] {
+		coreService := container.MustGet[services.CoreListService[*mediatypes.Collection]](c)
+		userItemRepos := container.MustGet[apprepository.UserMediaItemRepositories](c)
+		userDataRepo := container.MustGet[repository.UserMediaItemDataRepository[*mediatypes.Collection]](c)
+
+		return services.NewUserListService(coreService, userItemRepos.CollectionUserRepo(), userDataRepo)
 	})
 
-	container.RegisterFactory[services.ClientMediaCollectionService](c, func(c *container.Container) services.ClientMediaCollectionService {
-		clientRepo := container.MustGet[repository.ClientRepositoryCollection](c)
-		return services.NewClientMediaCollectionService(clientRepo.AllRepos())
+	container.RegisterFactory[services.ClientListService[*types.EmbyConfig, *mediatypes.Collection]](c, func(c *container.Container) services.ClientListService[*types.EmbyConfig, *mediatypes.Collection] {
+		coreListService := container.MustGet[services.CoreListService[*mediatypes.Collection]](c)
+		clientRepo := container.MustGet[repository.ClientRepository[*types.EmbyConfig]](c)
+		clientFactory := container.MustGet[client.ClientFactoryService](c)
+		return services.NewClientListService[*types.EmbyConfig, *mediatypes.Collection](coreListService, clientRepo, &clientFactory)
 	})
+
+	container.RegisterFactory[services.ClientListService[*types.JellyfinConfig, *mediatypes.Collection]](c, func(c *container.Container) services.ClientListService[*types.JellyfinConfig, *mediatypes.Collection] {
+		coreListService := container.MustGet[services.CoreListService[*mediatypes.Collection]](c)
+		clientRepo := container.MustGet[repository.ClientRepository[*types.JellyfinConfig]](c)
+		clientFactory := container.MustGet[client.ClientFactoryService](c)
+		return services.NewClientListService[*types.JellyfinConfig, *mediatypes.Collection](coreListService, clientRepo, &clientFactory)
+	})
+
+	container.RegisterFactory[services.ClientListService[*types.PlexConfig, *mediatypes.Collection]](c, func(c *container.Container) services.ClientListService[*types.PlexConfig, *mediatypes.Collection] {
+		coreListService := container.MustGet[services.CoreListService[*mediatypes.Collection]](c)
+		clientRepo := container.MustGet[repository.ClientRepository[*types.PlexConfig]](c)
+		clientFactory := container.MustGet[client.ClientFactoryService](c)
+		return services.NewClientListService[*types.PlexConfig, *mediatypes.Collection](coreListService, clientRepo, &clientFactory)
+	})
+
+	container.RegisterFactory[services.ClientListService[*types.SubsonicConfig, *mediatypes.Collection]](c, func(c *container.Container) services.ClientListService[*types.SubsonicConfig, *mediatypes.Collection] {
+		coreListService := container.MustGet[services.CoreListService[*mediatypes.Collection]](c)
+		clientRepo := container.MustGet[repository.ClientRepository[*types.SubsonicConfig]](c)
+		clientFactory := container.MustGet[client.ClientFactoryService](c)
+		return services.NewClientListService[*types.SubsonicConfig, *mediatypes.Collection](coreListService, clientRepo, &clientFactory)
+	})
+
 }
-

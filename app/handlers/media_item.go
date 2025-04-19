@@ -46,16 +46,3 @@ type ClientMediaItemHandlers interface {
 	CollectionClientHandler() *handlers.ClientMediaItemHandler[*mediatypes.Collection]
 	PlaylistClientHandler() *handlers.ClientMediaItemHandler[*mediatypes.Playlist]
 }
-
-type CoreMediaTypeHandlers interface {
-	MusicCoreHandler() *handlers.CoreMusicHandler
-	MovieCoreHandler() *handlers.CoreMovieHandler
-	SeriesCoreHandler() *handlers.CoreSeriesHandler
-}
-
-type UserMediaTypeHandlers interface {
-	MusicUserHandler() *handlers.UserMusicHandler
-	MovieUserHandler() *handlers.UserMovieHandler
-	SeriesUserHandler() *handlers.UserSeriesHandler
-}
-}

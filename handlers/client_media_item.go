@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -27,10 +28,8 @@ type ClientMediaItemHandler[T types.MediaData] struct {
 // NewClientMediaItemHandler creates a new client media item handler
 func NewClientMediaItemHandler[T types.MediaData](
 	clientService services.ClientMediaItemService[T],
+	userHandler *UserMediaItemHandler[T],
 ) *ClientMediaItemHandler[T] {
-	// Create an embedded user handler that itself embeds the core handler
-	userHandler := NewUserMediaItemHandler(clientService)
-	
 	return &ClientMediaItemHandler[T]{
 		UserMediaItemHandler: *userHandler,
 		clientService:        clientService,
@@ -81,12 +80,7 @@ func (h *ClientMediaItemHandler[T]) CreateMediaItem(c *gin.Context) {
 		return
 	}
 
-	mediaItem := models.MediaItem[T]{
-		Type:        mediaType,
-		SyncClients: []models.SyncClient{},
-		ExternalIDs: []models.ExternalID{},
-		Data:        mediaData,
-	}
+	mediaItem := models.NewMediaItem(mediaType, mediaData)
 
 	// Set client info
 	mediaItem.SetClientInfo(req.ClientID, clientTypes.ClientMediaType(req.ClientType), req.ExternalID)
@@ -164,17 +158,10 @@ func (h *ClientMediaItemHandler[T]) UpdateMediaItem(c *gin.Context) {
 		responses.RespondBadRequest(c, err, "Invalid media data format")
 		return
 	}
-
-	mediaItem := models.MediaItem[T]{
-		ID:          id,
-		Type:        mediaType,
-		SyncClients: []models.SyncClient{},
-		ExternalIDs: []models.ExternalID{},
-		Data:        mediaData,
-	}
-
-	// Set client info
+	mediaItem := models.NewMediaItem(mediaType, mediaData)
+	mediaItem.ID = id
 	mediaItem.SetClientInfo(req.ClientID, clientTypes.ClientMediaType(req.ClientType), req.ExternalID)
+	// Set client info
 
 	// Only add external ID if provided
 	if req.ExternalID != "" {
@@ -220,14 +207,14 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemsByClient(c *gin.Context) {
 	}
 
 	typeParam := c.Query("type") // Optional media type filter
-	
+
 	log.Debug().
 		Uint64("clientId", clientID).
 		Str("mediaType", typeParam).
 		Msg("Getting media items by client")
 
 	var items []*models.MediaItem[T]
-	
+
 	if typeParam != "" {
 		// If media type is specified, get media items by client and type
 		mediaType := types.MediaType(typeParam)
@@ -236,7 +223,7 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemsByClient(c *gin.Context) {
 		// Otherwise, get all media items for the client
 		items, err = h.clientService.GetByClientID(ctx, clientID)
 	}
-	
+
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("clientId", clientID).
@@ -250,7 +237,7 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemsByClient(c *gin.Context) {
 		Uint64("clientId", clientID).
 		Int("count", len(items)).
 		Msg("Media items retrieved by client successfully")
-	
+
 	responses.RespondOK(c, items, "Media items retrieved successfully")
 }
 
@@ -305,7 +292,7 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemByClientItemID(c *gin.Context) {
 		Str("itemId", itemID).
 		Uint64("id", item.ID).
 		Msg("Media item retrieved by client item ID successfully")
-	
+
 	responses.RespondOK(c, item, "Media item retrieved successfully")
 }
 
@@ -334,7 +321,7 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemsByMultipleClients(c *gin.Contex
 	// Parse comma-separated list of client IDs
 	clientIDStrs := strings.Split(clientIDsStr, ",")
 	clientIDs := make([]uint64, 0, len(clientIDStrs))
-	
+
 	for _, idStr := range clientIDStrs {
 		id, err := strconv.ParseUint(strings.TrimSpace(idStr), 10, 64)
 		if err != nil {
@@ -362,7 +349,7 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemsByMultipleClients(c *gin.Contex
 		Interface("clientIds", clientIDs).
 		Int("count", len(items)).
 		Msg("Media items retrieved by multiple clients successfully")
-	
+
 	responses.RespondOK(c, items, "Media items retrieved successfully")
 }
 
@@ -400,7 +387,7 @@ func (h *ClientMediaItemHandler[T]) SearchAcrossClients(c *gin.Context) {
 	// Parse comma-separated list of client IDs
 	clientIDStrs := strings.Split(clientIDsStr, ",")
 	clientIDs := make([]uint64, 0, len(clientIDStrs))
-	
+
 	for _, idStr := range clientIDStrs {
 		id, err := strconv.ParseUint(strings.TrimSpace(idStr), 10, 64)
 		if err != nil {
@@ -446,7 +433,7 @@ func (h *ClientMediaItemHandler[T]) SearchAcrossClients(c *gin.Context) {
 		Interface("clientIds", clientIDs).
 		Int("clientCount", len(results)).
 		Msg("Media items search across clients completed successfully")
-	
+
 	responses.RespondOK(c, results, "Media items retrieved successfully")
 }
 
@@ -502,11 +489,11 @@ func (h *ClientMediaItemHandler[T]) SyncItemBetweenClients(c *gin.Context) {
 		Uint64("sourceClientId", req.SourceClientID).
 		Uint64("targetClientId", req.TargetClientID).
 		Msg("Item synced between clients successfully")
-	
-	responses.RespondOK(c, nil, "Item synced successfully")
+
+	responses.RespondOK(c, http.StatusOK, "Item synced successfully")
 }
 
-// Additional methods from the original implementation can be kept but should be 
+// Additional methods from the original implementation can be kept but should be
 // organized to properly inherit from the embedded handlers and avoid duplication.
 // Only client-specific methods that truly extend the functionality should remain here.
 
@@ -636,3 +623,4 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemsByYear(c *gin.Context) {
 
 // Other handlers like GetPopularMediaItems, GetTopRatedMediaItems would inherit from the user/core handlers.
 // We'd only add methods here that are truly client-specific.
+

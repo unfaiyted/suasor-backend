@@ -26,12 +26,8 @@ type UserMediaItemHandler[T types.MediaData] struct {
 func NewUserMediaItemHandler[T types.MediaData](
 	userService services.UserMediaItemService[T],
 ) *UserMediaItemHandler[T] {
-	// Create an embedded core handler
-	coreHandler := NewCoreMediaItemHandler(userService)
-
 	return &UserMediaItemHandler[T]{
-		CoreMediaItemHandler: *coreHandler,
-		userService:          userService,
+		userService: userService,
 	}
 }
 
@@ -43,6 +39,7 @@ func NewUserMediaItemHandler[T types.MediaData](
 // @Produce json
 // @Param userID path int true "User ID"
 // @Param limit query int false "Maximum number of items to return (default 20)"
+// @Param offset query int false "Offset for pagination (default 0)"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "User media items retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "User not found"
@@ -58,13 +55,23 @@ func (h *UserMediaItemHandler[T]) GetByUserID(c *gin.Context) {
 		responses.RespondBadRequest(c, err, "Invalid user ID")
 		return
 	}
+	limitStr := c.DefaultQuery("limit", "10")
+	offsetStr := c.DefaultQuery("offset", "0")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		limit = 10
+	}
+	offset, err := strconv.Atoi(offsetStr)
+	if err != nil {
+		offset = 0
+	}
 
 	log.Debug().
 		Uint64("userID", userID).
 		Msg("Getting media items by user ID")
 
 	// Get media items by user ID
-	items, err := h.userService.GetByUserID(ctx, userID)
+	items, err := h.userService.GetByUserID(ctx, userID, limit, offset)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -293,8 +300,13 @@ func (h *UserMediaItemHandler[T]) CreateUserMediaItem(c *gin.Context) {
 		return
 	}
 
+	var zero T
+	mediaType := types.GetMediaTypeFromTypeName(zero)
 	// Bind the request body to a media item struct
-	var mediaItem models.MediaItem[T]
+
+	mediaData := types.NewItem[T]()
+
+	mediaItem := models.NewMediaItem(mediaType, mediaData)
 	if err := c.ShouldBindJSON(&mediaItem); err != nil {
 		log.Warn().Err(err).Msg("Invalid media item data")
 		responses.RespondBadRequest(c, err, "Invalid media item data")
@@ -420,7 +432,7 @@ func (h *UserMediaItemHandler[T]) UpdateUserMediaItem(c *gin.Context) {
 		Msg("Updating user-owned media item")
 
 	// Update the media item
-	updatedItem, err := h.userService.Update(ctx, mediaItem)
+	updatedItem, err := h.userService.Update(ctx, &mediaItem)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).

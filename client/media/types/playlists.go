@@ -27,6 +27,7 @@ type ChangeRecord struct {
 // For internal use
 type ListItem struct {
 	ItemID        uint64         `json:"itemId"`
+	Type          MediaType      `json:"type"`
 	Position      int            `json:"position"`
 	LastChanged   time.Time      `json:"lastChanged"`
 	ChangeHistory []ChangeRecord `json:"changeHistory,omitempty"`
@@ -852,4 +853,11 @@ func MergePlaylists(primary, secondary *Playlist) *Playlist {
 	result.LastModified = time.Now()
 
 	return &result
+}
+
+func NewList[T ListData](details MediaDetails, itemList ItemList) T {
+	var zero T
+	zero.SetDetails(details)
+	zero.SetItemList(itemList)
+	return zero
 }

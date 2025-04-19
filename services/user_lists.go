@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"suasor/app/container"
 	mediatypes "suasor/client/media/types"
 	"suasor/repository"
 	"suasor/types/models"
@@ -20,7 +19,7 @@ type UserListService[T mediatypes.ListData] interface {
 	CoreListService[T]
 
 	// User-specific operations
-	GetFavorite(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error)
+	GetFavorite(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error)
 	GetRecentByUser(ctx context.Context, userID uint64, days int, limit int) ([]*models.MediaItem[T], error)
 
 	// Smart list operations
@@ -31,7 +30,6 @@ type UserListService[T mediatypes.ListData] interface {
 	) (*models.MediaItem[T], error)
 	UpdateSmartCriteria(ctx context.Context, listID uint64, criteria map[string]interface{}) (*models.MediaItem[T], error)
 	RefreshSmartList(ctx context.Context, listID uint64) (*models.MediaItem[T], error)
-	ReorderItems(ctx context.Context, listID uint64, itemIDs []string) error
 
 	// list sharing and collaboration
 	ShareWithUser(ctx context.Context, listID uint64, targetUserID uint64, permissionLevel string) error
@@ -52,18 +50,21 @@ type userListService[T mediatypes.ListData] struct {
 
 // NewUserlistService creates a new user list service
 func NewUserListService[T mediatypes.ListData](
-	ctx context.Context,
-	c *container.Container,
 	coreListService CoreListService[T],
+	userItemRepo repository.UserMediaItemRepository[T],
+	userDataRepo repository.UserMediaItemDataRepository[T],
 ) UserListService[T] {
 	return &userListService[T]{
-		coreListService: container.MustGet[CoreListService[T]](c),
-		userItemRepo:    container.MustGet[repository.UserMediaItemRepository[T]](c),
-		userDataRepo:    container.MustGet[repository.UserMediaItemDataRepository[T]](c),
+		coreListService: coreListService,
+		userItemRepo:    userItemRepo,
+		userDataRepo:    userDataRepo,
 	}
 }
 
 // Core methods delegated to the base listService
+func (s *userListService[T]) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error) {
+	return s.coreListService.GetAll(ctx, limit, offset)
+}
 
 func (s *userListService[T]) Create(ctx context.Context, list *models.MediaItem[T]) (*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
@@ -222,33 +223,33 @@ func (s *userListService[T]) RemoveItem(ctx context.Context, listID uint64, item
 	return s.coreListService.RemoveItem(ctx, listID, itemID)
 }
 
-func (s *userListService[T]) ReorderlistItems(ctx context.Context, listID uint64, itemIDs []string) error {
-	log := utils.LoggerFromContext(ctx)
-	log.Debug().
-		Uint64("listID", listID).
-		Interface("itemIDs", itemIDs).
-		Msg("Reordering user list items")
-
-	// Verify user has permission to modify this list
-	userID := ctx.Value("userID").(uint64)
-	list, err := s.GetByID(ctx, listID)
-	if err != nil {
-		return fmt.Errorf("failed to reorder user list items: %w", err)
-	}
-
-	// Check if user has write permission
-	if !s.hasWritePermission(ctx, userID, list) {
-		log.Warn().
-			Uint64("listID", listID).
-			Uint64("ownerID", list.OwnerID).
-			Uint64("requestingUserID", userID).
-			Msg("User attempting to modify a list without permission")
-		return errors.New("you don't have permission to modify this list")
-	}
-
-	// Delegate to core service
-	return s.coreListService.ReorderItems(ctx, listID, itemIDs)
-}
+// func (s *userListService[T]) ReorderItems(ctx context.Context, listID uint64, itemIDs []uint64) error {
+// 	log := utils.LoggerFromContext(ctx)
+// 	log.Debug().
+// 		Uint64("listID", listID).
+// 		Interface("itemIDs", itemIDs).
+// 		Msg("Reordering user list items")
+//
+// 	// Verify user has permission to modify this list
+// 	userID := ctx.Value("userID").(uint64)
+// 	list, err := s.GetByID(ctx, listID)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to reorder user list items: %w", err)
+// 	}
+//
+// 	// Check if user has write permission
+// 	if !s.hasWritePermission(ctx, userID, list) {
+// 		log.Warn().
+// 			Uint64("listID", listID).
+// 			Uint64("ownerID", list.OwnerID).
+// 			Uint64("requestingUserID", userID).
+// 			Msg("User attempting to modify a list without permission")
+// 		return errors.New("you don't have permission to modify this list")
+// 	}
+//
+// 	// Delegate to core service
+// 	return s.coreListService.ReorderItems(ctx, listID, itemIDs)
+// }
 
 func (s *userListService[T]) UpdateItems(ctx context.Context, listID uint64, items []*models.MediaItem[T]) error {
 	log := utils.LoggerFromContext(ctx)
@@ -387,14 +388,11 @@ func (s *userListService[T]) GetRecentByUser(ctx context.Context, userID uint64,
 }
 
 // GetFavoritelists retrieves lists marked as favorite by the user
-func (s *userListService[T]) GetFavorite(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error) {
+func (s *userListService[T]) GetFavorite(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Msg("Getting favorite lists")
-
-	limit := 0
-	offset := 0
 
 	// Use user data repository to get all favorites of type list
 	userFavoritePlayData, err := s.userDataRepo.GetFavorites(ctx, userID, limit, offset)
@@ -953,7 +951,7 @@ func (s *userListService[T]) GetSyncStatus(ctx context.Context, listID uint64) (
 // 	return nil
 // }
 
-func (s *userListService[T]) ReorderItems(ctx context.Context, listID uint64, itemIDs []string) error {
+func (s *userListService[T]) ReorderItems(ctx context.Context, listID uint64, itemIDs []uint64) error {
 	return s.coreListService.ReorderItems(ctx, listID, itemIDs)
 }
 

@@ -3,6 +3,7 @@ package services
 
 import (
 	mediatypes "suasor/client/media/types"
+	clienttypes "suasor/client/types"
 	"suasor/services"
 )
 
@@ -11,6 +12,7 @@ type CoreMediaItemServices interface {
 	MovieCoreService() services.CoreMediaItemService[*mediatypes.Movie]
 	SeriesCoreService() services.CoreMediaItemService[*mediatypes.Series]
 	EpisodeCoreService() services.CoreMediaItemService[*mediatypes.Episode]
+	SeasonCoreService() services.CoreMediaItemService[*mediatypes.Season]
 	TrackCoreService() services.CoreMediaItemService[*mediatypes.Track]
 	AlbumCoreService() services.CoreMediaItemService[*mediatypes.Album]
 	ArtistCoreService() services.CoreMediaItemService[*mediatypes.Artist]
@@ -24,6 +26,7 @@ type UserMediaItemServices interface {
 	SeriesUserService() services.UserMediaItemService[*mediatypes.Series]
 	EpisodeUserService() services.UserMediaItemService[*mediatypes.Episode]
 	TrackUserService() services.UserMediaItemService[*mediatypes.Track]
+	SeasonUserService() services.UserMediaItemService[*mediatypes.Season]
 	AlbumUserService() services.UserMediaItemService[*mediatypes.Album]
 	ArtistUserService() services.UserMediaItemService[*mediatypes.Artist]
 	CollectionUserService() services.UserMediaItemService[*mediatypes.Collection]
@@ -35,6 +38,7 @@ type ClientMediaItemServices interface {
 	MovieClientService() services.ClientMediaItemService[*mediatypes.Movie]
 	SeriesClientService() services.ClientMediaItemService[*mediatypes.Series]
 	EpisodeClientService() services.ClientMediaItemService[*mediatypes.Episode]
+	SeasonClientService() services.ClientMediaItemService[*mediatypes.Season]
 	TrackClientService() services.ClientMediaItemService[*mediatypes.Track]
 	AlbumClientService() services.ClientMediaItemService[*mediatypes.Album]
 	ArtistClientService() services.ClientMediaItemService[*mediatypes.Artist]
@@ -43,22 +47,48 @@ type ClientMediaItemServices interface {
 }
 
 type CoreListServices interface {
-	CoreCollectionService() services.CoreCollectionService
-	CorePlaylistService() services.CorePlaylistService
+	CoreCollectionService() services.CoreListService[*mediatypes.Collection]
+	CorePlaylistService() services.CoreListService[*mediatypes.Playlist]
 }
 
 type UserListServices interface {
-	UserCollectionService() services.UserCollectionService
-	UserPlaylistService() services.UserPlaylistService
+	UserCollectionService() services.UserListService[*mediatypes.Collection]
+	UserPlaylistService() services.UserListService[*mediatypes.Playlist]
 }
 
 type ClientListServices interface {
-	ClientCollectionService() services.ClientMediaCollectionService
-	ClientPlaylistService() services.ClientPlaylistService
+	EmbyClientCollectionService() services.ClientListService[*clienttypes.EmbyConfig, *mediatypes.Collection]
+	EmbyClientPlaylistService() services.ClientListService[*clienttypes.EmbyConfig, *mediatypes.Playlist]
+	JellyfinClientCollectionService() services.ClientListService[*clienttypes.JellyfinConfig, *mediatypes.Collection]
+	JellyfinClientPlaylistService() services.ClientListService[*clienttypes.JellyfinConfig, *mediatypes.Playlist]
+	PlexClientCollectionService() services.ClientListService[*clienttypes.PlexConfig, *mediatypes.Collection]
+	PlexClientPlaylistService() services.ClientListService[*clienttypes.PlexConfig, *mediatypes.Playlist]
+	SubsonicClientCollectionService() services.ClientListService[*clienttypes.SubsonicConfig, *mediatypes.Collection]
+	SubsonicClientPlaylistService() services.ClientListService[*clienttypes.SubsonicConfig, *mediatypes.Playlist]
 }
 
 // MediaServices interface for media-related services
-type MediaServices interface {
+type PeopleServices interface {
 	PersonService() *services.PersonService
 	CreditService() *services.CreditService
+}
+
+type peopleServices struct {
+	personService *services.PersonService
+	creditService *services.CreditService
+}
+
+func NewPeopleServices(personService *services.PersonService, creditService *services.CreditService) *peopleServices {
+	return &peopleServices{
+		personService: personService,
+		creditService: creditService,
+	}
+}
+
+func (s *peopleServices) PersonService() *services.PersonService {
+	return s.personService
+}
+
+func (s *peopleServices) CreditService() *services.CreditService {
+	return s.creditService
 }

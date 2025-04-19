@@ -2,7 +2,7 @@ package router
 
 import (
 	"suasor/app/container"
-	"suasor/handlers"
+	// "suasor/handlers"
 
 	"github.com/gin-gonic/gin"
 )

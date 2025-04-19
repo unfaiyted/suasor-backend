@@ -15,8 +15,8 @@ import (
 // regardless of whether they are client-associated or user-owned
 type CoreMediaItemService[T types.MediaData] interface {
 	// Basic CRUD operations
-	Create(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error)
-	Update(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error)
+	Create(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error)
+	Update(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error)
 	GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error)
 	Delete(ctx context.Context, id uint64) error
 	GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error)
@@ -29,6 +29,7 @@ type CoreMediaItemService[T types.MediaData] interface {
 	// Search operations
 	Search(ctx context.Context, query types.QueryOptions) ([]*models.MediaItem[T], error)
 	GetRecentItems(ctx context.Context, days int, limit int) ([]*models.MediaItem[T], error)
+	GetMostPlayed(ctx context.Context, limit int) ([]*models.MediaItem[T], error)
 }
 
 // coreMediaItemService implements CoreMediaItemService
@@ -42,14 +43,14 @@ func NewCoreMediaItemService[T types.MediaData](repo repository.MediaItemReposit
 }
 
 // Create adds a new media item
-func (s *coreMediaItemService[T]) Create(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error) {
+func (s *coreMediaItemService[T]) Create(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Str("type", string(item.Type)).
 		Msg("Creating media item")
 
 	// Validate the media item
-	if err := s.validateMediaItem(&item); err != nil {
+	if err := s.validateMediaItem(item); err != nil {
 		return nil, fmt.Errorf("invalid media item: %w", err)
 	}
 
@@ -69,7 +70,7 @@ func (s *coreMediaItemService[T]) Create(ctx context.Context, item models.MediaI
 }
 
 // Update modifies an existing media item
-func (s *coreMediaItemService[T]) Update(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error) {
+func (s *coreMediaItemService[T]) Update(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("id", item.ID).
@@ -77,7 +78,7 @@ func (s *coreMediaItemService[T]) Update(ctx context.Context, item models.MediaI
 		Msg("Updating media item")
 
 	// Validate the media item
-	if err := s.validateMediaItem(&item); err != nil {
+	if err := s.validateMediaItem(item); err != nil {
 		return nil, fmt.Errorf("invalid media item: %w", err)
 	}
 
@@ -239,7 +240,7 @@ func (s *coreMediaItemService[T]) GetRecentItems(ctx context.Context, days int, 
 		Msg("Getting recent media items")
 
 	// Delegate to repository
-	results, err := s.repo.GetRecentItems(ctx, mediaType, days, limit)
+	results, err := s.repo.GetRecentItems(ctx, days, limit)
 	if err != nil {
 		log.Error().Err(err).
 			Str("type", string(mediaType)).
@@ -315,4 +316,31 @@ func (s *coreMediaItemService[T]) GetByClientItemID(ctx context.Context, clientI
 		Msg("Media item retrieved by client item ID")
 
 	return result, nil
+}
+
+// GetMostPlayed retrieves the most played media items
+func (s *coreMediaItemService[T]) GetMostPlayed(ctx context.Context, limit int) ([]*models.MediaItem[T], error) {
+	log := utils.LoggerFromContext(ctx)
+	log.Debug().
+		Int("limit", limit).
+		Msg("Getting most played media items")
+
+	var zero T
+	mediaType := types.GetMediaTypeFromTypeName(zero)
+
+	// Create query options with most played sorting
+	options := types.QueryOptions{
+		MediaType: mediaType,
+		Sort:      "playCount",
+		SortOrder: "desc",
+		Limit:     limit,
+	}
+
+	// Search media items
+	items, err := s.Search(ctx, options)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get most played media items: %w", err)
+	}
+
+	return items, nil
 }

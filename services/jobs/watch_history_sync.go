@@ -290,25 +290,27 @@ func syncClientHistory[T clienttypes.ClientConfig](j *WatchHistorySyncJob, ctx c
 		// Create/update history based on media type
 		switch historyItem.Item.Type {
 		case mediatypes.MediaTypeMovie:
+
 			if err := j.processMovieHistory(ctx, userID, clientConfig.ID, *historyItem); err != nil {
 				log.Warn().Err(err).Msg("Error processing movie history")
 				continue
 			}
 		case mediatypes.MediaTypeSeries:
-			if err := j.processSeriesHistory(ctx, userID, clientConfig.ID, *historyItem); err != nil {
-				log.Warn().Err(err).Msg("Error processing series history")
-				continue
-			}
+
+			// if err := j.processSeriesHistory(ctx, userID, clientConfig.ID, *historyItem); err != nil {
+			// 	log.Warn().Err(err).Msg("Error processing series history")
+			// 	continue
+			// }
 		case mediatypes.MediaTypeEpisode:
-			if err := j.processEpisodeHistory(ctx, userID, clientConfig.ID, historyItem); err != nil {
-				log.Warn().Err(err).Msg("Error processing episode history")
-				continue
-			}
+			// if err := j.processEpisodeHistory(ctx, userID, clientConfig.ID, historyItem); err != nil {
+			// 	log.Warn().Err(err).Msg("Error processing episode history")
+			// 	continue
+			// }
 		case mediatypes.MediaTypeTrack:
-			if err := j.processMusicHistory(ctx, userID, clientConfig.ID, historyItem); err != nil {
-				log.Warn().Err(err).Msg("Error processing music history")
-				continue
-			}
+			// if err := j.processMusicHistory(ctx, userID, clientConfig.ID, historyItem); err != nil {
+			// 	log.Warn().Err(err).Msg("Error processing music history")
+			// 	continue
+			// }
 		default:
 			log.Debug().
 				Str("mediaType", string(historyItem.Item.Type)).

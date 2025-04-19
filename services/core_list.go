@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	mediatypes "suasor/client/media/types"
@@ -20,13 +19,14 @@ type CoreListService[T mediatypes.ListData] interface {
 	Update(ctx context.Context, list *models.MediaItem[T]) (*models.MediaItem[T], error)
 	GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error)
 	GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error)
+	GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error)
 	Delete(ctx context.Context, id uint64) error
 
 	// list-specific operations
 	GetItems(ctx context.Context, listID uint64) (*models.MediaItems, error)
 	AddItem(ctx context.Context, listID uint64, itemID uint64) error
 	RemoveItem(ctx context.Context, listID uint64, itemID uint64) error
-	ReorderItems(ctx context.Context, listID uint64, itemIDs []string) error
+	ReorderItems(ctx context.Context, listID uint64, itemIDs []uint64) error
 	UpdateItems(ctx context.Context, listID uint64, items []*models.MediaItem[T]) error
 	Search(ctx context.Context, query mediatypes.QueryOptions) ([]*models.MediaItem[T], error)
 	GetRecent(ctx context.Context, days int, limit int) ([]*models.MediaItem[T], error)
@@ -325,7 +325,7 @@ func (s coreListService[T]) RemoveItem(ctx context.Context, listID uint64, itemI
 
 	return nil
 }
-func (s coreListService[T]) ReorderItems(ctx context.Context, listID uint64, itemIDs []string) error {
+func (s coreListService[T]) ReorderItems(ctx context.Context, listID uint64, itemIDs []uint64) error {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
@@ -358,18 +358,18 @@ func (s coreListService[T]) ReorderItems(ctx context.Context, listID uint64, ite
 	}
 
 	// First verify all items exist
-	missingItems := []string{}
-	for _, idStr := range itemIDs {
-		id, err := strconv.ParseUint(idStr, 10, 64)
-		if err != nil {
-			log.Error().
-				Str("itemID", idStr).
-				Msg("Invalid item ID format")
-			return fmt.Errorf("invalid item ID format: %s", idStr)
-		}
+	missingItems := []uint64{}
+	for _, id := range itemIDs {
+		// id, err := strconv.ParseUint(idStr, 10, 64)
+		// if err != nil {
+		// 	log.Error().
+		// 		Str("itemID", idStr).
+		// 		Msg("Invalid item ID format")
+		// 	return fmt.Errorf("invalid item ID format: %s", idStr)
+		// }
 
 		if _, exists := tempItems[id]; !exists {
-			missingItems = append(missingItems, idStr)
+			missingItems = append(missingItems, id)
 		}
 	}
 
@@ -381,8 +381,8 @@ func (s coreListService[T]) ReorderItems(ctx context.Context, listID uint64, ite
 	}
 
 	// Now build the new order
-	for i, idStr := range itemIDs {
-		id, _ := strconv.ParseUint(idStr, 10, 64)
+	for i, id := range itemIDs {
+		// id, _ := strconv.ParseUint(id, 10, 64)
 		item := tempItems[id]
 
 		// Update position
@@ -616,4 +616,28 @@ func (s coreListService[T]) Delete(ctx context.Context, id uint64) error {
 		Msg("List deleted successfully")
 
 	return nil
+}
+
+func (s *coreListService[T]) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error) {
+	log := utils.LoggerFromContext(ctx)
+	log.Debug().
+		Int("limit", limit).
+		Int("offset", offset).
+		Msg("Getting all lists")
+
+	// Delegate to repository
+	results, err := s.itemRepo.GetAll(ctx, limit, offset)
+	if err != nil {
+		log.Error().Err(err).
+			Int("limit", limit).
+			Int("offset", offset).
+			Msg("Failed to get all lists")
+		return nil, fmt.Errorf("failed to get all lists: %w", err)
+	}
+
+	log.Info().
+		Int("count", len(results)).
+		Msg("All lists retrieved successfully")
+
+	return results, nil
 }

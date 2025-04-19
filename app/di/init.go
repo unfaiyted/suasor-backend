@@ -2,31 +2,31 @@
 package di
 
 import (
+	"context"
 	"gorm.io/gorm"
 	"suasor/app/container"
 	"suasor/services"
 )
 
 // Initialize registers all dependencies in the container
-func Initialize(db *gorm.DB, configService services.ConfigService) *container.Container {
+func Initialize(ctx context.Context, db *gorm.DB, configService services.ConfigService) *container.Container {
 	// Create a new container
 	c := container.NewContainer()
 
 	// Register core dependencies
-	RegisterCore(c, db, configService)
+	RegisterCore(ctx, c, db, configService)
 
 	// Register repositories
-	RegisterRepositories(c)
+	RegisterRepositories(ctx, c)
 
 	// Register media data factory and repositories
-	RegisterMediaData(c)
+	RegisterMediaData(ctx, c)
 
 	// Register services
-	RegisterServices(c)
+	RegisterServices(ctx, c)
 
 	// Register handlers
-	RegisterHandlers(c)
+	RegisterHandlers(ctx, c)
 
 	return c
 }
-

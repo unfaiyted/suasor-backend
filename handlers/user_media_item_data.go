@@ -10,6 +10,7 @@ import (
 	"suasor/client/media/types"
 	"suasor/services"
 	"suasor/types/models"
+	"suasor/types/requests"
 	"suasor/types/responses"
 	"suasor/utils"
 )
@@ -22,7 +23,7 @@ type UserMediaItemDataHandler[T types.MediaData] struct {
 }
 
 // NewUserUserMediaItemDataHandler creates a new user user media item data handler
-func NewUserUserMediaItemDataHandler[T types.MediaData](
+func NewUserMediaItemDataHandler[T types.MediaData](
 	service services.UserMediaItemDataService[T],
 	coreHandler *CoreUserMediaItemDataHandler[T],
 ) *UserMediaItemDataHandler[T] {
@@ -223,7 +224,7 @@ func (h *UserMediaItemDataHandler[T]) GetRecentHistory(c *gin.Context) {
 // @Tags History
 // @Accept json
 // @Produce json
-// @Param mediaPlay body models.UserMediaItemDataRequest true "Media play information"
+// @Param mediaPlay body requests.UserMediaItemDataRequest true "Media play information"
 // @Success 201 {object} responses.APIResponse[models.UserMediaItemData[any]] "Play event recorded successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
@@ -233,7 +234,7 @@ func (h *UserMediaItemDataHandler[T]) RecordMediaPlay(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
-	var req models.UserMediaItemDataRequest
+	var req requests.UserMediaItemDataRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Warn().Err(err).Msg("Invalid request body")
 		responses.RespondBadRequest(c, err, "Invalid request body")

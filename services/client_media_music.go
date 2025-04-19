@@ -22,24 +22,24 @@ type ClientMusicService[T types.ClientConfig] interface {
 	GetAlbumByID(ctx context.Context, userID uint64, clientID uint64, albumID string) (models.MediaItem[*mediatypes.Album], error)
 	GetArtistByID(ctx context.Context, userID uint64, clientID uint64, artistID string) (models.MediaItem[*mediatypes.Artist], error)
 	GetTrackByID(ctx context.Context, userID uint64, clientID uint64, trackID string) (models.MediaItem[*mediatypes.Track], error)
-	GetRecentlyAddedAlbums(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Album], error)
-	GetRecentlyPlayedTracks(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Track], error)
-	GetAlbumsByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[*mediatypes.Album], error)
-	GetArtistsByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[*mediatypes.Artist], error)
-	GetRandomAlbums(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Album], error)
-	GetTopAlbumsForClient(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Album], error)
-	GetTopAlbums(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Album], error)
-	GetPopularAlbums(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Album], error)
-	GetPopularArtists(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Artist], error)
-	GetTopArtists(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Artist], error)
-	GetFavoriteArtists(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Artist], error)
-	GetTracksByAlbum(ctx context.Context, userID uint64, clientID uint64, albumID string) ([]models.MediaItem[*mediatypes.Track], error)
-	GetAlbumsByArtist(ctx context.Context, userID uint64, clientID uint64, artistID string) ([]models.MediaItem[*mediatypes.Album], error)
-	GetTracksByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[*mediatypes.Track], error)
-	GetAlbumsByYear(ctx context.Context, userID uint64, year int) ([]models.MediaItem[*mediatypes.Album], error)
-	GetLatestAlbumsByAdded(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Album], error)
-	GetTopTracks(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Track], error)
-	GetRecentlyAddedTracks(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Track], error)
+	GetRecentlyAddedAlbums(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error)
+	GetRecentlyPlayedTracks(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Track], error)
+	GetAlbumsByGenre(ctx context.Context, userID uint64, genre string) ([]*models.MediaItem[*mediatypes.Album], error)
+	GetArtistsByGenre(ctx context.Context, userID uint64, genre string) ([]*models.MediaItem[*mediatypes.Artist], error)
+	GetRandomAlbums(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error)
+	GetTopAlbumsForClient(ctx context.Context, userID uint64, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error)
+	GetTopAlbums(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error)
+	GetPopularAlbums(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error)
+	GetPopularArtists(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Artist], error)
+	GetTopArtists(ctx context.Context, userID uint64, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Artist], error)
+	GetFavoriteArtists(ctx context.Context, userID uint64, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Artist], error)
+	GetTracksByAlbum(ctx context.Context, userID uint64, clientID uint64, albumID string) ([]*models.MediaItem[*mediatypes.Track], error)
+	GetAlbumsByArtist(ctx context.Context, userID uint64, clientID uint64, artistID string) ([]*models.MediaItem[*mediatypes.Album], error)
+	GetTracksByGenre(ctx context.Context, userID uint64, genre string) ([]*models.MediaItem[*mediatypes.Track], error)
+	GetAlbumsByYear(ctx context.Context, userID uint64, year int) ([]*models.MediaItem[*mediatypes.Album], error)
+	GetLatestAlbumsByAdded(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error)
+	GetTopTracks(ctx context.Context, userID uint64, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Track], error)
+	GetRecentlyAddedTracks(ctx context.Context, userID uint64, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Track], error)
 	SearchMusic(ctx context.Context, userID uint64, query string) (MusicSearchResults, error)
 }
 
@@ -52,9 +52,9 @@ type MusicSearchResult struct {
 
 // MusicSearchResults is a structured container for search results by type
 type MusicSearchResults struct {
-	Artists []models.MediaItem[*mediatypes.Artist]
-	Albums  []models.MediaItem[*mediatypes.Album]
-	Tracks  []models.MediaItem[*mediatypes.Track]
+	Artists []*models.MediaItem[*mediatypes.Artist]
+	Albums  []*models.MediaItem[*mediatypes.Album]
+	Tracks  []*models.MediaItem[*mediatypes.Track]
 }
 
 type mediaMusicService[T types.ClientMediaConfig] struct {
@@ -188,7 +188,7 @@ func (s *mediaMusicService[T]) GetAlbumByID(ctx context.Context, userID uint64, 
 		return models.MediaItem[*mediatypes.Album]{}, fmt.Errorf("album not found")
 	}
 
-	return albums[0], nil
+	return *albums[0], nil
 }
 
 func (s *mediaMusicService[T]) GetArtistByID(ctx context.Context, userID uint64, clientID uint64, artistID string) (models.MediaItem[*mediatypes.Artist], error) {
@@ -231,7 +231,7 @@ func (s *mediaMusicService[T]) GetArtistByID(ctx context.Context, userID uint64,
 		return models.MediaItem[*mediatypes.Artist]{}, fmt.Errorf("artist not found")
 	}
 
-	return artists[0], nil
+	return *artists[0], nil
 }
 
 func (s *mediaMusicService[T]) GetTrackByID(ctx context.Context, userID uint64, clientID uint64, trackID string) (models.MediaItem[*mediatypes.Track], error) {
@@ -263,10 +263,10 @@ func (s *mediaMusicService[T]) GetTrackByID(ctx context.Context, userID uint64, 
 		return models.MediaItem[*mediatypes.Track]{}, err
 	}
 
-	return track, nil
+	return *track, nil
 }
 
-func (s *mediaMusicService[T]) GetRecentlyAddedAlbums(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Album], error) {
+func (s *mediaMusicService[T]) GetRecentlyAddedAlbums(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error) {
 	// Get music clients
 	clients, err := s.getMusicClients(ctx, userID)
 	if err != nil {
@@ -279,7 +279,7 @@ func (s *mediaMusicService[T]) GetRecentlyAddedAlbums(ctx context.Context, userI
 		Int("limit", limit).
 		Msg("Getting recently added albums across clients")
 
-	var allAlbums []models.MediaItem[*mediatypes.Album]
+	var allAlbums []*models.MediaItem[*mediatypes.Album]
 
 	for _, client := range clients {
 		musicClient, ok := client.(providers.MusicProvider)
@@ -325,7 +325,7 @@ func (s *mediaMusicService[T]) GetRecentlyAddedAlbums(ctx context.Context, userI
 	return allAlbums, nil
 }
 
-func (s *mediaMusicService[T]) GetRecentlyPlayedTracks(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Track], error) {
+func (s *mediaMusicService[T]) GetRecentlyPlayedTracks(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Track], error) {
 	// Get music clients
 	clients, err := s.getMusicClients(ctx, userID)
 	if err != nil {
@@ -338,7 +338,7 @@ func (s *mediaMusicService[T]) GetRecentlyPlayedTracks(ctx context.Context, user
 		Int("limit", limit).
 		Msg("Getting recently played tracks across clients")
 
-	var allTracks []models.MediaItem[*mediatypes.Track]
+	var allTracks []*models.MediaItem[*mediatypes.Track]
 
 	// Cut-off date (e.g., last 30 days)
 	cutoffDate := time.Now().AddDate(0, 0, -30)
@@ -387,7 +387,7 @@ func (s *mediaMusicService[T]) GetRecentlyPlayedTracks(ctx context.Context, user
 	return allTracks, nil
 }
 
-func (s *mediaMusicService[T]) GetAlbumsByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[*mediatypes.Album], error) {
+func (s *mediaMusicService[T]) GetAlbumsByGenre(ctx context.Context, userID uint64, genre string) ([]*models.MediaItem[*mediatypes.Album], error) {
 	// Get music clients
 	clients, err := s.getMusicClients(ctx, userID)
 	if err != nil {
@@ -400,7 +400,7 @@ func (s *mediaMusicService[T]) GetAlbumsByGenre(ctx context.Context, userID uint
 		Str("genre", genre).
 		Msg("Getting albums by genre across clients")
 
-	var allAlbums []models.MediaItem[*mediatypes.Album]
+	var allAlbums []*models.MediaItem[*mediatypes.Album]
 
 	for _, client := range clients {
 		musicClient, ok := client.(providers.MusicProvider)
@@ -434,7 +434,7 @@ func (s *mediaMusicService[T]) GetAlbumsByGenre(ctx context.Context, userID uint
 	return allAlbums, nil
 }
 
-func (s *mediaMusicService[T]) GetArtistsByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[*mediatypes.Artist], error) {
+func (s *mediaMusicService[T]) GetArtistsByGenre(ctx context.Context, userID uint64, genre string) ([]*models.MediaItem[*mediatypes.Artist], error) {
 	// Get music clients
 	clients, err := s.getMusicClients(ctx, userID)
 	if err != nil {
@@ -447,7 +447,7 @@ func (s *mediaMusicService[T]) GetArtistsByGenre(ctx context.Context, userID uin
 		Str("genre", genre).
 		Msg("Getting artists by genre across clients")
 
-	var allArtists []models.MediaItem[*mediatypes.Artist]
+	var allArtists []*models.MediaItem[*mediatypes.Artist]
 
 	for _, client := range clients {
 		musicClient, ok := client.(providers.MusicProvider)
@@ -481,7 +481,7 @@ func (s *mediaMusicService[T]) GetArtistsByGenre(ctx context.Context, userID uin
 	return allArtists, nil
 }
 
-func (s *mediaMusicService[T]) GetRandomAlbums(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Album], error) {
+func (s *mediaMusicService[T]) GetRandomAlbums(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error) {
 	// Get music clients
 	clients, err := s.getMusicClients(ctx, userID)
 	if err != nil {
@@ -494,7 +494,7 @@ func (s *mediaMusicService[T]) GetRandomAlbums(ctx context.Context, userID uint6
 		Int("limit", limit).
 		Msg("Getting random albums across clients")
 
-	var allAlbums []models.MediaItem[*mediatypes.Album]
+	var allAlbums []*models.MediaItem[*mediatypes.Album]
 
 	// Calculate limit per client to evenly distribute
 	clientLimit := limit / len(clients)
@@ -549,7 +549,7 @@ func (s *mediaMusicService[T]) GetRandomAlbums(ctx context.Context, userID uint6
 }
 
 // GetTopAlbums retrieves top albums across all clients
-func (s *mediaMusicService[T]) GetTopAlbums(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Album], error) {
+func (s *mediaMusicService[T]) GetTopAlbums(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error) {
 	// Get music clients
 	clients, err := s.getMusicClients(ctx, userID)
 	if err != nil {
@@ -562,7 +562,7 @@ func (s *mediaMusicService[T]) GetTopAlbums(ctx context.Context, userID uint64, 
 		Int("limit", limit).
 		Msg("Getting top albums across clients")
 
-	var allAlbums []models.MediaItem[*mediatypes.Album]
+	var allAlbums []*models.MediaItem[*mediatypes.Album]
 
 	for _, client := range clients {
 		musicClient, ok := client.(providers.MusicProvider)
@@ -611,7 +611,7 @@ func (s *mediaMusicService[T]) GetTopAlbums(ctx context.Context, userID uint64, 
 }
 
 // GetTopAlbumsForClient retrieves top albums from a specific client
-func (s *mediaMusicService[T]) GetTopAlbumsForClient(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Album], error) {
+func (s *mediaMusicService[T]) GetTopAlbumsForClient(ctx context.Context, userID uint64, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	// Get the specific client
@@ -670,9 +670,9 @@ func (s *mediaMusicService[T]) SearchMusic(ctx context.Context, userID uint64, q
 		Msg("Searching music across clients")
 
 	results := MusicSearchResults{
-		Artists: []models.MediaItem[*mediatypes.Artist]{},
-		Albums:  []models.MediaItem[*mediatypes.Album]{},
-		Tracks:  []models.MediaItem[*mediatypes.Track]{},
+		Artists: []*models.MediaItem[*mediatypes.Artist]{},
+		Albums:  []*models.MediaItem[*mediatypes.Album]{},
+		Tracks:  []*models.MediaItem[*mediatypes.Track]{},
 	}
 
 	for _, client := range clients {
@@ -729,7 +729,7 @@ func (s *mediaMusicService[T]) SearchMusic(ctx context.Context, userID uint64, q
 }
 
 // GetTracksByAlbum retrieves all tracks from a specific album
-func (s *mediaMusicService[T]) GetTracksByAlbum(ctx context.Context, userID uint64, clientID uint64, albumID string) ([]models.MediaItem[*mediatypes.Track], error) {
+func (s *mediaMusicService[T]) GetTracksByAlbum(ctx context.Context, userID uint64, clientID uint64, albumID string) ([]*models.MediaItem[*mediatypes.Track], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	// Get the specific client
@@ -769,7 +769,7 @@ func (s *mediaMusicService[T]) GetTracksByAlbum(ctx context.Context, userID uint
 }
 
 // GetAlbumsByArtist retrieves all albums by a specific artist
-func (s *mediaMusicService[T]) GetAlbumsByArtist(ctx context.Context, userID uint64, clientID uint64, artistID string) ([]models.MediaItem[*mediatypes.Album], error) {
+func (s *mediaMusicService[T]) GetAlbumsByArtist(ctx context.Context, userID uint64, clientID uint64, artistID string) ([]*models.MediaItem[*mediatypes.Album], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	// Get the specific client
@@ -809,7 +809,7 @@ func (s *mediaMusicService[T]) GetAlbumsByArtist(ctx context.Context, userID uin
 }
 
 // GetTracksByGenre retrieves tracks by genre across all clients
-func (s *mediaMusicService[T]) GetTracksByGenre(ctx context.Context, userID uint64, genre string) ([]models.MediaItem[*mediatypes.Track], error) {
+func (s *mediaMusicService[T]) GetTracksByGenre(ctx context.Context, userID uint64, genre string) ([]*models.MediaItem[*mediatypes.Track], error) {
 	// Get music clients
 	clients, err := s.getMusicClients(ctx, userID)
 	if err != nil {
@@ -817,7 +817,7 @@ func (s *mediaMusicService[T]) GetTracksByGenre(ctx context.Context, userID uint
 	}
 
 	log := utils.LoggerFromContext(ctx)
-	var allTracks []models.MediaItem[*mediatypes.Track]
+	var allTracks []*models.MediaItem[*mediatypes.Track]
 
 	for _, client := range clients {
 		musicClient, ok := client.(providers.MusicProvider)
@@ -854,7 +854,7 @@ func (s *mediaMusicService[T]) GetTracksByGenre(ctx context.Context, userID uint
 }
 
 // GetAlbumsByYear retrieves albums released in a specific year
-func (s *mediaMusicService[T]) GetAlbumsByYear(ctx context.Context, userID uint64, year int) ([]models.MediaItem[*mediatypes.Album], error) {
+func (s *mediaMusicService[T]) GetAlbumsByYear(ctx context.Context, userID uint64, year int) ([]*models.MediaItem[*mediatypes.Album], error) {
 	// Get music clients
 	clients, err := s.getMusicClients(ctx, userID)
 	if err != nil {
@@ -862,7 +862,7 @@ func (s *mediaMusicService[T]) GetAlbumsByYear(ctx context.Context, userID uint6
 	}
 
 	log := utils.LoggerFromContext(ctx)
-	var allAlbums []models.MediaItem[*mediatypes.Album]
+	var allAlbums []*models.MediaItem[*mediatypes.Album]
 
 	for _, client := range clients {
 		musicClient, ok := client.(providers.MusicProvider)
@@ -900,19 +900,19 @@ func (s *mediaMusicService[T]) GetAlbumsByYear(ctx context.Context, userID uint6
 
 // GetLatestAlbumsByAdded retrieves the most recently added albums
 // This is an alias for GetRecentlyAddedAlbums to maintain API compatibility
-func (s *mediaMusicService[T]) GetLatestAlbumsByAdded(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Album], error) {
+func (s *mediaMusicService[T]) GetLatestAlbumsByAdded(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error) {
 	return s.GetRecentlyAddedAlbums(ctx, userID, limit)
 }
 
 // GetPopularAlbums retrieves popular albums based on play count or ratings
-func (s *mediaMusicService[T]) GetPopularAlbums(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Album], error) {
+func (s *mediaMusicService[T]) GetPopularAlbums(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error) {
 	// In practice, this is similar to GetTopAlbums but might have a different sorting algorithm
 	// For simplicity, we'll just use the GetTopAlbums method for now
 	return s.GetTopAlbums(ctx, userID, limit)
 }
 
 // GetPopularArtists retrieves popular artists based on play count or ratings
-func (s *mediaMusicService[T]) GetPopularArtists(ctx context.Context, userID uint64, limit int) ([]models.MediaItem[*mediatypes.Artist], error) {
+func (s *mediaMusicService[T]) GetPopularArtists(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Artist], error) {
 	// Get music clients
 	clients, err := s.getMusicClients(ctx, userID)
 	if err != nil {
@@ -920,7 +920,7 @@ func (s *mediaMusicService[T]) GetPopularArtists(ctx context.Context, userID uin
 	}
 
 	log := utils.LoggerFromContext(ctx)
-	var allArtists []models.MediaItem[*mediatypes.Artist]
+	var allArtists []*models.MediaItem[*mediatypes.Artist]
 
 	for _, client := range clients {
 		musicClient, ok := client.(providers.MusicProvider)
@@ -969,7 +969,7 @@ func (s *mediaMusicService[T]) GetPopularArtists(ctx context.Context, userID uin
 }
 
 // GetTopArtists retrieves top artists from a specific client
-func (s *mediaMusicService[T]) GetTopArtists(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Artist], error) {
+func (s *mediaMusicService[T]) GetTopArtists(ctx context.Context, userID uint64, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Artist], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	// Get the specific client
@@ -1014,7 +1014,7 @@ func (s *mediaMusicService[T]) GetTopArtists(ctx context.Context, userID uint64,
 }
 
 // GetFavoriteArtists retrieves favorite artists from a specific client
-func (s *mediaMusicService[T]) GetFavoriteArtists(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Artist], error) {
+func (s *mediaMusicService[T]) GetFavoriteArtists(ctx context.Context, userID uint64, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Artist], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	// Get the specific client
@@ -1053,7 +1053,7 @@ func (s *mediaMusicService[T]) GetFavoriteArtists(ctx context.Context, userID ui
 }
 
 // GetTopTracks retrieves top tracks from a specific client
-func (s *mediaMusicService[T]) GetTopTracks(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Track], error) {
+func (s *mediaMusicService[T]) GetTopTracks(ctx context.Context, userID uint64, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Track], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	// Get the specific client
@@ -1098,7 +1098,7 @@ func (s *mediaMusicService[T]) GetTopTracks(ctx context.Context, userID uint64, 
 }
 
 // GetRecentlyAddedTracks retrieves recently added tracks from a specific client
-func (s *mediaMusicService[T]) GetRecentlyAddedTracks(ctx context.Context, userID uint64, clientID uint64, limit int) ([]models.MediaItem[*mediatypes.Track], error) {
+func (s *mediaMusicService[T]) GetRecentlyAddedTracks(ctx context.Context, userID uint64, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Track], error) {
 	log := utils.LoggerFromContext(ctx)
 
 	// Get the specific client

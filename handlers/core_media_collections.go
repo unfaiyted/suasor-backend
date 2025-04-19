@@ -16,13 +16,13 @@ import (
 // CoreCollectionHandler handles operations for collections in the database
 type CoreCollectionHandler struct {
 	collectionService services.CoreMediaItemService[*mediatypes.Collection]
-	coreService       services.CoreCollectionService
+	coreService       services.CoreListService[*mediatypes.Collection]
 }
 
 // NewCoreCollectionHandler creates a new core collection handler
 func NewCoreCollectionHandler(
 	collectionService services.CoreMediaItemService[*mediatypes.Collection],
-	coreService services.CoreCollectionService,
+	coreService services.CoreListService[*mediatypes.Collection],
 ) *CoreCollectionHandler {
 	return &CoreCollectionHandler{
 		collectionService: collectionService,
@@ -144,7 +144,7 @@ func (h *CoreCollectionHandler) GetCollectionItems(c *gin.Context) {
 		Uint64("id", id).
 		Msg("Getting items for collection")
 
-	items, err := h.coreService.GetCollectionItems(ctx, id)
+	items, err := h.coreService.GetItems(ctx, id)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("id", id).
@@ -155,7 +155,7 @@ func (h *CoreCollectionHandler) GetCollectionItems(c *gin.Context) {
 
 	log.Info().
 		Uint64("id", id).
-		Int("itemCount", items.TotalItems).
+		Int("itemCount", items.GetTotalItems()).
 		Msg("Collection items retrieved successfully")
 	responses.RespondOK(c, items, "Collection items retrieved successfully")
 }
@@ -302,4 +302,3 @@ func (h *CoreCollectionHandler) GetPublicCollections(c *gin.Context) {
 		Msg("Public collections retrieved successfully")
 	responses.RespondOK(c, collections, "Collections retrieved successfully")
 }
-

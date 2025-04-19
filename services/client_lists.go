@@ -21,7 +21,7 @@ import (
 // for playlist operations on the integrations side
 // Every Get Operations should also save a copy of the MediaItem when it syncs or updates. If the item already exists.
 // It will update the existing item, ensuring that the item is has the appropraite IDs and other metadata to sync and keep updated.
-type ClientListService[T types.ClientConfig, U mediatypes.ListData] interface {
+type ClientListService[T types.ClientMediaConfig, U mediatypes.ListData] interface {
 	CoreListService[U]
 	// Client-specific operations
 	GetClientList(ctx context.Context, clientID uint64, clientListID string) (*models.MediaItem[U], error)
@@ -44,7 +44,7 @@ type ClientListService[T types.ClientConfig, U mediatypes.ListData] interface {
 	SearchUsersClientsLists(ctx context.Context, userID uint64, query mediatypes.QueryOptions) ([]*models.MediaItem[U], error)
 	ImportClientList(ctx context.Context, clientID uint64, clientPlaylistID string) (*models.MediaItem[U], error)
 
-	GetSyncStatus(ctx context.Context, clientListID string) (*models.PlaylistSyncStatus, error)
+	GetSyncStatus(ctx context.Context, clientListID string) (*models.ListSyncStatus, error)
 	// SyncToClients(ctx context.Context, clientListID string, clientIDs []uint64) error
 	// SyncClientList(ctx context.Context, clientID uint64, clientListID string) error
 
@@ -67,6 +67,10 @@ func NewClientListService[T types.ClientMediaConfig, U mediatypes.ListData](
 		clientRepo:    clientRepo,
 		clientFactory: clientFactory,
 	}
+}
+
+func (s *clientListService[T, U]) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[U], error) {
+	return s.listService.GetAll(ctx, limit, offset)
 }
 
 // UpdateItems
@@ -95,7 +99,7 @@ func (s *clientListService[T, U]) RemoveItem(ctx context.Context, listID uint64,
 }
 
 // ReorderItems
-func (s *clientListService[T, U]) ReorderItems(ctx context.Context, listID uint64, itemIDs []string) error {
+func (s *clientListService[T, U]) ReorderItems(ctx context.Context, listID uint64, itemIDs []uint64) error {
 	return s.listService.ReorderItems(ctx, listID, itemIDs)
 }
 
@@ -530,7 +534,7 @@ func (s *clientListService[T, U]) SyncClientList(ctx context.Context, clientID u
 }
 
 // GetSyncStatus retrieves the sync status of a playlist across clients
-func (s *clientListService[T, U]) GetSyncStatus(ctx context.Context, clientListID string) (*models.PlaylistSyncStatus, error) {
+func (s *clientListService[T, U]) GetSyncStatus(ctx context.Context, clientListID string) (*models.ListSyncStatus, error) {
 	// log := utils.LoggerFromContext(ctx)
 	// log.Debug().
 	// 	Str("clientListID", clientListID).

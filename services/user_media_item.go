@@ -45,16 +45,20 @@ func NewUserMediaItemService[T types.MediaData](
 
 // Core service methods - delegate to embedded core service
 
-func (s *userMediaItemService[T]) Create(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error) {
+func (s *userMediaItemService[T]) Create(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error) {
 	return s.coreService.Create(ctx, item)
 }
 
-func (s *userMediaItemService[T]) Update(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error) {
+func (s *userMediaItemService[T]) Update(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error) {
 	return s.coreService.Update(ctx, item)
 }
 
 func (s *userMediaItemService[T]) GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error) {
 	return s.coreService.GetByID(ctx, id)
+}
+
+func (s *userMediaItemService[T]) GetMostPlayed(ctx context.Context, limit int) ([]*models.MediaItem[T], error) {
+	return s.coreService.GetMostPlayed(ctx, limit)
 }
 
 func (s *userMediaItemService[T]) GetByClientItemID(ctx context.Context, clientItemID string, clientID uint64) (*models.MediaItem[T], error) {

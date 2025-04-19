@@ -4,6 +4,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"strconv"
+	"time"
 
 	"suasor/client/media/types"
 	"suasor/services"
@@ -11,18 +12,36 @@ import (
 	"suasor/utils"
 )
 
-// CoreMediaItemHandler is a generic handler for media items in the database
+type CoreMediaItemHandler[T types.MediaData] interface {
+	GetAll(c *gin.Context)
+	GetByID(c *gin.Context)
+	GetMostPlayed(c *gin.Context)
+	GetByClientItemID(c *gin.Context)
+	GetByExternalID(c *gin.Context)
+	Search(c *gin.Context)
+	GetRecentlyAdded(c *gin.Context)
+	GetByType(c *gin.Context)
+	GetByPerson(c *gin.Context)
+	GetByYear(c *gin.Context)
+	GetLatestByAdded(c *gin.Context)
+	GetByClient(c *gin.Context)
+	GetByGenre(c *gin.Context)
+	GetPopular(c *gin.Context)
+	GetTopRated(c *gin.Context)
+}
+
+// coreMediaItemHandler is a generic handler for media items in the database
 // It provides basic operations that are shared across all media types
 // and serves as the base for more specialized media handlers
-type CoreMediaItemHandler[T types.MediaData] struct {
+type coreMediaItemHandler[T types.MediaData] struct {
 	mediaService services.CoreMediaItemService[T]
 }
 
-// NewCoreMediaItemHandler creates a new core media item handler
-func NewCoreMediaItemHandler[T types.MediaData](
+// NewcoreMediaItemHandler creates a new core media item handler
+func NewcoreMediaItemHandler[T types.MediaData](
 	mediaService services.CoreMediaItemService[T],
-) *CoreMediaItemHandler[T] {
-	return &CoreMediaItemHandler[T]{
+) *coreMediaItemHandler[T] {
+	return &coreMediaItemHandler[T]{
 		mediaService: mediaService,
 	}
 }
@@ -38,7 +57,7 @@ func NewCoreMediaItemHandler[T types.MediaData](
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "Media items retrieved successfully"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media [get]
-func (h *CoreMediaItemHandler[T]) GetAll(c *gin.Context) {
+func (h *coreMediaItemHandler[T]) GetAll(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -78,7 +97,7 @@ func (h *CoreMediaItemHandler[T]) GetAll(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/{id} [get]
-func (h *CoreMediaItemHandler[T]) GetByID(c *gin.Context) {
+func (h *coreMediaItemHandler[T]) GetByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -121,7 +140,7 @@ func (h *CoreMediaItemHandler[T]) GetByID(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/external/{source}/{id} [get]
-func (h *CoreMediaItemHandler[T]) GetByExternalID(c *gin.Context) {
+func (h *coreMediaItemHandler[T]) GetByExternalID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -175,7 +194,7 @@ func (h *CoreMediaItemHandler[T]) GetByExternalID(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/search [get]
-func (h *CoreMediaItemHandler[T]) Search(c *gin.Context) {
+func (h *coreMediaItemHandler[T]) Search(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -242,7 +261,7 @@ func (h *CoreMediaItemHandler[T]) Search(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "Media items retrieved successfully"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/recently-added [get]
-func (h *CoreMediaItemHandler[T]) GetRecentlyAdded(c *gin.Context) {
+func (h *coreMediaItemHandler[T]) GetRecentlyAdded(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -293,7 +312,7 @@ func (h *CoreMediaItemHandler[T]) GetRecentlyAdded(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/type/{type} [get]
-func (h *CoreMediaItemHandler[T]) GetByType(c *gin.Context) {
+func (h *coreMediaItemHandler[T]) GetByType(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -352,7 +371,7 @@ func (h *CoreMediaItemHandler[T]) GetByType(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/person/{personId} [get]
-func (h *CoreMediaItemHandler[T]) GetByPerson(c *gin.Context) {
+func (h *coreMediaItemHandler[T]) GetByPerson(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -418,7 +437,7 @@ func (h *CoreMediaItemHandler[T]) GetByPerson(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/year/{year} [get]
-func (h *CoreMediaItemHandler[T]) GetByYear(c *gin.Context) {
+func (h *coreMediaItemHandler[T]) GetByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -483,7 +502,7 @@ func (h *CoreMediaItemHandler[T]) GetByYear(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "Media items retrieved successfully"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/latest [get]
-func (h *CoreMediaItemHandler[T]) GetLatestByAdded(c *gin.Context) {
+func (h *coreMediaItemHandler[T]) GetLatestByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -503,16 +522,19 @@ func (h *CoreMediaItemHandler[T]) GetLatestByAdded(c *gin.Context) {
 			days = parsedDays
 		}
 	}
+	cutoffDate := time.Now().AddDate(0, 0, -days)
 
 	var zero T
 	mediaType := types.GetMediaTypeFromTypeName(zero)
 
 	// Create query options
 	options := types.QueryOptions{
-		MediaType: mediaType,
-		Sort:      "created_at",
-		SortOrder: "desc",
-		Limit:     limit,
+		MediaType:      mediaType,
+		Sort:           "created_at",
+		DateAddedAfter: cutoffDate,
+		SortOrder:      "desc",
+
+		Limit: limit,
 	}
 
 	// Search with sorting by creation date
@@ -542,7 +564,7 @@ func (h *CoreMediaItemHandler[T]) GetLatestByAdded(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/client/{clientId} [get]
-func (h *CoreMediaItemHandler[T]) GetByClient(c *gin.Context) {
+func (h *coreMediaItemHandler[T]) GetByClient(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -602,7 +624,7 @@ func (h *CoreMediaItemHandler[T]) GetByClient(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/genre/{genre} [get]
-func (h *CoreMediaItemHandler[T]) GetByGenre(c *gin.Context) {
+func (h *coreMediaItemHandler[T]) GetByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -663,7 +685,7 @@ func (h *CoreMediaItemHandler[T]) GetByGenre(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/external/{source}/{externalId} [get]
-func (h *CoreMediaItemHandler[T]) GetByExternalSourceID(c *gin.Context) {
+func (h *coreMediaItemHandler[T]) GetByExternalSourceID(c *gin.Context) {
 	// This function is an alias for GetByExternalID to maintain compatibility with both naming schemes
 	h.GetByExternalID(c)
 }
@@ -678,7 +700,7 @@ func (h *CoreMediaItemHandler[T]) GetByExternalSourceID(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "Media items retrieved successfully"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/popular [get]
-func (h *CoreMediaItemHandler[T]) GetPopular(c *gin.Context) {
+func (h *coreMediaItemHandler[T]) GetPopular(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -727,7 +749,7 @@ func (h *CoreMediaItemHandler[T]) GetPopular(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "Media items retrieved successfully"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/top-rated [get]
-func (h *CoreMediaItemHandler[T]) GetTopRated(c *gin.Context) {
+func (h *coreMediaItemHandler[T]) GetTopRated(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -779,6 +801,55 @@ func (h *CoreMediaItemHandler[T]) GetTopRated(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/client/{clientId}/item/{clientItemId} [get]
-func (h *CoreMediaItemHandler[T]) GetByClientItemID(c *gin.Context) {
+func (h *coreMediaItemHandler[T]) GetByClientItemID(c *gin.Context) {
 
+}
+
+// GetMostPlayed godoc
+// @Summary Get most played media items
+// @Description Retrieves the most played media items
+// @Tags media
+// @Accept json
+// @Produce json
+// @Param userId query int true "User ID"
+// @Param limit query int false "Maximum number of items to return (default 20)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "Media items retrieved successfully"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /media/most-played [get]
+func (h *coreMediaItemHandler[T]) GetMostPlayed(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
+		responses.RespondBadRequest(c, err, "Invalid user ID")
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	if err != nil {
+		limit = 20
+	}
+
+	log.Debug().
+		Uint64("userID", userID).
+		Int("limit", limit).
+		Msg("Getting most played media items")
+
+	// Get the most played media items
+	items, err := h.mediaService.GetMostPlayed(ctx, limit)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", userID).
+			Msg("Failed to retrieve most played media items")
+		responses.RespondInternalError(c, err, "Failed to retrieve most played media items")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", userID).
+		Int("count", len(items)).
+		Msg("Most played media items retrieved successfully")
+	responses.RespondOK(c, items, "Most played media items retrieved successfully")
 }

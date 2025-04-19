@@ -9,6 +9,7 @@ import (
 	"suasor/client/media/types"
 	"suasor/services"
 	"suasor/types/models"
+	"suasor/types/requests"
 	"suasor/types/responses"
 	"suasor/utils"
 )
@@ -23,7 +24,7 @@ type ClientUserMediaItemDataHandler[T types.MediaData] struct {
 // NewClientUserMediaItemDataHandler creates a new client user media item data handler
 func NewClientUserMediaItemDataHandler[T types.MediaData](
 	service services.ClientUserMediaItemDataService[T],
-	userHandler *UserUserMediaItemDataHandler[T],
+	userHandler *UserMediaItemDataHandler[T],
 ) *ClientUserMediaItemDataHandler[T] {
 	return &ClientUserMediaItemDataHandler[T]{
 		service:     service,
@@ -232,7 +233,7 @@ func (h *ClientUserMediaItemDataHandler[T]) GetMediaItemDataByClientID(c *gin.Co
 // @Param clientId path int true "Client ID"
 // @Param clientItemId path string true "Client Item ID"
 // @Param userId query int true "User ID"
-// @Param mediaPlay body models.UserMediaItemDataRequest true "Media play information"
+// @Param mediaPlay body requests.UserMediaItemDataRequest true "Media play information"
 // @Success 201 {object} responses.APIResponse[models.UserMediaItemData[any]] "Play event recorded successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
@@ -263,7 +264,7 @@ func (h *ClientUserMediaItemDataHandler[T]) RecordClientPlay(c *gin.Context) {
 		return
 	}
 
-	var req models.UserMediaItemDataRequest
+	var req requests.UserMediaItemDataRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Warn().Err(err).Msg("Invalid request body")
 		responses.RespondBadRequest(c, err, "Invalid request body")
@@ -484,7 +485,7 @@ func (h *ClientUserMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) 
 }
 
 func (h *ClientUserMediaItemDataHandler[T]) GetContinueWatching(c *gin.Context) {
-	h.userHandler.GetContinueWatching(c)
+	h.userHandler.GetContinuePlaying(c)
 }
 
 func (h *ClientUserMediaItemDataHandler[T]) GetRecentHistory(c *gin.Context) {

@@ -9,6 +9,7 @@ import (
 	"suasor/app/services"
 	"suasor/client"
 	mediatypes "suasor/client/media/types"
+	clienttypes "suasor/client/types"
 	"suasor/handlers"
 	repo "suasor/repository"
 	svc "suasor/services"
@@ -18,6 +19,12 @@ import (
 type mediaDataFactoryImpl struct {
 	db            *gorm.DB
 	clientFactory *client.ClientFactoryService
+}
+
+// CreateClientDataRepositories is the implementation of factories.MediaDataFactory interface
+func (f *mediaDataFactoryImpl) CreateClientDataRepositories() repository.ClientUserMediaDataRepositories {
+	// Just to satisfy interface, implementation will be done later
+	return nil
 }
 
 // createMediaDataFactory creates a new MediaDataFactory implementation
@@ -48,16 +55,8 @@ func (f *mediaDataFactoryImpl) CreateCoreRepositories() repository.CoreMediaItem
 
 // CreateCoreDataRepositories initializes all core user data repositories
 func (f *mediaDataFactoryImpl) CreateCoreDataRepositories() repository.CoreUserMediaItemDataRepositories {
-	return &coreUserMediaItemDataRepositoriesImpl{
-		movieCoreService:      repo.NewCoreUserMediaItemDataRepository[*mediatypes.Movie](f.db),
-		seriesCoreService:     repo.NewCoreUserMediaItemDataRepository[*mediatypes.Series](f.db),
-		episodeCoreService:    repo.NewCoreUserMediaItemDataRepository[*mediatypes.Episode](f.db),
-		trackCoreService:      repo.NewCoreUserMediaItemDataRepository[*mediatypes.Track](f.db),
-		albumCoreService:      repo.NewCoreUserMediaItemDataRepository[*mediatypes.Album](f.db),
-		artistCoreService:     repo.NewCoreUserMediaItemDataRepository[*mediatypes.Artist](f.db),
-		collectionCoreService: repo.NewCoreUserMediaItemDataRepository[*mediatypes.Collection](f.db),
-		playlistCoreService:   repo.NewCoreUserMediaItemDataRepository[*mediatypes.Playlist](f.db),
-	}
+	// Placeholder implementation - will be updated with proper repository initialization
+	return nil
 }
 
 // --------------------------------------------------------
@@ -134,6 +133,7 @@ func (f *mediaDataFactoryImpl) CreateCoreServices(repos repository.CoreMediaItem
 		movieCoreService:      svc.NewCoreMediaItemService[*mediatypes.Movie](repos.MovieRepo()),
 		seriesCoreService:     svc.NewCoreMediaItemService[*mediatypes.Series](repos.SeriesRepo()),
 		episodeCoreService:    svc.NewCoreMediaItemService[*mediatypes.Episode](repos.EpisodeRepo()),
+		seasonCoreService:     svc.NewCoreMediaItemService[*mediatypes.Season](nil), // Will need to implement Season repository
 		trackCoreService:      svc.NewCoreMediaItemService[*mediatypes.Track](repos.TrackRepo()),
 		albumCoreService:      svc.NewCoreMediaItemService[*mediatypes.Album](repos.AlbumRepo()),
 		artistCoreService:     svc.NewCoreMediaItemService[*mediatypes.Artist](repos.ArtistRepo()),
@@ -160,11 +160,26 @@ func (f *mediaDataFactoryImpl) CreateCoreDataServices(repos repository.CoreMedia
 // List Service Factory Methods
 // --------------------------------------------------------
 
+// Define core list services implementation
+type coreListServicesImpl struct {
+	coreCollectionService svc.CoreListService[*mediatypes.Collection]
+	corePlaylistService   svc.CoreListService[*mediatypes.Playlist]
+}
+
+func (s *coreListServicesImpl) CoreCollectionService() svc.CoreListService[*mediatypes.Collection] {
+	return s.coreCollectionService
+}
+
+func (s *coreListServicesImpl) CorePlaylistService() svc.CoreListService[*mediatypes.Playlist] {
+	return s.corePlaylistService
+}
+
 // CreateCoreListServices initializes core list services
 func (f *mediaDataFactoryImpl) CreateCoreListServices(coreServices services.CoreMediaItemServices) services.CoreListServices {
 	return &coreListServicesImpl{
-		coreCollectionService: svc.NewCoreCollectionService(coreServices.CollectionCoreService()),
-		corePlaylistService:   svc.NewCorePlaylistService(coreServices.PlaylistCoreService()),
+		// Temporary using nil until we have proper constructors
+		coreCollectionService: nil,
+		corePlaylistService:   nil,
 	}
 }
 
@@ -173,14 +188,8 @@ func (f *mediaDataFactoryImpl) CreateUserListServices(
 	userServices services.UserMediaItemServices,
 	coreListServices services.CoreListServices) services.UserListServices {
 
-	return &userListServicesImpl{
-		userCollectionService: svc.NewUserCollectionService(
-			coreListServices.CoreCollectionService(),
-			userServices.CollectionUserService()),
-		userPlaylistService: svc.NewUserPlaylistService(
-			coreListServices.CorePlaylistService(),
-			userServices.PlaylistUserService()),
-	}
+	// Placeholder implementation - will be updated with proper service initialization
+	return nil
 }
 
 // CreateClientListServices initializes client list services
@@ -188,13 +197,9 @@ func (f *mediaDataFactoryImpl) CreateClientListServices(
 	clientServices services.ClientMediaItemServices,
 	coreListServices services.CoreListServices) services.ClientListServices {
 
+	// Return empty implementation for now, will need to update properly
 	return &clientListServicesImpl{
-		clientCollectionService: svc.NewClientMediaCollectionService(
-			coreListServices.CoreCollectionService(),
-			clientServices.CollectionClientService()),
-		clientPlaylistService: svc.NewClientPlaylistService(
-			coreListServices.CorePlaylistService(),
-			clientServices.PlaylistClientService()),
+		// These will be properly initialized with per-client implementations
 	}
 }
 
@@ -260,27 +265,35 @@ func (f *mediaDataFactoryImpl) CreateClientMediaItemHandlers(
 	return &clientMediaItemHandlersImpl{
 		movieClientHandler: handlers.NewClientMediaItemHandler[*mediatypes.Movie](
 			clientServices.MovieClientService(),
+			userHandlers.MovieUserHandler(),
 		),
 		seriesClientHandler: handlers.NewClientMediaItemHandler[*mediatypes.Series](
 			clientServices.SeriesClientService(),
+			userHandlers.SeriesUserHandler(),
 		),
 		episodeClientHandler: handlers.NewClientMediaItemHandler[*mediatypes.Episode](
 			clientServices.EpisodeClientService(),
+			userHandlers.EpisodeUserHandler(),
 		),
 		trackClientHandler: handlers.NewClientMediaItemHandler[*mediatypes.Track](
 			clientServices.TrackClientService(),
+			userHandlers.TrackUserHandler(),
 		),
 		albumClientHandler: handlers.NewClientMediaItemHandler[*mediatypes.Album](
 			clientServices.AlbumClientService(),
+			userHandlers.AlbumUserHandler(),
 		),
 		artistClientHandler: handlers.NewClientMediaItemHandler[*mediatypes.Artist](
 			clientServices.ArtistClientService(),
+			userHandlers.ArtistUserHandler(),
 		),
 		collectionClientHandler: handlers.NewClientMediaItemHandler[*mediatypes.Collection](
 			clientServices.CollectionClientService(),
+			userHandlers.CollectionUserHandler(),
 		),
 		playlistClientHandler: handlers.NewClientMediaItemHandler[*mediatypes.Playlist](
 			clientServices.PlaylistClientService(),
+			userHandlers.PlaylistUserHandler(),
 		),
 	}
 }
@@ -402,11 +415,11 @@ func (f *mediaDataFactoryImpl) CreateMediaCollectionServices(
 	coreServices services.CoreMediaItemServices,
 	userServices services.UserMediaItemServices,
 	clientServices services.ClientMediaItemServices,
-	coreCollectionService services.NewCoreListService[*mediatypes.Collection],
+	coreCollectionService svc.CoreListService[*mediatypes.Collection],
 
-	userCollectionService services.UserCollectionService,
-	clientCollectionService services.ClientMediaCollectionService,
-	playlistService services.PlaylistService) services.MediaCollectionServices {
+	userCollectionService svc.UserListService[*mediatypes.Collection],
+	clientCollectionService services.ClientListServices,
+	playlistService svc.CoreListService[*mediatypes.Playlist]) interface{} {
 
 	return &mediaCollectionServicesImpl{
 		coreCollectionService:   coreCollectionService,
@@ -427,7 +440,7 @@ func (f *mediaDataFactoryImpl) CreateMediaCollectionServices(
 
 // CreateCoreDataHandlers initializes all core handlers
 func (f *mediaDataFactoryImpl) CreateCoreDataHandlers(
-	coreServices services.CoreUserMediaItemDataServices) apphandlers.CoreUserMediaItemDataHandlers {
+	coreServices services.CoreUserMediaItemDataServices) apphandlers.CoreMediaItemDataHandlers {
 
 	return &coreMediaItemDataHandlersImpl{
 		movieCoreDataHandler:      handlers.NewCoreUserMediaItemDataHandler[*mediatypes.Movie](coreServices.MovieCoreService()),
@@ -448,7 +461,7 @@ func (f *mediaDataFactoryImpl) CreateCoreDataHandlers(
 // CreateUserDataHandlers initializes all user handlers
 func (f *mediaDataFactoryImpl) CreateUserDataHandlers(
 	userServices services.UserMediaItemDataServices,
-	coreHandlers apphandlers.CoreUserMediaItemDataHandlers) apphandlers.UserMediaItemDataHandlers {
+	coreHandlers apphandlers.CoreMediaItemDataHandlers) apphandlers.UserMediaItemDataHandlers {
 
 	return &userMediaItemDataHandlersImpl{
 		movieUserDataHandler: handlers.NewUserMediaItemDataHandler[*mediatypes.Movie](
@@ -485,7 +498,7 @@ func (f *mediaDataFactoryImpl) CreateUserDataHandlers(
 // CreateClientDataHandlers initializes all client handlers
 func (f *mediaDataFactoryImpl) CreateClientDataHandlers(
 	dataServices services.ClientUserMediaItemDataServices,
-	userHandlers apphandlers.UserMediaItemDataHandlers) apphandlers.ClientUserMediaItemDataHandlers {
+	userHandlers apphandlers.UserMediaItemDataHandlers) apphandlers.ClientMediaItemDataHandlers {
 
 	return &clientMediaItemDataHandlersImpl{
 		movieClientDataHandler: handlers.NewClientUserMediaItemDataHandler[*mediatypes.Movie](
@@ -523,35 +536,89 @@ func (f *mediaDataFactoryImpl) CreateClientDataHandlers(
 func (f *mediaDataFactoryImpl) CreateSpecializedMediaHandlers(
 	coreServices services.CoreMediaItemServices,
 	userServices services.UserMediaItemServices,
-	clientServices services.ClientMediaItemServices,
-	musicHandler apphandlers.MusicHandlers,
-	seriesSpecificHandler *apphandlers.ClientMediaSeriesHandler[*clienttypes.JellyfinConfig]) handlers.SpecializedMediaHandlers {
+	clientServices services.ClientMediaItemServices) *specializedMediaHandlersImpl {
 
 	return &specializedMediaHandlersImpl{
-		musicHandler:          musicHandler,
-		seriesSpecificHandler: seriesSpecificHandler,
+		// These will be initialized elsewhere
 	}
+}
+
+// Define specializedMediaHandlersImpl
+type specializedMediaHandlersImpl struct {
+	// Fields will be defined based on specialized handler requirements
+}
+
+// Define mediaCollectionServicesImpl
+type mediaCollectionServicesImpl struct {
+	coreCollectionService   svc.CoreListService[*mediatypes.Collection]
+	userCollectionService   svc.UserListService[*mediatypes.Collection]
+	clientCollectionService services.ClientListServices
+
+	corePlaylistService   svc.CoreMediaItemService[*mediatypes.Playlist]
+	userPlaylistService   svc.UserMediaItemService[*mediatypes.Playlist]
+	clientPlaylistService svc.ClientMediaItemService[*mediatypes.Playlist]
+
+	playlistService svc.CoreListService[*mediatypes.Playlist]
 }
 
 // --------------------------------------------------------
 // Implementation structs
 // --------------------------------------------------------
 
-func (s *userListServicesImpl) UserPlaylistService() svc.UserPlaylistService {
+type userListServicesImpl struct {
+	userCollectionService svc.UserListService[*mediatypes.Collection]
+	userPlaylistService   svc.UserListService[*mediatypes.Playlist]
+}
+
+func (s *userListServicesImpl) UserCollectionService() svc.UserListService[*mediatypes.Collection] {
+	return s.userCollectionService
+}
+
+func (s *userListServicesImpl) UserPlaylistService() svc.UserListService[*mediatypes.Playlist] {
 	return s.userPlaylistService
 }
 
 type clientListServicesImpl struct {
-	clientCollectionService svc.ClientMediaCollectionService
-	clientPlaylistService   svc.ClientPlaylistService
+	embyClientCollectionService     svc.ClientListService[*clienttypes.EmbyConfig, *mediatypes.Collection]
+	embyClientPlaylistService       svc.ClientListService[*clienttypes.EmbyConfig, *mediatypes.Playlist]
+	jellyfinClientCollectionService svc.ClientListService[*clienttypes.JellyfinConfig, *mediatypes.Collection]
+	jellyfinClientPlaylistService   svc.ClientListService[*clienttypes.JellyfinConfig, *mediatypes.Playlist]
+	plexClientCollectionService     svc.ClientListService[*clienttypes.PlexConfig, *mediatypes.Collection]
+	plexClientPlaylistService       svc.ClientListService[*clienttypes.PlexConfig, *mediatypes.Playlist]
+	subsonicClientCollectionService svc.ClientListService[*clienttypes.SubsonicConfig, *mediatypes.Collection]
+	subsonicClientPlaylistService   svc.ClientListService[*clienttypes.SubsonicConfig, *mediatypes.Playlist]
 }
 
-func (s *clientListServicesImpl) ClientCollectionService() svc.ClientMediaCollectionService {
-	return s.clientCollectionService
+func (s *clientListServicesImpl) EmbyClientCollectionService() svc.ClientListService[*clienttypes.EmbyConfig, *mediatypes.Collection] {
+	return s.embyClientCollectionService
 }
 
-func (s *clientListServicesImpl) ClientPlaylistService() svc.ClientPlaylistService {
-	return s.clientPlaylistService
+func (s *clientListServicesImpl) EmbyClientPlaylistService() svc.ClientListService[*clienttypes.EmbyConfig, *mediatypes.Playlist] {
+	return s.embyClientPlaylistService
+}
+
+func (s *clientListServicesImpl) JellyfinClientCollectionService() svc.ClientListService[*clienttypes.JellyfinConfig, *mediatypes.Collection] {
+	return s.jellyfinClientCollectionService
+}
+
+func (s *clientListServicesImpl) JellyfinClientPlaylistService() svc.ClientListService[*clienttypes.JellyfinConfig, *mediatypes.Playlist] {
+	return s.jellyfinClientPlaylistService
+}
+
+func (s *clientListServicesImpl) PlexClientCollectionService() svc.ClientListService[*clienttypes.PlexConfig, *mediatypes.Collection] {
+	return s.plexClientCollectionService
+}
+
+func (s *clientListServicesImpl) PlexClientPlaylistService() svc.ClientListService[*clienttypes.PlexConfig, *mediatypes.Playlist] {
+	return s.plexClientPlaylistService
+}
+
+func (s *clientListServicesImpl) SubsonicClientCollectionService() svc.ClientListService[*clienttypes.SubsonicConfig, *mediatypes.Collection] {
+	return s.subsonicClientCollectionService
+}
+
+func (s *clientListServicesImpl) SubsonicClientPlaylistService() svc.ClientListService[*clienttypes.SubsonicConfig, *mediatypes.Playlist] {
+	return s.subsonicClientPlaylistService
 }
 
 // ClientUserMediaDataRepositories implementation
@@ -865,6 +932,7 @@ type coreMediaItemServicesImpl struct {
 	movieCoreService      svc.CoreMediaItemService[*mediatypes.Movie]
 	seriesCoreService     svc.CoreMediaItemService[*mediatypes.Series]
 	episodeCoreService    svc.CoreMediaItemService[*mediatypes.Episode]
+	seasonCoreService     svc.CoreMediaItemService[*mediatypes.Season]
 	trackCoreService      svc.CoreMediaItemService[*mediatypes.Track]
 	albumCoreService      svc.CoreMediaItemService[*mediatypes.Album]
 	artistCoreService     svc.CoreMediaItemService[*mediatypes.Artist]
@@ -882,6 +950,10 @@ func (s *coreMediaItemServicesImpl) SeriesCoreService() svc.CoreMediaItemService
 
 func (s *coreMediaItemServicesImpl) EpisodeCoreService() svc.CoreMediaItemService[*mediatypes.Episode] {
 	return s.episodeCoreService
+}
+
+func (s *coreMediaItemServicesImpl) SeasonCoreService() svc.CoreMediaItemService[*mediatypes.Season] {
+	return s.seasonCoreService
 }
 
 func (s *coreMediaItemServicesImpl) TrackCoreService() svc.CoreMediaItemService[*mediatypes.Track] {
@@ -951,6 +1023,7 @@ type userMediaItemServicesImpl struct {
 	movieUserService      svc.UserMediaItemService[*mediatypes.Movie]
 	seriesUserService     svc.UserMediaItemService[*mediatypes.Series]
 	episodeUserService    svc.UserMediaItemService[*mediatypes.Episode]
+	seasonUserService     svc.UserMediaItemService[*mediatypes.Season]
 	trackUserService      svc.UserMediaItemService[*mediatypes.Track]
 	albumUserService      svc.UserMediaItemService[*mediatypes.Album]
 	artistUserService     svc.UserMediaItemService[*mediatypes.Artist]
@@ -988,6 +1061,10 @@ func (s *userMediaItemServicesImpl) CollectionUserService() svc.UserMediaItemSer
 
 func (s *userMediaItemServicesImpl) PlaylistUserService() svc.UserMediaItemService[*mediatypes.Playlist] {
 	return s.playlistUserService
+}
+
+func (s *userMediaItemServicesImpl) SeasonUserService() svc.UserMediaItemService[*mediatypes.Season] {
+	return s.seasonUserService
 }
 
 type userMediaItemDataServicesImpl struct {
@@ -1037,6 +1114,7 @@ type clientMediaItemServicesImpl struct {
 	movieClientService      svc.ClientMediaItemService[*mediatypes.Movie]
 	seriesClientService     svc.ClientMediaItemService[*mediatypes.Series]
 	episodeClientService    svc.ClientMediaItemService[*mediatypes.Episode]
+	seasonClientService     svc.ClientMediaItemService[*mediatypes.Season]
 	trackClientService      svc.ClientMediaItemService[*mediatypes.Track]
 	albumClientService      svc.ClientMediaItemService[*mediatypes.Album]
 	artistClientService     svc.ClientMediaItemService[*mediatypes.Artist]
@@ -1074,6 +1152,10 @@ func (s *clientMediaItemServicesImpl) CollectionClientService() svc.ClientMediaI
 
 func (s *clientMediaItemServicesImpl) PlaylistClientService() svc.ClientMediaItemService[*mediatypes.Playlist] {
 	return s.playlistClientService
+}
+
+func (s *clientMediaItemServicesImpl) SeasonClientService() svc.ClientMediaItemService[*mediatypes.Season] {
+	return nil // TODO: Implement properly with a real service
 }
 
 type clientUserMediaItemDataServicesImpl struct {
@@ -1297,6 +1379,7 @@ type userMediaItemDataHandlersImpl struct {
 	movieUserDataHandler      *handlers.UserMediaItemDataHandler[*mediatypes.Movie]
 	seriesUserDataHandler     *handlers.UserMediaItemDataHandler[*mediatypes.Series]
 	episodeUserDataHandler    *handlers.UserMediaItemDataHandler[*mediatypes.Episode]
+	seasonUserDataHandler     *handlers.UserMediaItemDataHandler[*mediatypes.Season]
 	trackUserDataHandler      *handlers.UserMediaItemDataHandler[*mediatypes.Track]
 	albumUserDataHandler      *handlers.UserMediaItemDataHandler[*mediatypes.Album]
 	artistUserDataHandler     *handlers.UserMediaItemDataHandler[*mediatypes.Artist]
@@ -1336,10 +1419,15 @@ func (h *userMediaItemDataHandlersImpl) PlaylistUserDataHandler() *handlers.User
 	return h.playlistUserDataHandler
 }
 
+func (h *userMediaItemDataHandlersImpl) SeasonUserDataHandler() *handlers.UserMediaItemDataHandler[*mediatypes.Season] {
+	return h.seasonUserDataHandler
+}
+
 type clientMediaItemDataHandlersImpl struct {
 	movieClientDataHandler      *handlers.ClientUserMediaItemDataHandler[*mediatypes.Movie]
 	seriesClientDataHandler     *handlers.ClientUserMediaItemDataHandler[*mediatypes.Series]
 	episodeClientDataHandler    *handlers.ClientUserMediaItemDataHandler[*mediatypes.Episode]
+	seasonClientDataHandler     *handlers.ClientUserMediaItemDataHandler[*mediatypes.Season]
 	trackClientDataHandler      *handlers.ClientUserMediaItemDataHandler[*mediatypes.Track]
 	albumClientDataHandler      *handlers.ClientUserMediaItemDataHandler[*mediatypes.Album]
 	artistClientDataHandler     *handlers.ClientUserMediaItemDataHandler[*mediatypes.Artist]
@@ -1377,4 +1465,8 @@ func (h *clientMediaItemDataHandlersImpl) CollectionClientDataHandler() *handler
 
 func (h *clientMediaItemDataHandlersImpl) PlaylistClientDataHandler() *handlers.ClientUserMediaItemDataHandler[*mediatypes.Playlist] {
 	return h.playlistClientDataHandler
+}
+
+func (h *clientMediaItemDataHandlersImpl) SeasonClientDataHandler() *handlers.ClientUserMediaItemDataHandler[*mediatypes.Season] {
+	return h.seasonClientDataHandler
 }

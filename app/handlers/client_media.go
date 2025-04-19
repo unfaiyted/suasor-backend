@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	mediatypes "suasor/client/media/types"
 	"suasor/client/types"
 	"suasor/handlers"
 )
@@ -39,10 +40,10 @@ type ClientMusicHandlers interface {
 }
 
 type ClientPlaylistHandlers interface {
-	EmbyPlaylistHandler() *handlers.ClientPlaylistHandler[*types.EmbyConfig]
-	JellyfinPlaylistHandler() *handlers.ClientPlaylistHandler[*types.JellyfinConfig]
-	PlexPlaylistHandler() *handlers.ClientPlaylistHandler[*types.PlexConfig]
-	SubsonicPlaylistHandler() *handlers.ClientPlaylistHandler[*types.SubsonicConfig]
+	EmbyPlaylistHandler() *handlers.ClientListHandler[*types.EmbyConfig, *mediatypes.Playlist]
+	JellyfinPlaylistHandler() *handlers.ClientListHandler[*types.JellyfinConfig, *mediatypes.Playlist]
+	PlexPlaylistHandler() *handlers.ClientListHandler[*types.PlexConfig, *mediatypes.Playlist]
+	SubsonicPlaylistHandler() *handlers.ClientListHandler[*types.SubsonicConfig, *mediatypes.Playlist]
 }
 
 type ClientMediaTypeHandlers[T types.ClientMediaConfig] interface {
@@ -52,8 +53,8 @@ type ClientMediaTypeHandlers[T types.ClientMediaConfig] interface {
 }
 
 type ClientListHandlers[T types.ClientMediaConfig] interface {
-	PlaylistClientHandler() *handlers.ClientPlaylistHandler[T]
-	CollectionClientHandler() *handlers.ClientCollectionHandler[T]
+	PlaylistClientHandler() *handlers.ClientListHandler[T, *mediatypes.Playlist]
+	CollectionClientHandler() *handlers.ClientListHandler[T, *mediatypes.Collection]
 }
 
 //
