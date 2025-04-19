@@ -25,23 +25,34 @@ type ClientMedia interface {
 	SupportsPlaylists() bool
 	SupportsCollections() bool
 	SupportsHistory() bool
+
+	GetRegistry() *ClientItemRegistry
+
 	Search(ctx context.Context, options *media.QueryOptions) (responses.SearchResults, error)
 }
 
 type BaseClientMedia struct {
 	client.BaseClient
-	ClientType types.ClientMediaType
-	config     *types.ClientMediaConfig
+	ClientType   types.ClientMediaType
+	ItemRegistry *ClientItemRegistry
+	config       *types.ClientMediaConfig
 }
 
-func NewClientMedia(ctx context.Context, clientID uint64, clientType types.ClientMediaType, config types.ClientMediaConfig) (ClientMedia, error) {
+func NewClientMedia(
+	ctx context.Context,
+	clientID uint64,
+	clientType types.ClientMediaType,
+	itemRegistry *ClientItemRegistry,
+	config types.ClientMediaConfig) (ClientMedia, error) {
 	return &BaseClientMedia{
 		BaseClient: client.BaseClient{
 			ClientID: clientID,
 			Category: clientType.AsCategory(),
 		},
-		config:     &config,
-		ClientType: clientType,
+
+		config:       &config,
+		ItemRegistry: itemRegistry,
+		ClientType:   clientType,
 	}, nil
 }
 
@@ -52,6 +63,10 @@ func (m *BaseClientMedia) SupportsMusic() bool       { return false }
 func (m *BaseClientMedia) SupportsPlaylists() bool   { return false }
 func (m *BaseClientMedia) SupportsCollections() bool { return false }
 func (m *BaseClientMedia) SupportsHistory() bool     { return false }
+
+func (b *BaseClientMedia) GetRegistry() *ClientItemRegistry {
+	return b.ItemRegistry
+}
 
 // Embed in your clients to provide default behavior
 func (b *BaseClientMedia) GetMovies(ctx context.Context, options *media.QueryOptions) ([]*models.MediaItem[*media.Movie], error) {

@@ -11,7 +11,7 @@ import (
 )
 
 // GetCollections retrieves collections from a Plex server
-func (c *PlexClient) GetCollections(ctx context.Context, options *mediatypes.QueryOptions) ([]models.MediaItem[*mediatypes.Collection], error) {
+func (c *PlexClient) GetCollections(ctx context.Context, options *mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Collection], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -41,34 +41,10 @@ func (c *PlexClient) GetCollections(ctx context.Context, options *mediatypes.Que
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No collections found in Plex")
-		return []models.MediaItem[*mediatypes.Collection]{}, nil
+		return nil, nil
 	}
 
-	// Convert Plex directories to Collection models
-	collections := make([]models.MediaItem[*mediatypes.Collection], 0, len(res.Object.MediaContainer.Metadata))
-	for _, dir := range res.Object.MediaContainer.Metadata {
-
-		collection := models.MediaItem[*mediatypes.Collection]{
-			Data: &mediatypes.Collection{
-				ItemList: mediatypes.ItemList{
-					Details: mediatypes.MediaDetails{
-						Title: dir.Title,
-						Artwork: mediatypes.Artwork{
-							Thumbnail: c.makeFullURL(*dir.Thumb),
-						},
-						ExternalIDs: mediatypes.ExternalIDs{mediatypes.ExternalID{
-							Source: "plex",
-							ID:     dir.Key,
-						}},
-					},
-				},
-			},
-			Type: mediatypes.MediaTypeCollection,
-		}
-		collection.SetClientInfo(c.ClientID, c.ClientType, dir.Key)
-
-		collections = append(collections, collection)
-	}
+	collections, err := GetMediaItemList[*mediatypes.Collection](ctx, c, res.Object.MediaContainer.Metadata)
 
 	log.Info().
 		Uint64("clientID", c.ClientID).

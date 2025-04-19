@@ -7,14 +7,13 @@ import (
 	"suasor/client/media/types"
 	"suasor/types/models"
 	"suasor/utils"
-	"time"
 
 	"github.com/LukeHagar/plexgo"
 	"github.com/LukeHagar/plexgo/models/operations"
 )
 
 // GetSeriess retrieves TV shows from Plex
-func (c *PlexClient) GetSeries(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[*types.Series], error) {
+func (c *PlexClient) GetSeries(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Series], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -40,7 +39,7 @@ func (c *PlexClient) GetSeries(ctx context.Context, options *types.QueryOptions)
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No TV show library section found in Plex")
-		return []models.MediaItem[*types.Series]{}, nil
+		return nil, nil
 	}
 
 	// Get TV shows from the TV section
@@ -55,6 +54,7 @@ func (c *PlexClient) GetSeries(ctx context.Context, options *types.QueryOptions)
 		Type:        operations.GetLibraryItemsQueryParamTypeTvShow,
 		SectionKey:  sectionKey,
 	})
+
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -70,7 +70,7 @@ func (c *PlexClient) GetSeries(ctx context.Context, options *types.QueryOptions)
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No TV shows found in Plex")
-		return []models.MediaItem[*types.Series]{}, nil
+		return nil, nil
 	}
 
 	log.Info().
@@ -79,63 +79,28 @@ func (c *PlexClient) GetSeries(ctx context.Context, options *types.QueryOptions)
 		Int("totalItems", len(res.Object.MediaContainer.Metadata)).
 		Msg("Successfully retrieved TV shows from Plex")
 
-	shows := make([]models.MediaItem[*types.Series], 0, len(res.Object.MediaContainer.Metadata))
-	for _, item := range res.Object.MediaContainer.Metadata {
-		if item.Type != "show" {
-			continue
-		}
+	series, err := GetMediaItemList[*types.Series](ctx, c, res.Object.MediaContainer.Metadata)
 
-		show := models.MediaItem[*types.Series]{
-			Data: &types.Series{Details: c.createMetadataFromPlexItem(&item)},
-		}
-
-		show.SetClientInfo(c.ClientID, c.ClientType, item.RatingKey)
-
-		if item.Rating != nil {
-			show.Data.Rating = float64(*item.Rating)
-		}
-		if item.Year != nil {
-			show.Data.ReleaseYear = *item.Year
-		}
-		if item.ContentRating != nil {
-			show.Data.ContentRating = *item.ContentRating
-		}
-		if item.ChildCount != nil {
-			show.Data.SeasonCount = *item.ChildCount
-		}
-		if item.LeafCount != nil {
-			show.Data.EpisodeCount = int(*item.LeafCount)
-		}
-
-		if item.Genre != nil {
-			show.Data.Genres = make([]string, 0, len(item.Genre))
-			for _, genre := range item.Genre {
-				if genre.Tag != nil {
-					show.Data.Genres = append(show.Data.Genres, *genre.Tag)
-				}
-			}
-		}
-
-		shows = append(shows, show)
-
-		log.Debug().
-			Str("showID", item.RatingKey).
-			Str("showTitle", item.Title).
-			Int("seasonCount", show.Data.SeasonCount).
-			Msg("Added TV show to result list")
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("clientID", c.ClientID).
+			Str("clientType", string(c.ClientType)).
+			Msg("Failed to get TV shows from Plex")
+		return nil, fmt.Errorf("failed to get TV shows: %w", err)
 	}
 
 	log.Info().
 		Uint64("clientID", c.ClientID).
 		Str("clientType", string(c.ClientType)).
-		Int("showsReturned", len(shows)).
-		Msg("Completed GetSeriess request")
+		Int("showsReturned", len(series)).
+		Msg("Completed GetSeries request")
 
-	return shows, nil
+	return series, nil
 }
 
 // GetSeriesSeasons retrieves seasons for a specific TV show
-func (c *PlexClient) GetSeriesSeasons(ctx context.Context, showID string) ([]models.MediaItem[*types.Season], error) {
+func (c *PlexClient) GetSeriesSeasons(ctx context.Context, showID string) ([]*models.MediaItem[*types.Season], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -170,7 +135,7 @@ func (c *PlexClient) GetSeriesSeasons(ctx context.Context, showID string) ([]mod
 			Str("clientType", string(c.ClientType)).
 			Str("showID", showID).
 			Msg("No seasons found for TV show in Plex")
-		return []models.MediaItem[*types.Season]{}, nil
+		return nil, nil
 	}
 
 	log.Info().
@@ -180,43 +145,7 @@ func (c *PlexClient) GetSeriesSeasons(ctx context.Context, showID string) ([]mod
 		Int("totalItems", len(childRes.Object.MediaContainer.Metadata)).
 		Msg("Successfully retrieved seasons for TV show from Plex")
 
-	seasons := make([]models.MediaItem[*types.Season], 0, len(childRes.Object.MediaContainer.Metadata))
-	for _, item := range childRes.Object.MediaContainer.Metadata {
-		if *item.Type != "season" {
-			continue
-		}
-
-		season := models.MediaItem[*types.Season]{
-			Data: &types.Season{
-				EpisodeCount: *item.LeafCount,
-				Number:       *item.Index,
-				Details: types.MediaDetails{
-					Description: *item.Summary,
-					Title:       *item.Title,
-					Artwork: types.Artwork{
-						Thumbnail: c.makeFullURL(*item.Thumb),
-					},
-					ExternalIDs: types.ExternalIDs{types.ExternalID{
-						Source: "plex",
-						ID:     *item.RatingKey,
-					}},
-					UpdatedAt: time.Unix(int64(*item.UpdatedAt), 0),
-					AddedAt:   time.Unix(int64(*item.AddedAt), 0),
-				},
-			},
-		}
-
-		season.SetClientInfo(c.ClientID, c.ClientType, *item.RatingKey)
-
-		seasons = append(seasons, season)
-
-		log.Debug().
-			Str("seasonID", *item.RatingKey).
-			Str("seasonTitle", *item.Title).
-			Int("seasonNumber", *item.Index).
-			Int("episodeCount", *item.LeafCount).
-			Msg("Added season to result list")
-	}
+	seasons, err := GetChildMediaItemsList[*types.Season](ctx, c, childRes.Object.MediaContainer.Metadata)
 
 	log.Info().
 		Uint64("clientID", c.ClientID).
@@ -229,7 +158,7 @@ func (c *PlexClient) GetSeriesSeasons(ctx context.Context, showID string) ([]mod
 }
 
 // GetSeriesEpisodes retrieves episodes for a specific season of a TV show
-func (c *PlexClient) GetSeriesEpisodes(ctx context.Context, showID string, seasonNumber int) ([]models.MediaItem[*types.Episode], error) {
+func (c *PlexClient) GetSeriesEpisodes(ctx context.Context, showID string, seasonNumber int) ([]*models.MediaItem[*types.Episode], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -278,7 +207,7 @@ func (c *PlexClient) GetSeriesEpisodes(ctx context.Context, showID string, seaso
 			Str("showID", showID).
 			Int("seasonNumber", seasonNumber).
 			Msg("Season not found for TV show in Plex")
-		return []models.MediaItem[*types.Episode]{}, nil
+		return nil, nil
 	}
 
 	ratingKey, _ := strconv.Atoi(seasonID)
@@ -309,7 +238,7 @@ func (c *PlexClient) GetSeriesEpisodes(ctx context.Context, showID string, seaso
 			Str("showID", showID).
 			Int("seasonNumber", seasonNumber).
 			Msg("No episodes found for TV show season in Plex")
-		return []models.MediaItem[*types.Episode]{}, nil
+		return nil, nil
 	}
 
 	log.Info().
@@ -320,44 +249,8 @@ func (c *PlexClient) GetSeriesEpisodes(ctx context.Context, showID string, seaso
 		Int("totalItems", len(childRes.Object.MediaContainer.Metadata)).
 		Msg("Successfully retrieved episodes for TV show season from Plex")
 
-	episodes := make([]models.MediaItem[*types.Episode], 0, len(childRes.Object.MediaContainer.Metadata))
-	for _, item := range childRes.Object.MediaContainer.Metadata {
-		if *item.Type != "episode" {
-			continue
-		}
-
-		episode := models.MediaItem[*types.Episode]{
-			Data: &types.Episode{
-				Number:       int64(*item.Index),
-				SeasonNumber: int(*item.ParentIndex),
-				Details: types.MediaDetails{
-					Description: *item.Summary,
-					Title:       *item.Title,
-					Artwork: types.Artwork{
-						Thumbnail: c.makeFullURL(*item.Thumb),
-					},
-					UpdatedAt: time.Unix(int64(*item.UpdatedAt), 0),
-					AddedAt:   time.Unix(int64(*item.AddedAt), 0),
-				},
-			},
-		}
-		episode.Data.AddSyncClient(c.ClientID, showID, *item.ParentRatingKey)
-		episode.SetClientInfo(c.ClientID, c.ClientType, *item.RatingKey)
-
-		// Add studio if available
-		if item.ParentStudio != nil {
-			episode.Data.Details.Studios = []string{*item.ParentStudio}
-		}
-
-		episodes = append(episodes, episode)
-
-		log.Debug().
-			Str("episodeID", *item.RatingKey).
-			Str("episodeTitle", *item.Title).
-			Int("seasonNumber", episode.Data.SeasonNumber).
-			Int64("episodeNumber", episode.Data.Number).
-			Msg("Added episode to result list")
-	}
+	//GetMetadataChildrenMetadata
+	episodes, err := GetChildMediaItemsList[*types.Episode](ctx, c, childRes.Object.MediaContainer.Metadata)
 
 	log.Info().
 		Uint64("clientID", c.ClientID).
@@ -371,7 +264,7 @@ func (c *PlexClient) GetSeriesEpisodes(ctx context.Context, showID string, seaso
 }
 
 // GetSeriesByID retrieves a specific TV show by ID
-func (c *PlexClient) GetSeriesByID(ctx context.Context, id string) (models.MediaItem[*types.Series], error) {
+func (c *PlexClient) GetSeriesByID(ctx context.Context, id string) (*models.MediaItem[*types.Series], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -400,7 +293,7 @@ func (c *PlexClient) GetSeriesByID(ctx context.Context, id string) (models.Media
 			Str("clientType", string(c.ClientType)).
 			Str("showID", id).
 			Msg("Failed to get TV show from Plex")
-		return models.MediaItem[*types.Series]{}, fmt.Errorf("failed to get TV show: %w", err)
+		return nil, fmt.Errorf("failed to get TV show: %w", err)
 	}
 
 	if res.Object.MediaContainer == nil || res.Object.MediaContainer.Metadata == nil || len(res.Object.MediaContainer.Metadata) == 0 {
@@ -409,7 +302,7 @@ func (c *PlexClient) GetSeriesByID(ctx context.Context, id string) (models.Media
 			Str("clientType", string(c.ClientType)).
 			Str("showID", id).
 			Msg("TV show not found in Plex")
-		return models.MediaItem[*types.Series]{}, fmt.Errorf("TV show not found")
+		return nil, fmt.Errorf("TV show not found")
 	}
 
 	item := res.Object.MediaContainer.Metadata[0]
@@ -420,7 +313,7 @@ func (c *PlexClient) GetSeriesByID(ctx context.Context, id string) (models.Media
 			Str("showID", id).
 			Str("actualType", item.Type).
 			Msg("Item retrieved is not a TV show")
-		return models.MediaItem[*types.Series]{}, fmt.Errorf("item is not a TV show")
+		return nil, fmt.Errorf("item is not a TV show")
 	}
 
 	log.Info().
@@ -430,46 +323,22 @@ func (c *PlexClient) GetSeriesByID(ctx context.Context, id string) (models.Media
 		Str("showTitle", item.Title).
 		Msg("Successfully retrieved TV show from Plex")
 
-	show := models.MediaItem[*types.Series]{
-		Data: &types.Series{
-			Details: c.createMediaDetailsFromPlexItem(&item),
-		},
-	}
-	show.SetClientInfo(c.ClientID, c.ClientType, item.RatingKey)
-
-	if item.Rating != nil {
-		show.Data.Rating = float64(*item.Rating)
-	}
-	if item.ContentRating != nil {
-		show.Data.ContentRating = *item.ContentRating
-	}
-	if item.ChildCount != nil {
-		show.Data.SeasonCount = *item.ChildCount
-	}
-	if item.LeafCount != nil {
-		show.Data.EpisodeCount = int(*item.LeafCount)
-	}
-
-	if item.Genre != nil {
-		show.Data.Genres = make([]string, 0, len(item.Genre))
-		for _, genre := range item.Genre {
-			show.Data.Genres = append(show.Data.Genres, genre.Tag)
-		}
-	}
+	itemSeries, err := GetItemFromMetadata[*types.Series](ctx, c, &item)
+	series, err := GetMediaItem[*types.Series](ctx, c, itemSeries, item.RatingKey)
 
 	log.Info().
 		Uint64("clientID", c.ClientID).
 		Str("clientType", string(c.ClientType)).
 		Str("showID", id).
-		Str("showTitle", show.Data.Details.Title).
-		Int("seasonCount", show.Data.SeasonCount).
+		Str("showTitle", series.Data.Details.Title).
+		Int("seasonCount", series.Data.SeasonCount).
 		Msg("Successfully converted TV show data")
 
-	return show, nil
+	return series, nil
 }
 
 // GetEpisodeByID retrieves a specific episode by ID
-func (c *PlexClient) GetEpisodeByID(ctx context.Context, id string) (models.MediaItem[*types.Episode], error) {
+func (c *PlexClient) GetEpisodeByID(ctx context.Context, id string) (*models.MediaItem[*types.Episode], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -487,46 +356,24 @@ func (c *PlexClient) GetEpisodeByID(ctx context.Context, id string) (models.Medi
 	})
 	if err != nil {
 		log.Error().Err(err).Str("episodeID", id).Msg("Failed to get episode from Plex")
-		return models.MediaItem[*types.Episode]{}, fmt.Errorf("failed to get episode: %w", err)
+		return nil, fmt.Errorf("failed to get episode: %w", err)
 	}
 
 	if res.Object.MediaContainer == nil ||
 		res.Object.MediaContainer.Metadata == nil ||
 		len(res.Object.MediaContainer.Metadata) == 0 {
 		log.Error().Str("episodeID", id).Msg("Episode not found in Plex")
-		return models.MediaItem[*types.Episode]{}, fmt.Errorf("episode not found")
+		return nil, fmt.Errorf("episode not found")
 	}
 
 	item := res.Object.MediaContainer.Metadata[0]
 	if item.Type != "episode" {
 		log.Error().Str("episodeID", id).Str("actualType", item.Type).Msg("Item retrieved is not an episode")
-		return models.MediaItem[*types.Episode]{}, fmt.Errorf("item is not an episode")
+		return nil, fmt.Errorf("item is not an episode")
 	}
 
-	episode := models.MediaItem[*types.Episode]{
-		Data: &types.Episode{
-			Details: c.createMediaDetailsFromPlexItem(&item),
-			Number:  int64(*item.Index),
-		},
-	}
-
-	episode.SetClientInfo(c.ClientID, c.ClientType, item.RatingKey)
-
-	// Add season number if available
-	if item.ParentIndex != nil {
-		episode.Data.SeasonNumber = int(*item.ParentIndex)
-	}
-
-	// Add show ID if available (via grandparentRatingKey)
-	if item.GrandparentRatingKey != nil {
-		episode.Data.AddSyncClient(c.ClientID, *item.GrandparentRatingKey, *item.ParentRatingKey)
-		// episode.Data.ShowID = *item.GrandparentRatingKey
-	}
-
-	// Add studio if available
-	if item.Studio != nil {
-		episode.Data.Details.Studios = []string{*item.Studio}
-	}
+	itemEpisode, err := GetItemFromMetadata[*types.Episode](ctx, c, &item)
+	episode, err := GetMediaItem[*types.Episode](ctx, c, itemEpisode, item.RatingKey)
 
 	log.Info().
 		Str("episodeID", id).

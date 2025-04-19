@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	jellyfin "github.com/sj14/jellyfin-go/api"
 	t "suasor/client/media/types"
 	"suasor/types/models"
 	"suasor/utils"
 )
 
-func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOptions) ([]models.UserMediaItemData[t.MediaData], error) {
+func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOptions) (*models.MediaItemDatas, error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -20,19 +19,16 @@ func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOpt
 		Str("baseURL", j.config.BaseURL).
 		Msg("Retrieving watch history from Jellyfin server")
 
-	limit, startIndex, sortBy, sortOrder := j.getQueryParameters(options)
-
 	// Call the Jellyfin API to get resumed items
 	log.Debug().Msg("Making API request to Jellyfin server for resume items")
-	watchedItemsReq := j.client.ItemsAPI.GetItems(ctx).
-		Limit(*limit).
-		StartIndex(*startIndex).
-		SortBy(sortBy).
-		SortOrder(sortOrder).
+	userItemData := j.client.ItemsAPI.GetItems(ctx).
 		UserId(j.config.UserID).
 		IsPlayed(true)
 
-	result, resp, err := watchedItemsReq.Execute()
+	NewJellyfinQueryOptions(options).
+		SetItemsRequest(&userItemData)
+
+	results, resp, err := userItemData.Execute()
 
 	if err != nil {
 		log.Error().
@@ -46,87 +42,19 @@ func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOpt
 
 	log.Info().
 		Int("statusCode", resp.StatusCode).
-		Int("totalItems", len(result.Items)).
-		Int("totalRecordCount", int(*result.TotalRecordCount)).
+		Int("totalItems", len(results.Items)).
+		Int("totalRecordCount", int(*results.TotalRecordCount)).
 		Msg("Successfully retrieved watch history from Jellyfin")
 
-	// Convert results to expected format
-	historyItems := make([]models.UserMediaItemData[t.MediaData], 0)
-	for _, item := range result.Items {
-
-		userDataReq := j.client.ItemsAPI.GetItemUserData(ctx, *item.Id)
-		userData, resp, err := userDataReq.Execute()
-
-		if err != nil {
-			continue
-		}
-
-		log.Info().
-			Int("statusCode", resp.StatusCode).
-			Int32("playCount", userData.GetPlayCount()).
-			Msg("Successfully retrieved user item data from Jellyfin")
-
-		historyItem := models.UserMediaItemData[t.MediaData]{
-			PlayedPercentage: *userData.PlayedPercentage.Get(),
-			LastPlayedAt:     *userData.LastPlayedDate.Get(), // Default to now if not available
-		}
-		historyItem.Item.SetClientInfo(j.ClientID, j.ClientType, *item.Id)
-
-		// Set type based on item type
-		switch *item.Type {
-		case jellyfin.BASEITEMKIND_MOVIE:
-			historyItem.Item.Type = t.MediaTypeMovie
-			mediaItemMovie, err := j.convertToMovie(ctx, &item)
-			if err != nil {
-				log.Warn().
-					Err(err).
-					Str("movieID", *item.Id).
-					Str("movieName", *item.Name.Get()).
-					Msg("Error converting Jellyfin item to movie format")
-				continue
-			}
-			historyItem.Item.SetData(historyItem.Item, mediaItemMovie.Data)
-		case jellyfin.BASEITEMKIND_SERIES:
-			historyItem.Item.Type = t.MediaTypeSeries
-			mediaItemSeries, err := j.convertToSeries(ctx, &item)
-			if err != nil {
-				log.Warn().
-					Err(err).
-					Str("showID", *item.Id).
-					Str("showName", *item.Name.Get()).
-					Msg("Error converting Jellyfin item to TV show format")
-				continue
-			}
-			historyItem.Item.SetData(historyItem.Item, mediaItemSeries.Data)
-		case jellyfin.BASEITEMKIND_EPISODE:
-			historyItem.Item.Type = t.MediaTypeEpisode
-			mediaItemEpisode, err := j.convertToEpisode(ctx, &item)
-			if err != nil {
-				log.Warn().
-					Err(err).
-					Str("episodeID", *item.Id).
-					Str("episodeName", *item.Name.Get()).
-					Msg("Error converting Jellyfin item to episode format")
-				continue
-			}
-			historyItem.Item.SetData(historyItem.Item, mediaItemEpisode.Data)
-
-		}
-
-		if *item.Type == jellyfin.BASEITEMKIND_EPISODE {
-		}
-
-		// Set last played date if available
-		if userData.LastPlayedDate.IsSet() {
-			historyItem.LastPlayedAt = *userData.LastPlayedDate.Get()
-		}
-
-		historyItems = append(historyItems, historyItem)
-	}
+	userHistoryDatas, err := GetMixedMediaItemsData(j, ctx, results.Items)
 
 	log.Info().
-		Int("historyItemsReturned", len(historyItems)).
+		Int("statusCode", resp.StatusCode).
+		Msg("Successfully retrieved user item data from Jellyfin")
+
+	log.Info().
+		Int("historyItemsReturned", userHistoryDatas.GetTotalItems()).
 		Msg("Completed GetWatchHistory request")
 
-	return historyItems, nil
+	return userHistoryDatas, nil
 }

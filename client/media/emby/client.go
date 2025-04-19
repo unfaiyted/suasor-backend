@@ -6,52 +6,22 @@ import (
 	"fmt"
 	"strings"
 
-	"suasor/client"
 	base "suasor/client"
 	media "suasor/client/media"
 	types "suasor/client/media/types"
 	config "suasor/client/types"
 	embyclient "suasor/internal/clients/embyAPI"
-	"suasor/types/models"
+
 	"suasor/utils"
 )
 
-// Add this init function to register the Emby client factory
-func init() {
-
-	fmt.Printf("Registering factory for client type: %s (value: %v)\n",
-		config.ClientTypeEmby.String(), config.ClientTypeEmby)
-
-	fmt.Println("Registering Emby client factory...")
-	client.GetClientFactoryService().RegisterClientFactory(config.ClientTypeEmby,
-		func(ctx context.Context, clientID uint64, configData config.ClientConfig) (base.Client, error) {
-			log := utils.LoggerFromContext(ctx)
-			// Use the provided config (should be an EmbyConfig)
-			embyConfig, ok := configData.(*config.EmbyConfig)
-			log.Debug().
-				Bool("ok", ok).
-				Msg("Checking config type")
-			if !ok {
-				log.Error().
-					Err(fmt.Errorf("expected *config.EmbyConfig, got %T", configData)).
-					Msg("Expected *config.EmbyConfig, got %T")
-				return nil, fmt.Errorf("expected *config.EmbyConfig, got %T", configData)
-			}
-
-			fmt.Printf("Factory called for Emby client with ID: %d\n", clientID)
-			return NewEmbyClient(ctx, clientID, *embyConfig)
-		})
-}
-
-// EmbyClient implements the MediaContentProvider interface
 type EmbyClient struct {
 	media.BaseClientMedia
-	client          *embyclient.APIClient
-	factoryRegistry *media.ClientItemRegistry
+	client *embyclient.APIClient
 }
 
 // NewEmbyClient creates a new Emby client instance
-func NewEmbyClient(ctx context.Context, clientID uint64, cfg config.EmbyConfig) (media.ClientMedia, error) {
+func NewEmbyClient(ctx context.Context, registry *media.ClientItemRegistry, clientID uint64, cfg config.EmbyConfig) (media.ClientMedia, error) {
 
 	// Create API client configuration
 	apiConfig := embyclient.NewConfiguration()
@@ -66,6 +36,8 @@ func NewEmbyClient(ctx context.Context, clientID uint64, cfg config.EmbyConfig) 
 
 	embyClient := &EmbyClient{
 		BaseClientMedia: media.BaseClientMedia{
+			ItemRegistry: registry,
+			ClientType:   config.ClientMediaTypeEmby,
 			BaseClient: base.BaseClient{
 				ClientID: clientID,
 				Category: config.ClientTypeEmby.AsCategory(),
@@ -74,7 +46,6 @@ func NewEmbyClient(ctx context.Context, clientID uint64, cfg config.EmbyConfig) 
 			},
 		},
 		client: client,
-		// config: &cfg,
 	}
 	// Resolve user ID if username is provided
 	if cfg.Username != "" && cfg.UserID == "" {
@@ -89,11 +60,6 @@ func NewEmbyClient(ctx context.Context, clientID uint64, cfg config.EmbyConfig) 
 	}
 	return embyClient, nil
 }
-
-// Register the provider factory
-// func init() {
-// 	media.RegisterClient(config.ClientMediaTypeEmby, NewEmbyClient)
-// }
 
 // Capability methods
 func (e *EmbyClient) SupportsMovies() bool      { return true }
@@ -214,51 +180,4 @@ func (c *EmbyClient) TestConnection(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("failed to retrieve Emby server version")
 	}
 	return true, nil
-}
-
-func GetItem[T types.MediaData](
-	client *EmbyClient,
-	ctx context.Context,
-	item *embyclient.BaseItemDto,
-) (T, error) {
-	return media.ConvertTo[*EmbyClient, *embyclient.BaseItemDto, T](
-		media.GlobalMediaRegistry, client, ctx, item)
-}
-
-func GetMediaItem[T types.MediaData](
-	client *EmbyClient,
-	item T,
-	itemID string,
-) (*models.MediaItem[T], error) {
-	mediaItem := models.MediaItem[T]{
-		Data: item,
-		Type: item.GetMediaType(),
-	}
-	mediaItem.SetClientInfo(client.ClientID, client.ClientType, itemID)
-
-	return &mediaItem, nil
-}
-
-func GetMediaItemData[T types.MediaData](e *EmbyClient, ctx context.Context, item *embyclient.BaseItemDto) (*models.UserMediaItemData[T], error) {
-
-	// mediaItem, err := convertTo[T](e, ctx, item, e.getFactory[T])
-
-	baseItem, err := GetItem[T](e, ctx, item)
-	mediaItem, err := GetMediaItem[T](e, baseItem, item.Id)
-
-	if err != nil {
-		return nil, err
-	}
-	mediaItemData := models.UserMediaItemData[T]{
-		Type:             types.MediaType(item.Type_),
-		PlayedAt:         item.UserData.LastPlayedDate,
-		PlayedPercentage: item.UserData.PlayedPercentage,
-		IsFavorite:       item.UserData.IsFavorite,
-		PlayCount:        item.UserData.PlayCount,
-		PositionSeconds:  int(item.UserData.PlaybackPositionTicks / 10000000),
-	}
-	mediaItemData.Item.SetClientInfo(e.ClientID, e.ClientType, item.Id)
-	mediaItemData.Associate(mediaItem)
-
-	return &mediaItemData, err
 }

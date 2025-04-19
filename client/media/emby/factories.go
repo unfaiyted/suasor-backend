@@ -4,10 +4,82 @@ import (
 	"context"
 	"fmt"
 
+	"suasor/app/container"
+	media "suasor/client/media"
 	"suasor/client/media/types"
 	embyclient "suasor/internal/clients/embyAPI"
 	"suasor/utils"
 )
+
+// ReigsterMediaItemFactories registers all media item factories for Emby
+func RegisterMediaItemFactories(c *container.Container) {
+
+	registry := container.MustGet[media.ClientItemRegistry](c)
+	// Register all the media factories for Emby
+	media.RegisterFactory[*EmbyClient, *embyclient.BaseItemDto, *types.Movie](
+		&registry,
+		func(client *EmbyClient, ctx context.Context, item *embyclient.BaseItemDto) (*types.Movie, error) {
+			return client.movieFactory(ctx, item)
+		},
+	)
+
+	media.RegisterFactory[*EmbyClient, *embyclient.BaseItemDto, *types.Track](
+		&registry,
+		func(client *EmbyClient, ctx context.Context, item *embyclient.BaseItemDto) (*types.Track, error) {
+			return client.trackFactory(ctx, item)
+		},
+	)
+
+	media.RegisterFactory[*EmbyClient, *embyclient.BaseItemDto, *types.Artist](
+		&registry,
+		func(client *EmbyClient, ctx context.Context, item *embyclient.BaseItemDto) (*types.Artist, error) {
+			return client.artistFactory(ctx, item)
+		},
+	)
+
+	media.RegisterFactory[*EmbyClient, *embyclient.BaseItemDto, *types.Album](
+		&registry,
+		func(client *EmbyClient, ctx context.Context, item *embyclient.BaseItemDto) (*types.Album, error) {
+			return client.albumFactory(ctx, item)
+		},
+	)
+
+	media.RegisterFactory[*EmbyClient, *embyclient.BaseItemDto, *types.Playlist](
+		&registry,
+		func(client *EmbyClient, ctx context.Context, item *embyclient.BaseItemDto) (*types.Playlist, error) {
+			return client.playlistFactory(ctx, item)
+		},
+	)
+
+	media.RegisterFactory[*EmbyClient, *embyclient.BaseItemDto, *types.Series](
+		&registry,
+		func(client *EmbyClient, ctx context.Context, item *embyclient.BaseItemDto) (*types.Series, error) {
+			return client.seriesFactory(ctx, item)
+		},
+	)
+
+	media.RegisterFactory[*EmbyClient, *embyclient.BaseItemDto, *types.Season](
+		&registry,
+		func(client *EmbyClient, ctx context.Context, item *embyclient.BaseItemDto) (*types.Season, error) {
+			return client.seasonFactory(ctx, item)
+		},
+	)
+
+	media.RegisterFactory[*EmbyClient, *embyclient.BaseItemDto, *types.Episode](
+		&registry,
+		func(client *EmbyClient, ctx context.Context, item *embyclient.BaseItemDto) (*types.Episode, error) {
+			return client.episodeFactory(ctx, item)
+		},
+	)
+
+	media.RegisterFactory[*EmbyClient, *embyclient.BaseItemDto, *types.Collection](
+		&registry,
+		func(client *EmbyClient, ctx context.Context, item *embyclient.BaseItemDto) (*types.Collection, error) {
+			return client.collectionFactory(ctx, item)
+		},
+	)
+
+}
 
 // Factory function for Movie
 func (e *EmbyClient) movieFactory(ctx context.Context, item *embyclient.BaseItemDto) (*types.Movie, error) {

@@ -1,5 +1,5 @@
 // app/factory/media_data.go
-package factory
+package factories
 
 import (
 	"suasor/app/handlers"

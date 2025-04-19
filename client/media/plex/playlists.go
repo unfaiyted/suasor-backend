@@ -6,13 +6,12 @@ import (
 	"suasor/client/media/types"
 	"suasor/types/models"
 	"suasor/utils"
-	"time"
 
 	"github.com/LukeHagar/plexgo/models/operations"
 )
 
 // GetPlaylists retrieves playlists from Plex
-func (c *PlexClient) GetPlaylists(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[*types.Playlist], error) {
+func (c *PlexClient) GetPlaylists(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Playlist], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -37,7 +36,7 @@ func (c *PlexClient) GetPlaylists(ctx context.Context, options *types.QueryOptio
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No playlists found in Plex")
-		return []models.MediaItem[*types.Playlist]{}, nil
+		return nil, nil
 	}
 
 	log.Info().
@@ -46,31 +45,7 @@ func (c *PlexClient) GetPlaylists(ctx context.Context, options *types.QueryOptio
 		Int("totalItems", len(res.Object.MediaContainer.Metadata)).
 		Msg("Successfully retrieved playlists from Plex")
 
-	playlists := make([]models.MediaItem[*types.Playlist], 0, len(res.Object.MediaContainer.Metadata))
-	for _, item := range res.Object.MediaContainer.Metadata {
-		playlist := models.MediaItem[*types.Playlist]{
-			Data: &types.Playlist{
-				ItemList: types.ItemList{
-					Details: types.MediaDetails{
-						Description: *item.Summary,
-						Title:       *item.Title,
-						Artwork:     types.Artwork{
-							// Thumbnail: c.makeFullURL(*item.Thumb),
-						},
-						ExternalIDs: types.ExternalIDs{types.ExternalID{
-							Source: "plex",
-							ID:     *item.RatingKey,
-						}},
-						UpdatedAt: time.Unix(int64(*item.UpdatedAt), 0),
-						AddedAt:   time.Unix(int64(*item.AddedAt), 0),
-					},
-				},
-			},
-		}
-		playlist.SetClientInfo(c.ClientID, c.ClientType, *item.RatingKey)
-
-		playlists = append(playlists, playlist)
-	}
+	playlists, err := GetMediaItemListFromPlaylist[*types.Playlist](ctx, c, res.Object.MediaContainer.Metadata)
 
 	log.Info().
 		Uint64("clientID", c.ClientID).
@@ -80,3 +55,4 @@ func (c *PlexClient) GetPlaylists(ctx context.Context, options *types.QueryOptio
 
 	return playlists, nil
 }
+

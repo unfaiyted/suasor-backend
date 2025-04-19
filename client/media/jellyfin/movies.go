@@ -3,6 +3,7 @@ package jellyfin
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	jellyfin "github.com/sj14/jellyfin-go/api"
 	t "suasor/client/media/types"
@@ -10,7 +11,7 @@ import (
 	"suasor/utils"
 )
 
-func (j *JellyfinClient) GetMovies(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[*t.Movie], error) {
+func (j *JellyfinClient) GetMovies(ctx context.Context, options *t.QueryOptions) ([]*models.MediaItem[*t.Movie], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -22,8 +23,6 @@ func (j *JellyfinClient) GetMovies(ctx context.Context, options *t.QueryOptions)
 
 	// Set up query parameters
 
-	limit, startIndex, sortBy, sortOrder := j.getQueryParameters(options)
-
 	// Include movie type in the query
 	includeItemTypes := []jellyfin.BaseItemKind{jellyfin.BASEITEMKIND_MOVIE}
 	mediaTypes := []jellyfin.MediaType{jellyfin.MEDIATYPE_VIDEO}
@@ -33,16 +32,12 @@ func (j *JellyfinClient) GetMovies(ctx context.Context, options *t.QueryOptions)
 		IncludeItemTypes(includeItemTypes).
 		IsMovie(true).
 		Recursive(true).
-		MediaTypes(mediaTypes).
-		Limit(*limit).
-		StartIndex(*startIndex).
-		SortBy(sortBy).
-		SortOrder(sortOrder)
+		MediaTypes(mediaTypes)
+
+	NewJellyfinQueryOptions(options).
+		SetItemsRequest(&itemsReq)
 
 	log.Debug().
-		Int32("Limit", *limit).
-		Int32("StartIndex", *startIndex).
-		Str("IncludeItemTypes", baseItemKindToString(includeItemTypes[0])).
 		Bool("Recursive", true).
 		Msg("Api Request with options")
 
@@ -69,14 +64,15 @@ func (j *JellyfinClient) GetMovies(ctx context.Context, options *t.QueryOptions)
 		Msg("Successfully retrieved movies from Jellyfin")
 
 	// Convert results to expected format
-	movies := make([]models.MediaItem[*t.Movie], 0)
+	movies := make([]*models.MediaItem[*t.Movie], 0)
 
 	for _, item := range result.Items {
 		log.Info().
-			Str("itemType", baseItemKindToString(*item.Type)).
+			Str("itemType", string(*item.Type)).
 			Msg("Processing item")
 		if *item.Type == jellyfin.BASEITEMKIND_MOVIE {
-			movie, err := j.convertToMovie(ctx, &item)
+			itemMovie, err := GetItem[*t.Movie](ctx, j, &item)
+			movie, err := GetMediaItem[*t.Movie](ctx, j, itemMovie, *item.Id)
 			if err != nil {
 				// Log error but continue
 				log.Warn().
@@ -96,7 +92,7 @@ func (j *JellyfinClient) GetMovies(ctx context.Context, options *t.QueryOptions)
 
 	return movies, nil
 }
-func (j *JellyfinClient) GetMovieByID(ctx context.Context, id string) (models.MediaItem[*t.Movie], error) {
+func (j *JellyfinClient) GetMovieByID(ctx context.Context, id string) (*models.MediaItem[*t.Movie], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -129,7 +125,7 @@ func (j *JellyfinClient) GetMovieByID(ctx context.Context, id string) (models.Me
 	}
 
 	itemsReq := j.client.ItemsAPI.GetItems(ctx).
-		Ids(stringToSlice(ids)).
+		Ids(strings.Split(ids, ",")).
 		IncludeItemTypes(includeItemTypes).
 		Fields(fields)
 
@@ -142,7 +138,7 @@ func (j *JellyfinClient) GetMovieByID(ctx context.Context, id string) (models.Me
 			Str("movieID", id).
 			Int("statusCode", 0).
 			Msg("Failed to fetch movie from Jellyfin")
-		return models.MediaItem[*t.Movie]{}, fmt.Errorf("failed to fetch movie: %w", err)
+		return &models.MediaItem[*t.Movie]{}, fmt.Errorf("failed to fetch movie: %w", err)
 	}
 
 	// Check if any items were returned
@@ -151,7 +147,7 @@ func (j *JellyfinClient) GetMovieByID(ctx context.Context, id string) (models.Me
 			Str("movieID", id).
 			Int("statusCode", resp.StatusCode).
 			Msg("No movie found with the specified ID")
-		return models.MediaItem[*t.Movie]{}, fmt.Errorf("movie with ID %s not found", id)
+		return &models.MediaItem[*t.Movie]{}, fmt.Errorf("movie with ID %s not found", id)
 	}
 
 	item := result.Items[0]
@@ -162,7 +158,7 @@ func (j *JellyfinClient) GetMovieByID(ctx context.Context, id string) (models.Me
 			Str("movieID", id).
 			Str("actualType", string(*item.Type.Ptr())).
 			Msg("Item with specified ID is not a movie")
-		return models.MediaItem[*t.Movie]{}, fmt.Errorf("item with ID %s is not a movie", id)
+		return &models.MediaItem[*t.Movie]{}, fmt.Errorf("item with ID %s is not a movie", id)
 	}
 
 	log.Info().
@@ -171,14 +167,15 @@ func (j *JellyfinClient) GetMovieByID(ctx context.Context, id string) (models.Me
 		Str("movieName", *item.Name.Get()).
 		Msg("Successfully retrieved movie from Jellyfin")
 
-	movie, err := j.convertToMovie(ctx, &item)
+	itemMovie, err := GetItem[*t.Movie](ctx, j, &item)
+	movie, err := GetMediaItem[*t.Movie](ctx, j, itemMovie, *item.Id)
 	if err != nil {
 		log.Error().
 			Err(err).
 			Str("movieID", id).
 			Str("movieName", *item.Name.Get()).
 			Msg("Error converting Jellyfin item to movie format")
-		return models.MediaItem[*t.Movie]{}, fmt.Errorf("error converting movie data: %w", err)
+		return &models.MediaItem[*t.Movie]{}, fmt.Errorf("error converting movie data: %w", err)
 	}
 
 	log.Debug().

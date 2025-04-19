@@ -9,6 +9,13 @@ import (
 	"time"
 )
 
+type ListType string
+
+const (
+	ListTypePlaylist   ListType = "playlist"
+	ListTypeCollection ListType = "collection"
+)
+
 // ChangeRecord tracks when and where an item was changed
 type ChangeRecord struct {
 	ClientID   uint64    `json:"clientId"` // 0 = internal client

@@ -6,37 +6,21 @@ import (
 	"strings"
 
 	jellyfin "github.com/sj14/jellyfin-go/api"
-	base "suasor/client"
-	c "suasor/client"
-	media "suasor/client/media"
-	t "suasor/client/media/types"
-	client "suasor/client/types"
+	"suasor/client"
+	"suasor/client/media"
+	"suasor/client/types"
 	"suasor/utils"
 )
 
-func init() {
-	c.GetClientFactoryService().RegisterClientFactory(client.ClientTypeJellyfin,
-		func(ctx context.Context, clientID uint64, cfg client.ClientConfig) (base.Client, error) {
-			// Type assert
-			jellyfinConfig, ok := cfg.(*client.JellyfinConfig)
-			if !ok {
-				return nil, fmt.Errorf("invalid config type for Jellyfin client, expected *JellyfinConfig, got %T", cfg)
-			}
-
-			// Use your existing constructor
-			return NewJellyfinClient(ctx, clientID, *jellyfinConfig)
-		})
-}
-
-// JellyfinClient implements the MediaContentProvider interface
 type JellyfinClient struct {
 	media.BaseClientMedia
 	client *jellyfin.APIClient
-	config client.JellyfinConfig
+	config types.JellyfinConfig
 }
 
 // NewJellyfinClient creates a new Jellyfin client instance
-func NewJellyfinClient(ctx context.Context, clientID uint64, config client.JellyfinConfig) (media.ClientMedia, error) {
+func NewJellyfinClient(ctx context.Context, registry *media.ClientItemRegistry, clientID uint64, config types.JellyfinConfig) (media.ClientMedia, error) {
+	// Get or create registry for media item factories
 
 	// Create API client configuration
 	apiConfig := &jellyfin.Configuration{
@@ -48,10 +32,12 @@ func NewJellyfinClient(ctx context.Context, clientID uint64, config client.Jelly
 
 	jellyfinClient := &JellyfinClient{
 		BaseClientMedia: media.BaseClientMedia{
-			BaseClient: base.BaseClient{
+			ItemRegistry: registry,
+			ClientType:   types.ClientMediaTypeJellyfin,
+			BaseClient: client.BaseClient{
 				ClientID: clientID,
-				Category: client.ClientMediaTypeJellyfin.AsCategory(),
-				Type:     client.ClientTypeJellyfin,
+				Category: types.ClientMediaTypeJellyfin.AsCategory(),
+				Type:     types.ClientTypeJellyfin,
 				Config:   &config,
 			},
 		},
@@ -74,13 +60,18 @@ func NewJellyfinClient(ctx context.Context, clientID uint64, config client.Jelly
 
 // Register the client factory
 // func init() {
-// 	media.RegisterClient(client.ClientMediaTypeJellyfin, NewJellyfinClient)
+// 	media.RegisterClient(types.ClientMediaTypeJellyfin, NewJellyfinClient)
 // }
 
 // Capability methods
 func (j *JellyfinClient) SupportsMovies() bool  { return true }
 func (j *JellyfinClient) SupportsTVShows() bool { return true }
 func (j *JellyfinClient) SupportsMusic() bool   { return true }
+func (j *JellyfinClient) SupportsHistory() bool { return true }
+
+func (j *JellyfinClient) GetRegistry() *media.ClientItemRegistry {
+	return j.ItemRegistry
+}
 
 // resolveUserID resolves the user ID from the username
 func (j *JellyfinClient) resolveUserID(ctx context.Context) error {
@@ -126,80 +117,6 @@ func (j *JellyfinClient) resolveUserID(ctx context.Context) error {
 		Str("username", j.config.Username).
 		Msg("Could not find matching user in Jellyfin")
 	return fmt.Errorf("user '%s' not found in Jellyfin", j.config.Username)
-}
-
-// GetMovies retrieves movies from the Jellyfin server
-
-// getQueryParameters extracts common query parameters from QueryOptions
-// and converts them to the format expected by the Jellyfin API
-func (j *JellyfinClient) getQueryParameters(options *t.QueryOptions) (limit, startIndex *int32, sortBy []jellyfin.ItemSortBy, sortOrder []jellyfin.SortOrder) {
-
-	// Default values
-	defaultLimit := int32(100)
-	defaultOffset := int32(0)
-	limit = &defaultLimit
-	startIndex = &defaultOffset
-
-	if options != nil {
-		if options.Limit > 0 {
-			limitVal := int32(options.Limit)
-			limit = &limitVal
-		}
-		if options.Offset > 0 {
-			offsetVal := int32(options.Offset)
-			startIndex = &offsetVal
-		}
-		if options.Sort != "" {
-			// sortBy = &options.Sort
-			sortBy = []jellyfin.ItemSortBy{jellyfin.ItemSortBy(options.Sort)}
-			if options.SortOrder == "desc" {
-				sortOrder = []jellyfin.SortOrder{jellyfin.SORTORDER_DESCENDING}
-			} else {
-				sortOrder = []jellyfin.SortOrder{jellyfin.SORTORDER_ASCENDING}
-			}
-		}
-	}
-	return
-}
-
-func (j *JellyfinClient) getArtworkURLs(item *jellyfin.BaseItemDto) t.Artwork {
-	imageURLs := t.Artwork{}
-
-	if item == nil || item.Id == nil {
-		return imageURLs
-	}
-
-	baseURL := strings.TrimSuffix(j.config.BaseURL, "/")
-	itemID := *item.Id
-
-	// Primary image (poster)
-	if item.ImageTags != nil {
-		if tag, ok := (item.ImageTags)["Primary"]; ok {
-			imageURLs.Poster = fmt.Sprintf("%s/Items/%s/Images/Primary?tag=%s", baseURL, itemID, tag)
-		}
-	}
-
-	// Backdrop image
-	if item.BackdropImageTags != nil && len(item.BackdropImageTags) > 0 {
-		imageURLs.Background = fmt.Sprintf("%s/Items/%s/Images/Backdrop?tag=%s", baseURL, itemID, item.BackdropImageTags[0])
-	}
-
-	// Other image types
-	if item.ImageTags != nil {
-		if tag, ok := (item.ImageTags)["Logo"]; ok {
-			imageURLs.Logo = fmt.Sprintf("%s/Items/%s/Images/Logo?tag=%s", baseURL, itemID, tag)
-		}
-
-		if tag, ok := (item.ImageTags)["Thumb"]; ok {
-			imageURLs.Thumbnail = fmt.Sprintf("%s/Items/%s/Images/Thumb?tag=%s", baseURL, itemID, tag)
-		}
-
-		if tag, ok := (item.ImageTags)["Banner"]; ok {
-			imageURLs.Banner = fmt.Sprintf("%s/Items/%s/Images/Banner?tag=%s", baseURL, itemID, tag)
-		}
-	}
-
-	return imageURLs
 }
 
 func (j *JellyfinClient) TestConnection(ctx context.Context) (bool, error) {

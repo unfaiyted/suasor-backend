@@ -5,83 +5,126 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"suasor/client/media/types"
 	client "suasor/client/types"
 	"time"
 )
 
-type MediaItems struct {
-	Movies      []*MediaItem[*types.Movie]
-	Series      []*MediaItem[*types.Series]
-	Seasons     []*MediaItem[*types.Season]
-	Episodes    []*MediaItem[*types.Episode]
-	Artists     []*MediaItem[*types.Artist]
-	Albums      []*MediaItem[*types.Album]
-	Tracks      []*MediaItem[*types.Track]
-	Playlists   []*MediaItem[*types.Playlist]
-	Collections []*MediaItem[*types.Collection]
+type ListItem struct {
+	ItemUUID    string    `json:"itemUuid"`
+	Position    int       `json:"position"`
+	LastChanged time.Time `json:"lastChanged"`
+}
 
-	TotalItems int
+type ListItems []ListItem
+
+type ClientMediaItems struct {
+	MediaItems
+}
+
+type MediaItems struct {
+	Details *MediaItem[types.ListData]
+
+	movies      map[string]*MediaItem[*types.Movie]
+	series      map[string]*MediaItem[*types.Series]
+	seasons     map[string]*MediaItem[*types.Season]
+	episodes    map[string]*MediaItem[*types.Episode]
+	artists     map[string]*MediaItem[*types.Artist]
+	albums      map[string]*MediaItem[*types.Album]
+	tracks      map[string]*MediaItem[*types.Track]
+	playlists   map[string]*MediaItem[*types.Playlist]
+	collections map[string]*MediaItem[*types.Collection]
+
+	ListType     types.ListType
+	ListOriginID uint64 // 0 for internal db, otherwise external client/ProviderID
+	OwnerID      uint64
+
+	Order ListItems
+
+	totalItems int
+}
+
+func (m *MediaItems) AddListItem(itemUUID string, itemPosition int) {
+	m.Order = append(m.Order, ListItem{
+		ItemUUID:    itemUUID,
+		Position:    itemPosition,
+		LastChanged: time.Now(),
+	})
+}
+
+func (m *MediaItems) GetTotalItems() int {
+	return m.totalItems
 }
 
 // AddMovie adds a movie to the media items
 func (m *MediaItems) AddMovie(item *MediaItem[*types.Movie]) {
-	m.Movies = append(m.Movies, item)
-	m.TotalItems++
+	m.movies[item.UUID] = item
+	m.AddListItem(item.UUID, m.totalItems+1)
+	m.totalItems++
 }
 
 // AddSeries adds a series to the media items
 func (m *MediaItems) AddSeries(item *MediaItem[*types.Series]) {
-	m.Series = append(m.Series, item)
-	m.TotalItems++
+	m.series[item.UUID] = item
+	m.AddListItem(item.UUID, m.totalItems+1)
+	m.totalItems++
 }
 
 // AddSeason adds a season to the media items
 func (m *MediaItems) AddSeason(item *MediaItem[*types.Season]) {
-	m.Seasons = append(m.Seasons, item)
-	m.TotalItems++
+	m.seasons[item.UUID] = item
+	m.AddListItem(item.UUID, m.totalItems+1)
+	m.totalItems++
 }
 
 // AddEpisode adds an episode to the media items
 func (m *MediaItems) AddEpisode(item *MediaItem[*types.Episode]) {
-	m.Episodes = append(m.Episodes, item)
-	m.TotalItems++
+	m.episodes[item.UUID] = item
+	m.AddListItem(item.UUID, m.totalItems+1)
+	m.totalItems++
 }
 
 // AddArtist adds an artist to the media items
 func (m *MediaItems) AddArtist(item *MediaItem[*types.Artist]) {
-	m.Artists = append(m.Artists, item)
-	m.TotalItems++
+	m.artists[item.UUID] = item
+	m.AddListItem(item.UUID, m.totalItems+1)
+	m.totalItems++
 }
 
 // AddAlbum adds an album to the media items
 func (m *MediaItems) AddAlbum(item *MediaItem[*types.Album]) {
-	m.Albums = append(m.Albums, item)
-	m.TotalItems++
+	m.albums[item.UUID] = item
+	m.AddListItem(item.UUID, m.totalItems+1)
+	m.totalItems++
 }
 
 // AddTrack adds a track to the media items
 func (m *MediaItems) AddTrack(item *MediaItem[*types.Track]) {
-	m.Tracks = append(m.Tracks, item)
-	m.TotalItems++
+	m.tracks[item.UUID] = item
+	m.AddListItem(item.UUID, m.totalItems+1)
+	m.totalItems++
 }
 
 // AddPlaylist adds a playlist to the media items
 func (m *MediaItems) AddPlaylist(item *MediaItem[*types.Playlist]) {
-	m.Playlists = append(m.Playlists, item)
-	m.TotalItems++
+	m.playlists[item.UUID] = item
+	m.AddListItem(item.UUID, m.totalItems+1)
+	m.totalItems++
 }
 
 // AddCollection adds a collection to the media items
 func (m *MediaItems) AddCollection(item *MediaItem[*types.Collection]) {
-	m.Collections = append(m.Collections, item)
-	m.TotalItems++
+	m.collections[item.UUID] = item
+	m.AddListItem(item.UUID, m.totalItems+1)
+	m.totalItems++
 }
 
 // MediaItem is the base type for all media items
 type MediaItem[T types.MediaData] struct {
 	BaseModel
 	ID          uint64      `json:"id" gorm:"primaryKey;autoIncrement"` // Internal ID
+	UUID        string      `json:"uuid" gorm:"type:uuid;uniqueIndex"`  // Stable UUID for syncing
 	SyncClients SyncClients `json:"syncClients" gorm:"type:jsonb"`      // Client IDs for this item (mapping client to their IDs)
 	ExternalIDs ExternalIDs `json:"externalIds" gorm:"type:jsonb"`      // External IDs for this item (TMDB, IMDB, etc.)
 	OwnerID     uint64      `json:"ownerId"`                            // ID of the user that owns this item, 0 for system owned items
@@ -95,6 +138,19 @@ type MediaItem[T types.MediaData] struct {
 	StreamURL   string `json:"streamUrl,omitempty" gorm:"size:1024"`
 	DownloadURL string `json:"downloadUrl,omitempty" gorm:"size:1024"`
 	Data        T      `json:"data" gorm:"type:jsonb"` // Type-specific media data
+}
+
+func NewMediaItem[T types.MediaData](itemType types.MediaType, data T) *MediaItem[T] {
+	// Initialize with empty arrays
+	clientIDs := make(SyncClients, 0)
+	externalIDs := make(ExternalIDs, 0)
+	return &MediaItem[T]{
+		UUID:        uuid.New().String(),
+		Type:        itemType,
+		SyncClients: clientIDs,
+		Data:        data,
+		ExternalIDs: externalIDs,
+	}
 }
 
 func (m *MediaItem[T]) SetData(data T) {
@@ -336,10 +392,6 @@ func (m *MediaItem[T]) AddSyncClient(clientID uint64, clientType client.ClientTy
 
 func (m *MediaItem[T]) GetData() T {
 	return m.Data
-}
-
-func (m *MediaItem[T]) SetData(data T) {
-	m.Data = data
 }
 
 func (m *MediaItem[T]) AsEpisode() (MediaItem[types.Episode], bool) {

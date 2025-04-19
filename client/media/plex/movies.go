@@ -12,7 +12,7 @@ import (
 )
 
 // GetMovies retrieves movies from Plex
-func (c *PlexClient) GetMovies(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[*types.Movie], error) {
+func (c *PlexClient) GetMovies(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Movie], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -38,7 +38,7 @@ func (c *PlexClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No movie library section found in Plex")
-		return []models.MediaItem[*types.Movie]{}, nil
+		return nil, nil
 	}
 
 	// Get movies from the movie section
@@ -72,7 +72,7 @@ func (c *PlexClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No movies found in Plex")
-		return []models.MediaItem[*types.Movie]{}, nil
+		return nil, nil
 	}
 
 	log.Info().
@@ -81,24 +81,14 @@ func (c *PlexClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 		Int("totalItems", len(res.Object.MediaContainer.Metadata)).
 		Msg("Successfully retrieved movies from Plex")
 
-	movies := make([]models.MediaItem[*types.Movie], 0, len(res.Object.MediaContainer.Metadata))
-	for _, item := range res.Object.MediaContainer.Metadata {
-		if item.Type != "movie" {
-			continue
-		}
-
-		movie := models.MediaItem[*types.Movie]{
-
-			Data: &types.Movie{Details: c.createMetadataFromPlexItem(&item)},
-		}
-
-		movie.SetClientInfo(c.ClientID, c.ClientType, item.RatingKey)
-		movies = append(movies, movie)
-
-		log.Debug().
-			Str("movieID", item.RatingKey).
-			Str("movieTitle", item.Title).
-			Msg("Added movie to result list")
+	movies, err := GetMediaItemList[*types.Movie](ctx, c, res.Object.MediaContainer.Metadata)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("clientID", c.ClientID).
+			Str("clientType", string(c.ClientType)).
+			Msg("Failed to get movies from Plex")
+		return nil, fmt.Errorf("failed to get movies: %w", err)
 	}
 
 	log.Info().
@@ -111,7 +101,7 @@ func (c *PlexClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 }
 
 // GetMovieByID retrieves a specific movie by ID
-func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (models.MediaItem[*types.Movie], error) {
+func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (*models.MediaItem[*types.Movie], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -139,7 +129,7 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (models.MediaI
 			Str("clientType", string(c.ClientType)).
 			Str("movieID", id).
 			Msg("Failed to get movie from Plex")
-		return models.MediaItem[*types.Movie]{}, fmt.Errorf("failed to get movie: %w", err)
+		return nil, fmt.Errorf("failed to get movie: %w", err)
 	}
 
 	if res.Object.MediaContainer == nil || res.Object.MediaContainer.Metadata == nil || len(res.Object.MediaContainer.Metadata) == 0 {
@@ -148,7 +138,7 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (models.MediaI
 			Str("clientType", string(c.ClientType)).
 			Str("movieID", id).
 			Msg("Movie not found in Plex")
-		return models.MediaItem[*types.Movie]{}, fmt.Errorf("movie not found")
+		return nil, fmt.Errorf("movie not found")
 	}
 
 	item := res.Object.MediaContainer.Metadata[0]
@@ -159,7 +149,7 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (models.MediaI
 			Str("movieID", id).
 			Str("actualType", item.Type).
 			Msg("Item retrieved is not a movie")
-		return models.MediaItem[*types.Movie]{}, fmt.Errorf("item is not a movie")
+		return nil, fmt.Errorf("item is not a movie")
 	}
 
 	log.Info().
@@ -169,12 +159,8 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (models.MediaI
 		Str("movieTitle", item.Title).
 		Msg("Successfully retrieved movie from Plex")
 
-	movie := models.MediaItem[*types.Movie]{
-		Data: &types.Movie{
-			Details: c.createMediaDetailsFromPlexItem(&item),
-		},
-	}
-	movie.SetClientInfo(c.ClientID, c.ClientType, item.RatingKey)
+	itemMovie, err := GetItemFromMetadata[*types.Movie](ctx, c, &item)
+	movie, err := GetMediaItem[*types.Movie](ctx, c, itemMovie, item.RatingKey)
 
 	log.Info().
 		Uint64("clientID", c.ClientID).

@@ -7,7 +7,6 @@ import (
 	"github.com/antihax/optional"
 	"strings"
 	"suasor/utils"
-	// "suasor/utils"
 
 	media "suasor/client/media"
 	"suasor/client/media/types"
@@ -22,7 +21,7 @@ func GetItem[T types.MediaData](
 	item *embyclient.BaseItemDto,
 ) (T, error) {
 	return media.ConvertTo[*EmbyClient, *embyclient.BaseItemDto, T](
-		media.GlobalMediaRegistry, client, ctx, item)
+		client, ctx, item)
 }
 func GetMediaItem[T types.MediaData](
 	ctx context.Context,
@@ -30,13 +29,10 @@ func GetMediaItem[T types.MediaData](
 	item T,
 	itemID string,
 ) (*models.MediaItem[T], error) {
-	mediaItem := models.MediaItem[T]{
-		Data: item,
-		Type: item.GetMediaType(),
-	}
+	mediaItem := models.NewMediaItem[T](item.GetMediaType(), item)
 	mediaItem.SetClientInfo(client.ClientID, client.ClientType, itemID)
 
-	return &mediaItem, nil
+	return mediaItem, nil
 }
 func GetMediaItemList[T types.MediaData](
 	ctx context.Context,
@@ -59,7 +55,11 @@ func GetMediaItemList[T types.MediaData](
 
 	return &mediaItems, nil
 }
-func GetMediaItemData[T types.MediaData](e *EmbyClient, ctx context.Context, item *embyclient.BaseItemDto) (*models.UserMediaItemData[T], error) {
+func GetMediaItemData[T types.MediaData](
+	ctx context.Context,
+	e *EmbyClient,
+	item *embyclient.BaseItemDto,
+) (*models.UserMediaItemData[T], error) {
 
 	baseItem, err := GetItem[T](ctx, e, item)
 	mediaItem, err := GetMediaItem[T](ctx, e, baseItem, item.Id)
@@ -80,10 +80,16 @@ func GetMediaItemData[T types.MediaData](e *EmbyClient, ctx context.Context, ite
 
 	return &mediaItemData, err
 }
-func GetMediaItemDataList[T types.MediaData](e *EmbyClient, ctx context.Context, items []embyclient.BaseItemDto) ([]*models.UserMediaItemData[T], error) {
+
+func GetMediaItemDataList[T types.MediaData](
+	ctx context.Context,
+	e *EmbyClient,
+	items []embyclient.BaseItemDto,
+) ([]*models.UserMediaItemData[T], error) {
+
 	var mediaItems []*models.UserMediaItemData[T]
 	for _, item := range items {
-		mediaItemData, err := GetMediaItemData[T](e, ctx, &item)
+		mediaItemData, err := GetMediaItemData[T](ctx, e, &item)
 		if err != nil {
 			return nil, err
 		}
@@ -93,7 +99,11 @@ func GetMediaItemDataList[T types.MediaData](e *EmbyClient, ctx context.Context,
 	return mediaItems, nil
 }
 
-func GetMixedMediaItems(e *EmbyClient, ctx context.Context, items []embyclient.BaseItemDto) (*models.MediaItems, error) {
+func GetMixedMediaItems(
+	e *EmbyClient,
+	ctx context.Context,
+	items []embyclient.BaseItemDto,
+) (*models.MediaItems, error) {
 	mediaItems := models.MediaItems{}
 	for _, item := range items {
 
@@ -173,7 +183,11 @@ func GetMixedMediaItems(e *EmbyClient, ctx context.Context, items []embyclient.B
 	return &mediaItems, nil
 
 }
-func GetMixedMediaItemsData(e *EmbyClient, ctx context.Context, items []embyclient.BaseItemDto) (*models.MediaItemDatas, error) {
+func GetMixedMediaItemsData(
+	e *EmbyClient,
+	ctx context.Context,
+	items []embyclient.BaseItemDto,
+) (*models.MediaItemDatas, error) {
 	log := utils.LoggerFromContext(ctx)
 	datas := models.MediaItemDatas{
 		TotalItems: 0,
@@ -181,7 +195,7 @@ func GetMixedMediaItemsData(e *EmbyClient, ctx context.Context, items []embyclie
 
 	for _, item := range items {
 		if item.Type_ == "Movie" {
-			movie, err := GetMediaItemData[*types.Movie](e, ctx, &item)
+			movie, err := GetMediaItemData[*types.Movie](ctx, e, &item)
 			if err != nil {
 				log.Warn().
 					Err(err).
@@ -192,7 +206,7 @@ func GetMixedMediaItemsData(e *EmbyClient, ctx context.Context, items []embyclie
 			}
 			datas.AddMovie(movie)
 		} else if item.Type_ == "Episode" {
-			episode, err := GetMediaItemData[*types.Episode](e, ctx, &item)
+			episode, err := GetMediaItemData[*types.Episode](ctx, e, &item)
 			if err != nil {
 				log.Warn().
 					Err(err).
@@ -203,7 +217,7 @@ func GetMixedMediaItemsData(e *EmbyClient, ctx context.Context, items []embyclie
 			}
 			datas.AddEpisode(episode)
 		} else if item.Type_ == "Audio" {
-			track, err := GetMediaItemData[*types.Track](e, ctx, &item)
+			track, err := GetMediaItemData[*types.Track](ctx, e, &item)
 			if err != nil {
 				log.Warn().
 					Err(err).
@@ -214,7 +228,7 @@ func GetMixedMediaItemsData(e *EmbyClient, ctx context.Context, items []embyclie
 			}
 			datas.AddTrack(track)
 		} else if item.Type_ == "Playlist" {
-			playlist, err := GetMediaItemData[*types.Playlist](e, ctx, &item)
+			playlist, err := GetMediaItemData[*types.Playlist](ctx, e, &item)
 			if err != nil {
 				log.Warn().
 					Err(err).
@@ -225,7 +239,7 @@ func GetMixedMediaItemsData(e *EmbyClient, ctx context.Context, items []embyclie
 			}
 			datas.AddPlaylist(playlist)
 		} else if item.Type_ == "Series" {
-			series, err := GetMediaItemData[*types.Series](e, ctx, &item)
+			series, err := GetMediaItemData[*types.Series](ctx, e, &item)
 			if err != nil {
 				log.Warn().
 					Err(err).
@@ -236,7 +250,7 @@ func GetMixedMediaItemsData(e *EmbyClient, ctx context.Context, items []embyclie
 			}
 			datas.AddSeries(series)
 		} else if item.Type_ == "Season" {
-			season, err := GetMediaItemData[*types.Season](e, ctx, &item)
+			season, err := GetMediaItemData[*types.Season](ctx, e, &item)
 			if err != nil {
 				log.Warn().
 					Err(err).
@@ -247,7 +261,7 @@ func GetMixedMediaItemsData(e *EmbyClient, ctx context.Context, items []embyclie
 			}
 			datas.AddSeason(season)
 		} else if item.Type_ == "Collection" {
-			collection, err := GetMediaItemData[*types.Collection](e, ctx, &item)
+			collection, err := GetMediaItemData[*types.Collection](ctx, e, &item)
 			if err != nil {
 				log.Warn().
 					Err(err).

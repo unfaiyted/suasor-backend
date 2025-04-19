@@ -4,34 +4,177 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	media "suasor/client/media"
+	mediatypes "suasor/client/media/types"
 	"suasor/client/types"
+	"suasor/types/models"
 	"suasor/utils"
+
+	"github.com/LukeHagar/plexgo/models/operations"
 )
 
-// makeFullURL creates a complete URL from a resource path
-func (c *PlexClient) makeFullURL(resourcePath string) string {
-	if resourcePath == "" {
-		return ""
-	}
+// Helper functions for item conversion using the factory pattern
 
-	plexConfig := c.Config.(*types.PlexConfig)
-
-	if strings.HasPrefix(resourcePath, "http") {
-		return resourcePath
-	}
-
-	return fmt.Sprintf("%s%s", plexConfig.BaseURL, resourcePath)
+func GetItemFromLibraryMetadata[T mediatypes.MediaData](
+	ctx context.Context,
+	client *PlexClient,
+	item *operations.GetLibraryItemsMetadata,
+) (T, error) {
+	return media.ConvertTo[*PlexClient, *operations.GetLibraryItemsMetadata, T](
+		client, ctx, item)
 }
 
-// // makeFullURL converts a Plex path to a full URL with authentication
-// func (c *PlexClient) makeFullURL(path *string) string {
-// 	if path == nil || *path == "" {
-// 		return ""
-// 	}
-// 	return fmt.Sprintf("%s%s?X-Plex-Token=%s", c.BaseURL, *path, c.Token)
+//tracks list GetMetadataChildrenMetadata
+
+func GetItemFromMetadata[T mediatypes.MediaData](
+	ctx context.Context,
+	client *PlexClient,
+	item *operations.GetMediaMetaDataMetadata,
+) (T, error) {
+	return media.ConvertTo[*PlexClient, *operations.GetMediaMetaDataMetadata, T](
+		client, ctx, item)
+}
+
+func GetItemFromPlaylist[T mediatypes.MediaData](
+	ctx context.Context,
+	client *PlexClient,
+	item *operations.GetPlaylistsMetadata,
+) (T, error) {
+	return media.ConvertTo[*PlexClient, *operations.GetPlaylistsMetadata, T](
+		client, ctx, item)
+}
+
+func GetChildItem[T mediatypes.MediaData](
+	ctx context.Context,
+	client *PlexClient,
+	item *operations.GetMetadataChildrenMetadata,
+) (T, error) {
+	return media.ConvertTo[*PlexClient, *operations.GetMetadataChildrenMetadata, T](
+		client, ctx, item)
+}
+
+// func GetMediaItemFromPlaylist[T mediatypes.MediaData](
+// 	ctx context.Context,
+// 	client *PlexClient,
+// 	item T,
+// 	itemID string,
+// ) (*models.MediaItem[T], error) {
+// 	mediaItem := models.NewMediaItem[T](item.GetMediaType(), item)
+// 	mediaItem.SetClientInfo(client.ClientID, client.ClientType, itemID)
+//
+// 	return mediaItem, nil
 // }
 
-// findLibrarySectionByType returns the section key for the specified type
+func GetChildItemsList[T mediatypes.MediaData](
+	ctx context.Context,
+	client *PlexClient,
+	items []operations.GetMetadataChildrenMetadata,
+) ([]T, error) {
+
+	mediaItems := make([]T, 0, len(items))
+
+	for _, item := range items {
+		itemT, err := GetChildItem[T](ctx, client, &item)
+		if err != nil {
+			return nil, err
+		}
+		mediaItems = append(mediaItems, itemT)
+	}
+
+	return mediaItems, nil
+
+}
+
+func GetMediaItem[T mediatypes.MediaData](
+	ctx context.Context,
+	client *PlexClient,
+	item T,
+	itemID string,
+) (*models.MediaItem[T], error) {
+	mediaItem := models.NewMediaItem[T](item.GetMediaType(), item)
+	mediaItem.SetClientInfo(client.ClientID, client.ClientType, itemID)
+
+	return mediaItem, nil
+}
+
+func GetChildMediaItem[T mediatypes.MediaData](
+	ctx context.Context,
+	client *PlexClient,
+	item T,
+	itemID string,
+) (*models.MediaItem[T], error) {
+	mediaItem := models.NewMediaItem[T](item.GetMediaType(), item)
+	mediaItem.SetClientInfo(client.ClientID, client.ClientType, itemID)
+
+	return mediaItem, nil
+}
+
+func GetChildMediaItemsList[T mediatypes.MediaData](
+	ctx context.Context,
+	client *PlexClient,
+	items []operations.GetMetadataChildrenMetadata,
+) ([]*models.MediaItem[T], error) {
+	var mediaItems []*models.MediaItem[T]
+	for _, item := range items {
+		itemT, err := GetChildItem[T](ctx, client, &item)
+		if err != nil {
+			return nil, err
+		}
+		mediaItem, err := GetChildMediaItem[T](ctx, client, itemT, *item.RatingKey)
+		if err != nil {
+			return nil, err
+		}
+		mediaItem.SetClientInfo(client.ClientID, client.ClientType, *item.RatingKey)
+		mediaItems = append(mediaItems, mediaItem)
+	}
+
+	return mediaItems, nil
+}
+
+func GetMediaItemList[T mediatypes.MediaData](
+	ctx context.Context,
+	client *PlexClient,
+	items []operations.GetLibraryItemsMetadata,
+) ([]*models.MediaItem[T], error) {
+	var mediaItems []*models.MediaItem[T]
+	for _, item := range items {
+		itemT, err := GetItemFromLibraryMetadata[T](ctx, client, &item)
+		if err != nil {
+			return nil, err
+		}
+		mediaItem, err := GetMediaItem[T](ctx, client, itemT, item.RatingKey)
+		if err != nil {
+			return nil, err
+		}
+		mediaItem.SetClientInfo(client.ClientID, client.ClientType, item.RatingKey)
+		mediaItems = append(mediaItems, mediaItem)
+	}
+
+	return mediaItems, nil
+}
+
+func GetMediaItemListFromPlaylist[T mediatypes.MediaData](
+	ctx context.Context,
+	client *PlexClient,
+	items []operations.GetPlaylistsMetadata,
+) ([]*models.MediaItem[T], error) {
+	var mediaItems []*models.MediaItem[T]
+	for _, item := range items {
+		itemT, err := GetItemFromPlaylist[T](ctx, client, &item)
+		if err != nil {
+			return nil, err
+		}
+		mediaItem, err := GetMediaItem[T](ctx, client, itemT, *item.RatingKey)
+		if err != nil {
+			return nil, err
+		}
+		mediaItem.SetClientInfo(client.ClientID, client.ClientType, *item.RatingKey)
+		mediaItems = append(mediaItems, mediaItem)
+	}
+
+	return mediaItems, nil
+}
+
 func (c *PlexClient) findLibrarySectionByType(ctx context.Context, sectionType string) (string, error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
@@ -79,4 +222,19 @@ func (c *PlexClient) findLibrarySectionByType(ctx context.Context, sectionType s
 		Msg("No matching library section found")
 
 	return "", nil
+}
+
+// makeFullURL creates a complete URL from a resource path
+func (c *PlexClient) makeFullURL(resourcePath string) string {
+	if resourcePath == "" {
+		return ""
+	}
+
+	plexConfig := c.Config.(*types.PlexConfig)
+
+	if strings.HasPrefix(resourcePath, "http") {
+		return resourcePath
+	}
+
+	return fmt.Sprintf("%s%s", plexConfig.BaseURL, resourcePath)
 }

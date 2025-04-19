@@ -8,14 +8,17 @@ type PlexConfig struct {
 	Token string `json:"token" mapstructure:"token" example:"your-plex-token" binding:"required_if=Enabled true"`
 }
 
-func NewPlexConfig() PlexConfig {
+func NewPlexConfig(host string, token string) PlexConfig {
 	return PlexConfig{
 		BaseClientMediaConfig: BaseClientMediaConfig{
 			BaseClientConfig: BaseClientConfig{
 				Type: ClientTypePlex,
 			},
+			BaseURL: host,
+
 			ClientType: ClientMediaTypePlex,
 		},
+		Token: token,
 	}
 }
 

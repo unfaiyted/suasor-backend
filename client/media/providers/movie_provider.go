@@ -13,4 +13,6 @@ type MovieProvider interface {
 	GetMovies(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Movie], error)
 	GetMovieByID(ctx context.Context, id string) (*models.MediaItem[*types.Movie], error)
 	GetMovieGenres(ctx context.Context) ([]string, error)
+
+	movieFactory(ctx context.Context, item *any) (*types.Movie, error)
 }

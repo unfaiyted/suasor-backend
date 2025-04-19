@@ -25,9 +25,13 @@ type ListProvider[T types.ListData] interface {
 type CollectionProvider interface {
 	ListProvider[*types.Collection]
 	SupportsCollections() bool
+
+	collectionFactory(ctx context.Context, item *any) (*types.Collection, error)
 }
 
 type PlaylistProvider interface {
 	ListProvider[*types.Playlist]
 	SupportsPlaylists() bool
+
+	playlistFactory(ctx context.Context, item *any) (*types.Playlist, error)
 }

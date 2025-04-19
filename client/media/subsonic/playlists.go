@@ -32,31 +32,16 @@ func (c *SubsonicClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 	playlists := make([]*models.MediaItem[*t.Playlist], 0, len(resp.Playlists.Playlist))
 
 	for _, pl := range resp.Playlists.Playlist {
-		playlist := models.MediaItem[*t.Playlist]{
-			Type: "playlist",
-			Data: &t.Playlist{
-				ItemList: t.ItemList{
-					Details: t.MediaDetails{
-						Title:       pl.Name,
-						Description: pl.Comment,
-						Duration:    int64(pl.Duration), // Convert int to int64
-					},
-					ItemCount: pl.SongCount,
-					// Owner:     pl.Owner,
-					// pl.Owner is the Subsonic user who created the playlist
-					IsPublic: pl.Public,
-				},
-			},
+		playlistItem, err := GetPlaylistItem(ctx, c, pl)
+		if err != nil {
+			log.Error().
+				Err(err).
+				Str("playlistID", pl.ID).
+				Msg("Failed to convert playlist")
+			continue
 		}
-		playlist.SetClientInfo(c.ClientID, c.ClientType, pl.ID)
-
-		// Add cover art if available
-		if pl.CoverArt != "" {
-			coverURL := c.GetCoverArtURL(pl.CoverArt)
-			playlist.Data.ItemList.Details.Artwork.Poster = coverURL
-		}
-
-		playlists = append(playlists, &playlist)
+		
+		playlists = append(playlists, playlistItem)
 	}
 
 	log.Info().
@@ -98,8 +83,14 @@ func (c *SubsonicClient) GetPlaylistItems(ctx context.Context, playlistID string
 	tracks := make([]*models.MediaItem[*t.Track], 0, len(resp.Playlist.Entry))
 
 	for _, song := range resp.Playlist.Entry {
-		track := c.convertChildToTrack(*song)
-		track.SetClientInfo(c.ClientID, c.ClientType, song.ID)
+		track, err := GetTrackItem(ctx, c, song)
+		if err != nil {
+			log.Error().
+				Err(err).
+				Str("trackID", song.ID).
+				Msg("Failed to convert track")
+			continue
+		}
 		tracks = append(tracks, track)
 	}
 

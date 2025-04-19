@@ -10,6 +10,11 @@ import (
 	"time"
 )
 
+// SupportsPlaylists indicates if this client supports playlists
+func (j *JellyfinClient) SupportsPlaylists() bool {
+	return true
+}
+
 // GetPlaylists retrieves playlists from Jellyfin
 func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[*t.Playlist], error) {
 	// Get logger from context
@@ -22,20 +27,13 @@ func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 
 	includeItemTypes := []jellyfin.BaseItemKind{jellyfin.BASEITEMKIND_PLAYLIST}
 
-	limit, startIndex, sortBy, sortOrder := j.getQueryParameters(options)
-
 	// Construct filter string for playlists
 	itemsReq := j.client.ItemsAPI.GetItems(ctx).
 		IncludeItemTypes(includeItemTypes).
-		SortBy(sortBy).
-		SortOrder(sortOrder).
-		Recursive(true).
-		StartIndex(*startIndex)
+		Recursive(true)
 
-	// Set limit if options provided
-	if options != nil && options.Limit > 0 {
-		itemsReq.Limit(*limit)
-	}
+	NewJellyfinQueryOptions(options).
+		SetItemsRequest(&itemsReq)
 
 	// Get playlists from Jellyfin
 	response, _, err := itemsReq.Execute()
@@ -80,7 +78,7 @@ func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 					Details: t.MediaDetails{
 						Title:       title,
 						Description: description,
-						Artwork:     j.getArtworkURLs(&item),
+						Artwork:     *j.getArtworkURLs(&item),
 					},
 					ItemCount: itemCount,
 					IsPublic:  true, // Assume public by default in Jellyfin
@@ -100,7 +98,7 @@ func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 }
 
 // GetPlaylistItems retrieves items in a playlist from Jellyfin
-func (j *JellyfinClient) GetPlaylistItems(ctx context.Context, playlistID string, options *t.QueryOptions) ([]models.MediaItem[t.MediaData], error) {
+func (j *JellyfinClient) GetPlaylistItems(ctx context.Context, playlistID string, options *t.QueryOptions) (*models.ClientMediaItems, error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -127,35 +125,21 @@ func (j *JellyfinClient) GetPlaylistItems(ctx context.Context, playlistID string
 		log.Info().
 			Str("playlistID", playlistID).
 			Msg("No items found in playlist")
-		return []models.MediaItem[t.MediaData]{}, nil
+		return nil, nil
 	}
 
 	// Convert Jellyfin items to models
-	mediaItems := make([]models.MediaItem[t.MediaData], 0, len(jellyfinPlaylist.Items))
-
-	for _, item := range jellyfinPlaylist.Items {
-		mediaItem, err := j.convertByItemType(ctx, &item)
-		if err == nil {
-			mediaItems = append(mediaItems, mediaItem)
-		} else {
-			log.Warn().
-				Err(err).
-				Str("itemID", *item.Id).
-				Msg("Failed to convert playlist item")
-		}
+	mediaItems, err := GetMixedMediaItems(j, ctx, jellyfinPlaylist.Items)
+	if err != nil {
+		return nil, err
 	}
 
 	log.Info().
 		Str("playlistID", playlistID).
-		Int("itemCount", len(mediaItems)).
+		Int("itemCount", mediaItems.GetTotalItems()).
 		Msg("Successfully retrieved playlist items from Jellyfin")
 
 	return mediaItems, nil
-}
-
-// SupportsPlaylists indicates if this client supports playlists
-func (j *JellyfinClient) SupportsPlaylists() bool {
-	return true
 }
 
 // CreatePlaylist creates a new playlist in Jellyfin
@@ -469,33 +453,36 @@ func (j *JellyfinClient) RemoveItemFromPlaylist(ctx context.Context, playlistID 
 
 	// Try to find the EntryId or PlaylistItemId that corresponds to this item
 	// First, get the playlist items to find the entry ID
-	playlistItems, err := j.GetPlaylistItems(ctx, playlistID, nil)
-	if err != nil {
-		log.Error().
-			Err(err).
-			Str("playlistID", playlistID).
-			Str("itemID", itemID).
-			Msg("Failed to get playlist items to find entry ID")
-		return err
-	}
+	// playlistItems, err := j.GetPlaylistItems(ctx, playlistID, nil)
+	// if err != nil {
+	// 	log.Error().
+	// 		Err(err).
+	// 		Str("playlistID", playlistID).
+	// 		Str("itemID", itemID).
+	// 		Msg("Failed to get playlist items to find entry ID")
+	// 	return err
+	// }
 
 	// Find the entry ID for this item
 	var entryID string = ""
-	for _, item := range playlistItems {
-		client, exists := item.SyncClients.GetByClientID(j.ClientID)
-		if exists && client.ItemID == itemID {
-			// This i the playlistID
-			// Found the item, try to get its entry ID
-			// TODO:
-			// Jellyfin may store the entry ID in the item's metadata
-			// if entryItemID, ok := item.Data; ok {
-			// entryID = entryItemID
-			// break
-		}
-		// If we can't find a specific entry ID, use the item ID
-		// entryID = id
-		break
-	}
+	// for _, orderItem := range playlistItems.ClientOrder {
+	//
+	// 	orderItem.ItemID
+	//
+	// 	client, exists := item.SyncClients.GetByClientID(j.ClientID)
+	// 	if exists && client.ItemID == itemID {
+	// 		// This i the playlistID
+	// 		// Found the item, try to get its entry ID
+	// 		// TODO:
+	// 		// Jellyfin may store the entry ID in the item's metadata
+	// 		// if entryItemID, ok := item.Data; ok {
+	// 		// entryID = entryItemID
+	// 		// break
+	// 	}
+	// 	// If we can't find a specific entry ID, use the item ID
+	// 	// entryID = id
+	// 	break
+	// }
 
 	if entryID == "" {
 		log.Warn().
@@ -556,84 +543,85 @@ func (j *JellyfinClient) ReorderPlaylistItems(ctx context.Context, playlistID st
 		return nil
 	}
 
-	// First, get the current playlist items to determine their entry IDs
-	// Jellyfin assigns special IDs to items within a playlist that are different from the media item IDs
-	// We need to map our media item IDs to these entry IDs
-	currentItems, err := j.GetPlaylistItems(ctx, playlistID, nil)
-	if err != nil {
-		log.Error().
-			Err(err).
-			Str("playlistID", playlistID).
-			Msg("Failed to get current playlist items for reordering")
-		return err
-	}
-
-	// Create maps for item IDs, entry IDs, and current positions
-	itemToEntryID := make(map[string]string)
-	currentPositions := make(map[string]int, len(currentItems))
-
-	// Build the mappings
-	for i, item := range currentItems {
-		client, exists := item.SyncClients.GetByClientID(j.ClientID)
-		if !exists {
-			continue
-		}
-
-		// Store the current position
-		currentPositions[client.ItemID] = i
-
-		// // Try to find entry ID in external IDs
-		// if entryItemID, ok := item.Data.Get; ok {
-		// 	itemToEntryID[clientID] = entryItemID
-		// } else {
-		// 	// Use the regular ID if no special entry ID is found
-		// 	itemToEntryID[clientID] = clientID
-		// }
-	}
-
-	// For each item in the new order, move it to its new position
-	// We need to do this one by one since Jellyfin doesn't support reordering the entire playlist at once
-	for newIndex, itemID := range itemIDs {
-		// If the item is already at the correct position, skip it
-		if currentPos, exists := currentPositions[itemID]; exists && currentPos == newIndex {
-			continue
-		}
-
-		// Get the entry ID for this item
-		entryID, exists := itemToEntryID[itemID]
-		if !exists {
-			log.Warn().
-				Str("playlistID", playlistID).
-				Str("itemID", itemID).
-				Msg("Item not found in playlist, cannot reorder")
-			continue
-		}
-
-		// Move the item to its new position
-		request := j.client.PlaylistsAPI.MoveItem(ctx, playlistID, entryID, int32(newIndex))
-
-		// Execute the request
-		resp, err := request.Execute()
-		if err != nil {
-			log.Error().
-				Err(err).
-				Str("playlistID", playlistID).
-				Str("itemID", itemID).
-				Str("entryID", entryID).
-				Int("newPosition", newIndex).
-				Int("statusCode", resp.StatusCode).
-				Msg("Failed to reorder item in playlist")
-			return err
-		}
-
-		// Update the current positions map for subsequent operations
-		currentPositions[itemID] = newIndex
-	}
-
-	log.Info().
-		Str("playlistID", playlistID).
-		Int("itemCount", len(itemIDs)).
-		Msg("Successfully reordered playlist items in Jellyfin")
-
 	return nil
 }
+
+// First, get the current playlist items to determine their entry IDs
+// Jellyfin assigns special IDs to items within a playlist that are different from the media item IDs
+// We need to map our media item IDs to these entry IDs
+// currentItems, err := j.GetPlaylistItems(ctx, playlistID, nil)
+// if err != nil {
+// 	log.Error().
+// 		Err(err).
+// 		Str("playlistID", playlistID).
+// 		Msg("Failed to get current playlist items for reordering")
+// 	return err
+// }
+//
+// // Create maps for item IDs, entry IDs, and current positions
+// itemToEntryID := make(map[string]string)
+// currentPositions := make(map[string]int, len(currentItems))
+//
+// // Build the mappings
+// for i, item := range currentItems {
+// 	client, exists := item.SyncClients.GetByClientID(j.ClientID)
+// 	if !exists {
+// 		continue
+// 	}
+//
+// 	// Store the current position
+// 	currentPositions[client.ItemID] = i
+//
+// // Try to find entry ID in external IDs
+// if entryItemID, ok := item.Data.Get; ok {
+// 	itemToEntryID[clientID] = entryItemID
+// } else {
+// 	// Use the regular ID if no special entry ID is found
+// 	itemToEntryID[clientID] = clientID
+// }
+// }
+
+// For each item in the new order, move it to its new position
+// We need to do this one by one since Jellyfin doesn't support reordering the entire playlist at once
+// for newIndex, itemID := range itemIDs {
+// If the item is already at the correct position, skip it
+// if currentPos, exists := currentPositions[itemID]; exists && currentPos == newIndex {
+// 	continue
+// }
+//
+// Get the entry ID for this item
+// entryID, exists := itemToEntryID[itemID]
+// if !exists {
+// 	log.Warn().
+// 		Str("playlistID", playlistID).
+// 		Str("itemID", itemID).
+// 		Msg("Item not found in playlist, cannot reorder")
+// 	continue
+// }
+
+// Move the item to its new position
+// request := j.client.PlaylistsAPI.MoveItem(ctx, playlistID, entryID, int32(newIndex))
+
+// Execute the request
+// resp, err := request.Execute()
+// if err != nil {
+// 	log.Error().
+// 		Err(err).
+// 		Str("playlistID", playlistID).
+// 		Str("itemID", itemID).
+// 		Str("entryID", entryID).
+// 		Int("newPosition", newIndex).
+// 		Int("statusCode", resp.StatusCode).
+// 		Msg("Failed to reorder item in playlist")
+// 	return err
+// }
+//
+// // Update the current positions map for subsequent operations
+// currentPositions[itemID] = newIndex
+// }
+
+// log.Info().
+// 	Str("playlistID", playlistID).
+// 	Int("itemCount", len(itemIDs)).
+// 	Msg("Successfully reordered playlist items in Jellyfin")
+// return nil

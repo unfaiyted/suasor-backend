@@ -3,6 +3,7 @@ package jellyfin
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	jellyfin "github.com/sj14/jellyfin-go/api"
 	t "suasor/client/media/types"
@@ -23,18 +24,15 @@ func (j *JellyfinClient) GetMusic(ctx context.Context, options *t.QueryOptions) 
 	// Set up query parameters
 	includeItemTypes := []jellyfin.BaseItemKind{jellyfin.BASEITEMKIND_AUDIO}
 
-	limit, startIndex, sortBy, sortOrder := j.getQueryParameters(options)
-
 	// Call the Jellyfin API
 	log.Debug().Msg("Making API request to Jellyfin server for music tracks")
 	itemsReq := j.client.ItemsAPI.GetItems(ctx).
 		IncludeItemTypes(includeItemTypes).
 		Recursive(true).
-		Limit(*limit).
-		StartIndex(*startIndex).
-		SortBy(sortBy).
-		SortOrder(sortOrder).
 		UserId(j.config.UserID)
+
+	NewJellyfinQueryOptions(options).
+		SetItemsRequest(&itemsReq)
 
 	result, resp, err := itemsReq.Execute()
 
@@ -64,7 +62,7 @@ func (j *JellyfinClient) GetMusic(ctx context.Context, options *t.QueryOptions) 
 						Title:       *item.Name.Get(),
 						Description: *item.Overview.Get(),
 						Duration:    getDurationFromTicks(item.RunTimeTicks.Get()),
-						Artwork:     j.getArtworkURLs(&item),
+						Artwork:     *j.getArtworkURLs(&item),
 					},
 					Number: int(*item.IndexNumber.Get()),
 				},
@@ -107,16 +105,13 @@ func (j *JellyfinClient) GetMusicArtists(ctx context.Context, options *t.QueryOp
 		Str("baseURL", j.config.BaseURL).
 		Msg("Retrieving music artists from Jellyfin server")
 
-	limit, startIndex, sortBy, sortOrder := j.getQueryParameters(options)
-
 	// Call the Jellyfin API
 	log.Debug().Msg("Making API request to Jellyfin server for music artists")
 	artistReq := j.client.ArtistsAPI.GetArtists(ctx).
-		Limit(*limit).
-		StartIndex(*startIndex).
-		SortBy(sortBy).
-		SortOrder(sortOrder).
 		UserId(j.config.UserID)
+
+	NewJellyfinQueryOptions(options).
+		SetArtistsRequest(&artistReq)
 
 	result, resp, err := artistReq.Execute()
 
@@ -145,7 +140,7 @@ func (j *JellyfinClient) GetMusicArtists(ctx context.Context, options *t.QueryOp
 				Details: t.MediaDetails{
 					Title:       *item.Name.Get(),
 					Description: *item.Overview.Get(),
-					Artwork:     j.getArtworkURLs(&item),
+					Artwork:     *j.getArtworkURLs(&item),
 					Genres:      item.Genres,
 				},
 			},
@@ -179,18 +174,15 @@ func (j *JellyfinClient) GetMusicAlbums(ctx context.Context, options *t.QueryOpt
 	// Set up query parameters
 	includeItemTypes := []jellyfin.BaseItemKind{jellyfin.BASEITEMKIND_MUSIC_ALBUM}
 
-	limit, startIndex, sortBy, sortOrder := j.getQueryParameters(options)
-
 	// Call the Jellyfin API
 	log.Debug().Msg("Making API request to Jellyfin server for music albums")
 	itemsReq := j.client.ItemsAPI.GetItems(ctx).
 		IncludeItemTypes(includeItemTypes).
 		Recursive(true).
-		Limit(*limit).
-		StartIndex(*startIndex).
-		SortBy(sortBy).
-		SortOrder(sortOrder).
 		UserId(j.config.UserID)
+
+	NewJellyfinQueryOptions(options).
+		SetItemsRequest(&itemsReq)
 
 	result, resp, err := itemsReq.Execute()
 
@@ -220,7 +212,7 @@ func (j *JellyfinClient) GetMusicAlbums(ctx context.Context, options *t.QueryOpt
 					Description: *item.Overview.Get(),
 					ReleaseYear: int(*item.ProductionYear.Get()),
 					Genres:      item.Genres,
-					Artwork:     j.getArtworkURLs(&item),
+					Artwork:     *j.getArtworkURLs(&item),
 				},
 				TrackCount: int(*item.ChildCount.Get()),
 			},
@@ -267,7 +259,7 @@ func (j *JellyfinClient) GetMusicTrackByID(ctx context.Context, id string) (mode
 
 	itemsReq := j.client.ItemsAPI.GetItems(ctx)
 
-	itemsReq.Ids(stringToSlice(ids))
+	itemsReq.Ids(strings.Split(ids, ","))
 
 	result, resp, err := itemsReq.Execute()
 	if err != nil {
@@ -296,7 +288,7 @@ func (j *JellyfinClient) GetMusicTrackByID(ctx context.Context, id string) (mode
 	if *item.Type != "Audio" {
 		log.Error().
 			Str("trackID", id).
-			Str("actualType", baseItemKindToString(*item.Type)).
+			Str("actualType", string(*item.Type)).
 			Msg("Item with specified ID is not a music track")
 		return models.MediaItem[*t.Track]{}, fmt.Errorf("item with ID %s is not a music track", id)
 	}
@@ -313,7 +305,7 @@ func (j *JellyfinClient) GetMusicTrackByID(ctx context.Context, id string) (mode
 				Title:       *item.Name.Get(),
 				Description: *item.Overview.Get(),
 				Duration:    getDurationFromTicks(item.RunTimeTicks.Get()),
-				Artwork:     j.getArtworkURLs(&item),
+				Artwork:     *j.getArtworkURLs(&item),
 			},
 			Number: int(*item.IndexNumber.Get()),
 		},

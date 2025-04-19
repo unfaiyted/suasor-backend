@@ -11,7 +11,7 @@ import (
 	"suasor/utils"
 )
 
-func (j *JellyfinClient) GetCollections(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[*t.Collection], error) {
+func (j *JellyfinClient) GetCollections(ctx context.Context, options *t.QueryOptions) ([]*models.MediaItem[*t.Collection], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -21,20 +21,16 @@ func (j *JellyfinClient) GetCollections(ctx context.Context, options *t.QueryOpt
 		Str("baseURL", j.config.BaseURL).
 		Msg("Retrieving collections from Jellyfin server")
 
-	// Set up query parameters
-	includeItemTypes := []jellyfin.BaseItemKind{jellyfin.BASEITEMKIND_BOX_SET}
-
-	limit, startIndex, sortBy, sortOrder := j.getQueryParameters(options)
+		// Set up query parameters
 
 	// Call the Jellyfin API
 	log.Debug().Msg("Making API request to Jellyfin server for collections")
-	itemsReq := j.client.ItemsAPI.GetItems(ctx).
-		IncludeItemTypes(includeItemTypes).
-		Recursive(true).
-		Limit(*limit).
-		StartIndex(*startIndex).
-		SortBy(sortBy).
-		SortOrder(sortOrder)
+	itemsReq := j.client.ItemsAPI.GetItems(ctx)
+
+	NewJellyfinQueryOptions(options).
+		SetItemsRequest(&itemsReq)
+
+	itemsReq.IncludeItemTypes([]jellyfin.BaseItemKind{jellyfin.BASEITEMKIND_BOX_SET})
 
 	result, resp, err := itemsReq.Execute()
 
@@ -55,20 +51,9 @@ func (j *JellyfinClient) GetCollections(ctx context.Context, options *t.QueryOpt
 		Msg("Successfully retrieved collections from Jellyfin")
 
 	// Convert results to expected format
-	collections := make([]models.MediaItem[*t.Collection], 0)
-	for _, item := range result.Items {
-		if *item.Type == "BoxSet" {
-			collection, err := j.convertToCollection(ctx, &item)
-			if err != nil {
-				// Log error but continue
-				log.Warn().
-					Err(err).
-					Str("collectionID", *item.Id).
-					Msg("Error converting Jellyfin item to collection format")
-				continue
-			}
-			collections = append(collections, collection)
-		}
+	collections, err := GetMediaItemList[*t.Collection](ctx, j, result.Items)
+	if err != nil {
+		return nil, err
 	}
 
 	log.Info().
@@ -79,7 +64,7 @@ func (j *JellyfinClient) GetCollections(ctx context.Context, options *t.QueryOpt
 }
 
 // GetCollectionItems retrieves all items in a collection from Jellyfin
-func (j *JellyfinClient) GetCollectionItems(ctx context.Context, collectionID string, options *t.QueryOptions) ([]models.MediaItem[t.MediaData], error) {
+func (j *JellyfinClient) GetCollectionItems(ctx context.Context, collectionID string, options *t.QueryOptions) (*models.MediaItems, error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -90,7 +75,6 @@ func (j *JellyfinClient) GetCollectionItems(ctx context.Context, collectionID st
 		Msg("Retrieving collection items from Jellyfin")
 
 	// Set up query parameters
-	limit, startIndex, sortBy, sortOrder := j.getQueryParameters(options)
 
 	var fields []jellyfin.ItemFields
 
@@ -101,14 +85,10 @@ func (j *JellyfinClient) GetCollectionItems(ctx context.Context, collectionID st
 
 	// Call the Jellyfin API to get items in the collection
 	itemsReq := j.client.ItemsAPI.GetItems(ctx).
-		ParentId(collectionID).
-		Recursive(true).
-		Limit(*limit).
-		StartIndex(*startIndex).
-		SortBy(sortBy).
-		SortOrder(sortOrder).
-		Fields(fields).
-		EnableImages(true)
+		ParentId(collectionID).Fields(fields).EnableImages(true)
+
+	NewJellyfinQueryOptions(options).
+		SetItemsRequest(&itemsReq)
 
 	result, resp, err := itemsReq.Execute()
 	if err != nil {
@@ -132,26 +112,17 @@ func (j *JellyfinClient) GetCollectionItems(ctx context.Context, collectionID st
 		log.Info().
 			Str("collectionID", collectionID).
 			Msg("No items found in collection")
-		return []models.MediaItem[t.MediaData]{}, nil
+		return &models.MediaItems{}, nil
 	}
 
-	// Convert results to expected format
-	mediaItems := make([]models.MediaItem[t.MediaData], 0, len(result.Items))
-	for _, item := range result.Items {
-		mediaItem, err := j.convertByItemType(ctx, &item)
-		if err == nil {
-			mediaItems = append(mediaItems, mediaItem)
-		} else {
-			log.Warn().
-				Err(err).
-				Str("itemID", *item.Id).
-				Msg("Failed to convert collection item")
-		}
+	mediaItems, err := GetMixedMediaItems(j, ctx, result.Items)
+	if err != nil {
+		return nil, err
 	}
 
 	log.Info().
 		Str("collectionID", collectionID).
-		Int("itemCount", len(mediaItems)).
+		Int("itemCount", mediaItems.GetTotalItems()).
 		Msg("Successfully retrieved collection items from Jellyfin")
 
 	return mediaItems, nil

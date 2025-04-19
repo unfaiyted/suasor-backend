@@ -2,7 +2,6 @@ package subsonic
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	base "suasor/client"
 	media "suasor/client/media"
@@ -11,24 +10,7 @@ import (
 	"time"
 
 	gosonic "github.com/supersonic-app/go-subsonic/subsonic"
-
-	c "suasor/client"
 )
-
-// Add this init function to register the subsonic client factory
-func init() {
-	c.GetClientFactoryService().RegisterClientFactory(types.ClientTypeSubsonic,
-		func(ctx context.Context, clientID uint64, cfg types.ClientConfig) (base.Client, error) {
-			// Type assert to subsonicConfig
-			subsonicConfig, ok := cfg.(*types.SubsonicConfig)
-			if !ok {
-				return nil, fmt.Errorf("invalid config type for subsonic client, expected *EmbyConfig, got %T", cfg)
-			}
-
-			// Use your existing constructor
-			return NewSubsonicClient(ctx, clientID, *subsonicConfig)
-		})
-}
 
 // SubsonicClient implements MediaContentProvider for Subsonic
 type SubsonicClient struct {
@@ -38,8 +20,7 @@ type SubsonicClient struct {
 }
 
 // NewSubsonicClient creates a new Subsonic client
-func NewSubsonicClient(ctx context.Context, clientID uint64, config types.SubsonicConfig) (media.ClientMedia, error) {
-
+func NewSubsonicClient(ctx context.Context, registry *media.ClientItemRegistry, clientID uint64, config types.SubsonicConfig) (media.ClientMedia, error) {
 	log := utils.LoggerFromContext(context.Background())
 
 	log.Info().
@@ -47,11 +28,6 @@ func NewSubsonicClient(ctx context.Context, clientID uint64, config types.Subson
 		Str("baseURL", config.BaseURL).
 		Bool("ssl", config.SSL).
 		Msg("Creating new Subsonic client")
-
-	// protocol := "http"
-	// if cfg.SSL {
-	// 	protocol = "https"
-	// }
 
 	httpClient := &http.Client{Timeout: 30 * time.Second}
 
@@ -75,24 +51,23 @@ func NewSubsonicClient(ctx context.Context, clientID uint64, config types.Subson
 		log.Info().Msg("Successfully authenticated with Subsonic server")
 	}
 
-	return &SubsonicClient{
+	// Create the Subsonic client
+	subsonicClient := &SubsonicClient{
 		BaseClientMedia: media.BaseClientMedia{
 			BaseClient: base.BaseClient{
 				ClientID: clientID,
 				Category: types.ClientMediaTypeSubsonic.AsCategory(),
 				Config:   &config,
 			},
-			ClientType: types.ClientMediaTypeSubsonic,
+			ClientType:   types.ClientMediaTypeSubsonic,
+			ItemRegistry: registry,
 		},
 		httpClient: httpClient,
 		client:     client,
-	}, nil
-}
+	}
 
-// Register the provider factory
-// func init() {
-// 	media.RegisterClient(types.ClientMediaTypeSubsonic, NewSubsonicClient)
-// }
+	return subsonicClient, nil
+}
 
 // Capability methods - Subsonic only supports music
 func (c *SubsonicClient) SupportsMusic() bool       { return true }
@@ -101,6 +76,10 @@ func (c *SubsonicClient) SupportsMovies() bool      { return false }
 func (c *SubsonicClient) SupportsTVShows() bool     { return false }
 func (c *SubsonicClient) SupportsBooks() bool       { return false }
 func (c *SubsonicClient) SupportsCollections() bool { return false }
+
+func (c *SubsonicClient) GetRegistry() *media.ClientItemRegistry {
+	return c.ItemRegistry
+}
 
 func (c *SubsonicClient) TestConnection(ctx context.Context) (bool, error) {
 	isUp := c.client.Ping()

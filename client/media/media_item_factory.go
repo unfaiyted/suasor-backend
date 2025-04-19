@@ -5,29 +5,9 @@ import (
 	"fmt"
 	"reflect"
 
+	// "suasor/client"
 	"suasor/client/media/types"
 )
-
-var GlobalMediaRegistry = NewClientItemRegistry()
-
-func init() {
-	// Register all the media factories for Emby
-	RegisterFactory[*EmbyClient, *embyclient.BaseItemDto, *types.Album](
-		GlobalMediaRegistry,
-		func(client *EmbyClient, ctx context.Context, item *embyclient.BaseItemDto) (*types.Album, error) {
-			return client.albumFactory(ctx, item)
-		},
-	)
-
-	RegisterFactory[*EmbyClient, *embyclient.BaseItemDto, *types.Movie](
-		GlobalMediaRegistry,
-		func(client *EmbyClient, ctx context.Context, item *embyclient.BaseItemDto) (*types.Movie, error) {
-			return client.movieFactory(ctx, item)
-		},
-	)
-
-	// Register other factories for other media types...
-}
 
 // MediaFactory is a generic factory function type
 type MediaFactory[C ClientMedia, I any, O types.MediaData] func(client C, ctx context.Context, item I) (O, error)
@@ -95,18 +75,14 @@ func GetFactory[C ClientMedia, I any, O types.MediaData](
 
 // ConvertTo converts item to the desired output type using the appropriate factory
 func ConvertTo[C ClientMedia, I any, O types.MediaData](
-	registry *ClientItemRegistry,
 	client C,
 	ctx context.Context,
 	item I,
 ) (O, error) {
-	factory, err := GetFactory[C, I, O](registry)
+	factory, err := GetFactory[C, I, O](client.GetRegistry())
 	if err != nil {
 		var zero O
 		return zero, err
 	}
 	return factory(client, ctx, item)
 }
-
-// In a separate file:
-// album := GetMediaItem[*types.Album](registry, embyClient, ctx, itemDto)

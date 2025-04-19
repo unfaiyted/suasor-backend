@@ -84,6 +84,10 @@ type Series struct {
 	Credits       Credits   `json:"credits,omitempty"`
 }
 
+func (m *Series) SetDetails(details MediaDetails) {
+	m.Details = details
+}
+
 // Movie represents a movie item
 type Movie struct {
 	Details      MediaDetails

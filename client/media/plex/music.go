@@ -13,7 +13,7 @@ import (
 )
 
 // GetMusic retrieves music tracks from Plex
-func (c *PlexClient) GetMusic(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[*types.Track], error) {
+func (c *PlexClient) GetMusic(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Track], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -39,7 +39,7 @@ func (c *PlexClient) GetMusic(ctx context.Context, options *types.QueryOptions) 
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No music library section found in Plex")
-		return []models.MediaItem[*types.Track]{}, nil
+		return nil, nil
 	}
 
 	// For tracks, we need to traverse the hierarchy: artists > albums > tracks
@@ -59,7 +59,7 @@ func (c *PlexClient) GetMusic(ctx context.Context, options *types.QueryOptions) 
 		return nil, fmt.Errorf("failed to get music artists: %w", err)
 	}
 
-	var tracks []models.MediaItem[*types.Track]
+	var tracks []*models.MediaItem[*types.Track]
 
 	// Loop through artists
 	if res.Object.MediaContainer != nil && res.Object.MediaContainer.Metadata != nil {
@@ -122,36 +122,23 @@ func (c *PlexClient) GetMusic(ctx context.Context, options *types.QueryOptions) 
 							Int("trackCount", len(tracksRes.Object.MediaContainer.Metadata)).
 							Msg("Processing tracks for album")
 
-						for _, item := range tracksRes.Object.MediaContainer.Metadata {
-							if *item.Type != "track" {
-								continue
-							}
-
-							track := models.MediaItem[*types.Track]{
-								Data: &types.Track{
-									Details:    c.createChildMetadataFromPlexItem(&item),
-									Number:     *item.Index,
-									ArtistName: artist.Title,
-									AlbumName:  *album.Title,
-								},
-							}
-							track.Data.AddSyncClient(c.ClientID, *item.RatingKey, *item.ParentRatingKey)
-							track.SetClientInfo(c.ClientID, c.ClientType, *item.RatingKey)
-							tracks = append(tracks, track)
-
-							log.Debug().
-								Str("trackID", *item.RatingKey).
-								Str("trackTitle", *item.Title).
-								Int("trackNumber", *item.Index).
-								Msg("Added track to result list")
-
-							// Limit number of tracks to avoid too large responses
-							if len(tracks) >= 100 {
-								log.Info().
-									Int("trackCount", len(tracks)).
-									Msg("Reached track limit (100), returning results")
-								return tracks, nil
-							}
+						tracks, err := GetChildMediaItemsList[*types.Track](ctx, c, tracksRes.Object.MediaContainer.Metadata)
+						if err != nil {
+							log.Error().
+								Err(err).
+								Uint64("clientID", c.ClientID).
+								Str("clientType", string(c.ClientType)).
+								Str("albumID", *album.RatingKey).
+								Str("albumName", *album.Title).
+								Msg("Failed to get tracks for album, skipping")
+							continue
+						}
+						// Limit number of tracks for now
+						if len(tracks) >= 1000 {
+							log.Info().
+								Int("trackCount", len(tracks)).
+								Msg("Reached track limit (1000), returning results")
+							return tracks, nil
 						}
 					}
 				}
@@ -169,7 +156,7 @@ func (c *PlexClient) GetMusic(ctx context.Context, options *types.QueryOptions) 
 }
 
 // GetMusicArtists retrieves music artists from Plex
-func (c *PlexClient) GetMusicArtists(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[*types.Artist], error) {
+func (c *PlexClient) GetMusicArtists(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Artist], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -195,7 +182,7 @@ func (c *PlexClient) GetMusicArtists(ctx context.Context, options *types.QueryOp
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No music library section found in Plex")
-		return []models.MediaItem[*types.Artist]{}, nil
+		return nil, nil
 	}
 
 	sectionKey, _ := strconv.Atoi(musicSectionKey)
@@ -220,7 +207,7 @@ func (c *PlexClient) GetMusicArtists(ctx context.Context, options *types.QueryOp
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No music artists found in Plex")
-		return []models.MediaItem[*types.Artist]{}, nil
+		return nil, nil
 	}
 
 	log.Info().
@@ -229,39 +216,21 @@ func (c *PlexClient) GetMusicArtists(ctx context.Context, options *types.QueryOp
 		Int("totalItems", len(res.Object.MediaContainer.Metadata)).
 		Msg("Successfully retrieved music artists from Plex")
 
-	artists := make([]models.MediaItem[*types.Artist], 0, len(res.Object.MediaContainer.Metadata))
-	for _, item := range res.Object.MediaContainer.Metadata {
-		if item.Type != "artist" {
-			continue
-		}
-
-		artist := models.MediaItem[*types.Artist]{
-			Data: &types.Artist{
-				Details: c.createMetadataFromPlexItem(&item),
-			},
-		}
-
-		artist.SetClientInfo(c.ClientID, c.ClientType, item.RatingKey)
-
-		artists = append(artists, artist)
-
-		log.Debug().
-			Str("artistID", item.RatingKey).
-			Str("artistName", item.Title).
-			Msg("Added artist to result list")
+	artists, err := GetMediaItemList[*types.Artist](ctx, c, res.Object.MediaContainer.Metadata)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("clientID", c.ClientID).
+			Str("clientType", string(c.ClientType)).
+			Msg("Failed to get music artists from Plex")
+		return nil, fmt.Errorf("failed to get music artists: %w", err)
 	}
-
-	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
-		Int("artistsReturned", len(artists)).
-		Msg("Completed GetMusicArtists request")
 
 	return artists, nil
 }
 
 // GetMusicAlbums retrieves music albums from Plex
-func (c *PlexClient) GetMusicAlbums(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[*types.Album], error) {
+func (c *PlexClient) GetMusicAlbums(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Album], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -287,7 +256,7 @@ func (c *PlexClient) GetMusicAlbums(ctx context.Context, options *types.QueryOpt
 			Uint64("clientID", c.ClientID).
 			Str("clientType", string(c.ClientType)).
 			Msg("No music library section found in Plex")
-		return []models.MediaItem[*types.Album]{}, nil
+		return nil, nil
 	}
 
 	// For albums, we need to traverse artists first
@@ -308,78 +277,62 @@ func (c *PlexClient) GetMusicAlbums(ctx context.Context, options *types.QueryOpt
 		return nil, fmt.Errorf("failed to get music artists: %w", err)
 	}
 
-	var albums []models.MediaItem[*types.Album]
+	artists, err := GetMediaItemList[*types.Artist](ctx, c, res.Object.MediaContainer.Metadata)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("clientID", c.ClientID).
+			Str("clientType", string(c.ClientType)).
+			Int("sectionKey", sectionKey).
+			Msg("Failed to get music albums from Plex")
+		return nil, fmt.Errorf("failed to get music albums: %w", err)
+	}
 
-	// Loop through artists to get their albums
-	if res.Object.MediaContainer != nil && res.Object.MediaContainer.Metadata != nil {
+	for _, artist := range artists {
+		artistKey, _ := strconv.Atoi(artist.SyncClients.GetClientItemID(c.ClientID))
+		float64ArtistKey := float64(artistKey)
+
 		log.Debug().
-			Int("artistCount", len(res.Object.MediaContainer.Metadata)).
-			Msg("Processing artists to find albums")
+			Int("artistID", artistKey).
+			Str("artistName", artist.Title).
+			Msg("Getting albums for artist")
 
-		for _, artist := range res.Object.MediaContainer.Metadata {
-			artistKey, _ := strconv.Atoi(artist.RatingKey)
-			float64ArtistKey := float64(artistKey)
-
-			log.Debug().
-				Str("artistID", artist.RatingKey).
+		albumsRes, err := c.plexAPI.Library.GetMetadataChildren(ctx, float64ArtistKey, plexgo.String("Stream"))
+		if err != nil {
+			log.Warn().
+				Err(err).
+				Int("artistID", artistKey).
 				Str("artistName", artist.Title).
-				Msg("Getting albums for artist")
+				Msg("Failed to get albums for artist, skipping")
+			continue
+		}
 
-			albumsRes, err := c.plexAPI.Library.GetMetadataChildren(ctx, float64ArtistKey, plexgo.String("Stream"))
+		if albumsRes.Object.MediaContainer != nil && albumsRes.Object.MediaContainer.Metadata != nil {
+			log.Debug().
+				Int("artistID", artistKey).
+				Str("artistName", artist.Title).
+				Int("albumCount", len(albumsRes.Object.MediaContainer.Metadata)).
+				Msg("Processing albums for artist")
+
+			albums, err := GetChildMediaItemsList[*types.Album](ctx, c, albumsRes.Object.MediaContainer.Metadata)
 			if err != nil {
-				log.Warn().
+				log.Error().
 					Err(err).
-					Str("artistID", artist.RatingKey).
+					Int("artistID", artistKey).
 					Str("artistName", artist.Title).
 					Msg("Failed to get albums for artist, skipping")
 				continue
+
 			}
-
-			if albumsRes.Object.MediaContainer != nil && albumsRes.Object.MediaContainer.Metadata != nil {
-				log.Debug().
-					Str("artistID", artist.RatingKey).
-					Str("artistName", artist.Title).
-					Int("albumCount", len(albumsRes.Object.MediaContainer.Metadata)).
-					Msg("Processing albums for artist")
-
-				for _, item := range albumsRes.Object.MediaContainer.Metadata {
-					if *item.Type != "album" {
-						continue
-					}
-
-					album := models.MediaItem[*types.Album]{
-						Data: &types.Album{
-							Details:    c.createChildMetadataFromPlexItem(&item),
-							ArtistName: artist.Title,
-							TrackCount: *item.LeafCount,
-						},
-					}
-
-					album.Data.AddSyncClient(c.ClientID, *item.RatingKey)
-					album.SetClientInfo(c.ClientID, c.ClientType, *item.RatingKey)
-					albums = append(albums, album)
-
-					log.Debug().
-						Str("albumID", *item.RatingKey).
-						Str("albumName", *item.Title).
-						Int("trackCount", *item.LeafCount).
-						Msg("Added album to result list")
-				}
-			}
+			return albums, nil
 		}
+
 	}
-
-	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
-		Int("albumsReturned", len(albums)).
-		Msg("Completed GetMusicAlbums request")
-
-	return albums, nil
+	return nil, nil
 }
 
 // GetMusicTrackByID retrieves a specific music track by ID
-func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (models.MediaItem[*types.Track], error) {
+func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (*models.MediaItem[*types.Track], error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -405,7 +358,7 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (models.M
 			Str("clientType", string(c.ClientType)).
 			Str("trackID", id).
 			Msg("Failed to get music track from Plex")
-		return models.MediaItem[*types.Track]{}, fmt.Errorf("failed to get music track: %w", err)
+		return nil, fmt.Errorf("failed to get music track: %w", err)
 	}
 
 	if res.Object.MediaContainer == nil || res.Object.MediaContainer.Metadata == nil || len(res.Object.MediaContainer.Metadata) == 0 {
@@ -414,7 +367,7 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (models.M
 			Str("clientType", string(c.ClientType)).
 			Str("trackID", id).
 			Msg("Music track not found in Plex")
-		return models.MediaItem[*types.Track]{}, fmt.Errorf("music track not found")
+		return nil, fmt.Errorf("music track not found")
 	}
 
 	item := res.Object.MediaContainer.Metadata[0]
@@ -425,7 +378,8 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (models.M
 			Str("trackID", id).
 			Str("actualType", item.Type).
 			Msg("Item retrieved is not a music track")
-		return models.MediaItem[*types.Track]{}, fmt.Errorf("item is not a music track")
+		return nil, fmt.Errorf("item is not a music track")
+
 	}
 
 	// Get album and artist info
@@ -489,15 +443,22 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (models.M
 		Str("artistName", artistName).
 		Msg("Successfully retrieved music track from Plex")
 
-	track := models.MediaItem[*types.Track]{
-		Data: &types.Track{
-			AlbumName:  albumName,
-			ArtistName: artistName,
-			Number:     int(*item.Index),
-			Details:    c.createMediaDetailsFromPlexItem(&item),
-		},
+	itemTrack, err := GetItemFromMetadata[*types.Track](ctx, c, &item)
+	track, err := GetMediaItem[*types.Track](ctx, c, itemTrack, item.RatingKey)
+
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("clientID", c.ClientID).
+			Str("clientType", string(c.ClientType)).
+			Str("trackID", id).
+			Msg("Error converting Plex item to track format")
+		return nil, fmt.Errorf("error converting track data: %w", err)
 	}
 
+	track.Data.AlbumName = albumName
+	track.Data.ArtistName = artistName
+	track.Data.Number = int(*item.Index)
 	track.Data.AddSyncClient(c.ClientID, *item.ParentRatingKey, artistID)
 	track.SetClientInfo(c.ClientID, c.ClientType, item.RatingKey)
 
