@@ -7,7 +7,7 @@ import (
 )
 
 // HistoryProvider defines watch and play history capabilities
-type HistoryProvider interface {
+type HistoryProvider[T types.MediaData] interface {
 	SupportsHistory() bool
-	GetPlayHistory(ctx context.Context, options *types.QueryOptions) ([]*models.UserMediaItemData[types.MediaData], error)
+	GetPlayHistory(ctx context.Context, options *types.QueryOptions) ([]*models.UserMediaItemData[T], error)
 }

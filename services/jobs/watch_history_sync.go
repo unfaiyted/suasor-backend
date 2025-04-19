@@ -227,7 +227,7 @@ func (j *WatchHistorySyncJob) RunManualSync(ctx context.Context, userID uint64) 
 }
 
 // syncClientHistory syncs watch history for a specific client
-func syncClientHistory[T clienttypes.ClientConfig](j WatchHistorySyncJob, ctx context.Context, userID uint64, clientConfig *models.Client[T], jobRunID uint64) error {
+func syncClientHistory[T clienttypes.ClientConfig](j *WatchHistorySyncJob, ctx context.Context, userID uint64, clientConfig *models.Client[T], jobRunID uint64) error {
 	// Log the start of synchronization
 	log := utils.LoggerFromContext(ctx)
 	log.Info().
@@ -247,7 +247,7 @@ func syncClientHistory[T clienttypes.ClientConfig](j WatchHistorySyncJob, ctx co
 	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 20, "Fetching play history from client")
 
 	// Check if client supports play history
-	historyProvider, ok := clientMedia.(providers.HistoryProvider)
+	historyProvider, ok := clientMedia.(providers.HistoryProvider[mediatypes.Movie])
 	if !ok {
 		return fmt.Errorf("client doesn't support play history")
 	}
@@ -282,7 +282,7 @@ func syncClientHistory[T clienttypes.ClientConfig](j WatchHistorySyncJob, ctx co
 		}
 
 		// Skip invalid items
-		if historyItem.Item == nil || historyItem.Item.Data == nil {
+		if historyItem.Item == nil || &historyItem.Item.Data == nil {
 			log.Warn().Msg("Skipping invalid history item with no data")
 			continue
 		}
@@ -290,12 +290,12 @@ func syncClientHistory[T clienttypes.ClientConfig](j WatchHistorySyncJob, ctx co
 		// Create/update history based on media type
 		switch historyItem.Item.Type {
 		case mediatypes.MediaTypeMovie:
-			if err := j.processMovieHistory(ctx, userID, clientConfig.ID, historyItem); err != nil {
+			if err := j.processMovieHistory(ctx, userID, clientConfig.ID, *historyItem); err != nil {
 				log.Warn().Err(err).Msg("Error processing movie history")
 				continue
 			}
 		case mediatypes.MediaTypeSeries:
-			if err := j.processSeriesHistory(ctx, userID, clientConfig.ID, historyItem); err != nil {
+			if err := j.processSeriesHistory(ctx, userID, clientConfig.ID, *historyItem); err != nil {
 				log.Warn().Err(err).Msg("Error processing series history")
 				continue
 			}
@@ -327,7 +327,7 @@ func syncClientHistory[T clienttypes.ClientConfig](j WatchHistorySyncJob, ctx co
 }
 
 // processMovieHistory processes a movie history item and updates the database
-func (j *WatchHistorySyncJob) processMovieHistory(ctx context.Context, userID, clientID uint64, historyItem models.UserMediaItemData[mediatypes.MediaData]) error {
+func (j *WatchHistorySyncJob) processMovieHistory(ctx context.Context, userID, clientID uint64, historyItem models.UserMediaItemData[mediatypes.Movie]) error {
 	log := utils.LoggerFromContext(ctx)
 
 	// Get client item ID from the media item
@@ -386,7 +386,7 @@ func (j *WatchHistorySyncJob) processMovieHistory(ctx context.Context, userID, c
 }
 
 // processSeriesHistory processes a series history item and updates the database
-func (j *WatchHistorySyncJob) processSeriesHistory(ctx context.Context, userID, clientID uint64, historyItem models.UserMediaItemData[mediatypes.MediaData]) error {
+func (j *WatchHistorySyncJob) processSeriesHistory(ctx context.Context, userID, clientID uint64, historyItem models.UserMediaItemData[mediatypes.Series]) error {
 	log := utils.LoggerFromContext(ctx)
 
 	// Get client item ID from the media item
@@ -575,7 +575,7 @@ func processHistory[T clienttypes.ClientConfig](j *WatchHistorySyncJob, ctx cont
 			fmt.Sprintf("Processing client %d/%d: %s", i+1, len(clients), clientConfig.Name))
 
 		// Sync watch history for this client
-		err := syncClientHistory[T](*j, ctx, user.ID, clientConfig, jobRun.ID)
+		err := syncClientHistory[T](j, ctx, user.ID, clientConfig, jobRun.ID)
 		if err != nil {
 			log.Printf("Error syncing history for client %s: %v", clientConfig.Name, err)
 			lastError = err

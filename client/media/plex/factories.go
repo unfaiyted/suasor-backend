@@ -59,9 +59,9 @@ func RegisterMediaItemFactories(c *container.Container) {
 		},
 	)
 
-	media.RegisterFactory[*PlexClient, *operations.GetLibraryItemsMetadata, *types.Album](
+	media.RegisterFactory[*PlexClient, *operations.GetMetadataChildrenMetadata, *types.Album](
 		&registry,
-		func(client *PlexClient, ctx context.Context, item *operations.GetLibraryItemsMetadata) (*types.Album, error) {
+		func(client *PlexClient, ctx context.Context, item *operations.GetMetadataChildrenMetadata) (*types.Album, error) {
 			return client.albumFactory(ctx, item)
 		},
 	)
@@ -358,27 +358,27 @@ func (c *PlexClient) collectionFactory(ctx context.Context, item *operations.Get
 func (c *PlexClient) playlistFactory(ctx context.Context, item *operations.GetPlaylistMetadata) (*types.Playlist, error) {
 	log := utils.LoggerFromContext(ctx)
 
-	if item.RatingKey == "" {
+	if *item.RatingKey == "" {
 		return nil, fmt.Errorf("playlist is missing required ID field (RatingKey)")
 	}
 
 	log.Debug().
-		Str("playlistID", item.RatingKey).
-		Str("playlistTitle", item.Title).
+		Str("playlistID", *item.RatingKey).
+		Str("playlistTitle", *item.Title).
 		Msg("Converting Plex item to playlist format")
 
 	// Create the playlist object
 	playlist := &types.Playlist{
 		ItemList: types.ItemList{
 			Details: types.MediaDetails{
-				Title:       item.Title,
-				Description: item.Summary,
-				Artwork: types.Artwork{
-					Thumbnail: c.makeFullURL(*item.Thumb),
+				Title:       *item.Title,
+				Description: *item.Summary,
+				Artwork:     types.Artwork{
+					// Thumbnail: c.makeFullURL(*item.Thumb),
 				},
 				ExternalIDs: types.ExternalIDs{types.ExternalID{
 					Source: "plex",
-					ID:     item.RatingKey,
+					ID:     *item.RatingKey,
 				}},
 			},
 			IsPublic: true, // Assume public by default in Plex
@@ -386,12 +386,12 @@ func (c *PlexClient) playlistFactory(ctx context.Context, item *operations.GetPl
 	}
 
 	// Set item count if available
-	if item.ChildCount != nil {
-		playlist.ItemCount = int(*item.ChildCount)
+	if item.LeafCount != nil {
+		playlist.ItemCount = int(*item.LeafCount)
 	}
 
 	log.Debug().
-		Str("playlistID", item.RatingKey).
+		Str("playlistID", *item.RatingKey).
 		Str("playlistTitle", playlist.Details.Title).
 		Int("itemCount", playlist.ItemCount).
 		Msg("Successfully converted Plex item to playlist")
@@ -527,4 +527,3 @@ func (c *PlexClient) trackFactory(ctx context.Context, item *operations.GetLibra
 
 	return track, nil
 }
-

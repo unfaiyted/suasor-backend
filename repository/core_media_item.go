@@ -477,18 +477,20 @@ func (r *mediaItemRepository[T]) GetMixedMediaItemsByIDs(ctx context.Context, id
 	if err != nil {
 		return nil, err
 	}
+	var mediaItems models.MediaItems
 
-	return &models.MediaItems{
-		Movies:      movies,
-		Series:      series,
-		Seasons:     seasons,
-		Episodes:    episodes,
-		Albums:      albums,
-		Artists:     artists,
-		Tracks:      tracks,
-		Playlists:   playlists,
-		Collections: collections,
-	}, nil
+	mediaItems.AddMovieList(movies)
+	mediaItems.AddSeriesList(series)
+	mediaItems.AddSeasonList(seasons)
+	mediaItems.AddEpisodeList(episodes)
+	mediaItems.AddAlbumList(albums)
+	mediaItems.AddArtistList(artists)
+	mediaItems.AddTrackList(tracks)
+	mediaItems.AddPlaylistList(playlists)
+	mediaItems.AddCollectionList(collections)
+
+	return &mediaItems, nil
+
 }
 
 func (r *mediaItemRepository[T]) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error) {
