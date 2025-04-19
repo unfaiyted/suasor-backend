@@ -3,7 +3,7 @@ package di
 
 import (
 	"gorm.io/gorm"
-	"suasor/app/factory"
+	"suasor/app/di/factories"
 	apphandlers "suasor/app/handlers"
 	"suasor/app/repository"
 	"suasor/app/services"
@@ -21,7 +21,7 @@ type mediaDataFactoryImpl struct {
 }
 
 // createMediaDataFactory creates a new MediaDataFactory implementation
-func createMediaDataFactory(db *gorm.DB, clientFactory *client.ClientFactoryService) factory.MediaDataFactory {
+func createMediaDataFactory(db *gorm.DB, clientFactory *client.ClientFactoryService) factories.MediaDataFactory {
 	return &mediaDataFactoryImpl{
 		db:            db,
 		clientFactory: clientFactory,
@@ -33,7 +33,7 @@ func createMediaDataFactory(db *gorm.DB, clientFactory *client.ClientFactoryServ
 // --------------------------------------------------------
 
 // CreateCoreRepositories initializes all core repositories
-func (f *mediaDataFactoryImpl) CreateCoreMediaItemRepositories() repository.CoreMediaItemRepositories {
+func (f *mediaDataFactoryImpl) CreateCoreRepositories() repository.CoreMediaItemRepositories {
 	return &coreRepositoriesImpl{
 		movieRepo:      repo.NewMediaItemRepository[*mediatypes.Movie](f.db),
 		seriesRepo:     repo.NewMediaItemRepository[*mediatypes.Series](f.db),
@@ -65,7 +65,7 @@ func (f *mediaDataFactoryImpl) CreateCoreDataRepositories() repository.CoreUserM
 // --------------------------------------------------------
 
 // CreateUserRepositories initializes all user repositories
-func (f *mediaDataFactoryImpl) CreateUserMediaItemRepositories() repository.UserMediaItemRepositories {
+func (f *mediaDataFactoryImpl) CreateUserRepositories() repository.UserMediaItemRepositories {
 	return &userRepositoryFactoriesImpl{
 		movieUserRepo:      repo.NewUserMediaItemRepository[*mediatypes.Movie](f.db),
 		seriesUserRepo:     repo.NewUserMediaItemRepository[*mediatypes.Series](f.db),
@@ -83,8 +83,22 @@ func (f *mediaDataFactoryImpl) CreateUserMediaItemRepositories() repository.User
 // --------------------------------------------------------
 
 // CreateClientRepositories initializes all client repositories
-func (f *mediaDataFactoryImpl) CreateClientRepositories() repository.ClientMediaItemRepositories {
-	return &clientRepositoryFactoriesImpl{
+func (f *mediaDataFactoryImpl) CreateClientRepositories() repository.ClientUserMediaDataRepositories {
+	return &clientUserMediaDataRepositoriesImpl{
+		movieDataRepo:      repo.NewClientUserMediaItemDataRepository[*mediatypes.Movie](f.db),
+		seriesDataRepo:     repo.NewClientUserMediaItemDataRepository[*mediatypes.Series](f.db),
+		episodeDataRepo:    repo.NewClientUserMediaItemDataRepository[*mediatypes.Episode](f.db),
+		trackDataRepo:      repo.NewClientUserMediaItemDataRepository[*mediatypes.Track](f.db),
+		albumDataRepo:      repo.NewClientUserMediaItemDataRepository[*mediatypes.Album](f.db),
+		artistDataRepo:     repo.NewClientUserMediaItemDataRepository[*mediatypes.Artist](f.db),
+		collectionDataRepo: repo.NewClientUserMediaItemDataRepository[*mediatypes.Collection](f.db),
+		playlistDataRepo:   repo.NewClientUserMediaItemDataRepository[*mediatypes.Playlist](f.db),
+	}
+}
+
+// CreateClientMediaItemRepositories initializes all client media item repositories
+func (f *mediaDataFactoryImpl) CreateClientMediaItemRepositories() repository.ClientMediaItemRepositories {
+	return &clientMediaItemRepositoriesImpl{
 		movieClientRepo:      repo.NewClientMediaItemRepository[*mediatypes.Movie](f.db),
 		seriesClientRepo:     repo.NewClientMediaItemRepository[*mediatypes.Series](f.db),
 		episodeClientRepo:    repo.NewClientMediaItemRepository[*mediatypes.Episode](f.db),
@@ -139,6 +153,135 @@ func (f *mediaDataFactoryImpl) CreateCoreDataServices(repos repository.CoreMedia
 		artistCoreService:     svc.NewCoreUserMediaItemDataService[*mediatypes.Artist](svc.NewCoreMediaItemService[*mediatypes.Artist](repos.ArtistRepo())),
 		collectionCoreService: svc.NewCoreUserMediaItemDataService[*mediatypes.Collection](svc.NewCoreMediaItemService[*mediatypes.Collection](repos.CollectionRepo())),
 		playlistCoreService:   svc.NewCoreUserMediaItemDataService[*mediatypes.Playlist](svc.NewCoreMediaItemService[*mediatypes.Playlist](repos.PlaylistRepo())),
+	}
+}
+
+// --------------------------------------------------------
+// List Service Factory Methods
+// --------------------------------------------------------
+
+// CreateCoreListServices initializes core list services
+func (f *mediaDataFactoryImpl) CreateCoreListServices(coreServices services.CoreMediaItemServices) services.CoreListServices {
+	return &coreListServicesImpl{
+		coreCollectionService: svc.NewCoreCollectionService(coreServices.CollectionCoreService()),
+		corePlaylistService:   svc.NewCorePlaylistService(coreServices.PlaylistCoreService()),
+	}
+}
+
+// CreateUserListServices initializes user list services
+func (f *mediaDataFactoryImpl) CreateUserListServices(
+	userServices services.UserMediaItemServices,
+	coreListServices services.CoreListServices) services.UserListServices {
+
+	return &userListServicesImpl{
+		userCollectionService: svc.NewUserCollectionService(
+			coreListServices.CoreCollectionService(),
+			userServices.CollectionUserService()),
+		userPlaylistService: svc.NewUserPlaylistService(
+			coreListServices.CorePlaylistService(),
+			userServices.PlaylistUserService()),
+	}
+}
+
+// CreateClientListServices initializes client list services
+func (f *mediaDataFactoryImpl) CreateClientListServices(
+	clientServices services.ClientMediaItemServices,
+	coreListServices services.CoreListServices) services.ClientListServices {
+
+	return &clientListServicesImpl{
+		clientCollectionService: svc.NewClientMediaCollectionService(
+			coreListServices.CoreCollectionService(),
+			clientServices.CollectionClientService()),
+		clientPlaylistService: svc.NewClientPlaylistService(
+			coreListServices.CorePlaylistService(),
+			clientServices.PlaylistClientService()),
+	}
+}
+
+// --------------------------------------------------------
+// MediaItem Handler Factory Methods
+// --------------------------------------------------------
+
+// CreateCoreMediaItemHandlers initializes all core media item handlers
+func (f *mediaDataFactoryImpl) CreateCoreMediaItemHandlers(
+	coreServices services.CoreMediaItemServices) apphandlers.CoreMediaItemHandlers {
+
+	return &coreMediaItemHandlersImpl{
+		movieCoreHandler: handlers.NewCoreMediaItemHandler[*mediatypes.Movie](
+			coreServices.MovieCoreService()),
+		seriesCoreHandler: handlers.NewCoreMediaItemHandler[*mediatypes.Series](
+			coreServices.SeriesCoreService()),
+		episodeCoreHandler: handlers.NewCoreMediaItemHandler[*mediatypes.Episode](
+			coreServices.EpisodeCoreService()),
+		trackCoreHandler: handlers.NewCoreMediaItemHandler[*mediatypes.Track](
+			coreServices.TrackCoreService()),
+		albumCoreHandler: handlers.NewCoreMediaItemHandler[*mediatypes.Album](
+			coreServices.AlbumCoreService()),
+		artistCoreHandler: handlers.NewCoreMediaItemHandler[*mediatypes.Artist](
+			coreServices.ArtistCoreService()),
+		collectionCoreHandler: handlers.NewCoreMediaItemHandler[*mediatypes.Collection](
+			coreServices.CollectionCoreService()),
+		playlistCoreHandler: handlers.NewCoreMediaItemHandler[*mediatypes.Playlist](
+			coreServices.PlaylistCoreService()),
+	}
+}
+
+// CreateUserMediaItemHandlers initializes all user media item handlers
+func (f *mediaDataFactoryImpl) CreateUserMediaItemHandlers(
+	userServices services.UserMediaItemServices,
+	coreHandlers apphandlers.CoreMediaItemHandlers) apphandlers.UserMediaItemHandlers {
+
+	return &userMediaItemHandlersImpl{
+		movieUserHandler: handlers.NewUserMediaItemHandler[*mediatypes.Movie](
+			userServices.MovieUserService()),
+		seriesUserHandler: handlers.NewUserMediaItemHandler[*mediatypes.Series](
+			userServices.SeriesUserService()),
+		episodeUserHandler: handlers.NewUserMediaItemHandler[*mediatypes.Episode](
+			userServices.EpisodeUserService()),
+		trackUserHandler: handlers.NewUserMediaItemHandler[*mediatypes.Track](
+			userServices.TrackUserService()),
+		albumUserHandler: handlers.NewUserMediaItemHandler[*mediatypes.Album](
+			userServices.AlbumUserService()),
+		artistUserHandler: handlers.NewUserMediaItemHandler[*mediatypes.Artist](
+			userServices.ArtistUserService()),
+		collectionUserHandler: handlers.NewUserMediaItemHandler[*mediatypes.Collection](
+			userServices.CollectionUserService()),
+		playlistUserHandler: handlers.NewUserMediaItemHandler[*mediatypes.Playlist](
+			userServices.PlaylistUserService()),
+	}
+}
+
+// CreateClientMediaItemHandlers initializes all client media item handlers
+func (f *mediaDataFactoryImpl) CreateClientMediaItemHandlers(
+	clientServices services.ClientMediaItemServices,
+	userServices services.UserMediaItemServices,
+	userHandlers apphandlers.UserMediaItemHandlers) apphandlers.ClientMediaItemHandlers {
+
+	return &clientMediaItemHandlersImpl{
+		movieClientHandler: handlers.NewClientMediaItemHandler[*mediatypes.Movie](
+			clientServices.MovieClientService(),
+		),
+		seriesClientHandler: handlers.NewClientMediaItemHandler[*mediatypes.Series](
+			clientServices.SeriesClientService(),
+		),
+		episodeClientHandler: handlers.NewClientMediaItemHandler[*mediatypes.Episode](
+			clientServices.EpisodeClientService(),
+		),
+		trackClientHandler: handlers.NewClientMediaItemHandler[*mediatypes.Track](
+			clientServices.TrackClientService(),
+		),
+		albumClientHandler: handlers.NewClientMediaItemHandler[*mediatypes.Album](
+			clientServices.AlbumClientService(),
+		),
+		artistClientHandler: handlers.NewClientMediaItemHandler[*mediatypes.Artist](
+			clientServices.ArtistClientService(),
+		),
+		collectionClientHandler: handlers.NewClientMediaItemHandler[*mediatypes.Collection](
+			clientServices.CollectionClientService(),
+		),
+		playlistClientHandler: handlers.NewClientMediaItemHandler[*mediatypes.Playlist](
+			clientServices.PlaylistClientService(),
+		),
 	}
 }
 
@@ -259,7 +402,8 @@ func (f *mediaDataFactoryImpl) CreateMediaCollectionServices(
 	coreServices services.CoreMediaItemServices,
 	userServices services.UserMediaItemServices,
 	clientServices services.ClientMediaItemServices,
-	coreCollectionService services.CoreCollectionService,
+	coreCollectionService services.NewCoreListService[*mediatypes.Collection],
+
 	userCollectionService services.UserCollectionService,
 	clientCollectionService services.ClientMediaCollectionService,
 	playlistService services.PlaylistService) services.MediaCollectionServices {
@@ -281,30 +425,19 @@ func (f *mediaDataFactoryImpl) CreateMediaCollectionServices(
 // Core Handler Factory Methods
 // --------------------------------------------------------
 
-// CreateCoreHandlers initializes all core handlers
-func (f *mediaDataFactoryImpl) CreateCoreHandlers(
-	coreServices services.CoreUserMediaItemDataServices) apphandlers.CoreMediaItemDataHandlers {
+// CreateCoreDataHandlers initializes all core handlers
+func (f *mediaDataFactoryImpl) CreateCoreDataHandlers(
+	coreServices services.CoreUserMediaItemDataServices) apphandlers.CoreUserMediaItemDataHandlers {
 
 	return &coreMediaItemDataHandlersImpl{
-		movieCoreDataHandler: handlers.NewCoreUserMediaItemDataHandler[*mediatypes.Movie](
-
-
-			)
-		//
-		// seriesCoreDataHandler: apphandlers.NewCoreUserMediaItemDataHandler[*mediatypes.Series](
-		// 	coreServices.SeriesCoreService()),
-		// episodeCoreDataHandler: apphandlers.NewCoreUserMediaItemDataHandler[*mediatypes.Episode](
-		// 	coreServices.EpisodeCoreService()),
-		// trackCoreDataHandler: apphandlers.NewCoreMediaItemDataHandler[*mediatypes.Track](
-		// 	coreServices.TrackCoreService()),
-		// albumCoreDataHandler: apphandlers.NewCoreMediaItemDataHandler[*mediatypes.Album](
-		// 	coreServices.AlbumCoreService()),
-		// artistCoreDataHandler: apphandlers.NewCoreMediaItemDataHandler[*mediatypes.Artist](
-		// 	coreServices.ArtistCoreService()),
-		// collectionCoreDataHandler: apphandlers.NewCoreMediaItemDataHandler[*mediatypes.Collection](
-		// 	coreServices.CollectionCoreService()),
-		// playlistCoreDataHandler: apphandlers.NewCoreMediaItemDataHandler[*mediatypes.Playlist](
-		// 	coreServices.PlaylistCoreService()),
+		movieCoreDataHandler:      handlers.NewCoreUserMediaItemDataHandler[*mediatypes.Movie](coreServices.MovieCoreService()),
+		seriesCoreDataHandler:     handlers.NewCoreUserMediaItemDataHandler[*mediatypes.Series](coreServices.SeriesCoreService()),
+		episodeCoreDataHandler:    handlers.NewCoreUserMediaItemDataHandler[*mediatypes.Episode](coreServices.EpisodeCoreService()),
+		trackCoreDataHandler:      handlers.NewCoreUserMediaItemDataHandler[*mediatypes.Track](coreServices.TrackCoreService()),
+		albumCoreDataHandler:      handlers.NewCoreUserMediaItemDataHandler[*mediatypes.Album](coreServices.AlbumCoreService()),
+		artistCoreDataHandler:     handlers.NewCoreUserMediaItemDataHandler[*mediatypes.Artist](coreServices.ArtistCoreService()),
+		collectionCoreDataHandler: handlers.NewCoreUserMediaItemDataHandler[*mediatypes.Collection](coreServices.CollectionCoreService()),
+		playlistCoreDataHandler:   handlers.NewCoreUserMediaItemDataHandler[*mediatypes.Playlist](coreServices.PlaylistCoreService()),
 	}
 }
 
@@ -312,37 +445,36 @@ func (f *mediaDataFactoryImpl) CreateCoreHandlers(
 // User Handler Factory Methods
 // --------------------------------------------------------
 
-// CreateUserHandlers initializes all user handlers
-func (f *mediaDataFactoryImpl) CreateUserHandlers(
-	userServices services.UserMediaItemServices,
-	dataServices services.UserMediaItemDataServices,
-	coreHandlers apphandlers.CoreMediaItemDataHandlers) handlers.UserMediaItemDataHandlers {
+// CreateUserDataHandlers initializes all user handlers
+func (f *mediaDataFactoryImpl) CreateUserDataHandlers(
+	userServices services.UserMediaItemDataServices,
+	coreHandlers apphandlers.CoreUserMediaItemDataHandlers) apphandlers.UserMediaItemDataHandlers {
 
 	return &userMediaItemDataHandlersImpl{
-		movieUserDataHandler: apphandlers.NewUserMediaItemDataHandler[*mediatypes.Movie](
-			dataServices.MovieDataService(),
-			coreapphandlers.MovieCoreDataHandler()),
-		seriesUserDataHandler: apphandlers.NewUserMediaItemDataHandler[*mediatypes.Series](
-			dataServices.SeriesDataService(),
-			coreapphandlers.SeriesCoreDataHandler()),
-		episodeUserDataHandler: apphandlers.NewUserMediaItemDataHandler[*mediatypes.Episode](
-			dataServices.EpisodeDataService(),
-			coreapphandlers.EpisodeCoreDataHandler()),
-		trackUserDataHandler: apphandlers.NewUserMediaItemDataHandler[*mediatypes.Track](
-			dataServices.TrackDataService(),
-			coreapphandlers.TrackCoreDataHandler()),
-		albumUserDataHandler: apphandlers.NewUserMediaItemDataHandler[*mediatypes.Album](
-			dataServices.AlbumDataService(),
-			coreapphandlers.AlbumCoreDataHandler()),
-		artistUserDataHandler: apphandlers.NewUserMediaItemDataHandler[*mediatypes.Artist](
-			dataServices.ArtistDataService(),
-			coreapphandlers.ArtistCoreDataHandler()),
-		collectionUserDataHandler: apphandlers.NewUserMediaItemDataHandler[*mediatypes.Collection](
-			dataServices.CollectionDataService(),
-			coreapphandlers.CollectionCoreDataHandler()),
-		playlistUserDataHandler: apphandlers.NewUserMediaItemDataHandler[*mediatypes.Playlist](
-			dataServices.PlaylistDataService(),
-			coreapphandlers.PlaylistCoreDataHandler()),
+		movieUserDataHandler: handlers.NewUserMediaItemDataHandler[*mediatypes.Movie](
+			userServices.MovieDataService(),
+			coreHandlers.MovieCoreDataHandler()),
+		seriesUserDataHandler: handlers.NewUserMediaItemDataHandler[*mediatypes.Series](
+			userServices.SeriesDataService(),
+			coreHandlers.SeriesCoreDataHandler()),
+		episodeUserDataHandler: handlers.NewUserMediaItemDataHandler[*mediatypes.Episode](
+			userServices.EpisodeDataService(),
+			coreHandlers.EpisodeCoreDataHandler()),
+		trackUserDataHandler: handlers.NewUserMediaItemDataHandler[*mediatypes.Track](
+			userServices.TrackDataService(),
+			coreHandlers.TrackCoreDataHandler()),
+		albumUserDataHandler: handlers.NewUserMediaItemDataHandler[*mediatypes.Album](
+			userServices.AlbumDataService(),
+			coreHandlers.AlbumCoreDataHandler()),
+		artistUserDataHandler: handlers.NewUserMediaItemDataHandler[*mediatypes.Artist](
+			userServices.ArtistDataService(),
+			coreHandlers.ArtistCoreDataHandler()),
+		collectionUserDataHandler: handlers.NewUserMediaItemDataHandler[*mediatypes.Collection](
+			userServices.CollectionDataService(),
+			coreHandlers.CollectionCoreDataHandler()),
+		playlistUserDataHandler: handlers.NewUserMediaItemDataHandler[*mediatypes.Playlist](
+			userServices.PlaylistDataService(),
+			coreHandlers.PlaylistCoreDataHandler()),
 	}
 }
 
@@ -350,37 +482,36 @@ func (f *mediaDataFactoryImpl) CreateUserHandlers(
 // Client Handler Factory Methods
 // --------------------------------------------------------
 
-// CreateClientHandlers initializes all client handlers
-func (f *mediaDataFactoryImpl) CreateClientHandlers(
-	clientServices services.ClientMediaItemServices,
+// CreateClientDataHandlers initializes all client handlers
+func (f *mediaDataFactoryImpl) CreateClientDataHandlers(
 	dataServices services.ClientUserMediaItemDataServices,
-	userHandlers apphandlers.UserMediaItemDataHandlers) handlers.ClientMediaItemDataHandlers {
+	userHandlers apphandlers.UserMediaItemDataHandlers) apphandlers.ClientUserMediaItemDataHandlers {
 
 	return &clientMediaItemDataHandlersImpl{
-		movieClientDataHandler: apphandlers.NewClientMediaItemDataHandler[*mediatypes.Movie](
+		movieClientDataHandler: handlers.NewClientUserMediaItemDataHandler[*mediatypes.Movie](
 			dataServices.MovieDataService(),
-			userapphandlers.MovieUserDataHandler()),
-		seriesClientDataHandler: apphandlers.NewClientMediaItemDataHandler[*mediatypes.Series](
+			userHandlers.MovieUserDataHandler()),
+		seriesClientDataHandler: handlers.NewClientUserMediaItemDataHandler[*mediatypes.Series](
 			dataServices.SeriesDataService(),
-			userapphandlers.SeriesUserDataHandler()),
-		episodeClientDataHandler: apphandlers.NewClientMediaItemDataHandler[*mediatypes.Episode](
+			userHandlers.SeriesUserDataHandler()),
+		episodeClientDataHandler: handlers.NewClientUserMediaItemDataHandler[*mediatypes.Episode](
 			dataServices.EpisodeDataService(),
-			userapphandlers.EpisodeUserDataHandler()),
-		trackClientDataHandler: apphandlers.NewClientMediaItemDataHandler[*mediatypes.Track](
+			userHandlers.EpisodeUserDataHandler()),
+		trackClientDataHandler: handlers.NewClientUserMediaItemDataHandler[*mediatypes.Track](
 			dataServices.TrackDataService(),
-			userapphandlers.TrackUserDataHandler()),
-		albumClientDataHandler: apphandlers.NewClientMediaItemDataHandler[*mediatypes.Album](
+			userHandlers.TrackUserDataHandler()),
+		albumClientDataHandler: handlers.NewClientUserMediaItemDataHandler[*mediatypes.Album](
 			dataServices.AlbumDataService(),
-			userapphandlers.AlbumUserDataHandler()),
-		artistClientDataHandler: apphandlers.NewClientMediaItemDataHandler[*mediatypes.Artist](
+			userHandlers.AlbumUserDataHandler()),
+		artistClientDataHandler: handlers.NewClientUserMediaItemDataHandler[*mediatypes.Artist](
 			dataServices.ArtistDataService(),
-			userapphandlers.ArtistUserDataHandler()),
-		collectionClientDataHandler: apphandlers.NewClientMediaItemDataHandler[*mediatypes.Collection](
+			userHandlers.ArtistUserDataHandler()),
+		collectionClientDataHandler: handlers.NewClientUserMediaItemDataHandler[*mediatypes.Collection](
 			dataServices.CollectionDataService(),
-			userapphandlers.CollectionUserDataHandler()),
-		playlistClientDataHandler: apphandlers.NewClientMediaItemDataHandler[*mediatypes.Playlist](
+			userHandlers.CollectionUserDataHandler()),
+		playlistClientDataHandler: handlers.NewClientUserMediaItemDataHandler[*mediatypes.Playlist](
 			dataServices.PlaylistDataService(),
-			userapphandlers.PlaylistUserDataHandler()),
+			userHandlers.PlaylistUserDataHandler()),
 	}
 }
 
@@ -393,7 +524,7 @@ func (f *mediaDataFactoryImpl) CreateSpecializedMediaHandlers(
 	coreServices services.CoreMediaItemServices,
 	userServices services.UserMediaItemServices,
 	clientServices services.ClientMediaItemServices,
-	musicHandler apphandlers.MusicHandler,
+	musicHandler apphandlers.MusicHandlers,
 	seriesSpecificHandler *apphandlers.ClientMediaSeriesHandler[*clienttypes.JellyfinConfig]) handlers.SpecializedMediaHandlers {
 
 	return &specializedMediaHandlersImpl{
@@ -405,6 +536,111 @@ func (f *mediaDataFactoryImpl) CreateSpecializedMediaHandlers(
 // --------------------------------------------------------
 // Implementation structs
 // --------------------------------------------------------
+
+func (s *userListServicesImpl) UserPlaylistService() svc.UserPlaylistService {
+	return s.userPlaylistService
+}
+
+type clientListServicesImpl struct {
+	clientCollectionService svc.ClientMediaCollectionService
+	clientPlaylistService   svc.ClientPlaylistService
+}
+
+func (s *clientListServicesImpl) ClientCollectionService() svc.ClientMediaCollectionService {
+	return s.clientCollectionService
+}
+
+func (s *clientListServicesImpl) ClientPlaylistService() svc.ClientPlaylistService {
+	return s.clientPlaylistService
+}
+
+// ClientUserMediaDataRepositories implementation
+type clientUserMediaDataRepositoriesImpl struct {
+	movieDataRepo      repo.ClientUserMediaItemDataRepository[*mediatypes.Movie]
+	seriesDataRepo     repo.ClientUserMediaItemDataRepository[*mediatypes.Series]
+	episodeDataRepo    repo.ClientUserMediaItemDataRepository[*mediatypes.Episode]
+	trackDataRepo      repo.ClientUserMediaItemDataRepository[*mediatypes.Track]
+	albumDataRepo      repo.ClientUserMediaItemDataRepository[*mediatypes.Album]
+	artistDataRepo     repo.ClientUserMediaItemDataRepository[*mediatypes.Artist]
+	collectionDataRepo repo.ClientUserMediaItemDataRepository[*mediatypes.Collection]
+	playlistDataRepo   repo.ClientUserMediaItemDataRepository[*mediatypes.Playlist]
+}
+
+func (r *clientUserMediaDataRepositoriesImpl) MovieDataRepo() repo.ClientUserMediaItemDataRepository[*mediatypes.Movie] {
+	return r.movieDataRepo
+}
+
+func (r *clientUserMediaDataRepositoriesImpl) SeriesDataRepo() repo.ClientUserMediaItemDataRepository[*mediatypes.Series] {
+	return r.seriesDataRepo
+}
+
+func (r *clientUserMediaDataRepositoriesImpl) EpisodeDataRepo() repo.ClientUserMediaItemDataRepository[*mediatypes.Episode] {
+	return r.episodeDataRepo
+}
+
+func (r *clientUserMediaDataRepositoriesImpl) TrackDataRepo() repo.ClientUserMediaItemDataRepository[*mediatypes.Track] {
+	return r.trackDataRepo
+}
+
+func (r *clientUserMediaDataRepositoriesImpl) AlbumDataRepo() repo.ClientUserMediaItemDataRepository[*mediatypes.Album] {
+	return r.albumDataRepo
+}
+
+func (r *clientUserMediaDataRepositoriesImpl) ArtistDataRepo() repo.ClientUserMediaItemDataRepository[*mediatypes.Artist] {
+	return r.artistDataRepo
+}
+
+func (r *clientUserMediaDataRepositoriesImpl) CollectionDataRepo() repo.ClientUserMediaItemDataRepository[*mediatypes.Collection] {
+	return r.collectionDataRepo
+}
+
+func (r *clientUserMediaDataRepositoriesImpl) PlaylistDataRepo() repo.ClientUserMediaItemDataRepository[*mediatypes.Playlist] {
+	return r.playlistDataRepo
+}
+
+// Implementation for the ClientMediaItemRepositories
+type clientMediaItemRepositoriesImpl struct {
+	movieClientRepo      repo.ClientMediaItemRepository[*mediatypes.Movie]
+	seriesClientRepo     repo.ClientMediaItemRepository[*mediatypes.Series]
+	episodeClientRepo    repo.ClientMediaItemRepository[*mediatypes.Episode]
+	trackClientRepo      repo.ClientMediaItemRepository[*mediatypes.Track]
+	albumClientRepo      repo.ClientMediaItemRepository[*mediatypes.Album]
+	artistClientRepo     repo.ClientMediaItemRepository[*mediatypes.Artist]
+	collectionClientRepo repo.ClientMediaItemRepository[*mediatypes.Collection]
+	playlistClientRepo   repo.ClientMediaItemRepository[*mediatypes.Playlist]
+}
+
+func (r *clientMediaItemRepositoriesImpl) MovieClientRepo() repo.ClientMediaItemRepository[*mediatypes.Movie] {
+	return r.movieClientRepo
+}
+
+func (r *clientMediaItemRepositoriesImpl) SeriesClientRepo() repo.ClientMediaItemRepository[*mediatypes.Series] {
+	return r.seriesClientRepo
+}
+
+func (r *clientMediaItemRepositoriesImpl) EpisodeClientRepo() repo.ClientMediaItemRepository[*mediatypes.Episode] {
+	return r.episodeClientRepo
+}
+
+func (r *clientMediaItemRepositoriesImpl) TrackClientRepo() repo.ClientMediaItemRepository[*mediatypes.Track] {
+	return r.trackClientRepo
+}
+
+func (r *clientMediaItemRepositoriesImpl) AlbumClientRepo() repo.ClientMediaItemRepository[*mediatypes.Album] {
+	return r.albumClientRepo
+}
+
+func (r *clientMediaItemRepositoriesImpl) ArtistClientRepo() repo.ClientMediaItemRepository[*mediatypes.Artist] {
+	return r.artistClientRepo
+}
+
+func (r *clientMediaItemRepositoriesImpl) CollectionClientRepo() repo.ClientMediaItemRepository[*mediatypes.Collection] {
+	return r.collectionClientRepo
+}
+
+func (r *clientMediaItemRepositoriesImpl) PlaylistClientRepo() repo.ClientMediaItemRepository[*mediatypes.Playlist] {
+	return r.playlistClientRepo
+}
 
 // Repository implementation structs
 
@@ -883,187 +1119,262 @@ func (s *clientUserMediaItemDataServicesImpl) PlaylistDataService() svc.ClientUs
 	return s.playlistDataService
 }
 
-type mediaCollectionServicesImpl struct {
-	coreCollectionService   services.CoreCollectionService
-	userCollectionService   services.UserCollectionService
-	clientCollectionService services.ClientMediaCollectionService
-
-	corePlaylistService   svc.CoreMediaItemService[*mediatypes.Playlist]
-	userPlaylistService   svc.UserMediaItemService[*mediatypes.Playlist]
-	clientPlaylistService svc.ClientMediaItemService[*mediatypes.Playlist]
-
-	playlistService services.PlaylistService
+// MediaItem Handlers implementation structs
+type coreMediaItemHandlersImpl struct {
+	movieCoreHandler      *handlers.CoreMediaItemHandler[*mediatypes.Movie]
+	seriesCoreHandler     *handlers.CoreMediaItemHandler[*mediatypes.Series]
+	episodeCoreHandler    *handlers.CoreMediaItemHandler[*mediatypes.Episode]
+	trackCoreHandler      *handlers.CoreMediaItemHandler[*mediatypes.Track]
+	albumCoreHandler      *handlers.CoreMediaItemHandler[*mediatypes.Album]
+	artistCoreHandler     *handlers.CoreMediaItemHandler[*mediatypes.Artist]
+	collectionCoreHandler *handlers.CoreMediaItemHandler[*mediatypes.Collection]
+	playlistCoreHandler   *handlers.CoreMediaItemHandler[*mediatypes.Playlist]
 }
 
-func (s *mediaCollectionServicesImpl) CoreCollectionService() services.CoreCollectionService {
-	return s.coreCollectionService
+func (h *coreMediaItemHandlersImpl) MovieCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Movie] {
+	return h.movieCoreHandler
 }
 
-func (s *mediaCollectionServicesImpl) UserCollectionService() services.UserCollectionService {
-	return s.userCollectionService
+func (h *coreMediaItemHandlersImpl) SeriesCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Series] {
+	return h.seriesCoreHandler
 }
 
-func (s *mediaCollectionServicesImpl) ClientCollectionService() services.ClientMediaCollectionService {
-	return s.clientCollectionService
+func (h *coreMediaItemHandlersImpl) EpisodeCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Episode] {
+	return h.episodeCoreHandler
 }
 
-func (s *mediaCollectionServicesImpl) CorePlaylistService() svc.CoreMediaItemService[*mediatypes.Playlist] {
-	return s.corePlaylistService
+func (h *coreMediaItemHandlersImpl) TrackCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Track] {
+	return h.trackCoreHandler
 }
 
-func (s *mediaCollectionServicesImpl) UserPlaylistService() svc.UserMediaItemService[*mediatypes.Playlist] {
-	return s.userPlaylistService
+func (h *coreMediaItemHandlersImpl) AlbumCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Album] {
+	return h.albumCoreHandler
 }
 
-func (s *mediaCollectionServicesImpl) ClientPlaylistService() svc.ClientMediaItemService[*mediatypes.Playlist] {
-	return s.clientPlaylistService
+func (h *coreMediaItemHandlersImpl) ArtistCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Artist] {
+	return h.artistCoreHandler
 }
 
-func (s *mediaCollectionServicesImpl) PlaylistService() services.PlaylistService {
-	return s.playlistService
+func (h *coreMediaItemHandlersImpl) CollectionCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Collection] {
+	return h.collectionCoreHandler
 }
 
-// Handler implementation structs
+func (h *coreMediaItemHandlersImpl) PlaylistCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Playlist] {
+	return h.playlistCoreHandler
+}
 
+type userMediaItemHandlersImpl struct {
+	movieUserHandler      *handlers.UserMediaItemHandler[*mediatypes.Movie]
+	seriesUserHandler     *handlers.UserMediaItemHandler[*mediatypes.Series]
+	episodeUserHandler    *handlers.UserMediaItemHandler[*mediatypes.Episode]
+	trackUserHandler      *handlers.UserMediaItemHandler[*mediatypes.Track]
+	albumUserHandler      *handlers.UserMediaItemHandler[*mediatypes.Album]
+	artistUserHandler     *handlers.UserMediaItemHandler[*mediatypes.Artist]
+	collectionUserHandler *handlers.UserMediaItemHandler[*mediatypes.Collection]
+	playlistUserHandler   *handlers.UserMediaItemHandler[*mediatypes.Playlist]
+}
+
+func (h *userMediaItemHandlersImpl) MovieUserHandler() *handlers.UserMediaItemHandler[*mediatypes.Movie] {
+	return h.movieUserHandler
+}
+
+func (h *userMediaItemHandlersImpl) SeriesUserHandler() *handlers.UserMediaItemHandler[*mediatypes.Series] {
+	return h.seriesUserHandler
+}
+
+func (h *userMediaItemHandlersImpl) EpisodeUserHandler() *handlers.UserMediaItemHandler[*mediatypes.Episode] {
+	return h.episodeUserHandler
+}
+
+func (h *userMediaItemHandlersImpl) TrackUserHandler() *handlers.UserMediaItemHandler[*mediatypes.Track] {
+	return h.trackUserHandler
+}
+
+func (h *userMediaItemHandlersImpl) AlbumUserHandler() *handlers.UserMediaItemHandler[*mediatypes.Album] {
+	return h.albumUserHandler
+}
+
+func (h *userMediaItemHandlersImpl) ArtistUserHandler() *handlers.UserMediaItemHandler[*mediatypes.Artist] {
+	return h.artistUserHandler
+}
+
+func (h *userMediaItemHandlersImpl) CollectionUserHandler() *handlers.UserMediaItemHandler[*mediatypes.Collection] {
+	return h.collectionUserHandler
+}
+
+func (h *userMediaItemHandlersImpl) PlaylistUserHandler() *handlers.UserMediaItemHandler[*mediatypes.Playlist] {
+	return h.playlistUserHandler
+}
+
+type clientMediaItemHandlersImpl struct {
+	movieClientHandler      *handlers.ClientMediaItemHandler[*mediatypes.Movie]
+	seriesClientHandler     *handlers.ClientMediaItemHandler[*mediatypes.Series]
+	episodeClientHandler    *handlers.ClientMediaItemHandler[*mediatypes.Episode]
+	trackClientHandler      *handlers.ClientMediaItemHandler[*mediatypes.Track]
+	albumClientHandler      *handlers.ClientMediaItemHandler[*mediatypes.Album]
+	artistClientHandler     *handlers.ClientMediaItemHandler[*mediatypes.Artist]
+	collectionClientHandler *handlers.ClientMediaItemHandler[*mediatypes.Collection]
+	playlistClientHandler   *handlers.ClientMediaItemHandler[*mediatypes.Playlist]
+}
+
+func (h *clientMediaItemHandlersImpl) MovieClientHandler() *handlers.ClientMediaItemHandler[*mediatypes.Movie] {
+	return h.movieClientHandler
+}
+
+func (h *clientMediaItemHandlersImpl) SeriesClientHandler() *handlers.ClientMediaItemHandler[*mediatypes.Series] {
+	return h.seriesClientHandler
+}
+
+func (h *clientMediaItemHandlersImpl) EpisodeClientHandler() *handlers.ClientMediaItemHandler[*mediatypes.Episode] {
+	return h.episodeClientHandler
+}
+
+func (h *clientMediaItemHandlersImpl) TrackClientHandler() *handlers.ClientMediaItemHandler[*mediatypes.Track] {
+	return h.trackClientHandler
+}
+
+func (h *clientMediaItemHandlersImpl) AlbumClientHandler() *handlers.ClientMediaItemHandler[*mediatypes.Album] {
+	return h.albumClientHandler
+}
+
+func (h *clientMediaItemHandlersImpl) ArtistClientHandler() *handlers.ClientMediaItemHandler[*mediatypes.Artist] {
+	return h.artistClientHandler
+}
+
+func (h *clientMediaItemHandlersImpl) CollectionClientHandler() *handlers.ClientMediaItemHandler[*mediatypes.Collection] {
+	return h.collectionClientHandler
+}
+
+func (h *clientMediaItemHandlersImpl) PlaylistClientHandler() *handlers.ClientMediaItemHandler[*mediatypes.Playlist] {
+	return h.playlistClientHandler
+}
+
+// MediaItemData Handlers implementation structs
 type coreMediaItemDataHandlersImpl struct {
-	movieCoreDataHandler      *apphandlers.CoreMediaItemDataHandler[*mediatypes.Movie]
-	seriesCoreDataHandler     *apphandlers.CoreMediaItemDataHandler[*mediatypes.Series]
-	episodeCoreDataHandler    *apphandlers.CoreMediaItemDataHandler[*mediatypes.Episode]
-	trackCoreDataHandler      *apphandlers.CoreMediaItemDataHandler[*mediatypes.Track]
-	albumCoreDataHandler      *apphandlers.CoreMediaItemDataHandler[*mediatypes.Album]
-	artistCoreDataHandler     *apphandlers.CoreMediaItemDataHandler[*mediatypes.Artist]
-	collectionCoreDataHandler *apphandlers.CoreMediaItemDataHandler[*mediatypes.Collection]
-	playlistCoreDataHandler   *apphandlers.CoreMediaItemDataHandler[*mediatypes.Playlist]
+	movieCoreDataHandler      *handlers.CoreUserMediaItemDataHandler[*mediatypes.Movie]
+	seriesCoreDataHandler     *handlers.CoreUserMediaItemDataHandler[*mediatypes.Series]
+	episodeCoreDataHandler    *handlers.CoreUserMediaItemDataHandler[*mediatypes.Episode]
+	trackCoreDataHandler      *handlers.CoreUserMediaItemDataHandler[*mediatypes.Track]
+	albumCoreDataHandler      *handlers.CoreUserMediaItemDataHandler[*mediatypes.Album]
+	artistCoreDataHandler     *handlers.CoreUserMediaItemDataHandler[*mediatypes.Artist]
+	collectionCoreDataHandler *handlers.CoreUserMediaItemDataHandler[*mediatypes.Collection]
+	playlistCoreDataHandler   *handlers.CoreUserMediaItemDataHandler[*mediatypes.Playlist]
 }
 
-func (h *coreMediaItemDataHandlersImpl) MovieCoreDataHandler() *apphandlers.CoreMediaItemDataHandler[*mediatypes.Movie] {
+func (h *coreMediaItemDataHandlersImpl) MovieCoreDataHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Movie] {
 	return h.movieCoreDataHandler
 }
 
-func (h *coreMediaItemDataHandlersImpl) SeriesCoreDataHandler() *apphandlers.CoreMediaItemDataHandler[*mediatypes.Series] {
+func (h *coreMediaItemDataHandlersImpl) SeriesCoreDataHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Series] {
 	return h.seriesCoreDataHandler
 }
 
-func (h *coreMediaItemDataHandlersImpl) EpisodeCoreDataHandler() *apphandlers.CoreMediaItemDataHandler[*mediatypes.Episode] {
+func (h *coreMediaItemDataHandlersImpl) EpisodeCoreDataHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Episode] {
 	return h.episodeCoreDataHandler
 }
 
-func (h *coreMediaItemDataHandlersImpl) TrackCoreDataHandler() *apphandlers.CoreMediaItemDataHandler[*mediatypes.Track] {
+func (h *coreMediaItemDataHandlersImpl) TrackCoreDataHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Track] {
 	return h.trackCoreDataHandler
 }
 
-func (h *coreMediaItemDataHandlersImpl) AlbumCoreDataHandler() *apphandlers.CoreMediaItemDataHandler[*mediatypes.Album] {
+func (h *coreMediaItemDataHandlersImpl) AlbumCoreDataHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Album] {
 	return h.albumCoreDataHandler
 }
 
-func (h *coreMediaItemDataHandlersImpl) ArtistCoreDataHandler() *apphandlers.CoreMediaItemDataHandler[*mediatypes.Artist] {
+func (h *coreMediaItemDataHandlersImpl) ArtistCoreDataHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Artist] {
 	return h.artistCoreDataHandler
 }
 
-func (h *coreMediaItemDataHandlersImpl) CollectionCoreDataHandler() *apphandlers.CoreMediaItemDataHandler[*mediatypes.Collection] {
+func (h *coreMediaItemDataHandlersImpl) CollectionCoreDataHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Collection] {
 	return h.collectionCoreDataHandler
 }
 
-func (h *coreMediaItemDataHandlersImpl) PlaylistCoreDataHandler() *apphandlers.CoreMediaItemDataHandler[*mediatypes.Playlist] {
+func (h *coreMediaItemDataHandlersImpl) PlaylistCoreDataHandler() *handlers.CoreUserMediaItemDataHandler[*mediatypes.Playlist] {
 	return h.playlistCoreDataHandler
 }
 
 type userMediaItemDataHandlersImpl struct {
-	movieUserDataHandler      *apphandlers.UserMediaItemDataHandler[*mediatypes.Movie]
-	seriesUserDataHandler     *apphandlers.UserMediaItemDataHandler[*mediatypes.Series]
-	episodeUserDataHandler    *apphandlers.UserMediaItemDataHandler[*mediatypes.Episode]
-	trackUserDataHandler      *apphandlers.UserMediaItemDataHandler[*mediatypes.Track]
-	albumUserDataHandler      *apphandlers.UserMediaItemDataHandler[*mediatypes.Album]
-	artistUserDataHandler     *apphandlers.UserMediaItemDataHandler[*mediatypes.Artist]
-	collectionUserDataHandler *apphandlers.UserMediaItemDataHandler[*mediatypes.Collection]
-	playlistUserDataHandler   *apphandlers.UserMediaItemDataHandler[*mediatypes.Playlist]
+	movieUserDataHandler      *handlers.UserMediaItemDataHandler[*mediatypes.Movie]
+	seriesUserDataHandler     *handlers.UserMediaItemDataHandler[*mediatypes.Series]
+	episodeUserDataHandler    *handlers.UserMediaItemDataHandler[*mediatypes.Episode]
+	trackUserDataHandler      *handlers.UserMediaItemDataHandler[*mediatypes.Track]
+	albumUserDataHandler      *handlers.UserMediaItemDataHandler[*mediatypes.Album]
+	artistUserDataHandler     *handlers.UserMediaItemDataHandler[*mediatypes.Artist]
+	collectionUserDataHandler *handlers.UserMediaItemDataHandler[*mediatypes.Collection]
+	playlistUserDataHandler   *handlers.UserMediaItemDataHandler[*mediatypes.Playlist]
 }
 
-func (h *userMediaItemDataHandlersImpl) MovieUserDataHandler() *apphandlers.UserMediaItemDataHandler[*mediatypes.Movie] {
+func (h *userMediaItemDataHandlersImpl) MovieUserDataHandler() *handlers.UserMediaItemDataHandler[*mediatypes.Movie] {
 	return h.movieUserDataHandler
 }
 
-func (h *userMediaItemDataHandlersImpl) SeriesUserDataHandler() *apphandlers.UserMediaItemDataHandler[*mediatypes.Series] {
+func (h *userMediaItemDataHandlersImpl) SeriesUserDataHandler() *handlers.UserMediaItemDataHandler[*mediatypes.Series] {
 	return h.seriesUserDataHandler
 }
 
-func (h *userMediaItemDataHandlersImpl) EpisodeUserDataHandler() *apphandlers.UserMediaItemDataHandler[*mediatypes.Episode] {
+func (h *userMediaItemDataHandlersImpl) EpisodeUserDataHandler() *handlers.UserMediaItemDataHandler[*mediatypes.Episode] {
 	return h.episodeUserDataHandler
 }
 
-func (h *userMediaItemDataHandlersImpl) TrackUserDataHandler() *apphandlers.UserMediaItemDataHandler[*mediatypes.Track] {
+func (h *userMediaItemDataHandlersImpl) TrackUserDataHandler() *handlers.UserMediaItemDataHandler[*mediatypes.Track] {
 	return h.trackUserDataHandler
 }
 
-func (h *userMediaItemDataHandlersImpl) AlbumUserDataHandler() *apphandlers.UserMediaItemDataHandler[*mediatypes.Album] {
+func (h *userMediaItemDataHandlersImpl) AlbumUserDataHandler() *handlers.UserMediaItemDataHandler[*mediatypes.Album] {
 	return h.albumUserDataHandler
 }
 
-func (h *userMediaItemDataHandlersImpl) ArtistUserDataHandler() *apphandlers.UserMediaItemDataHandler[*mediatypes.Artist] {
+func (h *userMediaItemDataHandlersImpl) ArtistUserDataHandler() *handlers.UserMediaItemDataHandler[*mediatypes.Artist] {
 	return h.artistUserDataHandler
 }
 
-func (h *userMediaItemDataHandlersImpl) CollectionUserDataHandler() *apphandlers.UserMediaItemDataHandler[*mediatypes.Collection] {
+func (h *userMediaItemDataHandlersImpl) CollectionUserDataHandler() *handlers.UserMediaItemDataHandler[*mediatypes.Collection] {
 	return h.collectionUserDataHandler
 }
 
-func (h *userMediaItemDataHandlersImpl) PlaylistUserDataHandler() *apphandlers.UserMediaItemDataHandler[*mediatypes.Playlist] {
+func (h *userMediaItemDataHandlersImpl) PlaylistUserDataHandler() *handlers.UserMediaItemDataHandler[*mediatypes.Playlist] {
 	return h.playlistUserDataHandler
 }
 
 type clientMediaItemDataHandlersImpl struct {
-	movieClientDataHandler      *apphandlers.ClientMediaItemDataHandler[*mediatypes.Movie]
-	seriesClientDataHandler     *apphandlers.ClientMediaItemDataHandler[*mediatypes.Series]
-	episodeClientDataHandler    *apphandlers.ClientMediaItemDataHandler[*mediatypes.Episode]
-	trackClientDataHandler      *apphandlers.ClientMediaItemDataHandler[*mediatypes.Track]
-	albumClientDataHandler      *apphandlers.ClientMediaItemDataHandler[*mediatypes.Album]
-	artistClientDataHandler     *apphandlers.ClientMediaItemDataHandler[*mediatypes.Artist]
-	collectionClientDataHandler *apphandlers.ClientMediaItemDataHandler[*mediatypes.Collection]
-	playlistClientDataHandler   *apphandlers.ClientMediaItemDataHandler[*mediatypes.Playlist]
+	movieClientDataHandler      *handlers.ClientUserMediaItemDataHandler[*mediatypes.Movie]
+	seriesClientDataHandler     *handlers.ClientUserMediaItemDataHandler[*mediatypes.Series]
+	episodeClientDataHandler    *handlers.ClientUserMediaItemDataHandler[*mediatypes.Episode]
+	trackClientDataHandler      *handlers.ClientUserMediaItemDataHandler[*mediatypes.Track]
+	albumClientDataHandler      *handlers.ClientUserMediaItemDataHandler[*mediatypes.Album]
+	artistClientDataHandler     *handlers.ClientUserMediaItemDataHandler[*mediatypes.Artist]
+	collectionClientDataHandler *handlers.ClientUserMediaItemDataHandler[*mediatypes.Collection]
+	playlistClientDataHandler   *handlers.ClientUserMediaItemDataHandler[*mediatypes.Playlist]
 }
 
-func (h *clientMediaItemDataHandlersImpl) MovieClientDataHandler() *apphandlers.ClientMediaItemDataHandler[*mediatypes.Movie] {
+func (h *clientMediaItemDataHandlersImpl) MovieClientDataHandler() *handlers.ClientUserMediaItemDataHandler[*mediatypes.Movie] {
 	return h.movieClientDataHandler
 }
 
-func (h *clientMediaItemDataHandlersImpl) SeriesClientDataHandler() *apphandlers.ClientMediaItemDataHandler[*mediatypes.Series] {
+func (h *clientMediaItemDataHandlersImpl) SeriesClientDataHandler() *handlers.ClientUserMediaItemDataHandler[*mediatypes.Series] {
 	return h.seriesClientDataHandler
 }
 
-func (h *clientMediaItemDataHandlersImpl) EpisodeClientDataHandler() *apphandlers.ClientMediaItemDataHandler[*mediatypes.Episode] {
+func (h *clientMediaItemDataHandlersImpl) EpisodeClientDataHandler() *handlers.ClientUserMediaItemDataHandler[*mediatypes.Episode] {
 	return h.episodeClientDataHandler
 }
 
-func (h *clientMediaItemDataHandlersImpl) TrackClientDataHandler() *apphandlers.ClientMediaItemDataHandler[*mediatypes.Track] {
+func (h *clientMediaItemDataHandlersImpl) TrackClientDataHandler() *handlers.ClientUserMediaItemDataHandler[*mediatypes.Track] {
 	return h.trackClientDataHandler
 }
 
-func (h *clientMediaItemDataHandlersImpl) AlbumClientDataHandler() *apphandlers.ClientMediaItemDataHandler[*mediatypes.Album] {
+func (h *clientMediaItemDataHandlersImpl) AlbumClientDataHandler() *handlers.ClientUserMediaItemDataHandler[*mediatypes.Album] {
 	return h.albumClientDataHandler
 }
 
-func (h *clientMediaItemDataHandlersImpl) ArtistClientDataHandler() *apphandlers.ClientMediaItemDataHandler[*mediatypes.Artist] {
+func (h *clientMediaItemDataHandlersImpl) ArtistClientDataHandler() *handlers.ClientUserMediaItemDataHandler[*mediatypes.Artist] {
 	return h.artistClientDataHandler
 }
 
-func (h *clientMediaItemDataHandlersImpl) CollectionClientDataHandler() *apphandlers.ClientMediaItemDataHandler[*mediatypes.Collection] {
+func (h *clientMediaItemDataHandlersImpl) CollectionClientDataHandler() *handlers.ClientUserMediaItemDataHandler[*mediatypes.Collection] {
 	return h.collectionClientDataHandler
 }
 
-func (h *clientMediaItemDataHandlersImpl) PlaylistClientDataHandler() *apphandlers.ClientMediaItemDataHandler[*mediatypes.Playlist] {
+func (h *clientMediaItemDataHandlersImpl) PlaylistClientDataHandler() *handlers.ClientUserMediaItemDataHandler[*mediatypes.Playlist] {
 	return h.playlistClientDataHandler
 }
-
-type specializedMediaHandlersImpl struct {
-	musicHandler          apphandlers.MusicHandler
-	seriesSpecificHandler *apphandlers.ClientMediaSeriesHandler[*clienttypes.JellyfinConfig]
-}
-
-func (h *specializedMediaHandlersImpl) MusicHandler() apphandlers.MusicHandler {
-	return h.musicHandler
-}
-
-func (h *specializedMediaHandlersImpl) SeriesSpecificHandler() *apphandlers.ClientMediaSeriesHandler[*clienttypes.JellyfinConfig] {
-	return h.seriesSpecificHandler
-}
-

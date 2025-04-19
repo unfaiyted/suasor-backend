@@ -13,327 +13,349 @@ import (
 	"suasor/utils"
 )
 
-// UserPlaylistService defines the interface for user-owned playlist operations
-// This service extends PlaylistService with operations specific to user-owned playlists
+// UserlistService defines the interface for user-owned list operations
+// This service extends listService with operations specific to user-owned lists
 type UserListService[T mediatypes.ListData] interface {
-	// Include all core playlist service methods
+	// Include all core list service methods
 	CoreListService[T]
 
 	// User-specific operations
-	GetFavorite(ctx context.Context, userID uint64) ([]*models.MediaItem[*mediatypes.Playlist], error)
-	GetRecentByUser(ctx context.Context, userID uint64, days int, limit int) ([]*models.MediaItem[*mediatypes.Playlist], error)
+	GetFavorite(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error)
+	GetRecentByUser(ctx context.Context, userID uint64, days int, limit int) ([]*models.MediaItem[T], error)
 
-	// Smart playlist operations
+	// Smart list operations
 	CreateSmartList(ctx context.Context,
 		userID uint64, name string,
 		description string,
 		criteria map[string]interface{},
-	) (*models.MediaItem[*mediatypes.Playlist], error)
-	UpdateSmartCriteria(ctx context.Context, playlistID uint64, criteria map[string]interface{}) (*models.MediaItem[*mediatypes.Playlist], error)
-	RefreshSmartList(ctx context.Context, playlistID uint64) (*models.MediaItem[*mediatypes.Playlist], error)
+	) (*models.MediaItem[T], error)
+	UpdateSmartCriteria(ctx context.Context, listID uint64, criteria map[string]interface{}) (*models.MediaItem[T], error)
+	RefreshSmartList(ctx context.Context, listID uint64) (*models.MediaItem[T], error)
+	ReorderItems(ctx context.Context, listID uint64, itemIDs []string) error
 
-	// Playlist sharing and collaboration
-	ShareWithUser(ctx context.Context, playlistID uint64, targetUserID uint64, permissionLevel string) error
-	GetShared(ctx context.Context, userID uint64) ([]*models.MediaItem[*mediatypes.Playlist], error)
-	GetCollaborators(ctx context.Context, playlistID uint64) ([]models.ListCollaborator, error)
-	RemoveCollaborator(ctx context.Context, playlistID uint64, userID uint64) error
+	// list sharing and collaboration
+	ShareWithUser(ctx context.Context, listID uint64, targetUserID uint64, permissionLevel string) error
+	GetShared(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error)
+	// GetCollaborators(ctx context.Context, listID uint64) ([]models.ListCollaborator, error)
+	// RemoveCollaborator(ctx context.Context, listID uint64, userID uint64) error
 
-	// Playlist sync
-	SyncToClients(ctx context.Context, playlistID uint64, clientIDs []uint64) error
-	GetSyncStatus(ctx context.Context, playlistID uint64) (*models.PlaylistSyncStatus, error)
+	// list sync
+	SyncToClients(ctx context.Context, listID uint64, clientIDs []uint64) error
+	GetSyncStatus(ctx context.Context, listID uint64) (*models.ListSyncStatus, error)
 }
 
-type userPlaylistService struct {
-	userItemRepo repository.UserMediaItemRepository[*mediatypes.Playlist]
-	userDataRepo repository.UserMediaItemDataRepository[*mediatypes.Playlist]
-	itemRepo     repository.MediaItemRepository[*mediatypes.Playlist]
+type userListService[T mediatypes.ListData] struct {
+	userItemRepo    repository.UserMediaItemRepository[T]
+	userDataRepo    repository.UserMediaItemDataRepository[T]
+	coreListService CoreListService[T]
 }
 
-// NewUserPlaylistService creates a new user playlist service
-func NewUserPlaylistService(
+// NewUserlistService creates a new user list service
+func NewUserListService[T mediatypes.ListData](
 	ctx context.Context,
 	c *container.Container,
-) UserPlaylistService {
-	return &userPlaylistService{
-		userItemRepo: container.MustGet[repository.UserMediaItemRepository[*mediatypes.Playlist]](c),
-		userDataRepo: container.MustGet[repository.UserMediaItemDataRepository[*mediatypes.Playlist]](c),
-		itemRepo:     container.MustGet[repository.MediaItemRepository[*mediatypes.Playlist]](c),
+	coreListService CoreListService[T],
+) UserListService[T] {
+	return &userListService[T]{
+		coreListService: container.MustGet[CoreListService[T]](c),
+		userItemRepo:    container.MustGet[repository.UserMediaItemRepository[T]](c),
+		userDataRepo:    container.MustGet[repository.UserMediaItemDataRepository[T]](c),
 	}
 }
 
-// Core methods delegated to the base PlaylistService
+// Core methods delegated to the base listService
 
-func (s *userPlaylistService) Create(ctx context.Context, playlist *models.MediaItem[*mediatypes.Playlist]) (*models.MediaItem[*mediatypes.Playlist], error) {
+func (s *userListService[T]) Create(ctx context.Context, list *models.MediaItem[T]) (*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Str("title", playlist.Title).
-		Msg("Creating user playlist")
+		Str("title", list.Title).
+		Msg("Creating user list")
 
 	// Get user ID from context
 	userID := ctx.Value("userID").(uint64)
 
 	// Set ownership info if not already set
-	if playlist.Data.OwnerID == 0 {
-		playlist.Data.OwnerID = userID
-	}
-	if playlist.Data.ItemList.OwnerID == 0 {
-		playlist.Data.ItemList.OwnerID = userID
-	}
-	if playlist.Data.ItemList.ModifiedBy == 0 {
-		playlist.Data.ItemList.ModifiedBy = userID
+	if list.OwnerID == 0 {
+		list.OwnerID = userID
 	}
 
-	// Delegate to core service
-	return s.Create(ctx, playlist)
+	itemList := list.GetData().GetItemList()
+
+	if itemList.OwnerID == 0 {
+		itemList.OwnerID = userID
+	}
+	if itemList.ModifiedBy == 0 {
+		itemList.ModifiedBy = userID
+	}
+
+	return s.coreListService.Create(ctx, list)
 }
 
-func (s *userPlaylistService) Update(ctx context.Context, playlist *models.MediaItem[*mediatypes.Playlist]) (*models.MediaItem[*mediatypes.Playlist], error) {
+func (s *userListService[T]) Update(ctx context.Context, list *models.MediaItem[T]) (*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Uint64("id", playlist.ID).
-		Str("title", playlist.Title).
-		Msg("Updating user playlist")
+		Uint64("id", list.ID).
+		Str("title", list.Title).
+		Msg("Updating user list")
 
-	// Verify user has permission to update this playlist
+	// Verify user has permission to update this list
 	userID := ctx.Value("userID").(uint64)
-	existing, err := s.GetByID(ctx, playlist.ID)
+	existing, err := s.GetByID(ctx, list.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update user playlist: %w", err)
+		return nil, fmt.Errorf("failed to update user list: %w", err)
 	}
 
 	// Check ownership or collaboration permission
 	if !s.hasWritePermission(ctx, userID, existing) {
 		log.Warn().
-			Uint64("playlistID", playlist.ID).
-			Uint64("ownerID", existing.Data.OwnerID).
+			Uint64("listID", list.ID).
+			Uint64("ownerID", existing.OwnerID).
 			Uint64("requestingUserID", userID).
-			Msg("User attempting to update a playlist without permission")
-		return nil, errors.New("you don't have permission to update this playlist")
+			Msg("User attempting to update a list without permission")
+		return nil, errors.New("you don't have permission to update this list")
 	}
 
+	itemList := list.GetData().GetItemList()
+
 	// Set the modified by field to the current user
-	playlist.Data.ItemList.ModifiedBy = userID
-	playlist.Data.ItemList.LastModified = time.Now()
+	itemList.ModifiedBy = userID
+	itemList.LastModified = time.Now()
+
+	list.GetData().SetItemList(itemList)
 
 	// Delegate to core service
-	return s.Update(ctx, playlist)
+	return s.Update(ctx, list)
 }
 
-func (s *userPlaylistService) GetByID(ctx context.Context, id uint64) (*models.MediaItem[*mediatypes.Playlist], error) {
+func (s *userListService[T]) GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error) {
 	return s.GetByID(ctx, id)
 }
 
-func (s *userPlaylistService) GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[*mediatypes.Playlist], error) {
-	return s.GetByUserID(ctx, userID)
+func (s *userListService[T]) GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error) {
+	return s.coreListService.GetByUserID(ctx, userID, limit, offset)
 }
 
-func (s *userPlaylistService) Delete(ctx context.Context, id uint64) error {
+func (s *userListService[T]) Delete(ctx context.Context, id uint64) error {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("id", id).
-		Msg("Deleting user playlist")
+		Msg("Deleting user list")
 
-	// Verify user has permission to delete this playlist
+	// Verify user has permission to delete this list
 	userID := ctx.Value("userID").(uint64)
-	playlist, err := s.GetByID(ctx, id)
+	list, err := s.GetByID(ctx, id)
 	if err != nil {
-		return fmt.Errorf("failed to delete user playlist: %w", err)
+		return fmt.Errorf("failed to delete user list: %w", err)
 	}
 
-	// Only the owner can delete a playlist
-	if playlist.Data.OwnerID != userID {
+	// Only the owner can delete a list
+	if list.OwnerID != userID {
 		log.Warn().
-			Uint64("playlistID", id).
-			Uint64("ownerID", playlist.Data.OwnerID).
+			Uint64("listID", id).
+			Uint64("ownerID", list.OwnerID).
 			Uint64("requestingUserID", userID).
-			Msg("User attempting to delete a playlist they don't own")
-		return errors.New("only the owner can delete a playlist")
+			Msg("User attempting to delete a list they don't own")
+		return errors.New("only the owner can delete a list")
 	}
 
 	// Delegate to core service for deletion
 	return s.Delete(ctx, id)
 }
 
-func (s *userPlaylistService) GetPlaylistItems(ctx context.Context, playlistID uint64) ([]*models.MediaItem[mediatypes.MediaData], error) {
-	return s.GetPlaylistItems(ctx, playlistID)
+func (s *userListService[T]) GetItems(ctx context.Context, listID uint64) (*models.MediaItems, error) {
+	return s.coreListService.GetItems(ctx, listID)
 }
 
-func (s *userPlaylistService) AddItemToPlaylist(ctx context.Context, playlistID uint64, itemID uint64) error {
+func (s *userListService[T]) AddItem(ctx context.Context, listID uint64, itemID uint64) error {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Uint64("playlistID", playlistID).
+		Uint64("listID", listID).
 		Uint64("itemID", itemID).
-		Msg("Adding item to user playlist")
+		Msg("Adding item to user list")
 
-	// Verify user has permission to modify this playlist
+	// Verify user has permission to modify this list
 	userID := ctx.Value("userID").(uint64)
-	playlist, err := s.GetByID(ctx, playlistID)
+	list, err := s.GetByID(ctx, listID)
 	if err != nil {
-		return fmt.Errorf("failed to add item to user playlist: %w", err)
+		return fmt.Errorf("failed to add item to user list: %w", err)
 	}
 
 	// Check if user has write permission
-	if !s.hasWritePermission(ctx, userID, playlist) {
+	if !s.hasWritePermission(ctx, userID, list) {
 		log.Warn().
-			Uint64("playlistID", playlistID).
-			Uint64("ownerID", playlist.Data.OwnerID).
+			Uint64("listID", listID).
+			Uint64("ownerID", list.OwnerID).
 			Uint64("requestingUserID", userID).
-			Msg("User attempting to modify a playlist without permission")
-		return errors.New("you don't have permission to modify this playlist")
+			Msg("User attempting to modify a list without permission")
+		return errors.New("you don't have permission to modify this list")
 	}
 
 	// Delegate to core service
-	return s.AddItemToPlaylist(ctx, playlistID, itemID)
+	return s.AddItem(ctx, listID, itemID)
 }
 
-func (s *userPlaylistService) RemoveItemFromPlaylist(ctx context.Context, playlistID uint64, itemID uint64) error {
+func (s *userListService[T]) RemoveItem(ctx context.Context, listID uint64, itemID uint64) error {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Uint64("playlistID", playlistID).
+		Uint64("listID", listID).
 		Uint64("itemID", itemID).
-		Msg("Removing item from user playlist")
+		Msg("Removing item from user list")
 
-	// Verify user has permission to modify this playlist
+	// Verify user has permission to modify this list
 	userID := ctx.Value("userID").(uint64)
-	playlist, err := s.GetByID(ctx, playlistID)
+	list, err := s.GetByID(ctx, listID)
 	if err != nil {
-		return fmt.Errorf("failed to remove item from user playlist: %w", err)
+		return fmt.Errorf("failed to remove item from user list: %w", err)
 	}
 
 	// Check if user has write permission
-	if !s.hasWritePermission(ctx, userID, playlist) {
+	if !s.hasWritePermission(ctx, userID, list) {
 		log.Warn().
-			Uint64("playlistID", playlistID).
-			Uint64("ownerID", playlist.Data.OwnerID).
+			Uint64("listID", listID).
+			Uint64("ownerID", list.OwnerID).
 			Uint64("requestingUserID", userID).
-			Msg("User attempting to modify a playlist without permission")
-		return errors.New("you don't have permission to modify this playlist")
+			Msg("User attempting to modify a list without permission")
+		return errors.New("you don't have permission to modify this list")
 	}
 
 	// Delegate to core service
-	return s.RemoveItemFromPlaylist(ctx, playlistID, itemID)
+	return s.coreListService.RemoveItem(ctx, listID, itemID)
 }
 
-func (s *userPlaylistService) ReorderPlaylistItems(ctx context.Context, playlistID uint64, itemIDs []string) error {
+func (s *userListService[T]) ReorderlistItems(ctx context.Context, listID uint64, itemIDs []string) error {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Uint64("playlistID", playlistID).
+		Uint64("listID", listID).
 		Interface("itemIDs", itemIDs).
-		Msg("Reordering user playlist items")
+		Msg("Reordering user list items")
 
-	// Verify user has permission to modify this playlist
+	// Verify user has permission to modify this list
 	userID := ctx.Value("userID").(uint64)
-	playlist, err := s.GetByID(ctx, playlistID)
+	list, err := s.GetByID(ctx, listID)
 	if err != nil {
-		return fmt.Errorf("failed to reorder user playlist items: %w", err)
+		return fmt.Errorf("failed to reorder user list items: %w", err)
 	}
 
 	// Check if user has write permission
-	if !s.hasWritePermission(ctx, userID, playlist) {
+	if !s.hasWritePermission(ctx, userID, list) {
 		log.Warn().
-			Uint64("playlistID", playlistID).
-			Uint64("ownerID", playlist.Data.OwnerID).
+			Uint64("listID", listID).
+			Uint64("ownerID", list.OwnerID).
 			Uint64("requestingUserID", userID).
-			Msg("User attempting to modify a playlist without permission")
-		return errors.New("you don't have permission to modify this playlist")
+			Msg("User attempting to modify a list without permission")
+		return errors.New("you don't have permission to modify this list")
 	}
 
 	// Delegate to core service
-	return s.ReorderItems(ctx, playlistID, itemIDs)
+	return s.coreListService.ReorderItems(ctx, listID, itemIDs)
 }
 
-func (s *userPlaylistService) UpdateItems(ctx context.Context, playlistID uint64, items []*models.MediaItem[mediatypes.MediaData]) error {
+func (s *userListService[T]) UpdateItems(ctx context.Context, listID uint64, items []*models.MediaItem[T]) error {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Uint64("playlistID", playlistID).
+		Uint64("listID", listID).
 		Int("itemCount", len(items)).
-		Msg("Updating user playlist items")
+		Msg("Updating user list items")
 
-	// Verify user has permission to modify this playlist
+	// Verify user has permission to modify this list
 	userID := ctx.Value("userID").(uint64)
-	playlist, err := s.GetByID(ctx, playlistID)
+	list, err := s.GetByID(ctx, listID)
 	if err != nil {
-		return fmt.Errorf("failed to update user playlist items: %w", err)
+		return fmt.Errorf("failed to update user list items: %w", err)
 	}
 
 	// Check if user has write permission
-	if !s.hasWritePermission(ctx, userID, playlist) {
+	if !s.hasWritePermission(ctx, userID, list) {
 		log.Warn().
-			Uint64("playlistID", playlistID).
-			Uint64("ownerID", playlist.Data.OwnerID).
+			Uint64("listID", listID).
+			Uint64("ownerID", list.OwnerID).
 			Uint64("requestingUserID", userID).
-			Msg("User attempting to modify a playlist without permission")
-		return errors.New("you don't have permission to modify this playlist")
+			Msg("User attempting to modify a list without permission")
+		return errors.New("you don't have permission to modify this list")
 	}
 
 	// Delegate to core service
-	return s.UpdateItems(ctx, playlistID, items)
+	return s.UpdateItems(ctx, listID, items)
 }
 
-func (s *userPlaylistService) Search(ctx context.Context, query mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Playlist], error) {
+func (s *userListService[T]) Search(ctx context.Context, query mediatypes.QueryOptions) ([]*models.MediaItem[T], error) {
 	return s.Search(ctx, query)
 }
 
-func (s *userPlaylistService) GetRecent(ctx context.Context, days int, limit int) ([]*models.MediaItem[*mediatypes.Playlist], error) {
+func (s *userListService[T]) GetRecent(ctx context.Context, days int, limit int) ([]*models.MediaItem[T], error) {
 	return s.GetRecent(ctx, days, limit)
 }
 
-func (s *userPlaylistService) Sync(ctx context.Context, playlistID uint64, targetClientIDs []uint64) error {
-	// Verify user has permission to synchronize this playlist
+func (s *userListService[T]) Sync(ctx context.Context, listID uint64, targetClientIDs []uint64) error {
+	// Verify user has permission to synchronize this list
 	userID := ctx.Value("userID").(uint64)
-	playlist, err := s.GetByID(ctx, playlistID)
+	list, err := s.GetByID(ctx, listID)
 	if err != nil {
-		return fmt.Errorf("failed to sync user playlist: %w", err)
+		return fmt.Errorf("failed to sync user list: %w", err)
 	}
 
 	// Check if user has read permission (sync is a read operation followed by creation elsewhere)
-	if !s.hasPlaylistReadPermission(ctx, userID, playlist) {
-		return errors.New("you don't have permission to sync this playlist")
+	if !s.haslistReadPermission(ctx, userID, list) {
+		return errors.New("you don't have permission to sync this list")
 	}
 
 	// Delegate to core service
-	return s.Sync(ctx, playlistID, targetClientIDs)
+	return s.Sync(ctx, listID, targetClientIDs)
+}
+
+func (s *userListService[T]) UpdateSmartCriteria(ctx context.Context, listID uint64, criteria map[string]interface{}) (*models.MediaItem[T], error) {
+	log := utils.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("listID", listID).
+		Interface("criteria", criteria).
+		Msg("Updating smart list criteria")
+
+	return nil, nil
+	// return s.UpdateSmartCriteria(ctx, listID, criteria)
 }
 
 // User-specific operations
 
-// GetUserPlaylists retrieves playlists owned by a specific user with pagination
-func (s *userPlaylistService) GetUser(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[*mediatypes.Playlist], error) {
+// GetUserlists retrieves lists owned by a specific user with pagination
+func (s *userListService[T]) GetUser(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Int("limit", limit).
 		Int("offset", offset).
-		Msg("Getting user playlists with pagination")
+		Msg("Getting user lists with pagination")
 
-	// Get all playlists for this user
-	playlists, err := s.itemRepo.GetByUserID(ctx, userID, limit, offset)
+	// Get all lists for this user
+	lists, err := s.userItemRepo.GetByUserID(ctx, userID, limit, offset)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
-			Msg("Failed to get user playlists")
-		return nil, fmt.Errorf("failed to get user playlists: %w", err)
+			Msg("Failed to get user lists")
+		return nil, fmt.Errorf("failed to get user lists: %w", err)
 	}
 
 	log.Info().
 		Uint64("userID", userID).
-		Int("count", len(playlists)).
-		Msg("Retrieved user playlists")
+		Int("count", len(lists)).
+		Msg("Retrieved user lists")
 
-	return playlists, nil
+	return lists, nil
 }
 
-// SearchUserPlaylists searches for playlists owned by a specific user
-func (s *userPlaylistService) SearchUserPlaylists(ctx context.Context, userID uint64, query string) ([]*models.MediaItem[*mediatypes.Playlist], error) {
+// SearchUserlists searches for lists owned by a specific user
+func (s *userListService[T]) SearchUser(ctx context.Context, userID uint64, query string) ([]*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Str("query", query).
-		Msg("Searching user playlists")
+		Msg("Searching user lists")
+
+	var zero T
+	mediaType := mediatypes.GetMediaTypeFromTypeName(zero)
 
 	// Create query options with user filter
 	options := mediatypes.QueryOptions{
-		MediaType: mediatypes.MediaTypePlaylist,
+		MediaType: mediaType,
 		Query:     query,
 		OwnerID:   userID,
 	}
@@ -342,42 +364,45 @@ func (s *userPlaylistService) SearchUserPlaylists(ctx context.Context, userID ui
 	return s.Search(ctx, options)
 }
 
-// GetRecentUserPlaylists retrieves recently updated playlists for a user
-func (s *userPlaylistService) GetRecentByUser(ctx context.Context, userID uint64, days int, limit int) ([]*models.MediaItem[*mediatypes.Playlist], error) {
+// GetRecentUserlists retrieves recently updated lists for a user
+func (s *userListService[T]) GetRecentByUser(ctx context.Context, userID uint64, days int, limit int) ([]*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Int("limit", limit).
-		Msg("Getting recent user playlists")
+		Msg("Getting recent user lists")
+
+	var zero T
+	mediaType := mediatypes.GetMediaTypeFromTypeName(zero)
 
 	options := mediatypes.QueryOptions{
-		MediaType: mediatypes.MediaTypePlaylist,
+		MediaType: mediaType,
 		OwnerID:   userID,
 		Limit:     limit,
 		Sort:      "updated_at",
 		SortOrder: "desc",
 	}
-	return s.itemRepo.Search(ctx, options)
+	return s.userItemRepo.Search(ctx, options)
 
 }
 
-// GetFavoritePlaylists retrieves playlists marked as favorite by the user
-func (s *userPlaylistService) GetFavoritePlaylists(ctx context.Context, userID uint64) ([]*models.MediaItem[*mediatypes.Playlist], error) {
+// GetFavoritelists retrieves lists marked as favorite by the user
+func (s *userListService[T]) GetFavorite(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
-		Msg("Getting favorite playlists")
+		Msg("Getting favorite lists")
 
 	limit := 0
 	offset := 0
 
-	// Use user data repository to get all favorites of type playlist
+	// Use user data repository to get all favorites of type list
 	userFavoritePlayData, err := s.userDataRepo.GetFavorites(ctx, userID, limit, offset)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
-			Msg("Failed to get favorite playlist IDs")
-		return nil, fmt.Errorf("failed to get favorite playlists: %w", err)
+			Msg("Failed to get favorite list IDs")
+		return nil, fmt.Errorf("failed to get favorite lists: %w", err)
 	}
 
 	var ids []uint64
@@ -385,246 +410,233 @@ func (s *userPlaylistService) GetFavoritePlaylists(ctx context.Context, userID u
 		ids = append(ids, data.MediaItemID)
 	}
 
-	// Fetch the playlists by IDs
-	playlists, err := s.itemRepo.GetByIDs(ctx, ids)
+	// Fetch the lists by IDs
+	lists, err := s.userItemRepo.GetByIDs(ctx, ids)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
-			Msg("Failed to get favorite playlists")
-		return nil, fmt.Errorf("failed to get favorite playlists: %w", err)
+			Msg("Failed to get favorite lists")
+		return nil, fmt.Errorf("failed to get favorite lists: %w", err)
 	}
 
 	log.Info().
 		Uint64("userID", userID).
-		Int("count", len(playlists)).
-		Msg("Retrieved favorite playlists")
+		Int("count", len(lists)).
+		Msg("Retrieved favorite lists")
 
-	return playlists, nil
+	return lists, nil
 }
 
-// Smart playlist operations
+// Smart list operations
 
-// CreateSmartPlaylist creates a playlist that updates automatically based on criteria
-func (s *userPlaylistService) CreateSmartList(ctx context.Context, userID uint64, name string, description string, criteria map[string]interface{}) (*models.MediaItem[*mediatypes.Playlist], error) {
+// CreateSmartlist creates a list that updates automatically based on criteria
+func (s *userListService[T]) CreateSmartList(ctx context.Context, userID uint64, name string, description string, criteria map[string]interface{}) (*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Str("name", name).
 		Interface("criteria", criteria).
-		Msg("Creating smart playlist")
+		Msg("Creating smart list")
 
-	// Create a new playlist with smart flag enabled
-	now := time.Now()
-	playlist := &models.MediaItem[*mediatypes.Playlist]{
-		Title: name,
-		Type:  mediatypes.MediaTypePlaylist,
-		Data: &mediatypes.Playlist{
-			ItemList: mediatypes.ItemList{
-				Details: mediatypes.MediaDetails{
-					Title:       name,
-					Description: description,
-					AddedAt:     now,
-				},
-				OwnerID:    userID,
-				ModifiedBy: userID,
-				Items:      []mediatypes.ListItem{},
-				ItemCount:  0,
-				// Smart playlist specific fields
-				IsSmart:        true,
-				SmartCriteria:  criteria,
-				AutoUpdateTime: now,
-			},
-		},
-	}
+	var zero T
+	mediaType := mediatypes.GetMediaTypeFromTypeName(zero)
 
-	// Create the playlist
-	result, err := s.Create(ctx, playlist)
+	// Create a new list with smart flag enabled
+
+	data := createList[T](name, description, criteria, userID)
+	list := models.NewMediaItem[T](mediaType, data)
+
+	// Create the list
+	result, err := s.Create(ctx, list)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
 			Str("name", name).
-			Msg("Failed to create smart playlist")
-		return nil, fmt.Errorf("failed to create smart playlist: %w", err)
+			Msg("Failed to create smart list")
+		return nil, fmt.Errorf("failed to create smart list: %w", err)
 	}
 
-	// Refresh the smart playlist to populate it based on criteria
-	refreshed, err := s.RefreshSmartPlaylist(ctx, result.ID)
+	// Refresh the smart list to populate it based on criteria
+	refreshed, err := s.RefreshSmartList(ctx, result.ID)
 	if err != nil {
 		log.Warn().Err(err).
-			Uint64("playlistID", result.ID).
-			Msg("Failed to initially populate smart playlist")
-		// Return the playlist anyway, just warn about the population failure
+			Uint64("listID", result.ID).
+			Msg("Failed to initially populate smart list")
+		// Return the list anyway, just warn about the population failure
 	} else if refreshed != nil {
 		result = refreshed
 	}
 
+	itemList := result.GetData().GetItemList()
+
 	log.Info().
-		Uint64("playlistID", result.ID).
+		Uint64("listID", result.ID).
 		Str("name", name).
 		Uint64("userID", userID).
-		Int("itemCount", result.Data.ItemList.ItemCount).
-		Msg("Smart playlist created successfully")
+		Int("itemCount", itemList.ItemCount).
+		Msg("Smart list created successfully")
 
 	return result, nil
 }
 
-// UpdateSmartPlaylistCriteria updates the criteria for a smart playlist
-func (s *userPlaylistService) UpdateSmartPlaylistCriteria(ctx context.Context, playlistID uint64, criteria map[string]interface{}) (*models.MediaItem[*mediatypes.Playlist], error) {
+// UpdateSmartlistCriteria updates the criteria for a smart list
+func (s *userListService[T]) UpdateSmartlistCriteria(ctx context.Context, listID uint64, criteria map[string]interface{}) (*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Uint64("playlistID", playlistID).
+		Uint64("listID", listID).
 		Interface("criteria", criteria).
-		Msg("Updating smart playlist criteria")
+		Msg("Updating smart list criteria")
 
-	// Get the playlist
-	playlist, err := s.GetByID(ctx, playlistID)
+	// Get the list
+	list, err := s.GetByID(ctx, listID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update smart playlist criteria: %w", err)
+		return nil, fmt.Errorf("failed to update smart list criteria: %w", err)
 	}
 
-	// Verify this is a smart playlist
-	if !playlist.Data.IsSmart {
-		log.Error().
-			Uint64("playlistID", playlistID).
-			Msg("Cannot update criteria of non-smart playlist")
-		return nil, errors.New("cannot update criteria of non-smart playlist")
-	}
+	// Verify this is a smart list
+	// if !list.Data.IsSmart {
+	// 	log.Error().
+	// 		Uint64("listID", listID).
+	// 		Msg("Cannot update criteria of non-smart list")
+	// 	return nil, errors.New("cannot update criteria of non-smart list")
+	// }
 
-	// Verify user has permission to modify this playlist
+	// Verify user has permission to modify this list
 	userID := ctx.Value("userID").(uint64)
-	if !s.hasWritePermission(ctx, userID, playlist) {
+	if !s.hasWritePermission(ctx, userID, list) {
 		log.Warn().
-			Uint64("playlistID", playlistID).
-			Uint64("ownerID", playlist.Data.OwnerID).
+			Uint64("listID", listID).
+			Uint64("ownerID", list.OwnerID).
 			Uint64("requestingUserID", userID).
-			Msg("User attempting to modify a playlist without permission")
-		return nil, errors.New("you don't have permission to modify this playlist")
+			Msg("User attempting to modify a list without permission")
+		return nil, errors.New("you don't have permission to modify this list")
 	}
 
 	// Update the criteria
-	playlist.Data.SmartCriteria = criteria
-	playlist.Data.AutoUpdateTime = time.Now()
-	playlist.Data.LastModified = time.Now()
-	playlist.Data.ModifiedBy = userID
+	// list.SmartCriteria = criteria
+	// list.AutoUpdateTime = time.Now()
+	// list.LastModified = time.Now()
+	// list.ModifiedBy = userID
 
-	// Update the playlist
-	updated, err := s.Update(ctx, playlist)
+	// Update the list
+	updated, err := s.Update(ctx, list)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("playlistID", playlistID).
-			Msg("Failed to update smart playlist criteria")
-		return nil, fmt.Errorf("failed to update smart playlist criteria: %w", err)
+			Uint64("listID", listID).
+			Msg("Failed to update smart list criteria")
+		return nil, fmt.Errorf("failed to update smart list criteria: %w", err)
 	}
 
-	// Refresh the playlist to apply the new criteria
-	refreshed, err := s.RefreshSmartPlaylist(ctx, playlistID)
+	// Refresh the list to apply the new criteria
+	refreshed, err := s.RefreshSmartList(ctx, listID)
 	if err != nil {
 		log.Warn().Err(err).
-			Uint64("playlistID", playlistID).
-			Msg("Failed to refresh smart playlist after criteria update")
-		// Return the updated playlist anyway
+			Uint64("listID", listID).
+			Msg("Failed to refresh smart list after criteria update")
+		// Return the updated list anyway
 		return updated, nil
 	}
 
 	log.Info().
-		Uint64("playlistID", playlistID).
-		Int("itemCount", refreshed.Data.ItemCount).
-		Msg("Smart playlist criteria updated and refreshed successfully")
+		Uint64("listID", listID).
+		// Int("itemCount", refreshed.Data.ItemCount).
+		Msg("Smart list criteria updated and refreshed successfully")
 
 	return refreshed, nil
 }
 
-// RefreshSmartPlaylist updates a smart playlist based on its criteria
-func (s *userPlaylistService) RefreshSmartPlaylist(ctx context.Context, playlistID uint64) (*models.MediaItem[*mediatypes.Playlist], error) {
+// RefreshSmartlist updates a smart list based on its criteria
+func (s *userListService[T]) RefreshSmartList(ctx context.Context, listID uint64) (*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Uint64("playlistID", playlistID).
-		Msg("Refreshing smart playlist")
+		Uint64("listID", listID).
+		Msg("Refreshing smart list")
 
-	// Get the playlist
-	playlist, err := s.GetByID(ctx, playlistID)
+	// Get the list
+	list, err := s.GetByID(ctx, listID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to refresh smart playlist: %w", err)
+		return nil, fmt.Errorf("failed to refresh smart list: %w", err)
 	}
+	itemList := list.GetData().GetItemList()
 
-	// Verify this is a smart playlist
-	if !playlist.Data.IsSmart {
+	// Verify this is a smart list
+	if !itemList.IsSmart {
 		log.Error().
-			Uint64("playlistID", playlistID).
-			Msg("Cannot refresh non-smart playlist")
-		return nil, errors.New("cannot refresh non-smart playlist")
+			Uint64("listID", listID).
+			Msg("Cannot refresh non-smart list")
+		return nil, errors.New("cannot refresh non-smart list")
 	}
 
-	// Verify user has permission to read this playlist (refresh is a read operation)
+	// Verify user has permission to read this list (refresh is a read operation)
 	userID := ctx.Value("userID").(uint64)
-	if !s.hasPlaylistReadPermission(ctx, userID, playlist) {
+	if !s.haslistReadPermission(ctx, userID, list) {
 		log.Warn().
-			Uint64("playlistID", playlistID).
-			Uint64("ownerID", playlist.Data.OwnerID).
+			Uint64("listID", listID).
+			Uint64("ownerID", list.OwnerID).
 			Uint64("requestingUserID", userID).
-			Msg("User attempting to refresh a playlist without permission")
-		return nil, errors.New("you don't have permission to refresh this playlist")
+			Msg("User attempting to refresh a list without permission")
+		return nil, errors.New("you don't have permission to refresh this list")
 	}
 
 	// Get the criteria
-	// criteria := playlist.Data.SmartCriteria
+	// criteria := list.Data.SmartCriteria
 
 	// In a real implementation, this would:
 	// 1. Translate the criteria into a database query
 	// 2. Execute the query to find all matching media items
-	// 3. Replace the playlist items with the query results
-	// 4. Update the playlist metadata
+	// 3. Replace the list items with the query results
+	// 4. Update the list metadata
 
 	// For now, just simulate the refresh by adding a note to the description
-	now := time.Now()
-	playlist.Data.Details.Description = fmt.Sprintf("%s\n\nLast refreshed: %s",
-		playlist.Data.Details.Description, now.Format(time.RFC3339))
-	playlist.Data.AutoUpdateTime = now
-	playlist.Data.LastModified = now
-	playlist.Data.ModifiedBy = userID
+	// now := time.Now()
+	// list.Data.Details.Description = fmt.Sprintf("%s\n\nLast refreshed: %s",
+	// 	list.Data.Details.Description, now.Format(time.RFC3339))
+	// list.Data.AutoUpdateTime = now
+	// list.Data.LastModified = now
+	// list.Data.ModifiedBy = userID
 
-	// Update the playlist
-	updated, err := s.Update(ctx, playlist)
+	// Update the list
+	updated, err := s.Update(ctx, list)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("playlistID", playlistID).
-			Msg("Failed to update playlist after refresh")
-		return nil, fmt.Errorf("failed to update playlist after refresh: %w", err)
+			Uint64("listID", listID).
+			Msg("Failed to update list after refresh")
+		return nil, fmt.Errorf("failed to update list after refresh: %w", err)
 	}
 
 	log.Info().
-		Uint64("playlistID", playlistID).
-		Msg("Smart playlist refreshed successfully")
+		Uint64("listID", listID).
+		Msg("Smart list refreshed successfully")
 
 	return updated, nil
 }
 
-// Playlist sharing and collaboration
+// list sharing and collaboration
 
-// SharePlaylistWithUser shares a playlist with another user
-func (s *userPlaylistService) ShareWithUser(ctx context.Context, playlistID uint64, targetUserID uint64, permissionLevel string) error {
+// SharelistWithUser shares a list with another user
+func (s *userListService[T]) ShareWithUser(ctx context.Context, listID uint64, targetUserID uint64, permissionLevel string) error {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Uint64("playlistID", playlistID).
+		Uint64("listID", listID).
 		Uint64("targetUserID", targetUserID).
 		Str("permissionLevel", permissionLevel).
-		Msg("Sharing playlist with user")
+		Msg("Sharing list with user")
 
-	// Get the playlist
-	playlist, err := s.GetByID(ctx, playlistID)
+	// Get the list
+	list, err := s.GetByID(ctx, listID)
 	if err != nil {
-		return fmt.Errorf("failed to share playlist: %w", err)
+		return fmt.Errorf("failed to share list: %w", err)
 	}
 
-	// Verify user has permission to share this playlist (only owner can share)
+	// Verify user has permission to share this list (only owner can share)
 	userID := ctx.Value("userID").(uint64)
-	if playlist.Data.OwnerID != userID {
+	if list.OwnerID != userID {
 		log.Warn().
-			Uint64("playlistID", playlistID).
-			Uint64("ownerID", playlist.Data.OwnerID).
+			Uint64("listID", listID).
+			Uint64("ownerID", list.OwnerID).
 			Uint64("requestingUserID", userID).
-			Msg("User attempting to share a playlist they don't own")
-		return errors.New("only the owner can share a playlist")
+			Msg("User attempting to share a list they don't own")
+		return errors.New("only the owner can share a list")
 	}
 
 	// Validate permission level
@@ -641,78 +653,78 @@ func (s *userPlaylistService) ShareWithUser(ctx context.Context, playlistID uint
 	// }
 	//
 	// // Initialize the shared with array if it doesn't exist
-	// if playlist.Data.SharedWith == nil {
-	// 	playlist.Data.SharedWith = []models.ListCollaborator{collaborator}
+	// if list.Data.SharedWith == nil {
+	// 	list.Data.SharedWith = []models.ListCollaborator{collaborator}
 	// } else {
 	// 	// Check if already shared
 	// 	alreadyShared := false
-	// 	for i, collab := range playlist.Data.SharedWith {
+	// 	for i, collab := range list.Data.SharedWith {
 	// 		if collab.UserID == targetUserID {
 	// 			alreadyShared = true
 	// 			// Update permission level if it's different
 	// 			if collab.PermissionLevel != permissionLevel {
-	// 				playlist.Data.SharedWith[i].PermissionLevel = permissionLevel
-	// 				playlist.Data.SharedWith[i].SharedAt = time.Now()
-	// 				playlist.Data.SharedWith[i].SharedBy = userID
+	// 				list.Data.SharedWith[i].PermissionLevel = permissionLevel
+	// 				list.Data.SharedWith[i].SharedAt = time.Now()
+	// 				list.Data.SharedWith[i].SharedBy = userID
 	// 			}
 	// 			break
 	// 		}
 	// 	}
 	//
 	// 	if !alreadyShared {
-	// 		playlist.Data.SharedWith = append(playlist.Data.SharedWith, collaborator)
+	// 		list.Data.SharedWith = append(list.Data.SharedWith, collaborator)
 	// 	}
 	// }
 
-	// Update the playlist
-	_, err = s.Update(ctx, playlist)
+	// Update the list
+	_, err = s.Update(ctx, list)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("playlistID", playlistID).
+			Uint64("listID", listID).
 			Uint64("targetUserID", targetUserID).
-			Msg("Failed to update playlist sharing information")
-		return fmt.Errorf("failed to update playlist sharing information: %w", err)
+			Msg("Failed to update list sharing information")
+		return fmt.Errorf("failed to update list sharing information: %w", err)
 	}
 
 	log.Info().
-		Uint64("playlistID", playlistID).
+		Uint64("listID", listID).
 		Uint64("targetUserID", targetUserID).
 		Str("permissionLevel", permissionLevel).
-		Msg("Playlist shared successfully")
+		Msg("list shared successfully")
 
 	return nil
 }
 
-// GetSharedPlaylists retrieves playlists shared with a user
-func (s *userPlaylistService) GetSharedPlaylists(ctx context.Context, userID uint64) ([]*models.MediaItem[*mediatypes.Playlist], error) {
+// GetSharedlists retrieves lists shared with a user
+func (s *userListService[T]) GetShared(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
-		Msg("Getting playlists shared with user")
+		Msg("Getting lists shared with user")
 
 	// TODO:
-	// In a real implementation, this would query the database for playlists where
+	// In a real implementation, this would query the database for lists where
 	// the user is in the SharedWith array
-	// For now, we'll scan through all playlists to find ones shared with this user
-	// allPlaylists, err := s.userRepo.GetAll(ctx, 1000, 0)
+	// For now, we'll scan through all lists to find ones shared with this user
+	// alllists, err := s.userRepo.GetAll(ctx, 1000, 0)
 	// if err != nil {
 	// 	log.Error().Err(err).
 	// 		Uint64("userID", userID).
-	// 		Msg("Failed to get all playlists")
-	// 	return nil, fmt.Errorf("failed to get shared playlists: %w", err)
+	// 		Msg("Failed to get all lists")
+	// 	return nil, fmt.Errorf("failed to get shared lists: %w", err)
 	// }
 	//
-	// var sharedPlaylists []*models.MediaItem[*mediatypes.Playlist]
-	// for _, playlist := range allPlaylists {
-	// 	// Skip playlists owned by this user (those are covered by GetUserPlaylists)
-	// 	if playlist.Data.OwnerID == userID {
+	// var sharedlists []*models.MediaItem[T]
+	// for _, list := range alllists {
+	// 	// Skip lists owned by this user (those are covered by GetUserlists)
+	// 	if list.Data.OwnerID == userID {
 	// 		continue
 	// 	}
 	//
-	// 	// Check if this playlist is shared with the user
-	// 	for _, collab := range playlist.Data.SharedWith {
+	// 	// Check if this list is shared with the user
+	// 	for _, collab := range list.Data.SharedWith {
 	// 		if collab.UserID == userID {
-	// 			sharedPlaylists = append(sharedPlaylists, playlist)
+	// 			sharedlists = append(sharedlists, list)
 	// 			break
 	// 		}
 	// 	}
@@ -720,84 +732,86 @@ func (s *userPlaylistService) GetSharedPlaylists(ctx context.Context, userID uin
 	//
 	// log.Info().
 	// 	Uint64("userID", userID).
-	// 	Int("count", len(sharedPlaylists)).
-	// 	Msg("Retrieved playlists shared with user")
+	// 	Int("count", len(sharedlists)).
+	// 	Msg("Retrieved lists shared with user")
 	//
-	// return sharedPlaylists, nil
+	// return sharedlists, nil
 	return nil, nil
 }
 
-// GetPlaylistCollaborators retrieves the list of users a playlist is shared with
-func (s *userPlaylistService) GetPlaylistCollaborators(ctx context.Context, playlistID uint64) ([]models.ListCollaborator, error) {
+// GetlistCollaborators retrieves the list of users a list is shared with
+func (s *userListService[T]) GetCollaborators(ctx context.Context, listID uint64) ([]models.ListCollaborator, error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Uint64("playlistID", playlistID).
-		Msg("Getting playlist collaborators")
+		Uint64("listID", listID).
+		Msg("Getting list collaborators")
 
-	// Get the playlist
-	playlist, err := s.GetByID(ctx, playlistID)
+	// Get the list
+	list, err := s.GetByID(ctx, listID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get playlist collaborators: %w", err)
+		return nil, fmt.Errorf("failed to get list collaborators: %w", err)
 	}
 
-	// Verify user has permission to view this playlist
+	// Verify user has permission to view this list
 	userID := ctx.Value("userID").(uint64)
-	if !s.hasPlaylistReadPermission(ctx, userID, playlist) {
+	if !s.haslistReadPermission(ctx, userID, list) {
 		log.Warn().
-			Uint64("playlistID", playlistID).
-			Uint64("ownerID", playlist.Data.OwnerID).
+			Uint64("listID", listID).
+			Uint64("ownerID", list.OwnerID).
 			Uint64("requestingUserID", userID).
 			Msg("User attempting to view collaborators without permission")
-		return nil, errors.New("you don't have permission to view this playlist's collaborators")
+		return nil, errors.New("you don't have permission to view this list's collaborators")
 	}
+	itemList := list.GetData().GetItemList()
 
 	// Return the shared with array (may be nil)
-	if playlist.Data.SharedWith == nil {
+	if itemList.SharedWith == nil {
 		return []models.ListCollaborator{}, nil
 	}
 
-	// return playlist.Data.SharedWith, nil
+	// return list.Data.SharedWith, nil
 	// TODO: implement all of the collaborator stuff
 	return nil, nil
 }
 
-// RemovePlaylistCollaborator removes a user from the playlist's collaborators
-func (s *userPlaylistService) RemovePlaylistCollaborator(ctx context.Context, playlistID uint64, collaboratorID uint64) error {
+// RemovelistCollaborator removes a user from the list's collaborators
+func (s *userListService[T]) RemoveCollaborator(ctx context.Context, listID uint64, collaboratorID uint64) error {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Uint64("playlistID", playlistID).
+		Uint64("listID", listID).
 		Uint64("collaboratorID", collaboratorID).
-		Msg("Removing playlist collaborator")
+		Msg("Removing list collaborator")
 
-	// Get the playlist
-	playlist, err := s.GetByID(ctx, playlistID)
+	// Get the list
+	list, err := s.GetByID(ctx, listID)
 	if err != nil {
-		return fmt.Errorf("failed to remove playlist collaborator: %w", err)
+		return fmt.Errorf("failed to remove list collaborator: %w", err)
 	}
 
 	// Verify user has permission to modify sharing (only owner can do this)
 	userID := ctx.Value("userID").(uint64)
-	if playlist.Data.OwnerID != userID {
+	if list.OwnerID != userID {
 		log.Warn().
-			Uint64("playlistID", playlistID).
-			Uint64("ownerID", playlist.Data.OwnerID).
+			Uint64("listID", listID).
+			Uint64("ownerID", list.OwnerID).
 			Uint64("requestingUserID", userID).
-			Msg("User attempting to modify playlist sharing without permission")
-		return errors.New("only the owner can modify playlist sharing")
+			Msg("User attempting to modify list sharing without permission")
+		return errors.New("only the owner can modify list sharing")
 	}
+	itemList := list.GetData().GetItemList()
 
-	// Check if the playlist has any collaborators
-	if playlist.Data.SharedWith == nil || len(playlist.Data.SharedWith) == 0 {
+	// Check if the list has any collaborators
+	if itemList.SharedWith == nil || len(itemList.SharedWith) == 0 {
 		log.Info().
-			Uint64("playlistID", playlistID).
-			Msg("Playlist has no collaborators to remove")
+			Uint64("listID", listID).
+			Msg("list has no collaborators to remove")
 		return nil
 	}
 
 	// Find and remove the collaborator
 	// var newCollaborators []models.ListCollaborator
 	found := false
-	// for _, collab := range playlist.Data.SharedWith {
+	// for _, collab := range list.Data.SharedWith {
 	// if collab.UserID != collaboratorID {
 	// 	newCollaborators = append(newCollaborators, collab)
 	// } else {
@@ -807,80 +821,80 @@ func (s *userPlaylistService) RemovePlaylistCollaborator(ctx context.Context, pl
 
 	if !found {
 		log.Info().
-			Uint64("playlistID", playlistID).
+			Uint64("listID", listID).
 			Uint64("collaboratorID", collaboratorID).
-			Msg("Collaborator not found in playlist")
+			Msg("Collaborator not found in list")
 		return nil
 	}
 
-	// Update the playlist with the new collaborators list
-	// playlist.Data.SharedWith = newCollaborators
-	_, err = s.Update(ctx, playlist)
+	// Update the list with the new collaborators list
+	// list.Data.SharedWith = newCollaborators
+	_, err = s.Update(ctx, list)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("playlistID", playlistID).
+			Uint64("listID", listID).
 			Uint64("collaboratorID", collaboratorID).
-			Msg("Failed to update playlist after removing collaborator")
-		return fmt.Errorf("failed to update playlist after removing collaborator: %w", err)
+			Msg("Failed to update list after removing collaborator")
+		return fmt.Errorf("failed to update list after removing collaborator: %w", err)
 	}
 
 	log.Info().
-		Uint64("playlistID", playlistID).
+		Uint64("listID", listID).
 		Uint64("collaboratorID", collaboratorID).
-		Msg("Playlist collaborator removed successfully")
+		Msg("list collaborator removed successfully")
 
 	return nil
 }
 
 // Sync with media clients
 
-// SyncPlaylistToClients synchronizes a playlist to specified media clients
-func (s *userPlaylistService) SyncPlaylistToClients(ctx context.Context, playlistID uint64, clientIDs []uint64) error {
+// SynclistToClients synchronizes a list to specified media clients
+func (s *userListService[T]) SyncToClients(ctx context.Context, listID uint64, clientIDs []uint64) error {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Uint64("playlistID", playlistID).
+		Uint64("listID", listID).
 		Interface("clientIDs", clientIDs).
-		Msg("Syncing playlist to clients")
+		Msg("Syncing list to clients")
 
-	// This uses the same approach as the base service's SyncPlaylist method
+	// This uses the same approach as the base service's Synclist method
 	// But could be extended with user-specific validation and tracking
-	// return s.SyncPlaylist(ctx, playlistID, clientIDs)
+	// return s.Synclist(ctx, listID, clientIDs)
 	return nil
 }
 
-// GetPlaylistSyncStatus retrieves the sync status of a playlist across clients
-func (s *userPlaylistService) GetPlaylistSyncStatus(ctx context.Context, playlistID uint64) (*models.PlaylistSyncStatus, error) {
+// GetlistSyncStatus retrieves the sync status of a list across clients
+func (s *userListService[T]) GetSyncStatus(ctx context.Context, listID uint64) (*models.ListSyncStatus, error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
-		Uint64("playlistID", playlistID).
-		Msg("Getting playlist sync status")
+		Uint64("listID", listID).
+		Msg("Getting list sync status")
 
-	// Get the playlist
-	playlist, err := s.GetByID(ctx, playlistID)
+	// Get the list
+	list, err := s.GetByID(ctx, listID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get playlist sync status: %w", err)
+		return nil, fmt.Errorf("failed to get list sync status: %w", err)
 	}
 
-	// Verify user has permission to view this playlist
+	// Verify user has permission to view this list
 	userID := ctx.Value("userID").(uint64)
-	if !s.hasPlaylistReadPermission(ctx, userID, playlist) {
+	if !s.haslistReadPermission(ctx, userID, list) {
 		log.Warn().
-			Uint64("playlistID", playlistID).
-			Uint64("ownerID", playlist.Data.OwnerID).
+			Uint64("listID", listID).
+			Uint64("ownerID", list.OwnerID).
 			Uint64("requestingUserID", userID).
-			Msg("User attempting to view playlist sync status without permission")
-		return nil, errors.New("you don't have permission to view this playlist's sync status")
+			Msg("User attempting to view list sync status without permission")
+		return nil, errors.New("you don't have permission to view this list's sync status")
 	}
 
 	// Create a sync status object
-	// status := &models.PlaylistSyncStatus{
-	// 	PlaylistID:   playlistID,
-	// 	LastSynced:   playlist.Data.LastSynced,
+	// status := &models.listSyncStatus{
+	// 	listID:   listID,
+	// 	LastSynced:   list.Data.LastSynced,
 	// 	ClientStates: make(map[uint64]models.ClientSyncState),
 	// }
 	//
 	// // Add state information for each client
-	// for _, state := range playlist.Data.SyncClientStates {
+	// for _, state := range list.Data.SyncClientStates {
 	// 	clientState := models.ClientSyncState{
 	// 		ClientID:     state.ClientID,
 	// 		ClientListID: state.ClientListID,
@@ -892,7 +906,7 @@ func (s *userPlaylistService) GetPlaylistSyncStatus(ctx context.Context, playlis
 	// 	// Determine sync status
 	// 	if state.LastSynced.IsZero() {
 	// 		clientState.SyncStatus = "never_synced"
-	// 	} else if state.LastSynced.Before(playlist.Data.LastModified) {
+	// 	} else if state.LastSynced.Before(list.Data.LastModified) {
 	// 		clientState.SyncStatus = "out_of_sync"
 	// 	} else {
 	// 		clientState.SyncStatus = "in_sync"
@@ -902,86 +916,119 @@ func (s *userPlaylistService) GetPlaylistSyncStatus(ctx context.Context, playlis
 	// }
 
 	// return status, nil
-	// TODO: Implement and test playlist sync status
+	// TODO: Implement and test list sync status
 	return nil, nil
 
 }
 
-func (s *playlistService) Delete(ctx context.Context, id uint64) error {
-	log := utils.LoggerFromContext(ctx)
-	log.Debug().
-		Uint64("id", id).
-		Msg("Deleting playlist")
+// func (s *userListService[T]) Delete(ctx context.Context, id uint64) error {
+// 	log := utils.LoggerFromContext(ctx)
+// 	log.Debug().
+// 		Uint64("id", id).
+// 		Msg("Deleting list")
+//
+// 	// First verify this is a list and the user has permission
+// 	list, err := s.GetByID(ctx, id)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to delete list: %w", err)
+// 	}
+//
+// 	// TODO: Verify the current user has permission to delete this list
+// 	// This would check if the current user ID matches list.Data.ItemList.OwnerID
+//
+// 	// Use the user service
+// 	err = s.userItemRepo.Delete(ctx, id)
+// 	if err != nil {
+// 		log.Error().Err(err).
+// 			Uint64("id", id).
+// 			Msg("Failed to delete list")
+// 		return fmt.Errorf("failed to delete list: %w", err)
+// 	}
+//
+// 	log.Info().
+// 		Uint64("id", id).
+// 		Str("title", list.Title).
+// 		Msg("list deleted successfully")
+//
+// 	return nil
+// }
 
-	// First verify this is a playlist and the user has permission
-	playlist, err := s.GetByID(ctx, id)
-	if err != nil {
-		return fmt.Errorf("failed to delete playlist: %w", err)
-	}
-
-	// TODO: Verify the current user has permission to delete this playlist
-	// This would check if the current user ID matches playlist.Data.ItemList.OwnerID
-
-	// Use the user service
-	err = s.repo.Delete(ctx, id)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("id", id).
-			Msg("Failed to delete playlist")
-		return fmt.Errorf("failed to delete playlist: %w", err)
-	}
-
-	log.Info().
-		Uint64("id", id).
-		Str("title", playlist.Title).
-		Msg("Playlist deleted successfully")
-
-	return nil
+func (s *userListService[T]) ReorderItems(ctx context.Context, listID uint64, itemIDs []string) error {
+	return s.coreListService.ReorderItems(ctx, listID, itemIDs)
 }
 
 // Helper functions
 
-// hasPlaylistReadPermission checks if the user has read permission for a playlist
-func (s *userPlaylistService) hasPlaylistReadPermission(ctx context.Context, userID uint64, playlist *models.MediaItem[*mediatypes.Playlist]) bool {
+// haslistReadPermission checks if the user has read permission for a list
+func (s *userListService[T]) haslistReadPermission(ctx context.Context, userID uint64, list *models.MediaItem[T]) bool {
 	// The owner always has read permission
-	if playlist.Data.OwnerID == userID {
+	if list.OwnerID == userID {
 		return true
 	}
+	log := utils.LoggerFromContext(ctx)
 
-	// Check if the playlist is shared with this user
-	for _, collab := range playlist.Data.SharedWith {
-		if collab.UserID == userID {
-			// Any permission level (read or write) allows reading
-			return true
-		}
+	itemList := list.GetData().GetItemList()
+	// Check if the list is shared with this user
+	for _, collab := range itemList.SharedWith {
+		log.Info().
+			Uint64("ownerID", list.OwnerID).
+			Uint64("requestingUserID", userID).
+			Int64("sharedWith", collab).
+			Msg("User attempting to view collaborators without permission")
+		// if collab.UserID == userID {
+		// Any permission level (read or write) allows reading
+		// return true
+		// }
 	}
 
 	// No permission found
 	return false
 }
 
-// hasPlaylistWritePermission checks if the user has write permission for a playlist
-func (s *userPlaylistService) hasWritePermission(ctx context.Context, userID uint64, playlist *models.MediaItem[*mediatypes.Playlist]) bool {
+// haslistWritePermission checks if the user has write permission for a list
+func (s *userListService[T]) hasWritePermission(ctx context.Context, userID uint64, list *models.MediaItem[T]) bool {
 	// The owner always has write permission
-	if playlist.Data.OwnerID == userID {
+	if list.OwnerID == userID {
 		return true
 	}
 
-	// Check if the playlist is shared with this user with write permission
-	for _, collab := range playlist.Data.SharedWith {
-		if collab.UserID == userID && collab.PermissionLevel == "write" {
-			return true
-		}
-	}
+	// itemList := list.GetData().GetItemList()
+	// Check if the list is shared with this user with write permission
+	// for _, collab := range itemList.SharedWith {
+	// if collab.UserID == userID && collab.PermissionLevel == "write" {
+	// 	return true
+	// }
+	// }
 
 	// No write permission found
 	return false
 }
 
-func (s *userPlaylistService) GetCollaborators(userID string, playlistID string) ([]UserCollaboration, error) {
-	var collabs []UserCollaboration
-	// note yet implemented
+// func (s *userListService[T]) GetCollaborators(userID string, listID string) ([]UserCollaboration, error) {
+// 	var collabs []UserCollaboration
+// 	// note yet implemented
+//
+// 	return collabs, nil
+//
+// }
 
-	return collabs, nil
-
+func createList[T mediatypes.ListData](name string, description string, criteria map[string]interface{}, userID uint64) T {
+	var list T
+	now := time.Now()
+	list.SetItemList(mediatypes.ItemList{
+		Details: mediatypes.MediaDetails{
+			Title:       name,
+			Description: description,
+			AddedAt:     now,
+		},
+		OwnerID:    userID,
+		ModifiedBy: userID,
+		Items:      []mediatypes.ListItem{},
+		ItemCount:  0,
+		// Smart list specific fields
+		IsSmart:        true,
+		SmartCriteria:  criteria,
+		AutoUpdateTime: now,
+	})
+	return list
 }

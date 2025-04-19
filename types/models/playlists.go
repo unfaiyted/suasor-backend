@@ -11,8 +11,8 @@ type ListCollaborator struct {
 	SyncDirection string `json:"syncDirection"`
 }
 
-type PlaylistSyncStatus struct {
-	PlaylistID   uint64                     `json:"playlistId"`
+type ListSyncStatus struct {
+	ListID       uint64                     `json:"playlistId"`
 	LastSynced   string                     `json:"lastSynced"`
 	ClientStates map[uint64]ClientSyncState `json:"clientStates"`
 }
