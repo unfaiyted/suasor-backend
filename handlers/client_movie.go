@@ -14,18 +14,21 @@ import (
 )
 
 type ClientMovieHandler[T clienttypes.ClientMediaConfig] interface {
+	// CoreMovieHandler has the basic database retreival operations
 	CoreMovieHandler
-	GetMovieByID(c *gin.Context)
-	GetMoviesByGenre(c *gin.Context)
-	GetMoviesByYear(c *gin.Context)
-	GetMoviesByActor(c *gin.Context)
-	GetMoviesByDirector(c *gin.Context)
-	GetMoviesByRating(c *gin.Context)
-	GetLatestMoviesByAdded(c *gin.Context)
-	GetPopularMovies(c *gin.Context)
-	GetTopRatedMovies(c *gin.Context)
-	SearchMovies(c *gin.Context)
-	GetMovieByExternalID(c *gin.Context)
+
+	// Client-Based Movie Operations
+	GetClientByID(c *gin.Context)
+	GetClientByGenre(c *gin.Context)
+	GetClientByYear(c *gin.Context)
+	GetClientByActor(c *gin.Context)
+	GetClientByDirector(c *gin.Context)
+	GetClientByRating(c *gin.Context)
+	GetClientLatestByAdded(c *gin.Context)
+	GetClientPopularMovies(c *gin.Context)
+	GetClientTopRatedMovies(c *gin.Context)
+	SearchClient(c *gin.Context)
+	GetClientByExternalID(c *gin.Context) //imdb, tmdb, etc.
 }
 
 // clientMovieHandler handles movie-related operations for media clients

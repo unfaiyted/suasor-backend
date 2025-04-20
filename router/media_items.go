@@ -17,7 +17,7 @@ func RegisterMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) {
 
 	clientMediaItems := rg.Group("/client")
 	{
-		// {base}/client/:clientType/:id/item/:mediaType/ example: /client/emby/11/movies
+		// {base}/client/:id/item/:mediaType/ example: /client/11/movies
 		RegisterClientMediaItemRoutes(clientMediaItems, c)
 
 	}

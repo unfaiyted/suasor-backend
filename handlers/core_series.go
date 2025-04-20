@@ -13,19 +13,17 @@ import (
 )
 
 type CoreSeriesHandler interface {
-	GetByID(c *gin.Context)
-	GetByGenre(c *gin.Context)
-	GetByYear(c *gin.Context)
-	GetByActor(c *gin.Context)
+	CoreMediaItemHandler[*mediatypes.Series]
+
+	GetAllEpisodes(c *gin.Context)
 	GetByCreator(c *gin.Context)
-	GetByRating(c *gin.Context)
-	GetLatestByAdded(c *gin.Context)
-	GetPopular(c *gin.Context)
-	GetTopRated(c *gin.Context)
-	Search(c *gin.Context)
 	GetSeasonsBySeriesID(c *gin.Context)
 	GetSeasonWithEpisodes(c *gin.Context)
 	GetEpisodesBySeasonID(c *gin.Context)
+	GetEpisodesBySeriesIDAndSeasonNumber(c *gin.Context)
+	GetRecentlyAiredEpisodes(c *gin.Context)
+	GetNextUpEpisodes(c *gin.Context)
+	GetSeriesByNetwork(c *gin.Context)
 }
 
 // coreSeriesHandler handles operations for series items in the database
@@ -38,14 +36,16 @@ type coreSeriesHandler struct {
 
 // NewcoreSeriesHandler creates a new series handler
 func NewCoreSeriesHandler(
+	coreHandler CoreMediaItemHandler[mediatypes.Series],
 	seriesService services.CoreMediaItemService[*mediatypes.Series],
 	seasonService services.CoreMediaItemService[*mediatypes.Season],
 	episodeService services.CoreMediaItemService[*mediatypes.Episode],
 ) CoreSeriesHandler {
 	return &coreSeriesHandler{
-		seriesService:  seriesService,
-		seasonService:  seasonService,
-		episodeService: episodeService,
+		CoreMediaItemHandler: coreHandler,
+		seriesService:        seriesService,
+		seasonService:        seasonService,
+		episodeService:       episodeService,
 	}
 }
 

@@ -19,6 +19,9 @@ type UserSeriesHandler interface {
 	GetFavoriteSeries(c *gin.Context)
 	GetWatchedSeries(c *gin.Context)
 	GetWatchlistSeries(c *gin.Context)
+	GetRecentlyWatchedEpisodes(c *gin.Context)
+	GetNextUpEpisodes(c *gin.Context)
+	GetContinueWatchingSeries(c *gin.Context)
 	UpdateSeriesUserData(c *gin.Context)
 }
 

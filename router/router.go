@@ -34,7 +34,6 @@ func Setup(ctx context.Context, c *container.Container) *gin.Engine {
 	// Setup API v1 routes
 	v1 := r.Group("/api/v1")
 
-	// TODO: should I fix this? It doesent technically need a repo, but ti does interact with the database?
 	healthService := container.MustGet[services.HealthService](c)
 	authService := container.MustGet[services.AuthService](c)
 
@@ -59,9 +58,6 @@ func Setup(ctx context.Context, c *container.Container) *gin.Engine {
 
 		// {base}/media-data/
 		RegisterMediaItemDataRoutes(authenticated, c) // Register media play history routes
-
-		// {base}/media/
-		RegisterMediaRoutes(authenticated, c)
 
 		// {base}/people/
 		RegisterPeopleBasedRoutes(authenticated, c)

@@ -26,8 +26,11 @@ type CoreMediaItemHandler[T types.MediaData] interface {
 	GetLatestByAdded(c *gin.Context)
 	GetByClient(c *gin.Context)
 	GetByGenre(c *gin.Context)
+	GetByRating(c *gin.Context)
 	GetPopular(c *gin.Context)
 	GetTopRated(c *gin.Context)
+
+	GetType() string
 }
 
 // coreMediaItemHandler is a generic handler for media items in the database
@@ -852,4 +855,10 @@ func (h *coreMediaItemHandler[T]) GetMostPlayed(c *gin.Context) {
 		Int("count", len(items)).
 		Msg("Most played media items retrieved successfully")
 	responses.RespondOK(c, items, "Most played media items retrieved successfully")
+}
+
+func (h *coreMediaItemHandler[T]) GetType() string {
+	var zero T
+	types := mediatypes.GetMediaTypeFromTypeName(zero)
+	return string(types)
 }

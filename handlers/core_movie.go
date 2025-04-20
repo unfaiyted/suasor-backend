@@ -12,19 +12,12 @@ import (
 	"suasor/utils"
 )
 
+// CoreMovieHandler handles operations for movies in the database
 type CoreMovieHandler interface {
 	CoreMediaItemHandler[*mediatypes.Movie]
 
-	GetByID(c *gin.Context)
-	GetByGenre(c *gin.Context)
-	GetByYear(c *gin.Context)
 	GetByActor(c *gin.Context)
 	GetByDirector(c *gin.Context)
-	GetByRating(c *gin.Context)
-	GetLatestByAdded(c *gin.Context)
-	GetPopular(c *gin.Context)
-	GetTopRated(c *gin.Context)
-	Search(c *gin.Context)
 }
 
 // coreMovieHandler handles operations for movies in the database

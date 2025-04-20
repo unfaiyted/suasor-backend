@@ -12,6 +12,7 @@ type ClientMediaHandlers interface {
 	ClientMediaEpisodeHandlers
 	ClientMusicHandlers
 	ClientPlaylistHandlers
+	ClientCollectionHandlers
 }
 
 type ClientMovieHandlers interface {
@@ -44,6 +45,13 @@ type ClientPlaylistHandlers interface {
 	JellyfinPlaylistHandler() handlers.ClientListHandler[*types.JellyfinConfig, *mediatypes.Playlist]
 	PlexPlaylistHandler() handlers.ClientListHandler[*types.PlexConfig, *mediatypes.Playlist]
 	SubsonicPlaylistHandler() handlers.ClientListHandler[*types.SubsonicConfig, *mediatypes.Playlist]
+}
+
+type ClientCollectionHandlers interface {
+	EmbyCollectionHandler() handlers.ClientListHandler[*types.EmbyConfig, *mediatypes.Collection]
+	JellyfinCollectionHandler() handlers.ClientListHandler[*types.JellyfinConfig, *mediatypes.Collection]
+	PlexCollectionHandler() handlers.ClientListHandler[*types.PlexConfig, *mediatypes.Collection]
+	SubsonicCollectionHandler() handlers.ClientListHandler[*types.SubsonicConfig, *mediatypes.Collection]
 }
 
 type ClientMediaTypeHandlers[T types.ClientMediaConfig] interface {
