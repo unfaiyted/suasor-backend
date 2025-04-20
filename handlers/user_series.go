@@ -29,14 +29,25 @@ type userSeriesHandler struct {
 	seriesItemService  services.UserMediaItemService[*mediatypes.Series]
 	seasonItemService  services.UserMediaItemService[*mediatypes.Season]
 	episodeItemService services.UserMediaItemService[*mediatypes.Episode]
+
+	seriesDataService  services.UserMediaItemDataService[*mediatypes.Series]
+	seasonDataService  services.UserMediaItemDataService[*mediatypes.Season]
+	episodeDataService services.UserMediaItemDataService[*mediatypes.Episode]
 }
 
 // NewuserSeriesHandler creates a new user series handler
 func NewUserSeriesHandler(
 	coreHandler CoreSeriesHandler,
+
+	// Items
 	seriesService services.UserMediaItemService[*mediatypes.Series],
 	seasonService services.UserMediaItemService[*mediatypes.Season],
 	episodeService services.UserMediaItemService[*mediatypes.Episode],
+
+	// Item Data
+	seriesDataService services.UserMediaItemDataService[*mediatypes.Series],
+	seasonDataService services.UserMediaItemDataService[*mediatypes.Season],
+	episodeDataService services.UserMediaItemDataService[*mediatypes.Episode],
 
 ) UserSeriesHandler {
 	return &userSeriesHandler{
@@ -44,6 +55,9 @@ func NewUserSeriesHandler(
 		seriesItemService:  seriesService,
 		seasonItemService:  seasonService,
 		episodeItemService: episodeService,
+		seriesDataService:  seriesDataService,
+		seasonDataService:  seasonDataService,
+		episodeDataService: episodeDataService,
 	}
 }
 
@@ -54,7 +68,9 @@ func NewUserSeriesHandler(
 // @Accept json
 // @Produce json
 // @Security BearerAuth
+
 // @Param limit query int false "Maximum number of series to return (default 10)"
+// @Param offset query int false "Offset for pagination (default 0)"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.Series]] "Series retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
@@ -77,23 +93,17 @@ func (h *userSeriesHandler) GetFavoriteSeries(c *gin.Context) {
 	if err != nil {
 		limit = 10
 	}
+	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	if err != nil {
+		offset = 0
+	}
 
 	log.Debug().
 		Uint64("userID", uid).
 		Int("limit", limit).
 		Msg("Getting favorite series")
 
-	// This is a placeholder for a real implementation
-	// In a real implementation, you would query for series specifically marked as favorites
-	// For now, we'll use SearchUserContent with a favorites filter
-	options := mediatypes.QueryOptions{
-		MediaType: mediatypes.MediaTypeSeries,
-		OwnerID:   uid,
-		Favorites: true,
-		Limit:     limit,
-	}
-
-	series, err := h.seriesService.SearchUserContent(ctx, options)
+	series, err := h.seriesDataService.GetFavorites(ctx, uid, limit, offset)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -157,7 +167,7 @@ func (h *userSeriesHandler) GetWatchedSeries(c *gin.Context) {
 		SortOrder: "desc",
 	}
 
-	series, err := h.seriesService.SearchUserContent(ctx, options)
+	series, err := h.seriesDataService.GetUserPlayHistory(ctx, options.OwnerID, &options)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -219,7 +229,7 @@ func (h *userSeriesHandler) GetWatchlistSeries(c *gin.Context) {
 		Limit:     limit,
 	}
 
-	series, err := h.seriesService.SearchUserContent(ctx, options)
+	series, err := h.seriesDataService.Search(ctx, &options)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -286,7 +296,7 @@ func (h *userSeriesHandler) UpdateSeriesUserData(c *gin.Context) {
 		Msg("Updating series user data")
 
 	// Get the existing series first
-	series, err := h.seriesService.GetByID(ctx, seriesID)
+	series, err := h.seriesDataService.GetByID(ctx, seriesID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("seriesID", seriesID).
@@ -302,7 +312,7 @@ func (h *userSeriesHandler) UpdateSeriesUserData(c *gin.Context) {
 	// series.UserData = userData
 
 	// Update the series
-	updatedSeries, err := h.seriesService.Update(ctx, series)
+	updatedSeries, err := h.seriesDataService.Update(ctx, series)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("seriesID", seriesID).

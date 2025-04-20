@@ -30,6 +30,9 @@ type CoreUserMediaItemDataRepository[T types.MediaData] interface {
 
 	// HasUserMediaItemData checks if a user has data for a specific media item
 	HasUserMediaItemData(ctx context.Context, userID, mediaItemID uint64) (bool, error)
+
+	// Search finds user media item data based on a query object
+	Search(ctx context.Context, query *types.QueryOptions) ([]*models.UserMediaItemData[T], error)
 }
 
 // coreUserMediaItemDataRepository implements CoreUserMediaItemDataRepository
@@ -158,3 +161,19 @@ func (r *coreUserMediaItemDataRepository[T]) HasUserMediaItemData(ctx context.Co
 	return count > 0, nil
 }
 
+// Search finds user media item data based on a query object
+func (r *coreUserMediaItemDataRepository[T]) Search(ctx context.Context, query *types.QueryOptions) ([]*models.UserMediaItemData[T], error) {
+	// var data models.UserMediaItemData[T]
+	//
+	// // Create a query options with user filter
+	// options := types.QueryOptions{
+	// 	MediaType: query.MediaType,
+	// 	OwnerID:   query.OwnerID,
+	// 	Query:     query.Query,
+	// 	Limit:     query.Limit,
+	// 	Offset:    query.Offset,
+	// }
+	//
+
+	return nil, nil
+}

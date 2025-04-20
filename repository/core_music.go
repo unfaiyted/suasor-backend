@@ -36,7 +36,7 @@ type MusicRepository interface {
 	GetArtistsByGenre(ctx context.Context, genre string, limit int) ([]*models.MediaItem[*types.Artist], error)
 
 	// Advanced search operations
-	SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItems, error)
+	SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error)
 	GetSimilarTracks(ctx context.Context, trackID uint64, limit int) ([]*models.MediaItem[*types.Track], error)
 }
 
@@ -355,7 +355,7 @@ func (r *musicRepository) GetArtistsByGenre(ctx context.Context, genre string, l
 }
 
 // SearchMusicLibrary performs a comprehensive search across all music items
-func (r *musicRepository) SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItems, error) {
+func (r *musicRepository) SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Str("query", query.Query).
@@ -379,7 +379,7 @@ func (r *musicRepository) SearchMusicLibrary(ctx context.Context, query types.Qu
 	}
 
 	// Execute separate queries for each type to populate the MediaItems struct
-	var mediaItems models.MediaItems = models.MediaItems{}
+	var mediaItems models.MediaItemList = models.MediaItemList{}
 
 	// Find artists
 	var artists []*models.MediaItem[*types.Artist]

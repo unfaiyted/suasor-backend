@@ -136,8 +136,8 @@ func GetMixedMediaItems(
 	j *JellyfinClient,
 	ctx context.Context,
 	items []jellyfin.BaseItemDto,
-) (*models.MediaItems, error) {
-	mediaItems := models.MediaItems{}
+) (*models.MediaItemList, error) {
+	mediaItems := models.MediaItemList{}
 	for _, item := range items {
 		if item.Id == nil || item.Type == nil {
 			continue
@@ -224,9 +224,9 @@ func GetMixedMediaItemsData(
 	j *JellyfinClient,
 	ctx context.Context,
 	items []jellyfin.BaseItemDto,
-) (*models.MediaItemDatas, error) {
+) (*models.MediaItemDataList, error) {
 	log := utils.LoggerFromContext(ctx)
-	datas := models.MediaItemDatas{
+	datas := models.MediaItemDataList{
 		TotalItems: 0,
 	}
 

@@ -12,7 +12,7 @@ import (
 )
 
 // GetWatchHistory retrieves watch history from the Emby server
-func (e *EmbyClient) GetPlayHistory(ctx context.Context, options *types.QueryOptions) (*models.MediaItemDatas, error) {
+func (e *EmbyClient) GetPlayHistory(ctx context.Context, options *types.QueryOptions) (*models.MediaItemDataList, error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Info().

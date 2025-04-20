@@ -24,6 +24,10 @@ type ClientMusicService[T types.ClientConfig] interface {
 	GetTrackByID(ctx context.Context, userID uint64, clientID uint64, trackID string) (models.MediaItem[*mediatypes.Track], error)
 	GetRecentlyAddedAlbums(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error)
 	GetRecentlyPlayedTracks(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Track], error)
+	GetSimilarTracks(ctx context.Context, userID uint64, clientID uint64, trackID string, limit int) ([]*models.MediaItem[*mediatypes.Track], error)
+	GetSimilarArtists(ctx context.Context, userID uint64, clientID uint64, artistID string, limit int) ([]*models.MediaItem[*mediatypes.Artist], error)
+	GetFavoriteTracks(ctx context.Context, userID uint64, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Track], error)
+	GetFavoriteAlbums(ctx context.Context, userID uint64, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error)
 	GetAlbumsByGenre(ctx context.Context, userID uint64, genre string) ([]*models.MediaItem[*mediatypes.Album], error)
 	GetArtistsByGenre(ctx context.Context, userID uint64, genre string) ([]*models.MediaItem[*mediatypes.Artist], error)
 	GetRandomAlbums(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error)
@@ -1136,4 +1140,229 @@ func (s *mediaMusicService[T]) GetRecentlyAddedTracks(ctx context.Context, userI
 		Msg("Retrieved recently added tracks from client")
 
 	return tracks, nil
+}
+
+func (s *mediaMusicService[T]) GetSimilarTracks(ctx context.Context, userID uint64, clientID uint64, trackID string, limit int) ([]*models.MediaItem[*mediatypes.Track], error) {
+	log := utils.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("userID", userID).
+		Uint64("clientID", clientID).
+		Str("trackID", trackID).
+		Int("limit", limit).
+		Msg("Getting similar tracks")
+
+	// Get the specific client
+	client, err := s.getSpecificMusicClient(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if client implements MusicProvider
+	musicClient, ok := client.(providers.MusicProvider)
+	if !ok {
+		return nil, fmt.Errorf("client does not implement music provider interface")
+	}
+
+	// Configure query options
+	options := &mediatypes.QueryOptions{
+		ExternalSourceID: trackID,
+		Limit:            limit,
+	}
+
+	tracks, err := musicClient.GetMusic(ctx, options)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("userID", userID).
+			Uint64("clientID", clientID).
+			Str("trackID", trackID).
+			Msg("Failed to retrieve similar tracks")
+		return nil, err
+	}
+
+	log.Debug().
+		Int("trackCount", len(tracks)).
+		Uint64("clientID", clientID).
+		Str("trackID", trackID).
+		Msg("Retrieved similar tracks from client")
+
+	return tracks, nil
+}
+
+// GetFavoriteTracks godoc
+// @Summary Get favorite tracks
+// @Description Retrieves the user's favorite tracks from a client
+// @Tags music
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientID path int true "Client ID"
+// @Param limit query int false "Maximum number of tracks to return (default 10)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Favorite tracks retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Router /clients/media/{clientID}/music/tracks/favorites [get]
+func (s *mediaMusicService[T]) GetFavoriteTracks(ctx context.Context, userID uint64, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Track], error) {
+	log := utils.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("userID", userID).
+		Uint64("clientID", clientID).
+		Int("limit", limit).
+		Msg("Getting favorite tracks")
+
+	// Get the specific client
+	client, err := s.getSpecificMusicClient(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if client implements MusicProvider
+	musicClient, ok := client.(providers.MusicProvider)
+	if !ok {
+		return nil, fmt.Errorf("client does not implement music provider interface")
+	}
+
+	// Configure query options
+	options := &mediatypes.QueryOptions{
+		Favorites: true,
+		Limit:     limit,
+	}
+
+	tracks, err := musicClient.GetMusic(ctx, options)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("userID", userID).
+			Uint64("clientID", clientID).
+			Msg("Failed to retrieve favorite tracks")
+		return nil, err
+	}
+
+	log.Debug().
+		Int("trackCount", len(tracks)).
+		Uint64("clientID", clientID).
+		Msg("Retrieved favorite tracks from client")
+
+	return tracks, nil
+}
+
+// GetFavoriteAlbums godoc
+// @Summary Get favorite albums
+// @Description Retrieves the user's favorite albums from a client
+// @Tags music
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientID path int true "Client ID"
+// @Param limit query int false "Maximum number of albums to return (default 10)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Favorite albums retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Router /clients/media/{clientID}/music/albums/favorites [get]
+func (s *mediaMusicService[T]) GetFavoriteAlbums(ctx context.Context, userID uint64, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error) {
+	log := utils.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("userID", userID).
+		Uint64("clientID", clientID).
+		Int("limit", limit).
+		Msg("Getting favorite albums")
+
+	// Get the specific client
+	client, err := s.getSpecificMusicClient(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if client implements MusicProvider
+	musicClient, ok := client.(providers.MusicProvider)
+	if !ok {
+		return nil, fmt.Errorf("client does not implement music provider interface")
+	}
+
+	// Configure query options
+	options := &mediatypes.QueryOptions{
+		Favorites: true,
+		Limit:     limit,
+	}
+
+	albums, err := musicClient.GetMusicAlbums(ctx, options)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("userID", userID).
+			Uint64("clientID", clientID).
+			Msg("Failed to retrieve favorite albums")
+		return nil, err
+	}
+
+	log.Debug().
+		Int("albumCount", len(albums)).
+		Uint64("clientID", clientID).
+		Msg("Retrieved favorite albums from client")
+
+	return albums, nil
+}
+
+// GetSimiarArtists godoc
+// @Summary Get similar artists
+// @Description Retrieves artists similar to a specific artist from a client
+// @Tags music
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientID path int true "Client ID"
+// @Param artistID path string true "Artist ID"
+// @Param limit query int false "Maximum number of artists to return (default 10)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Artist]] "Similar artists retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Router /clients/media/{clientID}/music/artists/{artistID}/similar [get]
+func (s *mediaMusicService[T]) GetSimilarArtists(ctx context.Context, userID uint64, clientID uint64, artistID string, limit int) ([]*models.MediaItem[*mediatypes.Artist], error) {
+	log := utils.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("userID", userID).
+		Uint64("clientID", clientID).
+		Str("artistID", artistID).
+		Int("limit", limit).
+		Msg("Getting similar artists")
+
+	// Get the specific client
+	client, err := s.getSpecificMusicClient(ctx, userID, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if client implements MusicProvider
+	musicClient, ok := client.(providers.MusicProvider)
+	if !ok {
+		return nil, fmt.Errorf("client does not implement music provider interface")
+	}
+
+	// Configure query options
+	options := &mediatypes.QueryOptions{
+		ExternalSourceID: artistID,
+		Limit:            limit,
+	}
+
+	artists, err := musicClient.GetMusicArtists(ctx, options)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("userID", userID).
+			Uint64("clientID", clientID).
+			Str("artistID", artistID).
+			Msg("Failed to retrieve similar artists")
+		return nil, err
+	}
+
+	log.Debug().
+		Int("artistCount", len(artists)).
+		Uint64("clientID", clientID).
+		Str("artistID", artistID).
+		Msg("Retrieved similar artists from client")
+
+	return artists, nil
 }

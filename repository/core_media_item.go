@@ -38,7 +38,7 @@ type MediaItemRepository[T types.MediaData] interface {
 
 	// Batch operations
 	GetByIDs(ctx context.Context, ids []uint64) ([]*models.MediaItem[T], error)
-	GetMixedMediaItemsByIDs(ctx context.Context, ids []uint64) (*models.MediaItems, error)
+	GetMixedMediaItemsByIDs(ctx context.Context, ids []uint64) (*models.MediaItemList, error)
 	BatchCreate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error)
 	BatchUpdate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error)
 
@@ -439,7 +439,7 @@ func (r *mediaItemRepository[T]) GetItemsByAttributes(ctx context.Context, attri
 	return items, nil
 }
 
-func (r *mediaItemRepository[T]) GetMixedMediaItemsByIDs(ctx context.Context, ids []uint64) (*models.MediaItems, error) {
+func (r *mediaItemRepository[T]) GetMixedMediaItemsByIDs(ctx context.Context, ids []uint64) (*models.MediaItemList, error) {
 	// Fetch movies
 	movies, err := fetchMediaItemsByType[*types.Movie](ctx, r.db, ids, types.MediaTypeMovie)
 	if err != nil {
@@ -477,7 +477,7 @@ func (r *mediaItemRepository[T]) GetMixedMediaItemsByIDs(ctx context.Context, id
 	if err != nil {
 		return nil, err
 	}
-	var mediaItems models.MediaItems
+	var mediaItems models.MediaItemList
 
 	mediaItems.AddMovieList(movies)
 	mediaItems.AddSeriesList(series)

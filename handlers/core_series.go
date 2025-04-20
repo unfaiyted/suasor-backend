@@ -13,17 +13,19 @@ import (
 )
 
 type CoreSeriesHandler interface {
-	GetSeriesByID(c *gin.Context)
-	GetSeriesByGenre(c *gin.Context)
-	GetSeriesByYear(c *gin.Context)
-	GetSeriesByActor(c *gin.Context)
-	GetSeriesByCreator(c *gin.Context)
-	GetSeriesByRating(c *gin.Context)
-	GetLatestSeriesByAdded(c *gin.Context)
-	GetPopularSeries(c *gin.Context)
-	GetTopRatedSeries(c *gin.Context)
-	SearchSeries(c *gin.Context)
+	GetByID(c *gin.Context)
+	GetByGenre(c *gin.Context)
+	GetByYear(c *gin.Context)
+	GetByActor(c *gin.Context)
+	GetByCreator(c *gin.Context)
+	GetByRating(c *gin.Context)
+	GetLatestByAdded(c *gin.Context)
+	GetPopular(c *gin.Context)
+	GetTopRated(c *gin.Context)
+	Search(c *gin.Context)
 	GetSeasonsBySeriesID(c *gin.Context)
+	GetSeasonWithEpisodes(c *gin.Context)
+	GetEpisodesBySeasonID(c *gin.Context)
 }
 
 // coreSeriesHandler handles operations for series items in the database
@@ -461,4 +463,151 @@ func (h *coreSeriesHandler) GetSeriesByNetwork(c *gin.Context) {
 	}
 
 	responses.RespondOK(c, filteredSeries, "Series retrieved successfully")
+}
+
+// GetSeasonsBySeriesID godoc
+// @Summary Get seasons for a series
+// @Description Retrieves all seasons for a specific series
+// @Tags series
+// @Accept json
+// @Produce json
+// @Param id path int true "Series ID"
+// @Param userId query int true "User ID"
+// @Success 200 {object} responses.APIResponse[[]mediatypes.Season] "Seasons retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 404 {object} responses.ErrorResponse[any] "Series not found"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /series/{id}/seasons [get]
+func (h *coreSeriesHandler) GetSeasonsBySeriesID(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	seriesID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid series ID")
+		responses.RespondBadRequest(c, err, "Invalid series ID")
+		return
+	}
+
+	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
+		responses.RespondBadRequest(c, err, "Invalid user ID")
+		return
+	}
+
+	log.Debug().
+		Uint64("seriesID", seriesID).
+		Uint64("userID", userID).
+		Msg("Getting seasons for series")
+
+	// Get the series first to ensure it exists
+	series, err := h.seriesService.GetSeriesByID(ctx, seriesID)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("seriesID", seriesID).
+			Msg("Failed to retrieve series")
+		responses.RespondNotFound(c, err, "Series not found")
+		return
+	}
+
+	// Get seasons from the series data
+	seasons := series.Data.Seasons
+	if seasons == nil {
+		seasons = []*mediatypes.Season{}
+	}
+
+	log.Info().
+		Uint64("seriesID", seriesID).
+		Int("seasonCount", len(seasons)).
+		Msg("Seasons retrieved successfully")
+	responses.RespondOK(c, seasons, "Seasons retrieved successfully")
+}
+
+// GetSeasonWithEpisodes godoc
+// @Summary Get a season and all its episodes
+// @Description Retrieves a specific season and all its episodes
+// @Tags series
+// @Accept json
+// @Produce json
+// @Param id path int true "Series ID"
+// @Param seasonNumber path int true "Season number"
+// @Param userId query int true "User ID"
+// @Success 200 {object} responses.APIResponse[[]mediatypes.Episode] "Episodes retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 404 {object} responses.ErrorResponse[any] "Series or season not found"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /series/{id}/seasons/{seasonNumber}/episodes [get]
+func (h *coreSeriesHandler) GetSeasonWithEpisodes(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	seriesID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid series ID")
+		responses.RespondBadRequest(c, err, "Invalid series ID")
+		return
+	}
+
+	seasonNumber, err := strconv.Atoi(c.Param("seasonNumber"))
+	if err != nil {
+		log.Warn().Err(err).Str("seasonNumber", c.Param("seasonNumber")).Msg("Invalid season number")
+		responses.RespondBadRequest(c, err, "Invalid season number")
+		return
+	}
+
+	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
+		responses.RespondBadRequest(c, err, "Invalid user ID")
+		return
+	}
+
+	log.Debug().
+		Uint64("seriesID", seriesID).
+		Int("seasonNumber", seasonNumber).
+		Uint64("userID", userID).
+		Msg("Getting episodes for season")
+
+	// Get the series first to ensure it exists
+	series, err := h.seriesService.GetSeriesByID(ctx, seriesID)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("seriesID", seriesID).
+			Msg("Failed to retrieve series")
+		responses.RespondNotFound(c, err, "Series not found")
+		return
+	}
+
+	// Find the correct season and get its episodes
+	var episodes []*mediatypes.Episode
+	seasonFound := false
+
+	for _, season := range series.Data.Seasons {
+		if season.Number == seasonNumber {
+			episodes = season.Episodes
+			seasonFound = true
+			break
+		}
+	}
+
+	if !seasonFound {
+		log.Warn().
+			Uint64("seriesID", seriesID).
+			Int("seasonNumber", seasonNumber).
+			Msg("Season not found for series")
+		responses.RespondNotFound(c, nil, "Season not found")
+		return
+	}
+
+	if episodes == nil {
+		episodes = []*mediatypes.Episode{}
+	}
+
+	log.Info().
+		Uint64("seriesID", seriesID).
+		Int("seasonNumber", seasonNumber).
+		Int("episodeCount", len(episodes)).
+		Msg("Episodes retrieved successfully")
+	responses.RespondOK(c, episodes, "Episodes retrieved successfully")
 }

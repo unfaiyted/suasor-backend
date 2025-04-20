@@ -319,7 +319,7 @@ func (e *EmbyClient) RemoveItemsFromCollection(ctx context.Context, collectionID
 	return nil
 }
 
-func (e *EmbyClient) GetCollectionItems(ctx context.Context, collectionID string) (*models.MediaItems, error) {
+func (e *EmbyClient) GetCollectionItems(ctx context.Context, collectionID string) (*models.MediaItemList, error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 

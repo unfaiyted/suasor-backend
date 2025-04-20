@@ -103,8 +103,8 @@ func GetMixedMediaItems(
 	e *EmbyClient,
 	ctx context.Context,
 	items []embyclient.BaseItemDto,
-) (*models.MediaItems, error) {
-	mediaItems := models.MediaItems{}
+) (*models.MediaItemList, error) {
+	mediaItems := models.MediaItemList{}
 	for _, item := range items {
 
 		if item.Type_ == "Movie" {
@@ -187,9 +187,9 @@ func GetMixedMediaItemsData(
 	e *EmbyClient,
 	ctx context.Context,
 	items []embyclient.BaseItemDto,
-) (*models.MediaItemDatas, error) {
+) (*models.MediaItemDataList, error) {
 	log := utils.LoggerFromContext(ctx)
-	datas := models.MediaItemDatas{
+	datas := models.MediaItemDataList{
 		TotalItems: 0,
 	}
 

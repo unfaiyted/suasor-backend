@@ -9,7 +9,7 @@ import (
 	"suasor/utils"
 )
 
-func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOptions) (*models.MediaItemDatas, error) {
+func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOptions) (*models.MediaItemDataList, error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 

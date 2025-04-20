@@ -104,7 +104,7 @@ func (s *clientListService[T, U]) ReorderItems(ctx context.Context, listID uint6
 }
 
 // GetItems
-func (s *clientListService[T, U]) GetItems(ctx context.Context, listID uint64) (*models.MediaItems, error) {
+func (s *clientListService[T, U]) GetItems(ctx context.Context, listID uint64) (*models.MediaItemList, error) {
 	return s.listService.GetItems(ctx, listID)
 }
 

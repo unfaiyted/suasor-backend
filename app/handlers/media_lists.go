@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	mediatypes "suasor/client/media/types"
 	"suasor/handlers"
 )
 
@@ -10,12 +11,11 @@ type MediaListHandlers interface {
 }
 
 type CoreMediaListHandlers interface {
-	CorePlaylistsHandler() *handlers.CorePlaylistHandler
-	CoreCollectionsHandler() *handlers.CoreCollectionHandler
+	CorePlaylistsHandler() *handlers.CoreListHandler[*mediatypes.Playlist]
+	CoreCollectionsHandler() *handlers.CoreListHandler[*mediatypes.Collection]
 }
 
 type UserMediaListHandlers interface {
-	UserPlaylistsHandler() *handlers.UserPlaylistHandler
-	UserCollectionsHandler() *handlers.UserCollectionHandler
+	UserPlaylistsHandler() *handlers.UserListHandler[*mediatypes.Playlist]
+	UserCollectionsHandler() *handlers.UserListHandler[*mediatypes.Collection]
 }
-

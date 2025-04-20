@@ -687,20 +687,20 @@ func (c *Collection) AddItem(item ListItem, clientID uint64) {
 }
 
 // RemoveItem overriden to update the map
-func (c *Collection) RemoveItem(itemID uint64, clientID uint64) error {
-	err := c.ItemList.RemoveItem(itemID, clientID)
-	if err == nil {
-		// Item was removed, update the map
-		delete(c.itemMap, itemID)
-
-		// Rebuild the map if needed since indices have changed
-		c.itemMap = make(map[uint64]int, len(c.Items))
-		for i, item := range c.Items {
-			c.itemMap[item.ItemID] = i
-		}
-	}
-	return err
-}
+// func (c *Collection) RemoveItem(itemID uint64, clientID uint64) error {
+// 	err := c.ItemList.RemoveItem(itemID, clientID)
+// 	if err == nil {
+// 		// Item was removed, update the map
+// 		delete(c.itemMap, itemID)
+//
+// 		// Rebuild the map if needed since indices have changed
+// 		c.itemMap = make(map[uint64]int, len(c.Items))
+// 		for i, item := range c.Items {
+// 			c.itemMap[item.ItemID] = i
+// 		}
+// 	}
+// 	return err
+// }
 
 // EnsureNoDuplicates is now much more efficient with the item map
 func (c *Collection) EnsureNoDuplicates() {

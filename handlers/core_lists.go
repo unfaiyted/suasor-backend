@@ -18,26 +18,23 @@ type CoreListHandler[T mediatypes.ListData] interface {
 	GetByID(c *gin.Context)
 	GetItemsByListID(c *gin.Context)
 	GetByGenre(c *gin.Context)
-	Create(c *gin.Context)
-	Update(c *gin.Context)
-	Delete(c *gin.Context)
-	AddItem(c *gin.Context)
-	RemoveItem(c *gin.Context)
-	ReorderItems(c *gin.Context)
 	Search(c *gin.Context)
 }
 
 // coreListHandler[T] handles operations for playlists in the database
 type coreListHandler[T mediatypes.ListData] struct {
+	CoreMediaItemHandler[T]
 	listService services.CoreListService[T]
 }
 
 // NewcoreListHandler[T] creates a new core playlist handler
 func NewCoreListHandler[T mediatypes.ListData](
+	CoreMediaItemHandler CoreMediaItemHandler[T],
 	listService services.CoreListService[T],
 ) CoreListHandler[T] {
 	return &coreListHandler[T]{
-		listService: listService,
+		CoreMediaItemHandler: CoreMediaItemHandler,
+		listService:          listService,
 	}
 }
 

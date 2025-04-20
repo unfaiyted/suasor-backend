@@ -92,8 +92,8 @@ The helpers.go file contains utility functions for:
 
 2. **Mixed Media Handling**: Functions for handling lists of different media types
    ```go
-   func GetMixedMediaItems(ctx, client, items) (*models.MediaItems, error)
-   func GetMixedMediaItemsData(ctx, client, items) (*models.MediaItemDatas, error)
+   func GetMixedMediaItems(ctx, client, items) (*models.MediaItemList, error)
+   func GetMixedMediaItemsData(ctx, client, items) (*models.MediaItemDataList, error)
    ```
 
 3. **Query Parameter Mapping**: Converting between our standard query options and client-specific parameters

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"suasor/client/media/types"
+	clienttypes "suasor/client/types"
 	"suasor/types/models"
 
 	"gorm.io/gorm"
@@ -17,4 +18,15 @@ func fetchMediaItemsByType[T types.MediaData](ctx context.Context, db *gorm.DB, 
 
 	}
 	return items, nil
+}
+
+func GetClientTypeFromID(ctx context.Context, db *gorm.DB, clientID uint64) (clienttypes.ClientType, error) {
+	var client clienttypes.ClientType
+	if err := db.WithContext(ctx).
+		Where("id = ?", clientID).
+		Select("config -> 'data' ->> 'type'").
+		Scan(&client).Error; err != nil {
+		return "", err
+	}
+	return client, nil
 }

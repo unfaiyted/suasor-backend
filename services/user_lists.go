@@ -18,6 +18,13 @@ type UserListService[T mediatypes.ListData] interface {
 	// Include all core list service methods
 	CoreListService[T]
 
+	// Create(c *gin.Context)
+	// Update(c *gin.Context)
+	// Delete(c *gin.Context)
+	// AddItem(c *gin.Context)
+	// RemoveItem(c *gin.Context)
+	// ReorderItems(c *gin.Context)
+
 	// User-specific operations
 	GetFavorite(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error)
 	GetRecentByUser(ctx context.Context, userID uint64, days int, limit int) ([]*models.MediaItem[T], error)
@@ -163,7 +170,7 @@ func (s *userListService[T]) Delete(ctx context.Context, id uint64) error {
 	return s.Delete(ctx, id)
 }
 
-func (s *userListService[T]) GetItems(ctx context.Context, listID uint64) (*models.MediaItems, error) {
+func (s *userListService[T]) GetItems(ctx context.Context, listID uint64) (*models.MediaItemList, error) {
 	return s.coreListService.GetItems(ctx, listID)
 }
 

@@ -33,7 +33,7 @@ type CoreMusicService interface {
 	GetArtistsByGenre(ctx context.Context, genre string, limit int) ([]*models.MediaItem[*types.Artist], error)
 
 	// Search operations
-	SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItems, error)
+	SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error)
 }
 
 // coreMusicService implements the CoreMusicService interface
@@ -331,7 +331,7 @@ func (s *coreMusicService) GetArtistsByGenre(ctx context.Context, genre string, 
 }
 
 // SearchMusicLibrary performs a comprehensive search across all music items
-func (s *coreMusicService) SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItems, error) {
+func (s *coreMusicService) SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Str("query", query.Query).

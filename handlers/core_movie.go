@@ -13,7 +13,7 @@ import (
 )
 
 type CoreMovieHandler interface {
-	CoreMediaItemHandler[mediatypes.Movie]
+	CoreMediaItemHandler[*mediatypes.Movie]
 
 	GetByID(c *gin.Context)
 	GetByGenre(c *gin.Context)
@@ -22,23 +22,25 @@ type CoreMovieHandler interface {
 	GetByDirector(c *gin.Context)
 	GetByRating(c *gin.Context)
 	GetLatestByAdded(c *gin.Context)
-	GetPopularByID(c *gin.Context)
+	GetPopular(c *gin.Context)
 	GetTopRated(c *gin.Context)
 	Search(c *gin.Context)
 }
 
 // coreMovieHandler handles operations for movies in the database
 type coreMovieHandler struct {
-	CoreMediaItemHandler[mediatypes.Movie]
+	CoreMediaItemHandler[*mediatypes.Movie]
 	itemService services.CoreMediaItemService[*mediatypes.Movie]
 }
 
 // NewcoreMovieHandler creates a new core movie handler
 func NewCoreMovieHandler(
+	coreHandler CoreMediaItemHandler[*mediatypes.Movie],
 	itemService services.CoreMediaItemService[*mediatypes.Movie],
 ) CoreMovieHandler {
 	return &coreMovieHandler{
-		itemService: itemService,
+		CoreMediaItemHandler: coreHandler,
+		itemService:          itemService,
 	}
 }
 
@@ -498,4 +500,206 @@ func (h *coreMovieHandler) GetRecentlyAdded(c *gin.Context) {
 		Int("count", len(movies)).
 		Msg("Recently added movies retrieved successfully")
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
+}
+
+// GetByRating godoc
+// @Summary Get movies by rating
+// @Description Retrieves movies that match a specific rating
+// @Tags movies
+// @Accept json
+// @Produce json
+// @Param rating path number true "Rating"
+// @Param limit query int false "Maximum number of movies to return (default 20)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.Movie]] "Movies retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /movies/rating/{rating} [get]
+func (h *coreMovieHandler) GetByRating(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	rating, err := strconv.ParseFloat(c.Param("rating"), 32)
+	if err != nil {
+		log.Warn().Err(err).Str("rating", c.Param("rating")).Msg("Invalid rating value")
+		responses.RespondBadRequest(c, err, "Invalid rating value")
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	if err != nil {
+		limit = 20
+	}
+
+	log.Debug().
+		Float64("rating", rating).
+		Int("limit", limit).
+		Msg("Getting movies by rating")
+
+	// Create query options
+	options := mediatypes.QueryOptions{
+		MinimumRating: float32(rating),
+		MediaType:     mediatypes.MediaTypeMovie,
+		Limit:         limit,
+	}
+
+	// Search movies by rating
+	movies, err := h.itemService.Search(ctx, options)
+	if err != nil {
+		log.Error().Err(err).
+			Float64("rating", rating).
+			Msg("Failed to retrieve movies by rating")
+		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+		return
+	}
+
+	log.Info().
+		Float64("rating", rating).
+		Int("count", len(movies)).
+		Msg("Movies by rating retrieved successfully")
+	responses.RespondOK(c, movies, "Movies retrieved successfully")
+}
+
+// GetLatestByAdded godoc
+// @Summary Get latest added movies
+// @Description Retrieves the most recently added movies
+// @Tags movies
+// @Accept json
+// @Produce json
+// @Param limit query int false "Maximum number of movies to return (default 20)"
+// @Param days query int false "Number of days to look back (default 30)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.Movie]] "Movies retrieved successfully"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /movies/latest [get]
+func (h *coreMovieHandler) GetLatestByAdded(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	if err != nil {
+		limit = 20
+	}
+
+	days, err := strconv.Atoi(c.DefaultQuery("days", "30"))
+	if err != nil {
+		days = 30
+	}
+
+	log.Debug().
+		Int("limit", limit).
+		Int("days", days).
+		Msg("Getting latest added movies")
+
+	// Get latest added movies
+	movies, err := h.itemService.GetRecentItems(ctx, days, limit)
+	if err != nil {
+		log.Error().Err(err).
+			Msg("Failed to retrieve latest added movies")
+		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+		return
+	}
+
+	log.Info().
+		Int("count", len(movies)).
+		Msg("Latest added movies retrieved successfully")
+	responses.RespondOK(c, movies, "Movies retrieved successfully")
+}
+
+// GetPopularByID godoc
+// @Summary Get popular movies
+// @Description Retrieves the most popular movies
+// @Tags movies
+// @Accept json
+// @Produce json
+// @Param limit query int false "Maximum number of movies to return (default 20)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.Movie]] "Movies retrieved successfully"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /movies/popular [get]
+func (h *coreMovieHandler) GetPopular(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	if err != nil {
+		limit = 20
+	}
+
+	log.Debug().
+		Int("limit", limit).
+		Msg("Getting popular movies")
+
+	// Get popular movies
+	movies, err := h.itemService.GetMostPlayed(ctx, limit)
+	if err != nil {
+		log.Error().Err(err).
+			Msg("Failed to retrieve popular movies")
+		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+		return
+	}
+
+	log.Info().
+		Int("count", len(movies)).
+		Msg("Popular movies retrieved successfully")
+	responses.RespondOK(c, movies, "Movies retrieved successfully")
+}
+
+// GetByClientItemID godoc
+// @Summary Get movies by client-specific ID
+// @Description Retrieves movies associated with a specific client
+// @Tags movies
+// @Accept json
+// @Produce json
+// @Param clientId path int true "Client ID"
+// @Param clientItemId path string true "Client Item ID"
+// @Param limit query int false "Maximum number of movies to return (default 20)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.Movie]] "Movies retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 404 {object} responses.ErrorResponse[any] "Movie not found"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /movies/client/{clientId}/item/{clientItemId} [get]
+func (h *coreMovieHandler) GetByClientItemID(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	clientID, err := strconv.ParseUint(c.Param("clientId"), 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str("clientId", c.Param("clientId")).Msg("Invalid client ID")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
+		return
+	}
+
+	clientItemID := c.Param("clientItemId")
+	// parse uint64 from clientItemID
+	if clientItemID == "" {
+		log.Warn().Msg("Client item ID is required")
+		responses.RespondBadRequest(c, nil, "Client item ID is required")
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	if err != nil {
+		limit = 20
+	}
+
+	log.Debug().
+		Uint64("clientId", clientID).
+		Str("clientItemId", clientItemID).
+		Int("limit", limit).
+		Msg("Getting movies by client ID")
+
+	// Get movies by client ID
+	movie, err := h.itemService.GetByClientItemID(ctx, clientItemID, clientID)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("clientId", clientID).
+			Str("clientItemId", clientItemID).
+			Msg("Failed to retrieve movies by client ID")
+		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+		return
+	}
+
+	log.Info().
+		Uint64("clientId", clientID).
+		Str("clientItemId", clientItemID).
+		Msg("Movies by client ID retrieved successfully")
+	responses.RespondOK(c, movie, "Movies retrieved successfully")
 }

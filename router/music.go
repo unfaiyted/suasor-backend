@@ -11,11 +11,11 @@ import (
 )
 
 type ClientMusicHandlerInterface interface {
-	GetTopTracks(c *gin.Context)
-	GetRecentlyAddedTracks(c *gin.Context)
-	GetTopAlbums(c *gin.Context)
-	GetTopArtists(c *gin.Context)
-	GetFavoriteArtists(c *gin.Context)
+	GetClientTopTracks(c *gin.Context)
+	GetClientRecentlyAddedTracks(c *gin.Context)
+	GetClientTopAlbums(c *gin.Context)
+	GetClientTopArtists(c *gin.Context)
+	GetClientFavoriteArtists(c *gin.Context)
 }
 
 // SetupMusicRoutes sets up the routes for music-related operations
@@ -90,24 +90,24 @@ func RegisterMusicRoutes(rg *gin.RouterGroup, c *container.Container) {
 	{
 		// Tracks
 		clientMusic.GET("/tracks/top", func(c *gin.Context) {
-			getClientHandler(c).GetTopTracks(c)
+			getClientHandler(c).GetClientTopTracks(c)
 		})
 
 		clientMusic.GET("/tracks/recently-added", func(c *gin.Context) {
-			getClientHandler(c).GetRecentlyAddedTracks(c)
+			getClientHandler(c).GetClientRecentlyAddedTracks(c)
 		})
 
 		// Albums
 		clientMusic.GET("/albums/top", func(c *gin.Context) {
-			getClientHandler(c).GetTopAlbums(c)
+			getClientHandler(c).GetClientTopAlbums(c)
 		})
 
 		// Artists
 		clientMusic.GET("/artists/top", func(c *gin.Context) {
-			getClientHandler(c).GetTopArtists(c)
+			getClientHandler(c).GetClientTopArtists(c)
 		})
 		clientMusic.GET("/artists/favorites", func(c *gin.Context) {
-			getClientHandler(c).GetFavoriteArtists(c)
+			getClientHandler(c).GetClientFavoriteArtists(c)
 		})
 	}
 

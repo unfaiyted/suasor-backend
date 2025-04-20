@@ -13,77 +13,72 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func createTrackMediaItem(clientID uint64, clientType clienttypes.ClientMediaType, externalID string, data mediatypes.Track) models.MediaItem[mediatypes.Track] {
-	mediaItem := models.MediaItem[mediatypes.Track]{
-		Type:        mediatypes.MediaTypeTrack,
-		SyncClients: []models.SyncClient{},
-		ExternalIDs: []models.ExternalID{},
-		Data:        data,
-	}
+type ClientMusicHandler[T clienttypes.ClientMediaConfig] interface {
+	CoreMusicHandler
+	// ID-based retrieval operations
+	GetClientTrackByID(c *gin.Context)
+	GetClientAlbumByID(c *gin.Context)
+	GetClientArtistByID(c *gin.Context)
 
-	// Set client info
-	mediaItem.SetClientInfo(clientID, clientType, externalID)
+	// Relationship operations
+	GetClientTracksByAlbum(c *gin.Context)
+	GetClientAlbumsByArtist(c *gin.Context)
+	GetClientSimilarArtists(c *gin.Context)
+	GetClientSimilarTracks(c *gin.Context)
 
-	// Only add external ID if provided
-	if externalID != "" {
-		mediaItem.AddExternalID("client", externalID)
-	}
+	// Filter/category operations
+	GetClientArtistsByGenre(c *gin.Context)
+	GetClientAlbumsByGenre(c *gin.Context)
+	GetClientTracksByGenre(c *gin.Context)
+	GetClientAlbumsByYear(c *gin.Context)
 
-	return mediaItem
+	// Recommendations & discovery
+	GetClientLatestAlbumsByAdded(c *gin.Context)
+	GetClientRecentlyAddedTracks(c *gin.Context)
+	GetClientRecentlyPlayedTracks(c *gin.Context)
+	GetClientPopularAlbums(c *gin.Context)
+	GetClientPopularArtists(c *gin.Context)
+	GetClientTopTracks(c *gin.Context)
+	GetClientTopAlbums(c *gin.Context)
+	GetClientTopArtists(c *gin.Context)
+
+	// User-specific operations
+	GetClientFavoriteArtists(c *gin.Context)
+	GetClientFavoriteTracks(c *gin.Context)
+	GetClientFavoriteAlbums(c *gin.Context)
+
+	// Search operations
+	SearchClientMusic(c *gin.Context)
+
+	// Playback operations
+	// StartClientTrackPlayback(c *gin.Context)
+	// GetClientPlaybackState(c *gin.Context)
+	// GetClientPlaybackInfo(c *gin.Context)
+
+	// Playlist operations
+	// GetClientUserPlaylists(c *gin.Context)
+	// GetClientPlaylistTracks(c *gin.Context)
 }
 
-func createAlbumMediaItem(clientID uint64, clientType clienttypes.ClientMediaType, externalID string, data mediatypes.Album) models.MediaItem[mediatypes.Album] {
-	mediaItem := models.MediaItem[mediatypes.Album]{
-		Type:        mediatypes.MediaTypeAlbum,
-		SyncClients: []models.SyncClient{},
-		ExternalIDs: []models.ExternalID{},
-		Data:        data,
-	}
-
-	// Set client info
-	mediaItem.SetClientInfo(clientID, clientType, externalID)
-
-	// Only add external ID if provided
-	if externalID != "" {
-		mediaItem.AddExternalID("client", externalID)
-	}
-
-	return mediaItem
-}
-
-func createArtistMediaItem(clientID uint64, clientType clienttypes.ClientMediaType, externalID string, data mediatypes.Artist) models.MediaItem[mediatypes.Artist] {
-	mediaItem := models.MediaItem[mediatypes.Artist]{
-		Type:        mediatypes.MediaTypeArtist,
-		SyncClients: []models.SyncClient{},
-		ExternalIDs: []models.ExternalID{},
-		Data:        data,
-	}
-
-	// Set client info
-	mediaItem.SetClientInfo(clientID, clientType, externalID)
-
-	// Only add external ID if provided
-	if externalID != "" {
-		mediaItem.AddExternalID("client", externalID)
-	}
-
-	return mediaItem
-}
-
-// ClientMusicHandler handles music-related operations for media clients
-type ClientMusicHandler[T clienttypes.ClientMediaConfig] struct {
+// clientMusicHandler handles music-related operations for media clients
+type clientMusicHandler[T clienttypes.ClientMediaConfig] struct {
+	CoreMusicHandler
 	musicService services.ClientMusicService[T]
 }
 
 // NewClientMusicHandler creates a new media client music handler
-func NewClientMusicHandler[T clienttypes.ClientMediaConfig](musicService services.ClientMusicService[T]) *ClientMusicHandler[T] {
-	return &ClientMusicHandler[T]{
-		musicService: musicService,
+func NewClientMusicHandler[T clienttypes.ClientMediaConfig](
+	musicService services.ClientMusicService[T],
+	coreHandler CoreMusicHandler,
+) ClientMusicHandler[T] {
+	return &clientMusicHandler[T]{
+		CoreMusicHandler: coreHandler,
+		musicService:     musicService,
 	}
 }
 
-// GetTrackByID godoc
-// @Summary Get track by ID
+// GetClientTrackByID godoc
+// @Summary Get track by ID from client
 // @Description Retrieves a specific music track from the client by ID
 // @Tags music
 // @Accept json
@@ -96,7 +91,7 @@ func NewClientMusicHandler[T clienttypes.ClientMediaConfig](musicService service
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/music/tracks/{trackID} [get]
-func (h *ClientMusicHandler[T]) GetTrackByID(c *gin.Context) {
+func (h *clientMusicHandler[T]) GetClientTrackByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting track by ID")
@@ -160,7 +155,7 @@ func (h *ClientMusicHandler[T]) GetTrackByID(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/music/albums/{albumID} [get]
-func (h *ClientMusicHandler[T]) GetAlbumByID(c *gin.Context) {
+func (h *clientMusicHandler[T]) GetClientAlbumByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting album by ID")
@@ -224,7 +219,7 @@ func (h *ClientMusicHandler[T]) GetAlbumByID(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/music/artists/{artistID} [get]
-func (h *ClientMusicHandler[T]) GetArtistByID(c *gin.Context) {
+func (h *clientMusicHandler[T]) GetClientArtistByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting artist by ID")
@@ -288,7 +283,7 @@ func (h *ClientMusicHandler[T]) GetArtistByID(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/music/albums/{albumID}/tracks [get]
-func (h *ClientMusicHandler[T]) GetTracksByAlbum(c *gin.Context) {
+func (h *clientMusicHandler[T]) GetClientTracksByAlbum(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting tracks by album")
@@ -353,7 +348,7 @@ func (h *ClientMusicHandler[T]) GetTracksByAlbum(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/music/artists/{artistID}/albums [get]
-func (h *ClientMusicHandler[T]) GetAlbumsByArtist(c *gin.Context) {
+func (h *clientMusicHandler[T]) GetClientAlbumsByArtist(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting albums by artist")
@@ -416,7 +411,7 @@ func (h *ClientMusicHandler[T]) GetAlbumsByArtist(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /music/artists/genre/{genre} [get]
-func (h *ClientMusicHandler[T]) GetArtistsByGenre(c *gin.Context) {
+func (h *clientMusicHandler[T]) GetClientArtistsByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting artists by genre")
@@ -467,7 +462,7 @@ func (h *ClientMusicHandler[T]) GetArtistsByGenre(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /music/albums/genre/{genre} [get]
-func (h *ClientMusicHandler[T]) GetAlbumsByGenre(c *gin.Context) {
+func (h *clientMusicHandler[T]) GetClientAlbumsByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting albums by genre")
@@ -518,7 +513,7 @@ func (h *ClientMusicHandler[T]) GetAlbumsByGenre(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /music/tracks/genre/{genre} [get]
-func (h *ClientMusicHandler[T]) GetTracksByGenre(c *gin.Context) {
+func (h *clientMusicHandler[T]) GetClientTracksByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting tracks by genre")
@@ -570,7 +565,7 @@ func (h *ClientMusicHandler[T]) GetTracksByGenre(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /music/albums/year/{year} [get]
-func (h *ClientMusicHandler[T]) GetAlbumsByYear(c *gin.Context) {
+func (h *clientMusicHandler[T]) GetClientAlbumsByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting albums by year")
@@ -628,7 +623,7 @@ func (h *ClientMusicHandler[T]) GetAlbumsByYear(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /music/albums/latest/{count} [get]
-func (h *ClientMusicHandler[T]) GetLatestAlbumsByAdded(c *gin.Context) {
+func (h *clientMusicHandler[T]) GetClientLatestAlbumsByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting latest albums by added date")
@@ -686,7 +681,7 @@ func (h *ClientMusicHandler[T]) GetLatestAlbumsByAdded(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /music/albums/popular/{count} [get]
-func (h *ClientMusicHandler[T]) GetPopularAlbums(c *gin.Context) {
+func (h *clientMusicHandler[T]) GetClientPopularAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting popular albums")
@@ -744,7 +739,7 @@ func (h *ClientMusicHandler[T]) GetPopularAlbums(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /music/artists/popular/{count} [get]
-func (h *ClientMusicHandler[T]) GetPopularArtists(c *gin.Context) {
+func (h *clientMusicHandler[T]) GetClientPopularArtists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting popular artists")
@@ -802,7 +797,7 @@ func (h *ClientMusicHandler[T]) GetPopularArtists(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /music/search [get]
-func (h *ClientMusicHandler[T]) SearchMusic(c *gin.Context) {
+func (h *clientMusicHandler[T]) SearchClientMusic(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Searching music")
@@ -871,7 +866,7 @@ func (h *ClientMusicHandler[T]) SearchMusic(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/{clientType}/{clientID}/music/tracks/top [get]
-func (h *ClientMusicHandler[T]) GetTopTracks(c *gin.Context) {
+func (h *clientMusicHandler[T]) GetClientTopTracks(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting top tracks")
@@ -943,7 +938,7 @@ func (h *ClientMusicHandler[T]) GetTopTracks(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/{clientType}/{clientID}/music/tracks/recently-added [get]
-func (h *ClientMusicHandler[T]) GetRecentlyAddedTracks(c *gin.Context) {
+func (h *clientMusicHandler[T]) GetClientRecentlyAddedTracks(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting recently added tracks")
@@ -1016,7 +1011,7 @@ func (h *ClientMusicHandler[T]) GetRecentlyAddedTracks(c *gin.Context) {
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/{clientType}/{clientID}/music/albums/top [get]
 // This method name remains unchanged to match the interface in the router
-func (h *ClientMusicHandler[T]) GetTopAlbums(c *gin.Context) {
+func (h *clientMusicHandler[T]) GetClientTopAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting top albums")
@@ -1088,7 +1083,7 @@ func (h *ClientMusicHandler[T]) GetTopAlbums(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/{clientType}/{clientID}/music/artists/top [get]
-func (h *ClientMusicHandler[T]) GetTopArtists(c *gin.Context) {
+func (h *clientMusicHandler[T]) GetClientTopArtists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting top artists")
@@ -1160,7 +1155,7 @@ func (h *ClientMusicHandler[T]) GetTopArtists(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/{clientType}/{clientID}/music/artists/favorites [get]
-func (h *ClientMusicHandler[T]) GetFavoriteArtists(c *gin.Context) {
+func (h *clientMusicHandler[T]) GetClientFavoriteArtists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 	log.Info().Msg("Getting favorite artists")
@@ -1215,4 +1210,685 @@ func (h *ClientMusicHandler[T]) GetFavoriteArtists(c *gin.Context) {
 		Int("artistCount", len(artists)).
 		Msg("Favorite artists retrieved successfully")
 	responses.RespondOK(c, artists, "Favorite artists retrieved successfully")
+}
+
+func createTrackMediaItem(clientID uint64, clientType clienttypes.ClientMediaType, externalID string, data mediatypes.Track) models.MediaItem[mediatypes.Track] {
+	mediaItem := models.MediaItem[mediatypes.Track]{
+		Type:        mediatypes.MediaTypeTrack,
+		SyncClients: []models.SyncClient{},
+		ExternalIDs: []models.ExternalID{},
+		Data:        data,
+	}
+
+	// Set client info
+	mediaItem.SetClientInfo(clientID, clientType, externalID)
+
+	// Only add external ID if provided
+	if externalID != "" {
+		mediaItem.AddExternalID("client", externalID)
+	}
+
+	return mediaItem
+}
+
+func createAlbumMediaItem(clientID uint64, clientType clienttypes.ClientMediaType, externalID string, data mediatypes.Album) models.MediaItem[mediatypes.Album] {
+	mediaItem := models.MediaItem[mediatypes.Album]{
+		Type:        mediatypes.MediaTypeAlbum,
+		SyncClients: []models.SyncClient{},
+		ExternalIDs: []models.ExternalID{},
+		Data:        data,
+	}
+
+	// Set client info
+	mediaItem.SetClientInfo(clientID, clientType, externalID)
+
+	// Only add external ID if provided
+	if externalID != "" {
+		mediaItem.AddExternalID("client", externalID)
+	}
+
+	return mediaItem
+}
+
+func createArtistMediaItem(clientID uint64, clientType clienttypes.ClientMediaType, externalID string, data mediatypes.Artist) models.MediaItem[mediatypes.Artist] {
+	mediaItem := models.MediaItem[mediatypes.Artist]{
+		Type:        mediatypes.MediaTypeArtist,
+		SyncClients: []models.SyncClient{},
+		ExternalIDs: []models.ExternalID{},
+		Data:        data,
+	}
+
+	// Set client info
+	mediaItem.SetClientInfo(clientID, clientType, externalID)
+
+	// Only add external ID if provided
+	if externalID != "" {
+		mediaItem.AddExternalID("client", externalID)
+	}
+
+	return mediaItem
+}
+
+// GetSimilarTracks godoc
+// @Summary Get similar tracks
+// @Description Retrieves tracks similar to a specific track from a client
+// @Tags music
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientID path int true "Client ID"
+// @Param trackID path string true "Track ID"
+// @Param limit query int false "Maximum number of tracks to return (default 10)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Similar tracks retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Router /clients/media/{clientID}/music/tracks/{trackID}/similar [get]
+func (h *clientMusicHandler[T]) GetClientSimilarTracks(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Getting similar tracks")
+
+	// Get authenticated user ID
+	userID, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("Attempt to access similar tracks without authentication")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
+		return
+	}
+
+	uid := userID.(uint64)
+
+	// Parse client ID from URL
+	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	if err != nil {
+		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
+		return
+	}
+
+	trackID := c.Param("trackID")
+
+	// Parse limit parameter (optional)
+	limitStr := c.DefaultQuery("limit", "10")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
+		responses.RespondBadRequest(c, err, "Invalid limit parameter")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Str("trackID", trackID).
+		Int("limit", limit).
+		Msg("Retrieving similar tracks")
+
+	tracks, err := h.musicService.GetSimilarTracks(ctx, uid, clientID, trackID, limit)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", uid).
+			Uint64("clientID", clientID).
+			Str("trackID", trackID).
+			Msg("Failed to retrieve similar tracks")
+		responses.RespondInternalError(c, err, "Failed to retrieve similar tracks")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Str("trackID", trackID).
+		Int("trackCount", len(tracks)).
+		Msg("Similar tracks retrieved successfully")
+	responses.RespondOK(c, tracks, "Similar tracks retrieved successfully")
+}
+
+// GetRecentlyPlayedTracks godoc
+// @Summary Get recently played tracks
+// @Description Retrieves the user's recently played tracks from a client
+// @Tags music
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientID path int true "Client ID"
+// @Param limit query int false "Maximum number of tracks to return (default 10)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Recently played tracks retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Router /clients/media/{clientID}/music/tracks/recently-played [get]
+func (h *clientMusicHandler[T]) GetClientRecentlyPlayedTracks(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Getting recently played tracks")
+
+	// Get authenticated user ID
+	userID, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("Attempt to access recently played tracks without authentication")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
+		return
+	}
+
+	uid := userID.(uint64)
+
+	// Parse client ID from URL
+	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	if err != nil {
+		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
+		return
+	}
+
+	// Parse limit parameter (optional)
+	limitStr := c.DefaultQuery("limit", "10")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
+		responses.RespondBadRequest(c, err, "Invalid limit parameter")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Int("limit", limit).
+		Msg("Retrieving recently played tracks")
+
+	tracks, err := h.musicService.GetRecentlyPlayedTracks(ctx, uid, limit)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", uid).
+			Uint64("clientID", clientID).
+			Int("limit", limit).
+			Msg("Failed to retrieve recently played tracks")
+		responses.RespondInternalError(c, err, "Failed to retrieve recently played tracks")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Int("trackCount", len(tracks)).
+		Msg("Recently played tracks retrieved successfully")
+	responses.RespondOK(c, tracks, "Recently played tracks retrieved successfully")
+}
+
+// GetFavoriteTracks godoc
+// @Summary Get favorite tracks
+// @Description Retrieves the user's favorite tracks from a client
+// @Tags music
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientID path int true "Client ID"
+// @Param limit query int false "Maximum number of tracks to return (default 10)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Favorite tracks retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Router /clients/media/{clientID}/music/tracks/favorites [get]
+func (h *clientMusicHandler[T]) GetClientFavoriteTracks(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Getting favorite tracks")
+
+	// Get authenticated user ID
+	userID, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("Attempt to access favorite tracks without authentication")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
+		return
+	}
+
+	uid := userID.(uint64)
+
+	// Parse client ID from URL
+	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	if err != nil {
+		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
+		return
+	}
+
+	// Parse limit parameter (optional)
+	limitStr := c.DefaultQuery("limit", "10")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
+		responses.RespondBadRequest(c, err, "Invalid limit parameter")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Int("limit", limit).
+		Msg("Retrieving favorite tracks")
+
+	tracks, err := h.musicService.GetFavoriteTracks(ctx, uid, clientID, limit)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", uid).
+			Uint64("clientID", clientID).
+			Int("limit", limit).
+			Msg("Failed to retrieve favorite tracks")
+		responses.RespondInternalError(c, err, "Failed to retrieve favorite tracks")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Int("trackCount", len(tracks)).
+		Msg("Favorite tracks retrieved successfully")
+	responses.RespondOK(c, tracks, "Favorite tracks retrieved successfully")
+}
+
+// GetFavoriteAlbums godoc
+// @Summary Get favorite albums
+// @Description Retrieves the user's favorite albums from a client
+// @Tags music
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientID path int true "Client ID"
+// @Param limit query int false "Maximum number of albums to return (default 10)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Favorite albums retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Router /clients/media/{clientID}/music/albums/favorites [get]
+func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Getting favorite albums")
+
+	// Get authenticated user ID
+	userID, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("Attempt to access favorite albums without authentication")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
+		return
+	}
+
+	uid := userID.(uint64)
+
+	// Parse client ID from URL
+	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	if err != nil {
+		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
+		return
+	}
+
+	// Parse limit parameter (optional)
+	limitStr := c.DefaultQuery("limit", "10")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
+		responses.RespondBadRequest(c, err, "Invalid limit parameter")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Int("limit", limit).
+		Msg("Retrieving favorite albums")
+
+	albums, err := h.musicService.GetFavoriteAlbums(ctx, uid, clientID, limit)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", uid).
+			Uint64("clientID", clientID).
+			Int("limit", limit).
+			Msg("Failed to retrieve favorite albums")
+		responses.RespondInternalError(c, err, "Failed to retrieve favorite albums")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Int("albumCount", len(albums)).
+		Msg("Favorite albums retrieved successfully")
+	responses.RespondOK(c, albums, "Favorite albums retrieved successfully")
+}
+
+// StartTrackPlayback godoc
+// @Summary Start track playback
+// @Description Start playback of a specific track on the client
+// @Tags music
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientID path int true "Client ID"
+// @Param trackID path string true "Track ID"
+// @Success 200 {object} responses.APIResponse[any] "Playback started successfully"
+// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Router /clients/media/{clientID}/music/tracks/{trackID}/play [post]
+// func (h *clientMusicHandler[T]) StartClientTrackPlayback(c *gin.Context) {
+// 	ctx := c.Request.Context()
+// 	log := utils.LoggerFromContext(ctx)
+// 	log.Info().Msg("Starting track playback")
+//
+// 	// Get authenticated user ID
+// 	userID, exists := c.Get("userID")
+// 	if !exists {
+// 		log.Warn().Msg("Attempt to start playback without authentication")
+// 		responses.RespondUnauthorized(c, nil, "Authentication required")
+// 		return
+// 	}
+//
+// 	uid := userID.(uint64)
+//
+// 	// Parse client ID from URL
+// 	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+// 	if err != nil {
+// 		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
+// 		responses.RespondBadRequest(c, err, "Invalid client ID")
+// 		return
+// 	}
+//
+// 	trackID := c.Param("trackID")
+//
+// 	log.Info().
+// 		Uint64("userID", uid).
+// 		Uint64("clientID", clientID).
+// 		Str("trackID", trackID).
+// 		Msg("Starting track playback")
+//
+// 	err = h.musicService.StartTrackPlayback(ctx, uid, clientID, trackID)
+// 	if err != nil {
+// 		log.Error().Err(err).
+// 			Uint64("userID", uid).
+// 			Uint64("clientID", clientID).
+// 			Str("trackID", trackID).
+// 			Msg("Failed to start track playback")
+// 		responses.RespondInternalError(c, err, "Failed to start track playback")
+// 		return
+// 	}
+//
+// 	log.Info().
+// 		Uint64("userID", uid).
+// 		Uint64("clientID", clientID).
+// 		Str("trackID", trackID).
+// 		Msg("Track playback started successfully")
+// 	responses.RespondOK(c, http.StatusOK, "Track playback started successfully")
+// }
+
+// GetPlaybackState godoc
+// @Summary Get playback state
+// @Description Get the current playback state of the client
+// @Tags music
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientID path int true "Client ID"
+// @Success 200 {object} responses.APIResponse[map[string]interface{}] "Playback state retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Router /clients/media/{clientID}/music/playback [get]
+// func (h *clientMusicHandler[T]) GetClientPlaybackState(c *gin.Context) {
+// 	ctx := c.Request.Context()
+// 	log := utils.LoggerFromContext(ctx)
+// 	log.Info().Msg("Getting playback state")
+//
+// 	// Get authenticated user ID
+// 	userID, exists := c.Get("userID")
+// 	if !exists {
+// 		log.Warn().Msg("Attempt to get playback state without authentication")
+// 		responses.RespondUnauthorized(c, nil, "Authentication required")
+// 		return
+// 	}
+//
+// 	uid := userID.(uint64)
+//
+// 	// Parse client ID from URL
+// 	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+// 	if err != nil {
+// 		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
+// 		responses.RespondBadRequest(c, err, "Invalid client ID")
+// 		return
+// 	}
+//
+// 	log.Info().
+// 		Uint64("userID", uid).
+// 		Uint64("clientID", clientID).
+// 		Msg("Getting playback state")
+//
+// 	state, err := h.musicService.GetPlaybackState(ctx, uid, clientID)
+// 	if err != nil {
+// 		log.Error().Err(err).
+// 			Uint64("userID", uid).
+// 			Uint64("clientID", clientID).
+// 			Msg("Failed to get playback state")
+// 		responses.RespondInternalError(c, err, "Failed to get playback state")
+// 		return
+// 	}
+//
+// 	log.Info().
+// 		Uint64("userID", uid).
+// 		Uint64("clientID", clientID).
+// 		Msg("Playback state retrieved successfully")
+// 	responses.RespondOK(c, state, "Playback state retrieved successfully")
+// }
+
+// GetPlaybackInfo godoc
+// @Summary Get playback info
+// @Description Get detailed information about the current playback
+// @Tags music
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientID path int true "Client ID"
+// @Success 200 {object} responses.APIResponse[map[string]interface{}] "Playback info retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Router /clients/media/{clientID}/music/playback/info [get]
+// func (h *clientMusicHandler[T]) GetClientPlaybackInfo(c *gin.Context) {
+// 	ctx := c.Request.Context()
+// 	log := utils.LoggerFromContext(ctx)
+// 	log.Info().Msg("Getting playback info")
+//
+// 	// Get authenticated user ID
+// 	userID, exists := c.Get("userID")
+// 	if !exists {
+// 		log.Warn().Msg("Attempt to get playback info without authentication")
+// 		responses.RespondUnauthorized(c, nil, "Authentication required")
+// 		return
+// 	}
+//
+// 	uid := userID.(uint64)
+//
+// 	// Parse client ID from URL
+// 	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+// 	if err != nil {
+// 		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
+// 		responses.RespondBadRequest(c, err, "Invalid client ID")
+// 		return
+// 	}
+//
+// 	log.Info().
+// 		Uint64("userID", uid).
+// 		Uint64("clientID", clientID).
+// 		Msg("Getting playback info")
+//
+// 	info, err := h.musicService.GetPlaybackInfo(ctx, uid, clientID)
+// 	if err != nil {
+// 		log.Error().Err(err).
+// 			Uint64("userID", uid).
+// 			Uint64("clientID", clientID).
+// 			Msg("Failed to get playback info")
+// 		responses.RespondInternalError(c, err, "Failed to get playback info")
+// 		return
+// 	}
+//
+// 	log.Info().
+// 		Uint64("userID", uid).
+// 		Uint64("clientID", clientID).
+// 		Msg("Playback info retrieved successfully")
+// 	responses.RespondOK(c, info, "Playback info retrieved successfully")
+// }
+
+// GetUserPlaylists godoc
+// @Summary Get user playlists
+// @Description Retrieve the user's playlists from a client
+// @Tags music
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientID path int true "Client ID"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Playlist]] "User playlists retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Router /clients/media/{clientID}/music/playlists [get]
+
+// GetPlaylistTracks godoc
+// @Summary Get playlist tracks
+// @Description Retrieve tracks from a specific playlist
+// @Tags music
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientID path int true "Client ID"
+// @Param playlistID path string true "Playlist ID"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Playlist tracks retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Router /clients/media/{clientID}/music/playlists/{playlistID}/tracks [get]
+// func (h *clientMusicHandler[T]) GetClientPlaylistTracks(c *gin.Context) {
+// 	ctx := c.Request.Context()
+// 	log := utils.LoggerFromContext(ctx)
+// 	log.Info().Msg("Getting playlist tracks")
+//
+// 	// Get authenticated user ID
+// 	userID, exists := c.Get("userID")
+// 	if !exists {
+// 		log.Warn().Msg("Attempt to get playlist tracks without authentication")
+// 		responses.RespondUnauthorized(c, nil, "Authentication required")
+// 		return
+// 	}
+//
+// 	uid := userID.(uint64)
+//
+// 	// Parse client ID from URL
+// 	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+// 	if err != nil {
+// 		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
+// 		responses.RespondBadRequest(c, err, "Invalid client ID")
+// 		return
+// 	}
+//
+// 	playlistID := c.Param("playlistID")
+//
+// 	log.Info().
+// 		Uint64("userID", uid).
+// 		Uint64("clientID", clientID).
+// 		Str("playlistID", playlistID).
+// 		Msg("Getting playlist tracks")
+//
+// 	tracks, err := h.musicService.GetPlaylistTracks(ctx, uid, clientID, playlistID)
+// 	if err != nil {
+// 		log.Error().Err(err).
+// 			Uint64("userID", uid).
+// 			Uint64("clientID", clientID).
+// 			Str("playlistID", playlistID).
+// 			Msg("Failed to get playlist tracks")
+// 		responses.RespondInternalError(c, err, "Failed to get playlist tracks")
+// 		return
+// 	}
+//
+// 	log.Info().
+// 		Uint64("userID", uid).
+// 		Uint64("clientID", clientID).
+// 		Str("playlistID", playlistID).
+// 		Int("trackCount", len(tracks)).
+// 		Msg("Playlist tracks retrieved successfully")
+// 	responses.RespondOK(c, tracks, "Playlist tracks retrieved successfully")
+// }
+
+// GetClientSimilarArtists godoc
+// @Summary Get similar artists
+// @Description Retrieves artists similar to a specific artist from a client
+// @Tags music
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientID path int true "Client ID"
+// @Param artistID path string true "Artist ID"
+// @Param limit query int false "Maximum number of artists to return (default 10)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Artist]] "Similar artists retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Router /clients/media/{clientID}/music/artists/{artistID}/similar [get]
+func (h *clientMusicHandler[T]) GetClientSimilarArtists(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Getting similar artists")
+
+	// Get authenticated user ID
+	userID, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("Attempt to access similar artists without authentication")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
+		return
+	}
+
+	uid := userID.(uint64)
+
+	// Parse client ID from URL
+	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	if err != nil {
+		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
+		return
+	}
+
+	artistID := c.Param("artistID")
+
+	// Parse limit parameter (optional)
+	limitStr := c.DefaultQuery("limit", "10")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
+		responses.RespondBadRequest(c, err, "Invalid limit parameter")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Str("artistID", artistID).
+		Int("limit", limit).
+		Msg("Retrieving similar artists")
+
+	artists, err := h.musicService.GetSimilarArtists(ctx, uid, clientID, artistID, limit)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", uid).
+			Uint64("clientID", clientID).
+			Str("artistID", artistID).
+			Msg("Failed to retrieve similar artists")
+		responses.RespondInternalError(c, err, "Failed to retrieve similar artists")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Str("artistID", artistID).
+		Int("artistCount", len(artists)).
+		Msg("Similar artists retrieved successfully")
+	responses.RespondOK(c, artists, "Similar artists retrieved successfully")
 }

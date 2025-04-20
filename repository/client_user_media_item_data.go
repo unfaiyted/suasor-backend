@@ -13,6 +13,7 @@ import (
 // ClientUserMediaItemDataRepository defines the interface for client-specific media item data operations
 // This focuses on client-specific interactions and synchronization with external media systems
 type ClientUserMediaItemDataRepository[T types.MediaData] interface {
+	CoreUserMediaItemDataRepository[T]
 	// SyncClientItemData synchronizes user media item data from an external client
 	SyncClientItemData(ctx context.Context, userID uint64, clientID uint64, items []models.UserMediaItemData[T]) error
 
@@ -37,19 +38,23 @@ type ClientUserMediaItemDataRepository[T types.MediaData] interface {
 
 // clientUserMediaItemDataRepository implements ClientUserMediaItemDataRepository
 type clientUserMediaItemDataRepository[T types.MediaData] struct {
+	CoreUserMediaItemDataRepository[T]
 	db       *gorm.DB
 	userRepo UserMediaItemDataRepository[T]
-	coreRepo CoreUserMediaItemDataRepository[T]
 	helper   *ClientMediaItemHelper
 }
 
 // NewClientUserMediaItemDataRepository creates a new client user media item data repository
-func NewClientUserMediaItemDataRepository[T types.MediaData](db *gorm.DB) ClientUserMediaItemDataRepository[T] {
+func NewClientUserMediaItemDataRepository[T types.MediaData](
+	db *gorm.DB,
+	CoreUserMediaItemDataRepository CoreUserMediaItemDataRepository[T],
+	userRepo UserMediaItemDataRepository[T],
+) ClientUserMediaItemDataRepository[T] {
 	return &clientUserMediaItemDataRepository[T]{
-		db:       db,
-		userRepo: NewUserMediaItemDataRepository[T](db),
-		coreRepo: NewCoreUserMediaItemDataRepository[T](db),
-		helper:   NewClientMediaItemHelper(db),
+		CoreUserMediaItemDataRepository: CoreUserMediaItemDataRepository,
+		db:                              db,
+		userRepo:                        userRepo,
+		helper:                          NewClientMediaItemHelper(db),
 	}
 }
 
@@ -192,7 +197,7 @@ func (r *clientUserMediaItemDataRepository[T]) GetByClientID(ctx context.Context
 	}
 
 	// Now get the user media item data using the internal ID
-	return r.coreRepo.GetByUserIDAndMediaItemID(ctx, userID, internalID)
+	return r.CoreUserMediaItemDataRepository.GetByUserIDAndMediaItemID(ctx, userID, internalID)
 }
 
 // RecordClientPlay records a play event from a client
@@ -226,7 +231,7 @@ func (r *clientUserMediaItemDataRepository[T]) GetPlaybackState(ctx context.Cont
 	}
 
 	// Now get the user media item data using the internal ID
-	return r.coreRepo.GetByUserIDAndMediaItemID(ctx, userID, internalID)
+	return r.CoreUserMediaItemDataRepository.GetByUserIDAndMediaItemID(ctx, userID, internalID)
 }
 
 // UpdatePlaybackState updates the playback state for a client item
@@ -238,7 +243,7 @@ func (r *clientUserMediaItemDataRepository[T]) UpdatePlaybackState(ctx context.C
 	}
 
 	// Check if there's an existing record
-	existingData, err := r.coreRepo.GetByUserIDAndMediaItemID(ctx, userID, internalID)
+	existingData, err := r.CoreUserMediaItemDataRepository.GetByUserIDAndMediaItemID(ctx, userID, internalID)
 	if err != nil {
 		// If it's not a "not found" error, return the error
 		if err.Error() != "user media item data not found: record not found" {
@@ -274,7 +279,7 @@ func (r *clientUserMediaItemDataRepository[T]) UpdatePlaybackState(ctx context.C
 			Completed:        percentage >= 0.9, // Consider complete if 90% played
 		}
 
-		result, err := r.coreRepo.Create(ctx, &newData)
+		result, err := r.CoreUserMediaItemDataRepository.Create(ctx, &newData)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create playback state record: %w", err)
 		}
@@ -296,7 +301,7 @@ func (r *clientUserMediaItemDataRepository[T]) UpdatePlaybackState(ctx context.C
 	}
 
 	// Update the record
-	result, err := r.coreRepo.Update(ctx, existingData)
+	result, err := r.CoreUserMediaItemDataRepository.Update(ctx, existingData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update playback state: %w", err)
 	}

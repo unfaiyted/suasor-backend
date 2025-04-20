@@ -98,7 +98,7 @@ func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 }
 
 // GetPlaylistItems retrieves items in a playlist from Jellyfin
-func (j *JellyfinClient) GetPlaylistItems(ctx context.Context, playlistID string, options *t.QueryOptions) (*models.MediaItems, error) {
+func (j *JellyfinClient) GetPlaylistItems(ctx context.Context, playlistID string, options *t.QueryOptions) (*models.MediaItemList, error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 

@@ -2,100 +2,161 @@ package models
 
 import (
 	"errors"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"suasor/client/media/types"
 	"time"
 )
 
-type MediaItemDatas struct {
-	Movies      []*UserMediaItemData[*types.Movie]
-	Series      []*UserMediaItemData[*types.Series]
-	Seasons     []*UserMediaItemData[*types.Season]
-	Episodes    []*UserMediaItemData[*types.Episode]
-	Artists     []*UserMediaItemData[*types.Artist]
-	Albums      []*UserMediaItemData[*types.Album]
-	Tracks      []*UserMediaItemData[*types.Track]
-	Playlists   []*UserMediaItemData[*types.Playlist]
-	Collections []*UserMediaItemData[*types.Collection]
+type DataListItem struct {
+	ItemUUID string `json:"itemId"`
+	Position int    `json:"position"`
+}
+
+type DataListItems []DataListItem
+
+type MediaItemDataList struct {
+	movies      map[string]*UserMediaItemData[*types.Movie]
+	series      map[string]*UserMediaItemData[*types.Series]
+	seasons     map[string]*UserMediaItemData[*types.Season]
+	episodes    map[string]*UserMediaItemData[*types.Episode]
+	artists     map[string]*UserMediaItemData[*types.Artist]
+	albums      map[string]*UserMediaItemData[*types.Album]
+	tracks      map[string]*UserMediaItemData[*types.Track]
+	playlists   map[string]*UserMediaItemData[*types.Playlist]
+	collections map[string]*UserMediaItemData[*types.Collection]
+
+	OwnerID uint64
+
+	Order DataListItems
 
 	TotalItems int
 }
 
-func (m *MediaItemDatas) AddMovie(item *UserMediaItemData[*types.Movie]) {
-	m.Movies = append(m.Movies, item)
+func (m *MediaItemDataList) AddListItem(itemUUID string, itemPosition int) {
+	m.Order = append(m.Order, DataListItem{
+		ItemUUID: itemUUID,
+		Position: itemPosition,
+	})
+}
+
+func (m *MediaItemDataList) AddMovieList(items []*UserMediaItemData[*types.Movie]) {
+	for _, item := range items {
+		m.AddMovie(item)
+	}
+}
+func (m *MediaItemDataList) AddMovie(item *UserMediaItemData[*types.Movie]) {
+	m.movies[item.UUID] = item
+	m.AddListItem(item.UUID, m.TotalItems+1)
 	m.TotalItems++
 }
-func (m *MediaItemDatas) AddSeries(item *UserMediaItemData[*types.Series]) {
-	m.Series = append(m.Series, item)
-	m.TotalItems++
+func (m *MediaItemDataList) AddSeriesList(items []*UserMediaItemData[*types.Series]) {
+	for _, item := range items {
+		m.AddSeries(item)
+	}
 }
-func (m *MediaItemDatas) AddSeason(item *UserMediaItemData[*types.Season]) {
-	m.Seasons = append(m.Seasons, item)
-	m.TotalItems++
-}
-func (m *MediaItemDatas) AddEpisode(item *UserMediaItemData[*types.Episode]) {
-	m.Episodes = append(m.Episodes, item)
-	m.TotalItems++
-}
-func (m *MediaItemDatas) AddArtist(item *UserMediaItemData[*types.Artist]) {
-	m.Artists = append(m.Artists, item)
-	m.TotalItems++
-}
-func (m *MediaItemDatas) AddAlbum(item *UserMediaItemData[*types.Album]) {
-	m.Albums = append(m.Albums, item)
-	m.TotalItems++
-}
-func (m *MediaItemDatas) AddTrack(item *UserMediaItemData[*types.Track]) {
-	m.Tracks = append(m.Tracks, item)
-	m.TotalItems++
-}
-func (m *MediaItemDatas) AddPlaylist(item *UserMediaItemData[*types.Playlist]) {
-	m.Playlists = append(m.Playlists, item)
-	m.TotalItems++
-}
-func (m *MediaItemDatas) AddCollection(item *UserMediaItemData[*types.Collection]) {
-	m.Collections = append(m.Collections, item)
+
+func (m *MediaItemDataList) AddSeries(item *UserMediaItemData[*types.Series]) {
+	m.series[item.UUID] = item
+	m.AddListItem(item.UUID, m.TotalItems+1)
 	m.TotalItems++
 }
 
-func (m *MediaItemDatas) GetTotalItems() int {
+func (m *MediaItemDataList) AddSeason(item *UserMediaItemData[*types.Season]) {
+	m.seasons[item.UUID] = item
+	m.AddListItem(item.UUID, m.TotalItems+1)
+	m.TotalItems++
+}
+
+func (m *MediaItemDataList) AddSeasonList(items []*UserMediaItemData[*types.Season]) {
+	for _, item := range items {
+		m.AddSeason(item)
+	}
+}
+
+func (m *MediaItemDataList) AddEpisode(item *UserMediaItemData[*types.Episode]) {
+	m.episodes[item.UUID] = item
+	m.AddListItem(item.UUID, m.TotalItems+1)
+	m.TotalItems++
+}
+
+func (m *MediaItemDataList) AddEpisodeList(items []*UserMediaItemData[*types.Episode]) {
+	for _, item := range items {
+		m.AddEpisode(item)
+	}
+}
+
+func (m *MediaItemDataList) AddArtist(item *UserMediaItemData[*types.Artist]) {
+	m.artists[item.UUID] = item
+	m.AddListItem(item.UUID, m.TotalItems+1)
+	m.TotalItems++
+}
+
+func (m *MediaItemDataList) AddArtistList(items []*UserMediaItemData[*types.Artist]) {
+	for _, item := range items {
+		m.AddArtist(item)
+	}
+}
+
+func (m *MediaItemDataList) AddAlbum(item *UserMediaItemData[*types.Album]) {
+	m.albums[item.UUID] = item
+	m.AddListItem(item.UUID, m.TotalItems+1)
+	m.TotalItems++
+}
+
+func (m *MediaItemDataList) AddAlbumList(items []*UserMediaItemData[*types.Album]) {
+	for _, item := range items {
+		m.AddAlbum(item)
+	}
+}
+
+func (m *MediaItemDataList) AddTrack(item *UserMediaItemData[*types.Track]) {
+	m.tracks[item.UUID] = item
+	m.AddListItem(item.UUID, m.TotalItems+1)
+	m.TotalItems++
+}
+
+func (m *MediaItemDataList) AddTrackList(items []*UserMediaItemData[*types.Track]) {
+	for _, item := range items {
+		m.AddTrack(item)
+	}
+}
+
+func (m *MediaItemDataList) AddPlaylist(item *UserMediaItemData[*types.Playlist]) {
+	m.playlists[item.UUID] = item
+	m.AddListItem(item.UUID, m.TotalItems+1)
+	m.TotalItems++
+}
+
+func (m *MediaItemDataList) AddPlaylistList(items []*UserMediaItemData[*types.Playlist]) {
+	for _, item := range items {
+		m.AddPlaylist(item)
+	}
+}
+
+func (m *MediaItemDataList) AddCollection(item *UserMediaItemData[*types.Collection]) {
+	m.collections[item.UUID] = item
+	m.AddListItem(item.UUID, m.TotalItems+1)
+}
+
+func (m *MediaItemDataList) AddCollectionList(items []*UserMediaItemData[*types.Collection]) {
+	for _, item := range items {
+		m.AddCollection(item)
+	}
+}
+
+func (m *MediaItemDataList) GetTotalItems() int {
 	return m.TotalItems
-}
-func (m *MediaItemDatas) GetMovies() []*UserMediaItemData[*types.Movie] {
-	return m.Movies
-}
-func (m *MediaItemDatas) GetSeries() []*UserMediaItemData[*types.Series] {
-	return m.Series
-}
-func (m *MediaItemDatas) GetSeasons() []*UserMediaItemData[*types.Season] {
-	return m.Seasons
-}
-func (m *MediaItemDatas) GetEpisodes() []*UserMediaItemData[*types.Episode] {
-	return m.Episodes
-}
-func (m *MediaItemDatas) GetArtists() []*UserMediaItemData[*types.Artist] {
-	return m.Artists
-}
-func (m *MediaItemDatas) GetAlbums() []*UserMediaItemData[*types.Album] {
-	return m.Albums
-}
-func (m *MediaItemDatas) GetTracks() []*UserMediaItemData[*types.Track] {
-	return m.Tracks
-}
-func (m *MediaItemDatas) GetPlaylists() []*UserMediaItemData[*types.Playlist] {
-	return m.Playlists
-}
-func (m *MediaItemDatas) GetCollections() []*UserMediaItemData[*types.Collection] {
-	return m.Collections
 }
 
 // Represents the user's personal data for a specific media item
 type UserMediaItemData[T types.MediaData] struct {
 	ID               uint64          `json:"id" gorm:"primaryKey;autoIncrement"`
-	UserID           uint64          `json:"userId" gorm:"index"`          // Foreign key to User
-	MediaItemID      uint64          `json:"mediaItemId" gorm:"index"`     // Foreign key to MediaItem
-	Item             *MediaItem[T]   `json:"item" gorm:"-"`                // Not stored in DB, loaded via relationship
-	Type             types.MediaType `json:"type" gorm:"type:varchar(50)"` // "movie", "episode", "show", "season"
+	UUID             string          `json:"uuid" gorm:"type:uuid;uniqueIndex"` // Stable UUID for syncing
+	UserID           uint64          `json:"userId" gorm:"index"`               // Foreign key to User
+	MediaItemID      uint64          `json:"mediaItemId" gorm:"index"`          // Foreign key to MediaItem
+	Item             *MediaItem[T]   `json:"item" gorm:"-"`                     // Not stored in DB, loaded via relationship
+	Type             types.MediaType `json:"type" gorm:"type:varchar(50)"`      // "movie", "episode", "show", "season"
 	PlayedAt         time.Time       `json:"playedAt" gorm:"index"`
 	LastPlayedAt     time.Time       `json:"lastPlayedAt" gorm:"index"`
 	IsFavorite       bool            `json:"isFavorite,omitempty"`
@@ -143,36 +204,22 @@ func (h *UserMediaItemData[T]) BeforeSave(tx *gorm.DB) error {
 	return nil
 }
 
-// UserMediaItemDataGeneric is a non-generic version of MediaPlayHistory to avoid type issues
-// type UserMediaItemDataGeneric struct {
-// 	ID               uint64          `json:"id" gorm:"primaryKey;autoIncrement"`
-// 	UserID           uint64          `json:"userId" gorm:"index"`
-// 	MediaItemID      uint64          `json:"mediaItemId" gorm:"index"`
-// 	Type             types.MediaType `json:"type" gorm:"type:varchar(50)"`
-// 	PlayedAt         time.Time       `json:"playedAt" gorm:"index"`
-// 	LastPlayedAt     time.Time       `json:"lastPlayedAt" gorm:"index"`
-// 	IsFavorite       bool            `json:"isFavorite,omitempty"`
-// 	IsDisliked       bool            `json:"isDisliked,omitempty"`
-// 	UserRating       float32         `json:"userRating,omitempty"`
-// 	PlayedPercentage float64         `json:"playedPercentage,omitempty"`
-// 	PlayCount        int32           `json:"playCount,omitempty"`
-// 	PositionSeconds  int             `json:"positionSeconds"`
-// 	DurationSeconds  int             `json:"durationSeconds"`
-// 	Completed        bool            `json:"completed"`
-// 	CreatedAt        time.Time       `json:"createdAt" gorm:"autoCreateTime"`
-// 	UpdatedAt        time.Time       `json:"updatedAt" gorm:"autoUpdateTime"`
-// }
+func NewUserMediaItemData[T types.MediaData](item *MediaItem[T], userID uint64) *UserMediaItemData[T] {
+	// Create a new user media item data object with the media item
+	result := &UserMediaItemData[T]{
+		ID:          1, // Placeholder ID
+		UUID:        uuid.New().String(),
+		UserID:      userID,
+		MediaItemID: item.ID,
+		Item:        item,
+		Type:        item.Type,
+		// Default values for other fields
+		IsFavorite:       false,
+		UserRating:       0,
+		PlayedPercentage: 0,
+		Watchlist:        false,
+		Completed:        false,
+	}
 
-// UserMediaItemDataRequest is used to record a new play history entry
-// type UserMediaItemDataRequest struct {
-// 	UserID           uint64          `json:"userId" binding:"required"`
-// 	MediaItemID      uint64          `json:"mediaItemId" binding:"required"`
-// 	Type             types.MediaType `json:"type" binding:"required"`
-// 	IsFavorite       bool            `json:"isFavorite,omitempty"`
-// 	UserRating       float32         `json:"userRating,omitempty"`
-// 	PlayedPercentage float64         `json:"playedPercentage,omitempty"`
-// 	PositionSeconds  int             `json:"positionSeconds"`
-// 	DurationSeconds  int             `json:"durationSeconds"`
-// 	Completed        bool            `json:"completed"`
-// 	Continued        bool            `json:"continued"` // If this is a continuation of a previous play
-// }
+	return result
+}

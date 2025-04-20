@@ -42,7 +42,6 @@ func NewUserMediaItemDataHandler[T types.MediaData](
 // @Param userId query int true "User ID"
 // @Param limit query int false "Number of items to return (default 10)"
 // @Param offset query int false "Number of items to skip (default 0)"
-// @Param type query string false "Media type filter (movie, series, episode, track, etc.)"
 // @Param completed query bool false "Filter by completion status"
 // @Success 200 {object} responses.APIResponse[[]models.UserMediaItemData[any]] "Successfully retrieved play history"
 // @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
@@ -62,7 +61,6 @@ func (h *UserMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) {
 
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
-	mediaType := c.Query("type")
 	completedStr := c.Query("completed")
 
 	var completed *bool
@@ -76,21 +74,24 @@ func (h *UserMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) {
 		completed = &completedBool
 	}
 
-	// Filter by media type if provided
-	var typedMediaType *types.MediaType
-	if mediaType != "" {
-		mt := types.MediaType(mediaType)
-		typedMediaType = &mt
-	}
+	var zero T
+	mediaType := types.GetMediaTypeFromTypeName(zero)
 
 	log.Debug().
 		Uint64("userId", userID).
 		Int("limit", limit).
 		Int("offset", offset).
-		Str("mediaType", mediaType).
+		Str("mediaType", string(mediaType)).
 		Msg("Getting user media play history")
 
-	history, err := h.service.GetUserPlayHistory(ctx, userID, limit, offset, typedMediaType, completed)
+	query := types.QueryOptions{
+		MediaType: mediaType,
+		Limit:     limit,
+		Offset:    offset,
+		Watched:   *completed,
+	}
+
+	history, err := h.service.GetUserPlayHistory(ctx, userID, &query)
 	if err != nil {
 		log.Error().Err(err).Uint64("userId", userID).Msg("Failed to retrieve play history")
 		responses.RespondInternalError(c, err, "Failed to retrieve play history")

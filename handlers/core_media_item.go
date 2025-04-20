@@ -38,9 +38,9 @@ type coreMediaItemHandler[T types.MediaData] struct {
 }
 
 // NewcoreMediaItemHandler creates a new core media item handler
-func NewcoreMediaItemHandler[T types.MediaData](
+func NewCoreMediaItemHandler[T types.MediaData](
 	mediaService services.CoreMediaItemService[T],
-) *coreMediaItemHandler[T] {
+) CoreMediaItemHandler[T] {
 	return &coreMediaItemHandler[T]{
 		mediaService: mediaService,
 	}

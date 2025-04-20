@@ -23,7 +23,7 @@ type CoreListService[T mediatypes.ListData] interface {
 	Delete(ctx context.Context, id uint64) error
 
 	// list-specific operations
-	GetItems(ctx context.Context, listID uint64) (*models.MediaItems, error)
+	GetItems(ctx context.Context, listID uint64) (*models.MediaItemList, error)
 	AddItem(ctx context.Context, listID uint64, itemID uint64) error
 	RemoveItem(ctx context.Context, listID uint64, itemID uint64) error
 	ReorderItems(ctx context.Context, listID uint64, itemIDs []uint64) error
@@ -202,7 +202,7 @@ func (s coreListService[T]) GetByUserID(ctx context.Context, userID uint64, limi
 }
 
 // list-specific operations
-func (s coreListService[T]) GetItems(ctx context.Context, listID uint64) (*models.MediaItems, error) {
+func (s coreListService[T]) GetItems(ctx context.Context, listID uint64) (*models.MediaItemList, error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
@@ -211,14 +211,14 @@ func (s coreListService[T]) GetItems(ctx context.Context, listID uint64) (*model
 	// Get the list
 	list, err := s.GetByID(ctx, listID)
 	if err != nil {
-		return &models.MediaItems{}, fmt.Errorf("failed to get list items: %w", err)
+		return &models.MediaItemList{}, fmt.Errorf("failed to get list items: %w", err)
 	}
 
 	itemList := list.GetData().GetItemList()
 
 	// Return empty array if the list has no items
 	if len(itemList.Items) == 0 {
-		return &models.MediaItems{}, nil
+		return &models.MediaItemList{}, nil
 	}
 
 	// Extract item IDs for batch retrieval
@@ -586,7 +586,7 @@ func (s coreListService[T]) Sync(ctx context.Context, listID uint64, targetClien
 	// This would be implemented in a job that handles the actual sync
 	return errors.New("list sync requires implementation in the list sync job")
 }
-func (s coreListService[T]) createMediaItems(ctx context.Context, items []*models.MediaItem[mediatypes.MediaData]) (*models.MediaItems, error) {
+func (s coreListService[T]) createMediaItems(ctx context.Context, items []*models.MediaItem[mediatypes.MediaData]) (*models.MediaItemList, error) {
 	log := utils.LoggerFromContext(ctx)
 
 	log.Debug().

@@ -22,7 +22,7 @@ type UserMediaItemDataService[T types.MediaData] interface {
 	GetRecentHistory(ctx context.Context, userID uint64, limit int, mediaType *types.MediaType) ([]*models.UserMediaItemData[T], error)
 
 	// GetUserPlayHistory retrieves play history for a user with optional filtering
-	GetUserPlayHistory(ctx context.Context, userID uint64, limit, offset int, mediaType *types.MediaType, completed *bool) ([]*models.UserMediaItemData[T], error)
+	GetUserPlayHistory(ctx context.Context, userID uint64, query *types.QueryOptions) ([]*models.UserMediaItemData[T], error)
 
 	// GetContinueWatching retrieves items that a user has started but not completed
 	GetContinueWatching(ctx context.Context, userID uint64, limit int, mediaType *types.MediaType) ([]*models.UserMediaItemData[T], error)
@@ -45,8 +45,8 @@ type UserMediaItemDataService[T types.MediaData] interface {
 
 // userMediaItemDataService implements UserMediaItemDataService
 type userMediaItemDataService[T types.MediaData] struct {
-	coreService CoreUserMediaItemDataService[T]
-	repo        repository.UserMediaItemDataRepository[T]
+	CoreUserMediaItemDataService[T]
+	repo repository.UserMediaItemDataRepository[T]
 }
 
 // NewUserMediaItemDataService creates a new user media item data service
@@ -55,38 +55,10 @@ func NewUserMediaItemDataService[T types.MediaData](
 	repo repository.UserMediaItemDataRepository[T],
 ) UserMediaItemDataService[T] {
 	return &userMediaItemDataService[T]{
-		coreService: coreService,
-		repo:        repo,
+		CoreUserMediaItemDataService: coreService,
+		repo:                         repo,
 	}
 }
-
-// Core service methods - delegate to embedded core service
-
-func (s *userMediaItemDataService[T]) Create(ctx context.Context, data *models.UserMediaItemData[T]) (*models.UserMediaItemData[T], error) {
-	return s.coreService.Create(ctx, data)
-}
-
-func (s *userMediaItemDataService[T]) GetByID(ctx context.Context, id uint64) (*models.UserMediaItemData[T], error) {
-	return s.coreService.GetByID(ctx, id)
-}
-
-func (s *userMediaItemDataService[T]) Update(ctx context.Context, data *models.UserMediaItemData[T]) (*models.UserMediaItemData[T], error) {
-	return s.coreService.Update(ctx, data)
-}
-
-func (s *userMediaItemDataService[T]) Delete(ctx context.Context, id uint64) error {
-	return s.coreService.Delete(ctx, id)
-}
-
-func (s *userMediaItemDataService[T]) GetByUserIDAndMediaItemID(ctx context.Context, userID, mediaItemID uint64) (*models.UserMediaItemData[T], error) {
-	return s.coreService.GetByUserIDAndMediaItemID(ctx, userID, mediaItemID)
-}
-
-func (s *userMediaItemDataService[T]) HasUserMediaItemData(ctx context.Context, userID, mediaItemID uint64) (bool, error) {
-	return s.coreService.HasUserMediaItemData(ctx, userID, mediaItemID)
-}
-
-// User-specific methods
 
 // GetUserHistory retrieves a user's media history
 func (s *userMediaItemDataService[T]) GetUserHistory(ctx context.Context, userID uint64, limit, offset int, mediaType *types.MediaType) ([]*models.UserMediaItemData[T], error) {
@@ -140,16 +112,17 @@ func (s *userMediaItemDataService[T]) GetRecentHistory(ctx context.Context, user
 }
 
 // GetUserPlayHistory retrieves play history for a user with optional filtering
-func (s *userMediaItemDataService[T]) GetUserPlayHistory(ctx context.Context, userID uint64, limit, offset int, mediaType *types.MediaType, completed *bool) ([]*models.UserMediaItemData[T], error) {
+func (s *userMediaItemDataService[T]) GetUserPlayHistory(ctx context.Context, userID uint64, query *types.QueryOptions) ([]*models.UserMediaItemData[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
-		Int("limit", limit).
-		Int("offset", offset).
+		Int("limit", query.Limit).
+		Int("offset", query.Offset).
 		Msg("Getting user play history")
 
+	completed := query.Watched || true
 	// Delegate to repository
-	result, err := s.repo.GetUserPlayHistory(ctx, userID, limit, offset, completed)
+	result, err := s.repo.GetUserPlayHistory(ctx, userID, query.Limit, query.Offset, &completed)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -317,4 +290,3 @@ func (s *userMediaItemDataService[T]) ClearUserHistory(ctx context.Context, user
 
 	return nil
 }
-

@@ -50,36 +50,16 @@ type UserMediaItemDataRepository[T types.MediaData] interface {
 
 // userMediaItemDataRepository implements UserUserMediaItemDataRepository
 type userMediaItemDataRepository[T types.MediaData] struct {
-	db       *gorm.DB
-	coreRepo CoreUserMediaItemDataRepository[T]
+	CoreUserMediaItemDataRepository[T]
+	db *gorm.DB
 }
 
 // NewUserUserMediaItemDataRepository creates a new user media item data repository
-func NewUserMediaItemDataRepository[T types.MediaData](db *gorm.DB) UserMediaItemDataRepository[T] {
+func NewUserMediaItemDataRepository[T types.MediaData](db *gorm.DB, CoreUserMediaItemDataRepository CoreUserMediaItemDataRepository[T]) UserMediaItemDataRepository[T] {
 	return &userMediaItemDataRepository[T]{
-		db:       db,
-		coreRepo: NewCoreUserMediaItemDataRepository[T](db),
+		CoreUserMediaItemDataRepository: CoreUserMediaItemDataRepository,
+		db:                              db,
 	}
-}
-
-func (r *userMediaItemDataRepository[T]) Create(ctx context.Context, data *models.UserMediaItemData[T]) (*models.UserMediaItemData[T], error) {
-	return r.coreRepo.Create(ctx, data)
-}
-
-func (r *userMediaItemDataRepository[T]) GetByID(ctx context.Context, id uint64) (*models.UserMediaItemData[T], error) {
-	return r.coreRepo.GetByID(ctx, id)
-}
-
-func (r *userMediaItemDataRepository[T]) Update(ctx context.Context, data *models.UserMediaItemData[T]) (*models.UserMediaItemData[T], error) {
-	return r.coreRepo.Update(ctx, data)
-}
-
-func (r *userMediaItemDataRepository[T]) Delete(ctx context.Context, id uint64) error {
-	return r.coreRepo.Delete(ctx, id)
-}
-
-func (r *userMediaItemDataRepository[T]) GetByUserIDAndMediaItemID(ctx context.Context, userID, mediaItemID uint64) (*models.UserMediaItemData[T], error) {
-	return r.coreRepo.GetByUserIDAndMediaItemID(ctx, userID, mediaItemID)
 }
 
 // GetUserHistory retrieves a user's media item history
@@ -218,7 +198,7 @@ func (r *userMediaItemDataRepository[T]) GetContinueWatching(ctx context.Context
 // RecordPlay records a new play event
 func (r *userMediaItemDataRepository[T]) RecordPlay(ctx context.Context, data *models.UserMediaItemData[T]) (*models.UserMediaItemData[T], error) {
 	// Check if there's an existing record
-	existingData, err := r.coreRepo.GetByUserIDAndMediaItemID(ctx, data.UserID, data.MediaItemID)
+	existingData, err := r.CoreUserMediaItemDataRepository.GetByUserIDAndMediaItemID(ctx, data.UserID, data.MediaItemID)
 	if err != nil {
 		// If it's not a "not found" error, return the error
 		if err.Error() != "user media item data not found: record not found" {
@@ -234,7 +214,7 @@ func (r *userMediaItemDataRepository[T]) RecordPlay(ctx context.Context, data *m
 		// Increment play count
 		data.PlayCount = 1
 
-		result, err := r.coreRepo.Create(ctx, data)
+		result, err := r.CoreUserMediaItemDataRepository.Create(ctx, data)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create play record: %w", err)
 		}
@@ -251,7 +231,7 @@ func (r *userMediaItemDataRepository[T]) RecordPlay(ctx context.Context, data *m
 	existingData.Completed = data.Completed
 
 	// Update the record
-	result, err := r.coreRepo.Update(ctx, existingData)
+	result, err := r.CoreUserMediaItemDataRepository.Update(ctx, existingData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update play record: %w", err)
 	}
@@ -263,7 +243,7 @@ func (r *userMediaItemDataRepository[T]) RecordPlay(ctx context.Context, data *m
 func (r *userMediaItemDataRepository[T]) ToggleFavorite(ctx context.Context, mediaItemID, userID uint64, favorite bool) error {
 	// Check if there's an existing record
 	log := utils.LoggerFromContext(ctx)
-	existingData, err := r.coreRepo.GetByUserIDAndMediaItemID(ctx, userID, mediaItemID)
+	existingData, err := r.CoreUserMediaItemDataRepository.GetByUserIDAndMediaItemID(ctx, userID, mediaItemID)
 	if err != nil {
 		// If it's not a "not found" error, return the error
 		if err.Error() != "user media item data not found: record not found" {
@@ -295,7 +275,7 @@ func (r *userMediaItemDataRepository[T]) ToggleFavorite(ctx context.Context, med
 			UpdatedAt:    time.Now(),
 		}
 
-		result, err := r.coreRepo.Create(ctx, &newData)
+		result, err := r.CoreUserMediaItemDataRepository.Create(ctx, &newData)
 		if err != nil {
 			return fmt.Errorf("failed to create favorite record: %w", err)
 		}
@@ -312,7 +292,7 @@ func (r *userMediaItemDataRepository[T]) ToggleFavorite(ctx context.Context, med
 	existingData.UpdatedAt = time.Now()
 
 	// Update the record
-	result, err := r.coreRepo.Update(ctx, existingData)
+	result, err := r.CoreUserMediaItemDataRepository.Update(ctx, existingData)
 	if err != nil {
 		return fmt.Errorf("failed to update favorite status: %w", err)
 	}
@@ -327,7 +307,7 @@ func (r *userMediaItemDataRepository[T]) ToggleFavorite(ctx context.Context, med
 func (r *userMediaItemDataRepository[T]) UpdateRating(ctx context.Context, mediaItemID, userID uint64, rating float32) error {
 	// Check if there's an existing record
 	log := utils.LoggerFromContext(ctx)
-	existingData, err := r.coreRepo.GetByUserIDAndMediaItemID(ctx, userID, mediaItemID)
+	existingData, err := r.CoreUserMediaItemDataRepository.GetByUserIDAndMediaItemID(ctx, userID, mediaItemID)
 	if err != nil {
 		// If it's not a "not found" error, return the error
 		if err.Error() != "user media item data not found: record not found" {
@@ -359,7 +339,7 @@ func (r *userMediaItemDataRepository[T]) UpdateRating(ctx context.Context, media
 			UpdatedAt:    time.Now(),
 		}
 
-		result, err := r.coreRepo.Create(ctx, &newData)
+		result, err := r.CoreUserMediaItemDataRepository.Create(ctx, &newData)
 		if err != nil {
 			return fmt.Errorf("failed to create rating record: %w", err)
 		}
@@ -375,7 +355,7 @@ func (r *userMediaItemDataRepository[T]) UpdateRating(ctx context.Context, media
 	existingData.UpdatedAt = time.Now()
 
 	// Update the record
-	result, err := r.coreRepo.Update(ctx, existingData)
+	result, err := r.CoreUserMediaItemDataRepository.Update(ctx, existingData)
 	if err != nil {
 		return fmt.Errorf("failed to update rating: %w", err)
 	}

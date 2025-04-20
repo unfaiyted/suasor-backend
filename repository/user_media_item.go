@@ -55,7 +55,7 @@ func (r *userMediaItemRepository[T]) GetItemsByAttributes(ctx context.Context, a
 	return r.GetItemsByAttributes(ctx, attributes, limit)
 }
 
-func (r *userMediaItemRepository[T]) GetMixedMediaItemsByIDs(ctx context.Context, ids []uint64) (*models.MediaItems, error) {
+func (r *userMediaItemRepository[T]) GetMixedMediaItemsByIDs(ctx context.Context, ids []uint64) (*models.MediaItemList, error) {
 	return r.GetMixedMediaItemsByIDs(ctx, ids)
 }
 

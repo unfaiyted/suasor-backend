@@ -22,6 +22,8 @@ type ClientService[T types.ClientConfig] interface {
 	Delete(ctx context.Context, id uint64, userID uint64) error
 	TestConnection(ctx context.Context, clientID uint64, config *T) (responses.ClientTestResponse, error)
 	TestNewConnection(ctx context.Context, config *T) (responses.ClientTestResponse, error)
+
+	GetClientConfig(clientID uint64) (T, error)
 }
 
 // ClientService handles business logic for clients with specific config types
@@ -111,4 +113,13 @@ func (s *clientService[T]) TestNewConnection(ctx context.Context, config *T) (re
 		Message: "Successfully connected to " + c.GetType().String(),
 	}, nil
 
+}
+
+func (s *clientService[T]) GetClientConfig(ctx context.Context, clientID uint64) (T, error) {
+
+	c, err := s.repo.GetByID(ctx, clientID)
+	if err != nil {
+		return c.GetConfig(), err
+	}
+	return c.GetConfig(), nil
 }

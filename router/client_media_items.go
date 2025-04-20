@@ -3,107 +3,50 @@ package router
 import (
 	"fmt"
 	"suasor/app/container"
-	"suasor/app/handlers"
+	apphandlers "suasor/app/handlers"
+	mediatypes "suasor/client/media/types"
+	"suasor/client/types"
+	"suasor/handlers"
 	"suasor/types/responses"
 
 	"github.com/gin-gonic/gin"
 )
 
-// movieHandlerInterface defines common operations for all media handlers
-type movieHandlerInterface interface {
-	GetMovieByID(c *gin.Context)
-	GetMoviesByGenre(c *gin.Context)
-	GetMoviesByYear(c *gin.Context)
-	GetMoviesByActor(c *gin.Context)
-	GetMoviesByDirector(c *gin.Context)
-	GetMoviesByRating(c *gin.Context)
-	GetLatestMoviesByAdded(c *gin.Context)
-	GetPopularMovies(c *gin.Context)
-	GetTopRatedMovies(c *gin.Context)
-	SearchMovies(c *gin.Context)
-}
-
-// Define playlist handler interface
-type playlistHandlerInterface interface {
-	GetAll(c *gin.Context)
-	GetByID(c *gin.Context)
-	GetItemsbyPlaylistID(c *gin.Context)
-	GetByGenre(c *gin.Context)
-	Create(c *gin.Context)
-	Update(c *gin.Context)
-	Delete(c *gin.Context)
-	AddItem(c *gin.Context)
-	RemoveItem(c *gin.Context)
-	Search(c *gin.Context)
-}
-
-// Define music handler interface
-type musicHandlerInterface interface {
-	GetTrackByID(c *gin.Context)
-	GetAlbumByID(c *gin.Context)
-	GetArtistByID(c *gin.Context)
-	GetTracksByAlbum(c *gin.Context)
-	GetAlbumsByArtist(c *gin.Context)
-	GetArtistsByGenre(c *gin.Context)
-	GetAlbumsByGenre(c *gin.Context)
-	GetTracksByGenre(c *gin.Context)
-	GetAlbumsByYear(c *gin.Context)
-	GetLatestAlbumsByAdded(c *gin.Context)
-	GetPopularAlbums(c *gin.Context)
-	GetPopularArtists(c *gin.Context)
-	SearchMusic(c *gin.Context)
-}
-
-// Define series handler interface
-type seriesHandlerInterface interface {
-	GetSeriesByID(c *gin.Context)
-	GetSeriesByGenre(c *gin.Context)
-	GetSeriesByYear(c *gin.Context)
-	GetSeriesByActor(c *gin.Context)
-	GetSeriesByCreator(c *gin.Context)
-	GetSeriesByRating(c *gin.Context)
-	GetLatestSeriesByAdded(c *gin.Context)
-	GetPopularSeries(c *gin.Context)
-	GetTopRatedSeries(c *gin.Context)
-	SearchSeries(c *gin.Context)
-	GetSeasonsBySeriesID(c *gin.Context)
-}
-
 func RegisterClientMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) {
 
 	// Initialize handlers
-	mediaHandler := container.MustGet[handlers.ClientMediaHandlers](c)
+	mediaHandler := container.MustGet[apphandlers.ClientMediaHandlers](c)
 
 	// Create a map of movie types to handlers
-	movieHandlerMap := map[string]movieHandlerInterface{
+	movieHandlerMap := map[string]handlers.CoreMovieHandler{
 		"jellyfin": mediaHandler.JellyfinMovieHandler(),
 		"emby":     mediaHandler.EmbyMovieHandler(),
 		"plex":     mediaHandler.PlexMovieHandler(),
 	}
 
-	seriesHandlerMap := map[string]seriesHandlerInterface{
+	seriesHandlerMap := map[string]handlers.ClientSeriesHandler[*types.EmbyConfig]{
 		"jellyfin": mediaHandler.JellyfinSeriesHandler(),
 		"emby":     mediaHandler.EmbySeriesHandler(),
 		"plex":     mediaHandler.PlexSeriesHandler(),
 	}
 
-	musicHandlerMap := map[string]musicHandlerInterface{
-		"jellyfin": mediaHandler.JellyfinMusicHandler(),
-		"emby":     mediaHandler.EmbyMusicHandler(),
-		"plex":     mediaHandler.PlexMusicHandler(),
-		"subsonic": mediaHandler.SubsonicMusicHandler(),
-	}
-
-	// For now these will be placeholders until we implement the interface methods
-	playlistHandlerMap := map[string]playlistHandlerInterface{
-		"jellyfin": mediaHandler.JellyfinPlaylistHandler(),
-		"emby":     mediaHandler.EmbyPlaylistHandler(),
-		"plex":     mediaHandler.PlexPlaylistHandler(),
-		"subsonic": mediaHandler.SubsonicPlaylistHandler(),
-	}
+	// musicHandlerMap := map[string]handlers.ClientMusicHandler{
+	// 	"jellyfin": mediaHandler.JellyfinMusicHandler(),
+	// 	"emby":     mediaHandler.EmbyMusicHandler(),
+	// 	"plex":     mediaHandler.PlexMusicHandler(),
+	// 	"subsonic": mediaHandler.SubsonicMusicHandler(),
+	// }
+	//
+	// // For now these will be placeholders until we implement the interface methods
+	// playlistHandlerMap := map[string]handlers.ClientListHandler[*mediatypes.Playlist]{
+	// 	"jellyfin": mediaHandler.JellyfinPlaylistHandler(),
+	// 	"emby":     mediaHandler.EmbyPlaylistHandler(),
+	// 	"plex":     mediaHandler.PlexPlaylistHandler(),
+	// 	"subsonic": mediaHandler.SubsonicPlaylistHandler(),
+	// }
 
 	// Helper function to get the appropriate movie handler
-	getMovieHandler := func(c *gin.Context) movieHandlerInterface {
+	getMovieHandler := func(c *gin.Context) handlers.ClientMovieHandler {
 		clientType := c.Param("clientType")
 		handler, exists := movieHandlerMap[clientType]
 		if !exists {
@@ -115,7 +58,7 @@ func RegisterClientMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) 
 	}
 
 	// Helper function to get the appropriate series handler
-	getSeriesHandler := func(c *gin.Context) seriesHandlerInterface {
+	getSeriesHandler := func(c *gin.Context) handlers.ClientSeriesHandler[*types.EmbyConfig] {
 		clientType := c.Param("clientType")
 		handler, exists := seriesHandlerMap[clientType]
 		if !exists {
@@ -127,7 +70,7 @@ func RegisterClientMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) 
 	}
 
 	// Helper function to get the appropriate music handler
-	getMusicHandler := func(c *gin.Context) musicHandlerInterface {
+	getMusicHandler := func(c *gin.Context) handlers.ClientMusicHandler {
 		clientType := c.Param("clientType")
 		handler, exists := musicHandlerMap[clientType]
 		if !exists {
@@ -139,7 +82,7 @@ func RegisterClientMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) 
 	}
 
 	// Helper function to get the appropriate playlist handler
-	getPlaylistHandler := func(c *gin.Context) playlistHandlerInterface {
+	getPlaylistHandler := func(c *gin.Context) handlers.ClientListHandler[*types.EmbyConfig, *mediatypes.Playlist] {
 		clientType := c.Param("clientType")
 		handler, exists := playlistHandlerMap[clientType]
 		if !exists {
@@ -167,61 +110,61 @@ func RegisterClientMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) 
 	{
 		movie.GET("/:id", func(c *gin.Context) {
 			if handler := getMovieHandler(c); handler != nil {
-				handler.GetMovieByID(c)
+				handler.GetByID(c)
 			}
 		})
 
 		movie.GET("/genre/:genre", func(c *gin.Context) {
 			if handler := getMovieHandler(c); handler != nil {
-				handler.GetMoviesByGenre(c)
+				handler.GetByGenre(c)
 			}
 		})
 
 		movie.GET("/year/:year", func(c *gin.Context) {
 			if handler := getMovieHandler(c); handler != nil {
-				handler.GetMoviesByYear(c)
+				handler.GetByYear(c)
 			}
 		})
 
 		movie.GET("/actor/:actor", func(c *gin.Context) {
 			if handler := getMovieHandler(c); handler != nil {
-				handler.GetMoviesByActor(c)
+				handler.GetByActor(c)
 			}
 		})
 
 		movie.GET("/director/:director", func(c *gin.Context) {
 			if handler := getMovieHandler(c); handler != nil {
-				handler.GetMoviesByDirector(c)
+				handler.GetByDirector(c)
 			}
 		})
 
 		movie.GET("/rating", func(c *gin.Context) {
 			if handler := getMovieHandler(c); handler != nil {
-				handler.GetMoviesByRating(c)
+				handler.GetByRating(c)
 			}
 		})
 
 		movie.GET("/latest/:count", func(c *gin.Context) {
 			if handler := getMovieHandler(c); handler != nil {
-				handler.GetLatestMoviesByAdded(c)
+				handler.GetLatestByAdded(c)
 			}
 		})
 
 		movie.GET("/popular/:count", func(c *gin.Context) {
 			if handler := getMovieHandler(c); handler != nil {
-				handler.GetPopularMovies(c)
+				handler.GetPopular(c)
 			}
 		})
 
 		movie.GET("/top-rated/:count", func(c *gin.Context) {
 			if handler := getMovieHandler(c); handler != nil {
-				handler.GetTopRatedMovies(c)
+				handler.GetTopRated(c)
 			}
 		})
 
 		movie.GET("/search", func(c *gin.Context) {
 			if handler := getMovieHandler(c); handler != nil {
-				handler.SearchMovies(c)
+				handler.Search(c)
 			}
 		})
 	}
@@ -260,7 +203,7 @@ func RegisterClientMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) 
 
 		series.GET("/creator/:creator", func(c *gin.Context) {
 			if handler := getSeriesHandler(c); handler != nil {
-				handler.GetSeriesByCreator(c)
+				handler.GetByCreator(c)
 			}
 		})
 
@@ -272,25 +215,25 @@ func RegisterClientMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) 
 
 		series.GET("/latest/:count", func(c *gin.Context) {
 			if handler := getSeriesHandler(c); handler != nil {
-				handler.GetLatestSeriesByAdded(c)
+				handler.GetLatestByAdded(c)
 			}
 		})
 
 		series.GET("/popular/:count", func(c *gin.Context) {
 			if handler := getSeriesHandler(c); handler != nil {
-				handler.GetPopularSeries(c)
+				handler.GetPopular(c)
 			}
 		})
 
 		series.GET("/top-rated/:count", func(c *gin.Context) {
 			if handler := getSeriesHandler(c); handler != nil {
-				handler.GetTopRatedSeries(c)
+				handler.GetTopRated(c)
 			}
 		})
 
 		series.GET("/search", func(c *gin.Context) {
 			if handler := getSeriesHandler(c); handler != nil {
-				handler.SearchSeries(c)
+				handler.Search(c)
 			}
 		})
 	}
@@ -401,44 +344,44 @@ func RegisterClientMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) 
 
 		playlists.GET("/:id", func(c *gin.Context) {
 			if handler := getPlaylistHandler(c); handler != nil {
-				handler.GetPlaylistByID(c)
+				handler.GetByID(c)
 			}
 		})
 
 		playlists.POST("", func(c *gin.Context) {
 			if handler := getPlaylistHandler(c); handler != nil {
-				handler.CreatePlaylist(c)
+				handler.Create(c)
 			}
 		})
 
 		playlists.PUT("/:id", func(c *gin.Context) {
 			if handler := getPlaylistHandler(c); handler != nil {
-				handler.UpdatePlaylist(c)
+				handler.Update(c)
 			}
 		})
 
 		playlists.DELETE("/:id", func(c *gin.Context) {
 			if handler := getPlaylistHandler(c); handler != nil {
-				handler.DeletePlaylist(c)
+				handler.Delete(c)
 			}
 		})
 
 		playlists.POST("/:id/items", func(c *gin.Context) {
 			if handler := getPlaylistHandler(c); handler != nil {
-				handler.AddItemToPlaylist(c)
+				handler.AddItem(c)
 			}
 		})
 
 		playlists.DELETE("/:id/items/:itemID", func(c *gin.Context) {
 			if handler := getPlaylistHandler(c); handler != nil {
-				handler.RemoveItemFromPlaylist(c)
+				handler.RemoveItem(c)
 			}
 		})
 
 		// Search within playlists
 		playlists.GET("/search", func(c *gin.Context) {
 			if handler := getPlaylistHandler(c); handler != nil {
-				handler.SearchPlaylists(c)
+				handler.Search(c)
 			}
 		})
 	}

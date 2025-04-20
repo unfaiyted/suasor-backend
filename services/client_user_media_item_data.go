@@ -37,8 +37,8 @@ type ClientUserMediaItemDataService[T types.MediaData] interface {
 
 // clientUserMediaItemDataService implements ClientUserMediaItemDataService
 type clientUserMediaItemDataService[T types.MediaData] struct {
-	userService UserMediaItemDataService[T]
-	repo        repository.ClientUserMediaItemDataRepository[T]
+	UserMediaItemDataService[T]
+	repo repository.ClientUserMediaItemDataRepository[T]
 }
 
 // NewClientUserMediaItemDataService creates a new client user media item data service
@@ -47,74 +47,10 @@ func NewClientUserMediaItemDataService[T types.MediaData](
 	repo repository.ClientUserMediaItemDataRepository[T],
 ) ClientUserMediaItemDataService[T] {
 	return &clientUserMediaItemDataService[T]{
-		userService: userService,
-		repo:        repo,
+		UserMediaItemDataService: userService,
+		repo:                     repo,
 	}
 }
-
-// User service methods - delegate to embedded user service
-
-func (s *clientUserMediaItemDataService[T]) Create(ctx context.Context, data *models.UserMediaItemData[T]) (*models.UserMediaItemData[T], error) {
-	return s.userService.Create(ctx, data)
-}
-
-func (s *clientUserMediaItemDataService[T]) GetByID(ctx context.Context, id uint64) (*models.UserMediaItemData[T], error) {
-	return s.userService.GetByID(ctx, id)
-}
-
-func (s *clientUserMediaItemDataService[T]) Update(ctx context.Context, data *models.UserMediaItemData[T]) (*models.UserMediaItemData[T], error) {
-	return s.userService.Update(ctx, data)
-}
-
-func (s *clientUserMediaItemDataService[T]) Delete(ctx context.Context, id uint64) error {
-	return s.userService.Delete(ctx, id)
-}
-
-func (s *clientUserMediaItemDataService[T]) GetByUserIDAndMediaItemID(ctx context.Context, userID, mediaItemID uint64) (*models.UserMediaItemData[T], error) {
-	return s.userService.GetByUserIDAndMediaItemID(ctx, userID, mediaItemID)
-}
-
-func (s *clientUserMediaItemDataService[T]) HasUserMediaItemData(ctx context.Context, userID, mediaItemID uint64) (bool, error) {
-	return s.userService.HasUserMediaItemData(ctx, userID, mediaItemID)
-}
-
-func (s *clientUserMediaItemDataService[T]) GetUserHistory(ctx context.Context, userID uint64, limit, offset int, mediaType *types.MediaType) ([]*models.UserMediaItemData[T], error) {
-	return s.userService.GetUserHistory(ctx, userID, limit, offset, mediaType)
-}
-
-func (s *clientUserMediaItemDataService[T]) GetRecentHistory(ctx context.Context, userID uint64, limit int, mediaType *types.MediaType) ([]*models.UserMediaItemData[T], error) {
-	return s.userService.GetRecentHistory(ctx, userID, limit, mediaType)
-}
-
-func (s *clientUserMediaItemDataService[T]) GetUserPlayHistory(ctx context.Context, userID uint64, limit, offset int, mediaType *types.MediaType, completed *bool) ([]*models.UserMediaItemData[T], error) {
-	return s.userService.GetUserPlayHistory(ctx, userID, limit, offset, mediaType, completed)
-}
-
-func (s *clientUserMediaItemDataService[T]) GetContinueWatching(ctx context.Context, userID uint64, limit int, mediaType *types.MediaType) ([]*models.UserMediaItemData[T], error) {
-	return s.userService.GetContinueWatching(ctx, userID, limit, mediaType)
-}
-
-func (s *clientUserMediaItemDataService[T]) RecordPlay(ctx context.Context, data *models.UserMediaItemData[T]) (*models.UserMediaItemData[T], error) {
-	return s.userService.RecordPlay(ctx, data)
-}
-
-func (s *clientUserMediaItemDataService[T]) ToggleFavorite(ctx context.Context, mediaItemID, userID uint64, favorite bool) error {
-	return s.userService.ToggleFavorite(ctx, mediaItemID, userID, favorite)
-}
-
-func (s *clientUserMediaItemDataService[T]) UpdateRating(ctx context.Context, mediaItemID, userID uint64, rating float32) error {
-	return s.userService.UpdateRating(ctx, mediaItemID, userID, rating)
-}
-
-func (s *clientUserMediaItemDataService[T]) GetFavorites(ctx context.Context, userID uint64, limit, offset int) ([]*models.UserMediaItemData[T], error) {
-	return s.userService.GetFavorites(ctx, userID, limit, offset)
-}
-
-func (s *clientUserMediaItemDataService[T]) ClearUserHistory(ctx context.Context, userID uint64) error {
-	return s.userService.ClearUserHistory(ctx, userID)
-}
-
-// Client-specific methods
 
 // SyncClientItemData synchronizes user media item data from an external client
 func (s *clientUserMediaItemDataService[T]) SyncClientItemData(ctx context.Context, userID uint64, clientID uint64, items []models.UserMediaItemData[T]) error {

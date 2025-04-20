@@ -64,7 +64,7 @@ func (j *JellyfinClient) GetCollections(ctx context.Context, options *t.QueryOpt
 }
 
 // GetCollectionItems retrieves all items in a collection from Jellyfin
-func (j *JellyfinClient) GetCollectionItems(ctx context.Context, collectionID string, options *t.QueryOptions) (*models.MediaItems, error) {
+func (j *JellyfinClient) GetCollectionItems(ctx context.Context, collectionID string, options *t.QueryOptions) (*models.MediaItemList, error) {
 	// Get logger from context
 	log := utils.LoggerFromContext(ctx)
 
@@ -112,7 +112,7 @@ func (j *JellyfinClient) GetCollectionItems(ctx context.Context, collectionID st
 		log.Info().
 			Str("collectionID", collectionID).
 			Msg("No items found in collection")
-		return &models.MediaItems{}, nil
+		return &models.MediaItemList{}, nil
 	}
 
 	mediaItems, err := GetMixedMediaItems(j, ctx, result.Items)

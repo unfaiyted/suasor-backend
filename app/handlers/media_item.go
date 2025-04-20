@@ -13,14 +13,14 @@ type MediaItemHandlers interface {
 
 // CoreMediaItemHandlers defines the core handlers for media items
 type CoreMediaItemHandlers interface {
-	MovieCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Movie]
-	SeriesCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Series]
-	EpisodeCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Episode]
-	TrackCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Track]
-	AlbumCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Album]
-	ArtistCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Artist]
-	CollectionCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Collection]
-	PlaylistCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Playlist]
+	MovieCoreHandler() handlers.CoreMediaItemHandler[*mediatypes.Movie]
+	SeriesCoreHandler() handlers.CoreMediaItemHandler[*mediatypes.Series]
+	EpisodeCoreHandler() handlers.CoreMediaItemHandler[*mediatypes.Episode]
+	TrackCoreHandler() handlers.CoreMediaItemHandler[*mediatypes.Track]
+	AlbumCoreHandler() handlers.CoreMediaItemHandler[*mediatypes.Album]
+	ArtistCoreHandler() handlers.CoreMediaItemHandler[*mediatypes.Artist]
+	CollectionCoreHandler() handlers.CoreMediaItemHandler[*mediatypes.Collection]
+	PlaylistCoreHandler() handlers.CoreMediaItemHandler[*mediatypes.Playlist]
 }
 
 // User-layer handlers (extend core)

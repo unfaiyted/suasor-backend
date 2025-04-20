@@ -68,6 +68,36 @@ type QueryOptions struct {
 	ExternalSourceID string `json:"externalSourceID,omitempty"` // Filter by external source ID (TMDB, IMDB, etc.)
 }
 
+func (opts *QueryOptions) WithOwnerID(ownerID uint64) *QueryOptions {
+	opts.OwnerID = ownerID
+	return opts
+}
+
+func (opts *QueryOptions) WithClientID(clientID uint64) *QueryOptions {
+	opts.ClientID = clientID
+	return opts
+}
+
+func (opts *QueryOptions) WithPersonID(personID uint64) *QueryOptions {
+	opts.PersonID = personID
+	return opts
+}
+
+func (opts *QueryOptions) WithItemIDs(itemIDs string) *QueryOptions {
+	opts.ItemIDs = itemIDs
+	return opts
+}
+
+func (opts *QueryOptions) WithExternalSourceID(externalSourceID string) *QueryOptions {
+	opts.ExternalSourceID = externalSourceID
+	return opts
+}
+
+func (opts *QueryOptions) WithMediaType(mediaType MediaType) *QueryOptions {
+	opts.MediaType = mediaType
+	return opts
+}
+
 // HasFilter checks if a specific filter is set
 func (opts *QueryOptions) HasFilter(filterName string) bool {
 	switch filterName {

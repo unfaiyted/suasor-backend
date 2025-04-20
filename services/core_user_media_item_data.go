@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"suasor/client/media/types"
+	"suasor/repository"
 	"suasor/types/models"
 	"suasor/utils"
 )
@@ -28,22 +29,26 @@ type CoreUserMediaItemDataService[T types.MediaData] interface {
 
 	// HasUserMediaItemData checks if a user has data for a specific media item
 	HasUserMediaItemData(ctx context.Context, userID, mediaItemID uint64) (bool, error)
+
+	Search(ctx context.Context, query *types.QueryOptions) ([]*models.UserMediaItemData[T], error)
 }
 
 // coreUserMediaItemDataService implements CoreUserMediaItemDataService
 type coreUserMediaItemDataService[T types.MediaData] struct {
-	service CoreMediaItemService[T]
+	itemService CoreMediaItemService[T]
+	dataRepo    repository.CoreUserMediaItemDataRepository[T]
 }
 
 // NewCoreUserMediaItemDataService creates a new core user media item data service
 // This version accepts a CoreMediaItemService instead of a repository to better
 // integrate with the overall architecture
 func NewCoreUserMediaItemDataService[T types.MediaData](
-	service CoreMediaItemService[T],
+	itemService CoreMediaItemService[T],
+	dataRepo repository.CoreUserMediaItemDataRepository[T],
 ) CoreUserMediaItemDataService[T] {
 	// Create an adapter that allows using a CoreMediaItemService in place of a repository
 	return &coreUserMediaItemDataService[T]{
-		service: service,
+		itemService: itemService,
 	}
 }
 
@@ -63,7 +68,7 @@ func (s *coreUserMediaItemDataService[T]) Create(ctx context.Context, data *mode
 	}
 
 	// Get the media item from the service
-	mediaItem, err := s.service.GetByID(ctx, data.MediaItemID)
+	mediaItem, err := s.itemService.GetByID(ctx, data.MediaItemID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("mediaItemID", data.MediaItemID).
@@ -72,15 +77,10 @@ func (s *coreUserMediaItemDataService[T]) Create(ctx context.Context, data *mode
 	}
 
 	// Create a new user media item data object with the media item
-	result := &models.UserMediaItemData[T]{
-		ID:          1, // Placeholder ID
-		UserID:      data.UserID,
-		MediaItemID: data.MediaItemID,
-		Item:        mediaItem,
-		IsFavorite:  data.IsFavorite,
-		UserRating:  data.UserRating,
-		// Copy other fields from the input data
-	}
+	result := models.NewUserMediaItemData(mediaItem, data.UserID)
+	result.IsFavorite = data.IsFavorite
+	result.UserRating = data.UserRating
+	// Copy other fields from the input data
 
 	log.Info().
 		Uint64("id", result.ID).
@@ -105,7 +105,7 @@ func (s *coreUserMediaItemDataService[T]) GetByID(ctx context.Context, id uint64
 	mediaItemID := id
 
 	// Get the media item from the service
-	mediaItem, err := s.service.GetByID(ctx, mediaItemID)
+	mediaItem, err := s.itemService.GetByID(ctx, mediaItemID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("id", id).
@@ -153,7 +153,7 @@ func (s *coreUserMediaItemDataService[T]) Update(ctx context.Context, data *mode
 
 	// Make sure we have the latest media item data
 	if data.Item == nil {
-		mediaItem, err := s.service.GetByID(ctx, data.MediaItemID)
+		mediaItem, err := s.itemService.GetByID(ctx, data.MediaItemID)
 		if err != nil {
 			log.Error().Err(err).
 				Uint64("mediaItemID", data.MediaItemID).
@@ -187,7 +187,7 @@ func (s *coreUserMediaItemDataService[T]) Delete(ctx context.Context, id uint64)
 	// In a real implementation, we'd delete the user media item data from a database
 	// For now, we'll verify that the ID exists by trying to get the media item
 	// We'll assume that the ID is the media item ID
-	_, err := s.service.GetByID(ctx, id)
+	_, err := s.itemService.GetByID(ctx, id)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("id", id).
@@ -213,7 +213,7 @@ func (s *coreUserMediaItemDataService[T]) GetByUserIDAndMediaItemID(ctx context.
 		Msg("Getting user media item data by user ID and media item ID")
 
 	// Get the media item from the service
-	mediaItem, err := s.service.GetByID(ctx, mediaItemID)
+	mediaItem, err := s.itemService.GetByID(ctx, mediaItemID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -258,7 +258,7 @@ func (s *coreUserMediaItemDataService[T]) HasUserMediaItemData(ctx context.Conte
 		Msg("Checking if user has media item data")
 
 	// Check if the media item exists
-	_, err := s.service.GetByID(ctx, mediaItemID)
+	_, err := s.itemService.GetByID(ctx, mediaItemID)
 	if err != nil {
 		// If the error is "record not found", return false (no error)
 		if err.Error() == "record not found" {
@@ -302,3 +302,39 @@ func (s *coreUserMediaItemDataService[T]) validate(data *models.UserMediaItemDat
 	return nil
 }
 
+// Search finds user media item data based on a query object
+func (s *coreUserMediaItemDataService[T]) Search(ctx context.Context, query *types.QueryOptions) ([]*models.UserMediaItemData[T], error) {
+	log := utils.LoggerFromContext(ctx)
+	log.Debug().
+		Str("query", query.Query).
+		Str("type", string(query.MediaType)).
+		Int("limit", query.Limit).
+		Int("offset", query.Offset).
+		Msg("Searching user media item data")
+
+	// Create a query options with user filter
+	options := types.QueryOptions{
+		MediaType: query.MediaType,
+		OwnerID:   query.OwnerID,
+		Query:     query.Query,
+		Limit:     query.Limit,
+		Offset:    query.Offset,
+	}
+
+	// Delegate to repository
+	result, err := s.dataRepo.Search(ctx, &options)
+	if err != nil {
+		log.Error().Err(err).
+			Str("query", query.Query).
+			Str("type", string(query.MediaType)).
+			Msg("Failed to search user media item data")
+		return nil, err
+	}
+	log.Info().
+		Str("query", query.Query).
+		Str("type", string(query.MediaType)).
+		Int("count", len(result)).
+		Msg("User media item data found")
+
+	return result, nil
+}

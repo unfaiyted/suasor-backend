@@ -1203,45 +1203,45 @@ func (s *clientUserMediaItemDataServicesImpl) PlaylistDataService() svc.ClientUs
 
 // MediaItem Handlers implementation structs
 type coreMediaItemHandlersImpl struct {
-	movieCoreHandler      *handlers.CoreMediaItemHandler[*mediatypes.Movie]
-	seriesCoreHandler     *handlers.CoreMediaItemHandler[*mediatypes.Series]
-	episodeCoreHandler    *handlers.CoreMediaItemHandler[*mediatypes.Episode]
-	trackCoreHandler      *handlers.CoreMediaItemHandler[*mediatypes.Track]
-	albumCoreHandler      *handlers.CoreMediaItemHandler[*mediatypes.Album]
-	artistCoreHandler     *handlers.CoreMediaItemHandler[*mediatypes.Artist]
-	collectionCoreHandler *handlers.CoreMediaItemHandler[*mediatypes.Collection]
-	playlistCoreHandler   *handlers.CoreMediaItemHandler[*mediatypes.Playlist]
+	movieCoreHandler      handlers.CoreMediaItemHandler[*mediatypes.Movie]
+	seriesCoreHandler     handlers.CoreMediaItemHandler[*mediatypes.Series]
+	episodeCoreHandler    handlers.CoreMediaItemHandler[*mediatypes.Episode]
+	trackCoreHandler      handlers.CoreMediaItemHandler[*mediatypes.Track]
+	albumCoreHandler      handlers.CoreMediaItemHandler[*mediatypes.Album]
+	artistCoreHandler     handlers.CoreMediaItemHandler[*mediatypes.Artist]
+	collectionCoreHandler handlers.CoreMediaItemHandler[*mediatypes.Collection]
+	playlistCoreHandler   handlers.CoreMediaItemHandler[*mediatypes.Playlist]
 }
 
-func (h *coreMediaItemHandlersImpl) MovieCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Movie] {
+func (h *coreMediaItemHandlersImpl) MovieCoreHandler() handlers.CoreMediaItemHandler[*mediatypes.Movie] {
 	return h.movieCoreHandler
 }
 
-func (h *coreMediaItemHandlersImpl) SeriesCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Series] {
+func (h *coreMediaItemHandlersImpl) SeriesCoreHandler() handlers.CoreMediaItemHandler[*mediatypes.Series] {
 	return h.seriesCoreHandler
 }
 
-func (h *coreMediaItemHandlersImpl) EpisodeCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Episode] {
+func (h *coreMediaItemHandlersImpl) EpisodeCoreHandler() handlers.CoreMediaItemHandler[*mediatypes.Episode] {
 	return h.episodeCoreHandler
 }
 
-func (h *coreMediaItemHandlersImpl) TrackCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Track] {
+func (h *coreMediaItemHandlersImpl) TrackCoreHandler() handlers.CoreMediaItemHandler[*mediatypes.Track] {
 	return h.trackCoreHandler
 }
 
-func (h *coreMediaItemHandlersImpl) AlbumCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Album] {
+func (h *coreMediaItemHandlersImpl) AlbumCoreHandler() handlers.CoreMediaItemHandler[*mediatypes.Album] {
 	return h.albumCoreHandler
 }
 
-func (h *coreMediaItemHandlersImpl) ArtistCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Artist] {
+func (h *coreMediaItemHandlersImpl) ArtistCoreHandler() handlers.CoreMediaItemHandler[*mediatypes.Artist] {
 	return h.artistCoreHandler
 }
 
-func (h *coreMediaItemHandlersImpl) CollectionCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Collection] {
+func (h *coreMediaItemHandlersImpl) CollectionCoreHandler() handlers.CoreMediaItemHandler[*mediatypes.Collection] {
 	return h.collectionCoreHandler
 }
 
-func (h *coreMediaItemHandlersImpl) PlaylistCoreHandler() *handlers.CoreMediaItemHandler[*mediatypes.Playlist] {
+func (h *coreMediaItemHandlersImpl) PlaylistCoreHandler() handlers.CoreMediaItemHandler[*mediatypes.Playlist] {
 	return h.playlistCoreHandler
 }
 

@@ -19,6 +19,15 @@ import (
 // Define list handler interface
 type UserListHandler[T mediatypes.ListData] interface {
 	CoreListHandler[T]
+
+	// User needs to be authenticated to access these operations
+	Create(c *gin.Context)
+	Update(c *gin.Context)
+	Delete(c *gin.Context)
+	AddItem(c *gin.Context)
+	RemoveItem(c *gin.Context)
+	ReorderItems(c *gin.Context)
+
 	// User-specific operations
 	GetFavorite(c *gin.Context)
 	GetUserLists(c *gin.Context)
