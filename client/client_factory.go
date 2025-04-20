@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"suasor/client/media/providers"
 	"suasor/client/types"
 	"suasor/utils"
 	"sync"
@@ -163,6 +164,30 @@ func (s *ClientFactoryService) GetClient(ctx context.Context, clientID uint64, c
 		Msg("Created and cached new client instance")
 
 	return client, nil
+}
+
+func (s *ClientFactoryService) GetMovieProvider(ctx context.Context, clientID uint64, config types.ClientConfig) (providers.MovieProvider, error) {
+	client, err := s.GetClient(ctx, clientID, config)
+	if err != nil {
+		return nil, err
+	}
+	return client.(providers.MovieProvider), nil
+}
+
+func (s *ClientFactoryService) GetSeriesProvider(ctx context.Context, clientID uint64, config types.ClientConfig) (providers.SeriesProvider, error) {
+	client, err := s.GetClient(ctx, clientID, config)
+	if err != nil {
+		return nil, err
+	}
+	return client.(providers.SeriesProvider), nil
+}
+
+func (s *ClientFactoryService) GetMusicProvider(ctx context.Context, clientID uint64, config types.ClientConfig) (providers.MusicProvider, error) {
+	client, err := s.GetClient(ctx, clientID, config)
+	if err != nil {
+		return nil, err
+	}
+	return client.(providers.MusicProvider), nil
 }
 
 // Convenience package-level functions for working with the singleton

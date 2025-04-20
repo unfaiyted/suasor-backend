@@ -20,7 +20,6 @@ type ClientRepository[T types.ClientConfig] interface {
 	// Common operations
 	GetByID(ctx context.Context, id uint64) (*models.Client[T], error)
 	GetByUserID(ctx context.Context, userID uint64) ([]*models.Client[T], error)
-	GetByCategory(ctx context.Context, clientType types.ClientCategory, userID uint64) ([]*models.Client[T], error)
 	GetByType(ctx context.Context, clientType types.ClientType, userID uint64) ([]*models.Client[T], error)
 	Delete(ctx context.Context, id, userID uint64) error
 }

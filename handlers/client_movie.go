@@ -704,7 +704,7 @@ func (h *clientMovieHandler[T]) GetClientByActor(c *gin.Context) {
 	}
 
 	// Search movies by actor
-	movies, err := h.movieService.SearchMovies(ctx, options)
+	movies, err := h.movieService.Search(ctx, options)
 	if err != nil {
 		log.Error().Err(err).
 			Str("actor", actor).
