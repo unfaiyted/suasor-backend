@@ -28,23 +28,12 @@ import (
 // ClientMediaItemRepository defines the interface for client-associated media item operations
 // This focuses specifically on media items that are linked to external clients like Plex, Emby, etc.
 type ClientMediaItemRepository[T types.MediaData] interface {
-	// Core CRUD operations
-	Create(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error)
-	Update(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error)
-	GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error)
-	Delete(ctx context.Context, id uint64) error
+	MediaItemRepository[T]
 
 	// Client-specific operations
 	GetByExternalID(ctx context.Context, source string, externalID string) (*models.MediaItem[T], error)
 	GetByClientItemID(ctx context.Context, externalID string, clientID uint64) (*models.MediaItem[T], error)
 	GetByClientID(ctx context.Context, clientID uint64) ([]*models.MediaItem[T], error)
-	GetByType(ctx context.Context, mediaType types.MediaType, clientID uint64) ([]*models.MediaItem[T], error)
-
-	// User and client combined operations
-	GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error)
-
-	// Search operation
-	Search(ctx context.Context, options types.QueryOptions) ([]*models.MediaItem[T], error)
 
 	// Advanced operations
 	GetByMultipleClients(ctx context.Context, clientIDs []uint64) ([]*models.MediaItem[T], error)
@@ -52,75 +41,18 @@ type ClientMediaItemRepository[T types.MediaData] interface {
 }
 
 type clientMediaItemRepository[T types.MediaData] struct {
+	MediaItemRepository[T]
 	db *gorm.DB
 }
 
 // NewClientMediaItemRepository creates a new repository for client-associated media items
-func NewClientMediaItemRepository[T types.MediaData](db *gorm.DB) ClientMediaItemRepository[T] {
-	return &clientMediaItemRepository[T]{db: db}
-}
-
-func (r *clientMediaItemRepository[T]) Create(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error) {
-	if err := r.db.WithContext(ctx).Create(&item).Error; err != nil {
-		return nil, fmt.Errorf("failed to create %s media item: %w", item.Type, err)
-	}
-	return &item, nil
-}
-
-func (r *clientMediaItemRepository[T]) Update(ctx context.Context, item models.MediaItem[T]) (*models.MediaItem[T], error) {
-	// Get existing record first to check if it exists and preserve createdAt
-	var existing models.MediaItem[T]
-
-	if err := r.db.WithContext(ctx).Where("id = ?", item.ID).First(&existing).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("media item not found")
-		}
-		return nil, fmt.Errorf("failed to find media item: %w", err)
-	}
-
-	// Preserve createdAt
-	item.CreatedAt = existing.CreatedAt
-
-	// Update the record
-	if err := r.db.WithContext(ctx).Save(&item).Error; err != nil {
-		return nil, fmt.Errorf("failed to update media item: %w", err)
-	}
-	return &item, nil
-}
-
-func (r *clientMediaItemRepository[T]) GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error) {
-	var item models.MediaItem[T]
-
-	if err := r.db.WithContext(ctx).
-		Where("id = ?", id).
-		First(&item).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("media item not found")
-		}
-		return nil, fmt.Errorf("failed to get media item: %w", err)
-	}
-
-	return &item, nil
-}
-
-func (r *clientMediaItemRepository[T]) GetByExternalID(ctx context.Context, source string, externalID string) (*models.MediaItem[T], error) {
-	var items []*models.MediaItem[T]
-
-	// Use JSON contains operator to find items where externalIDs contains an entry with the given source and ID
-	query := r.db.WithContext(ctx).
-		Where("external_ids @> ?", fmt.Sprintf(`[{"source":"%s","id":"%s"}]`, source, externalID)).
-		Find(&items)
-
-	if err := query.Error; err != nil {
-		return nil, fmt.Errorf("failed to get media item: %w", err)
-	}
-
-	if len(items) == 0 {
-		return nil, fmt.Errorf("media item not found")
-	}
-
-	// Return the first match
-	return items[0], nil
+func NewClientMediaItemRepository[T types.MediaData](
+	db *gorm.DB,
+	mediaItemRepository MediaItemRepository[T],
+) ClientMediaItemRepository[T] {
+	return &clientMediaItemRepository[T]{
+		MediaItemRepository: mediaItemRepository,
+		db:                  db}
 }
 
 func (r *clientMediaItemRepository[T]) GetByClientID(ctx context.Context, clientID uint64) ([]*models.MediaItem[T], error) {
@@ -138,42 +70,7 @@ func (r *clientMediaItemRepository[T]) GetByClientID(ctx context.Context, client
 	return items, nil
 }
 
-func (r *clientMediaItemRepository[T]) GetByClientItemID(ctx context.Context, itemID string, clientID uint64) (*models.MediaItem[T], error) {
-	var items []*models.MediaItem[T]
-
-	// Use JSON contains operator to find items where clientIDs contains an entry with the given ID and itemID
-	query := r.db.WithContext(ctx).
-		Where("sync_clients @> ?", fmt.Sprintf(`[{"id":%d,"itemId":"%s"}]`, clientID, itemID)).
-		Find(&items)
-
-	if err := query.Error; err != nil {
-		return nil, fmt.Errorf("failed to get media item: %w", err)
-	}
-
-	if len(items) == 0 {
-		return nil, fmt.Errorf("not found")
-	}
-
-	// Return the first match
-	return items[0], nil
-}
-
-func (r *clientMediaItemRepository[T]) GetByType(ctx context.Context, mediaType types.MediaType, clientID uint64) ([]*models.MediaItem[T], error) {
-	var items []*models.MediaItem[T]
-
-	// Find all items of the given type that also have a reference to the client ID
-	query := r.db.WithContext(ctx).
-		Where("type = ? AND sync_clients @> ?", mediaType, fmt.Sprintf(`[{"id":%d}]`, clientID)).
-		Find(&items)
-
-	if err := query.Error; err != nil {
-		return nil, fmt.Errorf("failed to get media items by type: %w", err)
-	}
-
-	return items, nil
-}
-
-func (r *clientMediaItemRepository[T]) GetByUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error) {
+func (r *clientMediaItemRepository[T]) GetByClientUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error) {
 	var items []*models.MediaItem[T]
 	log := utils.LoggerFromContext(ctx)
 
@@ -227,70 +124,6 @@ func (r *clientMediaItemRepository[T]) GetByUserID(ctx context.Context, userID u
 	log.Info().
 		Int("count", len(items)).
 		Msg("Media items retrieved successfully")
-
-	return items, nil
-}
-
-func (r *clientMediaItemRepository[T]) Delete(ctx context.Context, id uint64) error {
-	result := r.db.WithContext(ctx).
-		Where("id = ?", id).
-		Delete(&models.MediaItem[T]{})
-
-	if err := result.Error; err != nil {
-		return fmt.Errorf("failed to delete media item: %w", err)
-	}
-
-	if result.RowsAffected == 0 {
-		return fmt.Errorf("media item not found")
-	}
-
-	return nil
-}
-
-func (r *clientMediaItemRepository[T]) Search(ctx context.Context, options types.QueryOptions) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
-	log.Debug().
-		Str("type", string(options.MediaType)).
-		Str("query", options.Query).
-		Uint64("clientID", options.ClientID).
-		Msg("Searching client media items")
-
-	var items []*models.MediaItem[T]
-
-	// Build the query
-	query := r.db.WithContext(ctx)
-
-	// Add type filter if provided
-	if options.MediaType != "" {
-		query = query.Where("type = ?", options.MediaType)
-	}
-
-	// Add client filter if specified
-	if options.ClientID > 0 {
-		query = query.Where("sync_clients @> ?", fmt.Sprintf(`[{"id":%d}]`, options.ClientID))
-	}
-
-	// Add text search on title
-	if options.Query != "" {
-		query = query.Where("title ILIKE ?", "%"+options.Query+"%")
-	}
-
-	// Add pagination
-	if options.Limit > 0 {
-		query = query.Limit(options.Limit)
-	}
-
-	if options.Offset > 0 {
-		query = query.Offset(options.Offset)
-	}
-
-	// Order by most recently created
-	query = query.Order("created_at DESC")
-
-	// Execute the query
-	if err := query.Find(&items).Error; err != nil {
-		return nil, fmt.Errorf("failed to search media items: %w", err)
-	}
 
 	return items, nil
 }

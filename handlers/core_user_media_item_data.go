@@ -11,23 +11,32 @@ import (
 	"suasor/utils"
 )
 
-// CoreUserMediaItemDataHandler handles basic CRUD operations for user media item data
+type CoreUserMediaItemDataHandler[T types.MediaData] interface {
+	Service() services.CoreUserMediaItemDataService[T]
+
+	GetMediaItemDataByID(c *gin.Context)
+	CheckUserMediaItemData(c *gin.Context)
+	GetMediaItemDataByUserAndMedia(c *gin.Context)
+	DeleteMediaItemData(c *gin.Context)
+}
+
+// coreUserMediaItemDataHandler handles basic CRUD operations for user media item data
 // This is the core layer of the three-pronged architecture
-type CoreUserMediaItemDataHandler[T types.MediaData] struct {
+type coreUserMediaItemDataHandler[T types.MediaData] struct {
 	service services.CoreUserMediaItemDataService[T]
 }
 
 // NewCoreUserMediaItemDataHandler creates a new core user media item data handler
 func NewCoreUserMediaItemDataHandler[T types.MediaData](
 	service services.CoreUserMediaItemDataService[T],
-) *CoreUserMediaItemDataHandler[T] {
-	return &CoreUserMediaItemDataHandler[T]{
+) CoreUserMediaItemDataHandler[T] {
+	return &coreUserMediaItemDataHandler[T]{
 		service: service,
 	}
 }
 
 // Service returns the underlying service
-func (h *CoreUserMediaItemDataHandler[T]) Service() services.CoreUserMediaItemDataService[T] {
+func (h *coreUserMediaItemDataHandler[T]) Service() services.CoreUserMediaItemDataService[T] {
 	return h.service
 }
 
@@ -43,7 +52,7 @@ func (h *CoreUserMediaItemDataHandler[T]) Service() services.CoreUserMediaItemDa
 // @Failure 404 {object} responses.ErrorResponse[any] "Not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/{id} [get]
-func (h *CoreUserMediaItemDataHandler[T]) GetMediaItemDataByID(c *gin.Context) {
+func (h *coreUserMediaItemDataHandler[T]) GetMediaItemDataByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -79,7 +88,7 @@ func (h *CoreUserMediaItemDataHandler[T]) GetMediaItemDataByID(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/check [get]
-func (h *CoreUserMediaItemDataHandler[T]) CheckUserMediaItemData(c *gin.Context) {
+func (h *coreUserMediaItemDataHandler[T]) CheckUserMediaItemData(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -134,7 +143,7 @@ func (h *CoreUserMediaItemDataHandler[T]) CheckUserMediaItemData(c *gin.Context)
 // @Failure 404 {object} responses.ErrorResponse[any] "Not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/user-media [get]
-func (h *CoreUserMediaItemDataHandler[T]) GetMediaItemDataByUserAndMedia(c *gin.Context) {
+func (h *coreUserMediaItemDataHandler[T]) GetMediaItemDataByUserAndMedia(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -186,7 +195,7 @@ func (h *CoreUserMediaItemDataHandler[T]) GetMediaItemDataByUserAndMedia(c *gin.
 // @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/{id} [delete]
-func (h *CoreUserMediaItemDataHandler[T]) DeleteMediaItemData(c *gin.Context) {
+func (h *coreUserMediaItemDataHandler[T]) DeleteMediaItemData(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -209,4 +218,3 @@ func (h *CoreUserMediaItemDataHandler[T]) DeleteMediaItemData(c *gin.Context) {
 	log.Info().Uint64("id", id).Msg("User media item data deleted successfully")
 	responses.RespondOK(c, responses.EmptyResponse{Success: true}, "User media item data deleted successfully")
 }
-

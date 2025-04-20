@@ -2,13 +2,14 @@ package router
 
 import (
 	"context"
-	"reflect"
 
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"suasor/app/container"
-	apphandlers "suasor/app/handlers"
+	mediatypes "suasor/client/media/types"
 	clienttypes "suasor/client/types"
+	"suasor/handlers"
 	"suasor/router/middleware"
 	"suasor/types/responses"
 )
@@ -17,169 +18,117 @@ import (
 // We are using the clientID to get the clientType with middleware.
 // The actions are where the handler methods are defined below.
 
-// HandlerMethod represents a method in a client handler
-type HandlerMethod string
-
-// Define constants for all handler methods to avoid string literals
-const (
-	// Core methods
-	GetAll           HandlerMethod = "GetAll"
-	GetByID          HandlerMethod = "GetByID"
-	GetItemsByListID HandlerMethod = "GetItemsByListID"
-	GetByGenre       HandlerMethod = "GetByGenre"
-	Search           HandlerMethod = "Search"
-
-	// Client list specific methods
-	GetListByID           HandlerMethod = "GetListByID"
-	GetListsByGenre       HandlerMethod = "GetListsByGenre"
-	GetListsByYear        HandlerMethod = "GetListsByYear"
-	GetListsByActor       HandlerMethod = "GetListsByActor"
-	GetListsByCreator     HandlerMethod = "GetListsByCreator"
-	GetListsByRating      HandlerMethod = "GetListsByRating"
-	GetLatestListsByAdded HandlerMethod = "GetLatestListsByAdded"
-	GetPopularLists       HandlerMethod = "GetPopularLists"
-	GetTopRatedLists      HandlerMethod = "GetTopRatedLists"
-	SearchLists           HandlerMethod = "SearchLists"
-)
-
-// MediaResourceType identifies the type of media resource
-type MediaResourceType string
-
-const (
-	PlaylistResource   MediaResourceType = "playlists"
-	CollectionResource MediaResourceType = "collections"
-)
-
 // RegisterClientListRoutes registers all client-related routes with the gin router
 func RegisterClientListRoutes(ctx context.Context, rg *gin.RouterGroup, c *container.Container) {
-	mediaHandler := container.MustGet[apphandlers.ClientMediaHandlers](c)
 	db := container.MustGet[*gorm.DB](c)
 
 	// Client resource group
 	clientGroup := rg.Group("/client/:clientID")
+	// Gets the client type based on the clientID
 	clientGroup.Use(middleware.ClientTypeMiddleware(db))
 
 	// Register routes for playlists
-	// playlistsGroup := clientGroup.Group("/playlists")
-	registerMediaRoutes(clientGroup, mediaHandler, PlaylistResource)
+	registerMediaRoutes[*mediatypes.Playlist](clientGroup, c)
+	registerMediaRoutes[*mediatypes.Collection](clientGroup, c)
 
-	// Register routes for collections
-	// collectionsGroup := clientGroup.Group("/collections")
-	registerMediaRoutes(clientGroup, mediaHandler, CollectionResource)
-
-	// Register other media types as needed
 }
 
 // registerMediaRoutes sets up routes for a specific media resource type
-func registerMediaRoutes(rg *gin.RouterGroup, mediaHandler apphandlers.ClientMediaHandlers, resourceType MediaResourceType) {
-	// Create resource group
-	resourceGroup := rg.Group(string(resourceType))
+func registerMediaRoutes[T mediatypes.ListData](rg *gin.RouterGroup, c *container.Container) {
 
-	// Map routes to handler methods
-	routeMappings := []struct {
-		path    string
-		method  string
-		handler HandlerMethod
-	}{
-		// Core routes
-		{"", "GET", GetAll},
-		{"/:id", "GET", GetByID},
-		{"/:id/items", "GET", GetItemsByListID},
-		{"/genre/:genre", "GET", GetByGenre},
-		{"/search", "GET", Search},
+	var zero T
+	mediaType := mediatypes.GetMediaTypeFromTypeName(zero)
 
-		// Resource-specific routes
-		{"/id/:id", "GET", GetListByID},
-		{"/genre", "GET", GetListsByGenre},
-		{"/year", "GET", GetListsByYear},
-		{"/actor", "GET", GetListsByActor},
-		{"/creator", "GET", GetListsByCreator},
-		{"/rating", "GET", GetListsByRating},
-		{"/latest", "GET", GetLatestListsByAdded},
-		{"/popular", "GET", GetPopularLists},
-		{"/top-rated", "GET", GetTopRatedLists},
-		{"/search-lists", "GET", SearchLists},
+	// /playlists or /collections
+	listGroup := rg.Group("/" + string(mediaType))
+	{
+		// Get all lists
+		listGroup.GET("", func(g *gin.Context) {
+			if handler := getHandler[T](g, c); handler != nil {
+				handler.GetAll(g)
+			}
+		})
+		listGroup.GET("/:id", func(g *gin.Context) {
+			if handler := getHandler[T](g, c); handler != nil {
+				handler.GetByID(g)
+			}
+		})
+		listGroup.GET("/genre/:genre", func(g *gin.Context) {
+			if handler := getHandler[T](g, c); handler != nil {
+				handler.GetByGenre(g)
+			}
+		})
+		listGroup.GET("/year/:year", func(g *gin.Context) {
+			if handler := getHandler[T](g, c); handler != nil {
+				handler.GetByYear(g)
+			}
+		})
+		// listGroup.GET("/actor/:actor", func(g *gin.Context) {
+		// 	if handler := getHandler[T](g, c); handler != nil {
+		// 		handler.GetByActor(g)
+		// 	}
+		// })
+		// listGroup.GET("/creator/:creator", func(g *gin.Context) {
+		// 	if handler := getHandler[T](g, c); handler != nil {
+		// 		handler.GetByCreator(g)
+		// 	}
+		// })
+		listGroup.GET("/rating", func(g *gin.Context) {
+			if handler := getHandler[T](g, c); handler != nil {
+				handler.GetByRating(g)
+			}
+		})
+		listGroup.GET("/latest/:count", func(g *gin.Context) {
+			if handler := getHandler[T](g, c); handler != nil {
+				handler.GetLatestListsByAdded(g)
+			}
+		})
+		listGroup.GET("/popular/:count", func(g *gin.Context) {
+			if handler := getHandler[T](g, c); handler != nil {
+				handler.GetPopularLists(g)
+			}
+		})
+		listGroup.GET("/top-rated/:count", func(g *gin.Context) {
+			if handler := getHandler[T](g, c); handler != nil {
+				handler.GetTopRatedLists(g)
+			}
+		})
+		listGroup.GET("/search", func(g *gin.Context) {
+			if handler := getHandler[T](g, c); handler != nil {
+				handler.SearchLists(g)
+			}
+		})
+
+		// Get items in a list - use specialized handler
+		listGroup.GET("/:id/items", func(g *gin.Context) {
+			if handler := getHandler[T](g, c); handler != nil {
+				handler.GetItemsByListID(g)
+			}
+		})
+
 	}
 
-	// Register all routes
-	for _, route := range routeMappings {
-		switch route.method {
-		case "GET":
-			resourceGroup.GET(route.path, handleClientResourceAction(mediaHandler, route.handler, resourceType))
-		case "POST":
-			resourceGroup.POST(route.path, handleClientResourceAction(mediaHandler, route.handler, resourceType))
-		case "PUT":
-			resourceGroup.PUT(route.path, handleClientResourceAction(mediaHandler, route.handler, resourceType))
-		case "DELETE":
-			resourceGroup.DELETE(route.path, handleClientResourceAction(mediaHandler, route.handler, resourceType))
-		}
-	}
 }
 
-// Handler factory for client resource actions
-func handleClientResourceAction(mediaHandler apphandlers.ClientMediaHandlers, methodName HandlerMethod, resourceType MediaResourceType) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// Get client type from context
-		clientType, exists := c.Get("clientType")
-		if !exists {
-			responses.RespondBadRequest(c, nil, "Client type not found in context")
-			return
-		}
-
-		ct, ok := clientType.(clienttypes.ClientType)
-		if !ok {
-			responses.RespondBadRequest(c, nil, "Invalid client type in context")
-			return
-		}
-
-		// Get the appropriate handler based on client type and resource type
-		var handler interface{}
-
-		switch resourceType {
-		case PlaylistResource:
-			switch ct {
-			case clienttypes.ClientTypeEmby:
-				handler = mediaHandler.EmbyPlaylistHandler()
-			case clienttypes.ClientTypeJellyfin:
-				handler = mediaHandler.JellyfinPlaylistHandler()
-			case clienttypes.ClientTypePlex:
-				handler = mediaHandler.PlexPlaylistHandler()
-			case clienttypes.ClientTypeSubsonic:
-				handler = mediaHandler.SubsonicPlaylistHandler()
-			default:
-				responses.RespondBadRequest(c, nil, "Unsupported client type for playlists")
-				return
-			}
-		case CollectionResource:
-			switch ct {
-			case clienttypes.ClientTypeEmby:
-				handler = mediaHandler.EmbyCollectionHandler()
-			case clienttypes.ClientTypeJellyfin:
-				handler = mediaHandler.JellyfinCollectionHandler()
-			case clienttypes.ClientTypePlex:
-				handler = mediaHandler.PlexCollectionHandler()
-			case clienttypes.ClientTypeSubsonic:
-				handler = mediaHandler.SubsonicCollectionHandler()
-			default:
-				responses.RespondBadRequest(c, nil, "Unsupported client type for collections")
-				return
-			}
-		default:
-			responses.RespondBadRequest(c, nil, "Unsupported resource type")
-			return
-		}
-
-		// Use reflection to call the method by name
-		handlerValue := reflect.ValueOf(handler)
-		method := handlerValue.MethodByName(string(methodName))
-
-		if !method.IsValid() {
-			responses.RespondBadRequest(c, nil, "Method not found: "+string(methodName))
-			return
-		}
-
-		// Call the method with the context
-		method.Call([]reflect.Value{reflect.ValueOf(c)})
+func getHandlerMap[T mediatypes.ListData](c *container.Container, clientType string) (handlers.ClientListHandler[clienttypes.ClientMediaConfig, T], bool) {
+	handlers := map[string]handlers.ClientListHandler[clienttypes.ClientMediaConfig, T]{
+		"emby":     container.MustGet[handlers.ClientListHandler[*clienttypes.EmbyConfig, T]](c),
+		"jellyfin": container.MustGet[handlers.ClientListHandler[*clienttypes.JellyfinConfig, T]](c),
+		"plex":     container.MustGet[handlers.ClientListHandler[*clienttypes.PlexConfig, T]](c),
+		"subsonic": container.MustGet[handlers.ClientListHandler[*clienttypes.SubsonicConfig, T]](c),
 	}
+	handler, exists := handlers[clientType]
+	return handler, exists
+}
+
+func getHandler[T mediatypes.ListData](g *gin.Context, c *container.Container) handlers.ClientListHandler[clienttypes.ClientMediaConfig, mediatypes.ListData] {
+	clientType := g.Param("clientType")
+	handler, exists := getHandlerMap[T](c, clientType)
+	if !exists {
+		err := fmt.Errorf("unsupported client type: %s", clientType)
+		responses.RespondBadRequest(g, err, "Unsupported client type")
+		return nil
+	}
+	return handler
 }
 

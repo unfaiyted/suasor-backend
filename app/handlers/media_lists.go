@@ -11,11 +11,11 @@ type MediaListHandlers interface {
 }
 
 type CoreMediaListHandlers interface {
-	CorePlaylistsHandler() *handlers.CoreListHandler[*mediatypes.Playlist]
-	CoreCollectionsHandler() *handlers.CoreListHandler[*mediatypes.Collection]
+	CorePlaylistsHandler() handlers.CoreListHandler[*mediatypes.Playlist]
+	CoreCollectionsHandler() handlers.CoreListHandler[*mediatypes.Collection]
 }
 
 type UserMediaListHandlers interface {
-	UserPlaylistsHandler() *handlers.UserListHandler[*mediatypes.Playlist]
-	UserCollectionsHandler() *handlers.UserListHandler[*mediatypes.Collection]
+	UserPlaylistsHandler() handlers.UserListHandler[*mediatypes.Playlist]
+	UserCollectionsHandler() handlers.UserListHandler[*mediatypes.Collection]
 }

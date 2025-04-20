@@ -14,21 +14,34 @@ import (
 	"suasor/utils"
 )
 
-// ClientUserMediaItemDataHandler handles client-specific operations for user media item data
-// This is the client layer of the three-pronged architecture
-type ClientUserMediaItemDataHandler[T types.MediaData] struct {
-	service     services.ClientUserMediaItemDataService[T]
-	userHandler *UserMediaItemDataHandler[T]
+type ClientUserMediaItemDataHandler[T types.MediaData] interface {
+	UserMediaItemDataHandler[T]
+
+	SyncClientItemData(c *gin.Context)
+	GetClientItemData(c *gin.Context)
+	GetMediaItemDataByClientID(c *gin.Context)
+	RecordClientPlay(c *gin.Context)
+	GetPlaybackState(c *gin.Context)
+	UpdatePlaybackState(c *gin.Context)
 }
 
-// NewClientUserMediaItemDataHandler creates a new client user media item data handler
+// clientUserMediaItemDataHandler handles client-specific operations for user media item data
+// This is the client layer of the three-pronged architecture
+type clientUserMediaItemDataHandler[T types.MediaData] struct {
+	UserMediaItemDataHandler[T]
+
+	service services.ClientUserMediaItemDataService[T]
+}
+
+// NewclientUserMediaItemDataHandler creates a new client user media item data handler
 func NewClientUserMediaItemDataHandler[T types.MediaData](
-	service services.ClientUserMediaItemDataService[T],
 	userHandler *UserMediaItemDataHandler[T],
-) *ClientUserMediaItemDataHandler[T] {
-	return &ClientUserMediaItemDataHandler[T]{
-		service:     service,
-		userHandler: userHandler,
+	service services.ClientUserMediaItemDataService[T],
+
+) *clientUserMediaItemDataHandler[T] {
+	return &clientUserMediaItemDataHandler[T]{
+		UserMediaItemDataHandler: *userHandler,
+		service:                  service,
 	}
 }
 
@@ -46,7 +59,7 @@ func NewClientUserMediaItemDataHandler[T types.MediaData](
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/client/{clientId}/sync [post]
-func (h *ClientUserMediaItemDataHandler[T]) SyncClientItemData(c *gin.Context) {
+func (h *clientUserMediaItemDataHandler[T]) SyncClientItemData(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -110,7 +123,7 @@ func (h *ClientUserMediaItemDataHandler[T]) SyncClientItemData(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/client/{clientId} [get]
-func (h *ClientUserMediaItemDataHandler[T]) GetClientItemData(c *gin.Context) {
+func (h *clientUserMediaItemDataHandler[T]) GetClientItemData(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -173,7 +186,7 @@ func (h *ClientUserMediaItemDataHandler[T]) GetClientItemData(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/client/{clientId}/item/{clientItemId} [get]
-func (h *ClientUserMediaItemDataHandler[T]) GetMediaItemDataByClientID(c *gin.Context) {
+func (h *clientUserMediaItemDataHandler[T]) GetMediaItemDataByClientID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -239,7 +252,7 @@ func (h *ClientUserMediaItemDataHandler[T]) GetMediaItemDataByClientID(c *gin.Co
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/client/{clientId}/item/{clientItemId}/play [post]
-func (h *ClientUserMediaItemDataHandler[T]) RecordClientPlay(c *gin.Context) {
+func (h *clientUserMediaItemDataHandler[T]) RecordClientPlay(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -330,7 +343,7 @@ func (h *ClientUserMediaItemDataHandler[T]) RecordClientPlay(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/client/{clientId}/item/{clientItemId}/state [get]
-func (h *ClientUserMediaItemDataHandler[T]) GetPlaybackState(c *gin.Context) {
+func (h *clientUserMediaItemDataHandler[T]) GetPlaybackState(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -396,7 +409,7 @@ func (h *ClientUserMediaItemDataHandler[T]) GetPlaybackState(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/client/{clientId}/item/{clientItemId}/state [put]
-func (h *ClientUserMediaItemDataHandler[T]) UpdatePlaybackState(c *gin.Context) {
+func (h *clientUserMediaItemDataHandler[T]) UpdatePlaybackState(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -460,54 +473,4 @@ func (h *ClientUserMediaItemDataHandler[T]) UpdatePlaybackState(c *gin.Context) 
 		Msg("Playback state updated successfully")
 
 	responses.RespondOK(c, result, "Playback state updated successfully")
-}
-
-// User and core handler method forwarding
-
-func (h *ClientUserMediaItemDataHandler[T]) GetMediaItemDataByID(c *gin.Context) {
-	h.userHandler.GetMediaItemDataByID(c)
-}
-
-func (h *ClientUserMediaItemDataHandler[T]) CheckUserMediaItemData(c *gin.Context) {
-	h.userHandler.CheckUserMediaItemData(c)
-}
-
-func (h *ClientUserMediaItemDataHandler[T]) GetMediaItemDataByUserAndMedia(c *gin.Context) {
-	h.userHandler.GetMediaItemDataByUserAndMedia(c)
-}
-
-func (h *ClientUserMediaItemDataHandler[T]) DeleteMediaItemData(c *gin.Context) {
-	h.userHandler.DeleteMediaItemData(c)
-}
-
-func (h *ClientUserMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) {
-	h.userHandler.GetMediaPlayHistory(c)
-}
-
-func (h *ClientUserMediaItemDataHandler[T]) GetContinueWatching(c *gin.Context) {
-	h.userHandler.GetContinuePlaying(c)
-}
-
-func (h *ClientUserMediaItemDataHandler[T]) GetRecentHistory(c *gin.Context) {
-	h.userHandler.GetRecentHistory(c)
-}
-
-func (h *ClientUserMediaItemDataHandler[T]) RecordMediaPlay(c *gin.Context) {
-	h.userHandler.RecordMediaPlay(c)
-}
-
-func (h *ClientUserMediaItemDataHandler[T]) ToggleFavorite(c *gin.Context) {
-	h.userHandler.ToggleFavorite(c)
-}
-
-func (h *ClientUserMediaItemDataHandler[T]) UpdateUserRating(c *gin.Context) {
-	h.userHandler.UpdateUserRating(c)
-}
-
-func (h *ClientUserMediaItemDataHandler[T]) GetFavorites(c *gin.Context) {
-	h.userHandler.GetFavorites(c)
-}
-
-func (h *ClientUserMediaItemDataHandler[T]) ClearUserHistory(c *gin.Context) {
-	h.userHandler.ClearUserHistory(c)
 }
