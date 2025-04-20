@@ -15,10 +15,11 @@ import (
 	"suasor/utils"
 )
 
+var ErrUnsupportedFeature = errors.New("feature not supported by this media client")
+
 // ClientMovieService defines operations for interacting with movie clients
 type ClientMovieService[T types.ClientConfig] interface {
-
-	// CoreMovieService[T]
+	CoreMovieService[T]
 	GetMovieByClientItemID(ctx context.Context, userID uint64, clientID uint64, movieID string) (*models.MediaItem[*mediatypes.Movie], error)
 	GetMoviesByGenre(ctx context.Context, userID uint64, genre string) ([]*models.MediaItem[*mediatypes.Movie], error)
 	GetMoviesByYear(ctx context.Context, userID uint64, year int) ([]*models.MediaItem[*mediatypes.Movie], error)

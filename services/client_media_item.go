@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"suasor/client/media/types"
+	clienttypes "suasor/client/types"
 	"suasor/repository"
 	"suasor/types/models"
 	"suasor/utils"
@@ -13,93 +14,49 @@ import (
 // ClientMediaItemService defines the interface for client-associated media item operations
 // This service extends CoreMediaItemService with operations specific to media items
 // that are linked to external clients like Plex, Emby, etc.
-type ClientMediaItemService[T types.MediaData] interface {
+type ClientMediaItemService[T clienttypes.ClientMediaConfig, U types.MediaData] interface {
 	// Include all core service methods
-	CoreMediaItemService[T]
+	CoreMediaItemService[U]
 
 	// Client-specific operations
-	GetByClientID(ctx context.Context, clientID uint64) ([]*models.MediaItem[T], error)
-	GetByClientItemID(ctx context.Context, itemID string, clientID uint64) (*models.MediaItem[T], error)
-	GetByClientAndType(ctx context.Context, clientID uint64, mediaType types.MediaType) ([]*models.MediaItem[T], error)
+	GetByClientID(ctx context.Context, clientID uint64) ([]*models.MediaItem[U], error)
+	GetByClientItemID(ctx context.Context, itemID string, clientID uint64) (*models.MediaItem[U], error)
 
 	// Multi-client operations
-	GetByMultipleClients(ctx context.Context, clientIDs []uint64) ([]*models.MediaItem[T], error)
-	SearchAcrossClients(ctx context.Context, query types.QueryOptions, clientIDs []uint64) (map[uint64][]*models.MediaItem[T], error)
+	GetByMultipleClients(ctx context.Context, clientIDs []uint64) ([]*models.MediaItem[U], error)
+	SearchAcrossClients(ctx context.Context, query types.QueryOptions, clientIDs []uint64) (map[uint64][]*models.MediaItem[U], error)
 
 	// Sync operations
 	SyncItemBetweenClients(ctx context.Context, itemID uint64, sourceClientID uint64, targetClientID uint64, targetItemID string) error
 }
 
 // clientMediaItemService implements ClientMediaItemService
-type clientMediaItemService[T types.MediaData] struct {
-	coreService CoreMediaItemService[T] // Embed the core service
-	clientRepo  repository.ClientMediaItemRepository[T]
+type clientMediaItemService[T clienttypes.ClientMediaConfig, U types.MediaData] struct {
+	CoreMediaItemService[U] // Embed the core service
+	itemRepo                repository.ClientMediaItemRepository[U]
 }
 
 // NewClientMediaItemService creates a new client-associated media item service
-func NewClientMediaItemService[T types.MediaData](
-	coreService CoreMediaItemService[T],
-	clientRepo repository.ClientMediaItemRepository[T],
-) ClientMediaItemService[T] {
-	return &clientMediaItemService[T]{
-		coreService: coreService,
-		clientRepo:  clientRepo,
+func NewClientMediaItemService[T clienttypes.ClientMediaConfig, U types.MediaData](
+	coreService CoreMediaItemService[U],
+	clientRepo repository.ClientRepository[T],
+	itemRepo repository.ClientMediaItemRepository[U],
+) ClientMediaItemService[T, U] {
+	return &clientMediaItemService[T, U]{
+		CoreMediaItemService: coreService,
+		itemRepo:             itemRepo,
 	}
 }
 
-// Core service methods - delegate to embedded core service
-
-func (s *clientMediaItemService[T]) Create(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error) {
-	return s.coreService.Create(ctx, item)
-}
-
-func (s *clientMediaItemService[T]) Update(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error) {
-	return s.coreService.Update(ctx, item)
-}
-
-func (s *clientMediaItemService[T]) GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error) {
-	return s.coreService.GetByID(ctx, id)
-}
-
-func (s *clientMediaItemService[T]) GetMostPlayed(ctx context.Context, limit int) ([]*models.MediaItem[T], error) {
-	return s.coreService.GetMostPlayed(ctx, limit)
-}
-
-func (s *clientMediaItemService[T]) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error) {
-	return s.coreService.GetAll(ctx, limit, offset)
-}
-
-func (s *clientMediaItemService[T]) Delete(ctx context.Context, id uint64) error {
-	return s.coreService.Delete(ctx, id)
-}
-
-func (s *clientMediaItemService[T]) GetByExternalID(ctx context.Context, source string, externalID string) (*models.MediaItem[T], error) {
-	return s.coreService.GetByExternalID(ctx, source, externalID)
-}
-
-func (s *clientMediaItemService[T]) GetByType(ctx context.Context, mediaType types.MediaType) ([]*models.MediaItem[T], error) {
-	return s.coreService.GetByType(ctx, mediaType)
-}
-
-func (s *clientMediaItemService[T]) Search(ctx context.Context, query types.QueryOptions) ([]*models.MediaItem[T], error) {
-	return s.coreService.Search(ctx, query)
-}
-
-func (s *clientMediaItemService[T]) GetRecentItems(ctx context.Context, days int, limit int) ([]*models.MediaItem[T], error) {
-	return s.coreService.GetRecentItems(ctx, days, limit)
-}
-
-// Client-specific methods
-
 // GetByClientID retrieves all media items associated with a specific client
-func (s *clientMediaItemService[T]) GetByClientID(ctx context.Context, clientID uint64) ([]*models.MediaItem[T], error) {
+func (s *clientMediaItemService[T, U]) GetByClientID(ctx context.Context, clientID uint64) ([]*models.MediaItem[U], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("clientID", clientID).
 		Msg("Getting media items by client ID")
 
 	// Delegate to client repository
-	results, err := s.clientRepo.GetByClientID(ctx, clientID)
+	results, err := s.itemRepo.GetByClientID(ctx, clientID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("clientID", clientID).
@@ -116,7 +73,7 @@ func (s *clientMediaItemService[T]) GetByClientID(ctx context.Context, clientID 
 }
 
 // GetByClientItemID retrieves a media item by its client-specific ID
-func (s *clientMediaItemService[T]) GetByClientItemID(ctx context.Context, itemID string, clientID uint64) (*models.MediaItem[T], error) {
+func (s *clientMediaItemService[T, U]) GetByClientItemID(ctx context.Context, itemID string, clientID uint64) (*models.MediaItem[U], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Str("itemID", itemID).
@@ -124,7 +81,7 @@ func (s *clientMediaItemService[T]) GetByClientItemID(ctx context.Context, itemI
 		Msg("Getting media item by client item ID")
 
 	// Delegate to client repository
-	result, err := s.clientRepo.GetByClientItemID(ctx, itemID, clientID)
+	result, err := s.itemRepo.GetByClientItemID(ctx, itemID, clientID)
 	if err != nil {
 		log.Error().Err(err).
 			Str("itemID", itemID).
@@ -142,42 +99,15 @@ func (s *clientMediaItemService[T]) GetByClientItemID(ctx context.Context, itemI
 	return result, nil
 }
 
-// GetByClientAndType retrieves all media items of a specific type from a client
-func (s *clientMediaItemService[T]) GetByClientAndType(ctx context.Context, clientID uint64, mediaType types.MediaType) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
-	log.Debug().
-		Uint64("clientID", clientID).
-		Str("type", string(mediaType)).
-		Msg("Getting media items by client and type")
-
-	// Delegate to client repository
-	results, err := s.clientRepo.GetByType(ctx, mediaType, clientID)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("clientID", clientID).
-			Str("type", string(mediaType)).
-			Msg("Failed to get media items by client and type")
-		return nil, err
-	}
-
-	log.Info().
-		Uint64("clientID", clientID).
-		Str("type", string(mediaType)).
-		Int("count", len(results)).
-		Msg("Media items retrieved by client and type")
-
-	return results, nil
-}
-
 // GetByMultipleClients retrieves all media items associated with any of the specified clients
-func (s *clientMediaItemService[T]) GetByMultipleClients(ctx context.Context, clientIDs []uint64) ([]*models.MediaItem[T], error) {
+func (s *clientMediaItemService[T, U]) GetByMultipleClients(ctx context.Context, clientIDs []uint64) ([]*models.MediaItem[U], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Interface("clientIDs", clientIDs).
 		Msg("Getting media items by multiple clients")
 
 	// Delegate to client repository
-	results, err := s.clientRepo.GetByMultipleClients(ctx, clientIDs)
+	results, err := s.itemRepo.GetByMultipleClients(ctx, clientIDs)
 	if err != nil {
 		log.Error().Err(err).
 			Interface("clientIDs", clientIDs).
@@ -195,7 +125,7 @@ func (s *clientMediaItemService[T]) GetByMultipleClients(ctx context.Context, cl
 
 // SearchAcrossClients searches for media items across multiple clients
 // Maps by [clientID] for each of the set of MeidaItems[T]
-func (s *clientMediaItemService[T]) SearchAcrossClients(ctx context.Context, query types.QueryOptions, clientIDs []uint64) (map[uint64][]*models.MediaItem[T], error) {
+func (s *clientMediaItemService[T, U]) SearchAcrossClients(ctx context.Context, query types.QueryOptions, clientIDs []uint64) (map[uint64][]*models.MediaItem[U], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Str("query", query.Query).
@@ -209,11 +139,11 @@ func (s *clientMediaItemService[T]) SearchAcrossClients(ctx context.Context, que
 		Query:     query.Query,
 	}
 
-	var results map[uint64][]*models.MediaItem[T]
+	var results map[uint64][]*models.MediaItem[U]
 
 	for _, clientID := range clientIDs {
 		// Delegate to client repository
-		clientResult, err := s.clientRepo.Search(ctx, options)
+		clientResult, err := s.itemRepo.Search(ctx, options)
 		if err != nil {
 			log.Error().Err(err).
 				Str("query", query.Query).
@@ -236,7 +166,7 @@ func (s *clientMediaItemService[T]) SearchAcrossClients(ctx context.Context, que
 }
 
 // SyncItemBetweenClients creates or updates a mapping between a media item and a target client
-func (s *clientMediaItemService[T]) SyncItemBetweenClients(ctx context.Context, itemID uint64, sourceClientID uint64, targetClientID uint64, targetItemID string) error {
+func (s *clientMediaItemService[T, U]) SyncItemBetweenClients(ctx context.Context, itemID uint64, sourceClientID uint64, targetClientID uint64, targetItemID string) error {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("itemID", itemID).
@@ -246,7 +176,7 @@ func (s *clientMediaItemService[T]) SyncItemBetweenClients(ctx context.Context, 
 		Msg("Syncing item between clients")
 
 	// Delegate to client repository
-	err := s.clientRepo.SyncItemBetweenClients(ctx, itemID, sourceClientID, targetClientID, targetItemID)
+	err := s.itemRepo.SyncItemBetweenClients(ctx, itemID, sourceClientID, targetClientID, targetItemID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("itemID", itemID).

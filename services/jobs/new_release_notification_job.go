@@ -382,7 +382,7 @@ func (j *NewReleaseNotificationJob) buildUserPreferenceProfile(ctx context.Conte
 	// Load user's media library contents
 	if profile.NotifyForMovies {
 		// Get user's movies
-		userMovies, err := j.movieRepo.GetByUserID(ctx, userID)
+		userMovies, err := j.movieRepo.GetByUserID(ctx, userID, 0, 0)
 		if err != nil {
 			log.Error().Err(err).Uint64("userId", userID).Msg("Error getting user movies")
 		} else {
@@ -413,7 +413,7 @@ func (j *NewReleaseNotificationJob) buildUserPreferenceProfile(ctx context.Conte
 
 	if profile.NotifyForSeries {
 		// Get user's series
-		userSeries, err := j.seriesRepo.GetByUserID(ctx, userID)
+		userSeries, err := j.seriesRepo.GetByUserID(ctx, userID, 0, 0)
 		if err != nil {
 			log.Error().Err(err).Uint64("userId", userID).Msg("Error getting user series")
 		} else {
@@ -435,7 +435,7 @@ func (j *NewReleaseNotificationJob) buildUserPreferenceProfile(ctx context.Conte
 
 	if profile.NotifyForMusic {
 		// Get user's music
-		userMusic, err := j.musicRepo.GetByUserID(ctx, userID)
+		userMusic, err := j.musicRepo.GetByUserID(ctx, userID, 0, 0)
 		if err != nil {
 			log.Error().Err(err).Uint64("userId", userID).Msg("Error getting user music")
 		} else {

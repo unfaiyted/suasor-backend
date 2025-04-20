@@ -330,3 +330,148 @@ func (h *userSeriesHandler) UpdateSeriesUserData(c *gin.Context) {
 		Msg("Series user data updated successfully")
 	responses.RespondOK(c, updatedSeries, "Series updated successfully")
 }
+
+// GetContinueWatchingSeries godoc
+// @Summary Get series in progress
+// @Description Retrieves series that are currently in progress (partially watched)
+// @Tags series
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param userId query int true "User ID"
+// @Param limit query int false "Maximum number of series to return (default 10)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.Series]] "Series retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /user/series/continue-watching [get]
+func (h *userSeriesHandler) GetContinueWatchingSeries(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
+		responses.RespondBadRequest(c, err, "Invalid user ID")
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil {
+		limit = 10
+	}
+
+	log.Debug().
+		Uint64("userID", userID).
+		Int("limit", limit).
+		Msg("Getting continue watching series")
+
+	// This is a placeholder for a real implementation
+	// In a real implementation, you would query for series specifically marked as favorites
+	// For now, we'll just return a not implemented response since this requires integration with the play history service
+
+	// TODO: Implement this by checking the play history for each series, finding the last watched episode,
+	// and then determining the next episode in the sequence
+	log.Info().Msg("Continue watching for series not yet implemented")
+	responses.RespondNotImplemented(c, nil, "Continue watching for series not yet implemented")
+}
+
+// GetNextUpEpisodes godoc
+// @Summary Get next episodes to watch
+// @Description Retrieves the next unwatched episodes for series in progress
+// @Tags series
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param userId query int true "User ID"
+// @Param limit query int false "Maximum number of episodes to return (default 10)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.Episode]] "Episodes retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /user/series/next-up [get]
+func (h *userSeriesHandler) GetNextUpEpisodes(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
+		responses.RespondBadRequest(c, err, "Invalid user ID")
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil {
+		limit = 10
+	}
+
+	log.Debug().
+		Uint64("userID", userID).
+		Int("limit", limit).
+		Msg("Getting next up episodes")
+
+	// This is a placeholder for a real implementation
+	// In a real implementation, you would query play history to find series with episodes that have been partially watched
+	// For now, we'll just return a not implemented response
+
+	// TODO: Implement this by checking play history for each series, finding the last watched episode,
+	// and then determining the next episode in the sequence
+	log.Info().Msg("Next up episodes feature not yet implemented")
+	responses.RespondNotImplemented(c, nil, "Next up episodes feature not yet implemented")
+}
+
+// GetRecentlyWatchedEpisodes godoc
+// @Summary Get recently watched episodes
+// @Description Retrieves the user's recently watched episodes
+// @Tags series
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param userId query int true "User ID"
+// @Param days query int false "Number of days to look back (default 7)"
+// @Param limit query int false "Maximum number of episodes to return (default 10)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.Episode]] "Episodes retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /user/series/recently-watched [get]
+func (h *userSeriesHandler) GetRecentlyWatchedEpisodes(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
+		responses.RespondBadRequest(c, err, "Invalid user ID")
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil {
+		limit = 10
+	}
+	days, err := strconv.Atoi(c.DefaultQuery("days", "7"))
+	if err != nil {
+		days = 7
+	}
+
+	log.Debug().
+		Uint64("userID", userID).
+		Int("limit", limit).
+		Msg("Getting recently watched series")
+
+	// Get recently watched series
+	series, err := h.episodeDataService.GetRecentHistory(ctx, userID, days, limit)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", userID).
+			Msg("Failed to retrieve recently watched series")
+		responses.RespondInternalError(c, err, "Failed to retrieve series")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", userID).
+		Int("count", len(series)).
+		Msg("Recently watched series retrieved successfully")
+
+	responses.RespondOK(c, series, "Recently watched series retrieved successfully")
+}

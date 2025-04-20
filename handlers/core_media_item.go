@@ -859,6 +859,63 @@ func (h *coreMediaItemHandler[T]) GetMostPlayed(c *gin.Context) {
 
 func (h *coreMediaItemHandler[T]) GetType() string {
 	var zero T
-	types := mediatypes.GetMediaTypeFromTypeName(zero)
+	types := types.GetMediaTypeFromTypeName(zero)
 	return string(types)
+}
+
+// GetByRating godoc
+// @Summary Get media items by rating
+// @Description Retrieves media items that match a specific rating
+// @Tags media
+// @Accept json
+// @Produce json
+// @Param rating path number true "Rating"
+// @Param limit query int false "Maximum number of media items to return (default 20)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.MediaData]] "Media items retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /media/rating/{rating} [get]
+func (h *coreMediaItemHandler[T]) GetByRating(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	rating, err := strconv.ParseFloat(c.Param("rating"), 32)
+	if err != nil {
+		log.Warn().Err(err).Str("rating", c.Param("rating")).Msg("Invalid rating value")
+		responses.RespondBadRequest(c, err, "Invalid rating value")
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	if err != nil {
+		limit = 20
+	}
+
+	log.Debug().
+		Float64("rating", rating).
+		Int("limit", limit).
+		Msg("Getting media items by rating")
+
+	// Create query options
+	options := types.QueryOptions{
+		MinimumRating: float32(rating),
+		Limit:         limit,
+	}
+
+	// Search media items by rating
+	items, err := h.mediaService.Search(ctx, options)
+	if err != nil {
+		log.Error().Err(err).
+			Float64("rating", rating).
+			Msg("Failed to retrieve media items by rating")
+		responses.RespondInternalError(c, err, "Failed to retrieve media items")
+		return
+	}
+
+	log.Info().
+		Float64("rating", rating).
+		Int("count", len(items)).
+		Msg("Media items by rating retrieved successfully")
+
+	responses.RespondOK(c, items, "Media items retrieved successfully")
 }

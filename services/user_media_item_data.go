@@ -16,25 +16,25 @@ type UserMediaItemDataService[T types.MediaData] interface {
 	CoreUserMediaItemDataService[T]
 
 	// GetUserHistory retrieves a user's media history
-	GetUserHistory(ctx context.Context, userID uint64, limit, offset int, mediaType *types.MediaType) ([]*models.UserMediaItemData[T], error)
+	GetUserHistory(ctx context.Context, userID uint64, limit, offset int) ([]*models.UserMediaItemData[T], error)
 
 	// GetRecentHistory retrieves a user's recent media history
-	GetRecentHistory(ctx context.Context, userID uint64, limit int, mediaType *types.MediaType) ([]*models.UserMediaItemData[T], error)
+	GetRecentHistory(ctx context.Context, userID uint64, days int, limit int) ([]*models.UserMediaItemData[T], error)
 
 	// GetUserPlayHistory retrieves play history for a user with optional filtering
 	GetUserPlayHistory(ctx context.Context, userID uint64, query *types.QueryOptions) ([]*models.UserMediaItemData[T], error)
 
 	// GetContinueWatching retrieves items that a user has started but not completed
-	GetContinueWatching(ctx context.Context, userID uint64, limit int, mediaType *types.MediaType) ([]*models.UserMediaItemData[T], error)
+	GetContinueWatching(ctx context.Context, userID uint64, limit int) ([]*models.UserMediaItemData[T], error)
 
 	// RecordPlay records a new play event
 	RecordPlay(ctx context.Context, data *models.UserMediaItemData[T]) (*models.UserMediaItemData[T], error)
 
 	// ToggleFavorite marks or unmarks a media item as a favorite
-	ToggleFavorite(ctx context.Context, mediaItemID, userID uint64, favorite bool) error
+	ToggleFavorite(ctx context.Context, itemID uint64, userID uint64, favorite bool) error
 
 	// UpdateRating sets a user's rating for a media item
-	UpdateRating(ctx context.Context, mediaItemID, userID uint64, rating float32) error
+	UpdateRating(ctx context.Context, itemID, userID uint64, rating float32) error
 
 	// GetFavorites retrieves favorite media items for a user
 	GetFavorites(ctx context.Context, userID uint64, limit, offset int) ([]*models.UserMediaItemData[T], error)
@@ -61,7 +61,7 @@ func NewUserMediaItemDataService[T types.MediaData](
 }
 
 // GetUserHistory retrieves a user's media history
-func (s *userMediaItemDataService[T]) GetUserHistory(ctx context.Context, userID uint64, limit, offset int, mediaType *types.MediaType) ([]*models.UserMediaItemData[T], error) {
+func (s *userMediaItemDataService[T]) GetUserHistory(ctx context.Context, userID uint64, limit, offset int) ([]*models.UserMediaItemData[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
@@ -87,7 +87,7 @@ func (s *userMediaItemDataService[T]) GetUserHistory(ctx context.Context, userID
 }
 
 // GetRecentHistory retrieves a user's recent media history
-func (s *userMediaItemDataService[T]) GetRecentHistory(ctx context.Context, userID uint64, limit int, mediaType *types.MediaType) ([]*models.UserMediaItemData[T], error) {
+func (s *userMediaItemDataService[T]) GetRecentHistory(ctx context.Context, userID uint64, days int, limit int) ([]*models.UserMediaItemData[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
@@ -139,7 +139,7 @@ func (s *userMediaItemDataService[T]) GetUserPlayHistory(ctx context.Context, us
 }
 
 // GetContinueWatching retrieves items that a user has started but not completed
-func (s *userMediaItemDataService[T]) GetContinueWatching(ctx context.Context, userID uint64, limit int, mediaType *types.MediaType) ([]*models.UserMediaItemData[T], error) {
+func (s *userMediaItemDataService[T]) GetContinueWatching(ctx context.Context, userID uint64, limit int) ([]*models.UserMediaItemData[T], error) {
 	log := utils.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).

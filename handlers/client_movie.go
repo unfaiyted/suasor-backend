@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"strconv"
+	"strings"
 	mediatypes "suasor/client/media/types"
 	clienttypes "suasor/client/types"
 	"suasor/services"
@@ -660,4 +661,73 @@ func createMovieMediaItem[T mediatypes.Movie](clientID uint64, clientType client
 	}
 
 	return mediaItem
+}
+
+// GetClientByActor godoc
+// @Summary Get movies by actor
+// @Description Retrieves movies featuring a specific actor
+// @Tags movies
+// @Accept json
+// @Produce json
+// @Param actor path string true "Actor name"
+// @Param limit query int false "Maximum number of movies to return (default 20)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.Movie]] "Movies retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 404 {object} responses.ErrorResponse[any] "Movie not found"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /movies/actor/{actor} [get]
+func (h *clientMovieHandler[T]) GetClientByActor(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	actor := c.Param("actor")
+	if actor == "" {
+		log.Warn().Msg("Actor name is required")
+		responses.RespondBadRequest(c, nil, "Actor name is required")
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	if err != nil {
+		limit = 20
+	}
+
+	log.Debug().
+		Str("actor", actor).
+		Int("limit", limit).
+		Msg("Getting movies by actor")
+
+	// Create query options
+	options := mediatypes.QueryOptions{
+		Actor: actor,
+		Limit: limit,
+	}
+
+	// Search movies by actor
+	movies, err := h.movieService.SearchMovies(ctx, options)
+	if err != nil {
+		log.Error().Err(err).
+			Str("actor", actor).
+			Msg("Failed to get movies by actor")
+		responses.RespondInternalError(c, err, "Failed to get movies")
+		return
+	}
+
+	// Filter for items with the specified actor
+	var filtered []*models.MediaItem[*mediatypes.Movie]
+	for _, movie := range movies {
+		if strings.EqualFold(movie.Actors[0].Name, actor) {
+			filtered = append(filtered, movie)
+		}
+
+		if len(filtered) >= limit {
+			break
+		}
+	}
+
+	log.Info().
+		Str("actor", actor).
+		Int("count", len(filtered)).
+		Msg("Movies by actor retrieved successfully")
+	responses.RespondOK(c, filtered, "Movies retrieved successfully")
 }

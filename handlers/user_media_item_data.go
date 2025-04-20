@@ -42,13 +42,12 @@ type userMediaItemDataHandler[T types.MediaData] struct {
 
 // NewUseruserMediaItemDataHandler creates a new user user media item data handler
 func NewUserMediaItemDataHandler[T types.MediaData](
-	coreHandler *CoreUserMediaItemDataHandler[T],
+	coreHandler CoreUserMediaItemDataHandler[T],
 	service services.UserMediaItemDataService[T],
 ) UserMediaItemDataHandler[T] {
 	return &userMediaItemDataHandler[T]{
 		CoreUserMediaItemDataHandler: coreHandler,
 		service:                      service,
-		coreHandler:                  coreHandler,
 	}
 }
 
@@ -151,23 +150,14 @@ func (h *userMediaItemDataHandler[T]) GetContinuePlaying(c *gin.Context) {
 	}
 
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	mediaType := c.Query("type")
-
-	// Filter by media type if provided
-	var typedMediaType *types.MediaType
-	if mediaType != "" {
-		mt := types.MediaType(mediaType)
-		typedMediaType = &mt
-	}
 
 	log.Debug().
 		Uint64("userId", userID).
 		Int("limit", limit).
-		Str("mediaType", mediaType).
 		Msg("Getting continue watching items")
 
 	// Get items that are not completed and have been played recently
-	items, err := h.service.GetContinueWatching(ctx, userID, limit, typedMediaType)
+	items, err := h.service.GetContinueWatching(ctx, userID, limit)
 	if err != nil {
 		log.Error().Err(err).Uint64("userId", userID).Msg("Failed to retrieve continue watching items")
 		responses.RespondInternalError(c, err, "Failed to retrieve continue watching items")
@@ -190,7 +180,7 @@ func (h *userMediaItemDataHandler[T]) GetContinuePlaying(c *gin.Context) {
 // @Produce json
 // @Param userId query int true "User ID"
 // @Param limit query int false "Number of items to return (default 10)"
-// @Param type query string false "Media type filter (movie, series, episode, track, etc.)"
+// @Param days query int false "Number of days to look back (default 7)"
 // @Success 200 {object} responses.APIResponse[[]models.UserMediaItemData[any]] "Successfully retrieved recent history"
 // @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
@@ -208,22 +198,17 @@ func (h *userMediaItemDataHandler[T]) GetRecentHistory(c *gin.Context) {
 	}
 
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	mediaType := c.Query("type")
-
-	// Filter by media type if provided
-	var typedMediaType *types.MediaType
-	if mediaType != "" {
-		mt := types.MediaType(mediaType)
-		typedMediaType = &mt
+	days, err := strconv.Atoi(c.DefaultQuery("days", "7"))
+	if err != nil {
+		days = 7
 	}
 
 	log.Debug().
 		Uint64("userId", userID).
 		Int("limit", limit).
-		Str("mediaType", mediaType).
 		Msg("Getting recent user media history")
 
-	history, err := h.service.GetRecentHistory(ctx, userID, limit, typedMediaType)
+	history, err := h.service.GetRecentHistory(ctx, userID, days, limit)
 	if err != nil {
 		log.Error().Err(err).Uint64("userId", userID).Msg("Failed to retrieve recent history")
 		responses.RespondInternalError(c, err, "Failed to retrieve recent history")
@@ -527,22 +512,4 @@ func (h *userMediaItemDataHandler[T]) ClearUserHistory(c *gin.Context) {
 		Msg("History cleared successfully")
 
 	responses.RespondOK(c, responses.EmptyResponse{Success: true}, "History cleared successfully")
-}
-
-// Core handler method forwarding
-
-func (h *userMediaItemDataHandler[T]) GetMediaItemDataByID(c *gin.Context) {
-	h.coreHandler.GetMediaItemDataByID(c)
-}
-
-func (h *userMediaItemDataHandler[T]) CheckUserMediaItemData(c *gin.Context) {
-	h.coreHandler.CheckUserMediaItemData(c)
-}
-
-func (h *userMediaItemDataHandler[T]) GetMediaItemDataByUserAndMedia(c *gin.Context) {
-	h.coreHandler.GetMediaItemDataByUserAndMedia(c)
-}
-
-func (h *userMediaItemDataHandler[T]) DeleteMediaItemData(c *gin.Context) {
-	h.coreHandler.DeleteMediaItemData(c)
 }

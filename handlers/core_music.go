@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"suasor/types/models"
 
 	mediatypes "suasor/client/media/types"
 	"suasor/services"
@@ -1309,4 +1310,79 @@ func (h *coreMusicHandler) GetSimilarTracks(c *gin.Context) {
 		Int("trackCount", len(trackData)).
 		Msg("Similar tracks retrieved successfully")
 	responses.RespondOK(c, trackData, "Similar tracks retrieved successfully")
+}
+
+// GetAlbumsByYear godoc
+// @Summary Get albums by release year
+// @Description Retrieves albums released in a specific year
+// @Tags music
+// @Accept json
+// @Produce json
+// @Param year path int true "Release year"
+// @Param limit query int false "Maximum number of albums to return (default 10)"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.Album]] "Albums retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /music/albums/year/{year} [get]
+func (h *coreMusicHandler) GetAlbumsByYear(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	yearStr := c.Param("year")
+	if yearStr == "" {
+		log.Warn().Msg("Year is required")
+		responses.RespondBadRequest(c, nil, "Year is required")
+		return
+	}
+
+	year, err := strconv.Atoi(yearStr)
+	if err != nil {
+		log.Warn().Err(err).Str("year", yearStr).Msg("Invalid year format")
+		responses.RespondBadRequest(c, err, "Invalid year format")
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil {
+		limit = 10
+	}
+
+	log.Debug().
+		Int("year", year).
+		Int("limit", limit).
+		Msg("Getting albums by year")
+
+	// Create query options
+	options := &mediatypes.QueryOptions{
+		Year:  year,
+		Limit: limit,
+	}
+
+	// Search albums by year
+	albums, err := h.albumService.Search(ctx, *options)
+	if err != nil {
+		log.Error().Err(err).
+			Int("year", year).
+			Msg("Failed to get albums by year")
+		responses.RespondInternalError(c, err, "Failed to get albums")
+		return
+	}
+
+	// Filter for items with the specified year
+	var filtered []*models.MediaItem[*mediatypes.Album]
+	for _, album := range albums {
+		if album.ReleaseYear == year {
+			filtered = append(filtered, album)
+		}
+
+		if len(filtered) >= limit {
+			break
+		}
+	}
+
+	log.Info().
+		Int("year", year).
+		Int("count", len(filtered)).
+		Msg("Albums by year retrieved successfully")
+	responses.RespondOK(c, filtered, "Albums retrieved successfully")
 }
