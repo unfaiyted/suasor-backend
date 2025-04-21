@@ -15,6 +15,7 @@ type MusicProvider interface {
 	GetMusicTrackByID(ctx context.Context, id string) (*models.MediaItem[*types.Track], error)
 	GetMusicGenres(ctx context.Context) ([]string, error)
 
+	// Factory methods usety for creating media items
 	trackFactory(ctx context.Context, item *any) (*types.Track, error)
 	artistFactory(ctx context.Context, item *any) (*types.Artist, error)
 	albumFactory(ctx context.Context, item *any) (*types.Album, error)
