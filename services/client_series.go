@@ -14,8 +14,8 @@ import (
 	"suasor/utils"
 )
 
-// providerseriesService defines service methods for TV series
-type providerseriesService[T types.ClientConfig] interface {
+// ClientSeriesService defines service methods for TV series
+type ClientSeriesService[T types.ClientConfig] interface {
 	GetSeriesByID(ctx context.Context, clientID uint64, seriesID string) (*models.MediaItem[*mediatypes.Series], error)
 	GetSeasonByID(ctx context.Context, clientID uint64, seasonID string) (*models.MediaItem[*mediatypes.Season], error)
 	GetEpisodeByID(ctx context.Context, clientID uint64, episodeID string) (*models.MediaItem[*mediatypes.Episode], error)
@@ -43,7 +43,7 @@ type clientSeriesService[T types.ClientMediaConfig] struct {
 	clientFactory *client.ClientFactoryService
 }
 
-// NewproviderseriesService creates a new TV series service
+// NewClientSeriesService creates a new TV series service
 func NewClientSeriesService[T types.ClientMediaConfig](
 	clientRepo repository.ClientRepository[T],
 	factory *client.ClientFactoryService,
