@@ -3,11 +3,9 @@ package services
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"suasor/client"
-	"suasor/client/media"
 	"suasor/client/media/providers"
 	mediatypes "suasor/client/media/types"
 	"suasor/client/types"
@@ -16,168 +14,149 @@ import (
 	"suasor/utils"
 )
 
-// ClientSeriesService defines service methods for TV series
-type ClientSeriesService[T types.ClientConfig] interface {
-	GetSeriesByID(ctx context.Context, userID, clientID uint64, seriesID string) (*models.MediaItem[*mediatypes.Series], error)
-	GetSeasonByID(ctx context.Context, userID, clientID uint64, seasonID string) (*models.MediaItem[*mediatypes.Season], error)
-	GetEpisodeByID(ctx context.Context, userID, clientID uint64, episodeID string) (*models.MediaItem[*mediatypes.Episode], error)
-	GetSeriesByName(ctx context.Context, userID uint64, name string) ([]*models.MediaItem[*mediatypes.Series], error)
-	GetSeriesByGenre(ctx context.Context, userID uint64, genre string) ([]*models.MediaItem[*mediatypes.Series], error)
-	GetRecentlyAdded(ctx context.Context, userID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error)
-	GetOnGoing(ctx context.Context, userID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error)
-	GetRecentEpisodes(ctx context.Context, userID uint64, count int) ([]*models.MediaItem[*mediatypes.Episode], error)
-	GetSeriesByNetwork(ctx context.Context, userID uint64, network string) ([]*models.MediaItem[*mediatypes.Series], error)
+// providerseriesService defines service methods for TV series
+type providerseriesService[T types.ClientConfig] interface {
+	GetSeriesByID(ctx context.Context, clientID uint64, seriesID string) (*models.MediaItem[*mediatypes.Series], error)
+	GetSeasonByID(ctx context.Context, clientID uint64, seasonID string) (*models.MediaItem[*mediatypes.Season], error)
+	GetEpisodeByID(ctx context.Context, clientID uint64, episodeID string) (*models.MediaItem[*mediatypes.Episode], error)
 
-	// Added missing methods required by handlers
-	GetSeriesByYear(ctx context.Context, userID uint64, year int) ([]*models.MediaItem[*mediatypes.Series], error)
-	GetSeriesByActor(ctx context.Context, userID uint64, actor string) ([]*models.MediaItem[*mediatypes.Series], error)
-	GetSeriesByCreator(ctx context.Context, userID uint64, creator string) ([]*models.MediaItem[*mediatypes.Series], error)
-	GetSeriesByRating(ctx context.Context, userID uint64, minRating, maxRating float64) ([]*models.MediaItem[*mediatypes.Series], error)
-	GetLatestSeriesByAdded(ctx context.Context, userID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error)
-	GetPopularSeries(ctx context.Context, userID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error)
-	GetTopRatedSeries(ctx context.Context, userID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error)
-	SearchSeries(ctx context.Context, userID uint64, query string) ([]*models.MediaItem[*mediatypes.Series], error)
-	GetSeasonsBySeriesID(ctx context.Context, userID, clientID uint64, seriesID string) ([]*models.MediaItem[*mediatypes.Season], error)
+	GetSeriesByName(ctx context.Context, clientID uint64, name string) ([]*models.MediaItem[*mediatypes.Series], error)
+	GetSeriesByGenre(ctx context.Context, clientID uint64, genre string) ([]*models.MediaItem[*mediatypes.Series], error)
+	GetRecentlyAdded(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error)
+	GetOnGoing(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error)
+	GetRecentEpisodes(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Episode], error)
+	GetSeriesByNetwork(ctx context.Context, clientID uint64, network string) ([]*models.MediaItem[*mediatypes.Series], error)
+
+	GetSeriesByYear(ctx context.Context, clientID uint64, year int) ([]*models.MediaItem[*mediatypes.Series], error)
+	GetSeriesByActor(ctx context.Context, clientID uint64, actor string) ([]*models.MediaItem[*mediatypes.Series], error)
+	GetSeriesByCreator(ctx context.Context, clientID uint64, creator string) ([]*models.MediaItem[*mediatypes.Series], error)
+	GetSeriesByRating(ctx context.Context, clientID uint64, minRating, maxRating float64) ([]*models.MediaItem[*mediatypes.Series], error)
+	GetLatestSeriesByAdded(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error)
+	GetPopularSeries(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error)
+	GetTopRatedSeries(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error)
+	SearchSeries(ctx context.Context, clientID uint64, query *mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Series], error)
+	GetSeasonsBySeriesID(ctx context.Context, clientID uint64, seriesID string) ([]*models.MediaItem[*mediatypes.Season], error)
 }
 
-type mediaSeriesService[T types.ClientMediaConfig] struct {
-	repo    repository.ClientRepository[T]
-	factory *client.ClientFactoryService
+type clientSeriesService[T types.ClientMediaConfig] struct {
+	clientRepo    repository.ClientRepository[T]
+	clientFactory *client.ClientFactoryService
 }
 
-// NewClientSeriesService creates a new TV series service
+// NewproviderseriesService creates a new TV series service
 func NewClientSeriesService[T types.ClientMediaConfig](
-	repo repository.ClientRepository[T],
+	clientRepo repository.ClientRepository[T],
 	factory *client.ClientFactoryService,
-) ClientSeriesService[T] {
-	return &mediaSeriesService[T]{
-		repo:    repo,
-		factory: factory,
+) providerseriesService[T] {
+	return &clientSeriesService[T]{
+		clientRepo:    clientRepo,
+		clientFactory: factory,
 	}
 }
 
-// getSeriesClients gets all clients that support TV shows
-func (s *mediaSeriesService[T]) getSeriesClients(ctx context.Context, userID uint64) ([]media.ClientMedia, error) {
-	// Get all media clients for the user
-	clients, err := s.repo.GetByCategory(ctx, types.ClientCategoryMedia, userID)
+// getSeriesProviders gets all providers that support TV shows
+func (s *clientSeriesService[T]) getSeriesProviders(ctx context.Context, userID uint64) ([]providers.SeriesProvider, error) {
+	// Get all media providers for the user
+	clients, err := s.clientRepo.GetByUserID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	var seriesClients []media.ClientMedia
+	var providers []providers.SeriesProvider
 
-	// Filter and instantiate clients that support TV shows
+	// Filter and instantiate providers that support TV shows
 	for _, clientConfig := range clients {
 		if clientConfig.Config.Data.SupportsSeries() {
-			client, err := s.factory.GetClient(ctx, clientConfig.ID, clientConfig.Config.Data)
+			provider, err := s.clientFactory.GetSeriesProvider(ctx, clientConfig.ID, clientConfig.Config.Data)
 			if err != nil {
-				// Log error but continue with other clients
+				// Log error but continue with other providers
 				continue
 			}
-			seriesClients = append(seriesClients, client.(media.ClientMedia))
+			providers = append(providers, provider)
 		}
 	}
 
-	return seriesClients, nil
+	return providers, nil
 }
 
-// getSpecificSeriesClient gets a specific TV shows client
-func (s *mediaSeriesService[T]) getSpecificSeriesClient(ctx context.Context, userID, clientID uint64) (media.ClientMedia, error) {
+// getSeriesProvider gets a specific TV shows client
+func (s *clientSeriesService[T]) getSeriesProvider(ctx context.Context, clientID uint64) (providers.SeriesProvider, error) {
 	log := utils.LoggerFromContext(ctx)
 
-	clientConfig, err := s.repo.GetByID(ctx, clientID)
+	clientConfig, err := s.clientRepo.GetByID(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
 
 	if !clientConfig.Config.Data.SupportsSeries() {
 		log.Warn().
-			Uint64("userID", userID).
 			Uint64("clientID", clientID).
 			Str("clientType", clientConfig.Config.Data.GetType().String()).
 			Msg("Client does not support TV shows")
 		return nil, ErrUnsupportedFeature
 	}
 
-	client, err := s.factory.GetClient(ctx, clientID, clientConfig.Config.Data)
+	provider, err := s.clientFactory.GetSeriesProvider(ctx, clientID, clientConfig.Config.Data)
 	if err != nil {
 		return nil, err
 	}
 
-	return client.(media.ClientMedia), nil
+	return provider, nil
 }
 
-// GetSeriesByName searches for TV series by name across all clients
-func (s *mediaSeriesService[T]) GetSeriesByName(ctx context.Context, userID uint64, name string) ([]*models.MediaItem[*mediatypes.Series], error) {
-	clients, err := s.getSeriesClients(ctx, userID)
+// GetSeriesByName searches for TV series by name across all providers
+func (s *clientSeriesService[T]) GetSeriesByName(ctx context.Context, clientID uint64, name string) ([]*models.MediaItem[*mediatypes.Series], error) {
+	log := utils.LoggerFromContext(ctx)
+	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
 
-	var allSeries []*models.MediaItem[*mediatypes.Series]
-
-	for _, client := range clients {
-		showProvider, ok := client.(providers.SeriesProvider)
-		if !ok {
-			continue
-		}
-
-		options := &mediatypes.QueryOptions{
-			Query: name, // Use the standard query field instead of filters
-		}
-
-		series, err := showProvider.GetSeries(ctx, options)
-		if err != nil {
-			continue
-		}
-
-		allSeries = append(allSeries, series...)
+	options := &mediatypes.QueryOptions{
+		Query: name, // Use the standard query field instead of filters
 	}
 
-	// Filter by name similarity if the client doesn't do it
-	filteredSeries := allSeries[:0] // Reuse the same slice
-	for _, s := range allSeries {
-		if strings.Contains(strings.ToLower(s.Data.Details.Title), strings.ToLower(name)) {
-			filteredSeries = append(filteredSeries, s)
-		}
+	series, err := provider.GetSeries(ctx, options)
+	if err != nil {
+		// Log error but continue with other providers
+		log.Warn().
+			Err(err).
+			Uint64("clientID", clientID).
+			Str("name", name).
+			Msg("Error getting series by name from client")
 	}
 
-	return filteredSeries, nil
+	return series, nil
 }
 
 // GetSeriesByGenre gets TV series by genre
-func (s *mediaSeriesService[T]) GetSeriesByGenre(ctx context.Context, userID uint64, genre string) ([]*models.MediaItem[*mediatypes.Series], error) {
-	clients, err := s.getSeriesClients(ctx, userID)
+func (s *clientSeriesService[T]) GetSeriesByGenre(ctx context.Context, clientID uint64, genre string) ([]*models.MediaItem[*mediatypes.Series], error) {
+	log := utils.LoggerFromContext(ctx)
+	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
-
-	var allSeries []*models.MediaItem[*mediatypes.Series]
-
-	for _, client := range clients {
-		showProvider, ok := client.(providers.SeriesProvider)
-		if !ok {
-			continue
-		}
-
-		options := &mediatypes.QueryOptions{
-			Genre: genre,
-		}
-
-		series, err := showProvider.GetSeries(ctx, options)
-		if err != nil {
-			continue
-		}
-
-		allSeries = append(allSeries, series...)
+	options := &mediatypes.QueryOptions{
+		Genre: genre,
 	}
 
-	return allSeries, nil
+	series, err := provider.GetSeries(ctx, options)
+	if err != nil || len(series) == 0 {
+		// Log error but continue with other providers
+		log.Warn().
+			Err(err).
+			Uint64("clientID", clientID).
+			Str("genre", genre).
+			Msg("Error getting series by genre from client")
+
+	}
+
+	return series, nil
 }
 
 // GetSeriesByID gets a specific TV series by ID
-func (s *mediaSeriesService[T]) GetSeriesByID(ctx context.Context, userID, clientID uint64, seriesID string) (*models.MediaItem[*mediatypes.Series], error) {
-	client, err := s.getSpecificSeriesClient(ctx, userID, clientID)
+func (s *clientSeriesService[T]) GetSeriesByID(ctx context.Context, clientID uint64, seriesID string) (*models.MediaItem[*mediatypes.Series], error) {
+	client, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -197,13 +176,13 @@ func (s *mediaSeriesService[T]) GetSeriesByID(ctx context.Context, userID, clien
 }
 
 // GetSeasonByID gets a specific season by ID
-func (s *mediaSeriesService[T]) GetSeasonByID(ctx context.Context, userID, clientID uint64, seasonID string) (*models.MediaItem[*mediatypes.Season], error) {
+func (s *clientSeriesService[T]) GetSeasonByID(ctx context.Context, clientID uint64, seasonID string) (*models.MediaItem[*mediatypes.Season], error) {
 	// Note: The SeriesProvider interface doesn't have a GetSeasonByID method
 	// This implementation assumes season IDs are prefixed with "show_ID-season_number"
 	// This is a simplification, and in a real implementation, you might need a different approach
 
 	// Check if the client exists and supports series
-	_, err := s.getSpecificSeriesClient(ctx, userID, clientID)
+	_, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -215,8 +194,8 @@ func (s *mediaSeriesService[T]) GetSeasonByID(ctx context.Context, userID, clien
 }
 
 // GetEpisodeByID gets a specific episode by ID
-func (s *mediaSeriesService[T]) GetEpisodeByID(ctx context.Context, userID, clientID uint64, episodeID string) (*models.MediaItem[*mediatypes.Episode], error) {
-	client, err := s.getSpecificSeriesClient(ctx, userID, clientID)
+func (s *clientSeriesService[T]) GetEpisodeByID(ctx context.Context, clientID uint64, episodeID string) (*models.MediaItem[*mediatypes.Episode], error) {
+	client, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -236,546 +215,378 @@ func (s *mediaSeriesService[T]) GetEpisodeByID(ctx context.Context, userID, clie
 }
 
 // GetRecentlyAdded gets recently added TV series
-func (s *mediaSeriesService[T]) GetRecentlyAdded(ctx context.Context, userID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error) {
-	clients, err := s.getSeriesClients(ctx, userID)
+func (s *clientSeriesService[T]) GetRecentlyAdded(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error) {
+	log := utils.LoggerFromContext(ctx)
+	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
 
-	var allSeries []*models.MediaItem[*mediatypes.Series]
-
 	// Cut-off date (e.g., last 30 days)
 	cutoffDate := time.Now().AddDate(0, 0, -30)
 
-	for _, client := range clients {
-		showProvider, ok := client.(providers.SeriesProvider)
-		if !ok {
-			continue
-		}
+	options := &mediatypes.QueryOptions{
+		RecentlyAdded:  true,
+		DateAddedAfter: cutoffDate,
+		Sort:           "dateAdded",
+		SortOrder:      mediatypes.SortOrderDesc,
+		Limit:          count,
+	}
 
-		options := &mediatypes.QueryOptions{
-			RecentlyAdded:  true,
-			DateAddedAfter: cutoffDate,
-			Sort:           "dateAdded",
-			SortOrder:      mediatypes.SortOrderDesc,
-			Limit:          count,
-		}
-
-		series, err := showProvider.GetSeries(ctx, options)
-		if err != nil {
-			continue
-		}
-
-		allSeries = append(allSeries, series...)
+	series, err := provider.GetSeries(ctx, options)
+	if err != nil || len(series) == 0 {
+		// Log error but continue with other providers
+		log.Warn().
+			Err(err).
+			Uint64("clientID", clientID).
+			Msg("Error getting recently added series from client")
 	}
 
 	// Sort by date added (newest first)
 	// This assumes the Series type has an AddedAt field
 	// If not, you'll need to adjust this code
 
-	// Limit to requested count
-	if len(allSeries) > count {
-		allSeries = allSeries[:count]
-	}
-
-	return allSeries, nil
+	return series, nil
 }
 
 // GetOnGoing gets currently ongoing TV series
-func (s *mediaSeriesService[T]) GetOnGoing(ctx context.Context, userID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error) {
-	clients, err := s.getSeriesClients(ctx, userID)
+func (s *clientSeriesService[T]) GetOnGoing(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error) {
+	log := utils.LoggerFromContext(ctx)
+	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
 
-	var allSeries []*models.MediaItem[*mediatypes.Series]
-
-	for _, client := range clients {
-		showProvider, ok := client.(providers.SeriesProvider)
-		if !ok {
-			continue
-		}
-
-		// Use the MediaType field to specify "ongoing" series
-		options := &mediatypes.QueryOptions{
-			MediaType: "ongoing",
-			Limit:     count,
-		}
-
-		series, err := showProvider.GetSeries(ctx, options)
-		if err != nil {
-			continue
-		}
-
-		allSeries = append(allSeries, series...)
+	// Use the MediaType field to specify "ongoing" series
+	options := &mediatypes.QueryOptions{
+		MediaType: "ongoing",
+		Limit:     count,
 	}
 
-	// Filter to only include ongoing series
-	// This assumes the Series type has a Status field
-	// If not, you'll need to adjust this code
-
-	// Limit to requested count
-	if len(allSeries) > count {
-		allSeries = allSeries[:count]
+	series, err := provider.GetSeries(ctx, options)
+	if err != nil || len(series) == 0 {
+		// Log error but continue with other providers
+		log.Warn().
+			Err(err).
+			Uint64("clientID", clientID).
+			Msg("Error getting ongoing series from client")
 	}
 
-	return allSeries, nil
+	return series, nil
 }
 
 // GetRecentEpisodes gets recently aired episodes
-func (s *mediaSeriesService[T]) GetRecentEpisodes(ctx context.Context, userID uint64, count int) ([]*models.MediaItem[*mediatypes.Episode], error) {
-	clients, err := s.getSeriesClients(ctx, userID)
+func (s *clientSeriesService[T]) GetRecentEpisodes(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Episode], error) {
+	log := utils.LoggerFromContext(ctx)
+	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
-
-	var allEpisodes []*models.MediaItem[*mediatypes.Episode]
 
 	// Cut-off date (e.g., last 7 days)
 	cutoffDate := time.Now().AddDate(0, 0, -7)
 
-	for _, client := range clients {
-		showProvider, ok := client.(providers.SeriesProvider)
-		if !ok {
+	// First, get recently updated series
+	options := &mediatypes.QueryOptions{
+		ReleasedAfter: cutoffDate,
+		Sort:          "dateAdded",
+		SortOrder:     mediatypes.SortOrderDesc,
+		Limit:         10, // Get a reasonable number of shows
+	}
+
+	series, err := provider.GetSeries(ctx, options)
+
+	// For each series, get episodes from the latest season
+	for _, show := range series {
+		// Get the series ID from the ClientIDs
+		// We could use the first client ID as a simplification
+		if len(show.SyncClients) == 0 {
+			continue
+		}
+		showID := show.SyncClients[0].ItemID
+
+		// Get seasons for this series
+		seasons, err := provider.GetSeriesSeasons(ctx, showID)
+		if err != nil || len(seasons) == 0 {
 			continue
 		}
 
-		// First, get recently updated series
-		options := &mediatypes.QueryOptions{
-			ReleasedAfter: cutoffDate,
-			Sort:          "dateAdded",
-			SortOrder:     mediatypes.SortOrderDesc,
-			Limit:         10, // Get a reasonable number of shows
-		}
-
-		series, err := showProvider.GetSeries(ctx, options)
-		if err != nil {
-			continue
-		}
-
-		// For each series, get episodes from the latest season
-		for _, show := range series {
-			// Get the series ID from the ClientIDs
-			// We could use the first client ID as a simplification
-			if len(show.SyncClients) == 0 {
-				continue
-			}
-			showID := show.SyncClients[0].ItemID
-
-			// Get seasons for this series
-			seasons, err := showProvider.GetSeriesSeasons(ctx, showID)
-			if err != nil || len(seasons) == 0 {
-				continue
-			}
-
-			// Sort seasons by number to get the latest one
-			// This is a simple implementation - in a real app you might want to sort differently
-			var highestSeasonNum int
-			var latestSeasonIdx int
-			for i, season := range seasons {
-				if season.Data.Number > highestSeasonNum {
-					highestSeasonNum = season.Data.Number
-					latestSeasonIdx = i
-				}
-			}
-
-			latestSeason := seasons[latestSeasonIdx]
-
-			// Get episodes for the latest season
-			episodes, err := showProvider.GetSeriesEpisodes(ctx, showID, latestSeason.Data.Number)
-			if err != nil {
-				continue
-			}
-
-			// Add all episodes to our collection
-			// In a real implementation, you'd filter by air date
-			allEpisodes = append(allEpisodes, episodes...)
-
-			// If we have enough episodes, stop processing more shows
-			if len(allEpisodes) >= count {
-				break
+		// Sort seasons by number to get the latest one
+		// This is a simple implementation
+		var highestSeasonNum int
+		var latestSeasonIdx int
+		for i, season := range seasons {
+			if season.Data.Number > highestSeasonNum {
+				highestSeasonNum = season.Data.Number
+				latestSeasonIdx = i
 			}
 		}
+
+		latestSeason := seasons[latestSeasonIdx]
+
+		// Get episodes for the latest season
+		episodes, err := provider.GetSeriesEpisodes(ctx, showID, latestSeason.Data.Number)
+		if err != nil || len(episodes) == 0 {
+			// Log error but continue with other providers
+			log.Warn().
+				Err(err).
+				Uint64("clientID", clientID).
+				Str("showID", showID).
+				Msg("Error getting episodes for series from client")
+		}
+
+		return episodes, nil
+
 	}
+	return nil, nil
 
-	// Limit to requested count
-	if len(allEpisodes) > count {
-		allEpisodes = allEpisodes[:count]
-	}
-
-	return allEpisodes, nil
 }
 
 // GetSeriesByNetwork gets TV series by network
-func (s *mediaSeriesService[T]) GetSeriesByNetwork(ctx context.Context, userID uint64, network string) ([]*models.MediaItem[*mediatypes.Series], error) {
-	clients, err := s.getSeriesClients(ctx, userID)
+func (s *clientSeriesService[T]) GetSeriesByNetwork(ctx context.Context, clientID uint64, network string) ([]*models.MediaItem[*mediatypes.Series], error) {
+	log := utils.LoggerFromContext(ctx)
+	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
 
-	var allSeries []*models.MediaItem[*mediatypes.Series]
-
-	for _, client := range clients {
-		showProvider, ok := client.(providers.SeriesProvider)
-		if !ok {
-			continue
-		}
-
-		// Use the Studio field to filter by network
-		options := &mediatypes.QueryOptions{
-			Studio: network,
-		}
-
-		series, err := showProvider.GetSeries(ctx, options)
-		if err != nil {
-			continue
-		}
-
-		allSeries = append(allSeries, series...)
+	// Use the Studio field to filter by network
+	options := &mediatypes.QueryOptions{
+		Studio: network,
 	}
 
-	return allSeries, nil
+	series, err := provider.GetSeries(ctx, options)
+	if err != nil || len(series) == 0 {
+		// Log error but continue with other providers
+		log.Warn().
+			Err(err).
+			Uint64("clientID", clientID).
+			Str("network", network).
+			Msg("Error getting series by network from client")
+	}
+
+	return series, nil
 }
 
 // GetSeriesByYear gets TV series by release year
-func (s *mediaSeriesService[T]) GetSeriesByYear(ctx context.Context, userID uint64, year int) ([]*models.MediaItem[*mediatypes.Series], error) {
-	clients, err := s.getSeriesClients(ctx, userID)
+func (s *clientSeriesService[T]) GetSeriesByYear(ctx context.Context, clientID uint64, year int) ([]*models.MediaItem[*mediatypes.Series], error) {
+	log := utils.LoggerFromContext(ctx)
+	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
 
-	var allSeries []*models.MediaItem[*mediatypes.Series]
-
-	for _, client := range clients {
-		showProvider, ok := client.(providers.SeriesProvider)
-		if !ok {
-			continue
-		}
-
-		// Use the Year field to filter
-		options := &mediatypes.QueryOptions{
-			Year: year,
-		}
-
-		series, err := showProvider.GetSeries(ctx, options)
-		if err != nil {
-			continue
-		}
-
-		allSeries = append(allSeries, series...)
+	// Use the Year field to filter
+	options := &mediatypes.QueryOptions{
+		Year: year,
 	}
 
-	return allSeries, nil
+	series, err := provider.GetSeries(ctx, options)
+	if err != nil {
+		// Log error but continue with other providers
+		log.Warn().
+			Err(err).
+			Uint64("clientID", clientID).
+			Int("year", year).
+			Msg("Error getting series by year from client")
+	}
+
+	return series, nil
 }
 
 // GetSeriesByActor gets TV series by actor name/ID
-func (s *mediaSeriesService[T]) GetSeriesByActor(ctx context.Context, userID uint64, actor string) ([]*models.MediaItem[*mediatypes.Series], error) {
-	clients, err := s.getSeriesClients(ctx, userID)
+func (s *clientSeriesService[T]) GetSeriesByActor(ctx context.Context, clientID uint64, actor string) ([]*models.MediaItem[*mediatypes.Series], error) {
+	log := utils.LoggerFromContext(ctx)
+	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
 
-	var allSeries []*models.MediaItem[*mediatypes.Series]
-
-	for _, client := range clients {
-		showProvider, ok := client.(providers.SeriesProvider)
-		if !ok {
-			continue
-		}
-
-		// Use the Actor field to filter
-		options := &mediatypes.QueryOptions{
-			Actor: actor,
-		}
-
-		series, err := showProvider.GetSeries(ctx, options)
-		if err != nil {
-			continue
-		}
-
-		allSeries = append(allSeries, series...)
+	// Use the Actor field to filter
+	options := &mediatypes.QueryOptions{
+		Actor: actor,
 	}
 
-	return allSeries, nil
+	series, err := provider.GetSeries(ctx, options)
+	if err != nil {
+		// Log error but continue with other providers
+		log.Warn().
+			Err(err).
+			Uint64("clientID", clientID).
+			Str("actor", actor).
+			Msg("Error getting series by actor from client")
+		return nil, err
+	}
+	return series, nil
+
 }
 
 // GetSeriesByCreator gets TV series by creator/director
-func (s *mediaSeriesService[T]) GetSeriesByCreator(ctx context.Context, userID uint64, creator string) ([]*models.MediaItem[*mediatypes.Series], error) {
-	clients, err := s.getSeriesClients(ctx, userID)
+func (s *clientSeriesService[T]) GetSeriesByCreator(ctx context.Context, clientID uint64, creator string) ([]*models.MediaItem[*mediatypes.Series], error) {
+	log := utils.LoggerFromContext(ctx)
+	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
 
-	var allSeries []*models.MediaItem[*mediatypes.Series]
-
-	for _, client := range clients {
-		showProvider, ok := client.(providers.SeriesProvider)
-		if !ok {
-			continue
-		}
-
-		// Use the Creator field to filter
-		options := &mediatypes.QueryOptions{
-			Creator: creator,
-		}
-
-		series, err := showProvider.GetSeries(ctx, options)
-		if err != nil {
-			continue
-		}
-
-		allSeries = append(allSeries, series...)
+	// Use the Creator field to filter
+	options := &mediatypes.QueryOptions{
+		Creator: creator,
 	}
 
-	return allSeries, nil
+	series, err := provider.GetSeries(ctx, options)
+	if err != nil {
+		// Log error but continue with other providers
+		log.Warn().
+			Err(err).
+			Uint64("clientID", clientID).
+			Str("creator", creator).
+			Msg("Error getting series by creator from client")
+		return nil, err
+
+	}
+
+	return series, nil
 }
 
 // GetSeriesByRating gets TV series with ratings in the specified range
-func (s *mediaSeriesService[T]) GetSeriesByRating(ctx context.Context, userID uint64, minRating, maxRating float64) ([]*models.MediaItem[*mediatypes.Series], error) {
-	clients, err := s.getSeriesClients(ctx, userID)
+func (s *clientSeriesService[T]) GetSeriesByRating(ctx context.Context, clientID uint64, minRating, maxRating float64) ([]*models.MediaItem[*mediatypes.Series], error) {
+	log := utils.LoggerFromContext(ctx)
+	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
 
-	var allSeries []*models.MediaItem[*mediatypes.Series]
-
-	// Since rating is typically client-specific and might not be directly filterable,
-	// we'll get a broader set and filter in memory
-	for _, client := range clients {
-		showProvider, ok := client.(providers.SeriesProvider)
-		if !ok {
-			continue
-		}
-
-		// Get series with minimal filtering (could be optimized if clients support rating filters)
-		options := &mediatypes.QueryOptions{
-			Limit: 100, // Get a reasonable number of shows
-		}
-
-		series, err := showProvider.GetSeries(ctx, options)
-		if err != nil {
-			continue
-		}
-
-		// Filter by rating in memory
-		for _, s := range series {
-			// Check if rating is in range - Rating is in the Series struct, not in Details
-			if s.Data.Rating >= minRating && s.Data.Rating <= maxRating {
-				allSeries = append(allSeries, s)
-			}
-		}
+	// Get series with minimal filtering (could be optimized if providers support rating filters)
+	options := &mediatypes.QueryOptions{
+		Limit: 100, // Get a reasonable number of shows
 	}
 
-	return allSeries, nil
+	series, err := provider.GetSeries(ctx, options)
+	if err != nil {
+		// Log error but continue with other providers
+		log.Warn().
+			Err(err).
+			Uint64("clientID", clientID).
+			Msg("Error getting series with rating from client")
+	}
+
+	return series, nil
 }
 
 // GetLatestSeriesByAdded gets recently added series
-func (s *mediaSeriesService[T]) GetLatestSeriesByAdded(ctx context.Context, userID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error) {
-	clients, err := s.getSeriesClients(ctx, userID)
+func (s *clientSeriesService[T]) GetLatestSeriesByAdded(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error) {
+	log := utils.LoggerFromContext(ctx)
+	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
-
-	var allSeries []*models.MediaItem[*mediatypes.Series]
 
 	// Cut-off date (e.g., last 30 days)
 	cutoffDate := time.Now().AddDate(0, 0, -30)
 
-	for _, client := range clients {
-		showProvider, ok := client.(providers.SeriesProvider)
-		if !ok {
-			continue
-		}
+	options := &mediatypes.QueryOptions{
+		DateAddedAfter: cutoffDate,
+		Sort:           "dateAdded",
+		SortOrder:      mediatypes.SortOrderDesc,
+		Limit:          count,
+	}
 
-		options := &mediatypes.QueryOptions{
-			DateAddedAfter: cutoffDate,
-			Sort:           "dateAdded",
-			SortOrder:      mediatypes.SortOrderDesc,
-			Limit:          count,
-		}
-
-		series, err := showProvider.GetSeries(ctx, options)
-		if err != nil {
-			continue
-		}
-
-		allSeries = append(allSeries, series...)
+	series, err := provider.GetSeries(ctx, options)
+	if err != nil {
+		// Log error but continue with other providers
+		log.Warn().
+			Err(err).
+			Uint64("clientID", clientID).
+			Msg("Error getting recently added series from client")
+		return nil, err
 	}
 
 	// Sort all series by added date (newest first)
-	// This could be done with a custom sort, but we'll rely on the client sorting for now
-
-	// Limit to requested count
-	if len(allSeries) > count {
-		allSeries = allSeries[:count]
-	}
-
-	return allSeries, nil
+	return series, nil
 }
 
 // GetPopularSeries gets popular series based on play count, ratings, etc.
-func (s *mediaSeriesService[T]) GetPopularSeries(ctx context.Context, userID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error) {
-	clients, err := s.getSeriesClients(ctx, userID)
+func (s *clientSeriesService[T]) GetPopularSeries(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error) {
+	log := utils.LoggerFromContext(ctx)
+	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
 
-	var allSeries []*models.MediaItem[*mediatypes.Series]
-
-	for _, client := range clients {
-		showProvider, ok := client.(providers.SeriesProvider)
-		if !ok {
-			continue
-		}
-
-		// Use custom query parameters for popularity
-		options := &mediatypes.QueryOptions{
-			Sort:      "popularity", // Assuming clients support this sort method
-			SortOrder: mediatypes.SortOrderDesc,
-			Limit:     count,
-		}
-
-		series, err := showProvider.GetSeries(ctx, options)
-		if err != nil {
-			continue
-		}
-
-		allSeries = append(allSeries, series...)
+	// Use custom query parameters for popularity
+	options := &mediatypes.QueryOptions{
+		Sort:      "popularity", // Assuming providers support this sort method
+		SortOrder: mediatypes.SortOrderDesc,
+		Limit:     count,
 	}
 
-	// Limit to requested count
-	if len(allSeries) > count {
-		allSeries = allSeries[:count]
+	series, err := provider.GetSeries(ctx, options)
+	if err != nil || len(series) == 0 {
+		log.Warn().
+			Err(err).
+			Uint64("clientID", clientID).
+			Msg("Error getting popular series from client")
+		return nil, err
 	}
 
-	return allSeries, nil
+	return series, nil
 }
 
 // GetTopRatedSeries gets series with the highest ratings
-func (s *mediaSeriesService[T]) GetTopRatedSeries(ctx context.Context, userID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error) {
-	clients, err := s.getSeriesClients(ctx, userID)
+func (s *clientSeriesService[T]) GetTopRatedSeries(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error) {
+	log := utils.LoggerFromContext(ctx)
+	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
 
-	var allSeries []*models.MediaItem[*mediatypes.Series]
+	// Get series sorted by rating
+	options := &mediatypes.QueryOptions{
+		Sort:      "rating", // Assuming providers support rating sort
+		SortOrder: mediatypes.SortOrderDesc,
+		Limit:     count,
+	}
 
-	for _, client := range clients {
-		showProvider, ok := client.(providers.SeriesProvider)
-		if !ok {
-			continue
-		}
-
-		// Get series sorted by rating
-		options := &mediatypes.QueryOptions{
-			Sort:      "rating", // Assuming clients support rating sort
-			SortOrder: mediatypes.SortOrderDesc,
-			Limit:     count,
-		}
-
-		series, err := showProvider.GetSeries(ctx, options)
-		if err != nil {
-			continue
-		}
-
-		allSeries = append(allSeries, series...)
+	series, err := provider.GetSeries(ctx, options)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Uint64("clientID", clientID).
+			Msg("Error getting top rated series from client")
+		return nil, err
 	}
 
 	// We could sort all series by rating here if needed
 	// But for now, rely on the client sorting
 
-	// Limit to requested count
-	if len(allSeries) > count {
-		allSeries = allSeries[:count]
-	}
-
-	return allSeries, nil
+	return series, nil
 }
 
-// SearchSeries searches for series by name/title across all clients
-func (s *mediaSeriesService[T]) SearchSeries(ctx context.Context, userID uint64, query string) ([]*models.MediaItem[*mediatypes.Series], error) {
+// SearchSeries searches for series by name/title across all providers
+func (s *clientSeriesService[T]) SearchSeries(ctx context.Context, clientID uint64, query *mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Series], error) {
+	log := utils.LoggerFromContext(ctx)
 	// This is essentially the same as GetSeriesByName, but we'll make it explicit
-	clients, err := s.getSeriesClients(ctx, userID)
+	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
 
-	var allSeries []*models.MediaItem[*mediatypes.Series]
-
-	for _, client := range clients {
-		showProvider, ok := client.(providers.SeriesProvider)
-		if !ok {
-			continue
-		}
-
-		options := &mediatypes.QueryOptions{
-			Query: query,
-		}
-
-		series, err := showProvider.GetSeries(ctx, options)
-		if err != nil {
-			continue
-		}
-
-		allSeries = append(allSeries, series...)
+	series, err := provider.GetSeries(ctx, query)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Uint64("clientID", clientID).
+			Msg("Error searching series from client")
+		return nil, err
 	}
 
-	// Filter to prioritize more relevant matches
-	// This is a simple implementation to ensure matches
-	filteredSeries := allSeries[:0] // Reuse the same slice
-	lowerQuery := strings.ToLower(query)
-
-	// First pass: exact title matches
-	for _, s := range allSeries {
-		if strings.ToLower(s.Data.Details.Title) == lowerQuery {
-			filteredSeries = append(filteredSeries, s)
-		}
-	}
-
-	// Second pass: title starts with query
-	if len(filteredSeries) < 10 {
-		for _, s := range allSeries {
-			if strings.HasPrefix(strings.ToLower(s.Data.Details.Title), lowerQuery) {
-				// Check if already added in first pass
-				alreadyAdded := false
-				for _, fs := range filteredSeries {
-					if fs.Data.Details.Title == s.Data.Details.Title {
-						alreadyAdded = true
-						break
-					}
-				}
-				if !alreadyAdded {
-					filteredSeries = append(filteredSeries, s)
-				}
-			}
-		}
-	}
-
-	// Third pass: contains query anywhere in title
-	if len(filteredSeries) < 10 {
-		for _, s := range allSeries {
-			if strings.Contains(strings.ToLower(s.Data.Details.Title), lowerQuery) {
-				// Check if already added
-				alreadyAdded := false
-				for _, fs := range filteredSeries {
-					if fs.Data.Details.Title == s.Data.Details.Title {
-						alreadyAdded = true
-						break
-					}
-				}
-				if !alreadyAdded {
-					filteredSeries = append(filteredSeries, s)
-				}
-			}
-		}
-	}
-
-	return filteredSeries, nil
+	return series, nil
 }
 
 // GetSeasonsBySeriesID gets all seasons for a specific series
-func (s *mediaSeriesService[T]) GetSeasonsBySeriesID(ctx context.Context, userID, clientID uint64, seriesID string) ([]*models.MediaItem[*mediatypes.Season], error) {
-	client, err := s.getSpecificSeriesClient(ctx, userID, clientID)
+func (s *clientSeriesService[T]) GetSeasonsBySeriesID(ctx context.Context, clientID uint64, seriesID string) ([]*models.MediaItem[*mediatypes.Season], error) {
+	client, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
