@@ -18,12 +18,16 @@ import (
 func RegisterClientFactories(ctx context.Context, c *container.Container) {
 
 	// Server to register clients
+	// Get the service directly to avoid dependency issues
+	service := client.GetClientFactoryService()
+	
+	// Register it for others to use
 	container.RegisterFactory[*client.ClientFactoryService](c, func(c *container.Container) *client.ClientFactoryService {
-		return client.GetClientFactoryService()
+		return service
 	})
 
+	// Get the registry directly to avoid dependency issues
 	registry := container.MustGet[media.ClientItemRegistry](c)
-	service := container.MustGet[client.ClientFactoryService](c)
 
 	// EMBY CLIENT
 	service.RegisterClientFactory(clienttypes.ClientTypeEmby, func(ctx context.Context, clientID uint64, config clienttypes.ClientConfig) (client.Client, error) {

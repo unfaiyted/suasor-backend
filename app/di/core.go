@@ -26,8 +26,11 @@ func RegisterCore(ctx context.Context, c *container.Container, db *gorm.DB, conf
 	// This is responsible for creating clients based on the client type and client ID
 	// This is a singleton service that is shared across the application
 	// It ensures that our external clients are created only once and reused throughout the application
-	factories.RegisterClientFactories(ctx, c)
+	
+	// First register the ClientItemRegistry before it's needed by client factories
 	factories.RegisterClientMediaItemFactories(ctx, c)
+	// Then register client factories which depend on the registry
+	factories.RegisterClientFactories(ctx, c)
 
 	// Register config repository
 	container.RegisterFactory[repository.ConfigRepository](c, func(c *container.Container) repository.ConfigRepository {

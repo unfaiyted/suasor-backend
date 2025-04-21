@@ -35,6 +35,44 @@ func registerSystemServices(ctx context.Context, c *container.Container) {
 		db := container.MustGet[*gorm.DB](c)
 		return services.NewHealthService(db)
 	})
+	
+	// Job service
+	container.RegisterFactory[services.JobService](c, func(c *container.Container) services.JobService {
+		jobRepo := container.MustGet[repository.JobRepository](c)
+		userRepo := container.MustGet[repository.UserRepository](c)
+		configRepo := container.MustGet[repository.UserConfigRepository](c)
+		
+		// Media repositories needed for job service
+		coreRepos := container.MustGet[apprepository.CoreMediaItemRepositories](c)
+		movieRepo := coreRepos.MovieRepo()
+		seriesRepo := coreRepos.SeriesRepo()
+		musicRepo := coreRepos.TrackRepo()
+		
+		// User data repositories needed for job service
+		userDataRepos := container.MustGet[apprepository.UserMediaDataRepositories](c)
+		userMovieDataRepo := userDataRepos.MovieDataRepo()
+		userSeriesDataRepo := userDataRepos.SeriesDataRepo()
+		userMusicDataRepo := userDataRepos.TrackDataRepo()
+		
+		// Job implementations
+		// For simplicity, we'll pass nil for jobs that require more complex setup
+		// These can be initialized in a separate step or by extending the JobService
+		return services.NewJobService(
+			jobRepo, 
+			userRepo, 
+			configRepo,
+			movieRepo,
+			seriesRepo,
+			musicRepo,
+			userMovieDataRepo,
+			userSeriesDataRepo,
+			userMusicDataRepo,
+			nil, // recommendationJob
+			nil, // mediaSyncJob
+			nil, // watchHistorySyncJob
+			nil, // favoritesSyncJob
+		)
+	})
 
 	// Media services
 	container.RegisterFactory[appservices.PeopleServices](c, func(c *container.Container) appservices.PeopleServices {
