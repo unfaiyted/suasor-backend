@@ -3,6 +3,7 @@ package di
 
 import (
 	"context"
+	"fmt"
 	"gorm.io/gorm"
 	"suasor/app/container"
 	"suasor/app/di/factories"
@@ -14,52 +15,157 @@ import (
 	clienttypes "suasor/client/types"
 	"suasor/repository"
 	"suasor/services"
+	"suasor/services/jobs"
+	"suasor/services/jobs/recommendation"
+	"suasor/utils"
+	"time"
 )
 
 // RegisterServices registers all service dependencies
 func RegisterServices(ctx context.Context, c *container.Container) {
+	log := utils.LoggerFromContext(ctx)
 	// Register system services
+	log.Info().Msg("Registering system services")
 	registerSystemServices(ctx, c)
 
 	// Register client services
+	log.Info().Msg("Registering client services")
 	registerClientServices(ctx, c)
 
 	// Register three-pronged architecture services
+	log.Info().Msg("Registering three-pronged architecture services")
 	registerThreeProngedServices(ctx, c)
 }
 
 // Register system-level services
 func registerSystemServices(ctx context.Context, c *container.Container) {
+	log := utils.LoggerFromContext(ctx)
 	// Health service
+	log.Info().Msg("Registering health service")
 	container.RegisterFactory[services.HealthService](c, func(c *container.Container) services.HealthService {
 		db := container.MustGet[*gorm.DB](c)
 		return services.NewHealthService(db)
 	})
-	
+
+	// Auth service
+	log.Info().Msg("Registering auth service")
+	container.RegisterSingleton[services.AuthService](c, func(c *container.Container) services.AuthService {
+		fmt.Println("Creating AuthService")
+		fmt.Println("Getting UserRepository for AuthService")
+		userRepo := container.MustGet[repository.UserRepository](c)
+		fmt.Println("Got UserRepository for AuthService")
+		
+		fmt.Println("Getting SessionRepository for AuthService")
+		sessionRepo := container.MustGet[repository.SessionRepository](c)
+		fmt.Println("Got SessionRepository for AuthService")
+		
+		fmt.Println("Getting ConfigService for AuthService")
+		configService := container.MustGet[services.ConfigService](c)
+		fmt.Println("Got ConfigService for AuthService")
+
+		// Get auth config from config service
+		fmt.Println("Getting config for AuthService")
+		appConfig := configService.GetConfig()
+		fmt.Println("Got config for AuthService")
+
+		// Verify auth config values
+		fmt.Printf("AuthService config: JWTSecret=%s, TokenExpiration=%d, RefreshExpiryDays=%d, TokenIssuer=%s, TokenAudience=%s\n",
+			appConfig.Auth.JWTSecret,
+			appConfig.Auth.TokenExpiration,
+			appConfig.Auth.RefreshExpiryDays,
+			appConfig.Auth.TokenIssuer,
+			appConfig.Auth.TokenAudience)
+
+		// Set up auth service with config values
+		fmt.Println("Creating new AuthService instance")
+		authService := services.NewAuthService(
+			userRepo,
+			sessionRepo,
+			appConfig.Auth.JWTSecret,
+			time.Duration(appConfig.Auth.TokenExpiration)*time.Hour,
+			time.Duration(appConfig.Auth.RefreshExpiryDays)*24*time.Hour,
+			appConfig.Auth.TokenIssuer,
+			appConfig.Auth.TokenAudience,
+		)
+		fmt.Println("AuthService created successfully")
+		return authService
+	})
+
+	// Register job implementations
+	log.Info().Msg("Registering job implementations")
+
+	// Define empty jobs for different job types
+	recommendationJobImpl := &jobs.EmptyJob{JobName: "system.recommendation"}
+	mediaSyncJobImpl := &jobs.EmptyJob{JobName: "system.media.sync"}
+	watchHistorySyncJobImpl := &jobs.EmptyJob{JobName: "system.watch.history.sync"}
+	favoritesSyncJobImpl := &jobs.EmptyJob{JobName: "system.favorites.sync"}
+
+	// Register the empty jobs directly in the container
+	c.Register(recommendationJobImpl)
+	c.Register(mediaSyncJobImpl)
+	c.Register(watchHistorySyncJobImpl)
+	c.Register(favoritesSyncJobImpl)
+
+	// Media Sync Job - using a simple empty implementation
+	log.Info().Msg("Registering media sync job")
+	container.RegisterFactory[*jobs.MediaSyncJob](c, func(c *container.Container) *jobs.MediaSyncJob {
+		job := jobs.NewMediaSyncJob(ctx, c)
+		return job
+	})
+
+	// Watch History Sync Job - using existing definition but with fallback
+	log.Info().Msg("Registering watch history sync job")
+	container.RegisterFactory[*jobs.WatchHistorySyncJob](c, func(c *container.Container) *jobs.WatchHistorySyncJob {
+		job := jobs.NewWatchHistorySyncJob(ctx, c)
+
+		return job
+	})
+
+	// Favorites Sync Job - using existing definition but with fallback
+	log.Info().Msg("Registering favorites sync job")
+	container.RegisterFactory[*jobs.FavoritesSyncJob](c, func(c *container.Container) *jobs.FavoritesSyncJob {
+		job := jobs.NewFavoritesSyncJob(ctx, c)
+
+		return job
+	})
+
+	// Recommendation Job - using existing definition but with fallback
+	log.Info().Msg("Registering recommendation job")
+	container.RegisterFactory[*recommendation.RecommendationJob](c, func(c *container.Container) *recommendation.RecommendationJob {
+		job := recommendation.NewRecommendationJob(ctx, c)
+
+		return job
+	})
+
 	// Job service
+	log.Info().Msg("Registering job service")
 	container.RegisterFactory[services.JobService](c, func(c *container.Container) services.JobService {
 		jobRepo := container.MustGet[repository.JobRepository](c)
 		userRepo := container.MustGet[repository.UserRepository](c)
 		configRepo := container.MustGet[repository.UserConfigRepository](c)
-		
+
 		// Media repositories needed for job service
 		coreRepos := container.MustGet[apprepository.CoreMediaItemRepositories](c)
 		movieRepo := coreRepos.MovieRepo()
 		seriesRepo := coreRepos.SeriesRepo()
 		musicRepo := coreRepos.TrackRepo()
-		
+
 		// User data repositories needed for job service
 		userDataRepos := container.MustGet[apprepository.UserMediaDataRepositories](c)
 		userMovieDataRepo := userDataRepos.MovieDataRepo()
 		userSeriesDataRepo := userDataRepos.SeriesDataRepo()
 		userMusicDataRepo := userDataRepos.TrackDataRepo()
-		
+
+		// Get job implementations
+		watchHistorySyncJob := container.MustGet[*jobs.WatchHistorySyncJob](c)
+		favoritesSyncJob := container.MustGet[*jobs.FavoritesSyncJob](c)
+		mediaSyncJob := container.MustGet[*jobs.MediaSyncJob](c)
+		recommendationJob := container.MustGet[*recommendation.RecommendationJob](c)
+
 		// Job implementations
-		// For simplicity, we'll pass nil for jobs that require more complex setup
-		// These can be initialized in a separate step or by extending the JobService
 		return services.NewJobService(
-			jobRepo, 
-			userRepo, 
+			jobRepo,
+			userRepo,
 			configRepo,
 			movieRepo,
 			seriesRepo,
@@ -67,10 +173,10 @@ func registerSystemServices(ctx context.Context, c *container.Container) {
 			userMovieDataRepo,
 			userSeriesDataRepo,
 			userMusicDataRepo,
-			nil, // recommendationJob
-			nil, // mediaSyncJob
-			nil, // watchHistorySyncJob
-			nil, // favoritesSyncJob
+			recommendationJob,
+			mediaSyncJob,
+			watchHistorySyncJob,
+			favoritesSyncJob,
 		)
 	})
 
@@ -150,7 +256,9 @@ func registerClientServices(ctx context.Context, c *container.Container) {
 
 // Register services for the three-pronged architecture
 func registerThreeProngedServices(ctx context.Context, c *container.Container) {
+	log := utils.LoggerFromContext(ctx)
 	// Core media item services
+	log.Info().Msg("Registering core media item services")
 	container.RegisterFactory[appservices.CoreMediaItemServices](c, func(c *container.Container) appservices.CoreMediaItemServices {
 		factory := container.MustGet[factories.MediaDataFactory](c)
 		repos := container.MustGet[apprepository.CoreMediaItemRepositories](c)
@@ -158,6 +266,7 @@ func registerThreeProngedServices(ctx context.Context, c *container.Container) {
 	})
 
 	// User media item services
+	log.Info().Msg("Registering user media item services")
 	container.RegisterFactory[appservices.UserMediaItemServices](c, func(c *container.Container) appservices.UserMediaItemServices {
 		factory := container.MustGet[factories.MediaDataFactory](c)
 		coreServices := container.MustGet[appservices.CoreMediaItemServices](c)
@@ -166,6 +275,7 @@ func registerThreeProngedServices(ctx context.Context, c *container.Container) {
 	})
 
 	// Client media item services
+	log.Info().Msg("Registering client media item services")
 	container.RegisterFactory[appservices.ClientMediaItemServices[clienttypes.ClientMediaConfig]](c, func(c *container.Container) appservices.ClientMediaItemServices[clienttypes.ClientMediaConfig] {
 		factory := container.MustGet[factories.MediaDataFactory](c)
 		coreServices := container.MustGet[appservices.CoreMediaItemServices](c)
@@ -175,11 +285,13 @@ func registerThreeProngedServices(ctx context.Context, c *container.Container) {
 	})
 
 	// Collection services
+	log.Info().Msg("Registering collection services")
 	container.RegisterFactory[services.CoreListService[*mediatypes.Collection]](c, func(c *container.Container) services.CoreListService[*mediatypes.Collection] {
 		repos := container.MustGet[apprepository.CoreMediaItemRepositories](c)
 		return services.NewCoreListService(repos.CollectionRepo())
 	})
 
+	log.Info().Msg("Registering user collection services")
 	container.RegisterFactory[services.UserListService[*mediatypes.Collection]](c, func(c *container.Container) services.UserListService[*mediatypes.Collection] {
 		coreService := container.MustGet[services.CoreListService[*mediatypes.Collection]](c)
 		userItemRepos := container.MustGet[apprepository.UserMediaItemRepositories](c)
@@ -188,6 +300,7 @@ func registerThreeProngedServices(ctx context.Context, c *container.Container) {
 		return services.NewUserListService(coreService, userItemRepos.CollectionUserRepo(), userDataRepo)
 	})
 
+	log.Info().Msg("Registering client collection services,emby")
 	container.RegisterFactory[services.ClientListService[*types.EmbyConfig, *mediatypes.Collection]](c, func(c *container.Container) services.ClientListService[*types.EmbyConfig, *mediatypes.Collection] {
 		coreListService := container.MustGet[services.CoreListService[*mediatypes.Collection]](c)
 		clientRepo := container.MustGet[repository.ClientRepository[*types.EmbyConfig]](c)
@@ -195,6 +308,7 @@ func registerThreeProngedServices(ctx context.Context, c *container.Container) {
 		return services.NewClientListService[*types.EmbyConfig, *mediatypes.Collection](coreListService, clientRepo, &clientFactory)
 	})
 
+	log.Info().Msg("Registering client collection services,jellyfin")
 	container.RegisterFactory[services.ClientListService[*types.JellyfinConfig, *mediatypes.Collection]](c, func(c *container.Container) services.ClientListService[*types.JellyfinConfig, *mediatypes.Collection] {
 		coreListService := container.MustGet[services.CoreListService[*mediatypes.Collection]](c)
 		clientRepo := container.MustGet[repository.ClientRepository[*types.JellyfinConfig]](c)
@@ -202,13 +316,16 @@ func registerThreeProngedServices(ctx context.Context, c *container.Container) {
 		return services.NewClientListService[*types.JellyfinConfig, *mediatypes.Collection](coreListService, clientRepo, &clientFactory)
 	})
 
+	log.Info().Msg("Registering client collection services,plex")
 	container.RegisterFactory[services.ClientListService[*types.PlexConfig, *mediatypes.Collection]](c, func(c *container.Container) services.ClientListService[*types.PlexConfig, *mediatypes.Collection] {
+
 		coreListService := container.MustGet[services.CoreListService[*mediatypes.Collection]](c)
 		clientRepo := container.MustGet[repository.ClientRepository[*types.PlexConfig]](c)
 		clientFactory := container.MustGet[client.ClientFactoryService](c)
 		return services.NewClientListService[*types.PlexConfig, *mediatypes.Collection](coreListService, clientRepo, &clientFactory)
 	})
 
+	log.Info().Msg("Registering client collection services, subsonic")
 	container.RegisterFactory[services.ClientListService[*types.SubsonicConfig, *mediatypes.Collection]](c, func(c *container.Container) services.ClientListService[*types.SubsonicConfig, *mediatypes.Collection] {
 		coreListService := container.MustGet[services.CoreListService[*mediatypes.Collection]](c)
 		clientRepo := container.MustGet[repository.ClientRepository[*types.SubsonicConfig]](c)

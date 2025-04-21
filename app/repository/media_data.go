@@ -8,14 +8,14 @@ import (
 
 // CoreUserMediaItemDataRepositories defines the core data repositories
 type CoreUserMediaItemDataRepositories interface {
-	MovieCoreService() repository.UserMediaItemDataRepository[*mediatypes.Movie]
-	SeriesCoreService() repository.UserMediaItemDataRepository[*mediatypes.Series]
-	EpisodeCoreService() repository.UserMediaItemDataRepository[*mediatypes.Episode]
-	TrackCoreService() repository.UserMediaItemDataRepository[*mediatypes.Track]
-	AlbumCoreService() repository.UserMediaItemDataRepository[*mediatypes.Album]
-	ArtistCoreService() repository.UserMediaItemDataRepository[*mediatypes.Artist]
-	CollectionCoreService() repository.UserMediaItemDataRepository[*mediatypes.Collection]
-	PlaylistCoreService() repository.UserMediaItemDataRepository[*mediatypes.Playlist]
+	MovieCoreService() repository.CoreUserMediaItemDataRepository[*mediatypes.Movie]
+	SeriesCoreService() repository.CoreUserMediaItemDataRepository[*mediatypes.Series]
+	EpisodeCoreService() repository.CoreUserMediaItemDataRepository[*mediatypes.Episode]
+	TrackCoreService() repository.CoreUserMediaItemDataRepository[*mediatypes.Track]
+	AlbumCoreService() repository.CoreUserMediaItemDataRepository[*mediatypes.Album]
+	ArtistCoreService() repository.CoreUserMediaItemDataRepository[*mediatypes.Artist]
+	CollectionCoreService() repository.CoreUserMediaItemDataRepository[*mediatypes.Collection]
+	PlaylistCoreService() repository.CoreUserMediaItemDataRepository[*mediatypes.Playlist]
 }
 
 // UserDataFactories defines the user data repositories

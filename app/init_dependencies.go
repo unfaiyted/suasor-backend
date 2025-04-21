@@ -7,6 +7,7 @@ import (
 	"suasor/app/container"
 	"suasor/app/di"
 	"suasor/services"
+	"suasor/utils"
 )
 
 type AppDependencies struct {
@@ -23,6 +24,7 @@ func (deps *AppDependencies) GetContainer() *container.Container {
 }
 
 func InitializeDependencies(ctx context.Context, db *gorm.DB, configService services.ConfigService) *AppDependencies {
+	log := utils.LoggerFromContext(ctx)
 	// Create and initialize the container using the new DI structure
 	c := di.Initialize(ctx, db, configService)
 
@@ -32,5 +34,6 @@ func InitializeDependencies(ctx context.Context, db *gorm.DB, configService serv
 		db:        db,
 	}
 
+	log.Info().Msg("Initializing core services")
 	return deps
 }

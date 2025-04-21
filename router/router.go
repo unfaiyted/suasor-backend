@@ -16,6 +16,7 @@ func Setup(ctx context.Context, c *container.Container) *gin.Engine {
 	r := gin.Default()
 	log := utils.LoggerFromContext(ctx)
 
+	log.Info().Msg("Setting up CORS middleware")
 	configService := container.MustGet[services.ConfigService](c)
 	appConfig := configService.GetConfig()
 
@@ -32,14 +33,16 @@ func Setup(ctx context.Context, c *container.Container) *gin.Engine {
 	r.Use(cors.New(config))
 
 	// Setup API v1 routes
+	log.Info().Msg("Setting up API v1 routes")
 	v1 := r.Group("/api/v1")
 
-	healthService := container.MustGet[services.HealthService](c)
-	authService := container.MustGet[services.AuthService](c)
-
 	// {base}/health
+	healthService := container.MustGet[services.HealthService](c)
+	log.Info().Msg("Setting up health routes")
 	RegisterHealthRoutes(v1, healthService)
 	// {base}/auth
+	log.Info().Msg("Setting up auth routes")
+	authService := container.MustGet[services.AuthService](c)
 	RegisterAuthRoutes(v1, authService)
 
 	// Serve static avatar files
@@ -51,36 +54,36 @@ func Setup(ctx context.Context, c *container.Container) *gin.Engine {
 	{
 		// User Centric Data
 		// {base}/user/
-		RegisterUserRoutes(authenticated, c)
+		// RegisterUserRoutes(authenticated, c)
 
 		// {base}/user-config/
-		RegisterUserConfigRoutes(authenticated, c)
+		// RegisterUserConfigRoutes(authenticated, c)
 
 		// {base}/media-data/
-		RegisterMediaItemDataRoutes(authenticated, c) // Register media play history routes
+		// RegisterMediaItemDataRoutes(authenticated, c) // Register media play history routes
 
 		// {base}/people/
-		RegisterPeopleBasedRoutes(authenticated, c)
+		// RegisterPeopleBasedRoutes(authenticated, c)
 
 		// {base}/metadata/
-		RegisterMetadataRoutes(authenticated, c) // Register metadata routes
+		// RegisterMetadataRoutes(authenticated, c) // Register metadata routes
 
 		// {base}/playlists or {base}/collections
-		RegisterLocalMediaListRoutes(authenticated, c)
+		// RegisterLocalMediaListRoutes(authenticated, c)
 
 		// {base}/history/
-		RegisterMediaPlayHistoryRoutes(authenticated, c)
+		// RegisterMediaPlayHistoryRoutes(authenticated, c)
 
 		// {base}/ai/
-		RegisterAIRoutes(authenticated, c) // Register AI routes
+		// RegisterAIRoutes(authenticated, c) // Register AI routes
 		// {base}/clients/
-		RegisterClientsRoutes(authenticated, c) // Register all clients route
+		// RegisterClientsRoutes(authenticated, c) // Register all clients route
 		// {base}/jobs/
-		RegisterJobRoutes(authenticated, c) // Register job routes
+		// RegisterJobRoutes(authenticated, c) // Register job routes
 		// {base}/recommendations/
-		RegisterRecommendationRoutes(authenticated, c) // Register recommendation routes
+		// RegisterRecommendationRoutes(authenticated, c) // Register recommendation routes
 		// {base}/search/
-		RegisterSearchRoutes(authenticated, c) // Register search routes
+		// RegisterSearchRoutes(authenticated, c) // Register search routes
 	}
 
 	//Admin Routes
@@ -88,9 +91,9 @@ func Setup(ctx context.Context, c *container.Container) *gin.Engine {
 	adminRoutes.Use(middleware.VerifyToken(authService), middleware.RequireRole("admin"))
 	{
 		// {base}/admin/config/
-		RegisterConfigRoutes(adminRoutes, configService)
+		// RegisterConfigRoutes(adminRoutes, configService)
 		// {base}/admin/client/
-		RegisterClientRoutes(adminRoutes, c)
+		// RegisterClientRoutes(adminRoutes, c)
 	}
 
 	return r

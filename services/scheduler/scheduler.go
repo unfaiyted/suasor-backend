@@ -51,6 +51,11 @@ func (s *Scheduler) Start() {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
+	if len(s.jobs) == 0 {
+		log.Println("Starting scheduler with no registered jobs")
+		return
+	}
+
 	for name, job := range s.jobs {
 		s.scheduleJob(name, job, 0) // Schedule immediately for the first run
 	}

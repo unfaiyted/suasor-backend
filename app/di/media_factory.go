@@ -56,8 +56,16 @@ func (f *mediaDataFactoryImpl) CreateCoreRepositories() repository.CoreMediaItem
 
 // CreateCoreDataRepositories initializes all core user data repositories
 func (f *mediaDataFactoryImpl) CreateCoreDataRepositories() repository.CoreUserMediaItemDataRepositories {
-	// Placeholder implementation - will be updated with proper repository initialization
-	return nil
+	return &coreCoreUserMediaItemDataRepositoriesImpl{
+		movieCoreRepo:      repo.NewCoreUserMediaItemDataRepository[*mediatypes.Movie](f.db),
+		seriesCoreRepo:     repo.NewCoreUserMediaItemDataRepository[*mediatypes.Series](f.db),
+		episodeCoreRepo:    repo.NewCoreUserMediaItemDataRepository[*mediatypes.Episode](f.db),
+		trackCoreRepo:      repo.NewCoreUserMediaItemDataRepository[*mediatypes.Track](f.db),
+		albumCoreRepo:      repo.NewCoreUserMediaItemDataRepository[*mediatypes.Album](f.db),
+		artistCoreRepo:     repo.NewCoreUserMediaItemDataRepository[*mediatypes.Artist](f.db),
+		collectionCoreRepo: repo.NewCoreUserMediaItemDataRepository[*mediatypes.Collection](f.db),
+		playlistCoreRepo:   repo.NewCoreUserMediaItemDataRepository[*mediatypes.Playlist](f.db),
+	}
 }
 
 // --------------------------------------------------------
@@ -1519,4 +1527,47 @@ func (h *clientMediaItemDataHandlersImpl) PlaylistClientDataHandler() handlers.C
 
 func (h *clientMediaItemDataHandlersImpl) SeasonClientDataHandler() handlers.ClientUserMediaItemDataHandler[*mediatypes.Season] {
 	return h.seasonClientDataHandler
+}
+
+// coreCoreUserMediaItemDataRepositoriesImpl
+type coreCoreUserMediaItemDataRepositoriesImpl struct {
+	movieCoreRepo      repo.CoreUserMediaItemDataRepository[*mediatypes.Movie]
+	seriesCoreRepo     repo.CoreUserMediaItemDataRepository[*mediatypes.Series]
+	episodeCoreRepo    repo.CoreUserMediaItemDataRepository[*mediatypes.Episode]
+	trackCoreRepo      repo.CoreUserMediaItemDataRepository[*mediatypes.Track]
+	albumCoreRepo      repo.CoreUserMediaItemDataRepository[*mediatypes.Album]
+	artistCoreRepo     repo.CoreUserMediaItemDataRepository[*mediatypes.Artist]
+	collectionCoreRepo repo.CoreUserMediaItemDataRepository[*mediatypes.Collection]
+	playlistCoreRepo   repo.CoreUserMediaItemDataRepository[*mediatypes.Playlist]
+}
+
+func (r *coreCoreUserMediaItemDataRepositoriesImpl) MovieCoreService() repo.CoreUserMediaItemDataRepository[*mediatypes.Movie] {
+	return r.movieCoreRepo
+}
+
+func (r *coreCoreUserMediaItemDataRepositoriesImpl) SeriesCoreService() repo.CoreUserMediaItemDataRepository[*mediatypes.Series] {
+	return r.seriesCoreRepo
+}
+
+func (r *coreCoreUserMediaItemDataRepositoriesImpl) EpisodeCoreService() repo.CoreUserMediaItemDataRepository[*mediatypes.Episode] {
+	return r.episodeCoreRepo
+}
+
+func (r *coreCoreUserMediaItemDataRepositoriesImpl) TrackCoreService() repo.CoreUserMediaItemDataRepository[*mediatypes.Track] {
+	return r.trackCoreRepo
+}
+
+func (r *coreCoreUserMediaItemDataRepositoriesImpl) AlbumCoreService() repo.CoreUserMediaItemDataRepository[*mediatypes.Album] {
+	return r.albumCoreRepo
+}
+
+func (r *coreCoreUserMediaItemDataRepositoriesImpl) ArtistCoreService() repo.CoreUserMediaItemDataRepository[*mediatypes.Artist] {
+	return r.artistCoreRepo
+}
+
+func (r *coreCoreUserMediaItemDataRepositoriesImpl) CollectionCoreService() repo.CoreUserMediaItemDataRepository[*mediatypes.Collection] {
+	return r.collectionCoreRepo
+}
+func (r *coreCoreUserMediaItemDataRepositoriesImpl) PlaylistCoreService() repo.CoreUserMediaItemDataRepository[*mediatypes.Playlist] {
+	return r.playlistCoreRepo
 }

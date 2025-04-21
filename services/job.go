@@ -125,6 +125,27 @@ func NewJobService(
 
 // StartScheduler starts the job scheduler
 func (s *jobService) StartScheduler() error {
+	// Check if we have any jobs before starting the scheduler
+	if len(s.jobs) == 0 {
+		log.Printf("Warning: Starting scheduler with no registered jobs")
+		// Continue anyway - the scheduler can handle zero jobs
+	}
+	
+	// Verify all job implementations are defined
+	if s.recommendationJob == nil {
+		log.Printf("Warning: recommendationJob is nil, some recommendation functionality will be unavailable")
+	}
+	if s.mediaSyncJob == nil {
+		log.Printf("Warning: mediaSyncJob is nil, some media sync functionality will be unavailable")
+	}
+	if s.watchHistorySyncJob == nil {
+		log.Printf("Warning: watchHistorySyncJob is nil, some watch history sync functionality will be unavailable")
+	}
+	if s.favoritesSyncJob == nil {
+		log.Printf("Warning: favoritesSyncJob is nil, some favorites sync functionality will be unavailable")
+	}
+	
+	// Start the scheduler
 	s.scheduler.Start()
 	return nil
 }
@@ -148,6 +169,12 @@ func (s *jobService) SyncDatabaseJobs(ctx context.Context) error {
 	systemJobs := make([]scheduler.Job, 0, len(s.jobs))
 	for _, job := range s.jobs {
 		systemJobs = append(systemJobs, job)
+	}
+
+	// Check if we have any jobs to register
+	if len(systemJobs) == 0 {
+		log.Printf("Warning: No job implementations registered. Job scheduler will not run any jobs.")
+		return nil
 	}
 
 	// Register system jobs in the database

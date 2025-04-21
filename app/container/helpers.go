@@ -11,19 +11,30 @@ import (
 func GetTyped[T any](c *Container) (T, error) {
 	var zero T
 	t := reflect.TypeOf((*T)(nil)).Elem()
+	fmt.Printf("GetTyped called for type: %v\n", t)
+	
 	component, err := c.Get(t)
 	if err != nil {
+		fmt.Printf("GetTyped failed for type %v with error: %v\n", t, err)
 		return zero, err
 	}
+	
+	fmt.Printf("GetTyped succeeded for type: %v\n", t)
 	return component.(T), nil
 }
 
 // MustGet retrieves a component or panics if not found
 func MustGet[T any](c *Container) T {
+	t := reflect.TypeOf((*T)(nil)).Elem()
+	fmt.Printf("MustGet called for type: %v\n", t)
+	
 	result, err := GetTyped[T](c)
 	if err != nil {
+		fmt.Printf("MustGet failed for type %v with error: %v\n", t, err)
 		panic(fmt.Sprintf("Failed to get component: %v", err))
 	}
+	
+	fmt.Printf("MustGet succeeded for type: %v\n", t)
 	return result
 }
 

@@ -12,12 +12,12 @@ import (
 	"suasor/types"
 	logger "suasor/utils"
 
-	_ "suasor/client/ai/claude"  // Force init() to run
-	_ "suasor/client/media/emby" // Force init() to run
-	_ "suasor/client/media/jellyfin"
-	_ "suasor/client/media/plex"
-	_ "suasor/client/media/subsonic"
-	_ "suasor/client/metadata/tmdb"
+	// _ "suasor/client/ai/claude"  // Force init() to run
+	// _ "suasor/client/media/emby" // Force init() to run
+	// _ "suasor/client/media/jellyfin"
+	// _ "suasor/client/media/plex"
+	// _ "suasor/client/media/subsonic"
+	// _ "suasor/client/metadata/tmdb"
 	_ "suasor/docs"
 
 	swaggerFiles "github.com/swaggo/files"
@@ -62,14 +62,16 @@ func main() {
 		Port:     appConfig.Db.Port,
 	}
 
+	log.Info().Msg("Initializing database")
 	db, err := database.Initialize(ctx, dbConfig)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to connect to database:")
 	}
 
-	// Initialize application dependencies with the improved architecture
+	log.Info().Msg("Initializing application dependencies")
 	deps := app.InitializeDependencies(ctx, db, configService)
 
+	log.Info().Msg("Initializing job service")
 	jobService := container.MustGet[services.JobService](deps.GetContainer())
 	log.Info().Msg("Job service initialized")
 
@@ -83,9 +85,12 @@ func main() {
 	if err := jobService.SyncDatabaseJobs(ctx); err != nil {
 		log.Error().Err(err).Msg("Failed to sync job schedules from database")
 	}
+	log.Info().Msg("Job scheduler disabled temporarily")
 
+	log.Info().Msg("Setting up router")
 	r := router.Setup(ctx, deps.GetContainer())
 
+	log.Info().Msg("Setting up middleware")
 	r.Use(middleware.LoggerMiddleware())
 
 	// Swagger Docs
