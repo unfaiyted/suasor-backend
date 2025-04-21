@@ -26,6 +26,7 @@ type ClientMediaItemService[T clienttypes.ClientMediaConfig, U types.MediaData] 
 	GetByMultipleClients(ctx context.Context, clientIDs []uint64) ([]*models.MediaItem[U], error)
 	SearchAcrossClients(ctx context.Context, query types.QueryOptions, clientIDs []uint64) (map[uint64][]*models.MediaItem[U], error)
 
+	DeleteClientItem(ctx context.Context, clientID uint64, itemID string) error
 	// Sync operations
 	SyncItemBetweenClients(ctx context.Context, itemID uint64, sourceClientID uint64, targetClientID uint64, targetItemID string) error
 }
@@ -33,6 +34,7 @@ type ClientMediaItemService[T clienttypes.ClientMediaConfig, U types.MediaData] 
 // clientMediaItemService implements ClientMediaItemService
 type clientMediaItemService[T clienttypes.ClientMediaConfig, U types.MediaData] struct {
 	CoreMediaItemService[U] // Embed the core service
+	clientRepo              repository.ClientRepository[T]
 	itemRepo                repository.ClientMediaItemRepository[U]
 }
 
@@ -44,6 +46,7 @@ func NewClientMediaItemService[T clienttypes.ClientMediaConfig, U types.MediaDat
 ) ClientMediaItemService[T, U] {
 	return &clientMediaItemService[T, U]{
 		CoreMediaItemService: coreService,
+		clientRepo:           clientRepo,
 		itemRepo:             itemRepo,
 	}
 }
@@ -191,6 +194,31 @@ func (s *clientMediaItemService[T, U]) SyncItemBetweenClients(ctx context.Contex
 		Uint64("sourceClientID", sourceClientID).
 		Uint64("targetClientID", targetClientID).
 		Msg("Item synced between clients successfully")
+
+	return nil
+}
+
+func (s *clientMediaItemService[T, U]) DeleteClientItem(ctx context.Context, clientID uint64, itemID string) error {
+	log := utils.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("clientID", clientID).
+		Str("itemID", itemID).
+		Msg("Deleting client item")
+
+	// Delegate to client repository
+	err := s.itemRepo.DeleteClientItem(ctx, clientID, itemID)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("clientID", clientID).
+			Str("itemID", itemID).
+			Msg("Failed to delete client item")
+		return err
+	}
+
+	log.Info().
+		Uint64("clientID", clientID).
+		Str("itemID", itemID).
+		Msg("Client item deleted successfully")
 
 	return nil
 }

@@ -66,7 +66,7 @@ func Setup(ctx context.Context, c *container.Container) *gin.Engine {
 		RegisterMetadataRoutes(authenticated, c) // Register metadata routes
 
 		// {base}/playlists or {base}/collections
-		RegisterMediaListRoutes(authenticated, c)
+		RegisterLocalMediaListRoutes(authenticated, c)
 
 		// {base}/history/
 		RegisterMediaPlayHistoryRoutes(authenticated, c)

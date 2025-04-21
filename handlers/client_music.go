@@ -122,7 +122,7 @@ func (h *clientMusicHandler[T]) GetClientTrackByID(c *gin.Context) {
 		Str("trackID", trackID).
 		Msg("Retrieving track by ID")
 
-	track, err := h.musicService.GetTrackByID(ctx, uid, clientID, trackID)
+	track, err := h.musicService.GetClientTrackByID(ctx, clientID, trackID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -186,7 +186,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumByID(c *gin.Context) {
 		Str("albumID", albumID).
 		Msg("Retrieving album by ID")
 
-	album, err := h.musicService.GetAlbumByID(ctx, uid, clientID, albumID)
+	album, err := h.musicService.GetClientAlbumByID(ctx, clientID, albumID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -250,7 +250,7 @@ func (h *clientMusicHandler[T]) GetClientArtistByID(c *gin.Context) {
 		Str("artistID", artistID).
 		Msg("Retrieving artist by ID")
 
-	artist, err := h.musicService.GetArtistByID(ctx, uid, clientID, artistID)
+	artist, err := h.musicService.GetClientArtistByID(ctx, clientID, artistID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -314,7 +314,7 @@ func (h *clientMusicHandler[T]) GetClientTracksByAlbum(c *gin.Context) {
 		Str("albumID", albumID).
 		Msg("Retrieving tracks by album")
 
-	tracks, err := h.musicService.GetTracksByAlbum(ctx, uid, clientID, albumID)
+	tracks, err := h.musicService.GetClientTracksByAlbum(ctx, clientID, albumID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -379,7 +379,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByArtist(c *gin.Context) {
 		Str("artistID", artistID).
 		Msg("Retrieving albums by artist")
 
-	albums, err := h.musicService.GetAlbumsByArtist(ctx, uid, clientID, artistID)
+	albums, err := h.musicService.GetClientAlbumsByArtist(ctx, clientID, artistID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -432,7 +432,7 @@ func (h *clientMusicHandler[T]) GetClientArtistsByGenre(c *gin.Context) {
 		Str("genre", genre).
 		Msg("Retrieving artists by genre")
 
-	artists, err := h.musicService.GetArtistsByGenre(ctx, uid, genre)
+	artists, err := h.musicService.GetClientArtistsByGenre(ctx, uid, genre)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -461,7 +461,7 @@ func (h *clientMusicHandler[T]) GetClientArtistsByGenre(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved"
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /music/albums/genre/{genre} [get]
+// @Router /client/{clientID}/music/albums/genre/{genre} [get]
 func (h *clientMusicHandler[T]) GetClientAlbumsByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -482,8 +482,15 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByGenre(c *gin.Context) {
 		Uint64("userID", uid).
 		Str("genre", genre).
 		Msg("Retrieving albums by genre")
+	clientIDStr := c.Param("clientID")
+	clientID, err := strconv.ParseUint(clientIDStr, 10, 64)
+	if err != nil {
+		log.Error().Err(err).Str("clientID", clientIDStr).Msg("Invalid client ID format")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
+		return
+	}
 
-	albums, err := h.musicService.GetAlbumsByGenre(ctx, uid, genre)
+	albums, err := h.musicService.GetClientAlbumsByGenre(ctx, clientID, genre)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -512,7 +519,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByGenre(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved"
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /music/tracks/genre/{genre} [get]
+// @Router /client/{clientID}/music/tracks/genre/{genre} [get]
 func (h *clientMusicHandler[T]) GetClientTracksByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -533,8 +540,15 @@ func (h *clientMusicHandler[T]) GetClientTracksByGenre(c *gin.Context) {
 		Uint64("userID", uid).
 		Str("genre", genre).
 		Msg("Retrieving tracks by genre")
+	clientIDStr := c.Param("clientID")
+	clientID, err := strconv.ParseUint(clientIDStr, 10, 64)
+	if err != nil {
+		log.Error().Err(err).Str("clientID", clientIDStr).Msg("Invalid client ID format")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
+		return
+	}
 
-	tracks, err := h.musicService.GetTracksByGenre(ctx, uid, genre)
+	tracks, err := h.musicService.GetClientTracksByGenre(ctx, clientID, genre)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -591,8 +605,15 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByYear(c *gin.Context) {
 		Uint64("userID", uid).
 		Int("year", year).
 		Msg("Retrieving albums by year")
+	clientIDStr := c.Param("clientID")
+	clientID, err := strconv.ParseUint(clientIDStr, 10, 64)
+	if err != nil {
+		log.Error().Err(err).Str("clientID", clientIDStr).Msg("Invalid client ID format")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
+		return
+	}
 
-	albums, err := h.musicService.GetAlbumsByYear(ctx, uid, year)
+	albums, err := h.musicService.GetClientAlbumsByYear(ctx, clientID, year)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -649,8 +670,15 @@ func (h *clientMusicHandler[T]) GetClientLatestAlbumsByAdded(c *gin.Context) {
 		Uint64("userID", uid).
 		Int("count", count).
 		Msg("Retrieving latest albums by added date")
+	clientIDStr := c.Param("clientID")
+	clientID, err := strconv.ParseUint(clientIDStr, 10, 64)
+	if err != nil {
+		log.Error().Err(err).Str("clientID", clientIDStr).Msg("Invalid client ID format")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
+		return
+	}
 
-	albums, err := h.musicService.GetLatestAlbumsByAdded(ctx, uid, count)
+	albums, err := h.musicService.GetClientRecentlyAddedAlbums(ctx, clientID, count)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -708,7 +736,7 @@ func (h *clientMusicHandler[T]) GetClientPopularAlbums(c *gin.Context) {
 		Int("count", count).
 		Msg("Retrieving popular albums")
 
-	albums, err := h.musicService.GetPopularAlbums(ctx, uid, count)
+	albums, err := h.musicService.GetClientTopAlbums(ctx, uid, count)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -766,7 +794,7 @@ func (h *clientMusicHandler[T]) GetClientPopularArtists(c *gin.Context) {
 		Int("count", count).
 		Msg("Retrieving popular artists")
 
-	artists, err := h.musicService.GetPopularArtists(ctx, uid, count)
+	artists, err := h.musicService.GetClientTopArtists(ctx, uid, count)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -823,8 +851,18 @@ func (h *clientMusicHandler[T]) SearchClientMusic(c *gin.Context) {
 		Uint64("userID", uid).
 		Str("query", query).
 		Msg("Searching music")
+	clientIDStr := c.Param("clientID")
+	clientID, err := strconv.ParseUint(clientIDStr, 10, 64)
+	if err != nil {
+		log.Error().Err(err).Str("clientID", clientIDStr).Msg("Invalid client ID format")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
+		return
+	}
+	options := mediatypes.QueryOptions{
+		Query: query,
+	}
 
-	results, err := h.musicService.SearchMusic(ctx, uid, query)
+	results, err := h.musicService.SearchMusic(ctx, clientID, &options)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -904,7 +942,7 @@ func (h *clientMusicHandler[T]) GetClientTopTracks(c *gin.Context) {
 		Int("limit", limit).
 		Msg("Retrieving top tracks")
 
-	tracks, err := h.musicService.GetTopTracks(ctx, uid, clientID, limit)
+	tracks, err := h.musicService.GetClientTopTracks(ctx, clientID, limit)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -976,7 +1014,7 @@ func (h *clientMusicHandler[T]) GetClientRecentlyAddedTracks(c *gin.Context) {
 		Int("limit", limit).
 		Msg("Retrieving recently added tracks")
 
-	tracks, err := h.musicService.GetRecentlyAddedTracks(ctx, uid, clientID, limit)
+	tracks, err := h.musicService.GetClientRecentlyAddedTracks(ctx, clientID, limit)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -1049,7 +1087,7 @@ func (h *clientMusicHandler[T]) GetClientTopAlbums(c *gin.Context) {
 		Int("limit", limit).
 		Msg("Retrieving top albums")
 
-	albums, err := h.musicService.GetTopAlbumsForClient(ctx, uid, clientID, limit)
+	albums, err := h.musicService.GetClientTopAlbums(ctx, clientID, limit)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -1121,7 +1159,7 @@ func (h *clientMusicHandler[T]) GetClientTopArtists(c *gin.Context) {
 		Int("limit", limit).
 		Msg("Retrieving top artists")
 
-	artists, err := h.musicService.GetTopArtists(ctx, uid, clientID, limit)
+	artists, err := h.musicService.GetClientTopArtists(ctx, clientID, limit)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -1193,7 +1231,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteArtists(c *gin.Context) {
 		Int("limit", limit).
 		Msg("Retrieving favorite artists")
 
-	artists, err := h.musicService.GetFavoriteArtists(ctx, uid, clientID, limit)
+	artists, err := h.musicService.GetClientFavoriteArtists(ctx, clientID, limit)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -1325,7 +1363,7 @@ func (h *clientMusicHandler[T]) GetClientSimilarTracks(c *gin.Context) {
 		Int("limit", limit).
 		Msg("Retrieving similar tracks")
 
-	tracks, err := h.musicService.GetSimilarTracks(ctx, uid, clientID, trackID, limit)
+	tracks, err := h.musicService.GetClientSimilarTracks(ctx, clientID, trackID, limit)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -1397,7 +1435,7 @@ func (h *clientMusicHandler[T]) GetClientRecentlyPlayedTracks(c *gin.Context) {
 		Int("limit", limit).
 		Msg("Retrieving recently played tracks")
 
-	tracks, err := h.musicService.GetRecentlyPlayedTracks(ctx, uid, limit)
+	tracks, err := h.musicService.GetClientRecentlyPlayedTracks(ctx, uid, limit)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -1468,7 +1506,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteTracks(c *gin.Context) {
 		Int("limit", limit).
 		Msg("Retrieving favorite tracks")
 
-	tracks, err := h.musicService.GetFavoriteTracks(ctx, uid, clientID, limit)
+	tracks, err := h.musicService.GetClientFavoriteTracks(ctx, clientID, limit)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -1539,7 +1577,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 		Int("limit", limit).
 		Msg("Retrieving favorite albums")
 
-	albums, err := h.musicService.GetFavoriteAlbums(ctx, uid, clientID, limit)
+	albums, err := h.musicService.GetClientFavoriteAlbums(ctx, clientID, limit)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -1873,7 +1911,7 @@ func (h *clientMusicHandler[T]) GetClientSimilarArtists(c *gin.Context) {
 		Int("limit", limit).
 		Msg("Retrieving similar artists")
 
-	artists, err := h.musicService.GetSimilarArtists(ctx, uid, clientID, artistID, limit)
+	artists, err := h.musicService.GetClientSimilarArtists(ctx, clientID, artistID, limit)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).

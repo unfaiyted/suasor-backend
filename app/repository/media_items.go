@@ -10,6 +10,7 @@ import (
 type CoreMediaItemRepositories interface {
 	MovieRepo() repository.MediaItemRepository[*mediatypes.Movie]
 	SeriesRepo() repository.MediaItemRepository[*mediatypes.Series]
+	SeasonRepo() repository.MediaItemRepository[*mediatypes.Season]
 	EpisodeRepo() repository.MediaItemRepository[*mediatypes.Episode]
 	TrackRepo() repository.MediaItemRepository[*mediatypes.Track]
 	AlbumRepo() repository.MediaItemRepository[*mediatypes.Album]
@@ -22,6 +23,7 @@ type CoreMediaItemRepositories interface {
 type UserMediaItemRepositories interface {
 	MovieUserRepo() repository.UserMediaItemRepository[*mediatypes.Movie]
 	SeriesUserRepo() repository.UserMediaItemRepository[*mediatypes.Series]
+	SeasonUserRepo() repository.UserMediaItemRepository[*mediatypes.Season]
 	EpisodeUserRepo() repository.UserMediaItemRepository[*mediatypes.Episode]
 	TrackUserRepo() repository.UserMediaItemRepository[*mediatypes.Track]
 	AlbumUserRepo() repository.UserMediaItemRepository[*mediatypes.Album]
@@ -33,6 +35,7 @@ type UserMediaItemRepositories interface {
 // Client MediaItems Repositories defines the client-specific repository
 type ClientMediaItemRepositories interface {
 	MovieClientRepo() repository.ClientMediaItemRepository[*mediatypes.Movie]
+	SeasonClientRepo() repository.ClientMediaItemRepository[*mediatypes.Season]
 	SeriesClientRepo() repository.ClientMediaItemRepository[*mediatypes.Series]
 	EpisodeClientRepo() repository.ClientMediaItemRepository[*mediatypes.Episode]
 	TrackClientRepo() repository.ClientMediaItemRepository[*mediatypes.Track]

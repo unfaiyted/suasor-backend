@@ -38,6 +38,8 @@ type ClientMediaItemRepository[T types.MediaData] interface {
 	// Advanced operations
 	GetByMultipleClients(ctx context.Context, clientIDs []uint64) ([]*models.MediaItem[T], error)
 	SyncItemBetweenClients(ctx context.Context, itemID uint64, sourceClientID uint64, targetClientID uint64, targetItemID string) error
+
+	DeleteClientItem(ctx context.Context, clientID uint64, itemID string) error
 }
 
 type clientMediaItemRepository[T types.MediaData] struct {
@@ -231,4 +233,10 @@ func (s *clientMediaItemRepository[T]) getSyncClientByClientID(ctx context.Conte
 		ItemID: targetItemID,
 		Type:   clienttypes.ClientType(clientType),
 	}
+}
+
+func (s *clientMediaItemRepository[T]) DeleteClientItem(ctx context.Context, clientID uint64, itemID string) error {
+	// TODO: Implement this, maybe should remove the records from SyncClients
+	return nil
+
 }

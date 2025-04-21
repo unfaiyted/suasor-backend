@@ -40,6 +40,7 @@ type ClientMusicService[T types.ClientConfig] interface {
 	GetClientAlbumsByArtist(ctx context.Context, clientID uint64, artistID string) ([]*models.MediaItem[*mediatypes.Album], error)
 
 	GetClientRecentlyPlayedTracks(ctx context.Context, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Track], error)
+
 	GetClientRecentlyAddedTracks(ctx context.Context, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Track], error)
 	GetClientRecentlyAddedAlbums(ctx context.Context, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error)
 

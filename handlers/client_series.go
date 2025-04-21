@@ -89,7 +89,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByID(c *gin.Context) {
 		Str("seriesID", seriesID).
 		Msg("Retrieving series by ID")
 
-	series, err := h.seriesService.GetSeriesByID(ctx, uid, clientID, seriesID)
+	series, err := h.seriesService.GetSeriesByID(ctx, clientID, seriesID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -601,8 +601,19 @@ func (h *clientSeriesHandler[T]) SearchSeries(c *gin.Context) {
 		Uint64("userID", uid).
 		Str("query", query).
 		Msg("Searching series")
+	clientIDStr := c.Param("clientID")
+	clientID, err := strconv.ParseUint(clientIDStr, 10, 64)
+	if err != nil {
+		log.Error().Err(err).Str("clientID", clientIDStr).Msg("Invalid client ID format")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
+		return
+	}
 
-	series, err := h.seriesService.SearchSeries(ctx, uid, query)
+	options := mediatypes.QueryOptions{
+		Query: query,
+	}
+
+	series, err := h.seriesService.SearchSeries(ctx, clientID, &options)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -665,7 +676,7 @@ func (h *clientSeriesHandler[T]) GetSeasonsBySeriesID(c *gin.Context) {
 		Str("seriesID", seriesID).
 		Msg("Retrieving seasons for series")
 
-	seasons, err := h.seriesService.GetSeasonsBySeriesID(ctx, uid, clientID, seriesID)
+	seasons, err := h.seriesService.GetSeasonsBySeriesID(ctx, clientID, seriesID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).

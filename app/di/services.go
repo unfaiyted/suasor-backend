@@ -11,6 +11,7 @@ import (
 	"suasor/client"
 	mediatypes "suasor/client/media/types"
 	"suasor/client/types"
+	clienttypes "suasor/client/types"
 	"suasor/repository"
 	"suasor/services"
 )
@@ -127,11 +128,12 @@ func registerThreeProngedServices(ctx context.Context, c *container.Container) {
 	})
 
 	// Client media item services
-	container.RegisterFactory[appservices.ClientMediaItemServices](c, func(c *container.Container) appservices.ClientMediaItemServices {
+	container.RegisterFactory[appservices.ClientMediaItemServices[clienttypes.ClientMediaConfig]](c, func(c *container.Container) appservices.ClientMediaItemServices[clienttypes.ClientMediaConfig] {
 		factory := container.MustGet[factories.MediaDataFactory](c)
 		coreServices := container.MustGet[appservices.CoreMediaItemServices](c)
+		clientRepo := container.MustGet[repository.ClientRepository[clienttypes.ClientMediaConfig]](c)
 		clientRepos := container.MustGet[apprepository.ClientMediaItemRepositories](c)
-		return factory.CreateClientServices(coreServices, clientRepos)
+		return factory.CreateClientServices(coreServices, clientRepo, clientRepos)
 	})
 
 	// Collection services

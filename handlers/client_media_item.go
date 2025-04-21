@@ -17,21 +17,33 @@ import (
 	"suasor/utils"
 )
 
+type ClientMediaItemHandler[T clientTypes.ClientMediaConfig, U types.MediaData] interface {
+	UserMediaItemHandler[U]
+
+	GetAllClientItems(c *gin.Context)
+	GetClientItemByItemID(c *gin.Context)
+	// RecordClientPlay(c *gin.Context)
+	// GetClientPlaybackState(c *gin.Context)
+	// UpdateClientPlaybackState(c *gin.Context)
+	DeleteClientItem(c *gin.Context)
+	// SyncClientItem(c *gin.Context)
+}
+
 // ClientMediaItemHandler handles operations on media items associated with external clients
 // It extends UserMediaItemHandler to inherit both core and user-level functionality
 // This is the third prong in the three-pronged architecture
-type ClientMediaItemHandler[T types.MediaData] struct {
-	UserMediaItemHandler[T] // Embed the user handler
-	clientService           services.ClientMediaItemService[T]
+type clientMediaItemHandler[T clientTypes.ClientMediaConfig, U types.MediaData] struct {
+	UserMediaItemHandler[U] // Embed the user handler
+	clientService           services.ClientMediaItemService[T, U]
 }
 
 // NewClientMediaItemHandler creates a new client media item handler
-func NewClientMediaItemHandler[T types.MediaData](
-	clientService services.ClientMediaItemService[T],
-	userHandler *UserMediaItemHandler[T],
-) *ClientMediaItemHandler[T] {
-	return &ClientMediaItemHandler[T]{
-		UserMediaItemHandler: *userHandler,
+func NewClientMediaItemHandler[T clientTypes.ClientMediaConfig, U types.MediaData](
+	userHandler UserMediaItemHandler[U],
+	clientService services.ClientMediaItemService[T, U],
+) ClientMediaItemHandler[T, U] {
+	return &clientMediaItemHandler[T, U]{
+		UserMediaItemHandler: userHandler,
 		clientService:        clientService,
 	}
 }
@@ -47,7 +59,7 @@ func NewClientMediaItemHandler[T types.MediaData](
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /item/media [post]
-func (h *ClientMediaItemHandler[T]) CreateMediaItem(c *gin.Context) {
+func (h *clientMediaItemHandler[T, U]) CreateClientItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -73,14 +85,14 @@ func (h *ClientMediaItemHandler[T]) CreateMediaItem(c *gin.Context) {
 		Msg("Creating client media item")
 
 	// Create the media item
-	var mediaData T
+	var mediaData U
 	if err := json.Unmarshal(req.Data, &mediaData); err != nil {
 		log.Warn().Err(err).Msg("Failed to unmarshal media data")
 		responses.RespondBadRequest(c, err, "Invalid media data format")
 		return
 	}
 
-	mediaItem := models.NewMediaItem(mediaType, mediaData)
+	mediaItem := models.NewMediaItem[U](mediaType, mediaData)
 
 	// Set client info
 	mediaItem.SetClientInfo(req.ClientID, clientTypes.ClientMediaType(req.ClientType), req.ExternalID)
@@ -118,7 +130,7 @@ func (h *ClientMediaItemHandler[T]) CreateMediaItem(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /item/media/{id} [put]
-func (h *ClientMediaItemHandler[T]) UpdateMediaItem(c *gin.Context) {
+func (h *clientMediaItemHandler[T, U]) UpdateClientItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -152,13 +164,13 @@ func (h *ClientMediaItemHandler[T]) UpdateMediaItem(c *gin.Context) {
 
 	// Update the media item
 	mediaType := types.MediaType(req.Type)
-	var mediaData T
+	var mediaData U
 	if err := json.Unmarshal(req.Data, &mediaData); err != nil {
 		log.Warn().Err(err).Uint64("id", id).Msg("Failed to unmarshal media data")
 		responses.RespondBadRequest(c, err, "Invalid media data format")
 		return
 	}
-	mediaItem := models.NewMediaItem(mediaType, mediaData)
+	mediaItem := models.NewMediaItem[U](mediaType, mediaData)
 	mediaItem.ID = id
 	mediaItem.SetClientInfo(req.ClientID, clientTypes.ClientMediaType(req.ClientType), req.ExternalID)
 	// Set client info
@@ -195,7 +207,7 @@ func (h *ClientMediaItemHandler[T]) UpdateMediaItem(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid client ID"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /client/{clientId}/media [get]
-func (h *ClientMediaItemHandler[T]) GetMediaItemsByClient(c *gin.Context) {
+func (h *clientMediaItemHandler[T, U]) GetAllClientItems(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -213,12 +225,13 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemsByClient(c *gin.Context) {
 		Str("mediaType", typeParam).
 		Msg("Getting media items by client")
 
-	var items []*models.MediaItem[T]
+	var items []*models.MediaItem[U]
 
 	if typeParam != "" {
 		// If media type is specified, get media items by client and type
-		mediaType := types.MediaType(typeParam)
-		items, err = h.clientService.GetByClientAndType(ctx, clientID, mediaType)
+		// TODO: Implement this
+		// mediaType := types.MediaType(typeParam)
+		// items, err = h.clientService.GetByClientID(ctx, clientID)
 	} else {
 		// Otherwise, get all media items for the client
 		items, err = h.clientService.GetByClientID(ctx, clientID)
@@ -254,7 +267,7 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemsByClient(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /client/{clientId}/media/item/{itemId} [get]
-func (h *ClientMediaItemHandler[T]) GetMediaItemByClientItemID(c *gin.Context) {
+func (h *clientMediaItemHandler[T, U]) GetClientItemByItemID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -307,7 +320,7 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemByClientItemID(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /client/media/multi [get]
-func (h *ClientMediaItemHandler[T]) GetMediaItemsByMultipleClients(c *gin.Context) {
+func (h *clientMediaItemHandler[T, U]) GetItemsByMultipleClients(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -366,7 +379,7 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemsByMultipleClients(c *gin.Contex
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /client/media/search [get]
-func (h *ClientMediaItemHandler[T]) SearchAcrossClients(c *gin.Context) {
+func (h *clientMediaItemHandler[T, U]) SearchAcrossClients(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -449,7 +462,7 @@ func (h *ClientMediaItemHandler[T]) SearchAcrossClients(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /client/media/sync [post]
-func (h *ClientMediaItemHandler[T]) SyncItemBetweenClients(c *gin.Context) {
+func (h *clientMediaItemHandler[T, U]) SyncItemBetweenClients(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -498,7 +511,7 @@ func (h *ClientMediaItemHandler[T]) SyncItemBetweenClients(c *gin.Context) {
 // Only client-specific methods that truly extend the functionality should remain here.
 
 // GetMediaItemsByGenre - This method could be refactored to use the inherited Search method when appropriate
-func (h *ClientMediaItemHandler[T]) GetMediaItemsByGenre(c *gin.Context) {
+func (h *clientMediaItemHandler[T, U]) GetMediaItemsByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -536,7 +549,7 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemsByGenre(c *gin.Context) {
 	}
 
 	// Filter for items with the specified genre
-	var filtered []*models.MediaItem[T]
+	var filtered []*models.MediaItem[U]
 	for _, item := range items {
 		details := item.Data.GetDetails()
 		for _, g := range details.Genres {
@@ -556,7 +569,7 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemsByGenre(c *gin.Context) {
 }
 
 // GetMediaItemsByYear keeps client-specific logic for year filtering
-func (h *ClientMediaItemHandler[T]) GetMediaItemsByYear(c *gin.Context) {
+func (h *clientMediaItemHandler[T, U]) GetMediaItemsByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
@@ -606,7 +619,7 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemsByYear(c *gin.Context) {
 	}
 
 	// Filter for items with the specified year
-	var filtered []*models.MediaItem[T]
+	var filtered []*models.MediaItem[U]
 	for _, item := range items {
 		if item.ReleaseYear == year {
 			filtered = append(filtered, item)
@@ -621,6 +634,66 @@ func (h *ClientMediaItemHandler[T]) GetMediaItemsByYear(c *gin.Context) {
 	responses.RespondOK(c, filtered, "Media items retrieved successfully")
 }
 
-// Other handlers like GetPopularMediaItems, GetTopRatedMediaItems would inherit from the user/core handlers.
-// We'd only add methods here that are truly client-specific.
+// DeleteClientItem godoc
+// @Summary Delete a media item from a client
+// @Description Deletes a media item from a client
+// @Tags client-media
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientID path int true "Client ID"
+// @Param itemID path string true "Item ID"
+// @Success 200 {object} responses.APIResponse[string] "Item deleted"
+// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
+// @Router /clients/media/{clientID}/item/{itemID} [delete]
+func (h *clientMediaItemHandler[T, U]) DeleteClientItem(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+	log.Info().Msg("Deleting client item")
 
+	// Get authenticated user ID
+	userID, exists := c.Get("userID")
+	if !exists {
+		log.Warn().Msg("Attempt to delete client item without authentication")
+		responses.RespondUnauthorized(c, nil, "Authentication required")
+		return
+	}
+
+	uid := userID.(uint64)
+
+	// Parse client ID from URL
+	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	if err != nil {
+		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
+		responses.RespondBadRequest(c, err, "Invalid client ID")
+		return
+	}
+
+	itemID := c.Param("itemID")
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Str("itemID", itemID).
+		Msg("Deleting client item")
+
+	err = h.clientService.DeleteClientItem(ctx, clientID, itemID)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", uid).
+			Uint64("clientID", clientID).
+			Str("itemID", itemID).
+			Msg("Failed to delete client item")
+		responses.RespondInternalError(c, err, "Failed to delete client item")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Str("itemID", itemID).
+		Msg("Client item deleted successfully")
+	responses.RespondOK(c, "Item deleted successfully", "Item deleted successfully")
+}

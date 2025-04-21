@@ -35,12 +35,12 @@ type clientUserMediaItemDataHandler[T types.MediaData] struct {
 
 // NewclientUserMediaItemDataHandler creates a new client user media item data handler
 func NewClientUserMediaItemDataHandler[T types.MediaData](
-	userHandler *UserMediaItemDataHandler[T],
+	userHandler UserMediaItemDataHandler[T],
 	service services.ClientUserMediaItemDataService[T],
 
 ) *clientUserMediaItemDataHandler[T] {
 	return &clientUserMediaItemDataHandler[T]{
-		UserMediaItemDataHandler: *userHandler,
+		UserMediaItemDataHandler: userHandler,
 		service:                  service,
 	}
 }

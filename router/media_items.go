@@ -3,25 +3,26 @@ package router // router/media_mediaItems.go
 import (
 	"suasor/app/container"
 
+	"context"
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) {
+func RegisterMediaItemRoutes(ctx context.Context, rg *gin.RouterGroup, c *container.Container) {
 
 	mediaItems := rg.Group("/item")
 	{
 
-		// {base}/item/:mediaType/ example: /movie/
-		RegisterLocalMediaItemRoutes(mediaItems, c) // Register direct media item routes (non-client specific)
+		// {base}/item/:mediaType/ example: /item/movie/
+		RegisterLocalMediaItemRoutes(ctx, mediaItems, c) // Register direct media item routes (non-client specific)
 	}
 
 	clientMediaItems := rg.Group("/client")
 	{
 
 		// {base}/client/:id/item/:mediaType/ example: /client/11/movies
-		RegisterClientMediaItemRoutes(clientMediaItems, c)
+		RegisterClientMediaItemRoutes(ctx, clientMediaItems, c)
 		// {base}/client/:id/item/playlist/ example: /client/11/movies
-		RegisterClientListRoutes(clientMediaItems, c)
+		RegisterClientListRoutes(ctx, clientMediaItems, c)
 
 	}
 	// userMediaItems := rg.Group("/user/item")

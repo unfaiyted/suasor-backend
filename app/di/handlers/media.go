@@ -9,6 +9,7 @@ import (
 	appservices "suasor/app/services"
 	"suasor/handlers"
 	"suasor/services"
+	clienttypes "suasor/client/types"
 )
 
 // RegisterMediaHandlers registers all media-related handlers
@@ -29,9 +30,9 @@ func RegisterMediaHandlers(ctx context.Context, c *container.Container) {
 	})
 
 	// Register client media item handlers
-	container.RegisterFactory[apphandlers.ClientMediaItemHandlers](c, func(c *container.Container) apphandlers.ClientMediaItemHandlers {
+	container.RegisterFactory[apphandlers.ClientMediaItemHandlers[clienttypes.ClientMediaConfig]](c, func(c *container.Container) apphandlers.ClientMediaItemHandlers[clienttypes.ClientMediaConfig] {
 		factory := container.MustGet[factories.MediaDataFactory](c)
-		clientServices := container.MustGet[appservices.ClientMediaItemServices](c)
+		clientServices := container.MustGet[appservices.ClientMediaItemServices[clienttypes.ClientMediaConfig]](c)
 		userServices := container.MustGet[appservices.UserMediaItemServices](c)
 		userHandlers := container.MustGet[apphandlers.UserMediaItemHandlers](c)
 		return factory.CreateClientMediaItemHandlers(clientServices, userServices, userHandlers)
@@ -65,7 +66,10 @@ func registerSpecializedMediaHandlers(c *container.Container) {
 	// Core series handler
 	container.RegisterFactory[handlers.CoreSeriesHandler](c, func(c *container.Container) handlers.CoreSeriesHandler {
 		coreServices := container.MustGet[appservices.CoreMediaItemServices](c)
+		coreHandler := container.MustGet[apphandlers.CoreMediaItemHandlers](c).SeriesCoreHandler()
+
 		return handlers.NewCoreSeriesHandler(
+			coreHandler,
 			coreServices.SeriesCoreService(),
 			coreServices.SeasonCoreService(),
 			coreServices.EpisodeCoreService(),

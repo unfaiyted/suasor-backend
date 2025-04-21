@@ -34,16 +34,16 @@ type UserMediaItemServices interface {
 }
 
 // ClientMediaItemServices defines the client-specific services for media items
-type ClientMediaItemServices interface {
-	MovieClientService() services.ClientMediaItemService[*mediatypes.Movie]
-	SeriesClientService() services.ClientMediaItemService[*mediatypes.Series]
-	EpisodeClientService() services.ClientMediaItemService[*mediatypes.Episode]
-	SeasonClientService() services.ClientMediaItemService[*mediatypes.Season]
-	TrackClientService() services.ClientMediaItemService[*mediatypes.Track]
-	AlbumClientService() services.ClientMediaItemService[*mediatypes.Album]
-	ArtistClientService() services.ClientMediaItemService[*mediatypes.Artist]
-	CollectionClientService() services.ClientMediaItemService[*mediatypes.Collection]
-	PlaylistClientService() services.ClientMediaItemService[*mediatypes.Playlist]
+type ClientMediaItemServices[T clienttypes.ClientMediaConfig] interface {
+	MovieClientService() services.ClientMediaItemService[T, *mediatypes.Movie]
+	SeriesClientService() services.ClientMediaItemService[T, *mediatypes.Series]
+	EpisodeClientService() services.ClientMediaItemService[T, *mediatypes.Episode]
+	SeasonClientService() services.ClientMediaItemService[T, *mediatypes.Season]
+	TrackClientService() services.ClientMediaItemService[T, *mediatypes.Track]
+	AlbumClientService() services.ClientMediaItemService[T, *mediatypes.Album]
+	ArtistClientService() services.ClientMediaItemService[T, *mediatypes.Artist]
+	CollectionClientService() services.ClientMediaItemService[T, *mediatypes.Collection]
+	PlaylistClientService() services.ClientMediaItemService[T, *mediatypes.Playlist]
 }
 
 type CoreListServices interface {

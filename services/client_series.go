@@ -47,7 +47,7 @@ type clientSeriesService[T types.ClientMediaConfig] struct {
 func NewClientSeriesService[T types.ClientMediaConfig](
 	clientRepo repository.ClientRepository[T],
 	factory *client.ClientFactoryService,
-) providerseriesService[T] {
+) ClientSeriesService[T] {
 	return &clientSeriesService[T]{
 		clientRepo:    clientRepo,
 		clientFactory: factory,

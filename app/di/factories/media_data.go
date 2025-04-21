@@ -5,6 +5,8 @@ import (
 	"suasor/app/handlers"
 	"suasor/app/repository"
 	"suasor/app/services"
+	clienttypes "suasor/client/types"
+	repo "suasor/repository"
 )
 
 // MediaDataFactory defines the interface for creating repositories and services
@@ -14,6 +16,7 @@ type MediaDataFactory interface {
 	CreateCoreRepositories() repository.CoreMediaItemRepositories
 	CreateUserRepositories() repository.UserMediaItemRepositories
 	CreateClientRepositories() repository.ClientUserMediaDataRepositories
+	CreateClientMediaItemRepositories() repository.ClientMediaItemRepositories
 
 	// (MediaData) Repositories
 	CreateUserDataRepositories() repository.UserMediaDataRepositories
@@ -23,7 +26,7 @@ type MediaDataFactory interface {
 	// (MediaItem) Services
 	CreateCoreServices(repos repository.CoreMediaItemRepositories) services.CoreMediaItemServices
 	CreateUserServices(coreServices services.CoreMediaItemServices, userRepos repository.UserMediaItemRepositories) services.UserMediaItemServices
-	CreateClientServices(coreServices services.CoreMediaItemServices, clientRepos repository.ClientMediaItemRepositories) services.ClientMediaItemServices
+	CreateClientServices(coreServices services.CoreMediaItemServices, clientRepos repo.ClientRepository[clienttypes.ClientMediaConfig], itemRepos repository.ClientMediaItemRepositories) services.ClientMediaItemServices[clienttypes.ClientMediaConfig]
 
 	// (MediaData) Services
 	CreateCoreDataServices(repos repository.CoreMediaItemRepositories) services.CoreUserMediaItemDataServices
@@ -33,7 +36,7 @@ type MediaDataFactory interface {
 	// (ListServices) Services
 	CreateCoreListServices(coreServices services.CoreMediaItemServices) services.CoreListServices
 	CreateUserListServices(userServices services.UserMediaItemServices, coreListServices services.CoreListServices) services.UserListServices
-	CreateClientListServices(clientServices services.ClientMediaItemServices, coreListServices services.CoreListServices) services.ClientListServices
+	CreateClientListServices(clientServices services.ClientMediaItemServices[clienttypes.ClientMediaConfig], coreListServices services.CoreListServices) services.ClientListServices
 
 	// --- HANDLER FACTORIES --- //
 
@@ -45,10 +48,10 @@ type MediaDataFactory interface {
 		userServices services.UserMediaItemServices,
 		coreHandlers handlers.CoreMediaItemHandlers,
 	) handlers.UserMediaItemHandlers
-	CreateClientMediaItemHandlers(clientServices services.ClientMediaItemServices,
+	CreateClientMediaItemHandlers(clientServices services.ClientMediaItemServices[clienttypes.ClientMediaConfig],
 		dataServices services.UserMediaItemServices,
 		userHandlers handlers.UserMediaItemHandlers,
-	) handlers.ClientMediaItemHandlers
+	) handlers.ClientMediaItemHandlers[clienttypes.ClientMediaConfig]
 
 	// (MediaData) Handlers
 	CreateCoreDataHandlers(coreServices services.CoreUserMediaItemDataServices) handlers.CoreMediaItemDataHandlers

@@ -10,6 +10,8 @@ import (
 	"suasor/app/repository"
 	"suasor/app/services"
 	"suasor/client"
+	clienttypes "suasor/client/types"
+	repo "suasor/repository"
 )
 
 // RegisterMediaData registers the media data factory and all media-related repositories
@@ -37,6 +39,13 @@ func RegisterMediaData(ctx context.Context, c *container.Container) {
 		return factory.CreateUserDataRepositories()
 	})
 	//  (Repositories) Client MediaItem Repositories
+	container.RegisterFactory[repository.ClientMediaItemRepositories](c, func(c *container.Container) repository.ClientMediaItemRepositories {
+		factory := container.MustGet[factories.MediaDataFactory](c)
+		return factory.CreateClientMediaItemRepositories()
+	})
+
+	//  Core Services Registration
+	//  (Services) Core MediaItem Services
 	container.RegisterFactory[services.CoreMediaItemServices](c, func(c *container.Container) services.CoreMediaItemServices {
 		factory := container.MustGet[factories.MediaDataFactory](c)
 		repos := container.MustGet[repository.CoreMediaItemRepositories](c)
@@ -77,11 +86,12 @@ func RegisterMediaData(ctx context.Context, c *container.Container) {
 		return factory.CreateUserServices(coreServices, userRepos)
 	})
 	//  (Services) Client MediaItem Services
-	container.RegisterFactory[services.ClientMediaItemServices](c, func(c *container.Container) services.ClientMediaItemServices {
+	container.RegisterFactory[services.ClientMediaItemServices[clienttypes.ClientMediaConfig]](c, func(c *container.Container) services.ClientMediaItemServices[clienttypes.ClientMediaConfig] {
 		factory := container.MustGet[factories.MediaDataFactory](c)
 		coreServices := container.MustGet[services.CoreMediaItemServices](c)
-		clientRepos := container.MustGet[repository.ClientMediaItemRepositories](c)
-		return factory.CreateClientServices(coreServices, clientRepos)
+		clientRepo := container.MustGet[repo.ClientRepository[clienttypes.ClientMediaConfig]](c)
+		clientItemRepos := container.MustGet[repository.ClientMediaItemRepositories](c)
+		return factory.CreateClientServices(coreServices, clientRepo, clientItemRepos)
 	})
 	//  UserMediaItemData
 	//  (Services) Core UserMediaItemData Services
@@ -121,9 +131,9 @@ func RegisterMediaData(ctx context.Context, c *container.Container) {
 		return factory.CreateUserMediaItemHandlers(userServices, coreHandlers)
 	})
 	// (Handlers) Client MediaItem Handlers
-	container.RegisterFactory[handlers.ClientMediaItemHandlers](c, func(c *container.Container) handlers.ClientMediaItemHandlers {
+	container.RegisterFactory[handlers.ClientMediaItemHandlers[clienttypes.ClientMediaConfig]](c, func(c *container.Container) handlers.ClientMediaItemHandlers[clienttypes.ClientMediaConfig] {
 		factory := container.MustGet[factories.MediaDataFactory](c)
-		clientServices := container.MustGet[services.ClientMediaItemServices](c)
+		clientServices := container.MustGet[services.ClientMediaItemServices[clienttypes.ClientMediaConfig]](c)
 		userMediaItemServices := container.MustGet[services.UserMediaItemServices](c)
 		coreHandlers := container.MustGet[handlers.UserMediaItemHandlers](c)
 		return factory.CreateClientMediaItemHandlers(clientServices, userMediaItemServices, coreHandlers)

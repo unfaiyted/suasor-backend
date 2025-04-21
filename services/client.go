@@ -23,7 +23,7 @@ type ClientService[T types.ClientConfig] interface {
 	TestConnection(ctx context.Context, clientID uint64, config *T) (responses.ClientTestResponse, error)
 	TestNewConnection(ctx context.Context, config *T) (responses.ClientTestResponse, error)
 
-	GetClientConfig(clientID uint64) (T, error)
+	GetClientConfig(ctx context.Context, clientID uint64) (T, error)
 }
 
 // ClientService handles business logic for clients with specific config types

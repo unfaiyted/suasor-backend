@@ -5,11 +5,12 @@ import (
 	mediatypes "suasor/client/media/types"
 	"suasor/handlers"
 
+	"context"
 	"github.com/gin-gonic/gin"
 )
 
 // RegisterLocalMediaItemRoutes configures routes for direct media item access
-func RegisterLocalMediaItemRoutes(rg *gin.RouterGroup, c *container.Container) {
+func RegisterLocalMediaItemRoutes(ctx context.Context, rg *gin.RouterGroup, c *container.Container) {
 
 	// Register generic media routes that work across all types
 	registerGenericMediaRoutes[mediatypes.Movie](c, rg)
@@ -113,4 +114,3 @@ func registerMusicRoutes(c *container.Container, rg *gin.RouterGroup) {
 		musicGroup.GET("/recommendations/genre", coreHandler.GetGenreRecommendations)
 	}
 }
-
