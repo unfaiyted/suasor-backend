@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 	"time"
 )
 

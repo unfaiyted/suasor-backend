@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/joho/godotenv"
-	"suasor/client/media"
-	mediatypes "suasor/client/media/types"
-	"suasor/client/types"
+	"suasor/clients/media"
+	mediatypes "suasor/clients/media/types"
+	"suasor/clients/types"
 	"suasor/types/models"
 )
 

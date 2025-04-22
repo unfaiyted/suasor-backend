@@ -4,17 +4,17 @@ import (
 	"context"
 	"fmt"
 	"sort"
-	aitypes "suasor/client/ai/types"
-	mediatypes "suasor/client/media/types"
+	aitypes "suasor/clients/ai/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 	"time"
 )
 
 // processMusicHistory analyzes music play history to build preferences
 // This is a full implementation of music history processing
 func (j *RecommendationJob) processMusicHistoryImpl(ctx context.Context, profile *UserPreferenceProfile, histories []models.UserMediaItemData[*mediatypes.Track]) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Maps for processing
 	recentMusic := []MusicSummary{}
@@ -248,7 +248,7 @@ func (j *RecommendationJob) processMusicHistoryImpl(ctx context.Context, profile
 // generateMusicRecommendations generates music recommendations for a user
 // This is a skeleton for future implementation
 func (j *RecommendationJob) generateMusicRecommendations(ctx context.Context, jobRunID uint64, user models.User, preferenceProfile *UserPreferenceProfile, config *models.UserConfig) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Music recommendations not yet implemented")
 
 	// Placeholder for future implementation
@@ -265,7 +265,7 @@ func (j *RecommendationJob) generateAIMusicRecommendations(
 	config *models.UserConfig,
 	playedMap map[string]bool) ([]*models.Recommendation, error) {
 
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get AI client for the user
 	aiClient, err := j.getAIClient(ctx, userID)
@@ -606,7 +606,7 @@ func (j *RecommendationJob) generateAIMusicRecommendations(
 
 // processMusicHistory analyzes music play history to build preferences
 func (j *RecommendationJob) processMusicHistory(ctx context.Context, profile *UserPreferenceProfile, histories []*models.UserMediaItemData[*mediatypes.Track]) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Maps for processing
 	recentMusic := []MusicSummary{}

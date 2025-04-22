@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 	"time"
 )
 
@@ -93,4 +93,3 @@ func (m *ExternalIDMap) Scan(value interface{}) error {
 	}
 	return json.Unmarshal(b, &m)
 }
-

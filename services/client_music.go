@@ -7,13 +7,13 @@ import (
 	"sort"
 	"time"
 
-	"suasor/client"
-	"suasor/client/media/providers"
-	mediatypes "suasor/client/media/types"
-	"suasor/client/types"
+	"suasor/clients"
+	"suasor/clients/media/providers"
+	mediatypes "suasor/clients/media/types"
+	"suasor/clients/types"
 	"suasor/repository"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // ClientMusicService defines operations for interacting with music clients
@@ -67,12 +67,12 @@ type MusicSearchResults struct {
 
 type mediaMusicService[T types.ClientMediaConfig] struct {
 	clientRepo    repository.ClientRepository[T]
-	clientFactory *client.ClientFactoryService
+	clientFactory *clients.ClientFactoryService
 }
 
 func NewClientMusicService[T types.ClientMediaConfig](
 	clientRepo repository.ClientRepository[T],
-	clientFactory *client.ClientFactoryService,
+	clientFactory *clients.ClientFactoryService,
 ) ClientMusicService[T] {
 	return &mediaMusicService[T]{
 		clientRepo:    clientRepo,
@@ -88,7 +88,7 @@ func (s *mediaMusicService[T]) getMusicProviders(ctx context.Context, userID uin
 		return nil, err
 	}
 
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().Msg("GetClientting music clients")
 
 	var musicClients []providers.MusicProvider
@@ -123,7 +123,7 @@ func (s *mediaMusicService[T]) getMusicProviders(ctx context.Context, userID uin
 
 // getMusicProvider gets a specific music client
 func (s *mediaMusicService[T]) getMusicProvider(ctx context.Context, clientID uint64) (providers.MusicProvider, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	clientConfig, err := s.clientRepo.GetByID(ctx, clientID)
 	if err != nil {
@@ -156,7 +156,7 @@ func (s *mediaMusicService[T]) getMusicProvider(ctx context.Context, clientID ui
 }
 
 func (s *mediaMusicService[T]) GetClientAlbumByID(ctx context.Context, clientID uint64, albumID string) (models.MediaItem[*mediatypes.Album], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// GetClient the specified client
 	provider, err := s.getMusicProvider(ctx, clientID)
@@ -188,7 +188,7 @@ func (s *mediaMusicService[T]) GetClientAlbumByID(ctx context.Context, clientID 
 }
 
 func (s *mediaMusicService[T]) GetClientArtistByID(ctx context.Context, clientID uint64, artistID string) (models.MediaItem[*mediatypes.Artist], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// GetClient the specified client
 	client, err := s.getMusicProvider(ctx, clientID)
@@ -231,7 +231,7 @@ func (s *mediaMusicService[T]) GetClientArtistByID(ctx context.Context, clientID
 }
 
 func (s *mediaMusicService[T]) GetClientTrackByID(ctx context.Context, clientID uint64, trackID string) (models.MediaItem[*mediatypes.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// GetClient the specified client
 	client, err := s.getMusicProvider(ctx, clientID)
@@ -269,7 +269,7 @@ func (s *mediaMusicService[T]) GetClientRecentlyAddedAlbums(ctx context.Context,
 		return nil, err
 	}
 
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	var allAlbums []*models.MediaItem[*mediatypes.Album]
 
 	// Configure for recently added
@@ -315,7 +315,7 @@ func (s *mediaMusicService[T]) GetClientRecentlyPlayedTracks(ctx context.Context
 		return nil, err
 	}
 
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("limit", limit).
 		Msg("GetClientting recently played tracks across clients")
@@ -357,7 +357,7 @@ func (s *mediaMusicService[T]) GetClientAlbumsByGenre(ctx context.Context, clien
 		return nil, err
 	}
 
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("genre", genre).
 		Msg("GetClientting albums by genre across clients")
@@ -385,7 +385,7 @@ func (s *mediaMusicService[T]) GetClientArtistsByGenre(ctx context.Context, clie
 	if err != nil {
 		return nil, err
 	}
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("genre", genre).
 		Msg("GetClientting artists by genre across clients")
@@ -417,7 +417,7 @@ func (s *mediaMusicService[T]) GetClientRandomAlbums(ctx context.Context, client
 		return nil, err
 	}
 
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("limit", limit).
 		Msg("GetClientting random albums across clients")
@@ -451,7 +451,7 @@ func (s *mediaMusicService[T]) GetClientTopAlbums(ctx context.Context, clientID 
 		return nil, err
 	}
 
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("limit", limit).
 		Uint64("clientID", clientID).
@@ -486,7 +486,7 @@ func (s *mediaMusicService[T]) GetClientTopAlbums(ctx context.Context, clientID 
 
 // GetClientTopAlbumsForClient retrieves top albums from a specific client
 func (s *mediaMusicService[T]) GetClientTopAlbumsForClient(ctx context.Context, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// GetClient the specific client
 	provider, err := s.getMusicProvider(ctx, clientID)
@@ -531,7 +531,7 @@ func (s *mediaMusicService[T]) SearchMusic(ctx context.Context, clientID uint64,
 		return nil, err
 	}
 
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("clientCount", len(clients)).
 		Str("query", query.Query).
@@ -588,7 +588,7 @@ func (s *mediaMusicService[T]) SearchMusic(ctx context.Context, clientID uint64,
 
 // GetClientTracksByAlbum retrieves all tracks from a specific album
 func (s *mediaMusicService[T]) GetClientTracksByAlbum(ctx context.Context, clientID uint64, albumID string) ([]*models.MediaItem[*mediatypes.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// GetClient the specific client
 	client, err := s.getMusicProvider(ctx, clientID)
@@ -628,7 +628,7 @@ func (s *mediaMusicService[T]) GetClientTracksByAlbum(ctx context.Context, clien
 
 // GetClientAlbumsByArtist retrieves all albums by a specific artist
 func (s *mediaMusicService[T]) GetClientAlbumsByArtist(ctx context.Context, clientID uint64, artistID string) ([]*models.MediaItem[*mediatypes.Album], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// GetClient the specific client
 	client, err := s.getMusicProvider(ctx, clientID)
@@ -674,7 +674,7 @@ func (s *mediaMusicService[T]) GetClientTracksByGenre(ctx context.Context, clien
 		return nil, err
 	}
 
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Configure for genre filter
 	options := &mediatypes.QueryOptions{
@@ -707,7 +707,7 @@ func (s *mediaMusicService[T]) GetClientAlbumsByYear(ctx context.Context, client
 		return nil, err
 	}
 
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Configure for year filter
 	options := &mediatypes.QueryOptions{
@@ -741,7 +741,7 @@ func (s *mediaMusicService[T]) GetClientTopArtists(ctx context.Context, clientID
 		return nil, err
 	}
 
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	var allArtists []*models.MediaItem[*mediatypes.Artist]
 
 	// Configure for popularity sort
@@ -778,7 +778,7 @@ func (s *mediaMusicService[T]) GetClientTopArtists(ctx context.Context, clientID
 
 // GetClientFavoriteArtists retrieves favorite artists from a specific client
 func (s *mediaMusicService[T]) GetClientFavoriteArtists(ctx context.Context, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Artist], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// GetClient the specific client
 	client, err := s.getMusicProvider(ctx, clientID)
@@ -817,7 +817,7 @@ func (s *mediaMusicService[T]) GetClientFavoriteArtists(ctx context.Context, cli
 
 // GetClientTopTracks retrieves top tracks from a specific client
 func (s *mediaMusicService[T]) GetClientTopTracks(ctx context.Context, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// GetClient the specific client
 	client, err := s.getMusicProvider(ctx, clientID)
@@ -862,7 +862,7 @@ func (s *mediaMusicService[T]) GetClientTopTracks(ctx context.Context, clientID 
 
 // GetClientRecentlyAddedTracks retrieves recently added tracks from a specific client
 func (s *mediaMusicService[T]) GetClientRecentlyAddedTracks(ctx context.Context, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// GetClient the specific client
 	client, err := s.getMusicProvider(ctx, clientID)
@@ -902,7 +902,7 @@ func (s *mediaMusicService[T]) GetClientRecentlyAddedTracks(ctx context.Context,
 }
 
 func (s *mediaMusicService[T]) GetClientSimilarTracks(ctx context.Context, clientID uint64, trackID string, limit int) ([]*models.MediaItem[*mediatypes.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("clientID", clientID).
 		Str("trackID", trackID).
@@ -961,7 +961,7 @@ func (s *mediaMusicService[T]) GetClientSimilarTracks(ctx context.Context, clien
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/music/tracks/favorites [get]
 func (s *mediaMusicService[T]) GetClientFavoriteTracks(ctx context.Context, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("clientID", clientID).
 		Int("limit", limit).
@@ -1017,7 +1017,7 @@ func (s *mediaMusicService[T]) GetClientFavoriteTracks(ctx context.Context, clie
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/music/albums/favorites [get]
 func (s *mediaMusicService[T]) GetClientFavoriteAlbums(ctx context.Context, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("clientID", clientID).
 		Int("limit", limit).
@@ -1074,7 +1074,7 @@ func (s *mediaMusicService[T]) GetClientFavoriteAlbums(ctx context.Context, clie
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /clients/media/{clientID}/music/artists/{artistID}/similar [get]
 func (s *mediaMusicService[T]) GetClientSimilarArtists(ctx context.Context, clientID uint64, artistID string, limit int) ([]*models.MediaItem[*mediatypes.Artist], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("clientID", clientID).
 		Str("artistID", artistID).

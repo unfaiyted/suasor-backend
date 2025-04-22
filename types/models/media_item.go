@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	"suasor/client/media/types"
-	client "suasor/client/types"
+	"suasor/clients/media/types"
+	client "suasor/clients/types"
 	"time"
 )
 

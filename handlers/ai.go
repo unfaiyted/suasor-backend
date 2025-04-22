@@ -3,19 +3,19 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"suasor/client"
-	"suasor/client/types"
+	"suasor/clients"
+	"suasor/clients/types"
 	"suasor/services"
 	"suasor/types/requests"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 
 	"github.com/gin-gonic/gin"
 )
 
 // AIHandler implements AI-related handlers with support for multiple AI client types
 type AIHandler[T types.AIClientConfig] struct {
-	factory *client.ClientFactoryService
+	factory *clients.ClientFactoryService
 	service services.ClientService[T]
 	// Map to track active conversations by conversationID
 	activeConversations map[string]uint64 // conversationID -> userID
@@ -23,7 +23,7 @@ type AIHandler[T types.AIClientConfig] struct {
 
 // NewAIHandler creates a new AI handler
 func NewAIHandler[T types.AIClientConfig](
-	factory *client.ClientFactoryService,
+	factory *clients.ClientFactoryService,
 	service services.ClientService[T],
 ) *AIHandler[T] {
 	return &AIHandler[T]{
@@ -48,7 +48,7 @@ func NewAIHandler[T types.AIClientConfig](
 // @Router /ai/recommendations [post]
 func (h *AIHandler[T]) RequestRecommendation(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -107,7 +107,7 @@ func (h *AIHandler[T]) RequestRecommendation(c *gin.Context) {
 // @Router /ai/analyze [post]
 func (h *AIHandler[T]) AnalyzeContent(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -166,7 +166,7 @@ func (h *AIHandler[T]) AnalyzeContent(c *gin.Context) {
 // @Router /ai/conversation/start [post]
 func (h *AIHandler[T]) StartConversation(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -224,7 +224,7 @@ func (h *AIHandler[T]) StartConversation(c *gin.Context) {
 }
 
 func (h *AIHandler[T]) getAIClient(ctx context.Context, userID uint64, clientType types.ClientType, clientID uint64) (types.AiClient, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
 		Uint64("userID", userID).
@@ -243,12 +243,12 @@ func (h *AIHandler[T]) getAIClient(ctx context.Context, userID uint64, clientTyp
 		Uint64("clientID", clientID).
 		Msg("Client Model retrieved")
 	// from factory
-	client, err := h.factory.GetClient(ctx, clientModel.ID, clientModel.Config.Data)
+	aiClient, err := h.factory.GetClient(ctx, clientModel.ID, clientModel.Config.Data)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get AI client")
 		return nil, err
 	}
-	aiAiClient, ok := client.(types.AiClient)
+	aiAiClient, ok := aiClient.(types.AiClient)
 	if !ok {
 		return nil, fmt.Errorf("client is not an AI client")
 	}
@@ -274,7 +274,7 @@ func (h *AIHandler[T]) getAIClient(ctx context.Context, userID uint64, clientTyp
 // @Router /ai/conversation/message [post]
 func (h *AIHandler[T]) SendConversationMessage(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")

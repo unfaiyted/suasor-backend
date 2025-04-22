@@ -7,10 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"suasor/types/models"
 
-	mediatypes "suasor/client/media/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 type CoreMusicHandler interface {
@@ -77,7 +77,7 @@ func NewCoreMusicHandler(
 // @Router /music/albums/{id}/tracks [get]
 func (h *coreMusicHandler) GetAlbumTracks(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	albumID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -136,7 +136,7 @@ func (h *coreMusicHandler) GetAlbumTracks(c *gin.Context) {
 // @Router /music/artists/{id}/albums [get]
 func (h *coreMusicHandler) GetArtistAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	artistID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -194,7 +194,7 @@ func (h *coreMusicHandler) GetArtistAlbums(c *gin.Context) {
 // @Router /music/tracks/top [get]
 func (h *coreMusicHandler) GetTopTracks(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
 	if err != nil {
@@ -263,7 +263,7 @@ func (h *coreMusicHandler) GetTopTracks(c *gin.Context) {
 // @Router /music/tracks/recently-added [get]
 func (h *coreMusicHandler) GetRecentlyAddedTracks(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
 	if err != nil {
@@ -325,7 +325,7 @@ func (h *coreMusicHandler) GetRecentlyAddedTracks(c *gin.Context) {
 // @Router /music/albums/top [get]
 func (h *coreMusicHandler) GetTopAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
 	if err != nil {
@@ -395,7 +395,7 @@ func (h *coreMusicHandler) GetTopAlbums(c *gin.Context) {
 // @Router /music/artists/{id}/albums [get]
 func (h *coreMusicHandler) GetAlbumsByArtistID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	artistID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -454,7 +454,7 @@ func (h *coreMusicHandler) GetAlbumsByArtistID(c *gin.Context) {
 // @Router /music/artists/{id}/similar [get]
 func (h *coreMusicHandler) GetSimilarArtists(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	artistID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -513,7 +513,7 @@ func (h *coreMusicHandler) GetSimilarArtists(c *gin.Context) {
 // @Router /media/external/{source}/{externalId} [get]
 func (h *coreMediaItemHandler[T]) GetMediaItemByExternalSourceID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	source := c.Param("source")
 	if source == "" {
@@ -565,7 +565,7 @@ func (h *coreMediaItemHandler[T]) GetMediaItemByExternalSourceID(c *gin.Context)
 // @Router /music/recently-added [get]
 func (h *coreMusicHandler) GetRecentlyAddedMusic(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
 	if err != nil {
@@ -621,7 +621,7 @@ func (h *coreMusicHandler) GetRecentlyAddedMusic(c *gin.Context) {
 // @Router /music/genre/{genre} [get]
 func (h *coreMusicHandler) GetGenreRecommendations(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	genre := c.Param("genre")
 	if genre == "" {
@@ -671,7 +671,7 @@ func (h *coreMusicHandler) GetGenreRecommendations(c *gin.Context) {
 // @Router /music/tracks/{id} [get]
 func (h *coreMusicHandler) GetTrackByID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	trackID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -713,7 +713,7 @@ func (h *coreMusicHandler) GetTrackByID(c *gin.Context) {
 // @Router /music/albums/{id} [get]
 func (h *coreMusicHandler) GetAlbumByID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	albumID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -755,7 +755,7 @@ func (h *coreMusicHandler) GetAlbumByID(c *gin.Context) {
 // @Router /music/artists/{id} [get]
 func (h *coreMusicHandler) GetArtistByID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	artistID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -797,7 +797,7 @@ func (h *coreMusicHandler) GetArtistByID(c *gin.Context) {
 // @Router /music/albums/{id}/tracks [get]
 func (h *coreMusicHandler) GetTracksByAlbum(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	albumID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -846,7 +846,7 @@ func (h *coreMusicHandler) GetTracksByAlbum(c *gin.Context) {
 // @Router /music/artists/{id}/albums [get]
 func (h *coreMusicHandler) GetAlbumsByArtist(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	artistID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -895,7 +895,7 @@ func (h *coreMusicHandler) GetAlbumsByArtist(c *gin.Context) {
 // @Router /music/genres/{genre}/artists [get]
 func (h *coreMusicHandler) GetArtistsByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	genre := c.Param("genre")
 	if genre == "" {
@@ -950,7 +950,7 @@ func (h *coreMusicHandler) GetArtistsByGenre(c *gin.Context) {
 // @Router /music/genres/{genre}/albums [get]
 func (h *coreMusicHandler) GetAlbumsByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	genre := c.Param("genre")
 	if genre == "" {
@@ -1005,7 +1005,7 @@ func (h *coreMusicHandler) GetAlbumsByGenre(c *gin.Context) {
 // @Router /music/genres/{genre}/tracks [get]
 func (h *coreMusicHandler) GetTracksByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	genre := c.Param("genre")
 	if genre == "" {
@@ -1060,7 +1060,7 @@ func (h *coreMusicHandler) GetTracksByGenre(c *gin.Context) {
 // @Router /music/albums/latest [get]
 func (h *coreMusicHandler) GetLatestAlbumsByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	if err != nil {
@@ -1110,7 +1110,7 @@ func (h *coreMusicHandler) GetLatestAlbumsByAdded(c *gin.Context) {
 // @Router /music/albums/popular [get]
 func (h *coreMusicHandler) GetPopularAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	if err != nil {
@@ -1154,7 +1154,7 @@ func (h *coreMusicHandler) GetPopularAlbums(c *gin.Context) {
 // @Router /music/artists/popular [get]
 func (h *coreMusicHandler) GetPopularArtists(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	if err != nil {
@@ -1200,7 +1200,7 @@ func (h *coreMusicHandler) GetPopularArtists(c *gin.Context) {
 // @Router /music/search [get]
 func (h *coreMusicHandler) SearchMusic(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	query := c.Query("q")
 	if query == "" {
@@ -1260,7 +1260,7 @@ func (h *coreMusicHandler) SearchMusic(c *gin.Context) {
 // @Router /music/tracks/{id}/similar [get]
 func (h *coreMusicHandler) GetSimilarTracks(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	trackID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -1326,7 +1326,7 @@ func (h *coreMusicHandler) GetSimilarTracks(c *gin.Context) {
 // @Router /music/albums/year/{year} [get]
 func (h *coreMusicHandler) GetAlbumsByYear(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	yearStr := c.Param("year")
 	if yearStr == "" {

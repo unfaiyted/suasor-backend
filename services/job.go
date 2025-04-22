@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	mediatypes "suasor/client/media/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/repository"
 	"suasor/services/jobs"
 	"suasor/services/jobs/recommendation"

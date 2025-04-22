@@ -8,13 +8,13 @@ import (
 	"strings"
 	"time"
 
-	mediatypes "suasor/client/media/types"
-	"suasor/client/metadata"
-	"suasor/client/types"
+	mediatypes "suasor/clients/media/types"
+	"suasor/clients/metadata"
+	"suasor/clients/types"
 	"suasor/repository"
 	"suasor/services/scheduler"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // NewReleaseNotificationJob identifies and notifies users about new releases
@@ -71,7 +71,7 @@ func (j *NewReleaseNotificationJob) Schedule() time.Duration {
 
 // Execute runs the new release notification job
 func (j *NewReleaseNotificationJob) Execute(ctx context.Context) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Starting new release notification job")
 
 	// Create a job run record
@@ -197,7 +197,7 @@ func (j *NewReleaseNotificationJob) Execute(ctx context.Context) error {
 
 // completeJobRun finalizes a job run with status and results
 func (j *NewReleaseNotificationJob) completeJobRun(ctx context.Context, jobRunID uint64, status models.JobStatus, message string) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	if err := j.jobRepo.CompleteJobRun(ctx, jobRunID, status, message); err != nil {
 		log.Printf("Error completing job run: %v", err)
 	}
@@ -235,7 +235,7 @@ func (j *NewReleaseNotificationJob) SetupNewReleaseNotificationSchedule(ctx cont
 
 // processUserNotifications processes notifications for a single user
 func (j *NewReleaseNotificationJob) processUserNotifications(ctx context.Context, user models.User, config *models.UserConfig, newReleases NewReleases) (NotificationStats, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	stats := NotificationStats{}
 
 	// Build the user preference profile
@@ -307,7 +307,7 @@ func (j *NewReleaseNotificationJob) processUserNotifications(ctx context.Context
 
 // buildUserPreferenceProfile builds a profile of user preferences for notifications
 func (j *NewReleaseNotificationJob) buildUserPreferenceProfile(ctx context.Context, userID uint64, config *models.UserConfig) (*UserPreferenceProfile, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	profile := &UserPreferenceProfile{
 		// Default to notifying for all content types
@@ -458,7 +458,7 @@ func (j *NewReleaseNotificationJob) buildUserPreferenceProfile(ctx context.Conte
 
 // processMovieNotifications processes movie notifications for a user
 func (j *NewReleaseNotificationJob) processMovieNotifications(ctx context.Context, userID uint64, profile *UserPreferenceProfile, movies []NewRelease) ([]UserNotification, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	var notifications []UserNotification
 
 	// Filter movies based on user preferences
@@ -574,7 +574,7 @@ func (j *NewReleaseNotificationJob) processMovieNotifications(ctx context.Contex
 
 // processSeriesNotifications processes series notifications for a user
 func (j *NewReleaseNotificationJob) processSeriesNotifications(ctx context.Context, userID uint64, profile *UserPreferenceProfile, series []NewRelease) ([]UserNotification, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	var notifications []UserNotification
 
 	// Filter series based on user preferences
@@ -690,7 +690,7 @@ func (j *NewReleaseNotificationJob) processSeriesNotifications(ctx context.Conte
 
 // processMusicNotifications processes music notifications for a user
 func (j *NewReleaseNotificationJob) processMusicNotifications(ctx context.Context, userID uint64, profile *UserPreferenceProfile, music []NewRelease) ([]UserNotification, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	var notifications []UserNotification
 
 	// Filter music based on user preferences
@@ -1031,7 +1031,7 @@ func (j *NewReleaseNotificationJob) formatMusicNotificationMessage(music NewRele
 
 // saveUserNotifications saves notifications for a user
 func (j *NewReleaseNotificationJob) saveUserNotifications(ctx context.Context, notifications []UserNotification) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// In a real implementation, this would save to a database or other notification system
 	// For now, we'll just log the notifications
@@ -1056,7 +1056,7 @@ func (j *NewReleaseNotificationJob) saveUserNotifications(ctx context.Context, n
 
 // fetchNewReleases fetches new releases from metadata providers
 func (j *NewReleaseNotificationJob) fetchNewReleases(ctx context.Context) (NewReleases, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Fetching new releases from metadata providers")
 
 	// Initialize the result
@@ -1343,7 +1343,7 @@ func (j *NewReleaseNotificationJob) fetchNewReleases(ctx context.Context) (NewRe
 
 // getMetadataClient gets a metadata client for a specific provider
 func (j *NewReleaseNotificationJob) getMetadataClient(ctx context.Context, providerType types.ClientType) (interface{}, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Here we would typically:
 	// 1. Check if the requested provider type is supported

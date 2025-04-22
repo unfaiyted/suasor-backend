@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 	"suasor/types/models"
 	"time"
 

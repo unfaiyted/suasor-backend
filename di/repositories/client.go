@@ -2,79 +2,68 @@
 package repositories
 
 import (
+	"context"
 	"gorm.io/gorm"
-	"suasor/client"
-	"suasor/client/types"
-	"suasor/container"
+	clienttypes "suasor/clients/types"
+	"suasor/di/container"
 	"suasor/repository"
-	"suasor/services"
+	repobundles "suasor/repository/bundles"
+	"suasor/utils/logger"
 )
 
-// ProvideEmbyClientRepository provides a ClientRepository for EmbyConfig
-func ProvideEmbyClientRepository(c *container.Container) repository.ClientRepository[*types.EmbyConfig] {
+// Register all client-type specific repositories
+func registerClientRepositories(ctx context.Context, c *container.Container) {
+	log := logger.LoggerFromContext(ctx)
 	db := container.MustGet[*gorm.DB](c)
-	return repository.NewClientRepository[*types.EmbyConfig](db)
+
+	// Media client repositories
+	log.Info().Msg("Registering client repositories")
+	registerClientRepository[*clienttypes.EmbyConfig](c, db)
+	registerClientRepository[*clienttypes.JellyfinConfig](c, db)
+	registerClientRepository[*clienttypes.PlexConfig](c, db)
+	registerClientRepository[*clienttypes.SubsonicConfig](c, db)
+
+	// Automation client repositories
+	log.Info().Msg("Registering automation client repositories")
+	registerClientRepository[*clienttypes.SonarrConfig](c, db)
+	registerClientRepository[*clienttypes.RadarrConfig](c, db)
+	registerClientRepository[*clienttypes.LidarrConfig](c, db)
+
+	// AI client repositories
+	log.Info().Msg("Registering AI client repositories")
+	registerClientRepository[*clienttypes.ClaudeConfig](c, db)
+	registerClientRepository[*clienttypes.OpenAIConfig](c, db)
+	registerClientRepository[*clienttypes.OllamaConfig](c, db)
+
+	// Metadata client service
+	registerClientRepository[*clienttypes.TMDBConfig](c, db)
+
+	// Client repository collection
+	container.RegisterFactory[repobundles.ClientRepositories](c, func(c *container.Container) repobundles.ClientRepositories {
+		embyRepo := container.MustGet[repository.ClientRepository[*clienttypes.EmbyConfig]](c)
+		jellyfinRepo := container.MustGet[repository.ClientRepository[*clienttypes.JellyfinConfig]](c)
+		plexRepo := container.MustGet[repository.ClientRepository[*clienttypes.PlexConfig]](c)
+		subsonicRepo := container.MustGet[repository.ClientRepository[*clienttypes.SubsonicConfig]](c)
+		sonarrRepo := container.MustGet[repository.ClientRepository[*clienttypes.SonarrConfig]](c)
+		radarrRepo := container.MustGet[repository.ClientRepository[*clienttypes.RadarrConfig]](c)
+		lidarrRepo := container.MustGet[repository.ClientRepository[*clienttypes.LidarrConfig]](c)
+		claudeRepo := container.MustGet[repository.ClientRepository[*clienttypes.ClaudeConfig]](c)
+		openaiRepo := container.MustGet[repository.ClientRepository[*clienttypes.OpenAIConfig]](c)
+		ollamaRepo := container.MustGet[repository.ClientRepository[*clienttypes.OllamaConfig]](c)
+
+		return repobundles.NewClientRepositories(
+			embyRepo, jellyfinRepo,
+			plexRepo, subsonicRepo,
+			sonarrRepo, radarrRepo,
+			lidarrRepo, claudeRepo,
+			openaiRepo, ollamaRepo,
+		)
+	})
 }
 
-// ProvideJellyfinClientRepository provides a ClientRepository for JellyfinConfig
-func ProvideJellyfinClientRepository(c *container.Container) repository.ClientRepository[*types.JellyfinConfig] {
-	db := container.MustGet[*gorm.DB](c)
-	return repository.NewClientRepository[*types.JellyfinConfig](db)
+func registerClientRepository[T clienttypes.ClientConfig](c *container.Container, db *gorm.DB) {
+	// Register core user media item data repositories
+	container.RegisterFactory[repository.ClientRepository[T]](c, func(c *container.Container) repository.ClientRepository[T] {
+		return repository.NewClientRepository[T](db)
+	})
 }
-
-// ProvidePlexClientRepository provides a ClientRepository for PlexConfig
-func ProvidePlexClientRepository(c *container.Container) repository.ClientRepository[*types.PlexConfig] {
-	db := container.MustGet[*gorm.DB](c)
-	return repository.NewClientRepository[*types.PlexConfig](db)
-}
-
-// ProvideSubsonicClientRepository provides a ClientRepository for SubsonicConfig
-func ProvideSubsonicClientRepository(c *container.Container) repository.ClientRepository[*types.SubsonicConfig] {
-	db := container.MustGet[*gorm.DB](c)
-	return repository.NewClientRepository[*types.SubsonicConfig](db)
-}
-
-// ProvideSonarrClientRepository provides a ClientRepository for SonarrConfig
-func ProvideSonarrClientRepository(c *container.Container) repository.ClientRepository[*types.SonarrConfig] {
-	db := container.MustGet[*gorm.DB](c)
-	return repository.NewClientRepository[*types.SonarrConfig](db)
-}
-
-// ProvideRadarrClientRepository provides a ClientRepository for RadarrConfig
-func ProvideRadarrClientRepository(c *container.Container) repository.ClientRepository[*types.RadarrConfig] {
-	db := container.MustGet[*gorm.DB](c)
-	return repository.NewClientRepository[*types.RadarrConfig](db)
-}
-
-// ProvideLidarrClientRepository provides a ClientRepository for LidarrConfig
-func ProvideLidarrClientRepository(c *container.Container) repository.ClientRepository[*types.LidarrConfig] {
-	db := container.MustGet[*gorm.DB](c)
-	return repository.NewClientRepository[*types.LidarrConfig](db)
-}
-
-// ProvideClaudeClientRepository provides a ClientRepository for ClaudeConfig
-func ProvideClaudeClientRepository(c *container.Container) repository.ClientRepository[*types.ClaudeConfig] {
-	db := container.MustGet[*gorm.DB](c)
-	return repository.NewClientRepository[*types.ClaudeConfig](db)
-}
-
-// ProvideOpenAIClientRepository provides a ClientRepository for OpenAIConfig
-func ProvideOpenAIClientRepository(c *container.Container) repository.ClientRepository[*types.OpenAIConfig] {
-	db := container.MustGet[*gorm.DB](c)
-	return repository.NewClientRepository[*types.OpenAIConfig](db)
-}
-
-// ProvideOllamaClientRepository provides a ClientRepository for OllamaConfig
-func ProvideOllamaClientRepository(c *container.Container) repository.ClientRepository[*types.OllamaConfig] {
-	db := container.MustGet[*gorm.DB](c)
-	return repository.NewClientRepository[*types.OllamaConfig](db)
-}
-
-// ProvideMetadataClientService provides a MetadataClientService for TMDBConfig
-func ProvideMetadataClientService(c *container.Container) *services.MetadataClientService[*types.TMDBConfig] {
-	factory := container.MustGet[*client.ClientFactoryService](c)
-	db := container.MustGet[*gorm.DB](c)
-	repo := repository.NewClientRepository[*types.TMDBConfig](db)
-	return services.NewMetadataClientService(factory, repo)
-}
-

@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"suasor/client"
-	"suasor/client/ai"
+	"suasor/clients"
+	"suasor/clients/ai"
 	"suasor/repository"
 	repobundles "suasor/repository/bundles"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 	"time"
 )
 
@@ -28,7 +28,7 @@ type RecommendationJob struct {
 	dataRepos          repobundles.UserMediaDataRepositories
 
 	// New repositories for credits and people
-	clientFactories *client.ClientFactoryService
+	clientFactories *clients.ClientFactoryService
 	creditRepo      repository.CreditRepository
 	peopleRepo      repository.PersonRepository
 }
@@ -46,7 +46,7 @@ func NewRecommendationJob(
 	dataRepos repobundles.UserMediaDataRepositories,
 
 	// New repositories for credits and people
-	clientFactories *client.ClientFactoryService,
+	clientFactories *clients.ClientFactoryService,
 	creditRepo repository.CreditRepository,
 	peopleRepo repository.PersonRepository,
 
@@ -266,7 +266,7 @@ func (j *RecommendationJob) IsContentTypeEnabled(contentTypesFilter string, cont
 
 // processUserRecommendations handles generating recommendations for a single user
 func (j *RecommendationJob) processUserRecommendations(ctx context.Context, jobRunID uint64, user models.User) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Processing recommendations for user")
 
 	// Get user configuration

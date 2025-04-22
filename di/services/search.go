@@ -3,7 +3,7 @@ package services
 
 import (
 	"context"
-	"suasor/client"
+	"suasor/clients"
 	"suasor/container"
 	"suasor/repository"
 	apprepos "suasor/repository/bundles"

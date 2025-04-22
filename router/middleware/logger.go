@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	logger "suasor/utils"
+	logger "suasor/utils/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

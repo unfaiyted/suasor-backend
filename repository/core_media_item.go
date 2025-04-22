@@ -19,9 +19,9 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // MediaItemRepository defines the interface for generic media item operations
@@ -64,7 +64,7 @@ func NewMediaItemRepository[T types.MediaData](db *gorm.DB) MediaItemRepository[
 
 // Create adds a new media item to the database
 func (r *mediaItemRepository[T]) Create(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("type", string(item.Type)).
 		Msg("Creating media item")
@@ -77,7 +77,7 @@ func (r *mediaItemRepository[T]) Create(ctx context.Context, item *models.MediaI
 
 // Update modifies an existing media item
 func (r *mediaItemRepository[T]) Update(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("id", item.ID).
 		Str("type", string(item.Type)).
@@ -104,7 +104,7 @@ func (r *mediaItemRepository[T]) Update(ctx context.Context, item *models.MediaI
 
 // GetByID retrieves a media item by its ID
 func (r *mediaItemRepository[T]) GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("id", id).
 		Msg("Getting media item by ID")
@@ -121,7 +121,7 @@ func (r *mediaItemRepository[T]) GetByID(ctx context.Context, id uint64) (*model
 
 // Delete removes a media item
 func (r *mediaItemRepository[T]) Delete(ctx context.Context, id uint64) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("id", id).
 		Msg("Deleting media item")
@@ -143,7 +143,7 @@ func (r *mediaItemRepository[T]) Delete(ctx context.Context, id uint64) error {
 
 // GetMediaItemsByIDs retrieves multiple media items by their IDs
 func (r *mediaItemRepository[T]) GetByIDs(ctx context.Context, ids []uint64) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("count", len(ids)).
 		Msg("Getting media items by IDs")
@@ -160,7 +160,7 @@ func (r *mediaItemRepository[T]) GetByIDs(ctx context.Context, ids []uint64) ([]
 
 // BatchCreate adds multiple media items to the database
 func (r *mediaItemRepository[T]) BatchCreate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("count", len(items)).
 		Msg("Batch creating media items")
@@ -193,7 +193,7 @@ func (r *mediaItemRepository[T]) BatchCreate(ctx context.Context, items []*model
 
 // BatchUpdate modifies multiple media items
 func (r *mediaItemRepository[T]) BatchUpdate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("count", len(items)).
 		Msg("Batch updating media items")
@@ -239,7 +239,7 @@ func (r *mediaItemRepository[T]) BatchUpdate(ctx context.Context, items []*model
 
 // GetByType retrieves all media items of a specific type
 func (r *mediaItemRepository[T]) GetByType(ctx context.Context, mediaType types.MediaType) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("type", string(mediaType)).
 		Msg("Getting media items by type")
@@ -256,7 +256,7 @@ func (r *mediaItemRepository[T]) GetByType(ctx context.Context, mediaType types.
 
 // GetByExternalID retrieves a media item by an external ID
 func (r *mediaItemRepository[T]) GetByExternalID(ctx context.Context, source string, externalID string) (*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("source", source).
 		Str("externalID", externalID).
@@ -283,7 +283,7 @@ func (r *mediaItemRepository[T]) GetByExternalID(ctx context.Context, source str
 
 // Search finds media items based on a query string
 func (r *mediaItemRepository[T]) Search(ctx context.Context, query types.QueryOptions) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("query", query.Query).
 		Str("type", string(query.MediaType)).
@@ -327,7 +327,7 @@ func (r *mediaItemRepository[T]) Search(ctx context.Context, query types.QueryOp
 
 // GetRecentItems retrieves recently added items of a specific type
 func (r *mediaItemRepository[T]) GetRecentItems(ctx context.Context, days int, limit int) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var zero T
 	mediaType := types.GetMediaTypeFromTypeName(zero)
@@ -366,7 +366,7 @@ func (r *mediaItemRepository[T]) GetRecentItems(ctx context.Context, days int, l
 // Note: This implementation assumes a "play_count" or similar field in the data JSON
 // You may need to adapt this based on your actual schema
 func (r *mediaItemRepository[T]) GetPopularItems(ctx context.Context, limit int) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var zero T
 	mediaType := types.GetMediaTypeFromTypeName(zero)
@@ -399,7 +399,7 @@ func (r *mediaItemRepository[T]) GetPopularItems(ctx context.Context, limit int)
 
 // GetItemsByAttributes retrieves items matching specific attributes
 func (r *mediaItemRepository[T]) GetItemsByAttributes(ctx context.Context, attributes map[string]interface{}, limit int) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("attributeCount", len(attributes)).
 		Int("limit", limit).
@@ -494,7 +494,7 @@ func (r *mediaItemRepository[T]) GetMixedMediaItemsByIDs(ctx context.Context, id
 }
 
 func (r *mediaItemRepository[T]) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("limit", limit).
 		Int("offset", offset).
@@ -522,7 +522,7 @@ func (r *mediaItemRepository[T]) GetAll(ctx context.Context, limit int, offset i
 }
 
 func (r *mediaItemRepository[T]) GetByClientItemID(ctx context.Context, clientItemID string, clientID uint64) (*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("clientItemID", clientItemID).
 		Uint64("clientID", clientID).
@@ -544,7 +544,7 @@ func (r *mediaItemRepository[T]) GetByClientItemID(ctx context.Context, clientIt
 
 func (r *mediaItemRepository[T]) GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error) {
 	var items []*models.MediaItem[T]
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Msg("Getting media items by user ID")

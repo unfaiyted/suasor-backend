@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"suasor/client/media/types"
-	clienttypes "suasor/client/types"
+	"suasor/clients/media/types"
+	clienttypes "suasor/clients/types"
 	"suasor/repository"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // ClientMediaItemService defines the interface for client-associated media item operations
@@ -53,7 +53,7 @@ func NewClientMediaItemService[T clienttypes.ClientMediaConfig, U types.MediaDat
 
 // GetByClientID retrieves all media items associated with a specific client
 func (s *clientMediaItemService[T, U]) GetByClientID(ctx context.Context, clientID uint64) ([]*models.MediaItem[U], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("clientID", clientID).
 		Msg("Getting media items by client ID")
@@ -77,7 +77,7 @@ func (s *clientMediaItemService[T, U]) GetByClientID(ctx context.Context, client
 
 // GetByClientItemID retrieves a media item by its client-specific ID
 func (s *clientMediaItemService[T, U]) GetByClientItemID(ctx context.Context, itemID string, clientID uint64) (*models.MediaItem[U], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("itemID", itemID).
 		Uint64("clientID", clientID).
@@ -104,7 +104,7 @@ func (s *clientMediaItemService[T, U]) GetByClientItemID(ctx context.Context, it
 
 // GetByMultipleClients retrieves all media items associated with any of the specified clients
 func (s *clientMediaItemService[T, U]) GetByMultipleClients(ctx context.Context, clientIDs []uint64) ([]*models.MediaItem[U], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Interface("clientIDs", clientIDs).
 		Msg("Getting media items by multiple clients")
@@ -129,7 +129,7 @@ func (s *clientMediaItemService[T, U]) GetByMultipleClients(ctx context.Context,
 // SearchAcrossClients searches for media items across multiple clients
 // Maps by [clientID] for each of the set of MeidaItems[T]
 func (s *clientMediaItemService[T, U]) SearchAcrossClients(ctx context.Context, query types.QueryOptions, clientIDs []uint64) (map[uint64][]*models.MediaItem[U], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("query", query.Query).
 		Interface("clientIDs", clientIDs).
@@ -170,7 +170,7 @@ func (s *clientMediaItemService[T, U]) SearchAcrossClients(ctx context.Context, 
 
 // SyncItemBetweenClients creates or updates a mapping between a media item and a target client
 func (s *clientMediaItemService[T, U]) SyncItemBetweenClients(ctx context.Context, itemID uint64, sourceClientID uint64, targetClientID uint64, targetItemID string) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("itemID", itemID).
 		Uint64("sourceClientID", sourceClientID).
@@ -199,7 +199,7 @@ func (s *clientMediaItemService[T, U]) SyncItemBetweenClients(ctx context.Contex
 }
 
 func (s *clientMediaItemService[T, U]) DeleteClientItem(ctx context.Context, clientID uint64, itemID string) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("clientID", clientID).
 		Str("itemID", itemID).

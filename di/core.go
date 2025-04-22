@@ -4,17 +4,17 @@ package di
 import (
 	"context"
 	"gorm.io/gorm"
-	"suasor/container"
+	"suasor/di/container"
 	"suasor/di/factories"
 	"suasor/repository"
 	"suasor/services"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // Register core dependencies that are used throughout the application
 func RegisterCore(ctx context.Context, c *container.Container, db *gorm.DB, configService services.ConfigService) {
 	// Register core components
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	c.Register(db)
 	c.Register(configService)
 
@@ -29,6 +29,7 @@ func RegisterCore(ctx context.Context, c *container.Container, db *gorm.DB, conf
 	// This is responsible for creating clients based on the client type and client ID
 	log.Info().Msg("Registering client media item factories")
 	factories.RegisterClientMediaItemFactories(ctx, c)
+
 	// Then register client factories which depend on the registry
 	log.Info().Msg("Registering client factories")
 	factories.RegisterClientFactories(ctx, c)

@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"suasor/client"
-	"suasor/client/media/providers"
-	mediatypes "suasor/client/media/types"
-	clienttypes "suasor/client/types"
+	"suasor/clients"
+	"suasor/clients/media/providers"
+	mediatypes "suasor/clients/media/types"
+	clienttypes "suasor/clients/types"
 	"suasor/repository"
 	repobundles "suasor/repository/bundles"
 	"suasor/services/scheduler"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 	"time"
 )
 
@@ -27,7 +27,7 @@ type WatchHistorySyncJob struct {
 	dataRepos       repobundles.UserMediaDataRepositories
 	clientItemRepos repobundles.ClientMediaItemRepositories
 	itemRepos       repobundles.CoreMediaItemRepositories
-	clientFactories *client.ClientFactoryService
+	clientFactories *clients.ClientFactoryService
 }
 
 // NewWatchHistorySyncJob creates a new watch history sync job
@@ -39,7 +39,7 @@ func NewWatchHistorySyncJob(
 	dataRepos repobundles.UserMediaDataRepositories,
 	clientItemRepos repobundles.ClientMediaItemRepositories,
 	itemRepos repobundles.CoreMediaItemRepositories,
-	clientFactories *client.ClientFactoryService,
+	clientFactories *clients.ClientFactoryService,
 ) *WatchHistorySyncJob {
 	return &WatchHistorySyncJob{
 		jobRepo:         jobRepo,
@@ -245,7 +245,7 @@ func (j *WatchHistorySyncJob) RunManualSync(ctx context.Context, userID uint64) 
 // syncClientHistory syncs watch history for a specific client
 func syncClientHistory[T clienttypes.ClientConfig](j *WatchHistorySyncJob, ctx context.Context, userID uint64, clientConfig *models.Client[T], jobRunID uint64) error {
 	// Log the start of synchronization
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("userID", userID).
 		Uint64("clientID", clientConfig.ID).
@@ -346,7 +346,7 @@ func syncClientHistory[T clienttypes.ClientConfig](j *WatchHistorySyncJob, ctx c
 
 // processMovieHistory processes a movie history item and updates the database
 func (j *WatchHistorySyncJob) processMovieHistory(ctx context.Context, userID, clientID uint64, historyItem models.UserMediaItemData[mediatypes.Movie]) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get client item ID from the media item
 	var clientItemID string
@@ -405,7 +405,7 @@ func (j *WatchHistorySyncJob) processMovieHistory(ctx context.Context, userID, c
 
 // processSeriesHistory processes a series history item and updates the database
 func (j *WatchHistorySyncJob) processSeriesHistory(ctx context.Context, userID, clientID uint64, historyItem models.UserMediaItemData[mediatypes.Series]) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get client item ID from the media item
 	var clientItemID string
@@ -465,7 +465,7 @@ func (j *WatchHistorySyncJob) processSeriesHistory(ctx context.Context, userID, 
 
 // processEpisodeHistory processes an episode history item and updates the database
 func (j *WatchHistorySyncJob) processEpisodeHistory(ctx context.Context, userID, clientID uint64, historyItem models.UserMediaItemData[mediatypes.MediaData]) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get client item ID from the media item
 	var clientItemID string
@@ -525,7 +525,7 @@ func (j *WatchHistorySyncJob) processEpisodeHistory(ctx context.Context, userID,
 
 // processMusicHistory processes a music track history item and updates the database
 func (j *WatchHistorySyncJob) processMusicHistory(ctx context.Context, userID, clientID uint64, historyItem models.UserMediaItemData[mediatypes.MediaData]) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get client item ID from the media item
 	var clientItemID string

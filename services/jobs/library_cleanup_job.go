@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	mediatypes "suasor/client/media/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/repository"
 	"suasor/services/scheduler"
 	"suasor/types/models"
@@ -261,4 +261,3 @@ func (j *LibraryCleanupJob) GenerateCleanupReport(ctx context.Context, recentJob
 		"Access errors found: 8\n" +
 		"Access errors fixed: 5\n", nil
 }
-

@@ -1,11 +1,11 @@
 package router
 
 import (
-	"suasor/app/container"
+	"suasor/container"
 	"suasor/handlers"
 
 	"github.com/gin-gonic/gin"
-	mediatypes "suasor/client/media/types"
+	mediatypes "suasor/clients/media/types"
 )
 
 // SetupMediaListRoutes sets up the routes for media lists

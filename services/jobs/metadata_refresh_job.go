@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	mediatypes "suasor/client/media/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/repository"
 	"suasor/services/scheduler"
 	"suasor/types/models"
@@ -298,4 +298,3 @@ func (j *MetadataRefreshJob) GetPriorityItems(ctx context.Context) (map[string][
 
 	return priorityItems, nil
 }
-

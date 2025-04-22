@@ -3,7 +3,7 @@ package jobs
 import (
 	"context"
 	"log"
-	clienttypes "suasor/client/types"
+	clienttypes "suasor/clients/types"
 	"time"
 )
 
@@ -37,3 +37,4 @@ func (e *EmptyJob) Schedule() time.Duration {
 	// Default to a daily schedule
 	return 24 * time.Hour
 }
+

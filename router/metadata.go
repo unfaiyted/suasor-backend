@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"suasor/app/container"
+	"suasor/container"
 )
 
 // RegisterMetadataRoutes registers all metadata client routes
@@ -69,4 +69,3 @@ func RegisterMetadataRoutes(api *gin.RouterGroup, c *container.Container) {
 // func TMDBHandler(deps *app.AppDependencies) *handlers.MetadataClientHandler[*types.TMDBConfig] {
 //    return deps.TMDBHandler()
 // }
-

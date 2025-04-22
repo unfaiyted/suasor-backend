@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 
 	"gorm.io/gorm"
 )
@@ -48,7 +48,7 @@ func NewCreditRepository(db *gorm.DB) CreditRepository {
 
 // Create creates a new credit
 func (r *creditRepository) Create(ctx context.Context, credit *models.Credit) (*models.Credit, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	if err := r.db.Create(credit).Error; err != nil {
 		log.Error().Err(err).Msg("Failed to create credit")
@@ -60,7 +60,7 @@ func (r *creditRepository) Create(ctx context.Context, credit *models.Credit) (*
 
 // GetByID gets a credit by ID
 func (r *creditRepository) GetByID(ctx context.Context, id uint64) (*models.Credit, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var credit models.Credit
 	if err := r.db.First(&credit, id).Error; err != nil {
@@ -77,7 +77,7 @@ func (r *creditRepository) GetByID(ctx context.Context, id uint64) (*models.Cred
 
 // Update updates a credit
 func (r *creditRepository) Update(ctx context.Context, credit *models.Credit) (*models.Credit, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	if err := r.db.Save(credit).Error; err != nil {
 		log.Error().Err(err).Msg("Failed to update credit")
@@ -89,7 +89,7 @@ func (r *creditRepository) Update(ctx context.Context, credit *models.Credit) (*
 
 // Delete deletes a credit
 func (r *creditRepository) Delete(ctx context.Context, id uint64) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	if err := r.db.Delete(&models.Credit{}, id).Error; err != nil {
 		log.Error().Err(err).Uint64("id", id).Msg("Failed to delete credit")
@@ -101,7 +101,7 @@ func (r *creditRepository) Delete(ctx context.Context, id uint64) error {
 
 // GetByMediaItemID gets all credits for a media item
 func (r *creditRepository) GetByMediaItemID(ctx context.Context, mediaItemID uint64) ([]models.Credit, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var credits []models.Credit
 	if err := r.db.Where("media_item_id = ?", mediaItemID).Find(&credits).Error; err != nil {
@@ -114,7 +114,7 @@ func (r *creditRepository) GetByMediaItemID(ctx context.Context, mediaItemID uin
 
 // GetByPersonID gets all credits for a person
 func (r *creditRepository) GetByPersonID(ctx context.Context, personID uint64) ([]models.Credit, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var credits []models.Credit
 	if err := r.db.Where("person_id = ?", personID).Find(&credits).Error; err != nil {
@@ -127,7 +127,7 @@ func (r *creditRepository) GetByPersonID(ctx context.Context, personID uint64) (
 
 // GetByRole gets all credits with a specific role
 func (r *creditRepository) GetByRole(ctx context.Context, role string) ([]models.Credit, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var credits []models.Credit
 	if err := r.db.Where("role = ?", role).Find(&credits).Error; err != nil {
@@ -140,7 +140,7 @@ func (r *creditRepository) GetByRole(ctx context.Context, role string) ([]models
 
 // GetByDepartment gets all credits with a specific department
 func (r *creditRepository) GetByDepartment(ctx context.Context, department string) ([]models.Credit, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var credits []models.Credit
 	if err := r.db.Where("department = ?", department).Find(&credits).Error; err != nil {
@@ -153,7 +153,7 @@ func (r *creditRepository) GetByDepartment(ctx context.Context, department strin
 
 // GetCastForMediaItem gets cast credits for a media item
 func (r *creditRepository) GetCastForMediaItem(ctx context.Context, mediaItemID uint64) ([]models.Credit, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var credits []models.Credit
 	if err := r.db.Where("media_item_id = ? AND is_cast = ?", mediaItemID, true).Order("\"order\" ASC").Find(&credits).Error; err != nil {
@@ -166,7 +166,7 @@ func (r *creditRepository) GetCastForMediaItem(ctx context.Context, mediaItemID 
 
 // GetCrewForMediaItem gets crew credits for a media item
 func (r *creditRepository) GetCrewForMediaItem(ctx context.Context, mediaItemID uint64) ([]models.Credit, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var credits []models.Credit
 	if err := r.db.Where("media_item_id = ? AND is_crew = ?", mediaItemID, true).Order("department ASC, job ASC").Find(&credits).Error; err != nil {
@@ -179,7 +179,7 @@ func (r *creditRepository) GetCrewForMediaItem(ctx context.Context, mediaItemID 
 
 // GetDirectorsForMediaItem gets director credits for a media item
 func (r *creditRepository) GetDirectorsForMediaItem(ctx context.Context, mediaItemID uint64) ([]models.Credit, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var credits []models.Credit
 	if err := r.db.Where("media_item_id = ? AND department = ? AND job = ?", mediaItemID, "Directing", "Director").Find(&credits).Error; err != nil {
@@ -192,7 +192,7 @@ func (r *creditRepository) GetDirectorsForMediaItem(ctx context.Context, mediaIt
 
 // GetCreatorsForMediaItem gets creator credits for a media item
 func (r *creditRepository) GetCreatorsForMediaItem(ctx context.Context, mediaItemID uint64) ([]models.Credit, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var credits []models.Credit
 	if err := r.db.Where("media_item_id = ? AND is_creator = ?", mediaItemID, true).Find(&credits).Error; err != nil {
@@ -205,7 +205,7 @@ func (r *creditRepository) GetCreatorsForMediaItem(ctx context.Context, mediaIte
 
 // CreateMany creates multiple credits in a transaction
 func (r *creditRepository) CreateMany(ctx context.Context, credits []models.Credit) ([]models.Credit, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	if len(credits) == 0 {
 		return []models.Credit{}, nil
@@ -239,4 +239,3 @@ func (r *creditRepository) CreateMany(ctx context.Context, credits []models.Cred
 
 	return credits, nil
 }
-

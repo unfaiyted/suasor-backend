@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	mediatypes "suasor/client/media/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/repository"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // UserlistService defines the interface for user-owned list operations
@@ -74,7 +74,7 @@ func (s *userListService[T]) GetAll(ctx context.Context, limit int, offset int) 
 }
 
 func (s *userListService[T]) Create(ctx context.Context, list *models.MediaItem[T]) (*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("title", list.Title).
 		Msg("Creating user list")
@@ -100,7 +100,7 @@ func (s *userListService[T]) Create(ctx context.Context, list *models.MediaItem[
 }
 
 func (s *userListService[T]) Update(ctx context.Context, list *models.MediaItem[T]) (*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("id", list.ID).
 		Str("title", list.Title).
@@ -144,7 +144,7 @@ func (s *userListService[T]) GetByUserID(ctx context.Context, userID uint64, lim
 }
 
 func (s *userListService[T]) Delete(ctx context.Context, id uint64) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("id", id).
 		Msg("Deleting user list")
@@ -175,7 +175,7 @@ func (s *userListService[T]) GetItems(ctx context.Context, listID uint64) (*mode
 }
 
 func (s *userListService[T]) AddItem(ctx context.Context, listID uint64, itemID uint64) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
 		Uint64("itemID", itemID).
@@ -203,7 +203,7 @@ func (s *userListService[T]) AddItem(ctx context.Context, listID uint64, itemID 
 }
 
 func (s *userListService[T]) RemoveItem(ctx context.Context, listID uint64, itemID uint64) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
 		Uint64("itemID", itemID).
@@ -231,7 +231,7 @@ func (s *userListService[T]) RemoveItem(ctx context.Context, listID uint64, item
 }
 
 // func (s *userListService[T]) ReorderItems(ctx context.Context, listID uint64, itemIDs []uint64) error {
-// 	log := utils.LoggerFromContext(ctx)
+// 	log := logger.LoggerFromContext(ctx)
 // 	log.Debug().
 // 		Uint64("listID", listID).
 // 		Interface("itemIDs", itemIDs).
@@ -259,7 +259,7 @@ func (s *userListService[T]) RemoveItem(ctx context.Context, listID uint64, item
 // }
 
 func (s *userListService[T]) UpdateItems(ctx context.Context, listID uint64, items []*models.MediaItem[T]) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
 		Int("itemCount", len(items)).
@@ -312,7 +312,7 @@ func (s *userListService[T]) Sync(ctx context.Context, listID uint64, targetClie
 }
 
 func (s *userListService[T]) UpdateSmartCriteria(ctx context.Context, listID uint64, criteria map[string]interface{}) (*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
 		Interface("criteria", criteria).
@@ -326,7 +326,7 @@ func (s *userListService[T]) UpdateSmartCriteria(ctx context.Context, listID uin
 
 // GetUserlists retrieves lists owned by a specific user with pagination
 func (s *userListService[T]) GetUser(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Int("limit", limit).
@@ -352,7 +352,7 @@ func (s *userListService[T]) GetUser(ctx context.Context, userID uint64, limit i
 
 // SearchUserlists searches for lists owned by a specific user
 func (s *userListService[T]) SearchUser(ctx context.Context, userID uint64, query string) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Str("query", query).
@@ -374,7 +374,7 @@ func (s *userListService[T]) SearchUser(ctx context.Context, userID uint64, quer
 
 // GetRecentUserlists retrieves recently updated lists for a user
 func (s *userListService[T]) GetRecentByUser(ctx context.Context, userID uint64, days int, limit int) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Int("limit", limit).
@@ -396,7 +396,7 @@ func (s *userListService[T]) GetRecentByUser(ctx context.Context, userID uint64,
 
 // GetFavoritelists retrieves lists marked as favorite by the user
 func (s *userListService[T]) GetFavorite(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Msg("Getting favorite lists")
@@ -436,7 +436,7 @@ func (s *userListService[T]) GetFavorite(ctx context.Context, userID uint64, lim
 
 // CreateSmartlist creates a list that updates automatically based on criteria
 func (s *userListService[T]) CreateSmartList(ctx context.Context, userID uint64, name string, description string, criteria map[string]interface{}) (*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Str("name", name).
@@ -486,7 +486,7 @@ func (s *userListService[T]) CreateSmartList(ctx context.Context, userID uint64,
 
 // UpdateSmartlistCriteria updates the criteria for a smart list
 func (s *userListService[T]) UpdateSmartlistCriteria(ctx context.Context, listID uint64, criteria map[string]interface{}) (*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
 		Interface("criteria", criteria).
@@ -552,7 +552,7 @@ func (s *userListService[T]) UpdateSmartlistCriteria(ctx context.Context, listID
 
 // RefreshSmartlist updates a smart list based on its criteria
 func (s *userListService[T]) RefreshSmartList(ctx context.Context, listID uint64) (*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
 		Msg("Refreshing smart list")
@@ -620,7 +620,7 @@ func (s *userListService[T]) RefreshSmartList(ctx context.Context, listID uint64
 
 // SharelistWithUser shares a list with another user
 func (s *userListService[T]) ShareWithUser(ctx context.Context, listID uint64, targetUserID uint64, permissionLevel string) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
 		Uint64("targetUserID", targetUserID).
@@ -702,7 +702,7 @@ func (s *userListService[T]) ShareWithUser(ctx context.Context, listID uint64, t
 
 // GetSharedlists retrieves lists shared with a user
 func (s *userListService[T]) GetShared(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Msg("Getting lists shared with user")
@@ -746,7 +746,7 @@ func (s *userListService[T]) GetShared(ctx context.Context, userID uint64) ([]*m
 
 // GetlistCollaborators retrieves the list of users a list is shared with
 func (s *userListService[T]) GetCollaborators(ctx context.Context, listID uint64) ([]models.ListCollaborator, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
 		Msg("Getting list collaborators")
@@ -781,7 +781,7 @@ func (s *userListService[T]) GetCollaborators(ctx context.Context, listID uint64
 
 // RemovelistCollaborator removes a user from the list's collaborators
 func (s *userListService[T]) RemoveCollaborator(ctx context.Context, listID uint64, collaboratorID uint64) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
 		Uint64("collaboratorID", collaboratorID).
@@ -855,7 +855,7 @@ func (s *userListService[T]) RemoveCollaborator(ctx context.Context, listID uint
 
 // SynclistToClients synchronizes a list to specified media clients
 func (s *userListService[T]) SyncToClients(ctx context.Context, listID uint64, clientIDs []uint64) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
 		Interface("clientIDs", clientIDs).
@@ -869,7 +869,7 @@ func (s *userListService[T]) SyncToClients(ctx context.Context, listID uint64, c
 
 // GetlistSyncStatus retrieves the sync status of a list across clients
 func (s *userListService[T]) GetSyncStatus(ctx context.Context, listID uint64) (*models.ListSyncStatus, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
 		Msg("Getting list sync status")
@@ -927,7 +927,7 @@ func (s *userListService[T]) GetSyncStatus(ctx context.Context, listID uint64) (
 }
 
 // func (s *userListService[T]) Delete(ctx context.Context, id uint64) error {
-// 	log := utils.LoggerFromContext(ctx)
+// 	log := logger.LoggerFromContext(ctx)
 // 	log.Debug().
 // 		Uint64("id", id).
 // 		Msg("Deleting list")
@@ -970,7 +970,7 @@ func (s *userListService[T]) haslistReadPermission(ctx context.Context, userID u
 	if list.OwnerID == userID {
 		return true
 	}
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	itemList := list.GetData().GetItemList()
 	// Check if the list is shared with this user

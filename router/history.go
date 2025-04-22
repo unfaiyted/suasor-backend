@@ -1,10 +1,10 @@
 package router
 
 import (
-	"suasor/app/container"
+	"suasor/container"
 
 	"github.com/gin-gonic/gin"
-	mediatypes "suasor/client/media/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/handlers"
 )
 
@@ -52,4 +52,3 @@ func RegisterMediaPlayHistoryRoutes(rg *gin.RouterGroup, c *container.Container)
 		favorites.GET("", handler.GetFavorites)
 	}
 }
-

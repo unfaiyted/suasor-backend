@@ -1,8 +1,8 @@
 package requests
 
 import (
-	"suasor/client/types"
-	client "suasor/client/types"
+	"suasor/clients/types"
+	client "suasor/clients/types"
 )
 
 // ClientTestRequest is used for testing a client connection

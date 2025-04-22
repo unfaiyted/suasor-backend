@@ -6,11 +6,11 @@ package handlers
 //
 // 	"github.com/gin-gonic/gin"
 //
-// 	mediatypes "suasor/client/media/types"
+// 	mediatypes "suasor/clients/media/types"
 // 	"suasor/services"
 // 	// "suasor/types/models"
 // 	"suasor/types/responses"
-// 	"suasor/utils"
+// 	"suasor/utils/logger"
 // )
 //
 // // CoreCollectionHandler handles operations for collections in the database
@@ -43,7 +43,7 @@ package handlers
 // // @Router /collections [get]
 // func (h *CoreCollectionHandler) GetAll(c *gin.Context) {
 // 	ctx := c.Request.Context()
-// 	log := utils.LoggerFromContext(ctx)
+// 	log := logger.LoggerFromContext(ctx)
 //
 // 	log.Debug().Msg("Getting all collections")
 //
@@ -89,7 +89,7 @@ package handlers
 // // @Router /collections/{id} [get]
 // func (h *CoreCollectionHandler) GetByID(c *gin.Context) {
 // 	ctx := c.Request.Context()
-// 	log := utils.LoggerFromContext(ctx)
+// 	log := logger.LoggerFromContext(ctx)
 //
 // 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 // 	if err != nil {
@@ -131,7 +131,7 @@ package handlers
 // // @Router /collections/{id}/items [get]
 // func (h *CoreCollectionHandler) GetCollectionItems(c *gin.Context) {
 // 	ctx := c.Request.Context()
-// 	log := utils.LoggerFromContext(ctx)
+// 	log := logger.LoggerFromContext(ctx)
 //
 // 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 // 	if err != nil {
@@ -173,7 +173,7 @@ package handlers
 // // @Router /collections/genre/{genre} [get]
 // func (h *CoreCollectionHandler) GetByGenre(c *gin.Context) {
 // 	ctx := c.Request.Context()
-// 	log := utils.LoggerFromContext(ctx)
+// 	log := logger.LoggerFromContext(ctx)
 //
 // 	genre := c.Param("genre")
 // 	if genre == "" {
@@ -222,7 +222,7 @@ package handlers
 // // @Router /collections/search [get]
 // func (h *CoreCollectionHandler) Search(c *gin.Context) {
 // 	ctx := c.Request.Context()
-// 	log := utils.LoggerFromContext(ctx)
+// 	log := logger.LoggerFromContext(ctx)
 //
 // 	query := c.Query("q")
 // 	if query == "" {
@@ -270,7 +270,7 @@ package handlers
 // // @Router /collections/public [get]
 // func (h *CoreCollectionHandler) GetPublicCollections(c *gin.Context) {
 // 	ctx := c.Request.Context()
-// 	log := utils.LoggerFromContext(ctx)
+// 	log := logger.LoggerFromContext(ctx)
 //
 // 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
 // 	if err != nil {

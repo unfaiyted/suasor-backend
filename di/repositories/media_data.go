@@ -2,8 +2,8 @@ package repositories
 
 import (
 	"gorm.io/gorm"
-	mediatypes "suasor/client/media/types"
-	"suasor/container"
+	mediatypes "suasor/clients/media/types"
+	"suasor/di/container"
 	"suasor/repository"
 )
 
@@ -20,6 +20,7 @@ func registerMediaItemDataRepositories(c *container.Container) {
 	registerDataRepository[*mediatypes.Collection](c, db)
 	registerDataRepository[*mediatypes.Playlist](c, db)
 
+	// TODO: ClientDataRepositories
 }
 
 func registerDataRepository[T mediatypes.MediaData](c *container.Container, db *gorm.DB) {

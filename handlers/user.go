@@ -15,7 +15,7 @@ import (
 	"suasor/types/requests"
 	"suasor/types/responses"
 
-	"suasor/utils"
+	"suasor/utils/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -83,7 +83,7 @@ func NewUserHandler(service services.UserService, configSvc services.ConfigServi
 // @Router /users/register [post]
 func (h *UserHandler) Register(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var req requests.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -156,7 +156,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 // @Router /users/profile [get]
 func (h *UserHandler) GetProfile(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get user ID from context (set by auth middleware)
 	userID, exists := c.Get("userID")
@@ -220,7 +220,7 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 // @Router /users/profile [put]
 func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get user ID from context (set by auth middleware)
 	userID, exists := c.Get("userID")
@@ -317,7 +317,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 // @Router /users/password [put]
 func (h *UserHandler) ChangePassword(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get user ID from context (set by auth middleware)
 	userID, exists := c.Get("userID")
@@ -388,7 +388,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 // @Router /users/{id} [get]
 func (h *UserHandler) GetByID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Verify admin role (should be done by middleware, but double-checking)
 	role, exists := c.Get("userRole")
@@ -462,7 +462,7 @@ func (h *UserHandler) GetByID(c *gin.Context) {
 // @Router /users/{id}/role [put]
 func (h *UserHandler) ChangeRole(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Verify admin role (should be done by middleware, but double-checking)
 	role, exists := c.Get("userRole")
@@ -548,7 +548,7 @@ func (h *UserHandler) ChangeRole(c *gin.Context) {
 // @Router /users/{id}/activate [post]
 func (h *UserHandler) ActivateUser(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Verify admin role (should be done by middleware, but double-checking)
 	role, exists := c.Get("userRole")
@@ -622,7 +622,7 @@ func (h *UserHandler) ActivateUser(c *gin.Context) {
 // @Router /users/{id}/deactivate [post]
 func (h *UserHandler) DeactivateUser(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Verify admin role (should be done by middleware, but double-checking)
 	role, exists := c.Get("userRole")
@@ -682,7 +682,7 @@ func (h *UserHandler) DeactivateUser(c *gin.Context) {
 // @Router /users/{id} [delete]
 func (h *UserHandler) Delete(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Verify admin role (should be done by middleware, but double-checking)
 	role, exists := c.Get("userRole")
@@ -744,7 +744,7 @@ func (h *UserHandler) Delete(c *gin.Context) {
 // @Router /users/avatar [post]
 func (h *UserHandler) UploadAvatar(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get user ID from context (set by auth middleware)
 	userID, exists := c.Get("userID")
@@ -769,14 +769,14 @@ func (h *UserHandler) UploadAvatar(c *gin.Context) {
 		responses.RespondBadRequest(c, err, "Failed to get avatar file: "+err.Error())
 		return
 	}
-	
+
 	// Log file details
 	log.Debug().
 		Str("filename", header.Filename).
 		Int64("size", header.Size).
 		Str("content-type", header.Header.Get("Content-Type")).
 		Msg("Avatar file received")
-		
+
 	defer file.Close()
 
 	// Validate file
@@ -814,9 +814,9 @@ func (h *UserHandler) UploadAvatar(c *gin.Context) {
 		responses.RespondInternalError(c, err, "Failed to read avatar file: "+err.Error())
 		return
 	}
-	
+
 	log.Debug().Int("bytesRead", len(fileBytes)).Msg("Read file bytes into memory")
-	
+
 	// Write the file to disk
 	if _, err = dst.Write(fileBytes); err != nil {
 		log.Error().Err(err).Str("path", filePath).Msg("Failed to write avatar file")
@@ -834,7 +834,7 @@ func (h *UserHandler) UploadAvatar(c *gin.Context) {
 
 	// Create relative path for storage in DB
 	relativePath := fmt.Sprintf("/uploads/avatars/%s", filename)
-	
+
 	// Generate full web-accessible URL for avatar
 	fullURL := fmt.Sprintf("%s%s", baseURL, relativePath)
 

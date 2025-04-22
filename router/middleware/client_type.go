@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
-	clienttypes "suasor/client/types"
+	clienttypes "suasor/clients/types"
 )
 
 // ClientTypeMiddleware extracts the client type from the database based on clientID
@@ -37,4 +37,3 @@ func ClientTypeMiddleware(db *gorm.DB) gin.HandlerFunc {
 		c.Next()
 	}
 }
-

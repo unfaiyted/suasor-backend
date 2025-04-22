@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"suasor/app/container"
-	mediatypes "suasor/client/media/types"
-	clienttypes "suasor/client/types"
+	mediatypes "suasor/clients/media/types"
+	clienttypes "suasor/clients/types"
+	"suasor/container"
 	"suasor/handlers"
 	"suasor/router/middleware"
 	"suasor/types/responses"
@@ -131,4 +131,3 @@ func getHandler[T mediatypes.ListData](g *gin.Context, c *container.Container) h
 	}
 	return handler
 }
-

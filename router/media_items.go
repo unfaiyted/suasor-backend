@@ -1,7 +1,7 @@
 package router // router/media_mediaItems.go
 
 import (
-	"suasor/app/container"
+	"suasor/container"
 
 	"context"
 	"github.com/gin-gonic/gin"

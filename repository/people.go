@@ -2,9 +2,9 @@ package repository
 
 import (
 	"context"
-	mediatypes "suasor/client/media/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 
 	"fmt"
 	"gorm.io/gorm"
@@ -46,7 +46,7 @@ func NewPersonRepository(db *gorm.DB) PersonRepository {
 
 // Create creates a new person
 func (r *personRepository) Create(ctx context.Context, person *models.Person) (*models.Person, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	if err := r.db.Create(person).Error; err != nil {
 		log.Error().Err(err).Msg("Failed to create person")
@@ -58,7 +58,7 @@ func (r *personRepository) Create(ctx context.Context, person *models.Person) (*
 
 // GetByID gets a person by ID
 func (r *personRepository) GetByID(ctx context.Context, id uint64) (*models.Person, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var person models.Person
 	if err := r.db.First(&person, id).Error; err != nil {
@@ -75,7 +75,7 @@ func (r *personRepository) GetByID(ctx context.Context, id uint64) (*models.Pers
 
 // Update updates a person
 func (r *personRepository) Update(ctx context.Context, person *models.Person) (*models.Person, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	if err := r.db.Save(person).Error; err != nil {
 		log.Error().Err(err).Msg("Failed to update person")
@@ -87,7 +87,7 @@ func (r *personRepository) Update(ctx context.Context, person *models.Person) (*
 
 // Delete deletes a person
 func (r *personRepository) Delete(ctx context.Context, id uint64) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	if err := r.db.Delete(&models.Person{}, id).Error; err != nil {
 		log.Error().Err(err).Uint64("id", id).Msg("Failed to delete person")
@@ -99,7 +99,7 @@ func (r *personRepository) Delete(ctx context.Context, id uint64) error {
 
 // GetAll gets all people with pagination
 func (r *personRepository) GetAll(ctx context.Context, limit, offset int) ([]models.Person, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var people []models.Person
 	if err := r.db.Limit(limit).Offset(offset).Find(&people).Error; err != nil {
@@ -112,7 +112,7 @@ func (r *personRepository) GetAll(ctx context.Context, limit, offset int) ([]mod
 
 // GetByName gets all people with a specific name
 func (r *personRepository) GetByName(ctx context.Context, name string) ([]models.Person, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var people []models.Person
 	if err := r.db.Where("name = ?", name).Find(&people).Error; err != nil {
@@ -125,7 +125,7 @@ func (r *personRepository) GetByName(ctx context.Context, name string) ([]models
 
 // GetByRole gets all people with a specific role
 func (r *personRepository) GetByRole(ctx context.Context, role string) ([]models.Person, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var people []models.Person
 	if err := r.db.Where("known_for = ?", role).Find(&people).Error; err != nil {
@@ -138,7 +138,7 @@ func (r *personRepository) GetByRole(ctx context.Context, role string) ([]models
 
 // GetByExternalID gets a person by external ID
 func (r *personRepository) GetByExternalID(ctx context.Context, source, id string) (*models.Person, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var people []models.Person
 	if err := r.db.Find(&people).Error; err != nil {
@@ -160,7 +160,7 @@ func (r *personRepository) GetByExternalID(ctx context.Context, source, id strin
 
 // SearchByName searches for people by name with a LIKE query
 func (r *personRepository) SearchByName(ctx context.Context, name string, limit int) ([]models.Person, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var people []models.Person
 	if err := r.db.Where("name ILIKE ?", "%"+name+"%").Limit(limit).Find(&people).Error; err != nil {
@@ -173,7 +173,7 @@ func (r *personRepository) SearchByName(ctx context.Context, name string, limit 
 
 // GetPopular gets the most popular people
 func (r *personRepository) GetPopular(ctx context.Context, limit int) ([]models.Person, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var people []models.Person
 	if err := r.db.Order("popularity DESC").Limit(limit).Find(&people).Error; err != nil {
@@ -186,7 +186,7 @@ func (r *personRepository) GetPopular(ctx context.Context, limit int) ([]models.
 
 // GetWithMostCredits gets people with the most credits
 func (r *personRepository) GetWithMostCredits(ctx context.Context, limit int) ([]models.Person, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var people []models.Person
 	if err := r.db.Joins("LEFT JOIN credits ON people.id = credits.person_id").
@@ -203,7 +203,7 @@ func (r *personRepository) GetWithMostCredits(ctx context.Context, limit int) ([
 
 func (r *personRepository) Search(ctx context.Context, options mediatypes.QueryOptions) ([]*models.Person, error) {
 	var people []*models.Person
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	log.Info().Str("query", options.Query).Int("limit", options.Limit).Int("offset", options.Offset).Msg("Searching people")
 

@@ -3,9 +3,9 @@ package router
 import (
 	"context"
 	"fmt"
-	"suasor/app/container"
-	mediatypes "suasor/client/media/types"
-	clienttypes "suasor/client/types"
+	mediatypes "suasor/clients/media/types"
+	clienttypes "suasor/clients/types"
+	"suasor/container"
 	"suasor/handlers"
 	"suasor/router/middleware"
 	"suasor/types/responses"

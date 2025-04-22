@@ -3,7 +3,7 @@ package handlers
 
 import (
 	"context"
-	"suasor/app/container"
+	"suasor/container"
 	"suasor/handlers"
 	"suasor/services"
 )
@@ -28,4 +28,3 @@ func RegisterSystemHandlers(ctx context.Context, c *container.Container) {
 		return handlers.NewSearchHandler(searchService)
 	})
 }
-

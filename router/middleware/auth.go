@@ -5,14 +5,14 @@ import (
 	"strings"
 	"suasor/services"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // RequireRole is a middleware that checks if the user has the required role
 func RequireRole(roles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
-		log := utils.LoggerFromContext(ctx)
+		log := logger.LoggerFromContext(ctx)
 
 		userRole, exists := c.Get("userRole")
 		if !exists {
@@ -46,7 +46,7 @@ func RequireRole(roles ...string) gin.HandlerFunc {
 func VerifyToken(authService services.AuthService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
-		log := utils.LoggerFromContext(ctx)
+		log := logger.LoggerFromContext(ctx)
 
 		log.Info().Msg("Authenticating request with JWT token")
 

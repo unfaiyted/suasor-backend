@@ -3,10 +3,10 @@ package services
 import (
 	"context"
 	"fmt"
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 	"suasor/repository"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // CoreUserMediaItemDataService defines the core service interface for user media item data
@@ -56,7 +56,7 @@ func NewCoreUserMediaItemDataService[T types.MediaData](
 // In the three-pronged architecture, this simulates creating user media item data
 // by using the underlying CoreMediaItemService
 func (s *coreUserMediaItemDataService[T]) Create(ctx context.Context, data *models.UserMediaItemData[T]) (*models.UserMediaItemData[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", data.UserID).
 		Uint64("mediaItemID", data.MediaItemID).
@@ -94,7 +94,7 @@ func (s *coreUserMediaItemDataService[T]) Create(ctx context.Context, data *mode
 // GetByID retrieves a specific user media item data entry by ID
 // This implementation assumes the ID is a combination of userId and mediaItemId
 func (s *coreUserMediaItemDataService[T]) GetByID(ctx context.Context, id uint64) (*models.UserMediaItemData[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("id", id).
 		Msg("Getting user media item data by ID")
@@ -139,7 +139,7 @@ func (s *coreUserMediaItemDataService[T]) GetByID(ctx context.Context, id uint64
 // Update updates an existing user media item data entry
 // This implementation maintains the media item reference while updating user-specific data
 func (s *coreUserMediaItemDataService[T]) Update(ctx context.Context, data *models.UserMediaItemData[T]) (*models.UserMediaItemData[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("id", data.ID).
 		Uint64("userID", data.UserID).
@@ -179,7 +179,7 @@ func (s *coreUserMediaItemDataService[T]) Update(ctx context.Context, data *mode
 // Delete removes a specific user media item data entry
 // This implementation simulates deleting user media item data
 func (s *coreUserMediaItemDataService[T]) Delete(ctx context.Context, id uint64) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("id", id).
 		Msg("Deleting user media item data")
@@ -206,7 +206,7 @@ func (s *coreUserMediaItemDataService[T]) Delete(ctx context.Context, id uint64)
 // GetByUserIDAndMediaItemID retrieves user media item data for a specific user and media item
 // This implementation creates user media item data on the fly using the media item service
 func (s *coreUserMediaItemDataService[T]) GetByUserIDAndMediaItemID(ctx context.Context, userID, mediaItemID uint64) (*models.UserMediaItemData[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("mediaItemID", mediaItemID).
@@ -251,7 +251,7 @@ func (s *coreUserMediaItemDataService[T]) GetByUserIDAndMediaItemID(ctx context.
 // HasUserMediaItemData checks if a user has data for a specific media item
 // This implementation checks if the media item exists in the system
 func (s *coreUserMediaItemDataService[T]) HasUserMediaItemData(ctx context.Context, userID, mediaItemID uint64) (bool, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("mediaItemID", mediaItemID).
@@ -304,7 +304,7 @@ func (s *coreUserMediaItemDataService[T]) validate(data *models.UserMediaItemDat
 
 // Search finds user media item data based on a query object
 func (s *coreUserMediaItemDataService[T]) Search(ctx context.Context, query *types.QueryOptions) ([]*models.UserMediaItemData[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("query", query.Query).
 		Str("type", string(query.MediaType)).

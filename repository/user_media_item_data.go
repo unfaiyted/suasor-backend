@@ -3,9 +3,9 @@ package repository
 import (
 	"context"
 	"fmt"
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 	"time"
 
 	"gorm.io/gorm"
@@ -242,7 +242,7 @@ func (r *userMediaItemDataRepository[T]) RecordPlay(ctx context.Context, data *m
 // ToggleFavorite marks or unmarks a media item as a favorite
 func (r *userMediaItemDataRepository[T]) ToggleFavorite(ctx context.Context, mediaItemID, userID uint64, favorite bool) error {
 	// Check if there's an existing record
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	existingData, err := r.CoreUserMediaItemDataRepository.GetByUserIDAndMediaItemID(ctx, userID, mediaItemID)
 	if err != nil {
 		// If it's not a "not found" error, return the error
@@ -306,7 +306,7 @@ func (r *userMediaItemDataRepository[T]) ToggleFavorite(ctx context.Context, med
 // UpdateRating sets a user's rating for a media item
 func (r *userMediaItemDataRepository[T]) UpdateRating(ctx context.Context, mediaItemID, userID uint64, rating float32) error {
 	// Check if there's an existing record
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	existingData, err := r.CoreUserMediaItemDataRepository.GetByUserIDAndMediaItemID(ctx, userID, mediaItemID)
 	if err != nil {
 		// If it's not a "not found" error, return the error

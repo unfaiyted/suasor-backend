@@ -4,10 +4,11 @@ package repository
 import (
 	"context"
 	"fmt"
-	"suasor/client/types"
+	"suasor/clients/types"
 
 	"suasor/types/models"
 	"suasor/utils"
+	"suasor/utils/logger"
 
 	"gorm.io/gorm"
 )
@@ -51,7 +52,7 @@ func (r *clientRepository[T]) Create(ctx context.Context, client models.Client[T
 func (r *clientRepository[T]) Update(ctx context.Context, client models.Client[T]) (*models.Client[T], error) {
 	// Get existing record first to check if it exists and preserve createdAt
 	var existing models.Client[T]
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	category := client.GetCategory()
 	if err := r.db.WithContext(ctx).Where("id = ? AND user_id = ?", client.ID, client.UserID).First(&existing).Error; err != nil {
@@ -86,7 +87,7 @@ func (r *clientRepository[T]) Update(ctx context.Context, client models.Client[T
 
 // GetByID retrieves a media client by ID
 func (r *clientRepository[T]) GetByID(ctx context.Context, id uint64) (*models.Client[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	var client models.Client[T]
 	log.Debug().
 		Uint64("clientID", id).
@@ -123,7 +124,7 @@ func (r *clientRepository[T]) GetByID(ctx context.Context, id uint64) (*models.C
 // GetByUserID retrieves all media clients for a user
 func (r *clientRepository[T]) GetByUserID(ctx context.Context, userID uint64) ([]*models.Client[T], error) {
 	var clients []*models.Client[T]
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var zero T
 	typeName := utils.GetTypeName(zero)
@@ -150,7 +151,7 @@ func (r *clientRepository[T]) GetByUserID(ctx context.Context, userID uint64) ([
 // Delete deletes a media client
 // Delete deletes a media client
 func (r *clientRepository[T]) Delete(ctx context.Context, id, userID uint64) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("userID", userID).
 		Uint64("clientID", id).

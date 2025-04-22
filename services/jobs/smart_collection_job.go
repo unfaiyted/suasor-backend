@@ -6,9 +6,9 @@ import (
 	"log"
 	"time"
 
-	"suasor/client"
-	mediatypes "suasor/client/media/types"
-	clienttypes "suasor/client/types"
+	"suasor/clients"
+	mediatypes "suasor/clients/media/types"
+	clienttypes "suasor/clients/types"
 	"suasor/repository"
 	"suasor/services/scheduler"
 	"suasor/types/models"
@@ -23,7 +23,7 @@ type SmartCollectionJob struct {
 	seriesRepo    repository.MediaItemRepository[*mediatypes.Series]
 	musicRepo     repository.MediaItemRepository[*mediatypes.Track]
 	clientRepos   map[clienttypes.ClientMediaType]interface{}
-	clientFactory *client.ClientFactoryService
+	clientFactory *clients.ClientFactoryService
 	aiService     interface{} // Using interface{} to avoid import cycles
 }
 
@@ -39,7 +39,7 @@ func NewSmartCollectionJob(
 	jellyfinRepo interface{},
 	plexRepo interface{},
 	subsonicRepo interface{},
-	clientFactory *client.ClientFactoryService,
+	clientFactory *clients.ClientFactoryService,
 	aiService interface{},
 ) *SmartCollectionJob {
 	clientRepos := map[clienttypes.ClientMediaType]interface{}{

@@ -3,13 +3,13 @@ package recommendation
 import (
 	"context"
 	"fmt"
-	"suasor/utils"
+	"suasor/utils/logger"
 	"time"
 )
 
 // buildUserPreferenceProfile analyzes a user's media consumption to build a preference profile
 func (j *RecommendationJob) buildUserPreferenceProfile(ctx context.Context, userID uint64) (*UserPreferenceProfile, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	startTime := time.Now()
 
 	// Create new profile with all the necessary maps initialized
@@ -176,7 +176,7 @@ func contains(slice []string, item string) bool {
 
 // UpdateUserRecommendationSchedule updates the recommendation schedule for a user
 func (j *RecommendationJob) UpdateUserRecommendationSchedule(ctx context.Context, userID uint64) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	// Implementation would update the recommendation schedule for a user
 	// This is just a stub to satisfy the interface
 	log.Info().Msg("Updating recommendation schedule for user")

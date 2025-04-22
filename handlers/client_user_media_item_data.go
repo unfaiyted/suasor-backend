@@ -6,12 +6,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/requests"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 type ClientUserMediaItemDataHandler[T types.MediaData] interface {
@@ -61,7 +61,7 @@ func NewClientUserMediaItemDataHandler[T types.MediaData](
 // @Router /user-media-data/client/{clientId}/sync [post]
 func (h *clientUserMediaItemDataHandler[T]) SyncClientItemData(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	clientID, err := strconv.ParseUint(c.Param("clientId"), 10, 64)
 	if err != nil {
@@ -125,7 +125,7 @@ func (h *clientUserMediaItemDataHandler[T]) SyncClientItemData(c *gin.Context) {
 // @Router /user-media-data/client/{clientId} [get]
 func (h *clientUserMediaItemDataHandler[T]) GetClientItemData(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	clientID, err := strconv.ParseUint(c.Param("clientId"), 10, 64)
 	if err != nil {
@@ -188,7 +188,7 @@ func (h *clientUserMediaItemDataHandler[T]) GetClientItemData(c *gin.Context) {
 // @Router /user-media-data/client/{clientId}/item/{clientItemId} [get]
 func (h *clientUserMediaItemDataHandler[T]) GetMediaItemDataByClientID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	clientID, err := strconv.ParseUint(c.Param("clientId"), 10, 64)
 	if err != nil {
@@ -254,7 +254,7 @@ func (h *clientUserMediaItemDataHandler[T]) GetMediaItemDataByClientID(c *gin.Co
 // @Router /user-media-data/client/{clientId}/item/{clientItemId}/play [post]
 func (h *clientUserMediaItemDataHandler[T]) RecordClientPlay(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	clientID, err := strconv.ParseUint(c.Param("clientId"), 10, 64)
 	if err != nil {
@@ -345,7 +345,7 @@ func (h *clientUserMediaItemDataHandler[T]) RecordClientPlay(c *gin.Context) {
 // @Router /user-media-data/client/{clientId}/item/{clientItemId}/state [get]
 func (h *clientUserMediaItemDataHandler[T]) GetPlaybackState(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	clientID, err := strconv.ParseUint(c.Param("clientId"), 10, 64)
 	if err != nil {
@@ -411,7 +411,7 @@ func (h *clientUserMediaItemDataHandler[T]) GetPlaybackState(c *gin.Context) {
 // @Router /user-media-data/client/{clientId}/item/{clientItemId}/state [put]
 func (h *clientUserMediaItemDataHandler[T]) UpdatePlaybackState(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	clientID, err := strconv.ParseUint(c.Param("clientId"), 10, 64)
 	if err != nil {

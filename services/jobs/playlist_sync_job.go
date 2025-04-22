@@ -7,11 +7,11 @@ import (
 	"strconv"
 	"time"
 
-	"suasor/client"
-	"suasor/client/media"
-	"suasor/client/media/providers"
-	mediatypes "suasor/client/media/types"
-	clienttypes "suasor/client/types"
+	"suasor/clients"
+	"suasor/clients/media"
+	"suasor/clients/media/providers"
+	mediatypes "suasor/clients/media/types"
+	clienttypes "suasor/clients/types"
 
 	"suasor/repository"
 	repobundles "suasor/repository/bundles"
@@ -41,7 +41,7 @@ type PlaylistSyncJob struct {
 	userRepo           repository.UserRepository
 	configRepo         repository.UserConfigRepository
 	clientRepos        repobundles.ClientRepositories
-	clientFactory      *client.ClientFactoryService
+	clientFactory      *clients.ClientFactoryService
 	mediaItemRepo      repository.ClientMediaItemRepository[mediatypes.MediaData]
 	userMediaDataRepo  repository.UserMediaItemDataRepository[mediatypes.MediaData]
 	userMovieDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Movie]
@@ -55,7 +55,7 @@ func NewPlaylistSyncJob(
 	userRepo repository.UserRepository,
 	configRepo repository.UserConfigRepository,
 	clientRepos repobundles.ClientRepositories,
-	clientFactory *client.ClientFactoryService,
+	clientFactory *clients.ClientFactoryService,
 	userMovieDataRepo repository.UserMediaItemDataRepository[*mediatypes.Movie],
 	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series],
 	userMusicDataRepo repository.UserMediaItemDataRepository[*mediatypes.Track],
@@ -345,22 +345,23 @@ func (j *PlaylistSyncJob) performPlaylistSync(ctx context.Context, userID uint64
 
 // getClientMedia gets a media client by ID
 func (j *PlaylistSyncJob) getClientMedia(ctx context.Context, userID, clientID uint64) (media.ClientMedia, error) {
-	// This is a simplified implementation
-	// In a real implementation, we would use the client factory to get the client
-	clientType := clienttypes.ClientMediaTypePlex // Just an example
-	repo := j.clientRepos[clientType].(repository.ClientRepository[clienttypes.ClientMediaConfig])
-
-	clientConfig, err := repo.GetByID(ctx, clientID)
-	if err != nil {
-		return nil, err
-	}
-
-	client, err := j.clientFactory.GetClient(ctx, clientID, clientConfig.Config.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	return client.(media.ClientMedia), nil
+	// // This is a simplified implementation
+	// // In a real implementation, we would use the client factory to get the client
+	// clientType := clienttypes.ClientMediaTypePlex // Just an example
+	// repo := j.clientRepos[clientType].(repository.ClientRepository[clienttypes.ClientMediaConfig])
+	//
+	// clientConfig, err := repo.GetByID(ctx, clientID)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	// client, err := j.clientFactory.GetClient(ctx, clientID, clientConfig.Config.Data)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// TODO:
+	// return client.(media.ClientMedia), nil
+	return nil, nil
 }
 
 // syncPrimaryToClients syncs playlists from the primary client to all other clients

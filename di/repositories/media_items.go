@@ -2,49 +2,15 @@
 package repositories
 
 import (
-	"context"
 	"gorm.io/gorm"
-	mediatypes "suasor/client/media/types"
-	"suasor/container"
+	mediatypes "suasor/clients/media/types"
+	"suasor/di/container"
 	"suasor/repository"
 	repobundle "suasor/repository/bundles"
 )
 
-func registerMediaItemRepository[T mediatypes.MediaData](c *container.Container, db *gorm.DB) {
-
-	container.RegisterFactory[repository.MediaItemRepository[T]](c, func(c *container.Container) repository.MediaItemRepository[T] {
-		return repository.NewMediaItemRepository[T](db)
-	})
-
-	container.RegisterFactory[repository.ClientMediaItemRepository[T]](c, func(c *container.Container) repository.ClientMediaItemRepository[T] {
-		itemRepo := container.MustGet[repository.MediaItemRepository[T]](c)
-		return repository.NewClientMediaItemRepository[T](db, itemRepo)
-	})
-
-	container.RegisterFactory[repository.ClientMediaItemRepository[T]](c, func(c *container.Container) repository.ClientMediaItemRepository[T] {
-		coreRepo := container.MustGet[repository.MediaItemRepository[T]](c)
-		return repository.NewClientMediaItemRepository[T](db, coreRepo)
-	})
-
-}
-
-// RegisterMediaRepositories registers all media-related repositories for the three-pronged architecture
-func RegisterMediaRepositories(ctx context.Context, c *container.Container) {
-	// Core Media Item Repositories
-	registerCoreMediaItemRepositories(c)
-
-	// User Media Item Repositories
-	registerUserMediaItemRepositories(c)
-
-	// Client Media Item Repositories
-	registerClientMediaItemRepositories(c)
-
-	// Media Item Data Repositories
-	registerMediaItemDataRepositories(c)
-}
-
 // Register core repositories for all media types
-func registerCoreMediaItemRepositories(c *container.Container) {
+func registerMediaItemRepositories(c *container.Container) {
 	db := container.MustGet[*gorm.DB](c)
 
 	registerMediaItemRepository[*mediatypes.Movie](c, db)
@@ -113,4 +79,23 @@ func registerCoreMediaItemRepositories(c *container.Container) {
 			collectionRepo, playlistRepo,
 		)
 	})
+}
+
+// Reigisters all 3 types of media item repositories
+func registerMediaItemRepository[T mediatypes.MediaData](c *container.Container, db *gorm.DB) {
+
+	container.RegisterFactory[repository.MediaItemRepository[T]](c, func(c *container.Container) repository.MediaItemRepository[T] {
+		return repository.NewMediaItemRepository[T](db)
+	})
+
+	container.RegisterFactory[repository.UserMediaItemRepository[T]](c, func(c *container.Container) repository.UserMediaItemRepository[T] {
+		itemRepo := container.MustGet[repository.MediaItemRepository[T]](c)
+		return repository.NewUserMediaItemRepository[T](db, itemRepo)
+	})
+
+	container.RegisterFactory[repository.ClientMediaItemRepository[T]](c, func(c *container.Container) repository.ClientMediaItemRepository[T] {
+		coreRepo := container.MustGet[repository.MediaItemRepository[T]](c)
+		return repository.NewClientMediaItemRepository[T](db, coreRepo)
+	})
+
 }

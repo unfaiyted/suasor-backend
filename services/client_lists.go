@@ -7,13 +7,13 @@ import (
 	"strconv"
 	"time"
 
-	"suasor/client"
-	"suasor/client/media/providers"
-	mediatypes "suasor/client/media/types"
-	"suasor/client/types"
+	"suasor/clients"
+	"suasor/clients/media/providers"
+	mediatypes "suasor/clients/media/types"
+	"suasor/clients/types"
 	"suasor/repository"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // ClientListService defines operations for interacting with playlist clients
@@ -53,14 +53,14 @@ type ClientListService[T types.ClientMediaConfig, U mediatypes.ListData] interfa
 type clientListService[T types.ClientMediaConfig, U mediatypes.ListData] struct {
 	listService   CoreListService[U]
 	clientRepo    repository.ClientRepository[T]
-	clientFactory *client.ClientFactoryService
+	clientFactory *clients.ClientFactoryService
 }
 
 // NewClientPlaylistService creates a new media playlist service
 func NewClientListService[T types.ClientMediaConfig, U mediatypes.ListData](
 	listService CoreListService[U],
 	clientRepo repository.ClientRepository[T],
-	clientFactory *client.ClientFactoryService,
+	clientFactory *clients.ClientFactoryService,
 ) ClientListService[T, U] {
 	return &clientListService[T, U]{
 		listService:   listService,
@@ -138,7 +138,7 @@ func (s *clientListService[T, U]) AddItem(ctx context.Context, listID uint64, it
 	return s.listService.AddItem(ctx, listID, itemID)
 }
 func (s *clientListService[T, U]) GetClientList(ctx context.Context, clientID uint64, clientListID string) (*models.MediaItem[U], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getListProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -218,7 +218,7 @@ func (s *clientListService[T, U]) GetClientListsByUserID(ctx context.Context, us
 	return allPlaylists, nil
 }
 func (s *clientListService[T, U]) CreateClientList(ctx context.Context, clientID uint64, name string, description string) (*models.MediaItem[U], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getListProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -259,7 +259,7 @@ func (s *clientListService[T, U]) CreateClientList(ctx context.Context, clientID
 	return playlist, nil
 }
 func (s *clientListService[T, U]) UpdateClientList(ctx context.Context, clientID uint64, clientListID string, name string, description string) (*models.MediaItem[U], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getListProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -292,7 +292,7 @@ func (s *clientListService[T, U]) UpdateClientList(ctx context.Context, clientID
 	return playlist, nil
 }
 func (s *clientListService[T, U]) DeleteClientList(ctx context.Context, clientID uint64, clientListID string) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getListProvider(ctx, clientID)
 	if err != nil {
 		return err
@@ -317,7 +317,7 @@ func (s *clientListService[T, U]) DeleteClientList(ctx context.Context, clientID
 	return nil
 }
 func (s *clientListService[T, U]) AddClientItem(ctx context.Context, clientID uint64, clientListID string, itemID string) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getListProvider(ctx, clientID)
 	if err != nil {
 		return err
@@ -384,7 +384,7 @@ func (s *clientListService[T, U]) AddClientItem(ctx context.Context, clientID ui
 	return nil
 }
 func (s *clientListService[T, U]) RemoveClientItem(ctx context.Context, clientID uint64, clientListID string, itemID string) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getListProvider(ctx, clientID)
 	if err != nil {
 		return err
@@ -416,7 +416,7 @@ func (s *clientListService[T, U]) RemoveClientItem(ctx context.Context, clientID
 
 // GetPlaylistItems gets all items in a playlist
 func (s *clientListService[T, U]) GetClientItems(ctx context.Context, clientID uint64, clientListID string) ([]*models.MediaItem[U], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getListProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -444,7 +444,7 @@ func (s *clientListService[T, U]) GetClientItems(ctx context.Context, clientID u
 
 // ReorderPlaylistItems reorders items in a playlist
 func (s *clientListService[T, U]) ReorderClientItems(ctx context.Context, clientID uint64, clientListID string, itemIDs []string) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getListProvider(ctx, clientID)
 	if err != nil {
 		return err
@@ -514,7 +514,7 @@ func (s *clientListService[T, U]) ReorderClientItems(ctx context.Context, client
 
 // Sync list syncs a list with the client
 func (s *clientListService[T, U]) SyncClientList(ctx context.Context, clientID uint64, clientListID string) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("clientID", clientID).
 		Str("clientListID", clientListID).
@@ -535,7 +535,7 @@ func (s *clientListService[T, U]) SyncClientList(ctx context.Context, clientID u
 
 // GetSyncStatus retrieves the sync status of a playlist across clients
 func (s *clientListService[T, U]) GetSyncStatus(ctx context.Context, clientListID string) (*models.ListSyncStatus, error) {
-	// log := utils.LoggerFromContext(ctx)
+	// log := logger.LoggerFromContext(ctx)
 	// log.Debug().
 	// 	Str("clientListID", clientListID).
 	// 	Msg("Getting playlist sync status")
@@ -568,7 +568,7 @@ func (s *clientListService[T, U]) GetSyncStatus(ctx context.Context, clientListI
 
 // ImportClientList imports a playlist from a different client
 func (s *clientListService[T, U]) ImportClientList(ctx context.Context, clientID uint64, clientPlaylistID string) (*models.MediaItem[U], error) {
-	// log := utils.LoggerFromContext(ctx)
+	// log := logger.LoggerFromContext(ctx)
 	// provider, err := s.getListProvider(ctx, clientID)
 	// if err != nil {
 	// 	return nil, err
@@ -624,7 +624,7 @@ func (s *clientListService[T, U]) SearchUsersClientsLists(ctx context.Context, u
 
 // getSpecificPlaylistClient gets a specific playlist client
 func (s *clientListService[T, U]) getListProvider(ctx context.Context, clientID uint64) (providers.ListProvider[U], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	clientConfig, err := s.clientRepo.GetByID(ctx, clientID)
 	if err != nil {
@@ -659,7 +659,7 @@ func (s *clientListService[T, U]) getListProvider(ctx context.Context, clientID 
 	return client.(providers.ListProvider[U]), nil
 }
 func (s *clientListService[T, U]) getUserListProviders(ctx context.Context, userID uint64) ([]providers.ListProvider[U], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
 		Uint64("userID", userID).

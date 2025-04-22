@@ -5,10 +5,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"strconv"
 
-	mediatypes "suasor/client/media/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 type CoreListHandler[T mediatypes.ListData] interface {
@@ -51,7 +51,7 @@ func NewCoreListHandler[T mediatypes.ListData](
 // @Router /playlists [get]
 func (h *coreListHandler[T]) GetAll(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().Msg("Getting all playlists")
 
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
@@ -91,7 +91,7 @@ func (h *coreListHandler[T]) GetAll(c *gin.Context) {
 // @Router /playlists/{id} [get]
 func (h *coreListHandler[T]) GetByID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -133,7 +133,7 @@ func (h *coreListHandler[T]) GetByID(c *gin.Context) {
 // @Router /playlists/{id}/tracks [get]
 func (h *coreListHandler[T]) GetItemsByListID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -177,7 +177,7 @@ func (h *coreListHandler[T]) GetItemsByListID(c *gin.Context) {
 // @Router /playlists/genre/{genre} [get]
 func (h *coreListHandler[T]) GetByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	genre := c.Param("genre")
 	if genre == "" {
@@ -228,7 +228,7 @@ func (h *coreListHandler[T]) GetByGenre(c *gin.Context) {
 // @Router /playlists/search [get]
 func (h *coreListHandler[T]) Search(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	query := c.Query("q")
 	if query == "" {
@@ -282,7 +282,7 @@ func (h *coreListHandler[T]) Search(c *gin.Context) {
 // @Router /playlists/{id}/items/{itemID} [post]
 func (h *coreListHandler[T]) AddItem(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {

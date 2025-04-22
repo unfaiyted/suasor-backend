@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	"suasor/client"
-	"suasor/client/media/providers"
-	mediatypes "suasor/client/media/types"
-	"suasor/client/types"
+	"suasor/clients"
+	"suasor/clients/media/providers"
+	mediatypes "suasor/clients/media/types"
+	"suasor/clients/types"
 	"suasor/repository"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // ClientSeriesService defines service methods for TV series
@@ -40,13 +40,13 @@ type ClientSeriesService[T types.ClientConfig] interface {
 
 type clientSeriesService[T types.ClientMediaConfig] struct {
 	clientRepo    repository.ClientRepository[T]
-	clientFactory *client.ClientFactoryService
+	clientFactory *clients.ClientFactoryService
 }
 
 // NewClientSeriesService creates a new TV series service
 func NewClientSeriesService[T types.ClientMediaConfig](
 	clientRepo repository.ClientRepository[T],
-	factory *client.ClientFactoryService,
+	factory *clients.ClientFactoryService,
 ) ClientSeriesService[T] {
 	return &clientSeriesService[T]{
 		clientRepo:    clientRepo,
@@ -81,7 +81,7 @@ func (s *clientSeriesService[T]) getSeriesProviders(ctx context.Context, userID 
 
 // getSeriesProvider gets a specific TV shows client
 func (s *clientSeriesService[T]) getSeriesProvider(ctx context.Context, clientID uint64) (providers.SeriesProvider, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	clientConfig, err := s.clientRepo.GetByID(ctx, clientID)
 	if err != nil {
@@ -106,7 +106,7 @@ func (s *clientSeriesService[T]) getSeriesProvider(ctx context.Context, clientID
 
 // GetSeriesByName searches for TV series by name across all providers
 func (s *clientSeriesService[T]) GetSeriesByName(ctx context.Context, clientID uint64, name string) ([]*models.MediaItem[*mediatypes.Series], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -131,7 +131,7 @@ func (s *clientSeriesService[T]) GetSeriesByName(ctx context.Context, clientID u
 
 // GetSeriesByGenre gets TV series by genre
 func (s *clientSeriesService[T]) GetSeriesByGenre(ctx context.Context, clientID uint64, genre string) ([]*models.MediaItem[*mediatypes.Series], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -216,7 +216,7 @@ func (s *clientSeriesService[T]) GetEpisodeByID(ctx context.Context, clientID ui
 
 // GetRecentlyAdded gets recently added TV series
 func (s *clientSeriesService[T]) GetRecentlyAdded(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -251,7 +251,7 @@ func (s *clientSeriesService[T]) GetRecentlyAdded(ctx context.Context, clientID 
 
 // GetOnGoing gets currently ongoing TV series
 func (s *clientSeriesService[T]) GetOnGoing(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -277,7 +277,7 @@ func (s *clientSeriesService[T]) GetOnGoing(ctx context.Context, clientID uint64
 
 // GetRecentEpisodes gets recently aired episodes
 func (s *clientSeriesService[T]) GetRecentEpisodes(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Episode], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -344,7 +344,7 @@ func (s *clientSeriesService[T]) GetRecentEpisodes(ctx context.Context, clientID
 
 // GetSeriesByNetwork gets TV series by network
 func (s *clientSeriesService[T]) GetSeriesByNetwork(ctx context.Context, clientID uint64, network string) ([]*models.MediaItem[*mediatypes.Series], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -370,7 +370,7 @@ func (s *clientSeriesService[T]) GetSeriesByNetwork(ctx context.Context, clientI
 
 // GetSeriesByYear gets TV series by release year
 func (s *clientSeriesService[T]) GetSeriesByYear(ctx context.Context, clientID uint64, year int) ([]*models.MediaItem[*mediatypes.Series], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -396,7 +396,7 @@ func (s *clientSeriesService[T]) GetSeriesByYear(ctx context.Context, clientID u
 
 // GetSeriesByActor gets TV series by actor name/ID
 func (s *clientSeriesService[T]) GetSeriesByActor(ctx context.Context, clientID uint64, actor string) ([]*models.MediaItem[*mediatypes.Series], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -423,7 +423,7 @@ func (s *clientSeriesService[T]) GetSeriesByActor(ctx context.Context, clientID 
 
 // GetSeriesByCreator gets TV series by creator/director
 func (s *clientSeriesService[T]) GetSeriesByCreator(ctx context.Context, clientID uint64, creator string) ([]*models.MediaItem[*mediatypes.Series], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -451,7 +451,7 @@ func (s *clientSeriesService[T]) GetSeriesByCreator(ctx context.Context, clientI
 
 // GetSeriesByRating gets TV series with ratings in the specified range
 func (s *clientSeriesService[T]) GetSeriesByRating(ctx context.Context, clientID uint64, minRating, maxRating float64) ([]*models.MediaItem[*mediatypes.Series], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -476,7 +476,7 @@ func (s *clientSeriesService[T]) GetSeriesByRating(ctx context.Context, clientID
 
 // GetLatestSeriesByAdded gets recently added series
 func (s *clientSeriesService[T]) GetLatestSeriesByAdded(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -508,7 +508,7 @@ func (s *clientSeriesService[T]) GetLatestSeriesByAdded(ctx context.Context, cli
 
 // GetPopularSeries gets popular series based on play count, ratings, etc.
 func (s *clientSeriesService[T]) GetPopularSeries(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -535,7 +535,7 @@ func (s *clientSeriesService[T]) GetPopularSeries(ctx context.Context, clientID 
 
 // GetTopRatedSeries gets series with the highest ratings
 func (s *clientSeriesService[T]) GetTopRatedSeries(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -565,7 +565,7 @@ func (s *clientSeriesService[T]) GetTopRatedSeries(ctx context.Context, clientID
 
 // SearchSeries searches for series by name/title across all providers
 func (s *clientSeriesService[T]) SearchSeries(ctx context.Context, clientID uint64, query *mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Series], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	// This is essentially the same as GetSeriesByName, but we'll make it explicit
 	provider, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {

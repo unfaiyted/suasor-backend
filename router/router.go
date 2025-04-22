@@ -3,10 +3,10 @@ package router
 
 import (
 	"context"
-	"suasor/app/container"
+	"suasor/di/container"
 	"suasor/router/middleware"
 	"suasor/services"
-	"suasor/utils"
+	"suasor/utils/logger"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -14,7 +14,7 @@ import (
 
 func Setup(ctx context.Context, c *container.Container) *gin.Engine {
 	r := gin.Default()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	log.Info().Msg("Setting up CORS middleware")
 	configService := container.MustGet[services.ConfigService](c)

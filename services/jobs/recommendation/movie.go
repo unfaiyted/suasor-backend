@@ -7,16 +7,17 @@ import (
 	"sort"
 
 	"strings"
-	aitypes "suasor/client/ai/types"
-	mediatypes "suasor/client/media/types"
+	aitypes "suasor/clients/ai/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/types/models"
 	"suasor/utils"
+	"suasor/utils/logger"
 	"time"
 )
 
 // generateMovieRecommendations generates movie recommendations for a user
 func (j *RecommendationJob) generateMovieRecommendations(ctx context.Context, jobRunID uint64, user models.User, preferenceProfile *UserPreferenceProfile, config *models.UserConfig) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Generating movie recommendations")
 
 	// Get an AI client for the user
@@ -458,7 +459,7 @@ func (j *RecommendationJob) generateAIMovieRecommendations(
 	config *models.UserConfig,
 	watchedMap map[string]bool) ([]*models.Recommendation, error) {
 
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get AI client for the user
 	aiClient, err := j.getAIClient(ctx, userID)
@@ -796,7 +797,7 @@ func (j *RecommendationJob) generateAIMovieRecommendations(
 
 // processMovieHistory analyzes movie watch history to build preferences
 func (j *RecommendationJob) processMovieHistory(ctx context.Context, profile *UserPreferenceProfile, histories []*models.UserMediaItemData[*mediatypes.Movie]) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Maps for processing
 	recentMovies := []MovieSummary{}

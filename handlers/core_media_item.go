@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"time"
 
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 type CoreMediaItemHandler[T types.MediaData] interface {
@@ -62,7 +62,7 @@ func NewCoreMediaItemHandler[T types.MediaData](
 // @Router /media [get]
 func (h *coreMediaItemHandler[T]) GetAll(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	log.Debug().Msg("Getting all media items")
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
@@ -102,7 +102,7 @@ func (h *coreMediaItemHandler[T]) GetAll(c *gin.Context) {
 // @Router /media/{id} [get]
 func (h *coreMediaItemHandler[T]) GetByID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -145,7 +145,7 @@ func (h *coreMediaItemHandler[T]) GetByID(c *gin.Context) {
 // @Router /media/external/{source}/{id} [get]
 func (h *coreMediaItemHandler[T]) GetByExternalID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	source := c.Param("source")
 	if source == "" {
@@ -199,7 +199,7 @@ func (h *coreMediaItemHandler[T]) GetByExternalID(c *gin.Context) {
 // @Router /media/search [get]
 func (h *coreMediaItemHandler[T]) Search(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	query := c.Query("q")
 	if query == "" {
@@ -266,7 +266,7 @@ func (h *coreMediaItemHandler[T]) Search(c *gin.Context) {
 // @Router /media/recently-added [get]
 func (h *coreMediaItemHandler[T]) GetRecentlyAdded(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
 	if err != nil {
@@ -317,7 +317,7 @@ func (h *coreMediaItemHandler[T]) GetRecentlyAdded(c *gin.Context) {
 // @Router /media/type/{type} [get]
 func (h *coreMediaItemHandler[T]) GetByType(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	typeParam := c.Param("type")
 	if typeParam == "" {
@@ -376,7 +376,7 @@ func (h *coreMediaItemHandler[T]) GetByType(c *gin.Context) {
 // @Router /media/person/{personId} [get]
 func (h *coreMediaItemHandler[T]) GetByPerson(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	personID, err := strconv.ParseUint(c.Param("personId"), 10, 64)
 	if err != nil {
@@ -442,7 +442,7 @@ func (h *coreMediaItemHandler[T]) GetByPerson(c *gin.Context) {
 // @Router /media/year/{year} [get]
 func (h *coreMediaItemHandler[T]) GetByYear(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	yearStr := c.Param("year")
 	if yearStr == "" {
@@ -507,7 +507,7 @@ func (h *coreMediaItemHandler[T]) GetByYear(c *gin.Context) {
 // @Router /media/latest [get]
 func (h *coreMediaItemHandler[T]) GetLatestByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
 	if err != nil {
@@ -569,7 +569,7 @@ func (h *coreMediaItemHandler[T]) GetLatestByAdded(c *gin.Context) {
 // @Router /media/client/{clientId} [get]
 func (h *coreMediaItemHandler[T]) GetByClient(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	clientID, err := strconv.ParseUint(c.Param("clientId"), 10, 64)
 	if err != nil {
@@ -629,7 +629,7 @@ func (h *coreMediaItemHandler[T]) GetByClient(c *gin.Context) {
 // @Router /media/genre/{genre} [get]
 func (h *coreMediaItemHandler[T]) GetByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	genre := c.Param("genre")
 	if genre == "" {
@@ -705,7 +705,7 @@ func (h *coreMediaItemHandler[T]) GetByExternalSourceID(c *gin.Context) {
 // @Router /media/popular [get]
 func (h *coreMediaItemHandler[T]) GetPopular(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
 	if err != nil {
@@ -754,7 +754,7 @@ func (h *coreMediaItemHandler[T]) GetPopular(c *gin.Context) {
 // @Router /media/top-rated [get]
 func (h *coreMediaItemHandler[T]) GetTopRated(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
 	if err != nil {
@@ -821,7 +821,7 @@ func (h *coreMediaItemHandler[T]) GetByClientItemID(c *gin.Context) {
 // @Router /media/most-played [get]
 func (h *coreMediaItemHandler[T]) GetMostPlayed(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
 	if err != nil {
@@ -877,7 +877,7 @@ func (h *coreMediaItemHandler[T]) GetType() string {
 // @Router /media/rating/{rating} [get]
 func (h *coreMediaItemHandler[T]) GetByRating(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	rating, err := strconv.ParseFloat(c.Param("rating"), 32)
 	if err != nil {

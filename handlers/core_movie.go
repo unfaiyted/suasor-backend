@@ -6,10 +6,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	mediatypes "suasor/client/media/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // CoreMovieHandler handles operations for movies in the database
@@ -50,7 +50,7 @@ func NewCoreMovieHandler(
 // @Router /movies [get]
 func (h *coreMovieHandler) GetAll(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	log.Debug().Msg("Getting all movies")
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
@@ -90,7 +90,7 @@ func (h *coreMovieHandler) GetAll(c *gin.Context) {
 // @Router /movies/{id} [get]
 func (h *coreMovieHandler) GetByID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -132,7 +132,7 @@ func (h *coreMovieHandler) GetByID(c *gin.Context) {
 // @Router /movies/genre/{genre} [get]
 func (h *coreMovieHandler) GetByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	genre := c.Param("genre")
 	if genre == "" {
@@ -189,7 +189,7 @@ func (h *coreMovieHandler) GetByGenre(c *gin.Context) {
 // @Router /movies/year/{year} [get]
 func (h *coreMovieHandler) GetByYear(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	yearStr := c.Param("year")
 	year, err := strconv.Atoi(yearStr)
@@ -247,7 +247,7 @@ func (h *coreMovieHandler) GetByYear(c *gin.Context) {
 // @Router /movies/actor/{actor} [get]
 func (h *coreMovieHandler) GetByActor(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	actor := c.Param("actor")
 	if actor == "" {
@@ -304,7 +304,7 @@ func (h *coreMovieHandler) GetByActor(c *gin.Context) {
 // @Router /movies/director/{director} [get]
 func (h *coreMovieHandler) GetByDirector(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	director := c.Param("director")
 	if director == "" {
@@ -361,7 +361,7 @@ func (h *coreMovieHandler) GetByDirector(c *gin.Context) {
 // @Router /movies/search [get]
 func (h *coreMovieHandler) Search(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	query := c.Query("q")
 	if query == "" {
@@ -416,7 +416,7 @@ func (h *coreMovieHandler) Search(c *gin.Context) {
 // @Router /movies/top-rated [get]
 func (h *coreMovieHandler) GetTopRated(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
 	if err != nil {
@@ -463,7 +463,7 @@ func (h *coreMovieHandler) GetTopRated(c *gin.Context) {
 // @Router /movies/recently-added [get]
 func (h *coreMovieHandler) GetRecentlyAdded(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
 	if err != nil {
@@ -509,7 +509,7 @@ func (h *coreMovieHandler) GetRecentlyAdded(c *gin.Context) {
 // @Router /movies/rating/{rating} [get]
 func (h *coreMovieHandler) GetByRating(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	rating, err := strconv.ParseFloat(c.Param("rating"), 32)
 	if err != nil {
@@ -565,7 +565,7 @@ func (h *coreMovieHandler) GetByRating(c *gin.Context) {
 // @Router /movies/latest [get]
 func (h *coreMovieHandler) GetLatestByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
 	if err != nil {
@@ -609,7 +609,7 @@ func (h *coreMovieHandler) GetLatestByAdded(c *gin.Context) {
 // @Router /movies/popular [get]
 func (h *coreMovieHandler) GetPopular(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
 	if err != nil {
@@ -651,7 +651,7 @@ func (h *coreMovieHandler) GetPopular(c *gin.Context) {
 // @Router /movies/client/{clientId}/item/{clientItemId} [get]
 func (h *coreMovieHandler) GetByClientItemID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	clientID, err := strconv.ParseUint(c.Param("clientId"), 10, 64)
 	if err != nil {

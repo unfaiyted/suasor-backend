@@ -6,10 +6,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	mediatypes "suasor/client/media/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 type CoreSeriesHandler interface {
@@ -66,7 +66,7 @@ func NewCoreSeriesHandler(
 // @Router /series/{id}/seasons [get]
 func (h *coreSeriesHandler) GetSeasonsBySeriesID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	seriesID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -126,7 +126,7 @@ func (h *coreSeriesHandler) GetSeasonsBySeriesID(c *gin.Context) {
 // @Router /series/{id}/seasons/{seasonNumber}/episodes [get]
 func (h *coreSeriesHandler) GetEpisodesBySeriesIDAndSeasonNumber(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	seriesID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -212,7 +212,7 @@ func (h *coreSeriesHandler) GetEpisodesBySeriesIDAndSeasonNumber(c *gin.Context)
 // @Router /series/continue-watching [get]
 func (h *coreSeriesHandler) GetContinueWatchingSeries(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
 	if err != nil {
@@ -254,7 +254,7 @@ func (h *coreSeriesHandler) GetContinueWatchingSeries(c *gin.Context) {
 // @Router /series/{id}/episodes [get]
 func (h *coreSeriesHandler) GetAllEpisodes(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	seriesID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -315,7 +315,7 @@ func (h *coreSeriesHandler) GetAllEpisodes(c *gin.Context) {
 // @Router /series/next-up [get]
 func (h *coreSeriesHandler) GetNextUpEpisodes(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
 	if err != nil {
@@ -359,7 +359,7 @@ func (h *coreSeriesHandler) GetNextUpEpisodes(c *gin.Context) {
 // @Router /series/recently-aired [get]
 func (h *coreSeriesHandler) GetRecentlyAiredEpisodes(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
 	if err != nil {
@@ -407,7 +407,7 @@ func (h *coreSeriesHandler) GetRecentlyAiredEpisodes(c *gin.Context) {
 // @Router /series/network/{network} [get]
 func (h *coreSeriesHandler) GetSeriesByNetwork(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	network := c.Param("network")
 	if network == "" {
@@ -483,7 +483,7 @@ func (h *coreSeriesHandler) GetSeriesByNetwork(c *gin.Context) {
 // @Router /series/{id}/seasons/{seasonNumber}/episodes [get]
 func (h *coreSeriesHandler) GetSeasonWithEpisodes(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	seriesID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -570,7 +570,7 @@ func (h *coreSeriesHandler) GetSeasonWithEpisodes(c *gin.Context) {
 // @Router /series/creator/{creatorId} [get]
 func (h *coreSeriesHandler) GetByCreator(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	creatorID, err := strconv.ParseUint(c.Param("creatorId"), 10, 64)
 	if err != nil {
@@ -646,7 +646,7 @@ func (h *coreSeriesHandler) GetByCreator(c *gin.Context) {
 // @Router /series/{id}/seasons/{seasonNumber}/episodes [get]
 func (h *coreSeriesHandler) GetEpisodesBySeasonID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	seriesID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {

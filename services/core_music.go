@@ -3,10 +3,10 @@ package services
 import (
 	"context"
 	"fmt"
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 	"suasor/repository"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // CoreMusicService defines the interface for music-related operations
@@ -50,7 +50,7 @@ func NewCoreMusicService(musicRepo repository.MusicRepository) CoreMusicService 
 
 // GetTracksByAlbumID gets all tracks for a specific album
 func (s *coreMusicService) GetTracksByAlbumID(ctx context.Context, albumID uint64) ([]*models.MediaItem[*types.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("albumID", albumID).
 		Msg("Getting tracks by album ID")
@@ -68,7 +68,7 @@ func (s *coreMusicService) GetTracksByAlbumID(ctx context.Context, albumID uint6
 
 // GetTracksByArtistID gets all tracks by a specific artist
 func (s *coreMusicService) GetTracksByArtistID(ctx context.Context, artistID uint64) ([]*models.MediaItem[*types.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("artistID", artistID).
 		Msg("Getting tracks by artist ID")
@@ -86,7 +86,7 @@ func (s *coreMusicService) GetTracksByArtistID(ctx context.Context, artistID uin
 
 // GetTracksInPlaylist gets all tracks in a specific playlist
 func (s *coreMusicService) GetTracksInPlaylist(ctx context.Context, playlistID uint64) ([]*models.MediaItem[*types.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("playlistID", playlistID).
 		Msg("Getting tracks in playlist")
@@ -104,7 +104,7 @@ func (s *coreMusicService) GetTracksInPlaylist(ctx context.Context, playlistID u
 
 // GetMostPlayedTracks gets the most played tracks
 func (s *coreMusicService) GetMostPlayedTracks(ctx context.Context, limit int) ([]*models.MediaItem[*types.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("limit", limit).
 		Msg("Getting most played tracks")
@@ -122,7 +122,7 @@ func (s *coreMusicService) GetMostPlayedTracks(ctx context.Context, limit int) (
 
 // GetRecentlyAddedTracks gets recently added tracks
 func (s *coreMusicService) GetRecentlyAddedTracks(ctx context.Context, days int, limit int) ([]*models.MediaItem[*types.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("days", days).
 		Int("limit", limit).
@@ -142,7 +142,7 @@ func (s *coreMusicService) GetRecentlyAddedTracks(ctx context.Context, days int,
 
 // GetTracksByGenre gets tracks by genre
 func (s *coreMusicService) GetTracksByGenre(ctx context.Context, genre string, limit int) ([]*models.MediaItem[*types.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("genre", genre).
 		Int("limit", limit).
@@ -162,7 +162,7 @@ func (s *coreMusicService) GetTracksByGenre(ctx context.Context, genre string, l
 
 // GetSimilarTracks gets tracks similar to a given track
 func (s *coreMusicService) GetSimilarTracks(ctx context.Context, trackID uint64, limit int) ([]*models.MediaItem[*types.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("trackID", trackID).
 		Int("limit", limit).
@@ -182,7 +182,7 @@ func (s *coreMusicService) GetSimilarTracks(ctx context.Context, trackID uint64,
 
 // GetAlbumsByArtistID gets all albums by a specific artist
 func (s *coreMusicService) GetAlbumsByArtistID(ctx context.Context, artistID uint64) ([]*models.MediaItem[*types.Album], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("artistID", artistID).
 		Msg("Getting albums by artist ID")
@@ -200,7 +200,7 @@ func (s *coreMusicService) GetAlbumsByArtistID(ctx context.Context, artistID uin
 
 // GetAlbumWithTracks gets an album and all its tracks
 func (s *coreMusicService) GetAlbumWithTracks(ctx context.Context, albumID uint64) (*models.MediaItem[*types.Album], []*models.MediaItem[*types.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("albumID", albumID).
 		Msg("Getting album with tracks")
@@ -218,7 +218,7 @@ func (s *coreMusicService) GetAlbumWithTracks(ctx context.Context, albumID uint6
 
 // GetRecentlyAddedAlbums gets recently added albums
 func (s *coreMusicService) GetRecentlyAddedAlbums(ctx context.Context, days int, limit int) ([]*models.MediaItem[*types.Album], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("days", days).
 		Int("limit", limit).
@@ -238,7 +238,7 @@ func (s *coreMusicService) GetRecentlyAddedAlbums(ctx context.Context, days int,
 
 // GetMostPlayedAlbums gets the most played albums
 func (s *coreMusicService) GetMostPlayedAlbums(ctx context.Context, limit int) ([]*models.MediaItem[*types.Album], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("limit", limit).
 		Msg("Getting most played albums")
@@ -256,7 +256,7 @@ func (s *coreMusicService) GetMostPlayedAlbums(ctx context.Context, limit int) (
 
 // GetAlbumsByGenre gets albums by genre
 func (s *coreMusicService) GetAlbumsByGenre(ctx context.Context, genre string, limit int) ([]*models.MediaItem[*types.Album], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("genre", genre).
 		Int("limit", limit).
@@ -276,7 +276,7 @@ func (s *coreMusicService) GetAlbumsByGenre(ctx context.Context, genre string, l
 
 // GetArtistWithAlbums gets an artist and all their albums
 func (s *coreMusicService) GetArtistWithAlbums(ctx context.Context, artistID uint64) (*models.MediaItem[*types.Artist], []*models.MediaItem[*types.Album], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("artistID", artistID).
 		Msg("Getting artist with albums")
@@ -294,7 +294,7 @@ func (s *coreMusicService) GetArtistWithAlbums(ctx context.Context, artistID uin
 
 // GetTopArtists gets the top artists
 func (s *coreMusicService) GetTopArtists(ctx context.Context, limit int) ([]*models.MediaItem[*types.Artist], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("limit", limit).
 		Msg("Getting top artists")
@@ -312,7 +312,7 @@ func (s *coreMusicService) GetTopArtists(ctx context.Context, limit int) ([]*mod
 
 // GetArtistsByGenre gets artists by genre
 func (s *coreMusicService) GetArtistsByGenre(ctx context.Context, genre string, limit int) ([]*models.MediaItem[*types.Artist], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("genre", genre).
 		Int("limit", limit).
@@ -332,7 +332,7 @@ func (s *coreMusicService) GetArtistsByGenre(ctx context.Context, genre string, 
 
 // SearchMusicLibrary performs a comprehensive search across all music items
 func (s *coreMusicService) SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("query", query.Query).
 		Msg("Searching music library")
@@ -347,4 +347,3 @@ func (s *coreMusicService) SearchMusicLibrary(ctx context.Context, query types.Q
 
 	return results, nil
 }
-

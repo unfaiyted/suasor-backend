@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"suasor/client/types"
+	"suasor/clients/types"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -69,7 +69,7 @@ func NewClientsHandler(
 // @Router /clients [get]
 func (h *ClientsHandler) ListAllClients(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")

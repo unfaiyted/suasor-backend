@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	// client "suasor/client/types"
+	// client "suasor/clients/types"
 	"time"
 )
 

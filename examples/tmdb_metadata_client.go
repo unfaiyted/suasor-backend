@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"suasor/client/metadata/tmdb"
-	"suasor/client/types"
+	"suasor/clients/metadata/tmdb"
+	"suasor/clients/types"
 
 	"github.com/joho/godotenv"
 	"path/filepath"
@@ -153,4 +153,3 @@ func main() {
 		fmt.Printf("- %s (%s)\n", movie.Title, movie.ReleaseDate)
 	}
 }
-

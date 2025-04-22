@@ -7,11 +7,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 type UserMediaItemHandler[T types.MediaData] interface {
@@ -64,7 +64,7 @@ func NewUserMediaItemHandler[T types.MediaData](
 // @Router /users/{userID}/media [get]
 func (h *userMediaItemHandler[T]) GetByUserID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Param("userID"), 10, 64)
 	if err != nil {
@@ -119,7 +119,7 @@ func (h *userMediaItemHandler[T]) GetByUserID(c *gin.Context) {
 // @Router /users/{userID}/content [get]
 func (h *userMediaItemHandler[T]) GetUserContent(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Param("userID"), 10, 64)
 	if err != nil {
@@ -173,7 +173,7 @@ func (h *userMediaItemHandler[T]) GetUserContent(c *gin.Context) {
 // @Router /users/{userID}/content/search [get]
 func (h *userMediaItemHandler[T]) SearchUserContent(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Param("userID"), 10, 64)
 	if err != nil {
@@ -257,7 +257,7 @@ func (h *userMediaItemHandler[T]) SearchUserContent(c *gin.Context) {
 // @Router /users/{userID}/content/recent [get]
 func (h *userMediaItemHandler[T]) GetRecentUserContent(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Param("userID"), 10, 64)
 	if err != nil {
@@ -308,7 +308,7 @@ func (h *userMediaItemHandler[T]) GetRecentUserContent(c *gin.Context) {
 // @Router /users/{userID}/media [post]
 func (h *userMediaItemHandler[T]) CreateUserMediaItem(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Param("userID"), 10, 64)
 	if err != nil {
@@ -384,7 +384,7 @@ func (h *userMediaItemHandler[T]) CreateUserMediaItem(c *gin.Context) {
 // @Router /users/{userID}/media/{id} [put]
 func (h *userMediaItemHandler[T]) UpdateUserMediaItem(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Param("userID"), 10, 64)
 	if err != nil {
@@ -483,7 +483,7 @@ func (h *userMediaItemHandler[T]) UpdateUserMediaItem(c *gin.Context) {
 // @Router /users/{userID}/media/{id} [delete]
 func (h *userMediaItemHandler[T]) DeleteUserMediaItem(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Param("userID"), 10, 64)
 	if err != nil {
@@ -594,7 +594,7 @@ func (h *userMediaItemHandler[T]) isUserOwned(mediaData T, userID uint64) bool {
 // @Router /user-media [post]
 func (h *userMediaItemHandler[T]) Create(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var zero T
 	mediaType := types.GetMediaTypeFromTypeName(zero)
@@ -670,7 +670,7 @@ func (h *userMediaItemHandler[T]) Create(c *gin.Context) {
 // @Router /user-media/{id} [put]
 func (h *userMediaItemHandler[T]) Update(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -772,7 +772,7 @@ func (h *userMediaItemHandler[T]) Update(c *gin.Context) {
 // @Router /user-media/{id} [delete]
 func (h *userMediaItemHandler[T]) Delete(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {

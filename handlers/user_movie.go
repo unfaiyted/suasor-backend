@@ -6,11 +6,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	mediatypes "suasor/client/media/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // UserMovieHandler handles user-specific operations for movies
@@ -41,7 +41,7 @@ func NewUserMovieHandler(
 // @Router /user/movies/favorites [get]
 func (h *UserMovieHandler) GetFavoriteMovies(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -102,7 +102,7 @@ func (h *UserMovieHandler) GetFavoriteMovies(c *gin.Context) {
 // @Router /user/movies/watched [get]
 func (h *UserMovieHandler) GetWatchedMovies(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -165,7 +165,7 @@ func (h *UserMovieHandler) GetWatchedMovies(c *gin.Context) {
 // @Router /user/movies/watchlist [get]
 func (h *UserMovieHandler) GetWatchlistMovies(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -226,7 +226,7 @@ func (h *UserMovieHandler) GetWatchlistMovies(c *gin.Context) {
 // @Router /user/movies/recommended [get]
 func (h *UserMovieHandler) GetRecommendedMovies(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -292,7 +292,7 @@ func (h *UserMovieHandler) GetRecommendedMovies(c *gin.Context) {
 // @Router /user/movies/{id} [patch]
 func (h *UserMovieHandler) UpdateMovieUserData(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")

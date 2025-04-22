@@ -2,8 +2,8 @@ package services
 
 import (
 	"context"
-	"suasor/client"
-	"suasor/client/types"
+	"suasor/clients"
+	"suasor/clients/types"
 	"suasor/repository"
 	"suasor/types/models"
 	"suasor/types/responses"
@@ -29,12 +29,12 @@ type ClientService[T types.ClientConfig] interface {
 // ClientService handles business logic for clients with specific config types
 type clientService[T types.ClientConfig] struct {
 	repo    repository.ClientRepository[T]
-	factory *client.ClientFactoryService
+	factory *clients.ClientFactoryService
 	// Other dependencies like validators, API clients, etc.
 }
 
 // NewClientService creates a service for a specific client type
-func NewClientService[T types.ClientConfig](factory *client.ClientFactoryService, repo repository.ClientRepository[T]) *clientService[T] {
+func NewClientService[T types.ClientConfig](factory *clients.ClientFactoryService, repo repository.ClientRepository[T]) *clientService[T] {
 	return &clientService[T]{
 		repo:    repo,
 		factory: factory,

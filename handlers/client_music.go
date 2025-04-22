@@ -3,12 +3,12 @@ package handlers
 
 import (
 	"strconv"
-	mediatypes "suasor/client/media/types"
-	clienttypes "suasor/client/types"
+	mediatypes "suasor/clients/media/types"
+	clienttypes "suasor/clients/types"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -93,7 +93,7 @@ func NewClientMusicHandler[T clienttypes.ClientMediaConfig](
 // @Router /clients/media/{clientID}/music/tracks/{trackID} [get]
 func (h *clientMusicHandler[T]) GetClientTrackByID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting track by ID")
 
 	// Get authenticated user ID
@@ -157,7 +157,7 @@ func (h *clientMusicHandler[T]) GetClientTrackByID(c *gin.Context) {
 // @Router /clients/media/{clientID}/music/albums/{albumID} [get]
 func (h *clientMusicHandler[T]) GetClientAlbumByID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting album by ID")
 
 	// Get authenticated user ID
@@ -221,7 +221,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumByID(c *gin.Context) {
 // @Router /clients/media/{clientID}/music/artists/{artistID} [get]
 func (h *clientMusicHandler[T]) GetClientArtistByID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting artist by ID")
 
 	// Get authenticated user ID
@@ -285,7 +285,7 @@ func (h *clientMusicHandler[T]) GetClientArtistByID(c *gin.Context) {
 // @Router /clients/media/{clientID}/music/albums/{albumID}/tracks [get]
 func (h *clientMusicHandler[T]) GetClientTracksByAlbum(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting tracks by album")
 
 	// Get authenticated user ID
@@ -350,7 +350,7 @@ func (h *clientMusicHandler[T]) GetClientTracksByAlbum(c *gin.Context) {
 // @Router /clients/media/{clientID}/music/artists/{artistID}/albums [get]
 func (h *clientMusicHandler[T]) GetClientAlbumsByArtist(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting albums by artist")
 
 	// Get authenticated user ID
@@ -413,7 +413,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByArtist(c *gin.Context) {
 // @Router /music/artists/genre/{genre} [get]
 func (h *clientMusicHandler[T]) GetClientArtistsByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting artists by genre")
 
 	// Get authenticated user ID
@@ -464,7 +464,7 @@ func (h *clientMusicHandler[T]) GetClientArtistsByGenre(c *gin.Context) {
 // @Router /client/{clientID}/music/albums/genre/{genre} [get]
 func (h *clientMusicHandler[T]) GetClientAlbumsByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting albums by genre")
 
 	// Get authenticated user ID
@@ -522,7 +522,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByGenre(c *gin.Context) {
 // @Router /client/{clientID}/music/tracks/genre/{genre} [get]
 func (h *clientMusicHandler[T]) GetClientTracksByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting tracks by genre")
 
 	// Get authenticated user ID
@@ -581,7 +581,7 @@ func (h *clientMusicHandler[T]) GetClientTracksByGenre(c *gin.Context) {
 // @Router /music/albums/year/{year} [get]
 func (h *clientMusicHandler[T]) GetClientAlbumsByYear(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting albums by year")
 
 	// Get authenticated user ID
@@ -646,7 +646,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByYear(c *gin.Context) {
 // @Router /music/albums/latest/{count} [get]
 func (h *clientMusicHandler[T]) GetClientLatestAlbumsByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting latest albums by added date")
 
 	// Get authenticated user ID
@@ -711,7 +711,7 @@ func (h *clientMusicHandler[T]) GetClientLatestAlbumsByAdded(c *gin.Context) {
 // @Router /music/albums/popular/{count} [get]
 func (h *clientMusicHandler[T]) GetClientPopularAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting popular albums")
 
 	// Get authenticated user ID
@@ -769,7 +769,7 @@ func (h *clientMusicHandler[T]) GetClientPopularAlbums(c *gin.Context) {
 // @Router /music/artists/popular/{count} [get]
 func (h *clientMusicHandler[T]) GetClientPopularArtists(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting popular artists")
 
 	// Get authenticated user ID
@@ -827,7 +827,7 @@ func (h *clientMusicHandler[T]) GetClientPopularArtists(c *gin.Context) {
 // @Router /music/search [get]
 func (h *clientMusicHandler[T]) SearchClientMusic(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Searching music")
 
 	// Get authenticated user ID
@@ -906,7 +906,7 @@ func (h *clientMusicHandler[T]) SearchClientMusic(c *gin.Context) {
 // @Router /clients/{clientType}/{clientID}/music/tracks/top [get]
 func (h *clientMusicHandler[T]) GetClientTopTracks(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting top tracks")
 
 	// Get authenticated user ID
@@ -978,7 +978,7 @@ func (h *clientMusicHandler[T]) GetClientTopTracks(c *gin.Context) {
 // @Router /clients/{clientType}/{clientID}/music/tracks/recently-added [get]
 func (h *clientMusicHandler[T]) GetClientRecentlyAddedTracks(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting recently added tracks")
 
 	// Get authenticated user ID
@@ -1051,7 +1051,7 @@ func (h *clientMusicHandler[T]) GetClientRecentlyAddedTracks(c *gin.Context) {
 // This method name remains unchanged to match the interface in the router
 func (h *clientMusicHandler[T]) GetClientTopAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting top albums")
 
 	// Get authenticated user ID
@@ -1123,7 +1123,7 @@ func (h *clientMusicHandler[T]) GetClientTopAlbums(c *gin.Context) {
 // @Router /clients/{clientType}/{clientID}/music/artists/top [get]
 func (h *clientMusicHandler[T]) GetClientTopArtists(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting top artists")
 
 	// Get authenticated user ID
@@ -1195,7 +1195,7 @@ func (h *clientMusicHandler[T]) GetClientTopArtists(c *gin.Context) {
 // @Router /clients/{clientType}/{clientID}/music/artists/favorites [get]
 func (h *clientMusicHandler[T]) GetClientFavoriteArtists(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting favorite artists")
 
 	// Get authenticated user ID
@@ -1324,7 +1324,7 @@ func createArtistMediaItem(clientID uint64, clientType clienttypes.ClientMediaTy
 // @Router /clients/media/{clientID}/music/tracks/{trackID}/similar [get]
 func (h *clientMusicHandler[T]) GetClientSimilarTracks(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting similar tracks")
 
 	// Get authenticated user ID
@@ -1399,7 +1399,7 @@ func (h *clientMusicHandler[T]) GetClientSimilarTracks(c *gin.Context) {
 // @Router /clients/media/{clientID}/music/tracks/recently-played [get]
 func (h *clientMusicHandler[T]) GetClientRecentlyPlayedTracks(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting recently played tracks")
 
 	// Get authenticated user ID
@@ -1470,7 +1470,7 @@ func (h *clientMusicHandler[T]) GetClientRecentlyPlayedTracks(c *gin.Context) {
 // @Router /clients/media/{clientID}/music/tracks/favorites [get]
 func (h *clientMusicHandler[T]) GetClientFavoriteTracks(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting favorite tracks")
 
 	// Get authenticated user ID
@@ -1541,7 +1541,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteTracks(c *gin.Context) {
 // @Router /clients/media/{clientID}/music/albums/favorites [get]
 func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting favorite albums")
 
 	// Get authenticated user ID
@@ -1612,7 +1612,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 // @Router /clients/media/{clientID}/music/tracks/{trackID}/play [post]
 // func (h *clientMusicHandler[T]) StartClientTrackPlayback(c *gin.Context) {
 // 	ctx := c.Request.Context()
-// 	log := utils.LoggerFromContext(ctx)
+// 	log := logger.LoggerFromContext(ctx)
 // 	log.Info().Msg("Starting track playback")
 //
 // 	// Get authenticated user ID
@@ -1675,7 +1675,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 // @Router /clients/media/{clientID}/music/playback [get]
 // func (h *clientMusicHandler[T]) GetClientPlaybackState(c *gin.Context) {
 // 	ctx := c.Request.Context()
-// 	log := utils.LoggerFromContext(ctx)
+// 	log := logger.LoggerFromContext(ctx)
 // 	log.Info().Msg("Getting playback state")
 //
 // 	// Get authenticated user ID
@@ -1733,7 +1733,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 // @Router /clients/media/{clientID}/music/playback/info [get]
 // func (h *clientMusicHandler[T]) GetClientPlaybackInfo(c *gin.Context) {
 // 	ctx := c.Request.Context()
-// 	log := utils.LoggerFromContext(ctx)
+// 	log := logger.LoggerFromContext(ctx)
 // 	log.Info().Msg("Getting playback info")
 //
 // 	// Get authenticated user ID
@@ -1806,7 +1806,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 // @Router /clients/media/{clientID}/music/playlists/{playlistID}/tracks [get]
 // func (h *clientMusicHandler[T]) GetClientPlaylistTracks(c *gin.Context) {
 // 	ctx := c.Request.Context()
-// 	log := utils.LoggerFromContext(ctx)
+// 	log := logger.LoggerFromContext(ctx)
 // 	log.Info().Msg("Getting playlist tracks")
 //
 // 	// Get authenticated user ID
@@ -1872,7 +1872,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 // @Router /clients/media/{clientID}/music/artists/{artistID}/similar [get]
 func (h *clientMusicHandler[T]) GetClientSimilarArtists(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting similar artists")
 
 	// Get authenticated user ID

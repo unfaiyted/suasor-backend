@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	mediatypes "suasor/client/media/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/repository"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // ListService manages application-specific List operations beyond the basic CRUD operations
@@ -49,7 +49,7 @@ func NewCoreListService[T mediatypes.ListData](
 // Base operations (delegating to UserMediaItemService where appropriate)
 func (s coreListService[T]) Create(ctx context.Context, list *models.MediaItem[T]) (*models.MediaItem[T], error) {
 
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("title", list.Title).
 		Msg("Creating list")
@@ -103,7 +103,7 @@ func (s coreListService[T]) Create(ctx context.Context, list *models.MediaItem[T
 	return result, nil
 }
 func (s coreListService[T]) Update(ctx context.Context, list *models.MediaItem[T]) (*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("id", list.ID).
 		Str("title", list.Title).
@@ -167,7 +167,7 @@ func (s coreListService[T]) Update(ctx context.Context, list *models.MediaItem[T
 	return result, nil
 }
 func (s coreListService[T]) GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("id", id).
 		Msg("Getting list by ID")
@@ -193,7 +193,7 @@ func (s coreListService[T]) GetByID(ctx context.Context, id uint64) (*models.Med
 	return result, nil
 }
 func (s coreListService[T]) GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Msg("Getting lists by user ID")
@@ -203,7 +203,7 @@ func (s coreListService[T]) GetByUserID(ctx context.Context, userID uint64, limi
 
 // list-specific operations
 func (s coreListService[T]) GetItems(ctx context.Context, listID uint64) (*models.MediaItemList, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
 		Msg("Getting list items")
@@ -240,7 +240,7 @@ func (s coreListService[T]) GetItems(ctx context.Context, listID uint64) (*model
 
 }
 func (s coreListService[T]) AddItem(ctx context.Context, listID uint64, itemID uint64) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
 		Uint64("itemID", itemID).
@@ -284,7 +284,7 @@ func (s coreListService[T]) AddItem(ctx context.Context, listID uint64, itemID u
 	return nil
 }
 func (s coreListService[T]) RemoveItem(ctx context.Context, listID uint64, itemID uint64) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
 		Uint64("itemID", itemID).
@@ -326,7 +326,7 @@ func (s coreListService[T]) RemoveItem(ctx context.Context, listID uint64, itemI
 	return nil
 }
 func (s coreListService[T]) ReorderItems(ctx context.Context, listID uint64, itemIDs []uint64) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
 		Interface("itemIDs", itemIDs).
@@ -417,7 +417,7 @@ func (s coreListService[T]) ReorderItems(ctx context.Context, listID uint64, ite
 	return nil
 }
 func (s coreListService[T]) UpdateItems(ctx context.Context, listID uint64, items []*models.MediaItem[T]) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
 		Int("itemCount", len(items)).
@@ -476,7 +476,7 @@ func (s coreListService[T]) UpdateItems(ctx context.Context, listID uint64, item
 	return nil
 }
 func (s coreListService[T]) Search(ctx context.Context, query mediatypes.QueryOptions) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("query", query.Query).
 		Uint64("userID", query.OwnerID).
@@ -505,7 +505,7 @@ func (s coreListService[T]) Search(ctx context.Context, query mediatypes.QueryOp
 	return results, nil
 }
 func (s coreListService[T]) GetRecent(ctx context.Context, days int, limit int) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	log.Debug().
 		Int("limit", limit).
@@ -528,7 +528,7 @@ func (s coreListService[T]) GetRecent(ctx context.Context, days int, limit int) 
 	return results, nil
 }
 func (s coreListService[T]) Sync(ctx context.Context, listID uint64, targetClientIDs []uint64) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
 		Interface("targetClientIDs", targetClientIDs).
@@ -587,7 +587,7 @@ func (s coreListService[T]) Sync(ctx context.Context, listID uint64, targetClien
 	return errors.New("list sync requires implementation in the list sync job")
 }
 func (s coreListService[T]) createMediaItems(ctx context.Context, items []*models.MediaItem[mediatypes.MediaData]) (*models.MediaItemList, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	log.Debug().
 		Int("count", len(items)).
@@ -598,7 +598,7 @@ func (s coreListService[T]) createMediaItems(ctx context.Context, items []*model
 
 // Delete List
 func (s coreListService[T]) Delete(ctx context.Context, id uint64) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("id", id).
 		Msg("Deleting list")
@@ -619,7 +619,7 @@ func (s coreListService[T]) Delete(ctx context.Context, id uint64) error {
 }
 
 func (s *coreListService[T]) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("limit", limit).
 		Int("offset", offset).

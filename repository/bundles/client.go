@@ -3,7 +3,7 @@ package bundles
 import (
 	"context"
 	"fmt"
-	"suasor/client/types"
+	"suasor/clients/types"
 	"suasor/repository"
 	"suasor/types/models"
 )

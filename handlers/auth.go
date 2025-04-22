@@ -8,7 +8,7 @@ import (
 	"suasor/services"
 	"suasor/types/requests"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // AuthHandler handles authentication-related endpoints
@@ -75,7 +75,7 @@ func NewAuthHandler(service services.AuthService) *AuthHandler {
 // @Router /auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var req requests.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -156,7 +156,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 // @Router /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var req requests.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -233,7 +233,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 // @Router /auth/refresh [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var req requests.RefreshTokenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -289,7 +289,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 // @Router /auth/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var req requests.LogoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -356,7 +356,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 // @Router /auth/validate [get]
 func (h *AuthHandler) ValidateSession(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Extract the token from the Authorization header
 	authHeader := c.GetHeader("Authorization")

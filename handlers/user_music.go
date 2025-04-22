@@ -6,11 +6,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	mediatypes "suasor/client/media/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // UserMusicHandler handles operations for music items related to users
@@ -47,7 +47,7 @@ func NewUserMusicHandler(
 // @Router /user/music/tracks/favorites [get]
 func (h *UserMusicHandler) GetFavoriteTracks(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -108,7 +108,7 @@ func (h *UserMusicHandler) GetFavoriteTracks(c *gin.Context) {
 // @Router /user/music/albums/favorites [get]
 func (h *UserMusicHandler) GetFavoriteAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -169,7 +169,7 @@ func (h *UserMusicHandler) GetFavoriteAlbums(c *gin.Context) {
 // @Router /user/music/artists/favorites [get]
 func (h *UserMusicHandler) GetFavoriteArtists(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -230,7 +230,7 @@ func (h *UserMusicHandler) GetFavoriteArtists(c *gin.Context) {
 // @Router /user/music/tracks/recently-played [get]
 func (h *UserMusicHandler) GetRecentlyPlayedTracks(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -296,7 +296,7 @@ func (h *UserMusicHandler) GetRecentlyPlayedTracks(c *gin.Context) {
 // @Router /user/music/tracks/{id} [patch]
 func (h *UserMusicHandler) UpdateTrackUserData(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")

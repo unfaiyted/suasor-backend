@@ -6,12 +6,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	// "io"
-	"suasor/client/types"
-	client "suasor/client/types"
+	"suasor/clients/types"
+	client "suasor/clients/types"
 	"suasor/types/models"
 	"suasor/types/requests"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // ClientHandler handles setting up client API endpoints
@@ -54,7 +54,7 @@ func NewClientHandler[T types.ClientConfig](service services.ClientService[T]) *
 //	}
 func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Msg("Creating new client")
 
@@ -155,7 +155,7 @@ func (h *ClientHandler[T]) CreateClient(c *gin.Context) {
 
 func (h *ClientHandler[T]) GetClient(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -206,7 +206,7 @@ func (h *ClientHandler[T]) GetClient(c *gin.Context) {
 // @Router /client/:clientType [get]
 func (h *ClientHandler[T]) GetAllClients(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -261,7 +261,7 @@ func (h *ClientHandler[T]) GetAllClients(c *gin.Context) {
 
 func (h *ClientHandler[T]) UpdateClient(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -337,7 +337,7 @@ func (h *ClientHandler[T]) UpdateClient(c *gin.Context) {
 // @Router /clients/:clientType/{id} [delete]
 func (h *ClientHandler[T]) DeleteClient(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -401,7 +401,7 @@ func (h *ClientHandler[T]) DeleteClient(c *gin.Context) {
 //	}
 func (h *ClientHandler[T]) TestConnection(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -464,7 +464,7 @@ func (h *ClientHandler[T]) TestConnection(c *gin.Context) {
 // @Router /client/{clientType} [get]
 func (h *ClientHandler[T]) GetClientsByType(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -509,7 +509,7 @@ func (h *ClientHandler[T]) GetClientsByType(c *gin.Context) {
 //	}
 func (h *ClientHandler[T]) TestNewConnection(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	_, exists := c.Get("userID")

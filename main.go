@@ -2,21 +2,16 @@ package main
 
 import (
 	"context"
-	"suasor/container"
-	"suasor/database"
+	"suasor/di"
+	"suasor/di/container"
 	"suasor/repository"
 	"suasor/router"
 	"suasor/router/middleware"
 	"suasor/services"
 	"suasor/types"
-	logger "suasor/utils"
+	"suasor/utils/db"
+	logger "suasor/utils/logger"
 
-	// _ "suasor/client/ai/claude"  // Force init() to run
-	// _ "suasor/client/media/emby" // Force init() to run
-	// _ "suasor/client/media/jellyfin"
-	// _ "suasor/client/media/plex"
-	// _ "suasor/client/media/subsonic"
-	// _ "suasor/client/metadata/tmdb"
 	_ "suasor/docs"
 
 	swaggerFiles "github.com/swaggo/files"
@@ -68,7 +63,7 @@ func main() {
 	}
 
 	log.Info().Msg("Initializing application dependencies")
-	deps := InitializeDependencies(ctx, db, configService)
+	deps := di.InitializeDependencies(ctx, db, configService)
 
 	log.Info().Msg("Initializing job service")
 	jobService := container.MustGet[services.JobService](deps.GetContainer())

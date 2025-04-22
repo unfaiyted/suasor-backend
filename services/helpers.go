@@ -1,7 +1,7 @@
 package services
 
 import (
-	mediatypes "suasor/client/media/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/types/models"
 )
 

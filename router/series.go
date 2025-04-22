@@ -4,9 +4,9 @@ package router
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"suasor/app/container"
-	apphandlers "suasor/app/handlers"
+	"suasor/container"
 	"suasor/handlers"
+	apphandlers "suasor/handlers/bundles"
 	"suasor/types/responses"
 )
 

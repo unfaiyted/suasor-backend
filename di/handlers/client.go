@@ -3,9 +3,9 @@ package handlers
 
 import (
 	"context"
-	"suasor/app/container"
-	"suasor/client"
-	"suasor/client/types"
+	"suasor/clients"
+	"suasor/clients/types"
+	"suasor/container"
 	"suasor/handlers"
 	apphandlers "suasor/handlers/bundles"
 	"suasor/services"

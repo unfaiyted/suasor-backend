@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"net/http"
-	"suasor/client/types"
+	"suasor/clients/types"
 	"suasor/services"
 	"suasor/types/requests"
 
@@ -300,4 +300,3 @@ func (h *MetadataClientHandler[T]) SearchCollections(c *gin.Context) {
 
 	c.JSON(http.StatusOK, collections)
 }
-

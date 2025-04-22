@@ -3,8 +3,8 @@ package handlers
 
 import (
 	"context"
-	mediatypes "suasor/client/media/types"
-	clienttypes "suasor/client/types"
+	mediatypes "suasor/clients/media/types"
+	clienttypes "suasor/clients/types"
 	"suasor/container"
 	"suasor/di/factories"
 	"suasor/handlers"

@@ -17,9 +17,9 @@ package repository
 import (
 	"context"
 	"fmt"
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 
 	"gorm.io/gorm"
 )
@@ -43,15 +43,21 @@ type UserMediaItemRepository[T types.MediaData] interface {
 }
 
 type userMediaItemRepository[T types.MediaData] struct {
+	MediaItemRepository[T]
 	db *gorm.DB
 }
 
 // NewUserMediaItemRepository creates a new repository for user-owned media items
-func NewUserMediaItemRepository[T types.MediaData](db *gorm.DB) UserMediaItemRepository[T] {
-	return &userMediaItemRepository[T]{db: db}
+func NewUserMediaItemRepository[T types.MediaData](
+	db *gorm.DB,
+	itemRepo MediaItemRepository[T],
+) UserMediaItemRepository[T] {
+	return &userMediaItemRepository[T]{
+		MediaItemRepository: itemRepo,
+		db:                  db}
 }
 
-func (r *userMediaItemRepository[T]) GetItemsByAttributes(ctx context.Context, attributes map[string]interface{}, limit int) ([]*models.MediaItem[T], error) {
+func (r *userMediaItemRepository[T]) GetItemsByAttributes(ctx context.Context, attributes map[string]any, limit int) ([]*models.MediaItem[T], error) {
 	return r.GetItemsByAttributes(ctx, attributes, limit)
 }
 
@@ -161,7 +167,7 @@ func (r *userMediaItemRepository[T]) GetByExternalID(ctx context.Context, source
 // This is a key method specifically for playlists and collections
 func (r *userMediaItemRepository[T]) GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error) {
 	var items []*models.MediaItem[T]
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	log.Debug().
 		Uint64("userID", userID).
@@ -225,7 +231,7 @@ func (r *userMediaItemRepository[T]) Delete(ctx context.Context, id uint64) erro
 
 // Search finds user-owned media items based on query options
 func (r *userMediaItemRepository[T]) Search(ctx context.Context, options types.QueryOptions) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("type", string(options.MediaType)).
 		Str("query", options.Query).
@@ -291,7 +297,7 @@ func (r *userMediaItemRepository[T]) Search(ctx context.Context, options types.Q
 // GetUserContent retrieves all types of user-owned content (playlists and collections)
 // in a single query and returns them sorted by most recently updated
 func (r *userMediaItemRepository[T]) GetUserContent(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Int("limit", limit).
@@ -329,7 +335,7 @@ func (r *userMediaItemRepository[T]) GetUserContent(ctx context.Context, userID 
 }
 
 func (r *userMediaItemRepository[T]) GetRecentItems(ctx context.Context, days int, limit int) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("limit", limit).
 		Msg("Getting recent user-owned content")

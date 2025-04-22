@@ -3,11 +3,11 @@ package handlers
 
 import (
 	"strconv"
-	mediatypes "suasor/client/media/types"
-	clienttypes "suasor/client/types"
+	mediatypes "suasor/clients/media/types"
+	clienttypes "suasor/clients/types"
 	"suasor/services"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -59,7 +59,7 @@ func NewClientListHandler[T clienttypes.ClientMediaConfig, U mediatypes.ListData
 // @Router /clients/media/{clientID}/playlists/{playlistID} [get]
 func (h *clientListHandler[T, U]) GetListByID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting playlist by ID")
 
 	// Get authenticated user ID
@@ -123,7 +123,7 @@ func (h *clientListHandler[T, U]) GetListByID(c *gin.Context) {
 // @Router /clients/media/{clientID}/playlists [get]
 func (h *clientListHandler[T, U]) GetLists(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting all playlists")
 
 	// Get authenticated user ID
@@ -188,7 +188,7 @@ func (h *clientListHandler[T, U]) GetLists(c *gin.Context) {
 // @Router /clients/media/{clientID}/playlists [post]
 func (h *clientListHandler[T, U]) CreateList(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Creating playlist")
 
 	// Get authenticated user ID
@@ -263,7 +263,7 @@ func (h *clientListHandler[T, U]) CreateList(c *gin.Context) {
 // @Router /clients/media/{clientID}/playlists/{playlistID} [put]
 func (h *clientListHandler[T, U]) UpdateList(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Updating playlist")
 
 	// Get authenticated user ID
@@ -340,7 +340,7 @@ func (h *clientListHandler[T, U]) UpdateList(c *gin.Context) {
 // @Router /clients/media/{clientID}/playlists/{playlistID} [delete]
 func (h *clientListHandler[T, U]) DeleteList(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Deleting playlist")
 
 	// Get authenticated user ID
@@ -405,7 +405,7 @@ func (h *clientListHandler[T, U]) DeleteList(c *gin.Context) {
 // @Router /clients/media/{clientID}/playlists/{playlistID}/items [post]
 func (h *clientListHandler[T, U]) AddItemToList(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Adding item to playlist")
 
 	// Get authenticated user ID
@@ -484,7 +484,7 @@ func (h *clientListHandler[T, U]) AddItemToList(c *gin.Context) {
 // @Router /clients/media/{clientID}/playlists/{playlistID}/items/{itemID} [delete]
 func (h *clientListHandler[T, U]) RemoveItemFromList(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Removing item from playlist")
 
 	// Get authenticated user ID
@@ -552,7 +552,7 @@ func (h *clientListHandler[T, U]) RemoveItemFromList(c *gin.Context) {
 // @Router /lists/search [get]
 func (h *clientListHandler[T, U]) SearchLists(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Searching playlists")
 
 	// Get authenticated user ID

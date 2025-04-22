@@ -9,7 +9,7 @@ import (
 	"suasor/types/responses"
 
 	"github.com/gin-gonic/gin"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // JobHandler manages job-related requests
@@ -167,7 +167,7 @@ func (h *JobHandler) UpdateJobSchedule(c *gin.Context) {
 // @Router /jobs/{name}/run [post]
 func (h *JobHandler) RunJobManually(c *gin.Context) {
 	name := c.Param("name")
-	log := utils.LoggerFromContext(c)
+	log := logger.LoggerFromContext(c)
 	log.Info().Str("job", name).Msg("Running job manually")
 
 	// Validate job exists by trying to get its schedule
@@ -465,4 +465,3 @@ func (h *JobHandler) UpdateRecommendationViewedStatus(c *gin.Context) {
 
 	responses.RespondOK[struct{}](c, struct{}{}, "Recommendation viewed status updated successfully")
 }
-

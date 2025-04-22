@@ -1,7 +1,7 @@
 package responses
 
 import (
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 	"suasor/types/models"
 	"time"
 )
@@ -87,4 +87,3 @@ func ConvertToRecommendationsListResponse(
 
 	return response
 }
-

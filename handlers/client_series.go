@@ -3,12 +3,12 @@ package handlers
 
 import (
 	"strconv"
-	mediatypes "suasor/client/media/types"
-	clienttypes "suasor/client/types"
+	mediatypes "suasor/clients/media/types"
+	clienttypes "suasor/clients/types"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -60,7 +60,7 @@ func NewClientSeriesHandler[T clienttypes.ClientMediaConfig](
 // @Router /clients/media/{clientID}/series/{seriesID} [get]
 func (h *clientSeriesHandler[T]) GetSeriesByID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting series by ID")
 
 	// Get authenticated user ID
@@ -122,7 +122,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByID(c *gin.Context) {
 // @Router /series/genre/{genre} [get]
 func (h *clientSeriesHandler[T]) GetSeriesByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting series by genre")
 
 	// Get authenticated user ID
@@ -174,7 +174,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByGenre(c *gin.Context) {
 // @Router /series/year/{year} [get]
 func (h *clientSeriesHandler[T]) GetSeriesByYear(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting series by year")
 
 	// Get authenticated user ID
@@ -231,7 +231,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByYear(c *gin.Context) {
 // @Router /series/actor/{actor} [get]
 func (h *clientSeriesHandler[T]) GetSeriesByActor(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting series by actor")
 
 	// Get authenticated user ID
@@ -282,7 +282,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByActor(c *gin.Context) {
 // @Router /series/creator/{creator} [get]
 func (h *clientSeriesHandler[T]) GetSeriesByCreator(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting series by creator")
 
 	// Get authenticated user ID
@@ -335,7 +335,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByCreator(c *gin.Context) {
 // @Router /series/rating [get]
 func (h *clientSeriesHandler[T]) GetSeriesByRating(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting series by rating")
 
 	// Get authenticated user ID
@@ -403,7 +403,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByRating(c *gin.Context) {
 // @Router /series/latest/{count} [get]
 func (h *clientSeriesHandler[T]) GetLatestSeriesByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting latest series by added date")
 
 	// Get authenticated user ID
@@ -461,7 +461,7 @@ func (h *clientSeriesHandler[T]) GetLatestSeriesByAdded(c *gin.Context) {
 // @Router /series/popular/{count} [get]
 func (h *clientSeriesHandler[T]) GetPopularSeries(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting popular series")
 
 	// Get authenticated user ID
@@ -519,7 +519,7 @@ func (h *clientSeriesHandler[T]) GetPopularSeries(c *gin.Context) {
 // @Router /series/top-rated/{count} [get]
 func (h *clientSeriesHandler[T]) GetTopRatedSeries(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting top rated series")
 
 	// Get authenticated user ID
@@ -577,7 +577,7 @@ func (h *clientSeriesHandler[T]) GetTopRatedSeries(c *gin.Context) {
 // @Router /series/search [get]
 func (h *clientSeriesHandler[T]) SearchSeries(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Searching series")
 
 	// Get authenticated user ID
@@ -647,7 +647,7 @@ func (h *clientSeriesHandler[T]) SearchSeries(c *gin.Context) {
 // @Router /clients/media/{clientID}/series/{seriesID}/seasons [get]
 func (h *clientSeriesHandler[T]) GetSeasonsBySeriesID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting seasons by series ID")
 
 	// Get authenticated user ID

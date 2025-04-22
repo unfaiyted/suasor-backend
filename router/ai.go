@@ -1,9 +1,9 @@
 package router
 
 import (
-	"suasor/app/container"
+	"suasor/container"
 	// "suasor/app/handlers"
-	apphandlers "suasor/app/handlers"
+	apphandlers "suasor/handlers/bundles"
 	// "suasor/handlers"
 
 	"github.com/gin-gonic/gin"

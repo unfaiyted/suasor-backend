@@ -6,11 +6,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	mediatypes "suasor/client/media/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 type UserSeriesHandler interface {
@@ -80,7 +80,7 @@ func NewUserSeriesHandler(
 // @Router /user/series/favorites [get]
 func (h *userSeriesHandler) GetFavoriteSeries(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -136,7 +136,7 @@ func (h *userSeriesHandler) GetFavoriteSeries(c *gin.Context) {
 // @Router /user/series/watched [get]
 func (h *userSeriesHandler) GetWatchedSeries(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -200,7 +200,7 @@ func (h *userSeriesHandler) GetWatchedSeries(c *gin.Context) {
 // @Router /user/series/watchlist [get]
 func (h *userSeriesHandler) GetWatchlistSeries(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -265,7 +265,7 @@ func (h *userSeriesHandler) GetWatchlistSeries(c *gin.Context) {
 // @Router /user/series/{id} [patch]
 func (h *userSeriesHandler) UpdateSeriesUserData(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -346,7 +346,7 @@ func (h *userSeriesHandler) UpdateSeriesUserData(c *gin.Context) {
 // @Router /user/series/continue-watching [get]
 func (h *userSeriesHandler) GetContinueWatchingSeries(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
 	if err != nil {
@@ -390,7 +390,7 @@ func (h *userSeriesHandler) GetContinueWatchingSeries(c *gin.Context) {
 // @Router /user/series/next-up [get]
 func (h *userSeriesHandler) GetNextUpEpisodes(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
 	if err != nil {
@@ -435,7 +435,7 @@ func (h *userSeriesHandler) GetNextUpEpisodes(c *gin.Context) {
 // @Router /user/series/recently-watched [get]
 func (h *userSeriesHandler) GetRecentlyWatchedEpisodes(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
 	if err != nil {

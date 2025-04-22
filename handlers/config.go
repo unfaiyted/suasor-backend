@@ -6,7 +6,7 @@ import (
 	"suasor/types"
 	"suasor/types/responses"
 
-	"suasor/utils"
+	"suasor/utils/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,7 +26,7 @@ func NewConfigHandler(configService services.ConfigService) *ConfigHandler {
 // checkAdminAccess verifies if the request is from an admin user
 func (h *ConfigHandler) checkAdminAccess(c *gin.Context) (uint64, bool) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Check if user is authenticated
 	userID, exists := c.Get("userID")
@@ -62,7 +62,7 @@ func (h *ConfigHandler) checkAdminAccess(c *gin.Context) (uint64, bool) {
 // @Router /config [get]
 func (h *ConfigHandler) GetConfig(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Check if user is authenticated and has admin role
 	_, ok := h.checkAdminAccess(c)
@@ -93,7 +93,7 @@ func (h *ConfigHandler) GetConfig(c *gin.Context) {
 // @Router /config [put]
 func (h *ConfigHandler) UpdateConfig(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Check if user is authenticated and has admin role
 	userID, ok := h.checkAdminAccess(c)
@@ -139,7 +139,7 @@ func (h *ConfigHandler) UpdateConfig(c *gin.Context) {
 // GetFileConfig uses the admin access check helper
 func (h *ConfigHandler) GetFileConfig(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, ok := h.checkAdminAccess(c)
 	if !ok {
@@ -181,7 +181,7 @@ func (h *ConfigHandler) GetFileConfig(c *gin.Context) {
 // @Router /config/file [put]
 func (h *ConfigHandler) SaveFileConfig(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Check if user is authenticated and has admin role
 	userID, ok := h.checkAdminAccess(c)
@@ -226,7 +226,7 @@ func (h *ConfigHandler) SaveFileConfig(c *gin.Context) {
 // @Router /config/reset [post]
 func (h *ConfigHandler) ResetConfig(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, ok := h.checkAdminAccess(c)
 	if !ok {

@@ -3,12 +3,12 @@ package factories
 import (
 	"context"
 
-	"suasor/app/container"
-	"suasor/client/media"
-	"suasor/client/media/emby"
-	"suasor/client/media/jellyfin"
-	"suasor/client/media/plex"
-	"suasor/client/media/subsonic"
+	"suasor/clients/media"
+	"suasor/clients/media/emby"
+	"suasor/clients/media/jellyfin"
+	"suasor/clients/media/plex"
+	"suasor/clients/media/subsonic"
+	"suasor/container"
 )
 
 func RegisterClientMediaItemFactories(ctx context.Context, c *container.Container) {

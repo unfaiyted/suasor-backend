@@ -3,11 +3,11 @@ package handlers
 
 import (
 	"strconv"
-	automationtypes "suasor/client/automation/types"
+	automationtypes "suasor/clients/automation/types"
 	"suasor/services"
 	"suasor/types/requests"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -40,7 +40,7 @@ func NewClientAutomationHandler(service services.AutomationClientService) *Clien
 // @Router /clients/automation/{clientID}/status [get]
 func (h *ClientAutomationHandler) GetSystemStatus(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -95,7 +95,7 @@ func (h *ClientAutomationHandler) GetSystemStatus(c *gin.Context) {
 // @Router /clients/automation/{clientID}/library [get]
 func (h *ClientAutomationHandler) GetLibraryItems(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -161,7 +161,7 @@ func (h *ClientAutomationHandler) GetLibraryItems(c *gin.Context) {
 // @Router /clients/automation/{clientID}/media/{mediaID} [get]
 func (h *ClientAutomationHandler) GetMediaByID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -217,7 +217,7 @@ func (h *ClientAutomationHandler) GetMediaByID(c *gin.Context) {
 // @Router /clients/automation/{clientID}/media [post]
 func (h *ClientAutomationHandler) AddMedia(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -279,7 +279,7 @@ func (h *ClientAutomationHandler) AddMedia(c *gin.Context) {
 // @Router /clients/automation/{clientID}/media/{mediaID} [put]
 func (h *ClientAutomationHandler) UpdateMedia(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -344,7 +344,7 @@ func (h *ClientAutomationHandler) UpdateMedia(c *gin.Context) {
 // @Router /clients/automation/{clientID}/media/{mediaID} [delete]
 func (h *ClientAutomationHandler) DeleteMedia(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -400,7 +400,7 @@ func (h *ClientAutomationHandler) DeleteMedia(c *gin.Context) {
 // @Router /clients/automation/{clientID}/search [get]
 func (h *ClientAutomationHandler) SearchMedia(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -460,7 +460,7 @@ func (h *ClientAutomationHandler) SearchMedia(c *gin.Context) {
 // @Router /clients/automation/{clientID}/profiles/quality [get]
 func (h *ClientAutomationHandler) GetQualityProfiles(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -511,7 +511,7 @@ func (h *ClientAutomationHandler) GetQualityProfiles(c *gin.Context) {
 // @Router /clients/automation/{clientID}/profiles/metadata [get]
 func (h *ClientAutomationHandler) GetMetadataProfiles(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -562,7 +562,7 @@ func (h *ClientAutomationHandler) GetMetadataProfiles(c *gin.Context) {
 // @Router /clients/automation/{clientID}/tags [get]
 func (h *ClientAutomationHandler) GetTags(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -614,7 +614,7 @@ func (h *ClientAutomationHandler) GetTags(c *gin.Context) {
 // @Router /clients/automation/{clientID}/tags [post]
 func (h *ClientAutomationHandler) CreateTag(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -676,7 +676,7 @@ func (h *ClientAutomationHandler) CreateTag(c *gin.Context) {
 // @Router /clients/automation/{clientID}/calendar [get]
 func (h *ClientAutomationHandler) GetCalendar(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -748,7 +748,7 @@ func (h *ClientAutomationHandler) GetCalendar(c *gin.Context) {
 // @Router /clients/automation/{clientID}/command [post]
 func (h *ClientAutomationHandler) ExecuteCommand(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")

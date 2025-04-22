@@ -3,10 +3,10 @@ package services
 import (
 	"context"
 	"fmt"
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 	"suasor/repository"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 	"time"
 )
 
@@ -54,7 +54,7 @@ func NewClientUserMediaItemDataService[T types.MediaData](
 
 // SyncClientItemData synchronizes user media item data from an external client
 func (s *clientUserMediaItemDataService[T]) SyncClientItemData(ctx context.Context, userID uint64, clientID uint64, items []models.UserMediaItemData[T]) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).
@@ -82,7 +82,7 @@ func (s *clientUserMediaItemDataService[T]) SyncClientItemData(ctx context.Conte
 
 // GetClientItemData retrieves user media item data for synchronization with a client
 func (s *clientUserMediaItemDataService[T]) GetClientItemData(ctx context.Context, userID uint64, clientID uint64, sinceDateStr *string) ([]*models.UserMediaItemData[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).
@@ -113,7 +113,7 @@ func (s *clientUserMediaItemDataService[T]) GetClientItemData(ctx context.Contex
 
 // GetByClientID retrieves a user media item data entry by client ID
 func (s *clientUserMediaItemDataService[T]) GetByClientID(ctx context.Context, userID uint64, clientID uint64, clientItemID string) (*models.UserMediaItemData[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).
@@ -143,7 +143,7 @@ func (s *clientUserMediaItemDataService[T]) GetByClientID(ctx context.Context, u
 
 // RecordClientPlay records a play event from a client
 func (s *clientUserMediaItemDataService[T]) RecordClientPlay(ctx context.Context, userID uint64, clientID uint64, clientItemID string, data *models.UserMediaItemData[T]) (*models.UserMediaItemData[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).
@@ -173,7 +173,7 @@ func (s *clientUserMediaItemDataService[T]) RecordClientPlay(ctx context.Context
 
 // GetPlaybackState retrieves the current playback state for a client item
 func (s *clientUserMediaItemDataService[T]) GetPlaybackState(ctx context.Context, userID uint64, clientID uint64, clientItemID string) (*models.UserMediaItemData[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).
@@ -203,7 +203,7 @@ func (s *clientUserMediaItemDataService[T]) GetPlaybackState(ctx context.Context
 
 // UpdatePlaybackState updates the playback state for a client item
 func (s *clientUserMediaItemDataService[T]) UpdatePlaybackState(ctx context.Context, userID uint64, clientID uint64, clientItemID string, position int, duration int, percentage float64) (*models.UserMediaItemData[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("clientID", clientID).

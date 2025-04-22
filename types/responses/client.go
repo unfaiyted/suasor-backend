@@ -1,7 +1,7 @@
 package responses
 
 import (
-	"suasor/client/types"
+	"suasor/clients/types"
 	"time"
 )
 

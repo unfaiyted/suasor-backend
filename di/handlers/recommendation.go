@@ -3,7 +3,7 @@ package handlers
 
 import (
 	"context"
-	"suasor/app/container"
+	"suasor/container"
 	"suasor/handlers"
 	"suasor/services"
 )
@@ -15,3 +15,4 @@ func RegisterRecommendationHandlers(ctx context.Context, c *container.Container)
 		return handlers.NewRecommendationHandler(recommendationService)
 	})
 }
+

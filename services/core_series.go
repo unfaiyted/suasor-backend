@@ -3,10 +3,10 @@ package services
 import (
 	"context"
 	"fmt"
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 	"suasor/repository"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 	"time"
 )
 
@@ -20,13 +20,13 @@ type CoreSeriesService interface {
 	GetNextEpisodeToWatch(ctx context.Context, userID uint64, seriesID uint64) (*models.MediaItem[*types.Episode], error)
 	GetEpisodeByNumber(ctx context.Context, seriesID uint64, seasonNumber int, episodeNumber int) (*models.MediaItem[*types.Episode], error)
 	GetEpisodesByAttribute(ctx context.Context, attribute string, value interface{}, limit int) ([]*models.MediaItem[*types.Episode], error)
-	
+
 	// Season-related operations
 	GetSeasonsBySeriesID(ctx context.Context, seriesID uint64) ([]*models.MediaItem[*types.Season], error)
 	GetSeasonWithEpisodes(ctx context.Context, seasonID uint64) (*models.MediaItem[*types.Season], []*models.MediaItem[*types.Episode], error)
 	GetSeasonByNumber(ctx context.Context, seriesID uint64, seasonNumber int) (*models.MediaItem[*types.Season], error)
 	GetRecentlyAddedSeasons(ctx context.Context, days int, limit int) ([]*models.MediaItem[*types.Season], error)
-	
+
 	// Series-related operations
 	GetSeriesWithSeasons(ctx context.Context, seriesID uint64) (*models.MediaItem[*types.Series], []*models.MediaItem[*types.Season], error)
 	GetRecentlyAiredSeries(ctx context.Context, days int, limit int) ([]*models.MediaItem[*types.Series], error)
@@ -35,11 +35,11 @@ type CoreSeriesService interface {
 	GetSeriesByGenre(ctx context.Context, genre string, limit int) ([]*models.MediaItem[*types.Series], error)
 	GetSimilarSeries(ctx context.Context, seriesID uint64, limit int) ([]*models.MediaItem[*types.Series], error)
 	GetSeriesInCollection(ctx context.Context, collectionID uint64) ([]*models.MediaItem[*types.Series], error)
-	
+
 	// Calendar operations
 	GetUpcomingEpisodes(ctx context.Context, days int) ([]*models.MediaItem[*types.Episode], error)
 	GetEpisodesAiredBetween(ctx context.Context, startDate time.Time, endDate time.Time) ([]*models.MediaItem[*types.Episode], error)
-	
+
 	// Search operations
 	SearchSeriesLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error)
 }
@@ -58,7 +58,7 @@ func NewCoreSeriesService(seriesRepo repository.SeriesRepository) CoreSeriesServ
 
 // GetEpisodesBySeasonID gets all episodes for a specific season
 func (s *coreSeriesService) GetEpisodesBySeasonID(ctx context.Context, seasonID uint64) ([]*models.MediaItem[*types.Episode], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("seasonID", seasonID).
 		Msg("Getting episodes by season ID")
@@ -76,7 +76,7 @@ func (s *coreSeriesService) GetEpisodesBySeasonID(ctx context.Context, seasonID 
 
 // GetEpisodesBySeriesID gets all episodes for a specific series
 func (s *coreSeriesService) GetEpisodesBySeriesID(ctx context.Context, seriesID uint64) ([]*models.MediaItem[*types.Episode], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("seriesID", seriesID).
 		Msg("Getting episodes by series ID")
@@ -94,7 +94,7 @@ func (s *coreSeriesService) GetEpisodesBySeriesID(ctx context.Context, seriesID 
 
 // GetRecentlyAddedEpisodes gets recently added episodes
 func (s *coreSeriesService) GetRecentlyAddedEpisodes(ctx context.Context, days int, limit int) ([]*models.MediaItem[*types.Episode], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("days", days).
 		Int("limit", limit).
@@ -114,7 +114,7 @@ func (s *coreSeriesService) GetRecentlyAddedEpisodes(ctx context.Context, days i
 
 // GetUnwatchedEpisodes gets unwatched episodes for a user
 func (s *coreSeriesService) GetUnwatchedEpisodes(ctx context.Context, userID uint64, seriesID uint64) ([]*models.MediaItem[*types.Episode], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("seriesID", seriesID).
@@ -134,7 +134,7 @@ func (s *coreSeriesService) GetUnwatchedEpisodes(ctx context.Context, userID uin
 
 // GetNextEpisodeToWatch gets the next episode to watch for a user
 func (s *coreSeriesService) GetNextEpisodeToWatch(ctx context.Context, userID uint64, seriesID uint64) (*models.MediaItem[*types.Episode], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Uint64("seriesID", seriesID).
@@ -154,7 +154,7 @@ func (s *coreSeriesService) GetNextEpisodeToWatch(ctx context.Context, userID ui
 
 // GetEpisodeByNumber gets an episode by its season and episode number
 func (s *coreSeriesService) GetEpisodeByNumber(ctx context.Context, seriesID uint64, seasonNumber int, episodeNumber int) (*models.MediaItem[*types.Episode], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("seriesID", seriesID).
 		Int("seasonNumber", seasonNumber).
@@ -176,7 +176,7 @@ func (s *coreSeriesService) GetEpisodeByNumber(ctx context.Context, seriesID uin
 
 // GetEpisodesByAttribute gets episodes by a specific attribute
 func (s *coreSeriesService) GetEpisodesByAttribute(ctx context.Context, attribute string, value interface{}, limit int) ([]*models.MediaItem[*types.Episode], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("attribute", attribute).
 		Interface("value", value).
@@ -198,7 +198,7 @@ func (s *coreSeriesService) GetEpisodesByAttribute(ctx context.Context, attribut
 
 // GetSeasonsBySeriesID gets all seasons for a specific series
 func (s *coreSeriesService) GetSeasonsBySeriesID(ctx context.Context, seriesID uint64) ([]*models.MediaItem[*types.Season], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("seriesID", seriesID).
 		Msg("Getting seasons by series ID")
@@ -216,7 +216,7 @@ func (s *coreSeriesService) GetSeasonsBySeriesID(ctx context.Context, seriesID u
 
 // GetSeasonWithEpisodes gets a season and all its episodes
 func (s *coreSeriesService) GetSeasonWithEpisodes(ctx context.Context, seasonID uint64) (*models.MediaItem[*types.Season], []*models.MediaItem[*types.Episode], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("seasonID", seasonID).
 		Msg("Getting season with episodes")
@@ -234,7 +234,7 @@ func (s *coreSeriesService) GetSeasonWithEpisodes(ctx context.Context, seasonID 
 
 // GetSeasonByNumber gets a season by its number within a series
 func (s *coreSeriesService) GetSeasonByNumber(ctx context.Context, seriesID uint64, seasonNumber int) (*models.MediaItem[*types.Season], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("seriesID", seriesID).
 		Int("seasonNumber", seasonNumber).
@@ -254,7 +254,7 @@ func (s *coreSeriesService) GetSeasonByNumber(ctx context.Context, seriesID uint
 
 // GetRecentlyAddedSeasons gets recently added seasons
 func (s *coreSeriesService) GetRecentlyAddedSeasons(ctx context.Context, days int, limit int) ([]*models.MediaItem[*types.Season], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("days", days).
 		Int("limit", limit).
@@ -274,7 +274,7 @@ func (s *coreSeriesService) GetRecentlyAddedSeasons(ctx context.Context, days in
 
 // GetSeriesWithSeasons gets a series and all its seasons
 func (s *coreSeriesService) GetSeriesWithSeasons(ctx context.Context, seriesID uint64) (*models.MediaItem[*types.Series], []*models.MediaItem[*types.Season], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("seriesID", seriesID).
 		Msg("Getting series with seasons")
@@ -292,7 +292,7 @@ func (s *coreSeriesService) GetSeriesWithSeasons(ctx context.Context, seriesID u
 
 // GetRecentlyAiredSeries gets recently aired series
 func (s *coreSeriesService) GetRecentlyAiredSeries(ctx context.Context, days int, limit int) ([]*models.MediaItem[*types.Series], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("days", days).
 		Int("limit", limit).
@@ -312,7 +312,7 @@ func (s *coreSeriesService) GetRecentlyAiredSeries(ctx context.Context, days int
 
 // GetPopularSeries gets popular series
 func (s *coreSeriesService) GetPopularSeries(ctx context.Context, limit int) ([]*models.MediaItem[*types.Series], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("limit", limit).
 		Msg("Getting popular series")
@@ -330,7 +330,7 @@ func (s *coreSeriesService) GetPopularSeries(ctx context.Context, limit int) ([]
 
 // GetInProgressSeries gets series that the user is currently watching
 func (s *coreSeriesService) GetInProgressSeries(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[*types.Series], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Int("limit", limit).
@@ -350,7 +350,7 @@ func (s *coreSeriesService) GetInProgressSeries(ctx context.Context, userID uint
 
 // GetSeriesByGenre gets series by genre
 func (s *coreSeriesService) GetSeriesByGenre(ctx context.Context, genre string, limit int) ([]*models.MediaItem[*types.Series], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("genre", genre).
 		Int("limit", limit).
@@ -370,7 +370,7 @@ func (s *coreSeriesService) GetSeriesByGenre(ctx context.Context, genre string, 
 
 // GetSimilarSeries gets series similar to a given series
 func (s *coreSeriesService) GetSimilarSeries(ctx context.Context, seriesID uint64, limit int) ([]*models.MediaItem[*types.Series], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("seriesID", seriesID).
 		Int("limit", limit).
@@ -390,7 +390,7 @@ func (s *coreSeriesService) GetSimilarSeries(ctx context.Context, seriesID uint6
 
 // GetSeriesInCollection gets all series in a collection
 func (s *coreSeriesService) GetSeriesInCollection(ctx context.Context, collectionID uint64) ([]*models.MediaItem[*types.Series], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("collectionID", collectionID).
 		Msg("Getting series in collection")
@@ -408,7 +408,7 @@ func (s *coreSeriesService) GetSeriesInCollection(ctx context.Context, collectio
 
 // GetUpcomingEpisodes gets episodes that will air in the next few days
 func (s *coreSeriesService) GetUpcomingEpisodes(ctx context.Context, days int) ([]*models.MediaItem[*types.Episode], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("days", days).
 		Msg("Getting upcoming episodes")
@@ -426,7 +426,7 @@ func (s *coreSeriesService) GetUpcomingEpisodes(ctx context.Context, days int) (
 
 // GetEpisodesAiredBetween gets episodes that aired between two dates
 func (s *coreSeriesService) GetEpisodesAiredBetween(ctx context.Context, startDate time.Time, endDate time.Time) ([]*models.MediaItem[*types.Episode], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Time("startDate", startDate).
 		Time("endDate", endDate).
@@ -446,7 +446,7 @@ func (s *coreSeriesService) GetEpisodesAiredBetween(ctx context.Context, startDa
 
 // SearchSeriesLibrary performs a comprehensive search across all series items
 func (s *coreSeriesService) SearchSeriesLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("query", query.Query).
 		Msg("Searching series library")
@@ -461,3 +461,4 @@ func (s *coreSeriesService) SearchSeriesLibrary(ctx context.Context, query types
 
 	return results, nil
 }
+

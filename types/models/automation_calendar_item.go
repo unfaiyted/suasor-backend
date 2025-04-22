@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	types "suasor/client/automation/types"
-	client "suasor/client/types"
+	types "suasor/clients/automation/types"
+	client "suasor/clients/types"
 	"time"
 )
 

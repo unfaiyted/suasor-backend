@@ -7,12 +7,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/requests"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 type UserMediaItemDataHandler[T types.MediaData] interface {
@@ -68,7 +68,7 @@ func NewUserMediaItemDataHandler[T types.MediaData](
 // @Router /user-media-data/history [get]
 func (h *userMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
 	if err != nil {
@@ -140,7 +140,7 @@ func (h *userMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) {
 // @Router /user-media-data/continue-watching [get]
 func (h *userMediaItemDataHandler[T]) GetContinuePlaying(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
 	if err != nil {
@@ -188,7 +188,7 @@ func (h *userMediaItemDataHandler[T]) GetContinuePlaying(c *gin.Context) {
 // @Router /user-media-data/recent [get]
 func (h *userMediaItemDataHandler[T]) GetRecentHistory(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
 	if err != nil {
@@ -237,7 +237,7 @@ func (h *userMediaItemDataHandler[T]) GetRecentHistory(c *gin.Context) {
 // @Router /user-media-data/record [post]
 func (h *userMediaItemDataHandler[T]) RecordMediaPlay(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var req requests.UserMediaItemDataRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -306,7 +306,7 @@ func (h *userMediaItemDataHandler[T]) RecordMediaPlay(c *gin.Context) {
 // @Router /user-media-data/media/{mediaItemId}/favorite [put]
 func (h *userMediaItemDataHandler[T]) ToggleFavorite(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	mediaItemID, err := strconv.ParseUint(c.Param("mediaItemId"), 10, 64)
 	if err != nil {
@@ -370,7 +370,7 @@ func (h *userMediaItemDataHandler[T]) ToggleFavorite(c *gin.Context) {
 // @Router /user-media-data/media/{mediaItemId}/rating [put]
 func (h *userMediaItemDataHandler[T]) UpdateUserRating(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	mediaItemID, err := strconv.ParseUint(c.Param("mediaItemId"), 10, 64)
 	if err != nil {
@@ -440,7 +440,7 @@ func (h *userMediaItemDataHandler[T]) UpdateUserRating(c *gin.Context) {
 // @Router /user-media-data/favorites [get]
 func (h *userMediaItemDataHandler[T]) GetFavorites(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
 	if err != nil {
@@ -487,7 +487,7 @@ func (h *userMediaItemDataHandler[T]) GetFavorites(c *gin.Context) {
 // @Router /user-media-data/clear [delete]
 func (h *userMediaItemDataHandler[T]) ClearUserHistory(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
 	if err != nil {

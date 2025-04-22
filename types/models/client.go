@@ -2,7 +2,7 @@
 package models
 
 import (
-	client "suasor/client/types"
+	client "suasor/clients/types"
 
 	"database/sql/driver"
 	"encoding/json"

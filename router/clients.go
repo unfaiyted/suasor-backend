@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"suasor/app/container"
+	"suasor/container"
 	"suasor/handlers"
 )
 
@@ -12,4 +12,3 @@ func RegisterClientsRoutes(r *gin.RouterGroup, c *container.Container) {
 	clientsHandler := container.MustGet[*handlers.ClientsHandler](c)
 	r.GET("/clients", clientsHandler.ListAllClients)
 }
-

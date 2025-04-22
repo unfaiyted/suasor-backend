@@ -4,11 +4,11 @@ package services
 import (
 	"context"
 	"errors"
-	"suasor/client"
-	"suasor/client/automation"
-	"suasor/client/automation/providers"
-	automationtypes "suasor/client/automation/types"
-	"suasor/client/types"
+	"suasor/clients"
+	"suasor/clients/automation"
+	"suasor/clients/automation/providers"
+	automationtypes "suasor/clients/automation/types"
+	"suasor/clients/types"
 	"suasor/repository"
 	"suasor/types/models"
 	"suasor/types/requests"
@@ -36,13 +36,13 @@ type AutomationClientService interface {
 
 type automationClientService struct {
 	clientRepo    repository.ClientRepository[types.AutomationClientConfig]
-	clientFactory *client.ClientFactoryService
+	clientFactory *clients.ClientFactoryService
 }
 
 // NewAutomationClientService creates a new automation client service
 func NewAutomationClientService(
 	clientRepo repository.ClientRepository[types.AutomationClientConfig],
-	clientFactory *client.ClientFactoryService,
+	clientFactory *clients.ClientFactoryService,
 ) AutomationClientService {
 	return &automationClientService{
 		clientRepo:    clientRepo,

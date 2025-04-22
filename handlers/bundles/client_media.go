@@ -1,8 +1,8 @@
 package bundles
 
 import (
-	mediatypes "suasor/client/media/types"
-	"suasor/client/types"
+	mediatypes "suasor/clients/media/types"
+	"suasor/clients/types"
 	"suasor/handlers"
 )
 

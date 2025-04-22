@@ -2,7 +2,7 @@ package jobs
 
 import (
 	"time"
-	// clienttypes "suasor/client/types"
+	// clienttypes "suasor/clients/types"
 )
 
 // MovieSummary contains a summary of a movie for recommendation purposes
@@ -289,4 +289,3 @@ type UserNotification struct {
 	Read        bool
 	Dismissed   bool
 }
-

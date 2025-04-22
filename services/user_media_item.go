@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 	"suasor/repository"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // UserMediaItemService defines the interface for user-owned media item operations
@@ -93,7 +93,7 @@ func (s *userMediaItemService[T]) GetRecentItems(ctx context.Context, days int, 
 
 // GetByUserID retrieves all user-owned media items for a specific user
 func (s *userMediaItemService[T]) GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Msg("Getting media items by user ID")
@@ -117,7 +117,7 @@ func (s *userMediaItemService[T]) GetByUserID(ctx context.Context, userID uint64
 
 // GetUserContent retrieves all types of user-owned content in a single query
 func (s *userMediaItemService[T]) GetUserContent(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
 		Int("limit", limit).
@@ -142,7 +142,7 @@ func (s *userMediaItemService[T]) GetUserContent(ctx context.Context, userID uin
 
 // SearchUserContent searches for user-owned content based on query parameters
 func (s *userMediaItemService[T]) SearchUserContent(ctx context.Context, query types.QueryOptions) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("query", query.Query).
 		Uint64("userID", query.OwnerID).
@@ -172,7 +172,7 @@ func (s *userMediaItemService[T]) SearchUserContent(ctx context.Context, query t
 
 // GetRecentUserContent retrieves recently created or updated user-owned content
 func (s *userMediaItemService[T]) GetRecentUserContent(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var zero T
 	mediaType := types.GetMediaTypeFromTypeName(zero)

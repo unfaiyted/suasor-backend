@@ -3,14 +3,14 @@ package services
 import (
 	"context"
 	"fmt"
-	"suasor/client"
-	mediaclient "suasor/client/media"
-	"suasor/client/media/types"
+	"suasor/clients"
+	mediaclient "suasor/clients/media"
+	"suasor/clients/media/types"
 	"suasor/repository"
 	repobundles "suasor/repository/bundles"
 	"suasor/types/models"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // SearchService provides search capabilities across the application
@@ -43,7 +43,7 @@ type searchService struct {
 	clientRepos          repobundles.ClientRepositories
 	itemRepos            repobundles.CoreMediaItemRepositories
 	personRepo           repository.PersonRepository
-	clientFactoryService *client.ClientFactoryService
+	clientFactoryService *clients.ClientFactoryService
 }
 
 // NewSearchService creates a new search service instance
@@ -52,7 +52,7 @@ func NewSearchService(
 	clientRepos repobundles.ClientRepositories,
 	itemRepos repobundles.CoreMediaItemRepositories,
 	personRepo repository.PersonRepository,
-	clientFactoryService *client.ClientFactoryService,
+	clientFactoryService *clients.ClientFactoryService,
 ) SearchService {
 	return &searchService{
 		searchRepo:           searchRepo,
@@ -65,7 +65,7 @@ func NewSearchService(
 
 // SearchAll searches all available sources for media based on query options
 func (s *searchService) SearchAll(ctx context.Context, userID uint64, options types.QueryOptions) (responses.SearchResults, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Str("query", options.Query).Msg("Performing search across all sources")
 
 	// Search local database first
@@ -104,7 +104,7 @@ func (s *searchService) SearchAll(ctx context.Context, userID uint64, options ty
 
 // SearchMedia searches local database media items
 func (s *searchService) SearchMedia(ctx context.Context, userID uint64, options types.QueryOptions) (responses.SearchResults, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Str("query", options.Query).Msg("Searching local database")
 
 	results := responses.SearchResults{}
@@ -196,7 +196,7 @@ func (s *searchService) SearchMedia(ctx context.Context, userID uint64, options 
 
 // SearchClientMedias searches media clients for a user
 func (s *searchService) SearchClientMedias(ctx context.Context, userID uint64, options types.QueryOptions) (responses.SearchResults, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Uint64("userID", userID).Str("query", options.Query).Msg("Searching media clients")
 
 	// Get all client configs for the user
@@ -229,7 +229,7 @@ func (s *searchService) SearchClientMedias(ctx context.Context, userID uint64, o
 
 // SearchMetadataClients searches metadata clients for a user
 func (s *searchService) SearchMetadataClients(ctx context.Context, userID uint64, options types.QueryOptions) (responses.SearchResults, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Uint64("userID", userID).Str("query", options.Query).Msg("Searching metadata clients")
 
 	// Get metadata client configs for the user

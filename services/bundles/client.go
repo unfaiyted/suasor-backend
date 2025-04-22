@@ -1,7 +1,7 @@
 package bundles
 
 import (
-	"suasor/client/types"
+	"suasor/clients/types"
 	"suasor/services"
 )
 

@@ -1,7 +1,7 @@
 // package factory
 //
 // import (
-// 	"suasor/client/media/types"
+// 	"suasor/clients/media/types"
 // 	"suasor/repository"
 // 	"suasor/services"
 //

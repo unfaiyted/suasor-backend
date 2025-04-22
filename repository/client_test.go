@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"suasor/client/types"
+	"suasor/clients/types"
 	"suasor/repository"
 	"suasor/types/models"
 

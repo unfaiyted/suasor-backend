@@ -1,8 +1,8 @@
 package router
 
 import (
-	"suasor/app/container"
-	mediatypes "suasor/client/media/types"
+	mediatypes "suasor/clients/media/types"
+	"suasor/container"
 	"suasor/handlers"
 
 	"github.com/gin-gonic/gin"

@@ -4,12 +4,12 @@ package handlers
 import (
 	"strconv"
 	"strings"
-	mediatypes "suasor/client/media/types"
-	clienttypes "suasor/client/types"
+	mediatypes "suasor/clients/media/types"
+	clienttypes "suasor/clients/types"
 	"suasor/services"
 	models "suasor/types/models"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -66,7 +66,7 @@ func NewClientMovieHandler[T clienttypes.ClientMediaConfig](
 // @Router /clients/media/{clientID}/movies/{movieID} [get]
 func (h *clientMovieHandler[T]) GetClientMovieByID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting movie by ID")
 
 	// Get authenticated user ID
@@ -128,7 +128,7 @@ func (h *clientMovieHandler[T]) GetClientMovieByID(c *gin.Context) {
 // @Router /movies/genre/{genre} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting movies by genre")
 
 	// Get authenticated user ID
@@ -181,7 +181,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesByGenre(c *gin.Context) {
 // @Router /movies/year/{year} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByYear(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting movies by year")
 
 	// Get authenticated user ID
@@ -238,7 +238,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesByYear(c *gin.Context) {
 // @Router /movies/actor/{actor} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByActor(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting movies by actor")
 
 	// Get authenticated user ID
@@ -289,7 +289,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesByActor(c *gin.Context) {
 // @Router /movies/director/{director} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByDirector(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting movies by director")
 
 	// Get authenticated user ID
@@ -342,7 +342,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesByDirector(c *gin.Context) {
 // @Router /movies/rating [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByRating(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting movies by rating")
 
 	// Get authenticated user ID
@@ -410,7 +410,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesByRating(c *gin.Context) {
 // @Router /movies/latest/{count} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesLatestByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting latest movies by added date")
 
 	// Get authenticated user ID
@@ -468,7 +468,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesLatestByAdded(c *gin.Context) {
 // @Router /movies/popular/{count} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesPopular(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting popular movies")
 
 	// Get authenticated user ID
@@ -526,7 +526,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesPopular(c *gin.Context) {
 // @Router /movies/top-rated/{count} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesTopRated(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting top rated movies")
 
 	// Get authenticated user ID
@@ -584,7 +584,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesTopRated(c *gin.Context) {
 // @Router /movies/search [get]
 func (h *clientMovieHandler[T]) SearchClientMovies(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Searching movies")
 
 	// Get authenticated user ID
@@ -684,7 +684,7 @@ func createMovieMediaItem[T mediatypes.Movie](clientID uint64, clientType client
 // @Router /client/{clientID}/movies/actor/{actor} [get]
 func (h *clientMovieHandler[T]) GetClientByActor(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	actor := c.Param("actor")
 	if actor == "" {

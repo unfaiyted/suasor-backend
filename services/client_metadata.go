@@ -3,9 +3,9 @@ package services
 import (
 	"context"
 	"fmt"
-	"suasor/client"
-	"suasor/client/metadata"
-	"suasor/client/types"
+	"suasor/clients"
+	"suasor/clients/metadata"
+	"suasor/clients/types"
 	"suasor/repository"
 	"suasor/types/responses"
 )
@@ -16,7 +16,7 @@ type MetadataClientService[T types.MetadataClientConfig] struct {
 }
 
 // NewMetadataClientService creates a new MetadataClientService
-func NewMetadataClientService[T types.MetadataClientConfig](factory *client.ClientFactoryService, repo repository.ClientRepository[T]) *MetadataClientService[T] {
+func NewMetadataClientService[T types.MetadataClientConfig](factory *clients.ClientFactoryService, repo repository.ClientRepository[T]) *MetadataClientService[T] {
 	return &MetadataClientService[T]{
 		clientService: NewClientService(factory, repo),
 	}

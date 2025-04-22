@@ -9,7 +9,7 @@ import (
 	"suasor/repository"
 	"suasor/types"
 	"suasor/types/constants"
-	"suasor/utils"
+	"suasor/utils/logger"
 	"sync"
 
 	"github.com/joho/godotenv"
@@ -50,7 +50,7 @@ func NewConfigService(configRepo repository.ConfigRepository) ConfigService {
 
 // InitConfig initializes the configuration
 func (s *configService) InitConfig(ctx context.Context) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Initializing Config")
 	s.k = koanf.New(".")
 
@@ -240,7 +240,7 @@ func (s *configService) GetConfig() *types.Configuration {
 
 // SaveConfig saves and updates the configuration
 func (s *configService) SaveConfig(ctx context.Context, cfg types.Configuration) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Saving configuration")
 
 	s.configLock.Lock()
@@ -281,7 +281,7 @@ func (s *configService) SaveConfig(ctx context.Context, cfg types.Configuration)
 
 // GetFileConfig returns only the file-based configuration
 func (s *configService) GetFileConfig(ctx context.Context) *types.Configuration {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().Msg("Reading configuration from file")
 
 	cfg, err := s.configRepo.ReadConfigFile()
@@ -296,7 +296,7 @@ func (s *configService) GetFileConfig(ctx context.Context) *types.Configuration 
 
 // SaveFileConfig saves the configuration to file only
 func (s *configService) SaveFileConfig(ctx context.Context, cfg types.Configuration) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Saving configuration to file only")
 
 	err := s.configRepo.WriteConfigFile(&cfg)
@@ -311,7 +311,7 @@ func (s *configService) SaveFileConfig(ctx context.Context, cfg types.Configurat
 
 // ResetFileConfig resets config file to defaults
 func (s *configService) ResetFileConfig(ctx context.Context) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Resetting configuration file to defaults")
 
 	// Create default config

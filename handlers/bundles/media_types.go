@@ -1,7 +1,7 @@
 package bundles
 
 import (
-	// clienttypes "suasor/client/types"
+	// clienttypes "suasor/clients/types"
 	"suasor/handlers"
 )
 

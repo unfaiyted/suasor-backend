@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"log"
 	"suasor/app"
-	"suasor/client"
-	"suasor/client/media/types"
-	clienttypes "suasor/client/types"
+	"suasor/clients"
+	"suasor/clients/media/types"
+	clienttypes "suasor/clients/types"
 	"suasor/database"
 	"suasor/repository"
 	"suasor/services"
@@ -36,7 +36,7 @@ func main() {
 
 	// 4. Example: Using the container to access services and repositories
 	fmt.Println("=== Dependency Injection Container Example ===")
-	
+
 	// The container provides a centralized way to access all dependencies
 	container := deps.Container()
 
@@ -54,7 +54,7 @@ func main() {
 
 	// Example 4: Using specialized media handlers
 	exampleUsingSpecializedHandlers(ctx, deps)
-	
+
 	// Example 5: Using the container directly
 	exampleUsingContainerDirectly(ctx, container)
 
@@ -217,7 +217,7 @@ func exampleUsingSpecializedHandlers(ctx context.Context, deps *app.AppDependenc
 
 	// The DI container provides access to specialized handlers
 	// These handlers implement specific API endpoints
-	
+
 	// Music handler example
 	musicHandler := deps.SpecializedMediaHandlers.MusicHandler()
 	fmt.Println("Music handler provides specialized music-related API endpoints")
@@ -280,7 +280,7 @@ func exampleWithScheduler(deps *app.AppDependencies) {
 // Example 5: Using the container directly to access services
 func exampleUsingContainerDirectly(ctx context.Context, c *container.Container) {
 	fmt.Println("\n--- Example 5: Direct Container Access ---")
-	
+
 	// Get services directly from the container using the generic Get method
 	healthService, err := container.GetTyped[services.HealthService](c)
 	if err != nil {
@@ -290,7 +290,7 @@ func exampleUsingContainerDirectly(ctx context.Context, c *container.Container) 
 		status := healthService.Check(ctx)
 		fmt.Printf("Health check status: %v\n", status.IsHealthy)
 	}
-	
+
 	// Get repository directly from the container
 	movieRepo, err := container.GetTyped[repository.MediaItemRepository[*types.Movie]](c)
 	if err != nil {
@@ -305,7 +305,7 @@ func exampleUsingContainerDirectly(ctx context.Context, c *container.Container) 
 			fmt.Printf("Found %d movies using direct container access\n", len(movies))
 		}
 	}
-	
+
 	// You can also use MustGet if you're confident the service exists
 	// This will panic if the service doesn't exist
 	fmt.Println("MustGet can be used when you're confident the dependency exists")
@@ -321,3 +321,4 @@ func exampleUsingContainerDirectly(ctx context.Context, c *container.Container) 
 	}
 	try()
 }
+

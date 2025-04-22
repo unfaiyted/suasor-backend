@@ -6,16 +6,16 @@ import (
 	"log"
 	"time"
 
-	"suasor/client"
-	"suasor/client/media"
-	"suasor/client/media/providers"
-	mediatypes "suasor/client/media/types"
-	clienttypes "suasor/client/types"
+	"suasor/clients"
+	"suasor/clients/media"
+	"suasor/clients/media/providers"
+	mediatypes "suasor/clients/media/types"
+	clienttypes "suasor/clients/types"
 	"suasor/repository"
 	repobundles "suasor/repository/bundles"
 	"suasor/services/scheduler"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // FavoritesSyncJob synchronizes favorite/liked media from external clients
@@ -27,7 +27,7 @@ type FavoritesSyncJob struct {
 	dataRepos       repobundles.UserMediaDataRepositories
 	clientItemRepos repobundles.ClientMediaItemRepositories
 	itemRepos       repobundles.CoreMediaItemRepositories
-	clientFactories *client.ClientFactoryService
+	clientFactories *clients.ClientFactoryService
 }
 
 // NewFavoritesSyncJob creates a new favorites sync job
@@ -39,7 +39,7 @@ func NewFavoritesSyncJob(
 	dataRepos repobundles.UserMediaDataRepositories,
 	clientItemRepos repobundles.ClientMediaItemRepositories,
 	itemRepos repobundles.CoreMediaItemRepositories,
-	clientFactories *client.ClientFactoryService,
+	clientFactories *clients.ClientFactoryService,
 ) *FavoritesSyncJob {
 	return &FavoritesSyncJob{
 		jobRepo:         jobRepo,
@@ -243,7 +243,7 @@ func (j *FavoritesSyncJob) RunManualSync(ctx context.Context, userID uint64) err
 
 // getUserClientMedias returns all media clients for a user
 func (j *FavoritesSyncJob) getUserClientMedias(ctx context.Context, userID uint64) ([]ClientMediaInfo, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Uint64("userID", userID).Msg("Getting media clients for user")
 
 	var clients []ClientMediaInfo
@@ -317,7 +317,7 @@ func (j *FavoritesSyncJob) getUserClientMedias(ctx context.Context, userID uint6
 // syncClientFavorites syncs favorites for a specific client
 func (j *FavoritesSyncJob) syncClientFavorites(ctx context.Context, userID uint64, client ClientMediaInfo, jobRunID uint64) error {
 	// Get logger from context
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("userID", userID).
 		Uint64("clientID", client.ClientID).
@@ -374,7 +374,7 @@ func (j *FavoritesSyncJob) syncClientFavorites(ctx context.Context, userID uint6
 
 // syncMovieFavorites syncs favorite movies
 func (j *FavoritesSyncJob) syncMovieFavorites(ctx context.Context, userID, clientID uint64, clientMedia media.ClientMedia, jobRunID uint64) (int, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Check if client supports movies
 	movieProvider, ok := clientMedia.(providers.MovieProvider)
@@ -525,7 +525,7 @@ func (j *FavoritesSyncJob) syncMovieFavorites(ctx context.Context, userID, clien
 
 // syncSeriesFavorites syncs favorite series
 func (j *FavoritesSyncJob) syncSeriesFavorites(ctx context.Context, userID, clientID uint64, clientMedia media.ClientMedia, jobRunID uint64) (int, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Check if client supports series
 	seriesProvider, ok := clientMedia.(providers.SeriesProvider)
@@ -685,7 +685,7 @@ func (j *FavoritesSyncJob) syncEpisodeFavorites(ctx context.Context, userID, cli
 
 // syncMusicFavorites syncs favorite music tracks
 func (j *FavoritesSyncJob) syncMusicFavorites(ctx context.Context, userID, clientID uint64, clientMedia media.ClientMedia, jobRunID uint64) (int, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Check if client supports music
 	musicProvider, ok := clientMedia.(providers.MusicProvider)
@@ -836,7 +836,7 @@ func (j *FavoritesSyncJob) syncMusicFavorites(ctx context.Context, userID, clien
 
 // getClientMedia gets a media client from the client factory
 func (j *FavoritesSyncJob) getClientMedia(ctx context.Context, clientID uint64, clientType string) (media.ClientMedia, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get the client config from the repository
 	var clientConfig clienttypes.ClientConfig

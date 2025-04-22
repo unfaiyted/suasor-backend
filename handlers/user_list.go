@@ -8,12 +8,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	mediatypes "suasor/client/media/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/requests"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // Define list handler interface
@@ -69,7 +69,7 @@ func NewUserListHandler[T mediatypes.ListData](
 // @Router /user/lists [get]
 func (h *userListHandler[T]) GetAll(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -127,7 +127,7 @@ func (h *userListHandler[T]) GetAll(c *gin.Context) {
 // @Router /user/lists [post]
 func (h *userListHandler[T]) Create(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -220,7 +220,7 @@ func (h *userListHandler[T]) Create(c *gin.Context) {
 // @Router /user/lists/{id} [put]
 func (h *userListHandler[T]) Update(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -317,7 +317,7 @@ func (h *userListHandler[T]) Update(c *gin.Context) {
 // @Router /user/lists/{id} [delete]
 func (h *userListHandler[T]) Delete(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -398,7 +398,7 @@ func (h *userListHandler[T]) Delete(c *gin.Context) {
 // @Router /user/lists/{id}/tracks [post]
 func (h *userListHandler[T]) AddItem(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -500,7 +500,7 @@ func (h *userListHandler[T]) AddItem(c *gin.Context) {
 // @Router /user/lists/{id}/tracks/{trackId} [delete]
 func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -602,7 +602,7 @@ func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 // @Router /user/lists/{id}/reorder [post]
 func (h *userListHandler[T]) ReorderItems(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -698,7 +698,7 @@ func (h *userListHandler[T]) ReorderItems(c *gin.Context) {
 // @Router /user/favorites [get]
 func (h *userListHandler[T]) GetFavorite(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -756,7 +756,7 @@ func (h *userListHandler[T]) GetFavorite(c *gin.Context) {
 // @Router /user/lists [get]
 func (h *userListHandler[T]) GetUserLists(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")

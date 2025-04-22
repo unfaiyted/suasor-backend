@@ -5,10 +5,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // SearchHandler handles all search operations
@@ -37,7 +37,7 @@ func NewSearchHandler(service services.SearchService) *SearchHandler {
 // @Router /search [get]
 func (h *SearchHandler) Search(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get current user ID from context
 	userID, exists := c.Get("userID")
@@ -106,7 +106,7 @@ func (h *SearchHandler) Search(c *gin.Context) {
 // @Router /search/recent [get]
 func (h *SearchHandler) GetRecentSearches(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get current user ID from context
 	userID, exists := c.Get("userID")
@@ -151,7 +151,7 @@ func (h *SearchHandler) GetRecentSearches(c *gin.Context) {
 // @Router /search/trending [get]
 func (h *SearchHandler) GetTrendingSearches(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Parse limit parameter
 	limitStr := c.DefaultQuery("limit", "10")
@@ -189,7 +189,7 @@ func (h *SearchHandler) GetTrendingSearches(c *gin.Context) {
 // @Router /search/suggestions [get]
 func (h *SearchHandler) GetSearchSuggestions(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Parse query parameters
 	partialQuery := c.Query("q")

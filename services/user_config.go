@@ -7,7 +7,7 @@ import (
 	"suasor/repository"
 	"suasor/services/jobs/recommendation"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // UserConfigService provides methods to interact with configuration
@@ -37,7 +37,7 @@ func NewUserConfigService(
 
 // GetUserConfig retrieves the configuration for a specific user
 func (s *userConfigService) GetUserConfig(ctx context.Context, id uint64) (*models.UserConfig, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Uint64("userId", id).Msg("Retrieving user configuration")
 
 	// Fetch user config from repository
@@ -53,7 +53,7 @@ func (s *userConfigService) GetUserConfig(ctx context.Context, id uint64) (*mode
 
 // SaveUserConfig creates or updates a user's configuration
 func (s *userConfigService) SaveUserConfig(ctx context.Context, config models.UserConfig) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Uint64("userId", config.UserID).Msg("Saving user configuration")
 
 	// Validate required fields

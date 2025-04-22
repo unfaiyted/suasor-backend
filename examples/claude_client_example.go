@@ -8,9 +8,9 @@ import (
 
 	"github.com/joho/godotenv"
 	"path/filepath"
-	"suasor/client/ai/claude"
-	aitypes "suasor/client/ai/types"
-	"suasor/client/types"
+	"suasor/clients/ai/claude"
+	aitypes "suasor/clients/ai/types"
+	"suasor/clients/types"
 )
 
 func init() {

@@ -17,10 +17,10 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"suasor/client/media/types"
-	clienttypes "suasor/client/types"
+	"suasor/clients/media/types"
+	clienttypes "suasor/clients/types"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 
 	"gorm.io/gorm"
 )
@@ -74,7 +74,7 @@ func (r *clientMediaItemRepository[T]) GetByClientID(ctx context.Context, client
 
 func (r *clientMediaItemRepository[T]) GetByClientUserID(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error) {
 	var items []*models.MediaItem[T]
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	log.Debug().
 		Uint64("userID", userID).
@@ -132,7 +132,7 @@ func (r *clientMediaItemRepository[T]) GetByClientUserID(ctx context.Context, us
 
 // GetByMultipleClients retrieves all media items associated with any of the specified clients
 func (r *clientMediaItemRepository[T]) GetByMultipleClients(ctx context.Context, clientIDs []uint64) ([]*models.MediaItem[T], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Msg(fmt.Sprintf("Getting media items by multiple clients: %v", clientIDs))
 
@@ -164,7 +164,7 @@ func (r *clientMediaItemRepository[T]) GetByMultipleClients(ctx context.Context,
 
 // SyncItemBetweenClients creates or updates a mapping between a media item and a target client
 func (r *clientMediaItemRepository[T]) SyncItemBetweenClients(ctx context.Context, itemID uint64, sourceClientID uint64, targetClientID uint64, targetItemID string) error {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("itemID", itemID).
 		Uint64("sourceClientID", sourceClientID).

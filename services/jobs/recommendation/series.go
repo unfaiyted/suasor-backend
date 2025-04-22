@@ -6,15 +6,15 @@ import (
 	"sort"
 	"time"
 
-	aitypes "suasor/client/ai/types"
-	mediatypes "suasor/client/media/types"
+	aitypes "suasor/clients/ai/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // generateSeriesRecommendations creates TV series recommendations for a user
 func (j *RecommendationJob) generateSeriesRecommendations(ctx context.Context, jobRunID uint64, user models.User, preferenceProfile *UserPreferenceProfile, config *models.UserConfig) error {
-	ctx, log := utils.WithJobID(ctx, jobRunID)
+	ctx, log := logger.WithJobID(ctx, jobRunID)
 	log.Info().
 		Uint64("userID", user.ID).
 		Msg("Generating TV series recommendations")
@@ -96,7 +96,7 @@ func (j *RecommendationJob) generateAISeriesRecommendations(
 	config *models.UserConfig,
 	watchedMap map[string]bool) ([]*models.Recommendation, error) {
 
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get AI client for the user
 	aiClient, err := j.getAIClient(ctx, userID)
@@ -416,7 +416,7 @@ func (j *RecommendationJob) generateAISeriesRecommendations(
 
 // processSeriesHistory analyzes TV series watch history to build preferences
 func (j *RecommendationJob) processSeriesHistory(ctx context.Context, profile *UserPreferenceProfile, histories []*models.UserMediaItemData[*mediatypes.Series]) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Maps for processing
 	recentSeries := []SeriesSummary{}

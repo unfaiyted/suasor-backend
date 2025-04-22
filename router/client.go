@@ -4,10 +4,10 @@ package router
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"suasor/app/container"
-	"suasor/app/handlers"
+	"suasor/container"
+	handlerbundles "suasor/handlers/bundles"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // ClientHandlerInterface defines the common operations for all client handlers
@@ -25,7 +25,7 @@ type ClientHandlerInterface interface {
 // SetupClientRoutes configures routes for client endpoints
 func RegisterClientRoutes(r *gin.RouterGroup, c *container.Container) {
 
-	clientHandlers := container.MustGet[handlers.ClientHandlers](c)
+	clientHandlers := container.MustGet[handlerbundles.ClientHandlers](c)
 
 	// Create a map of client type to handler using the interface
 	handlerMap := map[string]ClientHandlerInterface{
@@ -58,7 +58,7 @@ func RegisterClientRoutes(r *gin.RouterGroup, c *container.Container) {
 	client := clientGroup.Group("/:clientType")
 	{
 		client.POST("", func(c *gin.Context) {
-			log := utils.LoggerFromContext(c.Request.Context())
+			log := logger.LoggerFromContext(c.Request.Context())
 			log.Info().Msg("Creating new media client")
 			if handler := getHandler(c); handler != nil {
 				handler.CreateClient(c)

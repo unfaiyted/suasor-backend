@@ -5,10 +5,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 type CoreUserMediaItemDataHandler[T types.MediaData] interface {
@@ -54,7 +54,7 @@ func (h *coreUserMediaItemDataHandler[T]) Service() services.CoreUserMediaItemDa
 // @Router /user-media-data/{id} [get]
 func (h *coreUserMediaItemDataHandler[T]) GetMediaItemDataByID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -90,7 +90,7 @@ func (h *coreUserMediaItemDataHandler[T]) GetMediaItemDataByID(c *gin.Context) {
 // @Router /user-media-data/check [get]
 func (h *coreUserMediaItemDataHandler[T]) CheckUserMediaItemData(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
 	if err != nil {
@@ -145,7 +145,7 @@ func (h *coreUserMediaItemDataHandler[T]) CheckUserMediaItemData(c *gin.Context)
 // @Router /user-media-data/user-media [get]
 func (h *coreUserMediaItemDataHandler[T]) GetMediaItemDataByUserAndMedia(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
 	if err != nil {
@@ -197,7 +197,7 @@ func (h *coreUserMediaItemDataHandler[T]) GetMediaItemDataByUserAndMedia(c *gin.
 // @Router /user-media-data/{id} [delete]
 func (h *coreUserMediaItemDataHandler[T]) DeleteMediaItemData(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {

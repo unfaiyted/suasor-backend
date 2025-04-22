@@ -9,12 +9,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"suasor/client/media/types"
-	clientTypes "suasor/client/types"
+	"suasor/clients/media/types"
+	clientTypes "suasor/clients/types"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 type ClientMediaItemHandler[T clientTypes.ClientMediaConfig, U types.MediaData] interface {
@@ -61,7 +61,7 @@ func NewClientMediaItemHandler[T clientTypes.ClientMediaConfig, U types.MediaDat
 // @Router /item/media [post]
 func (h *clientMediaItemHandler[T, U]) CreateClientItem(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var req struct {
 		Type       string          `json:"type" binding:"required"`
@@ -132,7 +132,7 @@ func (h *clientMediaItemHandler[T, U]) CreateClientItem(c *gin.Context) {
 // @Router /item/media/{id} [put]
 func (h *clientMediaItemHandler[T, U]) UpdateClientItem(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -209,7 +209,7 @@ func (h *clientMediaItemHandler[T, U]) UpdateClientItem(c *gin.Context) {
 // @Router /client/{clientId}/media [get]
 func (h *clientMediaItemHandler[T, U]) GetAllClientItems(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	clientID, err := strconv.ParseUint(c.Param("clientId"), 10, 64)
 	if err != nil {
@@ -269,7 +269,7 @@ func (h *clientMediaItemHandler[T, U]) GetAllClientItems(c *gin.Context) {
 // @Router /client/{clientId}/media/item/{itemId} [get]
 func (h *clientMediaItemHandler[T, U]) GetClientItemByItemID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	clientID, err := strconv.ParseUint(c.Param("clientId"), 10, 64)
 	if err != nil {
@@ -322,7 +322,7 @@ func (h *clientMediaItemHandler[T, U]) GetClientItemByItemID(c *gin.Context) {
 // @Router /client/media/multi [get]
 func (h *clientMediaItemHandler[T, U]) GetItemsByMultipleClients(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	clientIDsStr := c.Query("clientIds")
 	if clientIDsStr == "" {
@@ -381,7 +381,7 @@ func (h *clientMediaItemHandler[T, U]) GetItemsByMultipleClients(c *gin.Context)
 // @Router /client/media/search [get]
 func (h *clientMediaItemHandler[T, U]) SearchAcrossClients(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	query := c.Query("q")
 	if query == "" {
@@ -464,7 +464,7 @@ func (h *clientMediaItemHandler[T, U]) SearchAcrossClients(c *gin.Context) {
 // @Router /client/media/sync [post]
 func (h *clientMediaItemHandler[T, U]) SyncItemBetweenClients(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	var req struct {
 		ItemID         uint64 `json:"itemId" binding:"required"`
@@ -513,7 +513,7 @@ func (h *clientMediaItemHandler[T, U]) SyncItemBetweenClients(c *gin.Context) {
 // GetMediaItemsByGenre - This method could be refactored to use the inherited Search method when appropriate
 func (h *clientMediaItemHandler[T, U]) GetMediaItemsByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	genre := c.Param("genre")
 	if genre == "" {
@@ -571,7 +571,7 @@ func (h *clientMediaItemHandler[T, U]) GetMediaItemsByGenre(c *gin.Context) {
 // GetMediaItemsByYear keeps client-specific logic for year filtering
 func (h *clientMediaItemHandler[T, U]) GetMediaItemsByYear(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	yearStr := c.Param("year")
 	if yearStr == "" {
@@ -650,7 +650,7 @@ func (h *clientMediaItemHandler[T, U]) GetMediaItemsByYear(c *gin.Context) {
 // @Router /clients/media/{clientID}/item/{itemID} [delete]
 func (h *clientMediaItemHandler[T, U]) DeleteClientItem(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Deleting client item")
 
 	// Get authenticated user ID

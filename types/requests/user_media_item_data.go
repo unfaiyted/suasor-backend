@@ -1,7 +1,7 @@
 package requests
 
 import (
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 )
 
 // UserMediaItemDataRequest represents the data for recording a new play history entry

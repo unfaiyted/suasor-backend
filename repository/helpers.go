@@ -2,8 +2,8 @@ package repository
 
 import (
 	"context"
-	"suasor/client/media/types"
-	// clienttypes "suasor/client/types"
+	"suasor/clients/media/types"
+	// clienttypes "suasor/clients/types"
 	"suasor/types/models"
 
 	"gorm.io/gorm"

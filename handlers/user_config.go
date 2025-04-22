@@ -5,7 +5,7 @@ import (
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -34,7 +34,7 @@ func NewUserConfigHandler(userConfigService services.UserConfigService) *UserCon
 // @Router /config/user [get]
 func (h *UserConfigHandler) GetUserConfig(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -72,7 +72,7 @@ func (h *UserConfigHandler) GetUserConfig(c *gin.Context) {
 // @Router /config/user [put]
 func (h *UserConfigHandler) UpdateUserConfig(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")

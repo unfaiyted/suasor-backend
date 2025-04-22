@@ -8,7 +8,7 @@ import (
 	"suasor/types/models"
 	"suasor/types/requests"
 	"suasor/types/responses"
-	"suasor/utils"
+	"suasor/utils/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -40,8 +40,8 @@ func NewPeopleHandler(personService *services.PersonService) *PeopleHandler {
 // @Router /people/{personID} [get]
 func (h *PeopleHandler) GetPersonByID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-	
+	log := logger.LoggerFromContext(ctx)
+
 	// Get person ID from path
 	personIDStr := c.Param("personID")
 	personID, err := strconv.ParseUint(personIDStr, 10, 64)
@@ -50,7 +50,7 @@ func (h *PeopleHandler) GetPersonByID(c *gin.Context) {
 		responses.RespondBadRequest(c, err, "Invalid person ID")
 		return
 	}
-	
+
 	// Get person
 	person, err := h.personService.GetPersonByID(ctx, personID)
 	if err != nil {
@@ -58,12 +58,12 @@ func (h *PeopleHandler) GetPersonByID(c *gin.Context) {
 		responses.RespondInternalError(c, err, "Failed to get person")
 		return
 	}
-	
+
 	if person == nil {
 		responses.RespondNotFound(c, errors.New("person not found"), "Person not found")
 		return
 	}
-	
+
 	// Return person
 	c.JSON(http.StatusOK, person)
 }
@@ -83,8 +83,8 @@ func (h *PeopleHandler) GetPersonByID(c *gin.Context) {
 // @Router /people/{personID}/credits [get]
 func (h *PeopleHandler) GetPersonWithCredits(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-	
+	log := logger.LoggerFromContext(ctx)
+
 	// Get person ID from path
 	personIDStr := c.Param("personID")
 	personID, err := strconv.ParseUint(personIDStr, 10, 64)
@@ -93,7 +93,7 @@ func (h *PeopleHandler) GetPersonWithCredits(c *gin.Context) {
 		responses.RespondBadRequest(c, err, "Invalid person ID")
 		return
 	}
-	
+
 	// Get person with credits
 	person, credits, err := h.personService.GetPersonWithCredits(ctx, personID)
 	if err != nil {
@@ -101,12 +101,12 @@ func (h *PeopleHandler) GetPersonWithCredits(c *gin.Context) {
 		responses.RespondInternalError(c, err, "Failed to get person with credits")
 		return
 	}
-	
+
 	if person == nil {
 		responses.RespondNotFound(c, errors.New("person not found"), "Person not found")
 		return
 	}
-	
+
 	// Return person with credits
 	c.JSON(http.StatusOK, gin.H{
 		"person":  person,
@@ -129,15 +129,15 @@ func (h *PeopleHandler) GetPersonWithCredits(c *gin.Context) {
 // @Router /people [get]
 func (h *PeopleHandler) SearchPeople(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-	
+	log := logger.LoggerFromContext(ctx)
+
 	// Get query from request
 	query := c.Query("q")
 	if query == "" {
 		responses.RespondBadRequest(c, errors.New("missing search query"), "Search query is required")
 		return
 	}
-	
+
 	// Get limit from request
 	limitStr := c.DefaultQuery("limit", "20")
 	limit, err := strconv.Atoi(limitStr)
@@ -146,7 +146,7 @@ func (h *PeopleHandler) SearchPeople(c *gin.Context) {
 		responses.RespondBadRequest(c, err, "Invalid limit")
 		return
 	}
-	
+
 	// Search people
 	people, err := h.personService.SearchPeople(ctx, query, limit)
 	if err != nil {
@@ -154,7 +154,7 @@ func (h *PeopleHandler) SearchPeople(c *gin.Context) {
 		responses.RespondInternalError(c, err, "Failed to search people")
 		return
 	}
-	
+
 	// Return people
 	c.JSON(http.StatusOK, people)
 }
@@ -173,8 +173,8 @@ func (h *PeopleHandler) SearchPeople(c *gin.Context) {
 // @Router /people/popular [get]
 func (h *PeopleHandler) GetPopularPeople(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-	
+	log := logger.LoggerFromContext(ctx)
+
 	// Get limit from request
 	limitStr := c.DefaultQuery("limit", "20")
 	limit, err := strconv.Atoi(limitStr)
@@ -183,7 +183,7 @@ func (h *PeopleHandler) GetPopularPeople(c *gin.Context) {
 		responses.RespondBadRequest(c, err, "Invalid limit")
 		return
 	}
-	
+
 	// Get popular people
 	people, err := h.personService.GetPopularPeople(ctx, limit)
 	if err != nil {
@@ -191,7 +191,7 @@ func (h *PeopleHandler) GetPopularPeople(c *gin.Context) {
 		responses.RespondInternalError(c, err, "Failed to get popular people")
 		return
 	}
-	
+
 	// Return people
 	c.JSON(http.StatusOK, people)
 }
@@ -210,15 +210,15 @@ func (h *PeopleHandler) GetPopularPeople(c *gin.Context) {
 // @Router /people/roles/{role} [get]
 func (h *PeopleHandler) GetPeopleByRole(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-	
+	log := logger.LoggerFromContext(ctx)
+
 	// Get role from path
 	role := c.Param("role")
 	if role == "" {
 		responses.RespondBadRequest(c, errors.New("missing role"), "Role is required")
 		return
 	}
-	
+
 	// Get people by role
 	people, err := h.personService.GetPeopleByRole(ctx, role)
 	if err != nil {
@@ -226,7 +226,7 @@ func (h *PeopleHandler) GetPeopleByRole(c *gin.Context) {
 		responses.RespondInternalError(c, err, "Failed to get people by role")
 		return
 	}
-	
+
 	// Return people
 	c.JSON(http.StatusOK, people)
 }
@@ -245,8 +245,8 @@ func (h *PeopleHandler) GetPeopleByRole(c *gin.Context) {
 // @Router /people [post]
 func (h *PeopleHandler) CreatePerson(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-	
+	log := logger.LoggerFromContext(ctx)
+
 	// Parse request body
 	var req requests.CreatePersonRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -254,7 +254,7 @@ func (h *PeopleHandler) CreatePerson(c *gin.Context) {
 		responses.RespondBadRequest(c, err, "Invalid request body")
 		return
 	}
-	
+
 	// Create person object
 	person := &models.Person{
 		Name:        req.Name,
@@ -266,12 +266,12 @@ func (h *PeopleHandler) CreatePerson(c *gin.Context) {
 		Birthplace:  req.Birthplace,
 		KnownFor:    req.KnownFor,
 	}
-	
+
 	// Add external IDs
 	for _, extID := range req.ExternalIDs {
 		person.AddExternalID(extID.Source, extID.ID)
 	}
-	
+
 	// Create person
 	createdPerson, err := h.personService.CreatePerson(ctx, person)
 	if err != nil {
@@ -279,7 +279,7 @@ func (h *PeopleHandler) CreatePerson(c *gin.Context) {
 		responses.RespondInternalError(c, err, "Failed to create person")
 		return
 	}
-	
+
 	// Return created person
 	c.JSON(http.StatusCreated, createdPerson)
 }
@@ -300,8 +300,8 @@ func (h *PeopleHandler) CreatePerson(c *gin.Context) {
 // @Router /people/{personID} [put]
 func (h *PeopleHandler) UpdatePerson(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-	
+	log := logger.LoggerFromContext(ctx)
+
 	// Get person ID from path
 	personIDStr := c.Param("personID")
 	personID, err := strconv.ParseUint(personIDStr, 10, 64)
@@ -310,7 +310,7 @@ func (h *PeopleHandler) UpdatePerson(c *gin.Context) {
 		responses.RespondBadRequest(c, err, "Invalid person ID")
 		return
 	}
-	
+
 	// Parse request body
 	var req requests.UpdatePersonRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -318,7 +318,7 @@ func (h *PeopleHandler) UpdatePerson(c *gin.Context) {
 		responses.RespondBadRequest(c, err, "Invalid request body")
 		return
 	}
-	
+
 	// Get existing person
 	existingPerson, err := h.personService.GetPersonByID(ctx, personID)
 	if err != nil {
@@ -326,12 +326,12 @@ func (h *PeopleHandler) UpdatePerson(c *gin.Context) {
 		responses.RespondInternalError(c, err, "Failed to get person")
 		return
 	}
-	
+
 	if existingPerson == nil {
 		responses.RespondNotFound(c, errors.New("person not found"), "Person not found")
 		return
 	}
-	
+
 	// Update fields if provided
 	if req.Name != "" {
 		existingPerson.Name = req.Name
@@ -357,27 +357,27 @@ func (h *PeopleHandler) UpdatePerson(c *gin.Context) {
 	if req.KnownFor != "" {
 		existingPerson.KnownFor = req.KnownFor
 	}
-	
+
 	// Add external IDs
 	for _, extID := range req.ExternalIDs {
 		existingPerson.AddExternalID(extID.Source, extID.ID)
 	}
-	
+
 	// Update person
 	updatedPerson, err := h.personService.UpdatePerson(ctx, existingPerson)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to update person")
-		
+
 		// Check for specific errors
 		if errors.Is(err, errors.New("person not found")) {
 			responses.RespondNotFound(c, err, "Person not found")
 			return
 		}
-		
+
 		responses.RespondInternalError(c, err, "Failed to update person")
 		return
 	}
-	
+
 	// Return updated person
 	c.JSON(http.StatusOK, updatedPerson)
 }
@@ -397,8 +397,8 @@ func (h *PeopleHandler) UpdatePerson(c *gin.Context) {
 // @Router /people/{personID} [delete]
 func (h *PeopleHandler) DeletePerson(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-	
+	log := logger.LoggerFromContext(ctx)
+
 	// Get person ID from path
 	personIDStr := c.Param("personID")
 	personID, err := strconv.ParseUint(personIDStr, 10, 64)
@@ -407,21 +407,21 @@ func (h *PeopleHandler) DeletePerson(c *gin.Context) {
 		responses.RespondBadRequest(c, err, "Invalid person ID")
 		return
 	}
-	
+
 	// Delete person
 	if err := h.personService.DeletePerson(ctx, personID); err != nil {
 		log.Error().Err(err).Msg("Failed to delete person")
-		
+
 		// Check for specific errors
 		if errors.Is(err, errors.New("person not found")) {
 			responses.RespondNotFound(c, err, "Person not found")
 			return
 		}
-		
+
 		responses.RespondInternalError(c, err, "Failed to delete person")
 		return
 	}
-	
+
 	// Return success
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
@@ -440,8 +440,8 @@ func (h *PeopleHandler) DeletePerson(c *gin.Context) {
 // @Router /people/{personID}/credits/grouped [get]
 func (h *PeopleHandler) GetPersonCreditsGrouped(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-	
+	log := logger.LoggerFromContext(ctx)
+
 	// Get person ID from path
 	personIDStr := c.Param("personID")
 	personID, err := strconv.ParseUint(personIDStr, 10, 64)
@@ -450,7 +450,7 @@ func (h *PeopleHandler) GetPersonCreditsGrouped(c *gin.Context) {
 		responses.RespondBadRequest(c, err, "Invalid person ID")
 		return
 	}
-	
+
 	// Get person credits grouped
 	creditsGrouped, err := h.personService.GetPersonCreditsGrouped(ctx, personID)
 	if err != nil {
@@ -458,7 +458,7 @@ func (h *PeopleHandler) GetPersonCreditsGrouped(c *gin.Context) {
 		responses.RespondInternalError(c, err, "Failed to get person credits")
 		return
 	}
-	
+
 	// Return credits grouped
 	c.JSON(http.StatusOK, creditsGrouped)
 }
@@ -477,8 +477,8 @@ func (h *PeopleHandler) GetPersonCreditsGrouped(c *gin.Context) {
 // @Router /people/import [post]
 func (h *PeopleHandler) ImportPerson(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-	
+	log := logger.LoggerFromContext(ctx)
+
 	// Parse request body
 	var req requests.ImportPersonRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -486,7 +486,7 @@ func (h *PeopleHandler) ImportPerson(c *gin.Context) {
 		responses.RespondBadRequest(c, err, "Invalid request body")
 		return
 	}
-	
+
 	// Create person object from request
 	person := &models.Person{
 		Name:        req.PersonData.Name,
@@ -498,12 +498,12 @@ func (h *PeopleHandler) ImportPerson(c *gin.Context) {
 		Birthplace:  req.PersonData.Birthplace,
 		KnownFor:    req.PersonData.KnownFor,
 	}
-	
+
 	// Add external IDs
 	for _, extID := range req.PersonData.ExternalIDs {
 		person.AddExternalID(extID.Source, extID.ID)
 	}
-	
+
 	// Import person
 	importedPerson, err := h.personService.ImportPerson(ctx, req.Source, req.ExternalID, person)
 	if err != nil {
@@ -511,7 +511,7 @@ func (h *PeopleHandler) ImportPerson(c *gin.Context) {
 		responses.RespondInternalError(c, err, "Failed to import person")
 		return
 	}
-	
+
 	// Return imported person
 	c.JSON(http.StatusOK, importedPerson)
 }
@@ -531,8 +531,8 @@ func (h *PeopleHandler) ImportPerson(c *gin.Context) {
 // @Router /people/{personID}/external-ids [post]
 func (h *PeopleHandler) AddExternalIDToPerson(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := utils.LoggerFromContext(ctx)
-	
+	log := logger.LoggerFromContext(ctx)
+
 	// Get person ID from path
 	personIDStr := c.Param("personID")
 	personID, err := strconv.ParseUint(personIDStr, 10, 64)
@@ -541,7 +541,7 @@ func (h *PeopleHandler) AddExternalIDToPerson(c *gin.Context) {
 		responses.RespondBadRequest(c, err, "Invalid person ID")
 		return
 	}
-	
+
 	// Parse request body
 	var req requests.ExternalIDRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -549,14 +549,15 @@ func (h *PeopleHandler) AddExternalIDToPerson(c *gin.Context) {
 		responses.RespondBadRequest(c, err, "Invalid request body")
 		return
 	}
-	
+
 	// Add external ID
 	if err := h.personService.AddExternalIDToPerson(ctx, personID, req.Source, req.ID); err != nil {
 		log.Error().Err(err).Msg("Failed to add external ID")
 		responses.RespondInternalError(c, err, "Failed to add external ID")
 		return
 	}
-	
+
 	// Return success
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
+

@@ -5,13 +5,13 @@ import (
 	"errors"
 	"sort"
 
-	"suasor/client"
-	"suasor/client/media/providers"
-	mediatypes "suasor/client/media/types"
-	"suasor/client/types"
+	"suasor/clients"
+	"suasor/clients/media/providers"
+	mediatypes "suasor/clients/media/types"
+	"suasor/clients/types"
 	"suasor/repository"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 var ErrUnsupportedFeature = errors.New("feature not supported by this media client")
@@ -34,13 +34,13 @@ type ClientMovieService[T types.ClientConfig] interface {
 
 type clientMovieService[T types.ClientMediaConfig] struct {
 	clientRepo    repository.ClientRepository[T]
-	clientFactory *client.ClientFactoryService
+	clientFactory *clients.ClientFactoryService
 }
 
 // NewClientMovieService creates a new media movie service
 func NewClientMovieService[T types.ClientMediaConfig](
 	clientRepo repository.ClientRepository[T],
-	factory *client.ClientFactoryService,
+	factory *clients.ClientFactoryService,
 ) ClientMovieService[T] {
 	return &clientMovieService[T]{
 		clientRepo:    clientRepo,
@@ -50,7 +50,7 @@ func NewClientMovieService[T types.ClientMediaConfig](
 
 func (s *clientMovieService[T]) GetClientMovieByItemID(ctx context.Context, clientID uint64, movieID string) (*models.MediaItem[*mediatypes.Movie], error) {
 	// Get the client
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	client, err := s.clientRepo.GetByID(ctx, clientID)
 	log.Info().
@@ -77,7 +77,7 @@ func (s *clientMovieService[T]) GetClientMovieByItemID(ctx context.Context, clie
 	return movie, nil
 }
 func (s *clientMovieService[T]) GetMoviesByGenre(ctx context.Context, userID uint64, genre string) ([]*models.MediaItem[*mediatypes.Movie], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
 		Uint64("userID", userID).
@@ -322,7 +322,7 @@ func (s *clientMovieService[T]) GetTopRatedMovies(ctx context.Context, userID ui
 }
 func (s *clientMovieService[T]) SearchClientMovies(ctx context.Context, clientID uint64, query *mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Movie], error) {
 	client, err := s.clientRepo.GetByID(ctx, clientID)
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("clientID", clientID).
 		Msg("Retrieved client")
@@ -347,7 +347,7 @@ func (s *clientMovieService[T]) SearchClientMovies(ctx context.Context, clientID
 }
 func (s *clientMovieService[T]) GetMovieByClientItemID(ctx context.Context, clientID uint64, movieID string) (*models.MediaItem[*mediatypes.Movie], error) {
 	client, err := s.clientRepo.GetByID(ctx, clientID)
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("clientID", clientID).
 		Msg("Retrieved client")
@@ -376,7 +376,7 @@ func (s *clientMovieService[T]) GetMovieByClientItemID(ctx context.Context, clie
 }
 func (s *clientMovieService[T]) GetClientMoviesByActor(ctx context.Context, clientID uint64, actor string) ([]*models.MediaItem[*mediatypes.Movie], error) {
 	client, err := s.clientRepo.GetByID(ctx, clientID)
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("clientID", clientID).
 		Msg("Retrieved client")
@@ -404,7 +404,7 @@ func (s *clientMovieService[T]) GetClientMoviesByActor(ctx context.Context, clie
 }
 func (s *clientMovieService[T]) GetClientMoviesByDirector(ctx context.Context, clientID uint64, director string) ([]*models.MediaItem[*mediatypes.Movie], error) {
 	client, err := s.clientRepo.GetByID(ctx, clientID)
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("clientID", clientID).
 		Msg("Retrieved client")
@@ -432,7 +432,7 @@ func (s *clientMovieService[T]) GetClientMoviesByDirector(ctx context.Context, c
 }
 func (s *clientMovieService[T]) GetClientMoviesByGenre(ctx context.Context, clientID uint64, genre string) ([]*models.MediaItem[*mediatypes.Movie], error) {
 	client, err := s.clientRepo.GetByID(ctx, clientID)
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("clientID", clientID).
 		Msg("Retrieved client")
@@ -460,7 +460,7 @@ func (s *clientMovieService[T]) GetClientMoviesByGenre(ctx context.Context, clie
 }
 func (s *clientMovieService[T]) GetClientMoviesByRating(ctx context.Context, clientID uint64, minRating, maxRating float64) ([]*models.MediaItem[*mediatypes.Movie], error) {
 	client, err := s.clientRepo.GetByID(ctx, clientID)
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("clientID", clientID).
 		Msg("Retrieved client")
@@ -488,7 +488,7 @@ func (s *clientMovieService[T]) GetClientMoviesByRating(ctx context.Context, cli
 }
 func (s *clientMovieService[T]) GetClientMoviesByYear(ctx context.Context, clientID uint64, year int) ([]*models.MediaItem[*mediatypes.Movie], error) {
 	client, err := s.clientRepo.GetByID(ctx, clientID)
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("clientID", clientID).
 		Msg("Retrieved client")
@@ -516,7 +516,7 @@ func (s *clientMovieService[T]) GetClientMoviesByYear(ctx context.Context, clien
 }
 func (s *clientMovieService[T]) GetClientMoviesLatestByAdded(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Movie], error) {
 	client, err := s.clientRepo.GetByID(ctx, clientID)
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("clientID", clientID).
 		Msg("Retrieved client")
@@ -546,7 +546,7 @@ func (s *clientMovieService[T]) GetClientMoviesLatestByAdded(ctx context.Context
 }
 func (s *clientMovieService[T]) GetClientPopularMovies(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Movie], error) {
 	client, err := s.clientRepo.GetByID(ctx, clientID)
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("clientID", clientID).
 		Msg("Retrieved client")
@@ -576,7 +576,7 @@ func (s *clientMovieService[T]) GetClientPopularMovies(ctx context.Context, clie
 }
 func (s *clientMovieService[T]) GetClientTopRatedMovies(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Movie], error) {
 	client, err := s.clientRepo.GetByID(ctx, clientID)
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("clientID", clientID).
 		Msg("Retrieved client")

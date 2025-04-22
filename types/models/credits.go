@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 )
 
 // Credit represents a person's involvement with a particular media item

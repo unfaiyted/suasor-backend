@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"gorm.io/gorm"
-	"suasor/client/media/types"
+	"suasor/clients/media/types"
 	"suasor/types/models"
-	"suasor/utils"
+	"suasor/utils/logger"
 )
 
 // MusicRepository interface defines operations specific to music in the database
@@ -65,7 +65,7 @@ func NewMusicRepository(
 
 // GetTracksByAlbumID retrieves all tracks for a specific album
 func (r *musicRepository) GetTracksByAlbumID(ctx context.Context, albumID uint64) ([]*models.MediaItem[*types.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("albumID", albumID).
 		Msg("Getting tracks by album ID")
@@ -83,7 +83,7 @@ func (r *musicRepository) GetTracksByAlbumID(ctx context.Context, albumID uint64
 
 // GetTracksByArtistID retrieves all tracks by a specific artist
 func (r *musicRepository) GetTracksByArtistID(ctx context.Context, artistID uint64) ([]*models.MediaItem[*types.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("artistID", artistID).
 		Msg("Getting tracks by artist ID")
@@ -101,7 +101,7 @@ func (r *musicRepository) GetTracksByArtistID(ctx context.Context, artistID uint
 
 // GetTracksInPlaylist retrieves all tracks in a specific playlist
 func (r *musicRepository) GetTracksInPlaylist(ctx context.Context, playlistID uint64) ([]*models.MediaItem[*types.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("playlistID", playlistID).
 		Msg("Getting tracks in playlist")
@@ -143,7 +143,7 @@ func (r *musicRepository) GetTracksInPlaylist(ctx context.Context, playlistID ui
 
 // GetMostPlayedTracks retrieves the most played tracks
 func (r *musicRepository) GetMostPlayedTracks(ctx context.Context, limit int) ([]*models.MediaItem[*types.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("limit", limit).
 		Msg("Getting most played tracks")
@@ -171,7 +171,7 @@ func (r *musicRepository) GetRecentlyAddedTracks(ctx context.Context, days int, 
 
 // GetAlbumsByArtistID retrieves all albums by a specific artist
 func (r *musicRepository) GetAlbumsByArtistID(ctx context.Context, artistID uint64) ([]*models.MediaItem[*types.Album], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("artistID", artistID).
 		Msg("Getting albums by artist ID")
@@ -189,7 +189,7 @@ func (r *musicRepository) GetAlbumsByArtistID(ctx context.Context, artistID uint
 
 // GetAlbumWithTracks retrieves an album and all its tracks
 func (r *musicRepository) GetAlbumWithTracks(ctx context.Context, albumID uint64) (*models.MediaItem[*types.Album], []*models.MediaItem[*types.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("albumID", albumID).
 		Msg("Getting album with tracks")
@@ -216,7 +216,7 @@ func (r *musicRepository) GetRecentlyAddedAlbums(ctx context.Context, days int, 
 
 // GetMostPlayedAlbums retrieves the most played albums
 func (r *musicRepository) GetMostPlayedAlbums(ctx context.Context, limit int) ([]*models.MediaItem[*types.Album], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("limit", limit).
 		Msg("Getting most played albums")
@@ -239,7 +239,7 @@ func (r *musicRepository) GetMostPlayedAlbums(ctx context.Context, limit int) ([
 
 // GetArtistWithAlbums retrieves an artist and all their albums
 func (r *musicRepository) GetArtistWithAlbums(ctx context.Context, artistID uint64) (*models.MediaItem[*types.Artist], []*models.MediaItem[*types.Album], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("artistID", artistID).
 		Msg("Getting artist with albums")
@@ -261,7 +261,7 @@ func (r *musicRepository) GetArtistWithAlbums(ctx context.Context, artistID uint
 
 // GetTopArtists retrieves the top artists based on play count
 func (r *musicRepository) GetTopArtists(ctx context.Context, limit int) ([]*models.MediaItem[*types.Artist], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("limit", limit).
 		Msg("Getting top artists")
@@ -284,7 +284,7 @@ func (r *musicRepository) GetTopArtists(ctx context.Context, limit int) ([]*mode
 
 // GetTracksByGenre retrieves tracks by genre
 func (r *musicRepository) GetTracksByGenre(ctx context.Context, genre string, limit int) ([]*models.MediaItem[*types.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("genre", genre).
 		Int("limit", limit).
@@ -308,7 +308,7 @@ func (r *musicRepository) GetTracksByGenre(ctx context.Context, genre string, li
 
 // GetAlbumsByGenre retrieves albums by genre
 func (r *musicRepository) GetAlbumsByGenre(ctx context.Context, genre string, limit int) ([]*models.MediaItem[*types.Album], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("genre", genre).
 		Int("limit", limit).
@@ -332,7 +332,7 @@ func (r *musicRepository) GetAlbumsByGenre(ctx context.Context, genre string, li
 
 // GetArtistsByGenre retrieves artists by genre
 func (r *musicRepository) GetArtistsByGenre(ctx context.Context, genre string, limit int) ([]*models.MediaItem[*types.Artist], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("genre", genre).
 		Int("limit", limit).
@@ -356,7 +356,7 @@ func (r *musicRepository) GetArtistsByGenre(ctx context.Context, genre string, l
 
 // SearchMusicLibrary performs a comprehensive search across all music items
 func (r *musicRepository) SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("query", query.Query).
 		Msg("Searching music library")
@@ -407,7 +407,7 @@ func (r *musicRepository) SearchMusicLibrary(ctx context.Context, query types.Qu
 
 // GetSimilarTracks finds tracks similar to a given track based on attributes
 func (r *musicRepository) GetSimilarTracks(ctx context.Context, trackID uint64, limit int) ([]*models.MediaItem[*types.Track], error) {
-	log := utils.LoggerFromContext(ctx)
+	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("trackID", trackID).
 		Int("limit", limit).
@@ -438,4 +438,3 @@ func (r *musicRepository) GetSimilarTracks(ctx context.Context, trackID uint64, 
 
 	return tracks, nil
 }
-
