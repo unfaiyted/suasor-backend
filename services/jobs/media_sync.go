@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"suasor/app/container"
-	apprepos "suasor/app/repository"
 	"suasor/client"
 	"suasor/client/media"
 	"suasor/client/media/providers"
 	mediatypes "suasor/client/media/types"
 	clienttypes "suasor/client/types"
 	"suasor/repository"
+	repobundles "suasor/repository/bundles"
 	"suasor/services/scheduler"
 	"suasor/types/models"
 	"suasor/utils"
@@ -21,32 +20,36 @@ import (
 
 // MediaSyncJob handles syncing of media items from clients
 type MediaSyncJob struct {
-	ctx             context.Context
-	c               *container.Container
 	jobRepo         repository.JobRepository
 	userRepo        repository.UserRepository
 	userConfigRepo  repository.UserConfigRepository
-	clientRepos     apprepos.ClientRepositories
-	dataRepos       apprepos.UserMediaDataRepositories
-	clientItemRepos apprepos.ClientMediaItemRepositories
-	itemRepos       apprepos.CoreMediaItemRepositories
+	clientRepos     repobundles.ClientRepositories
+	dataRepos       repobundles.UserMediaDataRepositories
+	clientItemRepos repobundles.ClientMediaItemRepositories
+	itemRepos       repobundles.CoreMediaItemRepositories
 	clientFactories *client.ClientFactoryService
 }
 
 // NewMediaSyncJob creates a new media sync job
 func NewMediaSyncJob(
-	ctx context.Context,
-	c *container.Container,
+	jobRepo repository.JobRepository,
+	userRepo repository.UserRepository,
+	userConfigRepo repository.UserConfigRepository,
+	clientRepos repobundles.ClientRepositories,
+	dataRepos repobundles.UserMediaDataRepositories,
+	clientItemRepos repobundles.ClientMediaItemRepositories,
+	itemRepos repobundles.CoreMediaItemRepositories,
+	clientFactories *client.ClientFactoryService,
 ) *MediaSyncJob {
 	return &MediaSyncJob{
-		jobRepo:         container.MustGet[repository.JobRepository](c),
-		userRepo:        container.MustGet[repository.UserRepository](c),
-		userConfigRepo:  container.MustGet[repository.UserConfigRepository](c),
-		clientRepos:     container.MustGet[apprepos.ClientRepositories](c),
-		dataRepos:       container.MustGet[apprepos.UserMediaDataRepositories](c),
-		clientItemRepos: container.MustGet[apprepos.ClientMediaItemRepositories](c),
-		itemRepos:       container.MustGet[apprepos.CoreMediaItemRepositories](c),
-		clientFactories: container.MustGet[*client.ClientFactoryService](c),
+		jobRepo:         jobRepo,
+		userRepo:        userRepo,
+		userConfigRepo:  userConfigRepo,
+		clientRepos:     clientRepos,
+		dataRepos:       dataRepos,
+		clientItemRepos: clientItemRepos,
+		itemRepos:       itemRepos,
+		clientFactories: clientFactories,
 	}
 }
 

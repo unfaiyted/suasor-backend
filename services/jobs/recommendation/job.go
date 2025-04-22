@@ -6,11 +6,10 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"suasor/app/container"
-	apprepos "suasor/app/repository"
 	"suasor/client"
 	"suasor/client/ai"
 	"suasor/repository"
+	repobundles "suasor/repository/bundles"
 	"suasor/types/models"
 	"suasor/utils"
 	"time"
@@ -19,38 +18,50 @@ import (
 // RecommendationJob creates recommendations for users based on their preferences
 type RecommendationJob struct {
 	ctx                context.Context
-	c                  *container.Container
 	jobRepo            repository.JobRepository
 	userRepo           repository.UserRepository
 	userConfigRepo     repository.UserConfigRepository
 	recommendationRepo repository.RecommendationRepository
-	clientRepos        apprepos.ClientRepositories
-	itemRepos          apprepos.CoreMediaItemRepositories
-	clientItemRepos    apprepos.ClientMediaItemRepositories
-	dataRepos          apprepos.UserMediaDataRepositories
+	clientRepos        repobundles.ClientRepositories
+	itemRepos          repobundles.CoreMediaItemRepositories
+	clientItemRepos    repobundles.ClientMediaItemRepositories
+	dataRepos          repobundles.UserMediaDataRepositories
 
 	// New repositories for credits and people
 	clientFactories *client.ClientFactoryService
-	creditRepo      repository.CreditRepository // Will be implemented in the future
-	peopleRepo      repository.PersonRepository // Will be implemented in the future
+	creditRepo      repository.CreditRepository
+	peopleRepo      repository.PersonRepository
 }
 
 // NewRecommendationJob creates a new recommendation job
 func NewRecommendationJob(
 	ctx context.Context,
-	c *container.Container,
+	jobRepo repository.JobRepository,
+	userRepo repository.UserRepository,
+	userConfigRepo repository.UserConfigRepository,
+	recommendationRepo repository.RecommendationRepository,
+	clientRepos repobundles.ClientRepositories,
+	itemRepos repobundles.CoreMediaItemRepositories,
+	clientItemRepos repobundles.ClientMediaItemRepositories,
+	dataRepos repobundles.UserMediaDataRepositories,
+
+	// New repositories for credits and people
+	clientFactories *client.ClientFactoryService,
+	creditRepo repository.CreditRepository,
+	peopleRepo repository.PersonRepository,
+
 ) *RecommendationJob {
 	return &RecommendationJob{
 		ctx:                ctx,
-		c:                  c,
-		jobRepo:            container.MustGet[repository.JobRepository](c),
-		userRepo:           container.MustGet[repository.UserRepository](c),
-		userConfigRepo:     container.MustGet[repository.UserConfigRepository](c),
-		recommendationRepo: container.MustGet[repository.RecommendationRepository](c),
-		clientFactories:    container.MustGet[*client.ClientFactoryService](c),
-		clientRepos:        container.MustGet[apprepos.ClientRepositories](c),
-		creditRepo:         container.MustGet[repository.CreditRepository](c),
-		peopleRepo:         container.MustGet[repository.PersonRepository](c),
+		jobRepo:            jobRepo,
+		userRepo:           userRepo,
+		userConfigRepo:     userConfigRepo,
+		recommendationRepo: recommendationRepo,
+		clientFactories:    clientFactories,
+		clientRepos:        clientRepos,
+		itemRepos:          itemRepos,
+		clientItemRepos:    clientItemRepos,
+		dataRepos:          dataRepos,
 	}
 }
 

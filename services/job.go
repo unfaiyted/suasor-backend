@@ -76,10 +76,10 @@ type jobService struct {
 	configRepo          repository.UserConfigRepository
 	movieRepo           repository.MediaItemRepository[*mediatypes.Movie]
 	seriesRepo          repository.MediaItemRepository[*mediatypes.Series]
-	musicRepo           repository.MediaItemRepository[*mediatypes.Track]
+	trackRepo           repository.MediaItemRepository[*mediatypes.Track]
 	userMovieDataRepo   repository.UserMediaItemDataRepository[*mediatypes.Movie]
 	userSeriesDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Series]
-	userMusicDataRepo   repository.UserMediaItemDataRepository[*mediatypes.Track]
+	userTrackDataRepo   repository.UserMediaItemDataRepository[*mediatypes.Track]
 	scheduler           *scheduler.Scheduler
 	jobs                map[string]scheduler.Job
 	recommendationJob   *recommendation.RecommendationJob
@@ -95,10 +95,10 @@ func NewJobService(
 	configRepo repository.UserConfigRepository,
 	movieRepo repository.MediaItemRepository[*mediatypes.Movie],
 	seriesRepo repository.MediaItemRepository[*mediatypes.Series],
-	musicRepo repository.MediaItemRepository[*mediatypes.Track],
+	trackRepo repository.MediaItemRepository[*mediatypes.Track],
 	userMovieDataRepo repository.UserMediaItemDataRepository[*mediatypes.Movie],
 	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series],
-	userMusicDataRepo repository.UserMediaItemDataRepository[*mediatypes.Track],
+	userTrackDataRepo repository.UserMediaItemDataRepository[*mediatypes.Track],
 	recommendationJob *recommendation.RecommendationJob,
 	mediaSyncJob *jobs.MediaSyncJob,
 	watchHistorySyncJob *jobs.WatchHistorySyncJob,
@@ -110,10 +110,10 @@ func NewJobService(
 		configRepo:          configRepo,
 		movieRepo:           movieRepo,
 		seriesRepo:          seriesRepo,
-		musicRepo:           musicRepo,
+		trackRepo:           trackRepo,
 		userMovieDataRepo:   userMovieDataRepo,
 		userSeriesDataRepo:  userSeriesDataRepo,
-		userMusicDataRepo:   userMusicDataRepo,
+		userTrackDataRepo:   userTrackDataRepo,
 		scheduler:           scheduler.NewScheduler(),
 		jobs:                make(map[string]scheduler.Job),
 		recommendationJob:   recommendationJob,
@@ -130,7 +130,7 @@ func (s *jobService) StartScheduler() error {
 		log.Printf("Warning: Starting scheduler with no registered jobs")
 		// Continue anyway - the scheduler can handle zero jobs
 	}
-	
+
 	// Verify all job implementations are defined
 	if s.recommendationJob == nil {
 		log.Printf("Warning: recommendationJob is nil, some recommendation functionality will be unavailable")
@@ -144,7 +144,7 @@ func (s *jobService) StartScheduler() error {
 	if s.favoritesSyncJob == nil {
 		log.Printf("Warning: favoritesSyncJob is nil, some favorites sync functionality will be unavailable")
 	}
-	
+
 	// Start the scheduler
 	s.scheduler.Start()
 	return nil

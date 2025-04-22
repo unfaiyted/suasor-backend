@@ -6,11 +6,12 @@ import (
 	"gorm.io/gorm"
 	"suasor/app/container"
 	"suasor/app/di/factories"
-	"suasor/app/handlers"
-	"suasor/app/repository"
 	"suasor/app/services"
 	"suasor/client"
+	mediatypes "suasor/client/media/types"
 	clienttypes "suasor/client/types"
+	"suasor/handlers"
+	"suasor/repository"
 	repo "suasor/repository"
 )
 
@@ -34,9 +35,9 @@ func RegisterMediaData(ctx context.Context, c *container.Container) {
 		return factory.CreateCoreRepositories()
 	})
 	//  (Repositories) User MediaItem Repositories
-	container.RegisterFactory[repository.UserMediaDataRepositories](c, func(c *container.Container) repository.UserMediaDataRepositories {
+	container.RegisterFactory[repository.UserMediaItemRepositories](c, func(c *container.Container) repository.UserMediaItemRepositories {
 		factory := container.MustGet[factories.MediaDataFactory](c)
-		return factory.CreateUserDataRepositories()
+		return factory.CreateUserRepositories()
 	})
 	//  (Repositories) Client MediaItem Repositories
 	container.RegisterFactory[repository.ClientMediaItemRepositories](c, func(c *container.Container) repository.ClientMediaItemRepositories {
@@ -118,44 +119,101 @@ func RegisterMediaData(ctx context.Context, c *container.Container) {
 
 	// --- HANDLER --- //
 	// (Handlers) Core MediaItem Handlers
-	container.RegisterFactory[handlers.CoreMediaItemHandlers](c, func(c *container.Container) handlers.CoreMediaItemHandlers {
+	container.RegisterFactory[apphandlers.CoreMediaItemHandlers](c, func(c *container.Container) apphandlers.CoreMediaItemHandlers {
 		factory := container.MustGet[factories.MediaDataFactory](c)
 		coreServices := container.MustGet[services.CoreMediaItemServices](c)
 		return factory.CreateCoreMediaItemHandlers(coreServices)
 	})
 	// (Handlers) User MediaItem Handlers
-	container.RegisterFactory[handlers.UserMediaItemHandlers](c, func(c *container.Container) handlers.UserMediaItemHandlers {
+	container.RegisterFactory[apphandlers.UserMediaItemHandlers](c, func(c *container.Container) apphandlers.UserMediaItemHandlers {
 		factory := container.MustGet[factories.MediaDataFactory](c)
 		userServices := container.MustGet[services.UserMediaItemServices](c)
-		coreHandlers := container.MustGet[handlers.CoreMediaItemHandlers](c)
+		coreHandlers := container.MustGet[apphandlers.CoreMediaItemHandlers](c)
 		return factory.CreateUserMediaItemHandlers(userServices, coreHandlers)
 	})
 	// (Handlers) Client MediaItem Handlers
-	container.RegisterFactory[handlers.ClientMediaItemHandlers[clienttypes.ClientMediaConfig]](c, func(c *container.Container) handlers.ClientMediaItemHandlers[clienttypes.ClientMediaConfig] {
+	container.RegisterFactory[apphandlers.ClientMediaItemHandlers[clienttypes.ClientMediaConfig]](c, func(c *container.Container) apphandlers.ClientMediaItemHandlers[clienttypes.ClientMediaConfig] {
 		factory := container.MustGet[factories.MediaDataFactory](c)
 		clientServices := container.MustGet[services.ClientMediaItemServices[clienttypes.ClientMediaConfig]](c)
 		userMediaItemServices := container.MustGet[services.UserMediaItemServices](c)
-		coreHandlers := container.MustGet[handlers.UserMediaItemHandlers](c)
+		coreHandlers := container.MustGet[apphandlers.UserMediaItemHandlers](c)
 		return factory.CreateClientMediaItemHandlers(clientServices, userMediaItemServices, coreHandlers)
 	})
 	// (Handlers) Core UserMediaItemData Handlers
-	container.RegisterFactory[handlers.CoreMediaItemDataHandlers](c, func(c *container.Container) handlers.CoreMediaItemDataHandlers {
+	container.RegisterFactory[apphandlers.CoreMediaItemDataHandlers](c, func(c *container.Container) apphandlers.CoreMediaItemDataHandlers {
 		factory := container.MustGet[factories.MediaDataFactory](c)
 		coreServices := container.MustGet[services.CoreUserMediaItemDataServices](c)
 		return factory.CreateCoreDataHandlers(coreServices)
 	})
 	// (Handlers) User UserMediaItemData Handlers
-	container.RegisterFactory[handlers.UserMediaItemDataHandlers](c, func(c *container.Container) handlers.UserMediaItemDataHandlers {
+	container.RegisterFactory[apphandlers.UserMediaItemDataHandlers](c, func(c *container.Container) apphandlers.UserMediaItemDataHandlers {
 		factory := container.MustGet[factories.MediaDataFactory](c)
 		userServices := container.MustGet[services.UserMediaItemDataServices](c)
-		coreHandlers := container.MustGet[handlers.CoreMediaItemDataHandlers](c)
+		coreHandlers := container.MustGet[apphandlers.CoreMediaItemDataHandlers](c)
 		return factory.CreateUserDataHandlers(userServices, coreHandlers)
 	})
 	// (Handlers) Client UserMediaItemData Handlers
-	container.RegisterFactory[handlers.ClientMediaItemDataHandlers](c, func(c *container.Container) handlers.ClientMediaItemDataHandlers {
+	container.RegisterFactory[apphandlers.ClientMediaItemDataHandlers](c, func(c *container.Container) apphandlers.ClientMediaItemDataHandlers {
 		factory := container.MustGet[factories.MediaDataFactory](c)
 		dataServices := container.MustGet[services.ClientUserMediaItemDataServices](c)
-		userDataHandlers := container.MustGet[handlers.UserMediaItemDataHandlers](c)
+		userDataHandlers := container.MustGet[apphandlers.UserMediaItemDataHandlers](c)
 		return factory.CreateClientDataHandlers(dataServices, userDataHandlers)
+	})
+
+	// Register individual media type handlers for direct use in routes
+
+	// Movie handlers
+	container.RegisterFactory[handlers.UserMediaItemDataHandler[*mediatypes.Movie]](c, func(c *container.Container) handlers.UserMediaItemDataHandler[*mediatypes.Movie] {
+		userHandlers := container.MustGet[apphandlers.UserMediaItemDataHandlers](c)
+		return userHandlers.MovieUserDataHandler()
+	})
+
+	container.RegisterFactory[handlers.ClientUserMediaItemDataHandler[*mediatypes.Movie]](c, func(c *container.Container) handlers.ClientUserMediaItemDataHandler[*mediatypes.Movie] {
+		clientHandlers := container.MustGet[apphandlers.ClientMediaItemDataHandlers](c)
+		return clientHandlers.MovieClientDataHandler()
+	})
+
+	// Series handlers
+	container.RegisterFactory[handlers.UserMediaItemDataHandler[*mediatypes.Series]](c, func(c *container.Container) handlers.UserMediaItemDataHandler[*mediatypes.Series] {
+		userHandlers := container.MustGet[apphandlers.UserMediaItemDataHandlers](c)
+		return userHandlers.SeriesUserDataHandler()
+	})
+
+	container.RegisterFactory[handlers.ClientUserMediaItemDataHandler[*mediatypes.Series]](c, func(c *container.Container) handlers.ClientUserMediaItemDataHandler[*mediatypes.Series] {
+		clientHandlers := container.MustGet[apphandlers.ClientMediaItemDataHandlers](c)
+		return clientHandlers.SeriesClientDataHandler()
+	})
+
+	// Track handlers
+	container.RegisterFactory[handlers.UserMediaItemDataHandler[*mediatypes.Track]](c, func(c *container.Container) handlers.UserMediaItemDataHandler[*mediatypes.Track] {
+		userHandlers := container.MustGet[apphandlers.UserMediaItemDataHandlers](c)
+		return userHandlers.TrackUserDataHandler()
+	})
+
+	container.RegisterFactory[handlers.ClientUserMediaItemDataHandler[*mediatypes.Track]](c, func(c *container.Container) handlers.ClientUserMediaItemDataHandler[*mediatypes.Track] {
+		clientHandlers := container.MustGet[apphandlers.ClientMediaItemDataHandlers](c)
+		return clientHandlers.TrackClientDataHandler()
+	})
+
+	// Album handlers
+	container.RegisterFactory[handlers.UserMediaItemDataHandler[*mediatypes.Album]](c, func(c *container.Container) handlers.UserMediaItemDataHandler[*mediatypes.Album] {
+		userHandlers := container.MustGet[apphandlers.UserMediaItemDataHandlers](c)
+		return userHandlers.AlbumUserDataHandler()
+	})
+
+	container.RegisterFactory[handlers.ClientUserMediaItemDataHandler[*mediatypes.Album]](c, func(c *container.Container) handlers.ClientUserMediaItemDataHandler[*mediatypes.Album] {
+		clientHandlers := container.MustGet[apphandlers.ClientMediaItemDataHandlers](c)
+		return clientHandlers.AlbumClientDataHandler()
+	})
+
+	// Artist handlers
+	container.RegisterFactory[handlers.UserMediaItemDataHandler[*mediatypes.Artist]](c, func(c *container.Container) handlers.UserMediaItemDataHandler[*mediatypes.Artist] {
+		userHandlers := container.MustGet[apphandlers.UserMediaItemDataHandlers](c)
+		return userHandlers.ArtistUserDataHandler()
+	})
+
+	container.RegisterFactory[handlers.ClientUserMediaItemDataHandler[*mediatypes.Artist]](c, func(c *container.Container) handlers.ClientUserMediaItemDataHandler[*mediatypes.Artist] {
+		clientHandlers := container.MustGet[apphandlers.ClientMediaItemDataHandlers](c)
+		return clientHandlers.ArtistClientDataHandler()
 	})
 }

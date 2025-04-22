@@ -9,7 +9,7 @@ import (
 
 // RegisterJobRoutes registers job-related routes
 func RegisterJobRoutes(r *gin.RouterGroup, c *container.Container) {
-	jobHandler := container.MustGet[handlers.JobHandler](c)
+	jobHandler := container.MustGet[*handlers.JobHandler](c)
 
 	jobs := r.Group("/jobs")
 	{

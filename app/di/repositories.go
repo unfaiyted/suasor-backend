@@ -7,8 +7,10 @@ import (
 	"gorm.io/gorm"
 	"suasor/app/container"
 	apprepos "suasor/app/repository"
+	"suasor/app/di/repositories"
 	"suasor/client/types"
 	"suasor/repository"
+	"suasor/services"
 	"suasor/services/jobs"
 	"suasor/services/jobs/recommendation"
 	"suasor/utils"
@@ -50,9 +52,12 @@ func RegisterRepositories(ctx context.Context, c *container.Container) {
 	log.Info().Msg("Registering client repositories")
 	registerClientRepositories(c)
 
+	// Register three-pronged architecture repositories
+	log.Info().Msg("Registering media repositories")
+	repositories.RegisterMediaRepositories(ctx, c)
+
 	// Job repository
 	log.Info().Msg("Registering job repository")
-
 	registerJobRepositories(ctx, c)
 
 	// Person and credit repositories
@@ -67,6 +72,7 @@ func RegisterRepositories(ctx context.Context, c *container.Container) {
 		db := container.MustGet[*gorm.DB](c)
 		return repository.NewCreditRepository(db)
 	})
+	
 	// Search repository
 	log.Info().Msg("Registering search repository")
 	container.RegisterFactory[repository.SearchRepository](c, func(c *container.Container) repository.SearchRepository {
@@ -78,57 +84,23 @@ func RegisterRepositories(ctx context.Context, c *container.Container) {
 // Register all client-type specific repositories
 func registerClientRepositories(c *container.Container) {
 	// Media client repositories
-	container.RegisterFactory[repository.ClientRepository[*types.EmbyConfig]](c, func(c *container.Container) repository.ClientRepository[*types.EmbyConfig] {
-		db := container.MustGet[*gorm.DB](c)
-		return repository.NewClientRepository[*types.EmbyConfig](db)
-	})
-
-	container.RegisterFactory[repository.ClientRepository[*types.JellyfinConfig]](c, func(c *container.Container) repository.ClientRepository[*types.JellyfinConfig] {
-		db := container.MustGet[*gorm.DB](c)
-		return repository.NewClientRepository[*types.JellyfinConfig](db)
-	})
-
-	container.RegisterFactory[repository.ClientRepository[*types.PlexConfig]](c, func(c *container.Container) repository.ClientRepository[*types.PlexConfig] {
-		db := container.MustGet[*gorm.DB](c)
-		return repository.NewClientRepository[*types.PlexConfig](db)
-	})
-
-	container.RegisterFactory[repository.ClientRepository[*types.SubsonicConfig]](c, func(c *container.Container) repository.ClientRepository[*types.SubsonicConfig] {
-		db := container.MustGet[*gorm.DB](c)
-		return repository.NewClientRepository[*types.SubsonicConfig](db)
-	})
+	container.RegisterFactory[repository.ClientRepository[*types.EmbyConfig]](c, repositories.ProvideEmbyClientRepository)
+	container.RegisterFactory[repository.ClientRepository[*types.JellyfinConfig]](c, repositories.ProvideJellyfinClientRepository)
+	container.RegisterFactory[repository.ClientRepository[*types.PlexConfig]](c, repositories.ProvidePlexClientRepository)
+	container.RegisterFactory[repository.ClientRepository[*types.SubsonicConfig]](c, repositories.ProvideSubsonicClientRepository)
 
 	// Automation client repositories
-	container.RegisterFactory[repository.ClientRepository[*types.SonarrConfig]](c, func(c *container.Container) repository.ClientRepository[*types.SonarrConfig] {
-		db := container.MustGet[*gorm.DB](c)
-		return repository.NewClientRepository[*types.SonarrConfig](db)
-	})
-
-	container.RegisterFactory[repository.ClientRepository[*types.RadarrConfig]](c, func(c *container.Container) repository.ClientRepository[*types.RadarrConfig] {
-		db := container.MustGet[*gorm.DB](c)
-		return repository.NewClientRepository[*types.RadarrConfig](db)
-	})
-
-	container.RegisterFactory[repository.ClientRepository[*types.LidarrConfig]](c, func(c *container.Container) repository.ClientRepository[*types.LidarrConfig] {
-		db := container.MustGet[*gorm.DB](c)
-		return repository.NewClientRepository[*types.LidarrConfig](db)
-	})
+	container.RegisterFactory[repository.ClientRepository[*types.SonarrConfig]](c, repositories.ProvideSonarrClientRepository)
+	container.RegisterFactory[repository.ClientRepository[*types.RadarrConfig]](c, repositories.ProvideRadarrClientRepository)
+	container.RegisterFactory[repository.ClientRepository[*types.LidarrConfig]](c, repositories.ProvideLidarrClientRepository)
 
 	// AI client repositories
-	container.RegisterFactory[repository.ClientRepository[*types.ClaudeConfig]](c, func(c *container.Container) repository.ClientRepository[*types.ClaudeConfig] {
-		db := container.MustGet[*gorm.DB](c)
-		return repository.NewClientRepository[*types.ClaudeConfig](db)
-	})
+	container.RegisterFactory[repository.ClientRepository[*types.ClaudeConfig]](c, repositories.ProvideClaudeClientRepository)
+	container.RegisterFactory[repository.ClientRepository[*types.OpenAIConfig]](c, repositories.ProvideOpenAIClientRepository)
+	container.RegisterFactory[repository.ClientRepository[*types.OllamaConfig]](c, repositories.ProvideOllamaClientRepository)
 
-	container.RegisterFactory[repository.ClientRepository[*types.OpenAIConfig]](c, func(c *container.Container) repository.ClientRepository[*types.OpenAIConfig] {
-		db := container.MustGet[*gorm.DB](c)
-		return repository.NewClientRepository[*types.OpenAIConfig](db)
-	})
-
-	container.RegisterFactory[repository.ClientRepository[*types.OllamaConfig]](c, func(c *container.Container) repository.ClientRepository[*types.OllamaConfig] {
-		db := container.MustGet[*gorm.DB](c)
-		return repository.NewClientRepository[*types.OllamaConfig](db)
-	})
+	// Metadata client service
+	container.RegisterFactory[*services.MetadataClientService[*types.TMDBConfig]](c, repositories.ProvideMetadataClientService)
 
 	// Client repository collection
 	container.RegisterFactory[apprepos.ClientRepositories](c, func(c *container.Container) apprepos.ClientRepositories {

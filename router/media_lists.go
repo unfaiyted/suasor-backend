@@ -2,22 +2,22 @@ package router
 
 import (
 	"suasor/app/container"
-	"suasor/app/handlers"
+	"suasor/handlers"
 
 	"github.com/gin-gonic/gin"
+	mediatypes "suasor/client/media/types"
 )
 
 // SetupMediaListRoutes sets up the routes for media lists
 func RegisterLocalMediaListRoutes(rg *gin.RouterGroup, c *container.Container) {
 	// Initialize handlers
-	listHandlers := container.MustGet[handlers.MediaListHandlers](c)
 
 	// Playlist routes
 	playlists := rg.Group("/playlists")
 	{
 		// Get specialized playlist handler
-		playlistHandler := listHandlers.CorePlaylistsHandler()
-		userPlaylistHandler := listHandlers.UserPlaylistsHandler()
+		playlistHandler := container.MustGet[handlers.CoreListHandler[*mediatypes.Playlist]](c)
+		userPlaylistHandler := container.MustGet[handlers.UserListHandler[*mediatypes.Playlist]](c)
 
 		// Basic CRUD operations
 		playlists.GET("", playlistHandler.GetAll)
@@ -46,8 +46,8 @@ func RegisterLocalMediaListRoutes(rg *gin.RouterGroup, c *container.Container) {
 	collections := rg.Group("/collections")
 	{
 		// Get specialized collection handler
-		collectionHandler := listHandlers.CoreCollectionsHandler()
-		userCollectionHandler := listHandlers.UserCollectionsHandler()
+		collectionHandler := container.MustGet[handlers.CoreListHandler[*mediatypes.Collection]](c)
+		userCollectionHandler := container.MustGet[handlers.UserListHandler[*mediatypes.Collection]](c)
 
 		// Basic CRUD operations
 		collections.GET("", collectionHandler.GetAll)

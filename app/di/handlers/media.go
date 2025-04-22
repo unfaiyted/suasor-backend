@@ -9,6 +9,7 @@ import (
 	appservices "suasor/app/services"
 	"suasor/handlers"
 	"suasor/services"
+	mediatypes "suasor/client/media/types"
 	clienttypes "suasor/client/types"
 )
 
@@ -44,6 +45,30 @@ func RegisterMediaHandlers(ctx context.Context, c *container.Container) {
 
 // Register specialized media handlers for specific domains like music, movies, etc.
 func registerSpecializedMediaHandlers(c *container.Container) {
+	// People handler
+	container.RegisterFactory[*handlers.PeopleHandler](c, func(c *container.Container) *handlers.PeopleHandler {
+		personService := container.MustGet[*services.PersonService](c)
+		return handlers.NewPeopleHandler(personService)
+	})
+
+	// Credit handler
+	container.RegisterFactory[*handlers.CreditHandler](c, func(c *container.Container) *handlers.CreditHandler {
+		creditService := container.MustGet[*services.CreditService](c)
+		return handlers.NewCreditHandler(creditService)
+	})
+	
+	// CoreMediaItemHandler for Playlist
+	container.RegisterFactory[handlers.CoreMediaItemHandler[*mediatypes.Playlist]](c, func(c *container.Container) handlers.CoreMediaItemHandler[*mediatypes.Playlist] {
+		coreServices := container.MustGet[appservices.CoreMediaItemServices](c)
+		return handlers.NewCoreMediaItemHandler[*mediatypes.Playlist](coreServices.PlaylistCoreService())
+	})
+	
+	// CoreMediaItemHandler for Collection 
+	container.RegisterFactory[handlers.CoreMediaItemHandler[*mediatypes.Collection]](c, func(c *container.Container) handlers.CoreMediaItemHandler[*mediatypes.Collection] {
+		coreServices := container.MustGet[appservices.CoreMediaItemServices](c)
+		return handlers.NewCoreMediaItemHandler[*mediatypes.Collection](coreServices.CollectionCoreService())
+	})
+
 	// Core music handler
 	container.RegisterFactory[handlers.CoreMusicHandler](c, func(c *container.Container) handlers.CoreMusicHandler {
 		clientServices := container.MustGet[appservices.CoreMediaItemServices](c)

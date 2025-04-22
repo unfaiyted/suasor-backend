@@ -14,6 +14,7 @@ import (
 	clienttypes "suasor/client/types"
 
 	"suasor/repository"
+	repobundles "suasor/repository/bundles"
 	"suasor/services/scheduler"
 	"suasor/types/models"
 )
@@ -39,7 +40,7 @@ type PlaylistSyncJob struct {
 	jobRepo            repository.JobRepository
 	userRepo           repository.UserRepository
 	configRepo         repository.UserConfigRepository
-	clientRepos        map[clienttypes.ClientMediaType]interface{}
+	clientRepos        repobundles.ClientRepositories
 	clientFactory      *client.ClientFactoryService
 	mediaItemRepo      repository.ClientMediaItemRepository[mediatypes.MediaData]
 	userMediaDataRepo  repository.UserMediaItemDataRepository[mediatypes.MediaData]
@@ -53,21 +54,12 @@ func NewPlaylistSyncJob(
 	jobRepo repository.JobRepository,
 	userRepo repository.UserRepository,
 	configRepo repository.UserConfigRepository,
-	embyRepo repository.ClientMediaItemRepository[*mediatypes.Movie],
-	jellyfinRepo repository.ClientMediaItemRepository[*mediatypes.Movie],
-	plexRepo repository.ClientMediaItemRepository[*mediatypes.Movie],
-	subsonicRepo repository.ClientMediaItemRepository[*mediatypes.Movie],
+	clientRepos repobundles.ClientRepositories,
 	clientFactory *client.ClientFactoryService,
 	userMovieDataRepo repository.UserMediaItemDataRepository[*mediatypes.Movie],
 	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series],
 	userMusicDataRepo repository.UserMediaItemDataRepository[*mediatypes.Track],
 ) *PlaylistSyncJob {
-	clientRepos := map[clienttypes.ClientMediaType]interface{}{
-		clienttypes.ClientMediaTypeEmby:     embyRepo,
-		clienttypes.ClientMediaTypeJellyfin: jellyfinRepo,
-		clienttypes.ClientMediaTypePlex:     plexRepo,
-		clienttypes.ClientMediaTypeSubsonic: subsonicRepo,
-	}
 
 	return &PlaylistSyncJob{
 		jobRepo:            jobRepo,

@@ -54,36 +54,36 @@ func Setup(ctx context.Context, c *container.Container) *gin.Engine {
 	{
 		// User Centric Data
 		// {base}/user/
-		// RegisterUserRoutes(authenticated, c)
+		RegisterUserRoutes(authenticated, c)
 
 		// {base}/user-config/
-		// RegisterUserConfigRoutes(authenticated, c)
+		RegisterUserConfigRoutes(authenticated, c)
 
 		// {base}/media-data/
-		// RegisterMediaItemDataRoutes(authenticated, c) // Register media play history routes
+		RegisterMediaItemDataRoutes(authenticated, c) // Register media play history routes
 
 		// {base}/people/
-		// RegisterPeopleBasedRoutes(authenticated, c)
+		RegisterPeopleBasedRoutes(authenticated, c)
 
 		// {base}/metadata/
-		// RegisterMetadataRoutes(authenticated, c) // Register metadata routes
+		RegisterMetadataRoutes(authenticated, c) // Register metadata routes
 
 		// {base}/playlists or {base}/collections
-		// RegisterLocalMediaListRoutes(authenticated, c)
+		RegisterLocalMediaListRoutes(authenticated, c)
 
 		// {base}/history/
 		// RegisterMediaPlayHistoryRoutes(authenticated, c)
 
 		// {base}/ai/
-		// RegisterAIRoutes(authenticated, c) // Register AI routes
+		RegisterAIRoutes(authenticated, c) // Register AI routes
 		// {base}/clients/
-		// RegisterClientsRoutes(authenticated, c) // Register all clients route
+		RegisterClientsRoutes(authenticated, c) // Register all clients route
 		// {base}/jobs/
-		// RegisterJobRoutes(authenticated, c) // Register job routes
+		RegisterJobRoutes(authenticated, c) // Register job routes
 		// {base}/recommendations/
-		// RegisterRecommendationRoutes(authenticated, c) // Register recommendation routes
+		RegisterRecommendationRoutes(authenticated, c) // Register recommendation routes
 		// {base}/search/
-		// RegisterSearchRoutes(authenticated, c) // Register search routes
+		RegisterSearchRoutes(authenticated, c) // Register search routes
 	}
 
 	//Admin Routes
@@ -91,7 +91,7 @@ func Setup(ctx context.Context, c *container.Container) *gin.Engine {
 	adminRoutes.Use(middleware.VerifyToken(authService), middleware.RequireRole("admin"))
 	{
 		// {base}/admin/config/
-		// RegisterConfigRoutes(adminRoutes, configService)
+		RegisterConfigRoutes(adminRoutes, configService)
 		// {base}/admin/client/
 		// RegisterClientRoutes(adminRoutes, c)
 	}

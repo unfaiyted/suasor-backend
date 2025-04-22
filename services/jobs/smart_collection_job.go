@@ -663,4 +663,3 @@ func (j *SmartCollectionJob) GetCollectionSuggestions(ctx context.Context, userI
 		},
 	}, nil
 }
-

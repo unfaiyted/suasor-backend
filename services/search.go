@@ -3,11 +3,11 @@ package services
 import (
 	"context"
 	"fmt"
-	apprepos "suasor/app/repository"
 	"suasor/client"
 	mediaclient "suasor/client/media"
 	"suasor/client/media/types"
 	"suasor/repository"
+	repobundles "suasor/repository/bundles"
 	"suasor/types/models"
 	"suasor/types/responses"
 	"suasor/utils"
@@ -40,8 +40,8 @@ type SearchService interface {
 // searchService implements SearchService
 type searchService struct {
 	searchRepo           repository.SearchRepository
-	clientRepos          apprepos.ClientRepositories
-	itemRepos            apprepos.CoreMediaItemRepositories
+	clientRepos          repobundles.ClientRepositories
+	itemRepos            repobundles.CoreMediaItemRepositories
 	personRepo           repository.PersonRepository
 	clientFactoryService *client.ClientFactoryService
 }
@@ -49,8 +49,8 @@ type searchService struct {
 // NewSearchService creates a new search service instance
 func NewSearchService(
 	searchRepo repository.SearchRepository,
-	clientRepos apprepos.ClientRepositories,
-	itemRepos apprepos.CoreMediaItemRepositories,
+	clientRepos repobundles.ClientRepositories,
+	itemRepos repobundles.CoreMediaItemRepositories,
 	personRepo repository.PersonRepository,
 	clientFactoryService *client.ClientFactoryService,
 ) SearchService {

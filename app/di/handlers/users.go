@@ -16,6 +16,7 @@ func RegisterUserHandlers(ctx context.Context, c *container.Container) {
 		configService := container.MustGet[services.ConfigService](c)
 		return handlers.NewUserHandler(userService, configService)
 	})
+	
 
 	// Auth handler
 	container.RegisterFactory[*handlers.AuthHandler](c, func(c *container.Container) *handlers.AuthHandler {

@@ -23,8 +23,21 @@ type mediaDataFactoryImpl struct {
 
 // CreateClientDataRepositories is the implementation of factories.MediaDataFactory interface
 func (f *mediaDataFactoryImpl) CreateClientDataRepositories() repository.ClientUserMediaDataRepositories {
-	// Just to satisfy interface, implementation will be done later
-	return nil
+	// Create repositories using the database
+	// Get dependencies
+	coreRepos := f.CreateCoreDataRepositories()
+	userRepos := f.CreateUserDataRepositories()
+
+	return &clientUserMediaDataRepositoriesImpl{
+		movieDataRepo:      repo.NewClientUserMediaItemDataRepository[*mediatypes.Movie](f.db, coreRepos.MovieCoreService(), userRepos.MovieDataRepo()),
+		seriesDataRepo:     repo.NewClientUserMediaItemDataRepository[*mediatypes.Series](f.db, coreRepos.SeriesCoreService(), userRepos.SeriesDataRepo()),
+		episodeDataRepo:    repo.NewClientUserMediaItemDataRepository[*mediatypes.Episode](f.db, coreRepos.EpisodeCoreService(), userRepos.EpisodeDataRepo()),
+		trackDataRepo:      repo.NewClientUserMediaItemDataRepository[*mediatypes.Track](f.db, coreRepos.TrackCoreService(), userRepos.TrackDataRepo()),
+		albumDataRepo:      repo.NewClientUserMediaItemDataRepository[*mediatypes.Album](f.db, coreRepos.AlbumCoreService(), userRepos.AlbumDataRepo()),
+		artistDataRepo:     repo.NewClientUserMediaItemDataRepository[*mediatypes.Artist](f.db, coreRepos.ArtistCoreService(), userRepos.ArtistDataRepo()),
+		collectionDataRepo: repo.NewClientUserMediaItemDataRepository[*mediatypes.Collection](f.db, coreRepos.CollectionCoreService(), userRepos.CollectionDataRepo()),
+		playlistDataRepo:   repo.NewClientUserMediaItemDataRepository[*mediatypes.Playlist](f.db, coreRepos.PlaylistCoreService(), userRepos.PlaylistDataRepo()),
+	}
 }
 
 // createMediaDataFactory creates a new MediaDataFactory implementation

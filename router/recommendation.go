@@ -10,7 +10,7 @@ import (
 // RegisterRecommendationRoutes registers all recommendation routes
 func RegisterRecommendationRoutes(rg *gin.RouterGroup, c *container.Container) {
 	// Get the recommendation handler from dependencies
-	recommendationHandler := container.MustGet[handlers.RecommendationHandler](c)
+	recommendationHandler := container.MustGet[*handlers.RecommendationHandler](c)
 
 	recommendations := rg.Group("/recommendations")
 	{

@@ -8,7 +8,7 @@ import (
 )
 
 func RegisterUserConfigRoutes(rg *gin.RouterGroup, c *container.Container) {
-	configHandlers := container.MustGet[handlers.UserConfigHandler](c)
+	configHandlers := container.MustGet[*handlers.UserConfigHandler](c)
 	configs := rg.Group("/user-config")
 	{
 

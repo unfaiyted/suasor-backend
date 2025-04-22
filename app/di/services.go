@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 	"suasor/app/container"
 	"suasor/app/di/factories"
+	diservices "suasor/app/di/services"
 	apprepository "suasor/app/repository"
 	appservices "suasor/app/services"
 	"suasor/client"
@@ -45,6 +46,17 @@ func registerSystemServices(ctx context.Context, c *container.Container) {
 	container.RegisterFactory[services.HealthService](c, func(c *container.Container) services.HealthService {
 		db := container.MustGet[*gorm.DB](c)
 		return services.NewHealthService(db)
+	})
+	
+	// Search service 
+	log.Info().Msg("Registering search service")
+	diservices.RegisterSearchService(ctx, c)
+
+	// User service
+	log.Info().Msg("Registering user service")
+	container.RegisterFactory[services.UserService](c, func(c *container.Container) services.UserService {
+		userRepo := container.MustGet[repository.UserRepository](c)
+		return services.NewUserService(userRepo)
 	})
 
 	// Auth service
@@ -180,6 +192,34 @@ func registerSystemServices(ctx context.Context, c *container.Container) {
 		)
 	})
 
+	// UserConfig service
+	log.Info().Msg("Registering user config service")
+	container.RegisterFactory[services.UserConfigService](c, func(c *container.Container) services.UserConfigService {
+		userConfigRepo := container.MustGet[repository.UserConfigRepository](c)
+		jobService := container.MustGet[services.JobService](c)
+		recommendationJob := container.MustGet[*recommendation.RecommendationJob](c)
+		return services.NewUserConfigService(userConfigRepo, jobService, recommendationJob)
+	})
+
+	// People and credits services
+	container.RegisterFactory[*services.PersonService](c, func(c *container.Container) *services.PersonService {
+		personRepo := container.MustGet[repository.PersonRepository](c)
+		creditRepo := container.MustGet[repository.CreditRepository](c)
+		return services.NewPersonService(personRepo, creditRepo)
+	})
+	
+	container.RegisterFactory[*services.CreditService](c, func(c *container.Container) *services.CreditService {
+		creditRepo := container.MustGet[repository.CreditRepository](c)
+		personRepo := container.MustGet[repository.PersonRepository](c)
+		return services.NewCreditService(creditRepo, personRepo)
+	})
+	
+	// Recommendation service
+	container.RegisterFactory[services.RecommendationService](c, func(c *container.Container) services.RecommendationService {
+		recommendationRepo := container.MustGet[repository.RecommendationRepository](c)
+		return services.NewRecommendationService(recommendationRepo)
+	})
+	
 	// Media services
 	container.RegisterFactory[appservices.PeopleServices](c, func(c *container.Container) appservices.PeopleServices {
 		personService := container.MustGet[services.PersonService](c)
@@ -192,65 +232,65 @@ func registerSystemServices(ctx context.Context, c *container.Container) {
 func registerClientServices(ctx context.Context, c *container.Container) {
 	// Media clients
 	container.RegisterFactory[services.ClientService[*types.EmbyConfig]](c, func(c *container.Container) services.ClientService[*types.EmbyConfig] {
-		clientFactory := container.MustGet[client.ClientFactoryService](c)
+		clientFactory := container.MustGet[*client.ClientFactoryService](c)
 		repo := container.MustGet[repository.ClientRepository[*types.EmbyConfig]](c)
-		return services.NewClientService[*types.EmbyConfig](&clientFactory, repo)
+		return services.NewClientService[*types.EmbyConfig](clientFactory, repo)
 	})
 
 	container.RegisterFactory[services.ClientService[*types.JellyfinConfig]](c, func(c *container.Container) services.ClientService[*types.JellyfinConfig] {
-		clientFactory := container.MustGet[client.ClientFactoryService](c)
+		clientFactory := container.MustGet[*client.ClientFactoryService](c)
 		repo := container.MustGet[repository.ClientRepository[*types.JellyfinConfig]](c)
-		return services.NewClientService[*types.JellyfinConfig](&clientFactory, repo)
+		return services.NewClientService[*types.JellyfinConfig](clientFactory, repo)
 	})
 
 	container.RegisterFactory[services.ClientService[*types.PlexConfig]](c, func(c *container.Container) services.ClientService[*types.PlexConfig] {
-		clientFactory := container.MustGet[client.ClientFactoryService](c)
+		clientFactory := container.MustGet[*client.ClientFactoryService](c)
 		repo := container.MustGet[repository.ClientRepository[*types.PlexConfig]](c)
-		return services.NewClientService[*types.PlexConfig](&clientFactory, repo)
+		return services.NewClientService[*types.PlexConfig](clientFactory, repo)
 	})
 
 	container.RegisterFactory[services.ClientService[*types.SubsonicConfig]](c, func(c *container.Container) services.ClientService[*types.SubsonicConfig] {
-		clientFactory := container.MustGet[client.ClientFactoryService](c)
+		clientFactory := container.MustGet[*client.ClientFactoryService](c)
 		repo := container.MustGet[repository.ClientRepository[*types.SubsonicConfig]](c)
-		return services.NewClientService[*types.SubsonicConfig](&clientFactory, repo)
+		return services.NewClientService[*types.SubsonicConfig](clientFactory, repo)
 	})
 
 	// Automation clients
 	container.RegisterFactory[services.ClientService[*types.SonarrConfig]](c, func(c *container.Container) services.ClientService[*types.SonarrConfig] {
-		clientFactory := container.MustGet[client.ClientFactoryService](c)
+		clientFactory := container.MustGet[*client.ClientFactoryService](c)
 		repo := container.MustGet[repository.ClientRepository[*types.SonarrConfig]](c)
-		return services.NewClientService[*types.SonarrConfig](&clientFactory, repo)
+		return services.NewClientService[*types.SonarrConfig](clientFactory, repo)
 	})
 
 	container.RegisterFactory[services.ClientService[*types.RadarrConfig]](c, func(c *container.Container) services.ClientService[*types.RadarrConfig] {
-		clientFactory := container.MustGet[client.ClientFactoryService](c)
+		clientFactory := container.MustGet[*client.ClientFactoryService](c)
 		repo := container.MustGet[repository.ClientRepository[*types.RadarrConfig]](c)
-		return services.NewClientService[*types.RadarrConfig](&clientFactory, repo)
+		return services.NewClientService[*types.RadarrConfig](clientFactory, repo)
 	})
 
 	container.RegisterFactory[services.ClientService[*types.LidarrConfig]](c, func(c *container.Container) services.ClientService[*types.LidarrConfig] {
-		clientFactory := container.MustGet[client.ClientFactoryService](c)
+		clientFactory := container.MustGet[*client.ClientFactoryService](c)
 		repo := container.MustGet[repository.ClientRepository[*types.LidarrConfig]](c)
-		return services.NewClientService[*types.LidarrConfig](&clientFactory, repo)
+		return services.NewClientService[*types.LidarrConfig](clientFactory, repo)
 	})
 
 	// AI clients
 	container.RegisterFactory[services.ClientService[*types.ClaudeConfig]](c, func(c *container.Container) services.ClientService[*types.ClaudeConfig] {
-		clientFactory := container.MustGet[client.ClientFactoryService](c)
+		clientFactory := container.MustGet[*client.ClientFactoryService](c)
 		repo := container.MustGet[repository.ClientRepository[*types.ClaudeConfig]](c)
-		return services.NewClientService[*types.ClaudeConfig](&clientFactory, repo)
+		return services.NewClientService[*types.ClaudeConfig](clientFactory, repo)
 	})
 
 	container.RegisterFactory[services.ClientService[*types.OpenAIConfig]](c, func(c *container.Container) services.ClientService[*types.OpenAIConfig] {
-		clientFactory := container.MustGet[client.ClientFactoryService](c)
+		clientFactory := container.MustGet[*client.ClientFactoryService](c)
 		repo := container.MustGet[repository.ClientRepository[*types.OpenAIConfig]](c)
-		return services.NewClientService[*types.OpenAIConfig](&clientFactory, repo)
+		return services.NewClientService[*types.OpenAIConfig](clientFactory, repo)
 	})
 
 	container.RegisterFactory[services.ClientService[*types.OllamaConfig]](c, func(c *container.Container) services.ClientService[*types.OllamaConfig] {
-		clientFactory := container.MustGet[client.ClientFactoryService](c)
+		clientFactory := container.MustGet[*client.ClientFactoryService](c)
 		repo := container.MustGet[repository.ClientRepository[*types.OllamaConfig]](c)
-		return services.NewClientService[*types.OllamaConfig](&clientFactory, repo)
+		return services.NewClientService[*types.OllamaConfig](clientFactory, repo)
 	})
 }
 
@@ -283,6 +323,10 @@ func registerThreeProngedServices(ctx context.Context, c *container.Container) {
 		clientRepos := container.MustGet[apprepository.ClientMediaItemRepositories](c)
 		return factory.CreateClientServices(coreServices, clientRepo, clientRepos)
 	})
+
+	// Register Media Lists Services - Playlists and Collections
+	log.Info().Msg("Registering media list services")
+	diservices.RegisterMediaListServices(ctx, c)
 
 	// Collection services
 	log.Info().Msg("Registering collection services")

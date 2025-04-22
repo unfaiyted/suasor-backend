@@ -4,7 +4,7 @@ package handlers
 import (
 	"context"
 	"suasor/app/container"
-	// apphandlers "suasor/app/handlers"
+	apphandlers "suasor/app/handlers"
 	"suasor/client"
 	"suasor/client/types"
 	"suasor/handlers"
@@ -86,36 +86,62 @@ func RegisterClientHandlers(ctx context.Context, c *container.Container) {
 
 	// Register AI handlers
 	container.RegisterFactory[*handlers.AIHandler[*types.ClaudeConfig]](c, func(c *container.Container) *handlers.AIHandler[*types.ClaudeConfig] {
-		clientFactory := container.MustGet[client.ClientFactoryService](c)
+		clientFactory := container.MustGet[*client.ClientFactoryService](c)
 		clientService := container.MustGet[services.ClientService[*types.ClaudeConfig]](c)
 
 		return handlers.NewAIHandler(
-			&clientFactory,
+			clientFactory,
 			clientService,
 		)
 	})
 	container.RegisterFactory[*handlers.AIHandler[*types.OpenAIConfig]](c, func(c *container.Container) *handlers.AIHandler[*types.OpenAIConfig] {
-		clientFactory := container.MustGet[client.ClientFactoryService](c)
+		clientFactory := container.MustGet[*client.ClientFactoryService](c)
 		clientService := container.MustGet[services.ClientService[*types.OpenAIConfig]](c)
 
 		return handlers.NewAIHandler(
-			&clientFactory,
+			clientFactory,
 			clientService,
 		)
 	})
 	container.RegisterFactory[*handlers.AIHandler[*types.OllamaConfig]](c, func(c *container.Container) *handlers.AIHandler[*types.OllamaConfig] {
-		clientFactory := container.MustGet[client.ClientFactoryService](c)
+		clientFactory := container.MustGet[*client.ClientFactoryService](c)
 		clientService := container.MustGet[services.ClientService[*types.OllamaConfig]](c)
 
 		return handlers.NewAIHandler(
-			&clientFactory,
+			clientFactory,
 			clientService,
 		)
 	})
-	// container.RegisterFactory[*apphandlers.AIClientHandlers](c, func(c *container.Container) *apphandlers.AIClientHandlers {
-	// 	claudeService := container.MustGet[services.ClientService[*types.ClaudeConfig]](c)
-	// 	openaiService := container.MustGet[services.ClientService[*types.OpenAIConfig]](c)
-	// 	ollamaService := container.MustGet[services.ClientService[*types.OllamaConfig]](c)
-	// 	return handlers.NewAIsHandler(claudeService, openaiService, ollamaService)
-	// })
+	
+	// Register AIClientHandlers for the router
+	container.RegisterFactory[apphandlers.AIClientHandlers](c, func(c *container.Container) apphandlers.AIClientHandlers {
+		claudeHandler := container.MustGet[*handlers.AIHandler[*types.ClaudeConfig]](c)
+		openaiHandler := container.MustGet[*handlers.AIHandler[*types.OpenAIConfig]](c)
+		ollamaHandler := container.MustGet[*handlers.AIHandler[*types.OllamaConfig]](c)
+		
+		return &AIClientHandlersImpl{
+			claudeHandler:  claudeHandler,
+			openaiHandler:  openaiHandler,
+			ollamaHandler:  ollamaHandler,
+		}
+	})
+}
+
+// AIClientHandlersImpl implements the AIClientHandlers interface
+type AIClientHandlersImpl struct {
+	claudeHandler  *handlers.AIHandler[*types.ClaudeConfig]
+	openaiHandler  *handlers.AIHandler[*types.OpenAIConfig]
+	ollamaHandler  *handlers.AIHandler[*types.OllamaConfig]
+}
+
+func (h *AIClientHandlersImpl) ClaudeAIHandler() *handlers.AIHandler[*types.ClaudeConfig] {
+	return h.claudeHandler
+}
+
+func (h *AIClientHandlersImpl) OpenAIHandler() *handlers.AIHandler[*types.OpenAIConfig] {
+	return h.openaiHandler
+}
+
+func (h *AIClientHandlersImpl) OllamaHandler() *handlers.AIHandler[*types.OllamaConfig] {
+	return h.ollamaHandler
 }

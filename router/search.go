@@ -8,7 +8,7 @@ import (
 
 // RegisterSearchRoutes registers all search-related routes
 func RegisterSearchRoutes(rg *gin.RouterGroup, c *container.Container) {
-	handler := container.MustGet[handlers.SearchHandler](c)
+	handler := container.MustGet[*handlers.SearchHandler](c)
 	searchGroup := rg.Group("/search")
 	{
 		// Main search endpoint

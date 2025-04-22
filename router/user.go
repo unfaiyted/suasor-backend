@@ -7,7 +7,7 @@ import (
 )
 
 func RegisterUserRoutes(rg *gin.RouterGroup, c *container.Container) {
-	userHandlers := container.MustGet[handlers.UserHandler](c)
+	userHandlers := container.MustGet[*handlers.UserHandler](c)
 	users := rg.Group("/user")
 	{
 		// Public routes

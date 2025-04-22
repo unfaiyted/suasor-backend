@@ -11,7 +11,7 @@ import (
 func RegisterPeopleBasedRoutes(r *gin.RouterGroup, c *container.Container) {
 
 	// People handlers
-	peopleHandler := container.MustGet[handlers.PeopleHandler](c)
+	peopleHandler := container.MustGet[*handlers.PeopleHandler](c)
 
 	// People routes
 	people := r.Group("/people")
@@ -30,7 +30,7 @@ func RegisterPeopleBasedRoutes(r *gin.RouterGroup, c *container.Container) {
 	}
 
 	// Credit handlers
-	creditHandler := container.MustGet[handlers.CreditHandler](c)
+	creditHandler := container.MustGet[*handlers.CreditHandler](c)
 
 	// Credit routes
 	credits := r.Group("/credits")
