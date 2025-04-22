@@ -36,13 +36,13 @@ type AutomationClientService interface {
 
 type automationClientService struct {
 	clientRepo    repository.ClientRepository[types.AutomationClientConfig]
-	clientFactory *clients.ClientFactoryService
+	clientFactory *clients.ClientProviderFactoryService
 }
 
 // NewAutomationClientService creates a new automation client service
 func NewAutomationClientService(
 	clientRepo repository.ClientRepository[types.AutomationClientConfig],
-	clientFactory *clients.ClientFactoryService,
+	clientFactory *clients.ClientProviderFactoryService,
 ) AutomationClientService {
 	return &automationClientService{
 		clientRepo:    clientRepo,

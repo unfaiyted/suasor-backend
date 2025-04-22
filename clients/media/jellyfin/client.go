@@ -19,7 +19,7 @@ type JellyfinClient struct {
 }
 
 // NewJellyfinClient creates a new Jellyfin client instance
-func NewJellyfinClient(ctx context.Context, registry *media.ClientItemRegistry, clientID uint64, config types.JellyfinConfig) (media.ClientMedia, error) {
+func NewJellyfinClient(ctx context.Context, registry *media.ClientItemRegistry, clientID uint64, config *types.JellyfinConfig) (media.ClientMedia, error) {
 	// Get or create registry for media item factories
 
 	// Create API client configuration
@@ -38,7 +38,7 @@ func NewJellyfinClient(ctx context.Context, registry *media.ClientItemRegistry, 
 				ClientID: clientID,
 				Category: types.ClientMediaTypeJellyfin.AsCategory(),
 				Type:     types.ClientTypeJellyfin,
-				Config:   &config,
+				Config:   config,
 			},
 		},
 		client: jfClient,

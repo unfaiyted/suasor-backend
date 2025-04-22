@@ -21,7 +21,7 @@ type EmbyClient struct {
 }
 
 // NewEmbyClient creates a new Emby client instance
-func NewEmbyClient(ctx context.Context, registry *media.ClientItemRegistry, clientID uint64, cfg config.EmbyConfig) (media.ClientMedia, error) {
+func NewEmbyClient(ctx context.Context, registry *media.ClientItemRegistry, clientID uint64, cfg *config.EmbyConfig) (media.ClientMedia, error) {
 
 	// Create API client configuration
 	apiConfig := embyclient.NewConfiguration()
@@ -42,7 +42,7 @@ func NewEmbyClient(ctx context.Context, registry *media.ClientItemRegistry, clie
 				ClientID: clientID,
 				Category: config.ClientTypeEmby.AsCategory(),
 				Type:     config.ClientTypeEmby,
-				Config:   &cfg,
+				Config:   cfg,
 			},
 		},
 		client: client,

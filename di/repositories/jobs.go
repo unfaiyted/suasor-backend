@@ -6,8 +6,6 @@ import (
 	"gorm.io/gorm"
 	"suasor/di/container"
 	"suasor/repository"
-	"suasor/services/jobs"
-	"suasor/services/jobs/recommendation"
 	"suasor/utils/logger"
 )
 
@@ -24,29 +22,6 @@ func registerJobRepositories(ctx context.Context, c *container.Container) {
 	container.RegisterFactory[repository.RecommendationRepository](c, func(c *container.Container) repository.RecommendationRepository {
 		db := container.MustGet[*gorm.DB](c)
 		return repository.NewRecommendationRepository(db)
-	})
-
-	// Watch History Sync Job
-	log.Info().Msg("Registering watch history sync job repository")
-	container.RegisterFactory[jobs.WatchHistorySyncJob](c, func(c *container.Container) jobs.WatchHistorySyncJob {
-		return *jobs.NewWatchHistorySyncJob(ctx, c)
-	})
-	// Favorites Sync Job
-	log.Info().Msg("Registering favorites sync job repository")
-	container.RegisterFactory[jobs.FavoritesSyncJob](c, func(c *container.Container) jobs.FavoritesSyncJob {
-		return *jobs.NewFavoritesSyncJob(ctx, c)
-	})
-
-	// Media Sync Job
-	log.Info().Msg("Registering media sync job repository")
-	container.RegisterFactory[jobs.MediaSyncJob](c, func(c *container.Container) jobs.MediaSyncJob {
-		return *jobs.NewMediaSyncJob(ctx, c)
-	})
-
-	// Recommendation Job
-	log.Info().Msg("Registering recommendation job repository")
-	container.RegisterFactory[recommendation.RecommendationJob](c, func(c *container.Container) recommendation.RecommendationJob {
-		return *recommendation.NewRecommendationJob(ctx, c)
 	})
 
 }

@@ -28,7 +28,7 @@ type RecommendationJob struct {
 	dataRepos          repobundles.UserMediaDataRepositories
 
 	// New repositories for credits and people
-	clientFactories *clients.ClientFactoryService
+	clientFactories *clients.ClientProviderFactoryService
 	creditRepo      repository.CreditRepository
 	peopleRepo      repository.PersonRepository
 }
@@ -46,7 +46,7 @@ func NewRecommendationJob(
 	dataRepos repobundles.UserMediaDataRepositories,
 
 	// New repositories for credits and people
-	clientFactories *clients.ClientFactoryService,
+	clientFactories *clients.ClientProviderFactoryService,
 	creditRepo repository.CreditRepository,
 	peopleRepo repository.PersonRepository,
 

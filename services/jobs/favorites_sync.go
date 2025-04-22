@@ -27,7 +27,7 @@ type FavoritesSyncJob struct {
 	dataRepos       repobundles.UserMediaDataRepositories
 	clientItemRepos repobundles.ClientMediaItemRepositories
 	itemRepos       repobundles.CoreMediaItemRepositories
-	clientFactories *clients.ClientFactoryService
+	clientFactories *clients.ClientProviderFactoryService
 }
 
 // NewFavoritesSyncJob creates a new favorites sync job
@@ -39,7 +39,7 @@ func NewFavoritesSyncJob(
 	dataRepos repobundles.UserMediaDataRepositories,
 	clientItemRepos repobundles.ClientMediaItemRepositories,
 	itemRepos repobundles.CoreMediaItemRepositories,
-	clientFactories *clients.ClientFactoryService,
+	clientFactories *clients.ClientProviderFactoryService,
 ) *FavoritesSyncJob {
 	return &FavoritesSyncJob{
 		jobRepo:         jobRepo,

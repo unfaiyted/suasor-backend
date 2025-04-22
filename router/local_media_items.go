@@ -2,7 +2,7 @@ package router
 
 import (
 	mediatypes "suasor/clients/media/types"
-	"suasor/container"
+	"suasor/di/container"
 	"suasor/handlers"
 
 	"context"

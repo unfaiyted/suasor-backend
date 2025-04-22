@@ -23,7 +23,7 @@ type SmartCollectionJob struct {
 	seriesRepo    repository.MediaItemRepository[*mediatypes.Series]
 	musicRepo     repository.MediaItemRepository[*mediatypes.Track]
 	clientRepos   map[clienttypes.ClientMediaType]interface{}
-	clientFactory *clients.ClientFactoryService
+	clientFactory *clients.ClientProviderFactoryService
 	aiService     interface{} // Using interface{} to avoid import cycles
 }
 
@@ -39,7 +39,7 @@ func NewSmartCollectionJob(
 	jellyfinRepo interface{},
 	plexRepo interface{},
 	subsonicRepo interface{},
-	clientFactory *clients.ClientFactoryService,
+	clientFactory *clients.ClientProviderFactoryService,
 	aiService interface{},
 ) *SmartCollectionJob {
 	clientRepos := map[clienttypes.ClientMediaType]interface{}{

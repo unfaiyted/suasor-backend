@@ -43,7 +43,7 @@ type searchService struct {
 	clientRepos          repobundles.ClientRepositories
 	itemRepos            repobundles.CoreMediaItemRepositories
 	personRepo           repository.PersonRepository
-	clientFactoryService *clients.ClientFactoryService
+	clientFactoryService *clients.ClientProviderFactoryService
 }
 
 // NewSearchService creates a new search service instance
@@ -52,7 +52,7 @@ func NewSearchService(
 	clientRepos repobundles.ClientRepositories,
 	itemRepos repobundles.CoreMediaItemRepositories,
 	personRepo repository.PersonRepository,
-	clientFactoryService *clients.ClientFactoryService,
+	clientFactoryService *clients.ClientProviderFactoryService,
 ) SearchService {
 	return &searchService{
 		searchRepo:           searchRepo,

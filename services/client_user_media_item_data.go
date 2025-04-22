@@ -3,7 +3,9 @@ package services
 import (
 	"context"
 	"fmt"
+	"suasor/clients"
 	"suasor/clients/media/types"
+	clienttypes "suasor/clients/types"
 	"suasor/repository"
 	"suasor/types/models"
 	"suasor/utils/logger"
@@ -12,48 +14,54 @@ import (
 
 // ClientUserMediaItemDataService defines the client service interface for user media item data
 // This service focuses on client-specific operations including synchronization with external media systems
-type ClientUserMediaItemDataService[T types.MediaData] interface {
+type ClientUserMediaItemDataService[T clienttypes.ClientMediaConfig, U types.MediaData] interface {
 	// Embed the user service methods
-	UserMediaItemDataService[T]
+	UserMediaItemDataService[U]
 
 	// SyncClientItemData synchronizes user media item data from an external client
-	SyncClientItemData(ctx context.Context, userID uint64, clientID uint64, items []models.UserMediaItemData[T]) error
+	SyncClientItemData(ctx context.Context, userID uint64, clientID uint64, items []models.UserMediaItemData[U]) error
 
 	// GetClientItemData retrieves user media item data for synchronization with a client
-	GetClientItemData(ctx context.Context, userID uint64, clientID uint64, since *string) ([]*models.UserMediaItemData[T], error)
+	GetClientItemData(ctx context.Context, userID uint64, clientID uint64, since *string) ([]*models.UserMediaItemData[U], error)
 
 	// GetByClientID retrieves a user media item data entry by client ID
-	GetByClientID(ctx context.Context, userID uint64, clientID uint64, clientItemID string) (*models.UserMediaItemData[T], error)
+	GetByClientID(ctx context.Context, userID uint64, clientID uint64, clientItemID string) (*models.UserMediaItemData[U], error)
 
 	// RecordClientPlay records a play event from a client
-	RecordClientPlay(ctx context.Context, userID uint64, clientID uint64, clientItemID string, data *models.UserMediaItemData[T]) (*models.UserMediaItemData[T], error)
+	RecordClientPlay(ctx context.Context, userID uint64, clientID uint64, clientItemID string, data *models.UserMediaItemData[U]) (*models.UserMediaItemData[U], error)
 
 	// GetPlaybackState retrieves the current playback state for a client item
-	GetPlaybackState(ctx context.Context, userID uint64, clientID uint64, clientItemID string) (*models.UserMediaItemData[T], error)
+	GetPlaybackState(ctx context.Context, userID uint64, clientID uint64, clientItemID string) (*models.UserMediaItemData[U], error)
 
 	// UpdatePlaybackState updates the playback state for a client item
-	UpdatePlaybackState(ctx context.Context, userID uint64, clientID uint64, clientItemID string, position int, duration int, percentage float64) (*models.UserMediaItemData[T], error)
+	UpdatePlaybackState(ctx context.Context, userID uint64, clientID uint64, clientItemID string, position int, duration int, percentage float64) (*models.UserMediaItemData[U], error)
 }
 
 // clientUserMediaItemDataService implements ClientUserMediaItemDataService
-type clientUserMediaItemDataService[T types.MediaData] struct {
-	UserMediaItemDataService[T]
-	repo repository.ClientUserMediaItemDataRepository[T]
+type clientUserMediaItemDataService[T clienttypes.ClientMediaConfig, U types.MediaData] struct {
+	UserMediaItemDataService[U]
+	dataRepo      repository.ClientUserMediaItemDataRepository[U]
+	clientRepo    repository.ClientRepository[T]
+	clientFactory *clients.ClientProviderFactoryService
 }
 
 // NewClientUserMediaItemDataService creates a new client user media item data service
-func NewClientUserMediaItemDataService[T types.MediaData](
-	userService UserMediaItemDataService[T],
-	repo repository.ClientUserMediaItemDataRepository[T],
-) ClientUserMediaItemDataService[T] {
-	return &clientUserMediaItemDataService[T]{
+func NewClientUserMediaItemDataService[T clienttypes.ClientMediaConfig, U types.MediaData](
+	userService UserMediaItemDataService[U],
+	dataRepo repository.ClientUserMediaItemDataRepository[U],
+	clientRepo repository.ClientRepository[T],
+	clientFactory *clients.ClientProviderFactoryService,
+) ClientUserMediaItemDataService[T, U] {
+	return &clientUserMediaItemDataService[T, U]{
 		UserMediaItemDataService: userService,
-		repo:                     repo,
+		dataRepo:                 dataRepo,
+		clientRepo:               clientRepo,
+		clientFactory:            clientFactory,
 	}
 }
 
 // SyncClientItemData synchronizes user media item data from an external client
-func (s *clientUserMediaItemDataService[T]) SyncClientItemData(ctx context.Context, userID uint64, clientID uint64, items []models.UserMediaItemData[T]) error {
+func (s *clientUserMediaItemDataService[T, U]) SyncClientItemData(ctx context.Context, userID uint64, clientID uint64, items []models.UserMediaItemData[U]) error {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
@@ -62,7 +70,7 @@ func (s *clientUserMediaItemDataService[T]) SyncClientItemData(ctx context.Conte
 		Msg("Synchronizing client media item data")
 
 	// Delegate to repository
-	err := s.repo.SyncClientItemData(ctx, userID, clientID, items)
+	err := s.dataRepo.SyncClientItemData(ctx, userID, clientID, items)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -81,7 +89,7 @@ func (s *clientUserMediaItemDataService[T]) SyncClientItemData(ctx context.Conte
 }
 
 // GetClientItemData retrieves user media item data for synchronization with a client
-func (s *clientUserMediaItemDataService[T]) GetClientItemData(ctx context.Context, userID uint64, clientID uint64, sinceDateStr *string) ([]*models.UserMediaItemData[T], error) {
+func (s *clientUserMediaItemDataService[T, U]) GetClientItemData(ctx context.Context, userID uint64, clientID uint64, sinceDateStr *string) ([]*models.UserMediaItemData[U], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
@@ -93,7 +101,7 @@ func (s *clientUserMediaItemDataService[T]) GetClientItemData(ctx context.Contex
 	sinceDate, err := time.Parse(time.RFC3339, *sinceDateStr)
 
 	// Delegate to repository
-	result, err := s.repo.GetClientItemData(ctx, userID, clientID, sinceDate)
+	result, err := s.dataRepo.GetClientItemData(ctx, userID, clientID, sinceDate)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -112,7 +120,7 @@ func (s *clientUserMediaItemDataService[T]) GetClientItemData(ctx context.Contex
 }
 
 // GetByClientID retrieves a user media item data entry by client ID
-func (s *clientUserMediaItemDataService[T]) GetByClientID(ctx context.Context, userID uint64, clientID uint64, clientItemID string) (*models.UserMediaItemData[T], error) {
+func (s *clientUserMediaItemDataService[T, U]) GetByClientID(ctx context.Context, userID uint64, clientID uint64, clientItemID string) (*models.UserMediaItemData[U], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
@@ -121,7 +129,7 @@ func (s *clientUserMediaItemDataService[T]) GetByClientID(ctx context.Context, u
 		Msg("Getting user media item data by client ID")
 
 	// Delegate to repository
-	result, err := s.repo.GetByClientID(ctx, userID, clientID, clientItemID)
+	result, err := s.dataRepo.GetByClientID(ctx, userID, clientID, clientItemID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -142,7 +150,7 @@ func (s *clientUserMediaItemDataService[T]) GetByClientID(ctx context.Context, u
 }
 
 // RecordClientPlay records a play event from a client
-func (s *clientUserMediaItemDataService[T]) RecordClientPlay(ctx context.Context, userID uint64, clientID uint64, clientItemID string, data *models.UserMediaItemData[T]) (*models.UserMediaItemData[T], error) {
+func (s *clientUserMediaItemDataService[T, U]) RecordClientPlay(ctx context.Context, userID uint64, clientID uint64, clientItemID string, data *models.UserMediaItemData[U]) (*models.UserMediaItemData[U], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
@@ -151,7 +159,7 @@ func (s *clientUserMediaItemDataService[T]) RecordClientPlay(ctx context.Context
 		Msg("Recording client play event")
 
 	// Delegate to repository
-	result, err := s.repo.RecordClientPlay(ctx, userID, clientID, clientItemID, data)
+	result, err := s.dataRepo.RecordClientPlay(ctx, userID, clientID, clientItemID, data)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -172,7 +180,7 @@ func (s *clientUserMediaItemDataService[T]) RecordClientPlay(ctx context.Context
 }
 
 // GetPlaybackState retrieves the current playback state for a client item
-func (s *clientUserMediaItemDataService[T]) GetPlaybackState(ctx context.Context, userID uint64, clientID uint64, clientItemID string) (*models.UserMediaItemData[T], error) {
+func (s *clientUserMediaItemDataService[T, U]) GetPlaybackState(ctx context.Context, userID uint64, clientID uint64, clientItemID string) (*models.UserMediaItemData[U], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
@@ -181,7 +189,7 @@ func (s *clientUserMediaItemDataService[T]) GetPlaybackState(ctx context.Context
 		Msg("Getting playback state")
 
 	// Delegate to repository
-	result, err := s.repo.GetPlaybackState(ctx, userID, clientID, clientItemID)
+	result, err := s.dataRepo.GetPlaybackState(ctx, userID, clientID, clientItemID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -202,7 +210,7 @@ func (s *clientUserMediaItemDataService[T]) GetPlaybackState(ctx context.Context
 }
 
 // UpdatePlaybackState updates the playback state for a client item
-func (s *clientUserMediaItemDataService[T]) UpdatePlaybackState(ctx context.Context, userID uint64, clientID uint64, clientItemID string, position int, duration int, percentage float64) (*models.UserMediaItemData[T], error) {
+func (s *clientUserMediaItemDataService[T, U]) UpdatePlaybackState(ctx context.Context, userID uint64, clientID uint64, clientItemID string, position int, duration int, percentage float64) (*models.UserMediaItemData[U], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
@@ -214,7 +222,7 @@ func (s *clientUserMediaItemDataService[T]) UpdatePlaybackState(ctx context.Cont
 		Msg("Updating playback state")
 
 	// Delegate to repository
-	result, err := s.repo.UpdatePlaybackState(ctx, userID, clientID, clientItemID, position, duration, percentage)
+	result, err := s.dataRepo.UpdatePlaybackState(ctx, userID, clientID, clientItemID, position, duration, percentage)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -236,7 +244,7 @@ func (s *clientUserMediaItemDataService[T]) UpdatePlaybackState(ctx context.Cont
 
 // Helper methods
 
-func (s *clientUserMediaItemDataService[T]) getSinceString(sinceDateStr *string) string {
+func (s *clientUserMediaItemDataService[T, U]) getSinceString(sinceDateStr *string) string {
 	if sinceDateStr == nil {
 		return "24 hours ago"
 	}

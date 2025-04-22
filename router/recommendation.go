@@ -3,7 +3,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"suasor/container"
+	"suasor/di/container"
 	"suasor/handlers"
 )
 

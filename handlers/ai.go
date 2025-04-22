@@ -15,7 +15,7 @@ import (
 
 // AIHandler implements AI-related handlers with support for multiple AI client types
 type AIHandler[T types.AIClientConfig] struct {
-	factory *clients.ClientFactoryService
+	factory *clients.ClientProviderFactoryService
 	service services.ClientService[T]
 	// Map to track active conversations by conversationID
 	activeConversations map[string]uint64 // conversationID -> userID
@@ -23,7 +23,7 @@ type AIHandler[T types.AIClientConfig] struct {
 
 // NewAIHandler creates a new AI handler
 func NewAIHandler[T types.AIClientConfig](
-	factory *clients.ClientFactoryService,
+	factory *clients.ClientProviderFactoryService,
 	service services.ClientService[T],
 ) *AIHandler[T] {
 	return &AIHandler[T]{

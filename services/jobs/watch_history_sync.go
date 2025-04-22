@@ -27,7 +27,7 @@ type WatchHistorySyncJob struct {
 	dataRepos       repobundles.UserMediaDataRepositories
 	clientItemRepos repobundles.ClientMediaItemRepositories
 	itemRepos       repobundles.CoreMediaItemRepositories
-	clientFactories *clients.ClientFactoryService
+	clientFactories *clients.ClientProviderFactoryService
 }
 
 // NewWatchHistorySyncJob creates a new watch history sync job
@@ -39,7 +39,7 @@ func NewWatchHistorySyncJob(
 	dataRepos repobundles.UserMediaDataRepositories,
 	clientItemRepos repobundles.ClientMediaItemRepositories,
 	itemRepos repobundles.CoreMediaItemRepositories,
-	clientFactories *clients.ClientFactoryService,
+	clientFactories *clients.ClientProviderFactoryService,
 ) *WatchHistorySyncJob {
 	return &WatchHistorySyncJob{
 		jobRepo:         jobRepo,

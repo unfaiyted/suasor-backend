@@ -13,7 +13,7 @@ func RegisterRepositories(ctx context.Context, c *container.Container) {
 
 	// System repositories
 	log.Info().Msg("Registering system repositories")
-	registerSystemRepositories(c)
+	registerSystemRepositories(ctx, c)
 
 	// Register client repositories
 	log.Info().Msg("Registering client repositories")

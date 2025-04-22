@@ -5,8 +5,6 @@ import (
 	"context"
 	"gorm.io/gorm"
 	"suasor/di/container"
-	// dihandlers "suasor/di/handlers"
-	handlerbundles "suasor/handlers/bundles"
 	"suasor/services"
 	"suasor/utils/logger"
 )
@@ -15,7 +13,6 @@ import (
 type AppDependencies struct {
 	db        *gorm.DB
 	container *container.Container
-	handlers  *handlerbundles.ApplicationHandlers
 }
 
 // GetContainer returns the application's dependency container
@@ -27,15 +24,6 @@ func (deps *AppDependencies) GetContainer() *container.Container {
 	return container
 }
 
-// GetHandlers returns the application's handlers
-func (deps *AppDependencies) GetHandlers() *handlerbundles.ApplicationHandlers {
-	handlers := deps.handlers
-	if handlers == nil {
-		panic("Handlers not initialized")
-	}
-	return handlers
-}
-
 // InitializeDependencies initializes all application dependencies
 func InitializeDependencies(ctx context.Context, db *gorm.DB, configService services.ConfigService) *AppDependencies {
 	log := logger.LoggerFromContext(ctx)
@@ -44,18 +32,10 @@ func InitializeDependencies(ctx context.Context, db *gorm.DB, configService serv
 	log.Info().Msg("Initializing dependency container")
 	c := RegisterAppContainers(ctx, db, configService)
 
-	// Get all handlers from the container
-	log.Info().Msg("Getting organized handlers from container")
-	handlers, err := handlerbundles.GetAllHandlers(ctx, c)
-	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to get handlers from container")
-	}
-
 	// Create the application dependencies with the initialized container and handlers
 	deps := &AppDependencies{
 		container: c,
 		db:        db,
-		handlers:  handlers,
 	}
 
 	log.Info().Msg("Application dependencies initialized successfully")

@@ -2,10 +2,14 @@
 package container
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"sync"
 	"time"
+	
+	"github.com/rs/zerolog"
+	"suasor/utils/logger"
 )
 
 // Container is a dependency injection container
@@ -15,14 +19,30 @@ type Container struct {
 	mutex      sync.RWMutex
 	// Add dependency tracking to detect circular dependencies
 	resolutionStack map[reflect.Type]bool
+	ctx             context.Context
+	logger          zerolog.Logger
 }
 
 // NewContainer creates a new DI container
 func NewContainer() *Container {
+	ctx := context.Background()
 	return &Container{
 		components:      make(map[reflect.Type]any),
 		factories:       make(map[reflect.Type]func(c *Container) any),
 		resolutionStack: make(map[reflect.Type]bool),
+		ctx:             ctx,
+		logger:          logger.LoggerFromContext(ctx),
+	}
+}
+
+// NewContainerWithContext creates a new DI container with a specified context
+func NewContainerWithContext(ctx context.Context) *Container {
+	return &Container{
+		components:      make(map[reflect.Type]any),
+		factories:       make(map[reflect.Type]func(c *Container) any),
+		resolutionStack: make(map[reflect.Type]bool),
+		ctx:             ctx,
+		logger:          logger.LoggerFromContext(ctx),
 	}
 }
 
@@ -63,7 +83,7 @@ func (c *Container) Get(t reflect.Type) (any, error) {
 		return component, nil
 	}
 
-	fmt.Printf("Component not found, checking for factory for type: %v\n", t)
+	c.logger.Debug().Type("type", t).Msg("Component not found, checking for factory")
 
 	// Find a factory for this component type
 	var factory func(c *Container) any
@@ -79,22 +99,29 @@ func (c *Container) Get(t reflect.Type) (any, error) {
 
 	// Handle circular dependency
 	if circularDependency {
-		fmt.Printf("⚠️ CIRCULAR DEPENDENCY DETECTED trying to resolve type: %v ⚠️\n", t)
-		// Print current stack under read lock
+		dependencies := []string{}
+		
+		// Collect dependency stack under read lock
 		c.mutex.RLock()
-		fmt.Println("Dependency resolution stack:")
 		for dep := range c.resolutionStack {
 			if c.resolutionStack[dep] {
-				fmt.Printf("- %v\n", dep)
+				dependencies = append(dependencies, dep.String())
 			}
 		}
 		c.mutex.RUnlock()
+		
+		// Log the circular dependency error
+		c.logger.Error().
+			Type("type", t).
+			Strs("dependency_stack", dependencies).
+			Msg("⚠️ CIRCULAR DEPENDENCY DETECTED ⚠️")
+			
 		return nil, fmt.Errorf("circular dependency detected for type %v", t)
 	}
 
 	// No factory found
 	if !factoryExists {
-		fmt.Printf("No factory found for type: %v\n", t)
+		c.logger.Debug().Type("type", t).Msg("No factory found for type")
 		return nil, fmt.Errorf("no component registered for type %v", t)
 	}
 
@@ -103,7 +130,7 @@ func (c *Container) Get(t reflect.Type) (any, error) {
 	c.mutex.Lock()
 	component, exists = c.components[t]
 	if exists {
-		fmt.Printf("Component found after re-check for type: %v\n", t)
+		c.logger.Debug().Type("type", t).Msg("Component found after re-check")
 		c.mutex.Unlock()
 		return component, nil
 	}
@@ -115,15 +142,20 @@ func (c *Container) Get(t reflect.Type) (any, error) {
 
 	// fmt.Printf("STARTING: Creating component using factory for type: %v\n", t)
 
-	// Print current resolution stack for debugging (under read lock)
+	// Log current resolution stack for debugging (under read lock)
+	depStack := []string{}
 	c.mutex.RLock()
-	fmt.Println("Current resolution stack:")
 	for dep := range c.resolutionStack {
 		if c.resolutionStack[dep] {
-			fmt.Printf("- %v\n", dep)
+			depStack = append(depStack, dep.String())
 		}
 	}
 	c.mutex.RUnlock()
+	
+	c.logger.Debug().
+		Type("type", t).
+		Strs("resolution_stack", depStack).
+		Msg("Resolving dependency")
 
 	// Call the factory with timeout to avoid infinite hangs
 	done := make(chan bool, 1)
@@ -133,38 +165,45 @@ func (c *Container) Get(t reflect.Type) (any, error) {
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				fmt.Printf("PANIC in factory for %v: %v\n", t, r)
+				c.logger.Error().
+					Type("type", t).
+					Interface("panic", r).
+					Msg("PANIC in factory")
 				factoryError = fmt.Errorf("factory for %v panicked: %v", t, r)
 			}
 			done <- true
 		}()
 
-		// fmt.Printf("Calling factory for type: %v\n", t)
 		componentResult = factory(c)
-		// fmt.Printf("Factory returned for type: %v\n", t)
 	}()
 
 	// Wait with timeout to prevent infinite hang
 	select {
 	case <-done:
 		// Factory completed successfully or with panic
-		// fmt.Printf("Factory for %v completed\n", t)
+		c.logger.Debug().Type("type", t).Msg("Factory completed")
 	case <-time.After(5 * time.Second):
 		// Factory is taking too long - likely a hang
-		fmt.Printf("⚠️ TIMEOUT: Factory for %v is taking too long (possible hang or deadlock) ⚠️\n", t)
-
+		components := []string{}
+		factories := []string{}
+		
 		// Provide detailed diagnostics of what's in the container (under read lock)
 		c.mutex.RLock()
-		// fmt.Println("Registered components:")
 		for compType := range c.components {
-			fmt.Printf("- %v\n", compType)
+			components = append(components, compType.String())
 		}
-
-		// fmt.Println("Registered factories:")
 		for factoryType := range c.factories {
-			fmt.Printf("- %v\n", factoryType)
+			factories = append(factories, factoryType.String())
 		}
 		c.mutex.RUnlock()
+
+		// Log detailed timeout information
+		c.logger.Error().
+			Type("type", t).
+			Strs("registered_components", components).
+			Strs("registered_factories", factories).
+			Strs("resolution_stack", depStack).
+			Msg("⚠️ TIMEOUT: Factory is taking too long (possible hang or deadlock) ⚠️")
 
 		// Update resolution stack
 		c.mutex.Lock()

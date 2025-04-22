@@ -4,16 +4,35 @@ package services
 import (
 	"context"
 	mediatypes "suasor/clients/media/types"
-	"suasor/container"
-	"suasor/repository"
+	"suasor/di/container"
 	apprepository "suasor/repository/bundles"
 	repobundles "suasor/repository/bundles"
 
 	"suasor/services"
+
+	"suasor/clients"
+	"suasor/clients/types"
+	"suasor/repository"
 )
 
+func registerListServices(ctx context.Context, c *container.Container) {
+
+	registerMediaListServices(ctx, c)
+
+	registerClientListService[*types.JellyfinConfig, *mediatypes.Collection](c)
+	registerClientListService[*types.EmbyConfig, *mediatypes.Collection](c)
+	registerClientListService[*types.PlexConfig, *mediatypes.Collection](c)
+	registerClientListService[*types.SubsonicConfig, *mediatypes.Collection](c)
+
+	registerClientListService[*types.EmbyConfig, *mediatypes.Playlist](c)
+	registerClientListService[*types.JellyfinConfig, *mediatypes.Playlist](c)
+	registerClientListService[*types.PlexConfig, *mediatypes.Playlist](c)
+	registerClientListService[*types.SubsonicConfig, *mediatypes.Playlist](c)
+
+}
+
 // RegisterMediaListServices registers services for media lists
-func RegisterMediaListServices(ctx context.Context, c *container.Container) {
+func registerMediaListServices(ctx context.Context, c *container.Container) {
 
 	// Register CoreListService for Playlists
 	container.RegisterFactory[services.CoreListService[*mediatypes.Playlist]](c, func(c *container.Container) services.CoreListService[*mediatypes.Playlist] {
@@ -50,5 +69,14 @@ func RegisterMediaListServices(ctx context.Context, c *container.Container) {
 		userItemRepo := userRepos.CollectionUserRepo()
 		userDataRepo := userDataRepos.CollectionDataRepo()
 		return services.NewUserListService[*mediatypes.Collection](coreService, userItemRepo, userDataRepo)
+	})
+}
+
+func registerClientListService[T types.ClientMediaConfig, U mediatypes.ListData](c *container.Container) {
+	container.RegisterFactory[services.ClientListService[T, U]](c, func(c *container.Container) services.ClientListService[T, U] {
+		coreListService := container.MustGet[services.CoreListService[U]](c)
+		clientRepo := container.MustGet[repository.ClientRepository[T]](c)
+		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
+		return services.NewClientListService[T, U](coreListService, clientRepo, clientFactory)
 	})
 }

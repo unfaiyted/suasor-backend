@@ -27,7 +27,7 @@ type MediaSyncJob struct {
 	dataRepos       repobundles.UserMediaDataRepositories
 	clientItemRepos repobundles.ClientMediaItemRepositories
 	itemRepos       repobundles.CoreMediaItemRepositories
-	clientFactories *clients.ClientFactoryService
+	clientFactories *clients.ClientProviderFactoryService
 }
 
 // NewMediaSyncJob creates a new media sync job
@@ -39,7 +39,7 @@ func NewMediaSyncJob(
 	dataRepos repobundles.UserMediaDataRepositories,
 	clientItemRepos repobundles.ClientMediaItemRepositories,
 	itemRepos repobundles.CoreMediaItemRepositories,
-	clientFactories *clients.ClientFactoryService,
+	clientFactories *clients.ClientProviderFactoryService,
 ) *MediaSyncJob {
 	return &MediaSyncJob{
 		jobRepo:         jobRepo,

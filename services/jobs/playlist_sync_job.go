@@ -41,7 +41,7 @@ type PlaylistSyncJob struct {
 	userRepo           repository.UserRepository
 	configRepo         repository.UserConfigRepository
 	clientRepos        repobundles.ClientRepositories
-	clientFactory      *clients.ClientFactoryService
+	clientFactory      *clients.ClientProviderFactoryService
 	mediaItemRepo      repository.ClientMediaItemRepository[mediatypes.MediaData]
 	userMediaDataRepo  repository.UserMediaItemDataRepository[mediatypes.MediaData]
 	userMovieDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Movie]
@@ -55,7 +55,7 @@ func NewPlaylistSyncJob(
 	userRepo repository.UserRepository,
 	configRepo repository.UserConfigRepository,
 	clientRepos repobundles.ClientRepositories,
-	clientFactory *clients.ClientFactoryService,
+	clientFactory *clients.ClientProviderFactoryService,
 	userMovieDataRepo repository.UserMediaItemDataRepository[*mediatypes.Movie],
 	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series],
 	userMusicDataRepo repository.UserMediaItemDataRepository[*mediatypes.Track],

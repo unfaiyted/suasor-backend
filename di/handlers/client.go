@@ -5,7 +5,7 @@ import (
 	"context"
 	"suasor/clients"
 	"suasor/clients/types"
-	"suasor/container"
+	"suasor/di/container"
 	"suasor/handlers"
 	apphandlers "suasor/handlers/bundles"
 	"suasor/services"
@@ -47,7 +47,7 @@ func RegisterClientHandlers(ctx context.Context, c *container.Container) {
 
 	// Register AI handlers TODO: move to AI bundle
 	container.RegisterFactory[*handlers.AIHandler[*types.ClaudeConfig]](c, func(c *container.Container) *handlers.AIHandler[*types.ClaudeConfig] {
-		clientFactory := container.MustGet[*client.ClientFactoryService](c)
+		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
 		clientService := container.MustGet[services.ClientService[*types.ClaudeConfig]](c)
 
 		return handlers.NewAIHandler(
@@ -56,7 +56,7 @@ func RegisterClientHandlers(ctx context.Context, c *container.Container) {
 		)
 	})
 	container.RegisterFactory[*handlers.AIHandler[*types.OpenAIConfig]](c, func(c *container.Container) *handlers.AIHandler[*types.OpenAIConfig] {
-		clientFactory := container.MustGet[*client.ClientFactoryService](c)
+		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
 		clientService := container.MustGet[services.ClientService[*types.OpenAIConfig]](c)
 
 		return handlers.NewAIHandler(
@@ -65,7 +65,7 @@ func RegisterClientHandlers(ctx context.Context, c *container.Container) {
 		)
 	})
 	container.RegisterFactory[*handlers.AIHandler[*types.OllamaConfig]](c, func(c *container.Container) *handlers.AIHandler[*types.OllamaConfig] {
-		clientFactory := container.MustGet[*client.ClientFactoryService](c)
+		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
 		clientService := container.MustGet[services.ClientService[*types.OllamaConfig]](c)
 
 		return handlers.NewAIHandler(

@@ -1,9 +1,12 @@
 package router
 
 import (
+	"fmt"
 	mediatypes "suasor/clients/media/types"
-	"suasor/container"
+	clienttypes "suasor/clients/types"
+	"suasor/di/container"
 	"suasor/handlers"
+	"suasor/types/responses"
 
 	"github.com/gin-gonic/gin"
 )
@@ -104,18 +107,64 @@ func registerMusicUserMediaItemDataRoutes(rg *gin.RouterGroup, handler handlers.
 }
 
 func registerClientDataRoutes[T mediatypes.MediaData](rg *gin.RouterGroup, c *container.Container) {
-	// Get handlers
-	clientDataHandlers := container.MustGet[handlers.ClientUserMediaItemDataHandler[T]](c)
 
 	var zero T
 	mediaType := mediatypes.GetMediaTypeFromTypeName(zero)
 
 	clientDataGroup := rg.Group("/" + string(mediaType))
+
 	// Core routes
-	clientDataGroup.POST("/sync", clientDataHandlers.SyncClientItemData)
-	clientDataGroup.GET("", clientDataHandlers.GetClientItemData)
-	clientDataGroup.GET("/item/:clientItemId", clientDataHandlers.GetMediaItemDataByClientID)
-	clientDataGroup.POST("/item/:clientItemId/play", clientDataHandlers.RecordClientPlay)
-	clientDataGroup.GET("/item/:clientItemId/state", clientDataHandlers.GetPlaybackState)
-	clientDataGroup.PUT("/item/:clientItemId/state", clientDataHandlers.UpdatePlaybackState)
+	clientDataGroup.POST("/sync", func(g *gin.Context) {
+		if handler := getClientDataHandler[T](g, c); handler != nil {
+			handler.SyncClientItemData(g)
+		}
+	})
+	clientDataGroup.GET("/", func(g *gin.Context) {
+		if handler := getClientDataHandler[T](g, c); handler != nil {
+			handler.GetClientItemData(g)
+		}
+	})
+	clientDataGroup.GET("/item/:clientItemId", func(g *gin.Context) {
+		if handler := getClientDataHandler[T](g, c); handler != nil {
+			handler.GetMediaItemDataByClientID(g)
+		}
+	})
+	clientDataGroup.POST("/item/:clientItemId/play", func(g *gin.Context) {
+		if handler := getClientDataHandler[T](g, c); handler != nil {
+			handler.RecordClientPlay(g)
+		}
+	})
+	clientDataGroup.GET("/item/:clientItemId/state", func(g *gin.Context) {
+		if handler := getClientDataHandler[T](g, c); handler != nil {
+			handler.GetPlaybackState(g)
+		}
+	})
+	clientDataGroup.PUT("/item/:clientItemId/state", func(g *gin.Context) {
+		if handler := getClientDataHandler[T](g, c); handler != nil {
+			handler.UpdatePlaybackState(g)
+		}
+	})
+
+}
+
+func getClientDataHandlerMap[T mediatypes.MediaData](c *container.Container, clientType string) (handlers.ClientUserMediaItemDataHandler[clienttypes.ClientMediaConfig, T], bool) {
+	handlers := map[string]handlers.ClientUserMediaItemDataHandler[clienttypes.ClientMediaConfig, T]{
+		"emby":     container.MustGet[handlers.ClientUserMediaItemDataHandler[*clienttypes.EmbyConfig, T]](c),
+		"jellyfin": container.MustGet[handlers.ClientUserMediaItemDataHandler[*clienttypes.JellyfinConfig, T]](c),
+		"plex":     container.MustGet[handlers.ClientUserMediaItemDataHandler[*clienttypes.PlexConfig, T]](c),
+		"subsonic": container.MustGet[handlers.ClientUserMediaItemDataHandler[*clienttypes.SubsonicConfig, T]](c),
+	}
+	handler, exists := handlers[clientType]
+	return handler, exists
+}
+
+func getClientDataHandler[T mediatypes.MediaData](g *gin.Context, c *container.Container) handlers.ClientUserMediaItemDataHandler[clienttypes.ClientMediaConfig, T] {
+	clientType := g.Param("clientType")
+	handler, exists := getClientDataHandlerMap[T](c, clientType)
+	if !exists {
+		err := fmt.Errorf("unsupported client type: %s", clientType)
+		responses.RespondBadRequest(g, err, "Unsupported client type")
+		return nil
+	}
+	return handler
 }

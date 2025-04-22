@@ -4,7 +4,7 @@ import (
 	"suasor/handlers"
 
 	"github.com/gin-gonic/gin"
-	"suasor/container"
+	"suasor/di/container"
 )
 
 func RegisterUserConfigRoutes(rg *gin.RouterGroup, c *container.Container) {

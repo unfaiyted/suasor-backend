@@ -21,7 +21,7 @@ type PlexClient struct {
 }
 
 // NewPlexClient creates a new Plex client
-func NewPlexClient(ctx context.Context, registry *media.ClientItemRegistry, clientID uint64, config client.PlexConfig) (media.ClientMedia, error) {
+func NewPlexClient(ctx context.Context, registry *media.ClientItemRegistry, clientID uint64, config *client.PlexConfig) (media.ClientMedia, error) {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
 
@@ -45,7 +45,7 @@ func NewPlexClient(ctx context.Context, registry *media.ClientItemRegistry, clie
 				ClientID: clientID,
 				Category: client.ClientMediaTypePlex.AsCategory(),
 				Type:     client.ClientTypePlex,
-				Config:   &config,
+				Config:   config,
 			},
 		},
 		plexAPI: plexAPI,

@@ -28,13 +28,13 @@ type UserMediaItemDataServices interface {
 	PlaylistDataService() services.UserMediaItemDataService[*mediatypes.Playlist]
 }
 
-type ClientUserMediaItemDataServices interface {
-	MovieDataService() services.ClientUserMediaItemDataService[*mediatypes.Movie]
-	SeriesDataService() services.ClientUserMediaItemDataService[*mediatypes.Series]
-	EpisodeDataService() services.ClientUserMediaItemDataService[*mediatypes.Episode]
-	TrackDataService() services.ClientUserMediaItemDataService[*mediatypes.Track]
-	AlbumDataService() services.ClientUserMediaItemDataService[*mediatypes.Album]
-	ArtistDataService() services.ClientUserMediaItemDataService[*mediatypes.Artist]
-	CollectionDataService() services.ClientUserMediaItemDataService[*mediatypes.Collection]
-	PlaylistDataService() services.ClientUserMediaItemDataService[*mediatypes.Playlist]
-}
+// type ClientUserMediaItemDataServices interface {
+// 	MovieDataService() services.ClientUserMediaItemDataService[*mediatypes.Movie]
+// 	SeriesDataService() services.ClientUserMediaItemDataService[*mediatypes.Series]
+// 	EpisodeDataService() services.ClientUserMediaItemDataService[*mediatypes.Episode]
+// 	TrackDataService() services.ClientUserMediaItemDataService[*mediatypes.Track]
+// 	AlbumDataService() services.ClientUserMediaItemDataService[*mediatypes.Album]
+// 	ArtistDataService() services.ClientUserMediaItemDataService[*mediatypes.Artist]
+// 	CollectionDataService() services.ClientUserMediaItemDataService[*mediatypes.Collection]
+// 	PlaylistDataService() services.ClientUserMediaItemDataService[*mediatypes.Playlist]
+// }

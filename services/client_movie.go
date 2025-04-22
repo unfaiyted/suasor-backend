@@ -34,13 +34,13 @@ type ClientMovieService[T types.ClientConfig] interface {
 
 type clientMovieService[T types.ClientMediaConfig] struct {
 	clientRepo    repository.ClientRepository[T]
-	clientFactory *clients.ClientFactoryService
+	clientFactory *clients.ClientProviderFactoryService
 }
 
 // NewClientMovieService creates a new media movie service
 func NewClientMovieService[T types.ClientMediaConfig](
 	clientRepo repository.ClientRepository[T],
-	factory *clients.ClientFactoryService,
+	factory *clients.ClientProviderFactoryService,
 ) ClientMovieService[T] {
 	return &clientMovieService[T]{
 		clientRepo:    clientRepo,

@@ -1,7 +1,7 @@
 package router
 
 import (
-	"suasor/container"
+	"suasor/di/container"
 	// "suasor/app/handlers"
 	apphandlers "suasor/handlers/bundles"
 	// "suasor/handlers"

@@ -8,7 +8,7 @@ import (
 	"suasor/clients/media/jellyfin"
 	"suasor/clients/media/plex"
 	"suasor/clients/media/subsonic"
-	"suasor/container"
+	"suasor/di/container"
 )
 
 func RegisterClientMediaItemFactories(ctx context.Context, c *container.Container) {
@@ -18,6 +18,8 @@ func RegisterClientMediaItemFactories(ctx context.Context, c *container.Containe
 		return *media.NewClientItemRegistry()
 	})
 
+	// TODO: Consider refactoring these to move the logic into the DI folders
+	// These allow the client to crete different Item factories (move, series)
 	emby.RegisterMediaItemFactories(c)
 	plex.RegisterMediaItemFactories(c)
 	jellyfin.RegisterMediaItemFactories(c)

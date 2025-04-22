@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"suasor/container"
+	"suasor/di/container"
 )
 
 // RegisterMetadataRoutes registers all metadata client routes

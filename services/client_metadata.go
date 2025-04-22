@@ -16,7 +16,7 @@ type MetadataClientService[T types.MetadataClientConfig] struct {
 }
 
 // NewMetadataClientService creates a new MetadataClientService
-func NewMetadataClientService[T types.MetadataClientConfig](factory *clients.ClientFactoryService, repo repository.ClientRepository[T]) *MetadataClientService[T] {
+func NewMetadataClientService[T types.MetadataClientConfig](factory *clients.ClientProviderFactoryService, repo repository.ClientRepository[T]) *MetadataClientService[T] {
 	return &MetadataClientService[T]{
 		clientService: NewClientService(factory, repo),
 	}

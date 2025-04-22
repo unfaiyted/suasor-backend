@@ -40,13 +40,13 @@ type ClientSeriesService[T types.ClientConfig] interface {
 
 type clientSeriesService[T types.ClientMediaConfig] struct {
 	clientRepo    repository.ClientRepository[T]
-	clientFactory *clients.ClientFactoryService
+	clientFactory *clients.ClientProviderFactoryService
 }
 
 // NewClientSeriesService creates a new TV series service
 func NewClientSeriesService[T types.ClientMediaConfig](
 	clientRepo repository.ClientRepository[T],
-	factory *clients.ClientFactoryService,
+	factory *clients.ClientProviderFactoryService,
 ) ClientSeriesService[T] {
 	return &clientSeriesService[T]{
 		clientRepo:    clientRepo,

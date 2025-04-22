@@ -20,7 +20,7 @@ type SubsonicClient struct {
 }
 
 // NewSubsonicClient creates a new Subsonic client
-func NewSubsonicClient(ctx context.Context, registry *media.ClientItemRegistry, clientID uint64, config types.SubsonicConfig) (media.ClientMedia, error) {
+func NewSubsonicClient(ctx context.Context, registry *media.ClientItemRegistry, clientID uint64, config *types.SubsonicConfig) (media.ClientMedia, error) {
 	log := logger.LoggerFromContext(context.Background())
 
 	log.Info().
@@ -57,7 +57,7 @@ func NewSubsonicClient(ctx context.Context, registry *media.ClientItemRegistry, 
 			BaseClient: base.BaseClient{
 				ClientID: clientID,
 				Category: types.ClientMediaTypeSubsonic.AsCategory(),
-				Config:   &config,
+				Config:   config,
 			},
 			ClientType:   types.ClientMediaTypeSubsonic,
 			ItemRegistry: registry,

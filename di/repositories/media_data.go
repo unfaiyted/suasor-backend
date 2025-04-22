@@ -5,6 +5,7 @@ import (
 	mediatypes "suasor/clients/media/types"
 	"suasor/di/container"
 	"suasor/repository"
+	repobundles "suasor/repository/bundles"
 )
 
 // Register media item data repositories
@@ -21,6 +22,19 @@ func registerMediaItemDataRepositories(c *container.Container) {
 	registerDataRepository[*mediatypes.Playlist](c, db)
 
 	// TODO: ClientDataRepositories
+
+	container.RegisterFactory[repobundles.UserMediaDataRepositories](c, func(c *container.Container) repobundles.UserMediaDataRepositories {
+		return repobundles.NewUserMediaDataRepositories(
+			container.MustGet[repository.UserMediaItemDataRepository[*mediatypes.Movie]](c),
+			container.MustGet[repository.UserMediaItemDataRepository[*mediatypes.Series]](c),
+			container.MustGet[repository.UserMediaItemDataRepository[*mediatypes.Episode]](c),
+			container.MustGet[repository.UserMediaItemDataRepository[*mediatypes.Track]](c),
+			container.MustGet[repository.UserMediaItemDataRepository[*mediatypes.Album]](c),
+			container.MustGet[repository.UserMediaItemDataRepository[*mediatypes.Artist]](c),
+			container.MustGet[repository.UserMediaItemDataRepository[*mediatypes.Collection]](c),
+			container.MustGet[repository.UserMediaItemDataRepository[*mediatypes.Playlist]](c),
+		)
+	})
 }
 
 func registerDataRepository[T mediatypes.MediaData](c *container.Container, db *gorm.DB) {

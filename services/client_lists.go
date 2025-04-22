@@ -53,14 +53,14 @@ type ClientListService[T types.ClientMediaConfig, U mediatypes.ListData] interfa
 type clientListService[T types.ClientMediaConfig, U mediatypes.ListData] struct {
 	listService   CoreListService[U]
 	clientRepo    repository.ClientRepository[T]
-	clientFactory *clients.ClientFactoryService
+	clientFactory *clients.ClientProviderFactoryService
 }
 
 // NewClientPlaylistService creates a new media playlist service
 func NewClientListService[T types.ClientMediaConfig, U mediatypes.ListData](
 	listService CoreListService[U],
 	clientRepo repository.ClientRepository[T],
-	clientFactory *clients.ClientFactoryService,
+	clientFactory *clients.ClientProviderFactoryService,
 ) ClientListService[T, U] {
 	return &clientListService[T, U]{
 		listService:   listService,

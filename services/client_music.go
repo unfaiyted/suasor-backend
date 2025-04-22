@@ -67,12 +67,12 @@ type MusicSearchResults struct {
 
 type mediaMusicService[T types.ClientMediaConfig] struct {
 	clientRepo    repository.ClientRepository[T]
-	clientFactory *clients.ClientFactoryService
+	clientFactory *clients.ClientProviderFactoryService
 }
 
 func NewClientMusicService[T types.ClientMediaConfig](
 	clientRepo repository.ClientRepository[T],
-	clientFactory *clients.ClientFactoryService,
+	clientFactory *clients.ClientProviderFactoryService,
 ) ClientMusicService[T] {
 	return &mediaMusicService[T]{
 		clientRepo:    clientRepo,

@@ -71,5 +71,5 @@ func RegisterClientType(clientType client.ClientType, simpleFactory SimpleClient
 		return client, nil
 	}
 
-	RegisterClientFactory(clientType, factory)
+	RegisterClientProviderFactory(clientType, factory)
 }

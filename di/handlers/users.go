@@ -3,7 +3,7 @@ package handlers
 
 import (
 	"context"
-	"suasor/container"
+	"suasor/di/container"
 	"suasor/handlers"
 	"suasor/services"
 )

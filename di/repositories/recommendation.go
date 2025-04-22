@@ -3,7 +3,7 @@ package repositories
 
 import (
 	"context"
-	"suasor/container"
+	"suasor/di/container"
 	"suasor/repository"
 
 	"gorm.io/gorm"
@@ -18,4 +18,3 @@ func RegisterRecommendationRepository(ctx context.Context, c *container.Containe
 	})
 
 }
-

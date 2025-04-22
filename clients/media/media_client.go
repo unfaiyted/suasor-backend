@@ -29,6 +29,7 @@ type ClientMedia interface {
 	GetRegistry() *ClientItemRegistry
 
 	Search(ctx context.Context, options *media.QueryOptions) (responses.SearchResults, error)
+	AsGenericClient() clients.Client
 }
 
 type BaseClientMedia struct {
@@ -66,6 +67,10 @@ func (m *BaseClientMedia) SupportsHistory() bool     { return false }
 
 func (b *BaseClientMedia) GetRegistry() *ClientItemRegistry {
 	return b.ItemRegistry
+}
+
+func (b *BaseClientMedia) AsGenericClient() clients.Client {
+	return b
 }
 
 // Embed in your clients to provide default behavior

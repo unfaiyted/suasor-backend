@@ -7,26 +7,10 @@ import (
 	radarr "github.com/devopsarr/radarr-go/radarr"
 
 	base "suasor/clients"
-	c "suasor/clients"
 	auto "suasor/clients/automation"
 	"suasor/clients/automation/types"
 	config "suasor/clients/types"
 )
-
-// Add this init function to register the radarr client factory
-func init() {
-	c.GetClientFactoryService().RegisterClientFactory(config.ClientTypeRadarr,
-		func(ctx context.Context, clientID uint64, cfg config.ClientConfig) (base.Client, error) {
-			// Type assert to radarrConfig
-			radarrConfig, ok := cfg.(*config.RadarrConfig)
-			if !ok {
-				return nil, fmt.Errorf("invalid config type for radarr client, expected *EmbyConfig, got %T", cfg)
-			}
-
-			// Use your existing constructor
-			return NewRadarrClient(ctx, clientID, *radarrConfig)
-		})
-}
 
 // RadarrClient implements the AutomationProvider interface
 type RadarrClient struct {
@@ -36,7 +20,7 @@ type RadarrClient struct {
 }
 
 // NewRadarrClient creates a new Radarr client instance
-func NewRadarrClient(ctx context.Context, clientID uint64, c config.RadarrConfig) (auto.AutomationClient, error) {
+func NewRadarrClient(ctx context.Context, clientID uint64, c *config.RadarrConfig) (auto.AutomationClient, error) {
 
 	// Create API client configuration
 	apiConfig := radarr.NewConfiguration()
@@ -58,7 +42,7 @@ func NewRadarrClient(ctx context.Context, clientID uint64, c config.RadarrConfig
 			ClientType: config.AutomationClientTypeRadarr,
 		},
 		client: client,
-		config: c,
+		config: *c,
 	}
 
 	return radarrClient, nil

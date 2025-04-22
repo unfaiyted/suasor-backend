@@ -1,7 +1,7 @@
 package router
 
 import (
-	"suasor/container"
+	"suasor/di/container"
 	"suasor/handlers"
 
 	"github.com/gin-gonic/gin"

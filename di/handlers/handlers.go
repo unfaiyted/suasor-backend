@@ -1,28 +1,30 @@
 // app/di/handlers.go
-package di
+package handlers
 
 import (
 	"context"
-	"suasor/container"
-	"suasor/di/handlers"
+	"suasor/di/container"
 )
 
 // RegisterHandlers registers all handler dependencies
 func RegisterHandlers(ctx context.Context, c *container.Container) {
 	// Register core handlers (system, user, client)
-	handlers.RegisterSystemHandlers(ctx, c)
-	handlers.RegisterUserHandlers(ctx, c)
-	handlers.RegisterClientHandlers(ctx, c)
+	RegisterSystemHandlers(ctx, c)
+	RegisterUserHandlers(ctx, c)
+	RegisterClientHandlers(ctx, c)
 
 	// Register media handlers
-	handlers.RegisterMediaHandlers(ctx, c)
+	RegisterMediaItemHandlers(ctx, c)
+
+	// Register meida data handlers
+	RegisterMediaDataHandlers(ctx, c)
 
 	// Register job handlers
-	handlers.RegisterJobHandlers(ctx, c)
+	RegisterJobHandlers(ctx, c)
 
 	// Register recommendation handlers
-	handlers.RegisterRecommendationHandlers(ctx, c)
+	RegisterRecommendationHandlers(ctx, c)
 
 	// Register media list handlers
-	handlers.RegisterMediaListHandlers(ctx, c)
+	RegisterMediaListHandlers(ctx, c)
 }

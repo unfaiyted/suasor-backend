@@ -5,15 +5,14 @@ import (
 	"context"
 	mediatypes "suasor/clients/media/types"
 	clienttypes "suasor/clients/types"
-	"suasor/container"
-	"suasor/di/factories"
+	"suasor/di/container"
 	"suasor/handlers"
 	"suasor/services"
 	svcbundles "suasor/services/bundles"
 )
 
 // RegisterMediaHandlers registers all media-related handlers
-func RegisterMediaHandlers(ctx context.Context, c *container.Container) {
+func RegisterMediaItemHandlers(ctx context.Context, c *container.Container) {
 
 	registerCoreMediaItemHandler[*mediatypes.Movie](c)
 	registerCoreMediaItemHandler[*mediatypes.Series](c)
@@ -128,7 +127,6 @@ func registerCoreMediaItemHandler[T mediatypes.MediaData](c *container.Container
 	})
 }
 func registerUserMediaItemHandler[T mediatypes.MediaData](c *container.Container) {
-	// Register user media item handlers
 	container.RegisterFactory[handlers.UserMediaItemHandler[T]](c, func(c *container.Container) handlers.UserMediaItemHandler[T] {
 		coreHandlers := container.MustGet[handlers.CoreMediaItemHandler[T]](c)
 		userServices := container.MustGet[services.UserMediaItemService[T]](c)
@@ -137,10 +135,9 @@ func registerUserMediaItemHandler[T mediatypes.MediaData](c *container.Container
 }
 func registerClientMediaItemHandler[T clienttypes.ClientMediaConfig, U mediatypes.MediaData](c *container.Container) {
 	container.RegisterFactory[handlers.ClientMediaItemHandler[T, U]](c, func(c *container.Container) handlers.ClientMediaItemHandler[T, U] {
-		factory := container.MustGet[factories.MediaDataFactory](c)
-		clientServices := container.MustGet[svcbundles.ClientMediaItemServices[clienttypes.ClientMediaConfig]](c)
-		userServices := container.MustGet[svcbundles.UserMediaItemServices](c)
-		userHandlers := container.MustGet[handlers.UserMediaItemHandler[U]](c)
-		return factory.CreateClientMediaItemHandlers(clientServices, userServices, userHandlers)
+		userHander := container.MustGet[handlers.UserMediaItemHandler[U]](c)
+		clientService := container.MustGet[services.ClientMediaItemService[T, U]](c)
+		return handlers.NewClientMediaItemHandler[T, U](userHander, clientService)
 	})
+
 }

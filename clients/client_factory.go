@@ -14,42 +14,41 @@ type ClientKey struct {
 	ID   uint64
 }
 
-// Factory function type
-type ClientFactory func(ctx context.Context, clientID uint64, config types.ClientConfig) (Client, error)
+type ClientProviderFactory func(ctx context.Context, clientID uint64, config types.ClientConfig) (Client, error)
 
-// ClientFactoryService provides client creation functionality as a singleton
-type ClientFactoryService struct {
-	factories map[types.ClientType]ClientFactory
+// ClientProviderFactoryService provides client  provider creation functionality as a singleton
+type ClientProviderFactoryService struct {
+	factories map[types.ClientType]ClientProviderFactory
 	instances map[ClientKey]Client
 	mu        sync.RWMutex
 }
 
 // Singleton instance with thread-safe initialization
 var (
-	instance *ClientFactoryService
+	instance *ClientProviderFactoryService
 	once     sync.Once
 )
 
-// GetClientFactoryService returns the singleton instance
-func GetClientFactoryService() *ClientFactoryService {
+// GetClientProviderFactoryService returns the singleton instance
+func GetClientProviderFactoryService() *ClientProviderFactoryService {
 	once.Do(func() {
-		instance = &ClientFactoryService{
-			factories: make(map[types.ClientType]ClientFactory),
+		instance = &ClientProviderFactoryService{
+			factories: make(map[types.ClientType]ClientProviderFactory),
 			instances: make(map[ClientKey]Client),
 		}
 	})
 	return instance
 }
 
-// RegisterClientFactory registers a factory function for a specific client type
-func (s *ClientFactoryService) RegisterClientFactory(clientType types.ClientType, factory ClientFactory) {
+// RegisterClientProviderFactory registers a factory function for a specific client provider type
+func (s *ClientProviderFactoryService) RegisterClientProviderFactory(clientType types.ClientType, factory ClientProviderFactory) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.factories[clientType] = factory
 }
 
 // UnregisterClient unregisters a client
-func (s *ClientFactoryService) UnregisterClient(ctx context.Context, clientID uint64, config types.ClientConfig) {
+func (s *ClientProviderFactoryService) UnregisterClient(ctx context.Context, clientID uint64, config types.ClientConfig) {
 	log := logger.LoggerFromContext(ctx)
 	clientType := config.GetType()
 	key := ClientKey{Type: clientType, ID: clientID}
@@ -89,7 +88,7 @@ func (s *ClientFactoryService) UnregisterClient(ctx context.Context, clientID ui
 }
 
 // GetClient returns an existing client or creates a new one
-func (s *ClientFactoryService) GetClient(ctx context.Context, clientID uint64, config types.ClientConfig) (Client, error) {
+func (s *ClientProviderFactoryService) GetClient(ctx context.Context, clientID uint64, config types.ClientConfig) (Client, error) {
 	log := logger.LoggerFromContext(ctx)
 	clientType := config.GetType()
 	key := ClientKey{Type: clientType, ID: clientID}
@@ -166,7 +165,7 @@ func (s *ClientFactoryService) GetClient(ctx context.Context, clientID uint64, c
 	return client, nil
 }
 
-func (s *ClientFactoryService) GetMovieProvider(ctx context.Context, clientID uint64, config types.ClientConfig) (providers.MovieProvider, error) {
+func (s *ClientProviderFactoryService) GetMovieProvider(ctx context.Context, clientID uint64, config types.ClientConfig) (providers.MovieProvider, error) {
 	client, err := s.GetClient(ctx, clientID, config)
 	if err != nil {
 		return nil, err
@@ -174,7 +173,7 @@ func (s *ClientFactoryService) GetMovieProvider(ctx context.Context, clientID ui
 	return client.(providers.MovieProvider), nil
 }
 
-func (s *ClientFactoryService) GetSeriesProvider(ctx context.Context, clientID uint64, config types.ClientConfig) (providers.SeriesProvider, error) {
+func (s *ClientProviderFactoryService) GetSeriesProvider(ctx context.Context, clientID uint64, config types.ClientConfig) (providers.SeriesProvider, error) {
 	client, err := s.GetClient(ctx, clientID, config)
 	if err != nil {
 		return nil, err
@@ -182,7 +181,7 @@ func (s *ClientFactoryService) GetSeriesProvider(ctx context.Context, clientID u
 	return client.(providers.SeriesProvider), nil
 }
 
-func (s *ClientFactoryService) GetMusicProvider(ctx context.Context, clientID uint64, config types.ClientConfig) (providers.MusicProvider, error) {
+func (s *ClientProviderFactoryService) GetMusicProvider(ctx context.Context, clientID uint64, config types.ClientConfig) (providers.MusicProvider, error) {
 	client, err := s.GetClient(ctx, clientID, config)
 	if err != nil {
 		return nil, err
@@ -192,23 +191,23 @@ func (s *ClientFactoryService) GetMusicProvider(ctx context.Context, clientID ui
 
 // Convenience package-level functions for working with the singleton
 
-// RegisterClientFactory registers a factory at the package level
-func RegisterClientFactory(clientType types.ClientType, factory ClientFactory) {
-	GetClientFactoryService().RegisterClientFactory(clientType, factory)
+// RegisterClientProviderFactory registers a factory at the package level
+func RegisterClientProviderFactory(clientType types.ClientType, factory ClientProviderFactory) {
+	GetClientProviderFactoryService().RegisterClientProviderFactory(clientType, factory)
 }
 
 // GetClient gets or creates a client at the package level
 func GetClient(ctx context.Context, clientID uint64, config types.ClientConfig) (Client, error) {
-	return GetClientFactoryService().GetClient(ctx, clientID, config)
+	return GetClientProviderFactoryService().GetClient(ctx, clientID, config)
 }
 
 // UnregisterClient unregisters a client at the package level
 func UnregisterClient(ctx context.Context, clientID uint64, config types.ClientConfig) {
-	GetClientFactoryService().UnregisterClient(ctx, clientID, config)
+	GetClientProviderFactoryService().UnregisterClient(ctx, clientID, config)
 }
 
 // GetClientFromModel creates a client from a client model
-func (s *ClientFactoryService) GetClientFromModel(ctx context.Context, model interface{}) (Client, error) {
+func (s *ClientProviderFactoryService) GetClientFromModel(ctx context.Context, model interface{}) (Client, error) {
 	// Try to extract client ID and config from the model
 	clientID, config, err := ExtractClientInfo(model)
 	if err != nil {

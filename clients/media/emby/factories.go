@@ -6,7 +6,7 @@ import (
 
 	"suasor/clients/media"
 	"suasor/clients/media/types"
-	"suasor/container"
+	"suasor/di/container"
 	embyclient "suasor/internal/clients/embyAPI"
 	"suasor/utils/logger"
 )

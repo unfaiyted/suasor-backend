@@ -5,7 +5,7 @@ import (
 	"fmt"
 	mediatypes "suasor/clients/media/types"
 	clienttypes "suasor/clients/types"
-	"suasor/container"
+	"suasor/di/container"
 	"suasor/handlers"
 	"suasor/router/middleware"
 	"suasor/types/responses"

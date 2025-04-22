@@ -29,12 +29,12 @@ type ClientService[T types.ClientConfig] interface {
 // ClientService handles business logic for clients with specific config types
 type clientService[T types.ClientConfig] struct {
 	repo    repository.ClientRepository[T]
-	factory *clients.ClientFactoryService
+	factory *clients.ClientProviderFactoryService
 	// Other dependencies like validators, API clients, etc.
 }
 
 // NewClientService creates a service for a specific client type
-func NewClientService[T types.ClientConfig](factory *clients.ClientFactoryService, repo repository.ClientRepository[T]) *clientService[T] {
+func NewClientService[T types.ClientConfig](factory *clients.ClientProviderFactoryService, repo repository.ClientRepository[T]) *clientService[T] {
 	return &clientService[T]{
 		repo:    repo,
 		factory: factory,

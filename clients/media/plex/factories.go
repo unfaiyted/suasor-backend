@@ -8,7 +8,7 @@ import (
 	"github.com/LukeHagar/plexgo/models/operations"
 	media "suasor/clients/media"
 	"suasor/clients/media/types"
-	"suasor/container"
+	"suasor/di/container"
 	"suasor/utils/logger"
 )
 

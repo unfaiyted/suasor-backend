@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"suasor/clients/media/types"
+	clienttypes "suasor/clients/types"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/requests"
@@ -14,8 +15,8 @@ import (
 	"suasor/utils/logger"
 )
 
-type ClientUserMediaItemDataHandler[T types.MediaData] interface {
-	UserMediaItemDataHandler[T]
+type ClientUserMediaItemDataHandler[T clienttypes.ClientMediaConfig, U types.MediaData] interface {
+	UserMediaItemDataHandler[U]
 
 	SyncClientItemData(c *gin.Context)
 	GetClientItemData(c *gin.Context)
@@ -27,19 +28,19 @@ type ClientUserMediaItemDataHandler[T types.MediaData] interface {
 
 // clientUserMediaItemDataHandler handles client-specific operations for user media item data
 // This is the client layer of the three-pronged architecture
-type clientUserMediaItemDataHandler[T types.MediaData] struct {
-	UserMediaItemDataHandler[T]
+type clientUserMediaItemDataHandler[T clienttypes.ClientMediaConfig, U types.MediaData] struct {
+	UserMediaItemDataHandler[U]
 
-	service services.ClientUserMediaItemDataService[T]
+	service services.ClientUserMediaItemDataService[T, U]
 }
 
 // NewclientUserMediaItemDataHandler creates a new client user media item data handler
-func NewClientUserMediaItemDataHandler[T types.MediaData](
-	userHandler UserMediaItemDataHandler[T],
-	service services.ClientUserMediaItemDataService[T],
+func NewClientUserMediaItemDataHandler[T clienttypes.ClientMediaConfig, U types.MediaData](
+	userHandler UserMediaItemDataHandler[U],
+	service services.ClientUserMediaItemDataService[T, U],
 
-) *clientUserMediaItemDataHandler[T] {
-	return &clientUserMediaItemDataHandler[T]{
+) *clientUserMediaItemDataHandler[T, U] {
+	return &clientUserMediaItemDataHandler[T, U]{
 		UserMediaItemDataHandler: userHandler,
 		service:                  service,
 	}
@@ -59,7 +60,7 @@ func NewClientUserMediaItemDataHandler[T types.MediaData](
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/client/{clientId}/sync [post]
-func (h *clientUserMediaItemDataHandler[T]) SyncClientItemData(c *gin.Context) {
+func (h *clientUserMediaItemDataHandler[T, U]) SyncClientItemData(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
@@ -77,7 +78,7 @@ func (h *clientUserMediaItemDataHandler[T]) SyncClientItemData(c *gin.Context) {
 		return
 	}
 
-	var items []models.UserMediaItemData[T]
+	var items []models.UserMediaItemData[U]
 	if err := c.ShouldBindJSON(&items); err != nil {
 		log.Warn().Err(err).Msg("Invalid request body")
 		responses.RespondBadRequest(c, err, "Invalid request body")
@@ -123,7 +124,7 @@ func (h *clientUserMediaItemDataHandler[T]) SyncClientItemData(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/client/{clientId} [get]
-func (h *clientUserMediaItemDataHandler[T]) GetClientItemData(c *gin.Context) {
+func (h *clientUserMediaItemDataHandler[T, U]) GetClientItemData(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
@@ -186,7 +187,7 @@ func (h *clientUserMediaItemDataHandler[T]) GetClientItemData(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/client/{clientId}/item/{clientItemId} [get]
-func (h *clientUserMediaItemDataHandler[T]) GetMediaItemDataByClientID(c *gin.Context) {
+func (h *clientUserMediaItemDataHandler[T, U]) GetMediaItemDataByClientID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
@@ -252,7 +253,7 @@ func (h *clientUserMediaItemDataHandler[T]) GetMediaItemDataByClientID(c *gin.Co
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/client/{clientId}/item/{clientItemId}/play [post]
-func (h *clientUserMediaItemDataHandler[T]) RecordClientPlay(c *gin.Context) {
+func (h *clientUserMediaItemDataHandler[T, U]) RecordClientPlay(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
@@ -291,7 +292,7 @@ func (h *clientUserMediaItemDataHandler[T]) RecordClientPlay(c *gin.Context) {
 		Msg("Recording client play event")
 
 	// Create a play history record
-	playHistory := &models.UserMediaItemData[T]{
+	playHistory := &models.UserMediaItemData[U]{
 		UserID:           userID,
 		Type:             req.Type,
 		PlayedAt:         time.Now(),
@@ -343,7 +344,7 @@ func (h *clientUserMediaItemDataHandler[T]) RecordClientPlay(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse[any] "Not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/client/{clientId}/item/{clientItemId}/state [get]
-func (h *clientUserMediaItemDataHandler[T]) GetPlaybackState(c *gin.Context) {
+func (h *clientUserMediaItemDataHandler[T, U]) GetPlaybackState(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
@@ -409,7 +410,7 @@ func (h *clientUserMediaItemDataHandler[T]) GetPlaybackState(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
 // @Router /user-media-data/client/{clientId}/item/{clientItemId}/state [put]
-func (h *clientUserMediaItemDataHandler[T]) UpdatePlaybackState(c *gin.Context) {
+func (h *clientUserMediaItemDataHandler[T, U]) UpdatePlaybackState(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 

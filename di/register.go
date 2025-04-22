@@ -15,8 +15,8 @@ import (
 
 // Initialize registers all dependencies in the container
 func RegisterAppContainers(ctx context.Context, db *gorm.DB, configService services.ConfigService) *container.Container {
-	// Create a new container
-	c := container.NewContainer()
+	// Create a new container with the provided context
+	c := container.NewContainerWithContext(ctx)
 	log := logger.LoggerFromContext(ctx)
 
 	// Register core dependencies

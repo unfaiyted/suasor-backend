@@ -11,30 +11,37 @@ import (
 func GetTyped[T any](c *Container) (T, error) {
 	var zero T
 	t := reflect.TypeOf((*T)(nil)).Elem()
-	// fmt.Printf("GetTyped called for type: %v\n", t)
+
+	c.logger.Debug().Type("type", t).Msg("GetTyped called")
 
 	component, err := c.Get(t)
 	if err != nil {
-		fmt.Printf("GetTyped failed for type %v with error: %v\n", t, err)
+		c.logger.Debug().
+			Type("type", t).
+			Err(err).
+			Msg("GetTyped failed")
 		return zero, err
 	}
 
-	// fmt.Printf("GetTyped succeeded for type: %v\n", t)
+	c.logger.Debug().Type("type", t).Msg("GetTyped succeeded")
 	return component.(T), nil
 }
 
 // MustGet retrieves a component or panics if not found
 func MustGet[T any](c *Container) T {
 	t := reflect.TypeOf((*T)(nil)).Elem()
-	// fmt.Printf("MustGet called for type: %v\n", t)
+	c.logger.Debug().Type("type", t).Msg("MustGet called")
 
 	result, err := GetTyped[T](c)
 	if err != nil {
-		fmt.Printf("MustGet failed for type %v with error: %v\n", t, err)
+		c.logger.Error().
+			Type("type", t).
+			Err(err).
+			Msg("MustGet failed")
 		panic(fmt.Sprintf("Failed to get component: %v", err))
 	}
 
-	// fmt.Printf("MustGet succeeded for type: %v\n", t)
+	c.logger.Debug().Type("type", t).Msg("MustGet succeeded")
 	return result
 }
 
@@ -83,16 +90,34 @@ func GetByTypeKey[T any](c *Container, typeKey string) (T, error) {
 	// Create a type that matches what was registered
 	typeKeyType := reflect.TypeOf(typeKey)
 
+	c.logger.Debug().
+		Str("type_key", typeKey).
+		Type("type_key_type", typeKeyType).
+		Msg("GetByTypeKey called")
+
 	component, err := c.Get(typeKeyType)
 	if err != nil {
+		c.logger.Debug().
+			Str("type_key", typeKey).
+			Err(err).
+			Msg("GetByTypeKey failed")
 		return zero, err
 	}
 
 	typedComponent, ok := component.(T)
 	if !ok {
+		c.logger.Debug().
+			Str("type_key", typeKey).
+			Type("expected_type", reflect.TypeOf((*T)(nil)).Elem()).
+			Type("actual_type", reflect.TypeOf(component)).
+			Msg("GetByTypeKey type mismatch")
 		return zero, fmt.Errorf("component with key %s is not of expected type", typeKey)
 	}
 
+	c.logger.Debug().
+		Str("type_key", typeKey).
+		Type("type", reflect.TypeOf(typedComponent)).
+		Msg("GetByTypeKey succeeded")
 	return typedComponent, nil
 }
 
@@ -100,14 +125,28 @@ func GetByTypeKey[T any](c *Container, typeKey string) (T, error) {
 func GetMultiple[T any](c *Container, typeKeys []string) ([]T, error) {
 	var results []T
 
+	c.logger.Debug().
+		Strs("type_keys", typeKeys).
+		Type("component_type", reflect.TypeOf((*T)(nil)).Elem()).
+		Msg("GetMultiple called")
+
 	for _, key := range typeKeys {
 		component, err := GetByTypeKey[T](c, key)
 		if err != nil {
+			c.logger.Debug().
+				Str("failed_key", key).
+				Strs("type_keys", typeKeys).
+				Err(err).
+				Msg("GetMultiple failed on key")
 			return nil, err
 		}
 
 		results = append(results, component)
 	}
 
+	c.logger.Debug().
+		Strs("type_keys", typeKeys).
+		Int("results_count", len(results)).
+		Msg("GetMultiple succeeded")
 	return results, nil
 }
