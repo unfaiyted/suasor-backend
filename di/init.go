@@ -4,7 +4,7 @@ package di
 import (
 	"context"
 	"gorm.io/gorm"
-	"suasor/app/container"
+	"suasor/container"
 	"suasor/handlers"
 	"suasor/services"
 	"suasor/utils"
@@ -144,7 +144,7 @@ func GetSpecializedHandlers(c *container.Container) (*SpecializedHandlers, error
 // GetAllHandlers returns all application handlers organized by category
 func GetAllHandlers(ctx context.Context, c *container.Container) (*ApplicationHandlers, error) {
 	log := utils.LoggerFromContext(ctx)
-	
+
 	// Get system handlers
 	log.Info().Msg("Getting system handlers")
 	systemHandlers, err := GetSystemHandlers(c)
@@ -199,7 +199,7 @@ type MediaHandlers struct {
 	TrackHandler   handlers.UserMediaItemHandler
 	AlbumHandler   handlers.UserMediaItemHandler
 	ArtistHandler  handlers.UserMediaItemHandler
-	
+
 	// List Handlers
 	PlaylistHandler   handlers.UserListHandler
 	CollectionHandler handlers.UserListHandler
@@ -222,24 +222,24 @@ type MediaDataHandlers struct {
 type ClientHandlers struct {
 	// Master Handler
 	ClientsHandler *handlers.ClientsHandler
-	
+
 	// Media Clients
 	EmbyHandler     *handlers.ClientHandler
 	JellyfinHandler *handlers.ClientHandler
 	PlexHandler     *handlers.ClientHandler
 	SubsonicHandler *handlers.ClientHandler
-	
+
 	// Automation Clients
-	RadarrHandler  *handlers.ClientHandler
-	SonarrHandler  *handlers.ClientHandler
-	LidarrHandler  *handlers.ClientHandler
-	
+	RadarrHandler *handlers.ClientHandler
+	SonarrHandler *handlers.ClientHandler
+	LidarrHandler *handlers.ClientHandler
+
 	// AI Clients
 	AIHandler     *handlers.AIHandler
 	ClaudeHandler *handlers.ClientHandler
 	OpenAIHandler *handlers.ClientHandler
 	OllamaHandler *handlers.ClientHandler
-	
+
 	// Metadata
 	MetadataHandler *handlers.MetadataClientHandler
 }

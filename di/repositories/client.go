@@ -2,12 +2,12 @@
 package repositories
 
 import (
-	"suasor/app/container"
+	"gorm.io/gorm"
 	"suasor/client"
 	"suasor/client/types"
+	"suasor/container"
 	"suasor/repository"
 	"suasor/services"
-	"gorm.io/gorm"
 )
 
 // ProvideEmbyClientRepository provides a ClientRepository for EmbyConfig
@@ -77,3 +77,4 @@ func ProvideMetadataClientService(c *container.Container) *services.MetadataClie
 	repo := repository.NewClientRepository[*types.TMDBConfig](db)
 	return services.NewMetadataClientService(factory, repo)
 }
+

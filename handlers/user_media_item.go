@@ -39,10 +39,12 @@ type userMediaItemHandler[T types.MediaData] struct {
 
 // NewuserMediaItemHandler creates a new user media item handler
 func NewUserMediaItemHandler[T types.MediaData](
+	coreHandler CoreMediaItemHandler[T],
 	userService services.UserMediaItemService[T],
 ) UserMediaItemHandler[T] {
 	return &userMediaItemHandler[T]{
-		userService: userService,
+		CoreMediaItemHandler: coreHandler,
+		userService:          userService,
 	}
 }
 

@@ -3,10 +3,10 @@ package services
 
 import (
 	"context"
-	"suasor/app/container"
-	apprepos "suasor/app/repository"
 	"suasor/client"
+	"suasor/container"
 	"suasor/repository"
+	apprepos "suasor/repository/bundles"
 	"suasor/services"
 )
 
@@ -18,7 +18,6 @@ func RegisterSearchService(ctx context.Context, c *container.Container) {
 		itemRepos := container.MustGet[apprepos.CoreMediaItemRepositories](c)
 		personRepo := container.MustGet[repository.PersonRepository](c)
 		clientFactoryService := container.MustGet[*client.ClientFactoryService](c)
-		
 		return services.NewSearchService(
 			searchRepo,
 			clientRepos,

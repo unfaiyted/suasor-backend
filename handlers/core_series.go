@@ -30,7 +30,7 @@ type CoreSeriesHandler interface {
 
 // coreSeriesHandler handles operations for series items in the database
 type coreSeriesHandler struct {
-	CoreMediaItemHandler[mediatypes.Series]
+	CoreMediaItemHandler[*mediatypes.Series]
 	seriesService  services.CoreMediaItemService[*mediatypes.Series]
 	seasonService  services.CoreMediaItemService[*mediatypes.Season]
 	episodeService services.CoreMediaItemService[*mediatypes.Episode]
@@ -38,7 +38,7 @@ type coreSeriesHandler struct {
 
 // NewcoreSeriesHandler creates a new series handler
 func NewCoreSeriesHandler(
-	coreHandler CoreMediaItemHandler[mediatypes.Series],
+	coreHandler CoreMediaItemHandler[*mediatypes.Series],
 	seriesService services.CoreMediaItemService[*mediatypes.Series],
 	seasonService services.CoreMediaItemService[*mediatypes.Season],
 	episodeService services.CoreMediaItemService[*mediatypes.Episode],

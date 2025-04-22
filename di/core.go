@@ -4,8 +4,8 @@ package di
 import (
 	"context"
 	"gorm.io/gorm"
-	"suasor/app/container"
-	"suasor/app/di/factories"
+	"suasor/container"
+	"suasor/di/factories"
 	"suasor/repository"
 	"suasor/services"
 	"suasor/utils"
@@ -27,10 +27,6 @@ func RegisterCore(ctx context.Context, c *container.Container, db *gorm.DB, conf
 
 	// Register client factory service
 	// This is responsible for creating clients based on the client type and client ID
-	// This is a singleton service that is shared across the application
-	// It ensures that our external clients are created only once and reused throughout the application
-
-	// First register the ClientItemRegistry before it's needed by client factories
 	log.Info().Msg("Registering client media item factories")
 	factories.RegisterClientMediaItemFactories(ctx, c)
 	// Then register client factories which depend on the registry

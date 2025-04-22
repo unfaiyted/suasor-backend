@@ -5,11 +5,11 @@ import (
 	"context"
 	"fmt"
 	"gorm.io/gorm"
-	"suasor/app/container"
-	apprepos "suasor/app/repository"
-	"suasor/app/di/repositories"
 	"suasor/client/types"
+	"suasor/container"
+	"suasor/di/repositories"
 	"suasor/repository"
+	apprepos "suasor/repository"
 	"suasor/services"
 	"suasor/services/jobs"
 	"suasor/services/jobs/recommendation"
@@ -72,7 +72,7 @@ func RegisterRepositories(ctx context.Context, c *container.Container) {
 		db := container.MustGet[*gorm.DB](c)
 		return repository.NewCreditRepository(db)
 	})
-	
+
 	// Search repository
 	log.Info().Msg("Registering search repository")
 	container.RegisterFactory[repository.SearchRepository](c, func(c *container.Container) repository.SearchRepository {

@@ -3,10 +3,12 @@ package services
 
 import (
 	"context"
-	"suasor/app/container"
-	apprepository "suasor/app/repository"
 	mediatypes "suasor/client/media/types"
+	"suasor/container"
 	"suasor/repository"
+	apprepository "suasor/repository/bundles"
+	repobundles "suasor/repository/bundles"
+
 	"suasor/services"
 )
 
@@ -53,26 +55,25 @@ func RegisterMediaListServices(ctx context.Context, c *container.Container) {
 	// Register UserListService for Playlists
 	container.RegisterFactory[services.UserListService[*mediatypes.Playlist]](c, func(c *container.Container) services.UserListService[*mediatypes.Playlist] {
 		coreService := container.MustGet[services.CoreListService[*mediatypes.Playlist]](c)
-		userRepos := container.MustGet[repository.UserMediaItemRepositories](c)
-		userDataRepos := container.MustGet[repository.UserMediaDataRepositories](c)
-		
+		userRepos := container.MustGet[repobundles.UserMediaItemRepositories](c)
+		userDataRepos := container.MustGet[repobundles.UserMediaDataRepositories](c)
+
 		// Get the specific repositories
 		userItemRepo := userRepos.PlaylistUserRepo()
 		userDataRepo := userDataRepos.PlaylistDataRepo()
-		
+
 		return services.NewUserListService[*mediatypes.Playlist](coreService, userItemRepo, userDataRepo)
 	})
 
 	// Register UserListService for Collections
 	container.RegisterFactory[services.UserListService[*mediatypes.Collection]](c, func(c *container.Container) services.UserListService[*mediatypes.Collection] {
 		coreService := container.MustGet[services.CoreListService[*mediatypes.Collection]](c)
-		userRepos := container.MustGet[repository.UserMediaItemRepositories](c)
-		userDataRepos := container.MustGet[repository.UserMediaDataRepositories](c)
-		
+		userRepos := container.MustGet[repobundles.UserMediaItemRepositories](c)
+		userDataRepos := container.MustGet[repobundles.UserMediaDataRepositories](c)
+
 		// Get the specific repositories
 		userItemRepo := userRepos.CollectionUserRepo()
 		userDataRepo := userDataRepos.CollectionDataRepo()
 		return services.NewUserListService[*mediatypes.Collection](coreService, userItemRepo, userDataRepo)
 	})
 }
-

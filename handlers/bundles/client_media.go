@@ -71,4 +71,3 @@ type ClientListHandlers[T types.ClientMediaConfig] interface {
 // 	EmbyMediaTypeHandlers() *ClientMediaTypeHandlers[*clienttypes.EmbyConfig]
 // 	PlexMediaTypeHandlers() *ClientMediaTypeHandlers[*clienttypes.PlexConfig]
 // 	SubsonicMediaTypeHandlers() *ClientMediaTypeHandlers[*clienttypes.SubsonicConfig]
-/

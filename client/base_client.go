@@ -38,7 +38,6 @@ func (b *BaseClient) GetCategory() client.ClientCategory {
 func (b *BaseClient) GetType() client.ClientType {
 	return b.Type
 }
-
 func (b *BaseClient) GetConfig() client.ClientConfig {
 	return b.Config
 }
@@ -63,14 +62,14 @@ func RegisterClientType(clientType client.ClientType, simpleFactory SimpleClient
 		if err != nil {
 			return nil, err
 		}
-		
+
 		// Set client ID if the client has a BaseClient
 		if baseClient, ok := client.(*BaseClient); ok {
 			baseClient.ClientID = clientID
 		}
-		
+
 		return client, nil
 	}
-	
+
 	RegisterClientFactory(clientType, factory)
 }

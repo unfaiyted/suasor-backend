@@ -2,8 +2,7 @@ package main
 
 import (
 	"context"
-	"suasor/app"
-	"suasor/app/container"
+	"suasor/container"
 	"suasor/database"
 	"suasor/repository"
 	"suasor/router"
@@ -69,7 +68,7 @@ func main() {
 	}
 
 	log.Info().Msg("Initializing application dependencies")
-	deps := app.InitializeDependencies(ctx, db, configService)
+	deps := InitializeDependencies(ctx, db, configService)
 
 	log.Info().Msg("Initializing job service")
 	jobService := container.MustGet[services.JobService](deps.GetContainer())

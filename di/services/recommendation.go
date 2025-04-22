@@ -3,7 +3,7 @@ package services
 
 import (
 	"context"
-	"suasor/app/container"
+	"suasor/container"
 	"suasor/repository"
 	"suasor/services"
 )
@@ -15,3 +15,4 @@ func RegisterRecommendationService(ctx context.Context, c *container.Container) 
 		return services.NewRecommendationService(recommendationRepo)
 	})
 }
+

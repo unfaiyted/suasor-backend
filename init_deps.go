@@ -1,11 +1,11 @@
 // app/init_dependencies.go
-package app
+package main
 
 import (
 	"context"
 	"gorm.io/gorm"
-	"suasor/app/container"
-	"suasor/app/di"
+	"suasor/container"
+	"suasor/di"
 	"suasor/services"
 	"suasor/utils"
 )
@@ -38,7 +38,7 @@ func (deps *AppDependencies) GetHandlers() *di.ApplicationHandlers {
 // InitializeDependencies initializes all application dependencies
 func InitializeDependencies(ctx context.Context, db *gorm.DB, configService services.ConfigService) *AppDependencies {
 	log := utils.LoggerFromContext(ctx)
-	
+
 	// Create and initialize the container using the new DI structure
 	log.Info().Msg("Initializing dependency container")
 	c := di.Initialize(ctx, db, configService)
