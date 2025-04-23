@@ -90,7 +90,7 @@ func NewClientMusicHandler[T clienttypes.ClientMediaConfig](
 // @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /clients/media/{clientID}/music/tracks/{trackID} [get]
+// @Router /api/v1/client/{clientId}/track/item/{clientItemId} [get]
 func (h *clientMusicHandler[T]) GetClientTrackByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -154,7 +154,7 @@ func (h *clientMusicHandler[T]) GetClientTrackByID(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /clients/media/{clientID}/music/albums/{albumID} [get]
+// @Router /api/v1/client/{clientId}/album/item/{clientItemId} [get]
 func (h *clientMusicHandler[T]) GetClientAlbumByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -218,7 +218,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumByID(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /clients/media/{clientID}/music/artists/{artistID} [get]
+// @Router /api/v1/client/{clientId}/artist/item/{clientItemId} [get]
 func (h *clientMusicHandler[T]) GetClientArtistByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -282,7 +282,7 @@ func (h *clientMusicHandler[T]) GetClientArtistByID(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /clients/media/{clientID}/music/albums/{albumID}/tracks [get]
+// @Router /api/v1/client/{clientId}/album/{clientItemId}/tracks [get]
 func (h *clientMusicHandler[T]) GetClientTracksByAlbum(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -1668,7 +1668,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
-// @Success 200 {object} responses.APIResponse[map[string]interface{}] "Playback state retrieved successfully"
+// @Success 200 {object} responses.APIResponse[any] "Playback state retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
@@ -1726,7 +1726,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
-// @Success 200 {object} responses.APIResponse[map[string]interface{}] "Playback info retrieved successfully"
+// @Success 200 {object} responses.APIResponse[any] "Playback info retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"

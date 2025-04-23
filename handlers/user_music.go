@@ -41,7 +41,7 @@ func NewUserMusicHandler(
 // @Produce json
 // @Security BearerAuth
 // @Param limit query int false "Maximum number of tracks to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.Track]] "Tracks retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/music/tracks/favorites [get]
@@ -102,7 +102,7 @@ func (h *UserMusicHandler) GetFavoriteTracks(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param limit query int false "Maximum number of albums to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.Album]] "Albums retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/music/albums/favorites [get]
@@ -163,7 +163,7 @@ func (h *UserMusicHandler) GetFavoriteAlbums(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param limit query int false "Maximum number of artists to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.Artist]] "Artists retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Artist]] "Artists retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/music/artists/favorites [get]
@@ -224,7 +224,7 @@ func (h *UserMusicHandler) GetFavoriteArtists(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param limit query int false "Maximum number of tracks to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.Track]] "Tracks retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/music/tracks/recently-played [get]
@@ -287,8 +287,8 @@ func (h *UserMusicHandler) GetRecentlyPlayedTracks(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Track ID"
-// @Param data body models.UserMediaItemData true "Updated user data"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[*mediatypes.Track]] "Track updated successfully"
+// @Param data body requests.UserMediaItemDataRequest true "Updated user data"
+// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Track]] "Track updated successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 404 {object} responses.ErrorResponse[any] "Track not found"

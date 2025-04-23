@@ -35,9 +35,9 @@ func NewUserMovieHandler(
 // @Produce json
 // @Security BearerAuth
 // @Param limit query int false "Maximum number of movies to return (default 20)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.Movie]] "Movies retrieved successfully"
-// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved successfully"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
 // @Router /user/movies/favorites [get]
 func (h *UserMovieHandler) GetFavoriteMovies(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -96,7 +96,7 @@ func (h *UserMovieHandler) GetFavoriteMovies(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param limit query int false "Maximum number of movies to return (default 20)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.Movie]] "Movies retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/movies/watched [get]
@@ -159,7 +159,7 @@ func (h *UserMovieHandler) GetWatchedMovies(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param limit query int false "Maximum number of movies to return (default 20)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.Movie]] "Movies retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/movies/watchlist [get]
@@ -220,7 +220,7 @@ func (h *UserMovieHandler) GetWatchlistMovies(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param limit query int false "Maximum number of movies to return (default 20)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.Movie]] "Movies retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/movies/recommended [get]
@@ -283,8 +283,8 @@ func (h *UserMovieHandler) GetRecommendedMovies(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Movie ID"
-// @Param data body models.UserMediaItemData true "Updated user data"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[*mediatypes.Movie]] "Movie updated successfully"
+// @Param data body requests.UserMediaItemDataUpdateRequest true "Updated user data"
+// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Movie]] "Movie updated successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 404 {object} responses.ErrorResponse[any] "Movie not found"

@@ -80,7 +80,7 @@ func NewUserHandler(service services.UserService, configSvc services.ConfigServi
 //	}
 //
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /users/register [post]
+// @Router /api/v1/user/register [post]
 func (h *UserHandler) Register(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -153,7 +153,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 //
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /users/profile [get]
+// @Router /api/v1/user/profile [get]
 func (h *UserHandler) GetProfile(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -217,7 +217,7 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format or email/username already exists"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /users/profile [put]
+// @Router /api/v1/user/profile [put]
 func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -314,7 +314,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format or incorrect current password"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /users/password [put]
+// @Router /api/v1/user/password [put]
 func (h *UserHandler) ChangePassword(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -385,7 +385,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 // @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - Not an admin"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "User not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /users/{id} [get]
+// @Router /api/v1/user/{id} [get]
 func (h *UserHandler) GetByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -459,7 +459,7 @@ func (h *UserHandler) GetByID(c *gin.Context) {
 // @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - Not an admin"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "User not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /users/{id}/role [put]
+// @Router /api/v1/user/{id}/role [put]
 func (h *UserHandler) ChangeRole(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -545,7 +545,7 @@ func (h *UserHandler) ChangeRole(c *gin.Context) {
 // @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - Not an admin"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "User not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /users/{id}/activate [post]
+// @Router /api/v1/user/{id}/activate [post]
 func (h *UserHandler) ActivateUser(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -619,7 +619,7 @@ func (h *UserHandler) ActivateUser(c *gin.Context) {
 // @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - Not an admin"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "User not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /users/{id}/deactivate [post]
+// @Router /api/v1/user/{id}/deactivate [post]
 func (h *UserHandler) DeactivateUser(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -679,7 +679,7 @@ func (h *UserHandler) DeactivateUser(c *gin.Context) {
 // @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - Not an admin"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "User not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /users/{id} [delete]
+// @Router /api/v1/user/{id} [delete]
 func (h *UserHandler) Delete(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -741,7 +741,7 @@ func (h *UserHandler) Delete(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid file format or size"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /users/avatar [post]
+// @Router /api/v1/user/avatar [post]
 func (h *UserHandler) UploadAvatar(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

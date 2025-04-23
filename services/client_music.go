@@ -946,20 +946,6 @@ func (s *mediaMusicService[T]) GetClientSimilarTracks(ctx context.Context, clien
 	return tracks, nil
 }
 
-// GetClientFavoriteTracks godoc
-// @Summary GetClient favorite tracks
-// @Description Retrieves the user's favorite tracks from a client
-// @Tags music
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Param limit query int false "Maximum number of tracks to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Favorite tracks retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /clients/media/{clientID}/music/tracks/favorites [get]
 func (s *mediaMusicService[T]) GetClientFavoriteTracks(ctx context.Context, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Track], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
@@ -1003,19 +989,6 @@ func (s *mediaMusicService[T]) GetClientFavoriteTracks(ctx context.Context, clie
 }
 
 // GetClientFavoriteAlbums godoc
-// @Summary GetClient favorite albums
-// @Description Retrieves the user's favorite albums from a client
-// @Tags music
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Param limit query int false "Maximum number of albums to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Favorite albums retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /clients/media/{clientID}/music/albums/favorites [get]
 func (s *mediaMusicService[T]) GetClientFavoriteAlbums(ctx context.Context, clientID uint64, limit int) ([]*models.MediaItem[*mediatypes.Album], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
@@ -1058,21 +1031,7 @@ func (s *mediaMusicService[T]) GetClientFavoriteAlbums(ctx context.Context, clie
 	return albums, nil
 }
 
-// GetClientSimiarArtists godoc
-// @Summary GetClient similar artists
-// @Description Retrieves artists similar to a specific artist from a client
-// @Tags music
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Param artistID path string true "Artist ID"
-// @Param limit query int false "Maximum number of artists to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Artist]] "Similar artists retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /clients/media/{clientID}/music/artists/{artistID}/similar [get]
+// GetClientSimiarArtists
 func (s *mediaMusicService[T]) GetClientSimilarArtists(ctx context.Context, clientID uint64, artistID string, limit int) ([]*models.MediaItem[*mediatypes.Artist], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().

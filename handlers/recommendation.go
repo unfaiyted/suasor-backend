@@ -53,7 +53,7 @@ func NewRecommendationHandler(recommendationService services.RecommendationServi
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request parameters"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /recommendations [get]
+// @Router /api/v1/recommendations [get]
 func (h *RecommendationHandler) GetRecommendations(c *gin.Context) {
 	// Get user ID from context
 	userID, exists := c.Get("userID")
@@ -127,7 +127,7 @@ func (h *RecommendationHandler) GetRecommendations(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request parameters"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /recommendations/recent [get]
+// @Router /api/v1/recommendations/recent [get]
 func (h *RecommendationHandler) GetRecentRecommendations(c *gin.Context) {
 	// Get user ID from context
 	userID, exists := c.Get("userID")
@@ -203,7 +203,7 @@ func (h *RecommendationHandler) GetRecentRecommendations(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request parameters"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /recommendations/top [get]
+// @Router /api/v1/recommendations/top [get]
 func (h *RecommendationHandler) GetTopRecommendations(c *gin.Context) {
 	// Get user ID from context
 	userID, exists := c.Get("userID")
@@ -278,7 +278,7 @@ func (h *RecommendationHandler) GetTopRecommendations(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Recommendation not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /recommendations/{id} [get]
+// @Router /api/v1/recommendations/{id} [get]
 func (h *RecommendationHandler) GetRecommendationByID(c *gin.Context) {
 	// Get user ID from context
 	userID, exists := c.Get("userID")
@@ -331,7 +331,7 @@ func (h *RecommendationHandler) GetRecommendationByID(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Recommendation not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /recommendations/view [post]
+// @Router /api/v1/recommendations/view [post]
 func (h *RecommendationHandler) MarkRecommendationAsViewed(c *gin.Context) {
 	// Get user ID from context
 	userID, exists := c.Get("userID")
@@ -382,7 +382,7 @@ func (h *RecommendationHandler) MarkRecommendationAsViewed(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Recommendation not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /recommendations/rate [post]
+// @Router /api/v1/recommendations/rate [post]
 func (h *RecommendationHandler) RateRecommendation(c *gin.Context) {
 	// Get user ID from context
 	userID, exists := c.Get("userID")

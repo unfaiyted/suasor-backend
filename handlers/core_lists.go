@@ -7,6 +7,7 @@ import (
 
 	mediatypes "suasor/clients/media/types"
 	"suasor/services"
+	models "suasor/types/models"
 	"suasor/types/responses"
 	"suasor/utils/logger"
 )
@@ -46,7 +47,7 @@ func NewCoreListHandler[T mediatypes.ListData](
 // @Produce json
 // @Param limit query int false "Maximum number of playlists to return (default 10)"
 // @Param offset query int false "Offset for pagination (default 0)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.List]] "Lists retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Playlist]] "Lists retrieved successfully"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /playlists [get]
 func (h *coreListHandler[T]) GetAll(c *gin.Context) {
@@ -84,7 +85,7 @@ func (h *coreListHandler[T]) GetAll(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "List ID"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[*mediatypes.List]] "List retrieved successfully"
+// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "List retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "List not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
@@ -171,7 +172,7 @@ func (h *coreListHandler[T]) GetItemsByListID(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param genre path string true "Genre name"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.List]] "Lists retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Playlist]] "Lists retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /playlists/genre/{genre} [get]
@@ -222,7 +223,7 @@ func (h *coreListHandler[T]) GetByGenre(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param q query string true "Search query"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.List]] "Lists retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Playlist]] "Lists retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /playlists/search [get]

@@ -5,13 +5,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"suasor/clients/media/types"
+	mediatypes "suasor/clients/media/types"
 	"suasor/services"
+	models "suasor/types/models"
 	"suasor/types/responses"
 	"suasor/utils/logger"
 )
 
-type CoreUserMediaItemDataHandler[T types.MediaData] interface {
+type CoreUserMediaItemDataHandler[T mediatypes.MediaData] interface {
 	Service() services.CoreUserMediaItemDataService[T]
 
 	GetMediaItemDataByID(c *gin.Context)
@@ -22,12 +23,12 @@ type CoreUserMediaItemDataHandler[T types.MediaData] interface {
 
 // coreUserMediaItemDataHandler handles basic CRUD operations for user media item data
 // This is the core layer of the three-pronged architecture
-type coreUserMediaItemDataHandler[T types.MediaData] struct {
+type coreUserMediaItemDataHandler[T mediatypes.MediaData] struct {
 	service services.CoreUserMediaItemDataService[T]
 }
 
 // NewCoreUserMediaItemDataHandler creates a new core user media item data handler
-func NewCoreUserMediaItemDataHandler[T types.MediaData](
+func NewCoreUserMediaItemDataHandler[T mediatypes.MediaData](
 	service services.CoreUserMediaItemDataService[T],
 ) CoreUserMediaItemDataHandler[T] {
 	return &coreUserMediaItemDataHandler[T]{
@@ -47,10 +48,10 @@ func (h *coreUserMediaItemDataHandler[T]) Service() services.CoreUserMediaItemDa
 // @Accept json
 // @Produce json
 // @Param id path int true "User Media Item Data ID"
-// @Success 200 {object} responses.APIResponse[models.UserMediaItemData[any]] "Successfully retrieved user media item data"
-// @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
-// @Failure 404 {object} responses.ErrorResponse[any] "Not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
+// @Success 200 {object} responses.APIResponse[models.UserMediaItemData[mediatypes.Movie]] "Successfully retrieved user media item data"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
+// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Not found"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
 // @Router /user-media-data/{id} [get]
 func (h *coreUserMediaItemDataHandler[T]) GetMediaItemDataByID(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -85,8 +86,8 @@ func (h *coreUserMediaItemDataHandler[T]) GetMediaItemDataByID(c *gin.Context) {
 // @Param userId query int true "User ID"
 // @Param mediaItemId query int true "Media Item ID"
 // @Success 200 {object} responses.APIResponse[bool] "Successfully checked user media item data"
-// @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
 // @Router /user-media-data/check [get]
 func (h *coreUserMediaItemDataHandler[T]) CheckUserMediaItemData(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -138,10 +139,10 @@ func (h *coreUserMediaItemDataHandler[T]) CheckUserMediaItemData(c *gin.Context)
 // @Produce json
 // @Param userId query int true "User ID"
 // @Param mediaItemId query int true "Media Item ID"
-// @Success 200 {object} responses.APIResponse[models.UserMediaItemData[any]] "Successfully retrieved user media item data"
-// @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
-// @Failure 404 {object} responses.ErrorResponse[any] "Not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
+// @Success 200 {object} responses.APIResponse[models.UserMediaItemData[mediatypes.Movie]] "Successfully retrieved user media item data"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
+// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Not found"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
 // @Router /user-media-data/user-media [get]
 func (h *coreUserMediaItemDataHandler[T]) GetMediaItemDataByUserAndMedia(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -191,9 +192,9 @@ func (h *coreUserMediaItemDataHandler[T]) GetMediaItemDataByUserAndMedia(c *gin.
 // @Accept json
 // @Produce json
 // @Param id path int true "User Media Item Data ID"
-// @Success 200 {object} responses.APIResponse[any] "Successfully deleted user media item data"
-// @Failure 400 {object} responses.ErrorResponse[any] "Bad request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Internal server error"
+// @Success 200 {object} responses.APIResponse[models.UserMediaItemData[mediatypes.Movie]] "Successfully deleted user media item data"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
 // @Router /user-media-data/{id} [delete]
 func (h *coreUserMediaItemDataHandler[T]) DeleteMediaItemData(c *gin.Context) {
 	ctx := c.Request.Context()

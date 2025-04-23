@@ -28,7 +28,7 @@ func NewHealthHandler(service services.HealthService) *HealthHandler {
 // @Produce json
 // @Success 200 {object} responses.HealthResponse
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails]
-// @Router /health [get]
+// @Router /api/v1/health [get]
 func (h *HealthHandler) CheckHealth(c *gin.Context) {
 	appStatus := h.service.CheckApplicationStatus()
 	dbStatus := h.service.CheckDatabaseConnection()

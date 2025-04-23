@@ -333,7 +333,6 @@ func (r *userMediaItemRepository[T]) GetUserContent(ctx context.Context, userID 
 
 	return items, nil
 }
-
 func (r *userMediaItemRepository[T]) GetRecentItems(ctx context.Context, days int, limit int) ([]*models.MediaItem[T], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().

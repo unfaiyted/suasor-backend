@@ -63,7 +63,7 @@ func NewUserListHandler[T mediatypes.ListData](
 // @Security BearerAuth
 // @Param limit query int false "Maximum number of lists to return (default 20)"
 // @Param offset query int false "Offset for pagination (default 0)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.List]] "Lists retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Playlist]] "Lists retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/lists [get]
@@ -120,7 +120,7 @@ func (h *userListHandler[T]) GetAll(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param list body requests.ListCreateRequest true "List details"
-// @Success 201 {object} responses.APIResponse[models.MediaItem[*mediatypes.List]] "List created successfully"
+// @Success 201 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "List created successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
@@ -211,7 +211,7 @@ func (h *userListHandler[T]) Create(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path int true "List ID"
 // @Param list body requests.ListUpdateRequest true "Updated list details"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[*mediatypes.List]] "List updated successfully"
+// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "List updated successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 403 {object} responses.ErrorResponse[any] "Forbidden"
@@ -389,7 +389,7 @@ func (h *userListHandler[T]) Delete(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path int true "List ID"
 // @Param track body requests.ListAddTrackRequest true "Track details"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[*mediatypes.List]] "Track added successfully"
+// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "Track added successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 403 {object} responses.ErrorResponse[any] "Forbidden"
@@ -491,7 +491,7 @@ func (h *userListHandler[T]) AddItem(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path int true "List ID"
 // @Param trackId path int true "Track ID"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[*mediatypes.List]] "Track removed successfully"
+// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "Track removed successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 403 {object} responses.ErrorResponse[any] "Forbidden"
@@ -593,7 +593,7 @@ func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path int true "List ID"
 // @Param request body requests.ListReorderRequest true "Reorder request"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[*types.List]] "List reordered successfully"
+// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "List reordered successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 403 {object} responses.ErrorResponse[any] "Forbidden"
@@ -692,7 +692,7 @@ func (h *userListHandler[T]) ReorderItems(c *gin.Context) {
 // @Security BearerAuth
 // @Param limit query int false "Maximum number of lists to return (default 20)"
 // @Param offset query int false "Offset for pagination (default 0)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.List]] "Lists retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Playlist]] "Lists retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/favorites [get]
@@ -750,7 +750,7 @@ func (h *userListHandler[T]) GetFavorite(c *gin.Context) {
 // @Security BearerAuth
 // @Param limit query int false "Maximum number of lists to return (default 20)"
 // @Param offset query int false "Offset for pagination (default 0)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[*mediatypes.List]] "Lists retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Playlist]] "Lists retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /user/lists [get]

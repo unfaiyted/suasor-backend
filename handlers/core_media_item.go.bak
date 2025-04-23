@@ -6,14 +6,13 @@ import (
 	"strconv"
 	"time"
 
-	mediatypes "suasor/clients/media/types"
+	"suasor/clients/media/types"
 	"suasor/services"
-	models "suasor/types/models"
 	"suasor/types/responses"
 	"suasor/utils/logger"
 )
 
-type CoreMediaItemHandler[T mediatypes.MediaData] interface {
+type CoreMediaItemHandler[T types.MediaData] interface {
 	GetAll(c *gin.Context)
 	GetByID(c *gin.Context)
 	GetMostPlayed(c *gin.Context)
@@ -58,7 +57,7 @@ func NewCoreMediaItemHandler[T types.MediaData](
 // @Produce json
 // @Param limit query int false "Maximum number of items to return (default 20)"
 // @Param offset query int false "Offset for pagination (default 0)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Media items retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "Media items retrieved successfully"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media [get]
 func (h *coreMediaItemHandler[T]) GetAll(c *gin.Context) {
@@ -194,7 +193,7 @@ func (h *coreMediaItemHandler[T]) GetByExternalID(c *gin.Context) {
 // @Param type query string false "Media type filter"
 // @Param limit query int false "Maximum number of items to return (default 20)"
 // @Param offset query int false "Offset for pagination (default 0)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Media items retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "Media items retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/search [get]
@@ -262,7 +261,7 @@ func (h *coreMediaItemHandler[T]) Search(c *gin.Context) {
 // @Produce json
 // @Param limit query int false "Maximum number of items to return (default 20)"
 // @Param days query int false "Number of days to look back (default 30)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Media items retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "Media items retrieved successfully"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/recently-added [get]
 func (h *coreMediaItemHandler[T]) GetRecentlyAdded(c *gin.Context) {
@@ -312,7 +311,7 @@ func (h *coreMediaItemHandler[T]) GetRecentlyAdded(c *gin.Context) {
 // @Param type path string true "Media type"
 // @Param limit query int false "Maximum number of items to return (default 20)"
 // @Param offset query int false "Offset for pagination (default 0)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Media items retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "Media items retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/type/{type} [get]
@@ -371,7 +370,7 @@ func (h *coreMediaItemHandler[T]) GetByType(c *gin.Context) {
 // @Param personId path int true "Person ID"
 // @Param role query string false "Role filter (actor, director, etc.)"
 // @Param limit query int false "Maximum number of items to return (default 20)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Media items retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "Media items retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/person/{personId} [get]
@@ -437,7 +436,7 @@ func (h *coreMediaItemHandler[T]) GetByPerson(c *gin.Context) {
 // @Produce json
 // @Param year path int true "Release year"
 // @Param limit query int false "Maximum number of items to return (default 20)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Media items retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "Media items retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/year/{year} [get]
@@ -503,7 +502,7 @@ func (h *coreMediaItemHandler[T]) GetByYear(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param limit query int false "Maximum number of items to return (default 20)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Media items retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "Media items retrieved successfully"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/latest [get]
 func (h *coreMediaItemHandler[T]) GetLatestByAdded(c *gin.Context) {
@@ -564,7 +563,7 @@ func (h *coreMediaItemHandler[T]) GetLatestByAdded(c *gin.Context) {
 // @Produce json
 // @Param clientId path int true "Client ID"
 // @Param limit query int false "Maximum number of items to return (default 20)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Media items retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "Media items retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/client/{clientId} [get]
@@ -624,7 +623,7 @@ func (h *coreMediaItemHandler[T]) GetByClient(c *gin.Context) {
 // @Produce json
 // @Param genre path string true "Genre name"
 // @Param limit query int false "Maximum number of items to return (default 20)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Media items retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "Media items retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/genre/{genre} [get]
@@ -701,7 +700,7 @@ func (h *coreMediaItemHandler[T]) GetByExternalSourceID(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param limit query int false "Maximum number of items to return (default 20)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Media items retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "Media items retrieved successfully"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/popular [get]
 func (h *coreMediaItemHandler[T]) GetPopular(c *gin.Context) {
@@ -750,7 +749,7 @@ func (h *coreMediaItemHandler[T]) GetPopular(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param limit query int false "Maximum number of items to return (default 20)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Media items retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "Media items retrieved successfully"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/top-rated [get]
 func (h *coreMediaItemHandler[T]) GetTopRated(c *gin.Context) {
@@ -817,7 +816,7 @@ func (h *coreMediaItemHandler[T]) GetByClientItemID(c *gin.Context) {
 // @Produce json
 // @Param userId query int true "User ID"
 // @Param limit query int false "Maximum number of items to return (default 20)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Media items retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.MediaData]] "Media items retrieved successfully"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/most-played [get]
 func (h *coreMediaItemHandler[T]) GetMostPlayed(c *gin.Context) {
@@ -872,7 +871,7 @@ func (h *coreMediaItemHandler[T]) GetType() string {
 // @Produce json
 // @Param rating path number true "Rating"
 // @Param limit query int false "Maximum number of media items to return (default 20)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Media items retrieved successfully"
+// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.MediaData]] "Media items retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
 // @Router /media/rating/{rating} [get]
