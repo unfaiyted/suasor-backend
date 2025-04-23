@@ -628,6 +628,404 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/client/{clientID}/movies/actor/{actor}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves movies from all connected clients featuring the specified actor",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Get movies by actor",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Actor name",
+                        "name": "actor",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/movies/director/{director}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves movies from all connected clients directed by the specified director",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Get movies by director",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Director name",
+                        "name": "director",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/movies/genre/{genre}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves movies from all connected clients that match the specified genre",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Get movies by genre",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Genre name",
+                        "name": "genre",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/movies/rating": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves movies from all connected clients with ratings in the specified range",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Get movies by rating range",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "description": "Minimum rating (e.g. 7.5)",
+                        "name": "min",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Maximum rating (e.g. 10.0)",
+                        "name": "max",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid rating format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/movies/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Searches for movies across all connected clients matching the query",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Search for movies",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing search query",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/movies/year/{year}": {
+            "get": {
+                "responses": {
+                    "400": {
+                        "description": "Invalid year",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/music/albums/year/{year}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves albums from all connected clients that were released in the specified year",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "music"
+                ],
+                "summary": "Get albums by release year",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Release year",
+                        "name": "year",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Albums retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Album"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid year",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/music/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Search for music across all connected clients",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "music"
+                ],
+                "summary": "Search music (artists, albums, tracks)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Music search results retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid query",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/client/{clientId}/album/item/{clientItemId}": {
             "get": {
                 "security": [
@@ -816,7 +1214,12 @@ const docTemplate = `{
         },
         "/api/v1/client/{clientId}/movie/actor/{actor}": {
             "get": {
-                "description": "Retrieves movies featuring a specific actor",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves movies from all connected clients featuring the specified actor",
                 "consumes": [
                     "application/json"
                 ],
@@ -834,37 +1237,25 @@ const docTemplate = `{
                         "name": "actor",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Maximum number of movies to return (default 20)",
-                        "name": "limit",
-                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Movies retrieved successfully",
+                        "description": "Movies retrieved",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
                         }
                     },
-                    "400": {
-                        "description": "Invalid request",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "Movie not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
                         }
                     }
                 }
@@ -1938,6 +2329,419 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/movies/actor/{actor}": {
+            "get": {
+                "description": "Retrieves movies featuring a specific actor",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Get movies by actor",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Actor name",
+                        "name": "actor",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of movies to return (default 20)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/movies/director/{director}": {
+            "get": {
+                "description": "Retrieves movies directed by a specific director",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Get movies by director",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Director name",
+                        "name": "director",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of movies to return (default 20)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/movies/genre/{genre}": {
+            "get": {
+                "description": "Retrieves movies that match a specific genre",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Get movies by genre",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Genre name",
+                        "name": "genre",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of movies to return (default 20)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/movies/search": {
+            "get": {
+                "description": "Searches for movies that match the query",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Search movies",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of movies to return (default 20)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/movies/year/{year}": {
+            "get": {
+                "description": "Retrieves movies released in a specific year",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Get movies by year",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Release year",
+                        "name": "year",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of movies to return (default 20)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/music/albums/{id}/tracks": {
+            "get": {
+                "description": "Retrieves all tracks for a specific album",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "music"
+                ],
+                "summary": "Get tracks by album ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Album ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tracks retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Track"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Album not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/music/artists/{id}/albums": {
+            "get": {
+                "description": "Retrieves all albums for a specific artist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "music"
+                ],
+                "summary": "Get albums for an artist",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Artist ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Albums retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Album"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Artist not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/music/search": {
+            "get": {
+                "description": "Search for music items (tracks, albums, artists) by query",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "music"
+                ],
+                "summary": "Search music",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Media type to search for (track, album, artist)",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of items to return (default 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Search results retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItemList"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/recommendations": {
             "get": {
                 "security": [
@@ -2318,6 +3122,70 @@ const docTemplate = `{
                         "description": "Server error",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/series/{id}/seasons/{seasonNumber}/episodes": {
+            "get": {
+                "description": "Retrieves all episodes for a specific season of a series",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "series"
+                ],
+                "summary": "Get episodes for a season",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Series ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Season number",
+                        "name": "seasonNumber",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Episodes retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_types_Episode"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Series or season not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
                         }
                     }
                 }
@@ -8082,7 +8950,7 @@ const docTemplate = `{
         },
         "/media/external/{source}/{externalId}": {
             "get": {
-                "description": "Retrieves a media item using its external source ID",
+                "description": "Retrieves a media item using its external source ID (e.g., TMDB ID)",
                 "consumes": [
                     "application/json"
                 ],
@@ -8113,7 +8981,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Media item retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Track"
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-any"
                         }
                     },
                     "400": {
@@ -8809,55 +9677,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/movies/actor/{actor}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves movies from all connected clients featuring the specified actor",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies"
-                ],
-                "summary": "Get movies by actor",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Actor name",
-                        "name": "actor",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
         "/movies/client/{clientId}/item/{clientItemId}": {
             "get": {
                 "description": "Retrieves movies associated with a specific client",
@@ -8916,104 +9735,6 @@ const docTemplate = `{
                         "description": "Server error",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/movies/director/{director}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves movies from all connected clients directed by the specified director",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies"
-                ],
-                "summary": "Get movies by director",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Director name",
-                        "name": "director",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/movies/genre/{genre}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves movies from all connected clients that match the specified genre",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies"
-                ],
-                "summary": "Get movies by genre",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Genre name",
-                        "name": "genre",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
                         }
                     }
                 }
@@ -9209,68 +9930,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/movies/rating": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves movies from all connected clients with ratings in the specified range",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies"
-                ],
-                "summary": "Get movies by rating range",
-                "parameters": [
-                    {
-                        "type": "number",
-                        "description": "Minimum rating (e.g. 7.5)",
-                        "name": "min",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "number",
-                        "description": "Maximum rating (e.g. 10.0)",
-                        "name": "max",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid rating format",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
         "/movies/rating/{rating}": {
             "get": {
                 "description": "Retrieves movies that match a specific rating",
@@ -9364,61 +10023,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/movies/search": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Searches for movies across all connected clients matching the query",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies"
-                ],
-                "summary": "Search for movies",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Search query",
-                        "name": "q",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Missing search query",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
         "/movies/top-rated": {
             "get": {
                 "description": "Retrieves the highest rated movies",
@@ -9492,30 +10096,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid count format",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/movies/year/{year}": {
-            "get": {
-                "responses": {
-                    "400": {
-                        "description": "Invalid year",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
                         }
@@ -9914,56 +10494,6 @@ const docTemplate = `{
                         "description": "Album retrieved successfully",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Album"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "Album not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/music/albums/{id}/tracks": {
-            "get": {
-                "description": "Retrieves all tracks for a specific album",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "music"
-                ],
-                "summary": "Get tracks by album ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Album ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Tracks retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Track"
                         }
                     },
                     "400": {
@@ -10524,62 +11054,6 @@ const docTemplate = `{
                         "description": "Music items retrieved successfully",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Track"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/music/search": {
-            "get": {
-                "description": "Search for music items (tracks, albums, artists) by query",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "music"
-                ],
-                "summary": "Search music",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Search query",
-                        "name": "q",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Media type to search for (track, album, artist)",
-                        "name": "type",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Maximum number of items to return (default 10)",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Search results retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItemList"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
                         }
                     },
                     "500": {
@@ -12758,70 +13232,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Series not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/series/{id}/seasons/{seasonNumber}/episodes": {
-            "get": {
-                "description": "Retrieves all episodes for a specific season of a series",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "series"
-                ],
-                "summary": "Get episodes for a season",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Series ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Season number",
-                        "name": "seasonNumber",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "userId",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Episodes retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_types_Episode"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "Series or season not found",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-any"
                         }

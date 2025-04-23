@@ -5417,6 +5417,264 @@ paths:
       summary: Validate user session
       tags:
       - auth
+  /api/v1/client/{clientID}/movies/actor/{actor}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves movies from all connected clients featuring the specified
+        actor
+      parameters:
+      - description: Actor name
+        in: path
+        name: actor
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get movies by actor
+      tags:
+      - movies
+  /api/v1/client/{clientID}/movies/director/{director}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves movies from all connected clients directed by the specified
+        director
+      parameters:
+      - description: Director name
+        in: path
+        name: director
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get movies by director
+      tags:
+      - movies
+  /api/v1/client/{clientID}/movies/genre/{genre}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves movies from all connected clients that match the specified
+        genre
+      parameters:
+      - description: Genre name
+        in: path
+        name: genre
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get movies by genre
+      tags:
+      - movies
+  /api/v1/client/{clientID}/movies/rating:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves movies from all connected clients with ratings in the
+        specified range
+      parameters:
+      - description: Minimum rating (e.g. 7.5)
+        in: query
+        name: min
+        required: true
+        type: number
+      - description: Maximum rating (e.g. 10.0)
+        in: query
+        name: max
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+        "400":
+          description: Invalid rating format
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get movies by rating range
+      tags:
+      - movies
+  /api/v1/client/{clientID}/movies/search:
+    get:
+      consumes:
+      - application/json
+      description: Searches for movies across all connected clients matching the query
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+        "400":
+          description: Missing search query
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Search for movies
+      tags:
+      - movies
+  /api/v1/client/{clientID}/movies/year/{year}:
+    get:
+      responses:
+        "400":
+          description: Invalid year
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+  /api/v1/client/{clientID}/music/albums/year/{year}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves albums from all connected clients that were released
+        in the specified year
+      parameters:
+      - description: Release year
+        in: path
+        name: year
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Albums retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Album'
+        "400":
+          description: Invalid year
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get albums by release year
+      tags:
+      - music
+  /api/v1/client/{clientID}/music/search:
+    get:
+      consumes:
+      - application/json
+      description: Search for music across all connected clients
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Music search results retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemResponse'
+        "400":
+          description: Invalid query
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Search music (artists, albums, tracks)
+      tags:
+      - music
   /api/v1/client/{clientId}/album/{clientItemId}/tracks:
     get:
       consumes:
@@ -5541,36 +5799,31 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieves movies featuring a specific actor
+      description: Retrieves movies from all connected clients featuring the specified
+        actor
       parameters:
       - description: Actor name
         in: path
         name: actor
         required: true
         type: string
-      - description: Maximum number of movies to return (default 20)
-        in: query
-        name: limit
-        type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: Movies retrieved successfully
+          description: Movies retrieved
           schema:
             $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Invalid request
+        "401":
+          description: Unauthorized
           schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "404":
-          description: Movie not found
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
       summary: Get movies by actor
       tags:
       - movies
@@ -6271,6 +6524,279 @@ paths:
       summary: Record a media play event
       tags:
       - History
+  /api/v1/movies/actor/{actor}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves movies featuring a specific actor
+      parameters:
+      - description: Actor name
+        in: path
+        name: actor
+        required: true
+        type: string
+      - description: Maximum number of movies to return (default 20)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Get movies by actor
+      tags:
+      - movies
+  /api/v1/movies/director/{director}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves movies directed by a specific director
+      parameters:
+      - description: Director name
+        in: path
+        name: director
+        required: true
+        type: string
+      - description: Maximum number of movies to return (default 20)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Get movies by director
+      tags:
+      - movies
+  /api/v1/movies/genre/{genre}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves movies that match a specific genre
+      parameters:
+      - description: Genre name
+        in: path
+        name: genre
+        required: true
+        type: string
+      - description: Maximum number of movies to return (default 20)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Get movies by genre
+      tags:
+      - movies
+  /api/v1/movies/search:
+    get:
+      consumes:
+      - application/json
+      description: Searches for movies that match the query
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      - description: Maximum number of movies to return (default 20)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Search movies
+      tags:
+      - movies
+  /api/v1/movies/year/{year}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves movies released in a specific year
+      parameters:
+      - description: Release year
+        in: path
+        name: year
+        required: true
+        type: integer
+      - description: Maximum number of movies to return (default 20)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Get movies by year
+      tags:
+      - movies
+  /api/v1/music/albums/{id}/tracks:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all tracks for a specific album
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tracks retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Track'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "404":
+          description: Album not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Get tracks by album ID
+      tags:
+      - music
+  /api/v1/music/artists/{id}/albums:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all albums for a specific artist
+      parameters:
+      - description: Artist ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User ID
+        in: query
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Albums retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Album'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "404":
+          description: Artist not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Get albums for an artist
+      tags:
+      - music
+  /api/v1/music/search:
+    get:
+      consumes:
+      - application/json
+      description: Search for music items (tracks, albums, artists) by query
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      - description: Media type to search for (track, album, artist)
+        in: query
+        name: type
+        type: string
+      - description: Maximum number of items to return (default 10)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Search results retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_MediaItemList'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Search music
+      tags:
+      - music
   /api/v1/recommendations:
     get:
       consumes:
@@ -6520,6 +7046,49 @@ paths:
       summary: Mark a recommendation as viewed
       tags:
       - recommendations
+  /api/v1/series/{id}/seasons/{seasonNumber}/episodes:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all episodes for a specific season of a series
+      parameters:
+      - description: Series ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Season number
+        in: path
+        name: seasonNumber
+        required: true
+        type: integer
+      - description: User ID
+        in: query
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Episodes retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_types_Episode'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "404":
+          description: Series or season not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Get episodes for a season
+      tags:
+      - series
   /api/v1/user/{id}:
     delete:
       description: Deletes a user account (admin only)
@@ -10301,7 +10870,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieves a media item using its external source ID
+      description: Retrieves a media item using its external source ID (e.g., TMDB
+        ID)
       parameters:
       - description: External source name (e.g., tmdb, imdb)
         in: path
@@ -10319,7 +10889,7 @@ paths:
         "200":
           description: Media item retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_Track'
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-any'
         "400":
           description: Invalid request
           schema:
@@ -10778,38 +11348,6 @@ paths:
       summary: Get movie by ID
       tags:
       - movies
-  /movies/actor/{actor}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves movies from all connected clients featuring the specified
-        actor
-      parameters:
-      - description: Actor name
-        in: path
-        name: actor
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get movies by actor
-      tags:
-      - movies
   /movies/client/{clientId}/item/{clientItemId}:
     get:
       consumes:
@@ -10850,70 +11388,6 @@ paths:
           schema:
             $ref: '#/definitions/responses.ErrorResponse-any'
       summary: Get movies by client-specific ID
-      tags:
-      - movies
-  /movies/director/{director}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves movies from all connected clients directed by the specified
-        director
-      parameters:
-      - description: Director name
-        in: path
-        name: director
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get movies by director
-      tags:
-      - movies
-  /movies/genre/{genre}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves movies from all connected clients that match the specified
-        genre
-      parameters:
-      - description: Genre name
-        in: path
-        name: genre
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get movies by genre
       tags:
       - movies
   /movies/latest:
@@ -11038,47 +11512,6 @@ paths:
       summary: Get popular movies
       tags:
       - movies
-  /movies/rating:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves movies from all connected clients with ratings in the
-        specified range
-      parameters:
-      - description: Minimum rating (e.g. 7.5)
-        in: query
-        name: min
-        required: true
-        type: number
-      - description: Maximum rating (e.g. 10.0)
-        in: query
-        name: max
-        required: true
-        type: number
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Invalid rating format
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get movies by rating range
-      tags:
-      - movies
   /movies/rating/{rating}:
     get:
       consumes:
@@ -11140,41 +11573,6 @@ paths:
       summary: Get recently added movies
       tags:
       - movies
-  /movies/search:
-    get:
-      consumes:
-      - application/json
-      description: Searches for movies across all connected clients matching the query
-      parameters:
-      - description: Search query
-        in: query
-        name: q
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Missing search query
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Search for movies
-      tags:
-      - movies
   /movies/top-rated:
     get:
       consumes:
@@ -11234,21 +11632,6 @@ paths:
       summary: Get top rated movies
       tags:
       - movies
-  /movies/year/{year}:
-    get:
-      responses:
-        "400":
-          description: Invalid year
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
   /music/albums/{id}:
     get:
       consumes:
@@ -11280,39 +11663,6 @@ paths:
           schema:
             $ref: '#/definitions/responses.ErrorResponse-any'
       summary: Get album by ID
-      tags:
-      - music
-  /music/albums/{id}/tracks:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves all tracks for a specific album
-      parameters:
-      - description: Album ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Tracks retrieved successfully
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Track'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "404":
-          description: Album not found
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-      summary: Get tracks by album ID
       tags:
       - music
   /music/albums/latest:
@@ -11871,43 +12221,6 @@ paths:
           schema:
             $ref: '#/definitions/responses.ErrorResponse-any'
       summary: Get recently added music
-      tags:
-      - music
-  /music/search:
-    get:
-      consumes:
-      - application/json
-      description: Search for music items (tracks, albums, artists) by query
-      parameters:
-      - description: Search query
-        in: query
-        name: q
-        required: true
-        type: string
-      - description: Media type to search for (track, album, artist)
-        in: query
-        name: type
-        type: string
-      - description: Maximum number of items to return (default 10)
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Search results retrieved successfully
-          schema:
-            $ref: '#/definitions/responses.APIResponse-models_MediaItemList'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-      summary: Search music
       tags:
       - music
   /music/tracks/{id}:
@@ -12841,49 +13154,6 @@ paths:
           schema:
             $ref: '#/definitions/responses.ErrorResponse-any'
       summary: Get seasons for a series
-      tags:
-      - series
-  /series/{id}/seasons/{seasonNumber}/episodes:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves all episodes for a specific season of a series
-      parameters:
-      - description: Series ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Season number
-        in: path
-        name: seasonNumber
-        required: true
-        type: integer
-      - description: User ID
-        in: query
-        name: userId
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Episodes retrieved successfully
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_types_Episode'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "404":
-          description: Series or season not found
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-      summary: Get episodes for a season
       tags:
       - series
   /series/actor/{actor}:

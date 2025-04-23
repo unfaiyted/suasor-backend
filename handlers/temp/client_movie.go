@@ -125,7 +125,7 @@ func (h *clientMovieHandler[T]) GetClientMovieByID(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /movies/genre/{genre} [get]
+// @Router /api/v1/client/{clientID}/movies/genre/{genre} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -178,7 +178,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesByGenre(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid year"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /movies/year/{year} [get]
+// @Router /api/v1/client/{clientID}/movies/year/{year} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -235,7 +235,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesByYear(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /movies/actor/{actor} [get]
+// @Router /api/v1/client/{clientID}/movies/actor/{actor} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByActor(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -286,7 +286,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesByActor(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /movies/director/{director} [get]
+// @Router /api/v1/client/{clientID}/movies/director/{director} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByDirector(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -339,7 +339,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesByDirector(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid rating format"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /movies/rating [get]
+// @Router /api/v1/client/{clientID}/movies/rating [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByRating(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -581,7 +581,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesTopRated(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Missing search query"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /movies/search [get]
+// @Router /api/v1/client/{clientID}/movies/search [get]
 func (h *clientMovieHandler[T]) SearchClientMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

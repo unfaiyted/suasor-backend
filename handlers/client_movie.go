@@ -681,7 +681,7 @@ func createMovieMediaItem[T mediatypes.Movie](clientID uint64, clientType client
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Movie not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/client/{clientId}/movie/actor/{actor} [get]
+// Note: This functionality is redundant, covered by GetClientMoviesByActor
 func (h *clientMovieHandler[T]) GetClientByActor(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

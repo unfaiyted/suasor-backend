@@ -130,7 +130,7 @@ func (h *coreMovieHandler) GetByID(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /movies/genre/{genre} [get]
+// @Router /api/v1/movies/genre/{genre} [get]
 func (h *coreMovieHandler) GetByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -187,7 +187,7 @@ func (h *coreMovieHandler) GetByGenre(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /movies/year/{year} [get]
+// @Router /api/v1/movies/year/{year} [get]
 func (h *coreMovieHandler) GetByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -245,7 +245,7 @@ func (h *coreMovieHandler) GetByYear(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /movies/actor/{actor} [get]
+// @Router /api/v1/movies/actor/{actor} [get]
 func (h *coreMovieHandler) GetByActor(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -302,7 +302,7 @@ func (h *coreMovieHandler) GetByActor(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /movies/director/{director} [get]
+// @Router /api/v1/movies/director/{director} [get]
 func (h *coreMovieHandler) GetByDirector(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -359,7 +359,7 @@ func (h *coreMovieHandler) GetByDirector(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /movies/search [get]
+// @Router /api/v1/movies/search [get]
 func (h *coreMovieHandler) Search(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

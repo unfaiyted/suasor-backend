@@ -753,7 +753,7 @@ func (h *userListHandler[T]) GetFavorite(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Playlist]] "Lists retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /user/lists [get]
+// Note: GetAll function already implements this route
 func (h *userListHandler[T]) GetUserLists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

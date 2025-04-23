@@ -123,7 +123,7 @@ func (h *coreSeriesHandler) GetSeasonsBySeriesID(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Series or season not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /series/{id}/seasons/{seasonNumber}/episodes [get]
+// @Router /api/v1/series/{id}/seasons/{seasonNumber}/episodes [get]
 func (h *coreSeriesHandler) GetEpisodesBySeriesIDAndSeasonNumber(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -480,7 +480,7 @@ func (h *coreSeriesHandler) GetSeriesByNetwork(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Series or season not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /series/{id}/seasons/{seasonNumber}/episodes [get]
+// Note: This functionality is implemented by GetEpisodesBySeriesIDAndSeasonNumber
 func (h *coreSeriesHandler) GetSeasonWithEpisodes(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -643,7 +643,7 @@ func (h *coreSeriesHandler) GetByCreator(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Series or season not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /series/{id}/seasons/{seasonNumber}/episodes [get]
+// Note: This functionality is implemented by GetEpisodesBySeriesIDAndSeasonNumber
 func (h *coreSeriesHandler) GetEpisodesBySeasonID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

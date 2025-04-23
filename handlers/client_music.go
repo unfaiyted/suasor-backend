@@ -578,7 +578,7 @@ func (h *clientMusicHandler[T]) GetClientTracksByGenre(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[error] "Invalid year"
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /music/albums/year/{year} [get]
+// @Router /api/v1/client/{clientID}/music/albums/year/{year} [get]
 func (h *clientMusicHandler[T]) GetClientAlbumsByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -824,7 +824,7 @@ func (h *clientMusicHandler[T]) GetClientPopularArtists(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid query"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /music/search [get]
+// @Router /api/v1/client/{clientID}/music/search [get]
 func (h *clientMusicHandler[T]) SearchClientMusic(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
