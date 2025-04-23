@@ -6,7 +6,7 @@ import (
 	mediatypes "suasor/clients/media/types"
 	clienttypes "suasor/clients/types"
 	"suasor/services"
-	models "suasor/types/models"
+	_ "suasor/types/models"
 	"suasor/types/responses"
 	"suasor/utils/logger"
 

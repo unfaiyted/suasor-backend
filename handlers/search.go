@@ -4,10 +4,10 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strconv"
 	"suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/responses"
+	"suasor/utils"
 	"suasor/utils/logger"
 )
 
@@ -34,7 +34,7 @@ func NewSearchHandler(service services.SearchService) *SearchHandler {
 // @Success 200 {object} responses.SearchResponse
 // @Failure 400 {object} responses.ErrorResponse[any]
 // @Failure 500 {object} responses.ErrorResponse[any]
-// @Router /search [get]
+// @Router /api/v1/search [get]
 func (h *SearchHandler) Search(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -56,19 +56,9 @@ func (h *SearchHandler) Search(c *gin.Context) {
 	}
 
 	// Parse other query parameters
-	limitStr := c.DefaultQuery("limit", "20")
-	offsetStr := c.DefaultQuery("offset", "0")
+	limit := utils.GetLimit(c, 20, 100, true)
+	offset := utils.GetOffset(c, 0)
 	mediaType := c.Query("mediaType")
-
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil || limit < 0 {
-		limit = 20
-	}
-
-	offset, err := strconv.Atoi(offsetStr)
-	if err != nil || offset < 0 {
-		offset = 0
-	}
 
 	// Create query options
 	options := types.QueryOptions{
@@ -103,7 +93,7 @@ func (h *SearchHandler) Search(c *gin.Context) {
 // @Success 200 {object} responses.RecentSearchesResponse
 // @Failure 400 {object} responses.ErrorResponse[any]
 // @Failure 500 {object} responses.ErrorResponse[any]
-// @Router /search/recent [get]
+// @Router /api/v1/search/recent [get]
 func (h *SearchHandler) GetRecentSearches(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -117,11 +107,7 @@ func (h *SearchHandler) GetRecentSearches(c *gin.Context) {
 	}
 
 	// Parse limit parameter
-	limitStr := c.DefaultQuery("limit", "10")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil || limit < 0 {
-		limit = 10
-	}
+	limit := utils.GetLimit(c, 10, 50, true)
 
 	// Get recent searches
 	searches, err := h.service.GetRecentSearches(ctx, userID.(uint64), limit)
@@ -148,17 +134,13 @@ func (h *SearchHandler) GetRecentSearches(c *gin.Context) {
 // @Success 200 {object} responses.TrendingSearchesResponse
 // @Failure 400 {object} responses.ErrorResponse[any]
 // @Failure 500 {object} responses.ErrorResponse[any]
-// @Router /search/trending [get]
+// @Router /api/v1/search/trending [get]
 func (h *SearchHandler) GetTrendingSearches(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Parse limit parameter
-	limitStr := c.DefaultQuery("limit", "10")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil || limit < 0 {
-		limit = 10
-	}
+	limit := utils.GetLimit(c, 10, 50, true)
 
 	// Get trending searches
 	searches, err := h.service.GetTrendingSearches(ctx, limit)
@@ -186,7 +168,7 @@ func (h *SearchHandler) GetTrendingSearches(c *gin.Context) {
 // @Success 200 {object} responses.SearchSuggestionsResponse
 // @Failure 400 {object} responses.ErrorResponse[any]
 // @Failure 500 {object} responses.ErrorResponse[any]
-// @Router /search/suggestions [get]
+// @Router /api/v1/search/suggestions [get]
 func (h *SearchHandler) GetSearchSuggestions(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -200,11 +182,7 @@ func (h *SearchHandler) GetSearchSuggestions(c *gin.Context) {
 	}
 
 	// Parse limit parameter
-	limitStr := c.DefaultQuery("limit", "5")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil || limit < 0 {
-		limit = 5
-	}
+	limit := utils.GetLimit(c, 5, 20, true)
 
 	// Get search suggestions
 	suggestions, err := h.service.GetSearchSuggestions(ctx, partialQuery, limit)

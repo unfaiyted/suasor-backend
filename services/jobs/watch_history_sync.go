@@ -136,40 +136,40 @@ func (j *WatchHistorySyncJob) processUserHistory(ctx context.Context, user model
 		return fmt.Errorf(errorMsg)
 	}
 
-	if clients.Total == 0 {
+	if clients.GetTotal() == 0 {
 		j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 100, "No media clients found")
 		j.completeJobRun(ctx, jobRun.ID, models.JobStatusCompleted, "No media clients found")
 		return nil
 	}
 
-	j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 10, fmt.Sprintf("Found %d media clients", clients.Total))
+	j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 10, fmt.Sprintf("Found %d media clients", clients.GetTotal()))
 
 	// Process each client
 	processedClients := 0
 	var lastError error
 
-	processed, err := processHistory[*clienttypes.EmbyConfig](j, ctx, user, clients.Emby, jobRun)
+	processed, err := processHistory[*clienttypes.EmbyConfig](j, ctx, user, clients.GetEmby(), jobRun)
 	processedClients += processed
 	if err != nil {
-		log.Printf("Error syncing history for client %s: %v", clients.Emby[0].Name, err)
+		log.Printf("Error syncing history for client %s: %v", clients.GetEmby()[0].Name, err)
 		lastError = err
 	}
-	processed, err = processHistory[*clienttypes.JellyfinConfig](j, ctx, user, clients.Jellyfin, jobRun)
+	processed, err = processHistory[*clienttypes.JellyfinConfig](j, ctx, user, clients.GetJellyfin(), jobRun)
 	processedClients += processed
 	if err != nil {
-		log.Printf("Error syncing history for client %s: %v", clients.Jellyfin[0].Name, err)
+		log.Printf("Error syncing history for client %s: %v", clients.GetJellyfin()[0].Name, err)
 		lastError = err
 	}
 
-	processed, err = processHistory[*clienttypes.PlexConfig](j, ctx, user, clients.Plex, jobRun)
+	processed, err = processHistory[*clienttypes.PlexConfig](j, ctx, user, clients.GetPlex(), jobRun)
 	if err != nil {
-		log.Printf("Error syncing history for client %s: %v", clients.Plex[0].Name, err)
+		log.Printf("Error syncing history for client %s: %v", clients.GetPlex()[0].Name, err)
 		lastError = err
 	}
 	processedClients += processed
-	processed, err = processHistory[*clienttypes.SubsonicConfig](j, ctx, user, clients.Subsonic, jobRun)
+	processed, err = processHistory[*clienttypes.SubsonicConfig](j, ctx, user, clients.GetSubsonic(), jobRun)
 	if err != nil {
-		log.Printf("Error syncing history for client %s: %v", clients.Subsonic[0].Name, err)
+		log.Printf("Error syncing history for client %s: %v", clients.GetSubsonic()[0].Name, err)
 		lastError = err
 	}
 	processedClients += processed
@@ -178,13 +178,13 @@ func (j *WatchHistorySyncJob) processUserHistory(ctx context.Context, user model
 	if lastError != nil {
 		errorMsg := fmt.Sprintf("Completed with errors: %v", lastError)
 		j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 100,
-			fmt.Sprintf("Processed %d/%d clients with errors", processedClients, clients.Total))
+			fmt.Sprintf("Processed %d/%d clients with errors", processedClients, clients.GetTotal()))
 		j.completeJobRun(ctx, jobRun.ID, models.JobStatusFailed, errorMsg)
 		return lastError
 	}
 
 	j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 100,
-		fmt.Sprintf("Successfully processed %d/%d clients", processedClients, clients.Total))
+		fmt.Sprintf("Successfully processed %d/%d clients", processedClients, clients.GetTotal()))
 	j.completeJobRun(ctx, jobRun.ID, models.JobStatusCompleted, "")
 	return nil
 }
@@ -298,7 +298,7 @@ func syncClientHistory[T clienttypes.ClientConfig](j *WatchHistorySyncJob, ctx c
 		}
 
 		// Skip invalid items
-		if historyItem.Item == nil || &historyItem.Item.Data == nil {
+		if historyItem.Item == nil {
 			log.Warn().Msg("Skipping invalid history item with no data")
 			continue
 		}

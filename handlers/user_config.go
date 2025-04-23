@@ -31,30 +31,22 @@ func NewUserConfigHandler(userConfigService services.UserConfigService) *UserCon
 // @Success 200 {object} responses.APIResponse[models.UserConfig] "User configuration retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /config/user [get]
+// @Router /api/v1/user-config [get]
 func (h *UserConfigHandler) GetUserConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Unauthorized attempt to get user configuration")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
+	userID, _ := checkUserAccess(c)
 
-	uid := userID.(uint64)
-	log.Info().Uint64("userID", uid).Msg("Retrieving user configuration")
-
-	config, err := h.userConfigService.GetUserConfig(ctx, uid)
+	config, err := h.userConfigService.GetUserConfig(ctx, userID)
 	if err != nil {
-		log.Error().Err(err).Uint64("userID", uid).Msg("Failed to retrieve user configuration")
+		log.Error().Err(err).Uint64("userID", userID).Msg("Failed to retrieve user configuration")
 		responses.RespondInternalError(c, err, "Failed to retrieve user configuration")
 		return
 	}
 
-	log.Info().Uint64("userID", uid).Msg("User configuration retrieved successfully")
+	log.Info().Uint64("userID", userID).Msg("User configuration retrieved successfully")
 	responses.RespondOK(c, config, "User configuration retrieved successfully")
 }
 
@@ -69,20 +61,13 @@ func (h *UserConfigHandler) GetUserConfig(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /config/user [put]
+// @Router /api/v1/user-config [put]
 func (h *UserConfigHandler) UpdateUserConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Unauthorized attempt to update user configuration")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
-
-	uid := userID.(uint64)
+	userID, _ := checkUserAccess(c)
 
 	var cfg models.UserConfig
 	if err := c.ShouldBindJSON(&cfg); err != nil {
@@ -92,16 +77,16 @@ func (h *UserConfigHandler) UpdateUserConfig(c *gin.Context) {
 	}
 
 	// Ensure the user can only modify their own config
-	cfg.UserID = uid
+	cfg.UserID = userID
 
-	log.Info().Uint64("userID", uid).Msg("Updating user configuration")
+	log.Info().Uint64("userID", userID).Msg("Updating user configuration")
 
 	if err := h.userConfigService.SaveUserConfig(ctx, cfg); err != nil {
-		log.Error().Err(err).Uint64("userID", uid).Msg("Failed to update user configuration")
+		log.Error().Err(err).Uint64("userID", userID).Msg("Failed to update user configuration")
 		responses.RespondInternalError(c, err, "Failed to update user configuration")
 		return
 	}
 
-	log.Info().Uint64("userID", uid).Msg("User configuration updated successfully")
+	log.Info().Uint64("userID", userID).Msg("User configuration updated successfully")
 	responses.RespondOK(c, responses.EmptyResponse{Success: true}, "User configuration updated successfully")
 }

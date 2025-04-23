@@ -35,14 +35,14 @@ func RegisterPeopleBasedRoutes(r *gin.RouterGroup, c *container.Container) {
 	// Credit routes
 	credits := r.Group("/credits")
 	{
-		credits.GET("/media/:mediaItemID", creditHandler.GetCreditsForMediaItem)
-		credits.GET("/media/:mediaItemID/cast", creditHandler.GetCastForMediaItem)
-		credits.GET("/media/:mediaItemID/crew", creditHandler.GetCrewForMediaItem)
-		credits.GET("/media/:mediaItemID/directors", creditHandler.GetDirectorsForMediaItem)
-		credits.GET("/media/:mediaItemID/:type", creditHandler.GetCreditsByType)
+		credits.GET("/media/:itemID", creditHandler.GetCreditsForMediaItem)
+		credits.GET("/media/:itemID/cast", creditHandler.GetCastForMediaItem)
+		credits.GET("/media/:itemID/crew", creditHandler.GetCrewForMediaItem)
+		credits.GET("/media/:itemID/directors", creditHandler.GetDirectorsForMediaItem)
+		credits.GET("/media/:itemID/:type", creditHandler.GetCreditsByType)
 		credits.GET("/person/:personID", creditHandler.GetCreditsByPerson)
 		credits.POST("", creditHandler.CreateCredit)
-		credits.POST("/media/:mediaItemID", creditHandler.CreateCreditsForMediaItem)
+		credits.POST("/media/:itemID", creditHandler.CreateCreditsForMediaItem)
 		credits.PUT("/:creditID", creditHandler.UpdateCredit)
 		credits.DELETE("/:creditID", creditHandler.DeleteCredit)
 	}

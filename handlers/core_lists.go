@@ -1,13 +1,14 @@
-// handlers/core_playlists.go
+// handlers/core_lists.go
 package handlers
 
 import (
 	"github.com/gin-gonic/gin"
 	"strconv"
+	"suasor/utils"
 
 	mediatypes "suasor/clients/media/types"
 	"suasor/services"
-	models "suasor/types/models"
+	_ "suasor/types/models"
 	"suasor/types/responses"
 	"suasor/utils/logger"
 )
@@ -22,13 +23,13 @@ type CoreListHandler[T mediatypes.ListData] interface {
 	Search(c *gin.Context)
 }
 
-// coreListHandler[T] handles operations for playlists in the database
+// coreListHandler[T] handles operations for lists in the database
 type coreListHandler[T mediatypes.ListData] struct {
 	CoreMediaItemHandler[T]
 	listService services.CoreListService[T]
 }
 
-// NewcoreListHandler[T] creates a new core playlist handler
+// NewCoreListHandler[T] creates a new core playlist handler
 func NewCoreListHandler[T mediatypes.ListData](
 	CoreMediaItemHandler CoreMediaItemHandler[T],
 	listService services.CoreListService[T],
@@ -40,56 +41,52 @@ func NewCoreListHandler[T mediatypes.ListData](
 }
 
 // GetAll godoc
-// @Summary Get all playlists
-// @Description Retrieves all playlists in the database
-// @Tags playlists
+// @Summary Get all lists
+// @Description Retrieves all lists in the database
+// @Tags lists
 // @Accept json
 // @Produce json
-// @Param limit query int false "Maximum number of playlists to return (default 10)"
+// @Param limit query int false "Maximum number of lists to return (default 10)"
 // @Param offset query int false "Offset for pagination (default 0)"
+// @Param listType path string true "List type (e.g. 'playlist', 'collection')"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Playlist]] "Lists retrieved successfully"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /playlists [get]
+// @Router /api/v1/{listType} [get]
 func (h *coreListHandler[T]) GetAll(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
-	log.Debug().Msg("Getting all playlists")
+	log.Debug().Msg("Getting all lists")
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
-	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
-	if err != nil {
-		offset = 0
-	}
+	limit := utils.GetLimit(c, 10, 100, true)
+	offset := utils.GetOffset(c, 0)
 
-	// Get all playlists
-	playlists, err := h.listService.GetAll(ctx, limit, offset)
+	// Get all lists
+	lists, err := h.listService.GetAll(ctx, limit, offset)
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to retrieve playlists")
-		responses.RespondInternalError(c, err, "Failed to retrieve playlists")
+		log.Error().Err(err).Msg("Failed to retrieve lists")
+		responses.RespondInternalError(c, err, "Failed to retrieve lists")
 		return
 	}
 
 	log.Info().
-		Int("count", len(playlists)).
+		Int("count", len(lists)).
 		Msg("Lists retrieved successfully")
-	responses.RespondOK(c, playlists, "Lists retrieved successfully")
+	responses.RespondOK(c, lists, "Lists retrieved successfully")
 }
 
 // GetByID godoc
 // @Summary Get playlist by ID
 // @Description Retrieves a specific playlist by ID
-// @Tags playlists
+// @Tags lists
 // @Accept json
 // @Produce json
-// @Param id path int true "List ID"
+// @Param listId path int true "List ID"
+// @Param listType path string true "List type (e.g. 'playlist', 'collection')"
 // @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "List retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "List not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /playlists/{id} [get]
+// @Router /api/v1/{listType}/{listId} [get]
 func (h *coreListHandler[T]) GetByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -120,18 +117,19 @@ func (h *coreListHandler[T]) GetByID(c *gin.Context) {
 	responses.RespondOK(c, playlist, "List retrieved successfully")
 }
 
-// GetListTracks godoc
+// GetListItems godoc
 // @Summary Get tracks in a playlist
 // @Description Retrieves all tracks in a specific playlist
-// @Tags playlists
+// @Tags lists
 // @Accept json
 // @Produce json
-// @Param id path int true "List ID"
+// @Param listId path int true "List ID"
+// @Param listType path string true "List type (e.g. 'playlist', 'collection')"
 // @Success 200 {object} responses.APIResponse[[]mediatypes.Track] "Tracks retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "List not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /playlists/{id}/tracks [get]
+// @Router /api/v1/{listType}/{listId}/items [get]
 func (h *coreListHandler[T]) GetItemsByListID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -166,16 +164,17 @@ func (h *coreListHandler[T]) GetItemsByListID(c *gin.Context) {
 }
 
 // GetByGenre godoc
-// @Summary Get playlists by genre
-// @Description Retrieves playlists that match a specific genre
-// @Tags playlists
+// @Summary Get lists by genre
+// @Description Retrieves lists that match a specific genre
+// @Tags lists
 // @Accept json
 // @Produce json
 // @Param genre path string true "Genre name"
+// @Param listType path string true "List type (e.g. 'playlist', 'collection')"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Playlist]] "Lists retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /playlists/genre/{genre} [get]
+// @Router /api/v1/{listType}/genre/{genre} [get]
 func (h *coreListHandler[T]) GetByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -189,7 +188,7 @@ func (h *coreListHandler[T]) GetByGenre(c *gin.Context) {
 
 	log.Debug().
 		Str("genre", genre).
-		Msg("Getting playlists by genre")
+		Msg("Getting lists by genre")
 
 	var zero T
 	mediaType := mediatypes.GetMediaTypeFromTypeName(zero)
@@ -199,34 +198,35 @@ func (h *coreListHandler[T]) GetByGenre(c *gin.Context) {
 		MediaType: mediaType,
 	}
 
-	// Search playlists by genre
-	playlists, err := h.listService.Search(ctx, options)
+	// Search lists by genre
+	lists, err := h.listService.Search(ctx, options)
 	if err != nil {
 		log.Error().Err(err).
 			Str("genre", genre).
-			Msg("Failed to retrieve playlists by genre")
-		responses.RespondInternalError(c, err, "Failed to retrieve playlists")
+			Msg("Failed to retrieve lists by genre")
+		responses.RespondInternalError(c, err, "Failed to retrieve lists")
 		return
 	}
 
 	log.Info().
 		Str("genre", genre).
-		Int("count", len(playlists)).
+		Int("count", len(lists)).
 		Msg("Lists by genre retrieved successfully")
-	responses.RespondOK(c, playlists, "Lists retrieved successfully")
+	responses.RespondOK(c, lists, "Lists retrieved successfully")
 }
 
 // Search godoc
-// @Summary Search playlists
-// @Description Searches for playlists that match the query
-// @Tags playlists
+// @Summary Search lists
+// @Description Searches for lists that match the query
+// @Tags lists
 // @Accept json
 // @Produce json
+// @Param listType path string true "List type (e.g. 'playlist', 'collection')"
 // @Param q query string true "Search query"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Playlist]] "Lists retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /playlists/search [get]
+// @Router /api/v1/{listType}/search [get]
 func (h *coreListHandler[T]) Search(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -240,7 +240,7 @@ func (h *coreListHandler[T]) Search(c *gin.Context) {
 
 	log.Debug().
 		Str("query", query).
-		Msg("Searching playlists")
+		Msg("Searching lists")
 
 	var zero T
 	mediaType := mediatypes.GetMediaTypeFromTypeName(zero)
@@ -251,36 +251,37 @@ func (h *coreListHandler[T]) Search(c *gin.Context) {
 		MediaType: mediaType,
 	}
 
-	// Search playlists
-	playlists, err := h.listService.Search(ctx, options)
+	// Search lists
+	lists, err := h.listService.Search(ctx, options)
 	if err != nil {
 		log.Error().Err(err).
 			Str("query", query).
-			Msg("Failed to search playlists")
-		responses.RespondInternalError(c, err, "Failed to search playlists")
+			Msg("Failed to search lists")
+		responses.RespondInternalError(c, err, "Failed to search lists")
 		return
 	}
 
 	log.Info().
 		Str("query", query).
-		Int("count", len(playlists)).
+		Int("count", len(lists)).
 		Msg("Lists search completed successfully")
-	responses.RespondOK(c, playlists, "Lists retrieved successfully")
+	responses.RespondOK(c, lists, "Lists retrieved successfully")
 }
 
 // AddItem godoc
 // @Summary Add an item to a playlist
 // @Description Adds a media item to an existing playlist
-// @Tags playlists
+// @Tags lists
 // @Accept json
 // @Produce json
-// @Param id path int true "List ID"
+// @Param listId path int true "List ID"
 // @Param itemID path string true "Item ID to add"
+// @Param listType path string true "List type (e.g. 'playlist', 'collection')"
 // @Success 200 {object} responses.APIResponse[string] "Item added to playlist"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "List not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /playlists/{id}/items/{itemID} [post]
+// @Router /api/v1/{listType}/{listId}/items/{itemID} [post]
 func (h *coreListHandler[T]) AddItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

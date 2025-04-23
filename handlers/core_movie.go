@@ -8,8 +8,9 @@ import (
 
 	mediatypes "suasor/clients/media/types"
 	"suasor/services"
-	models "suasor/types/models"
+	_ "suasor/types/models"
 	"suasor/types/responses"
+	"suasor/utils"
 	"suasor/utils/logger"
 )
 
@@ -54,14 +55,8 @@ func (h *coreMovieHandler) GetAll(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	log.Debug().Msg("Getting all movies")
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if err != nil {
-		limit = 20
-	}
-	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
-	if err != nil {
-		offset = 0
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
+	offset := utils.GetOffset(c, 0)
 
 	// Get all movies
 	movies, err := h.itemService.GetAll(ctx, limit, offset)

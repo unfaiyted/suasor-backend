@@ -24,7 +24,7 @@ func NewJobHandler(jobService services.JobService) *JobHandler {
 	}
 }
 
-// GetAllJobSchedules retrieves all job schedules
+// GetAllJobSchedules godoc
 // @Summary Get all job schedules
 // @Description Returns a list of all job schedules
 // @Tags jobs
@@ -43,7 +43,7 @@ func (h *JobHandler) GetAllJobSchedules(c *gin.Context) {
 	responses.RespondOK(c, schedules, "Job schedules retrieved successfully")
 }
 
-// GetJobScheduleByName retrieves a job schedule by name
+// GetJobScheduleByName godoc
 // @Summary Get job schedule by name
 // @Description Returns a specific job schedule by its name
 // @Tags jobs
@@ -70,7 +70,7 @@ func (h *JobHandler) GetJobScheduleByName(c *gin.Context) {
 	responses.RespondOK(c, schedule, "Job schedule retrieved successfully")
 }
 
-// CreateJobSchedule creates a new job schedule
+// CreateJobSchedule godoc
 // @Summary Create a new job schedule
 // @Description Creates a new job schedule
 // @Tags jobs
@@ -109,7 +109,7 @@ func (h *JobHandler) CreateJobSchedule(c *gin.Context) {
 	responses.RespondSuccess[models.JobSchedule](c, http.StatusCreated, schedule, "Job schedule created successfully")
 }
 
-// UpdateJobSchedule updates a job schedule
+// UpdateJobSchedule godoc
 // @Summary Update job schedule
 // @Description Updates an existing job schedule
 // @Tags jobs
@@ -153,7 +153,7 @@ func (h *JobHandler) UpdateJobSchedule(c *gin.Context) {
 	responses.RespondOK[struct{}](c, struct{}{}, "Job schedule updated successfully")
 }
 
-// RunJobManually triggers a job to run immediately
+// RunJobManually godoc
 // @Summary Run job manually
 // @Description Triggers a job to run immediately
 // @Tags jobs
@@ -195,7 +195,7 @@ func (h *JobHandler) RunJobManually(c *gin.Context) {
 	responses.RespondSuccess[struct{}](c, http.StatusAccepted, struct{}{}, "Job started successfully")
 }
 
-// GetRecentJobRuns retrieves recent job runs
+// GetRecentJobRuns godoc
 // @Summary Get recent job runs
 // @Description Returns a list of recent job runs
 // @Tags jobs
@@ -221,7 +221,7 @@ func (h *JobHandler) GetRecentJobRuns(c *gin.Context) {
 	responses.RespondOK(c, runs, "Job runs retrieved successfully")
 }
 
-// GetMediaSyncJobs retrieves job runs for the current user
+// GetMediaSyncJobs godoc
 // @Summary Get job runs for current user
 // @Description Returns a list of job runs for the current user
 // @Tags jobs
@@ -248,7 +248,7 @@ func (h *JobHandler) GetMediaSyncJobs(c *gin.Context) {
 	responses.RespondOK(c, jobs, "Media sync jobs retrieved successfully")
 }
 
-// SetupMediaSyncJob creates or updates a media sync job
+// SetupMediaSyncJob godoc
 // @Summary Setup media sync job
 // @Description Creates or updates a media sync job for the current user
 // @Tags jobs
@@ -281,7 +281,7 @@ func (h *JobHandler) SetupMediaSyncJob(c *gin.Context) {
 	responses.RespondOK[struct{}](c, struct{}{}, "Media sync job setup successfully")
 }
 
-// RunMediaSyncJob runs a media sync job manually
+// RunMediaSyncJob godoc
 // @Summary Run media sync job manually
 // @Description Runs a media sync job manually for the current user
 // @Tags jobs
@@ -314,7 +314,7 @@ func (h *JobHandler) RunMediaSyncJob(c *gin.Context) {
 	responses.RespondSuccess[struct{}](c, http.StatusAccepted, struct{}{}, "Media sync job started successfully")
 }
 
-// GetUserRecommendations retrieves recommendations for the current user
+// GetUserRecommendations godoc
 // @Summary Get recommendations for current user
 // @Description Returns a list of recommendations for the current user
 // @Tags jobs
@@ -353,7 +353,7 @@ func (h *JobHandler) GetUserRecommendations(c *gin.Context) {
 	responses.RespondOK(c, recommendations, "Recommendations retrieved successfully")
 }
 
-// GetJobRunProgress retrieves progress information for a specific job run
+// GetJobRunProgress godoc
 // @Summary Get job run progress
 // @Description Returns progress information for a specific job run
 // @Tags jobs
@@ -386,7 +386,7 @@ func (h *JobHandler) GetJobRunProgress(c *gin.Context) {
 	responses.RespondOK(c, jobRun, "Job run progress retrieved successfully")
 }
 
-// GetActiveJobRuns retrieves all currently running jobs
+// GetActiveJobRuns godoc
 // @Summary Get all active job runs
 // @Description Returns a list of all currently running jobs
 // @Tags jobs
@@ -405,7 +405,7 @@ func (h *JobHandler) GetActiveJobRuns(c *gin.Context) {
 	responses.RespondOK(c, runs, "Active job runs retrieved successfully")
 }
 
-// DismissRecommendation marks a recommendation as dismissed
+// DismissRecommendation godoc
 // @Summary Dismiss recommendation
 // @Description Marks a recommendation as dismissed
 // @Tags jobs
@@ -432,7 +432,7 @@ func (h *JobHandler) DismissRecommendation(c *gin.Context) {
 	responses.RespondOK[struct{}](c, struct{}{}, "Recommendation dismissed successfully")
 }
 
-// UpdateRecommendationViewedStatus updates whether a recommendation has been viewed
+// UpdateRecommendationViewedStatus godoc
 // @Summary Update recommendation viewed status
 // @Description Updates whether a recommendation has been viewed
 // @Tags jobs

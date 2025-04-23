@@ -32,28 +32,28 @@ func NewCreditHandler(creditService *services.CreditService) *CreditHandler {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param mediaItemID path int true "Media Item ID"
+// @Param itemID path int true "Media Item ID"
 // @Success 200 {array} models.Credit "Credits retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid media item ID"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /credits/media/{mediaItemID} [get]
+// @Router /api/v1/credits/media/{itemID} [get]
 func (h *CreditHandler) GetCreditsForMediaItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Get media item ID from path
-	mediaItemIDStr := c.Param("mediaItemID")
-	mediaItemID, err := strconv.ParseUint(mediaItemIDStr, 10, 64)
+	itemIDStr := c.Param("itemID")
+	itemID, err := strconv.ParseUint(itemIDStr, 10, 64)
 	if err != nil {
-		log.Error().Err(err).Str("mediaItemID", mediaItemIDStr).Msg("Invalid media item ID")
+		log.Error().Err(err).Str("itemID", itemIDStr).Msg("Invalid media item ID")
 		responses.RespondBadRequest(c, err, "Invalid media item ID")
 		return
 	}
 
 	// Get credits
-	credits, err := h.creditService.GetCreditsForMediaItem(ctx, mediaItemID)
+	credits, err := h.creditService.GetCreditsForMediaItem(ctx, itemID)
 	if err != nil {
-		log.Error().Err(err).Uint64("mediaItemID", mediaItemID).Msg("Failed to get credits")
+		log.Error().Err(err).Uint64("itemID", itemID).Msg("Failed to get credits")
 		responses.RespondInternalError(c, err, "Failed to get credits")
 		return
 	}
@@ -69,28 +69,28 @@ func (h *CreditHandler) GetCreditsForMediaItem(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param mediaItemID path int true "Media Item ID"
+// @Param itemID path int true "Media Item ID"
 // @Success 200 {array} models.Credit "Cast credits retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid media item ID"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /credits/media/{mediaItemID}/cast [get]
+// @Router /api/v1/credits/media/{itemID}/cast [get]
 func (h *CreditHandler) GetCastForMediaItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Get media item ID from path
-	mediaItemIDStr := c.Param("mediaItemID")
-	mediaItemID, err := strconv.ParseUint(mediaItemIDStr, 10, 64)
+	itemIDStr := c.Param("itemID")
+	itemID, err := strconv.ParseUint(itemIDStr, 10, 64)
 	if err != nil {
-		log.Error().Err(err).Str("mediaItemID", mediaItemIDStr).Msg("Invalid media item ID")
+		log.Error().Err(err).Str("itemID", itemIDStr).Msg("Invalid media item ID")
 		responses.RespondBadRequest(c, err, "Invalid media item ID")
 		return
 	}
 
 	// Get cast
-	cast, err := h.creditService.GetCastForMediaItem(ctx, mediaItemID)
+	cast, err := h.creditService.GetCastForMediaItem(ctx, itemID)
 	if err != nil {
-		log.Error().Err(err).Uint64("mediaItemID", mediaItemID).Msg("Failed to get cast")
+		log.Error().Err(err).Uint64("itemID", itemID).Msg("Failed to get cast")
 		responses.RespondInternalError(c, err, "Failed to get cast")
 		return
 	}
@@ -106,21 +106,21 @@ func (h *CreditHandler) GetCastForMediaItem(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param mediaItemID path int true "Media Item ID"
+// @Param itemID path int true "Media Item ID"
 // @Param department query string false "Filter by department (e.g., 'Directing', 'Writing')"
 // @Success 200 {array} models.Credit "Crew credits retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid media item ID"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /credits/media/{mediaItemID}/crew [get]
+// @Router /api/v1/credits/media/{itemID}/crew [get]
 func (h *CreditHandler) GetCrewForMediaItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Get media item ID from path
-	mediaItemIDStr := c.Param("mediaItemID")
-	mediaItemID, err := strconv.ParseUint(mediaItemIDStr, 10, 64)
+	itemIDStr := c.Param("itemID")
+	itemID, err := strconv.ParseUint(itemIDStr, 10, 64)
 	if err != nil {
-		log.Error().Err(err).Str("mediaItemID", mediaItemIDStr).Msg("Invalid media item ID")
+		log.Error().Err(err).Str("itemID", itemIDStr).Msg("Invalid media item ID")
 		responses.RespondBadRequest(c, err, "Invalid media item ID")
 		return
 	}
@@ -132,13 +132,13 @@ func (h *CreditHandler) GetCrewForMediaItem(c *gin.Context) {
 
 	// Get crew, filtered by department if provided
 	if department != "" {
-		crew, err = h.creditService.GetCrewByDepartment(ctx, mediaItemID, department)
+		crew, err = h.creditService.GetCrewByDepartment(ctx, itemID, department)
 	} else {
-		crew, err = h.creditService.GetCrewForMediaItem(ctx, mediaItemID)
+		crew, err = h.creditService.GetCrewForMediaItem(ctx, itemID)
 	}
 
 	if err != nil {
-		log.Error().Err(err).Uint64("mediaItemID", mediaItemID).Msg("Failed to get crew")
+		log.Error().Err(err).Uint64("itemID", itemID).Msg("Failed to get crew")
 		responses.RespondInternalError(c, err, "Failed to get crew")
 		return
 	}
@@ -154,28 +154,28 @@ func (h *CreditHandler) GetCrewForMediaItem(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param mediaItemID path int true "Media Item ID"
+// @Param itemID path int true "Media Item ID"
 // @Success 200 {array} models.Credit "Director credits retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid media item ID"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /credits/media/{mediaItemID}/directors [get]
+// @Router /api/v1/credits/media/{itemID}/directors [get]
 func (h *CreditHandler) GetDirectorsForMediaItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Get media item ID from path
-	mediaItemIDStr := c.Param("mediaItemID")
-	mediaItemID, err := strconv.ParseUint(mediaItemIDStr, 10, 64)
+	itemIDStr := c.Param("itemID")
+	itemID, err := strconv.ParseUint(itemIDStr, 10, 64)
 	if err != nil {
-		log.Error().Err(err).Str("mediaItemID", mediaItemIDStr).Msg("Invalid media item ID")
+		log.Error().Err(err).Str("itemID", itemIDStr).Msg("Invalid media item ID")
 		responses.RespondBadRequest(c, err, "Invalid media item ID")
 		return
 	}
 
 	// Get directors
-	directors, err := h.creditService.GetDirectorsForMediaItem(ctx, mediaItemID)
+	directors, err := h.creditService.GetDirectorsForMediaItem(ctx, itemID)
 	if err != nil {
-		log.Error().Err(err).Uint64("mediaItemID", mediaItemID).Msg("Failed to get directors")
+		log.Error().Err(err).Uint64("itemID", itemID).Msg("Failed to get directors")
 		responses.RespondInternalError(c, err, "Failed to get directors")
 		return
 	}
@@ -195,7 +195,7 @@ func (h *CreditHandler) GetDirectorsForMediaItem(c *gin.Context) {
 // @Success 200 {array} models.Credit "Credits retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid person ID"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /credits/person/{personID} [get]
+// @Router /api/v1/credits/person/{personID} [get]
 func (h *CreditHandler) GetCreditsByPerson(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -232,7 +232,7 @@ func (h *CreditHandler) GetCreditsByPerson(c *gin.Context) {
 // @Success 201 {object} models.Credit "Credit created successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /credits [post]
+// @Router /api/v1/credits [post]
 func (h *CreditHandler) CreateCredit(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -286,7 +286,7 @@ func (h *CreditHandler) CreateCredit(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid credit ID or request format"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Credit not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /credits/{creditID} [put]
+// @Router /api/v1/credits/{creditID} [put]
 func (h *CreditHandler) UpdateCredit(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -359,7 +359,7 @@ func (h *CreditHandler) UpdateCredit(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid credit ID"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Credit not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /credits/{creditID} [delete]
+// @Router /api/v1/credits/{creditID} [delete]
 func (h *CreditHandler) DeleteCredit(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -398,21 +398,21 @@ func (h *CreditHandler) DeleteCredit(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param mediaItemID path int true "Media Item ID"
+// @Param itemID path int true "Media Item ID"
 // @Param request body requests.CreateCreditsRequest true "Multiple credits information"
 // @Success 201 {array} models.Credit "Credits created successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid media item ID or request format"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /credits/media/{mediaItemID} [post]
+// @Router /api/v1/credits/media/{itemID} [post]
 func (h *CreditHandler) CreateCreditsForMediaItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Get media item ID from path
-	mediaItemIDStr := c.Param("mediaItemID")
-	mediaItemID, err := strconv.ParseUint(mediaItemIDStr, 10, 64)
+	itemIDStr := c.Param("itemID")
+	itemID, err := strconv.ParseUint(itemIDStr, 10, 64)
 	if err != nil {
-		log.Error().Err(err).Str("mediaItemID", mediaItemIDStr).Msg("Invalid media item ID")
+		log.Error().Err(err).Str("itemID", itemIDStr).Msg("Invalid media item ID")
 		responses.RespondBadRequest(c, err, "Invalid media item ID")
 		return
 	}
@@ -430,7 +430,7 @@ func (h *CreditHandler) CreateCreditsForMediaItem(c *gin.Context) {
 	for _, creditReq := range req.Credits {
 		credit := models.Credit{
 			PersonID:    creditReq.PersonID,
-			MediaItemID: mediaItemID, // Use the path parameter
+			MediaItemID: itemID, // Use the path parameter
 			Name:        creditReq.Name,
 			Role:        creditReq.Role,
 			Character:   creditReq.Character,
@@ -446,7 +446,7 @@ func (h *CreditHandler) CreateCreditsForMediaItem(c *gin.Context) {
 		credits = append(credits, credit)
 	}
 
-	createdCredits, err := h.creditService.CreateCreditsForMediaItem(ctx, mediaItemID, credits)
+	createdCredits, err := h.creditService.CreateCreditsForMediaItem(ctx, itemID, credits)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to create credits")
 		responses.RespondInternalError(c, err, "Failed to create credits")
@@ -464,21 +464,21 @@ func (h *CreditHandler) CreateCreditsForMediaItem(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param mediaItemID path int true "Media Item ID"
+// @Param itemID path int true "Media Item ID"
 // @Param type path string true "Credit type (cast, crew, directors)"
 // @Success 200 {array} models.Credit "Credits retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid media item ID or credit type"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /credits/media/{mediaItemID}/{type} [get]
+// @Router /api/v1/credits/media/{itemID}/{type} [get]
 func (h *CreditHandler) GetCreditsByType(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Get media item ID from path
-	mediaItemIDStr := c.Param("mediaItemID")
-	mediaItemID, err := strconv.ParseUint(mediaItemIDStr, 10, 64)
+	itemIDStr := c.Param("itemID")
+	itemID, err := strconv.ParseUint(itemIDStr, 10, 64)
 	if err != nil {
-		log.Error().Err(err).Str("mediaItemID", mediaItemIDStr).Msg("Invalid media item ID")
+		log.Error().Err(err).Str("itemID", itemIDStr).Msg("Invalid media item ID")
 		responses.RespondBadRequest(c, err, "Invalid media item ID")
 		return
 	}
@@ -491,11 +491,11 @@ func (h *CreditHandler) GetCreditsByType(c *gin.Context) {
 	// Get credits based on type
 	switch creditType {
 	case "cast":
-		credits, err = h.creditService.GetCastForMediaItem(ctx, mediaItemID)
+		credits, err = h.creditService.GetCastForMediaItem(ctx, itemID)
 	case "crew":
-		credits, err = h.creditService.GetCrewForMediaItem(ctx, mediaItemID)
+		credits, err = h.creditService.GetCrewForMediaItem(ctx, itemID)
 	case "directors":
-		credits, err = h.creditService.GetDirectorsForMediaItem(ctx, mediaItemID)
+		credits, err = h.creditService.GetDirectorsForMediaItem(ctx, itemID)
 	default:
 		log.Error().Str("type", creditType).Msg("Invalid credit type")
 		responses.RespondBadRequest(c, errors.New("invalid credit type"), "Invalid credit type")
@@ -503,7 +503,7 @@ func (h *CreditHandler) GetCreditsByType(c *gin.Context) {
 	}
 
 	if err != nil {
-		log.Error().Err(err).Uint64("mediaItemID", mediaItemID).Str("type", creditType).Msg("Failed to get credits")
+		log.Error().Err(err).Uint64("itemID", itemID).Str("type", creditType).Msg("Failed to get credits")
 		responses.RespondInternalError(c, err, "Failed to get credits")
 		return
 	}
@@ -511,4 +511,3 @@ func (h *CreditHandler) GetCreditsByType(c *gin.Context) {
 	// Return credits
 	c.JSON(http.StatusOK, credits)
 }
-

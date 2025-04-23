@@ -10,5 +10,11 @@ import (
 func RegisterClientsRoutes(r *gin.RouterGroup, c *container.Container) {
 	// Route to get all clients of all types
 	clientsHandler := container.MustGet[*handlers.ClientsHandler](c)
-	r.GET("/clients", clientsHandler.ListAllClients)
+
+	clientGroup := r.Group("/clients")
+	{
+		clientGroup.GET("", clientsHandler.GetAllClients)
+		clientGroup.GET("/:clientType", clientsHandler.GetClientsByType)
+		clientGroup.POST("/:clientType/test", clientsHandler.TestNewConnection)
+	}
 }

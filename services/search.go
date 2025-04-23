@@ -207,7 +207,8 @@ func (s *searchService) SearchClientMedias(ctx context.Context, userID uint64, o
 
 	// TODO: Loop through all the clients and search them all in parallel
 	// get client Connection details
-	client, err := s.clientFactoryService.GetClient(ctx, clients.Emby[0].ID, clients.Emby[0].GetConfig())
+	embyClient := clients.GetEmby()[0]
+	client, err := s.clientFactoryService.GetClient(ctx, embyClient.ID, embyClient.GetConfig())
 	if err != nil {
 		return responses.SearchResults{}, fmt.Errorf("failed to get client: %w", err)
 	}

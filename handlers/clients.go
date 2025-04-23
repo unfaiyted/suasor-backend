@@ -8,6 +8,7 @@ import (
 	"suasor/utils/logger"
 
 	"github.com/gin-gonic/gin"
+	"suasor/types/requests"
 )
 
 // ClientsHandler is responsible for handling requests related to listing all clients
@@ -54,231 +55,228 @@ func NewClientsHandler(
 	}
 }
 
-// ListAllClients godoc
+// GetAllClients godoc
 // @Summary Get all clients
-// @Description Retrieves all configured clients across different types for the user
+// @Description Retrieves all client configurations for the user
 // @Tags clients
 // @Accept json
 // @Produce json
-// @Param type query string false "Filter by client category (e.g. 'media')"
-// @Param clientType query string false "Filter by specific client type (e.g. 'jellyfin')"
 // @Security BearerAuth
-// @Success 200 {object} responses.ClientsResponse "All user clients with various config types"
-// @Failure 401 {object} responses.BasicErrorResponse "Unauthorized"
-// @Failure 500 {object} responses.BasicErrorResponse "Server error"
-// @Router /clients [get]
-func (h *ClientsHandler) ListAllClients(c *gin.Context) {
+// @Success 200 {object} responses.APIResponse[[]models.ClientList] "Clients retrieved"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
+// @Router /api/v1/admin/clients [get]
+func (h *ClientsHandler) GetAllClients(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
+	// log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, _ := checkUserAccess(c)
+
+	var clientList models.ClientList
+
+	emby, err := h.embyService.GetByUserID(ctx, uid)
+	if err != nil {
+		responses.RespondInternalError(c, err, "Failed to retrieve clients")
+		return
+	}
+	clientList.AddEmbyArray(emby)
+	plex, err := h.plexService.GetByUserID(ctx, uid)
+	if err != nil {
+		responses.RespondInternalError(c, err, "Failed to retrieve clients")
+		return
+	}
+	clientList.AddPlexArray(plex)
+	subsonic, err := h.subsonicService.GetByUserID(ctx, uid)
+	if err != nil {
+		responses.RespondInternalError(c, err, "Failed to retrieve clients")
+		return
+	}
+	clientList.AddSubsonicArray(subsonic)
+	sonarr, err := h.sonarrService.GetByUserID(ctx, uid)
+	if err != nil {
+		responses.RespondInternalError(c, err, "Failed to retrieve clients")
+		return
+	}
+	clientList.AddSonarrArray(sonarr)
+	radarr, err := h.radarrService.GetByUserID(ctx, uid)
+	if err != nil {
+		responses.RespondInternalError(c, err, "Failed to retrieve clients")
+		return
+	}
+	clientList.AddRadarrArray(radarr)
+	lidarr, err := h.lidarrService.GetByUserID(ctx, uid)
+	if err != nil {
+		responses.RespondInternalError(c, err, "Failed to retrieve clients")
+		return
+	}
+	clientList.AddLidarrArray(lidarr)
+	claude, err := h.claudeService.GetByUserID(ctx, uid)
+	if err != nil {
+		responses.RespondInternalError(c, err, "Failed to retrieve clients")
+		return
+	}
+	clientList.AddClaudeArray(claude)
+	openai, err := h.openaiService.GetByUserID(ctx, uid)
+	if err != nil {
+		responses.RespondInternalError(c, err, "Failed to retrieve clients")
+		return
+	}
+	clientList.AddOpenAIArray(openai)
+	ollama, err := h.ollamaService.GetByUserID(ctx, uid)
+	if err != nil {
+		responses.RespondInternalError(c, err, "Failed to retrieve clients")
+		return
+	}
+	clientList.AddOllamaArray(ollama)
+
+	if err != nil {
+		responses.RespondInternalError(c, err, "Failed to retrieve clients")
 		return
 	}
 
-	uid := userID.(uint64)
-
-	// Get filter parameters
-	typeFilter := c.Query("type")
-	clientTypeFilter := c.Query("clientType")
-
-	log.Info().
-		Uint64("userID", uid).
-		Str("typeFilter", typeFilter).
-		Str("clientTypeFilter", clientTypeFilter).
-		Msg("Retrieving filtered clients")
-
-	// Create a slice to hold all client responses
-	var allClients []responses.ClientResponse
-
-	// Define client type categories
-	clientMediaTypes := map[string]bool{
-		"emby":     true,
-		"jellyfin": true,
-		"plex":     true,
-		"subsonic": true,
-		"sonarr":   true,
-		"radarr":   true,
-		"lidarr":   true,
-	}
-
-	aiClientTypes := map[string]bool{
-		"claude": true,
-		"openai": true,
-		"ollama": true,
-	}
-
-	autoClientTypes := map[string]bool{
-		"radarr": true,
-		"sonarr": true,
-		"lidarr": true,
-	}
-
-	// Helper function to check if we should fetch a specific client type
-	shouldFetchClientType := func(clientType string) bool {
-		// If clientType filter is specified, only return that type
-		if clientTypeFilter != "" {
-			return clientTypeFilter == clientType
-		}
-
-		// If type filter is "media", only return media clients
-		if typeFilter == "media" {
-			return clientMediaTypes[clientType]
-		}
-		if typeFilter == "ai" {
-			return aiClientTypes[clientType]
-		}
-		if typeFilter == "automation" {
-			return autoClientTypes[clientType]
-		}
-
-		// No relevant filters, return all clients
-		return true
-	}
-
-	// Fetch all client types based on filters
-	if shouldFetchClientType("emby") {
-		embyClients, _ := h.embyService.GetByUserID(ctx, uid)
-		for _, client := range embyClients {
-			allClients = append(allClients, toClientResponse(client))
-		}
-	}
-
-	if shouldFetchClientType("jellyfin") {
-		jellyfinClients, _ := h.jellyfinService.GetByUserID(ctx, uid)
-		for _, client := range jellyfinClients {
-			allClients = append(allClients, toClientResponse(client))
-		}
-	}
-
-	if shouldFetchClientType("plex") {
-		plexClients, _ := h.plexService.GetByUserID(ctx, uid)
-		for _, client := range plexClients {
-			allClients = append(allClients, toClientResponse(client))
-		}
-	}
-
-	if shouldFetchClientType("subsonic") {
-		subsonicClients, _ := h.subsonicService.GetByUserID(ctx, uid)
-		for _, client := range subsonicClients {
-			allClients = append(allClients, toClientResponse(client))
-		}
-	}
-
-	if shouldFetchClientType("sonarr") {
-		sonarrClients, _ := h.sonarrService.GetByUserID(ctx, uid)
-		for _, client := range sonarrClients {
-			allClients = append(allClients, toClientResponse(client))
-		}
-	}
-
-	if shouldFetchClientType("radarr") {
-		radarrClients, _ := h.radarrService.GetByUserID(ctx, uid)
-		for _, client := range radarrClients {
-			allClients = append(allClients, toClientResponse(client))
-		}
-	}
-
-	if shouldFetchClientType("lidarr") {
-		lidarrClients, _ := h.lidarrService.GetByUserID(ctx, uid)
-		for _, client := range lidarrClients {
-			allClients = append(allClients, toClientResponse(client))
-		}
-	}
-
-	if shouldFetchClientType("claude") {
-		claudeClients, _ := h.claudeService.GetByUserID(ctx, uid)
-		for _, client := range claudeClients {
-			allClients = append(allClients, toClientResponse(client))
-		}
-	}
-
-	if shouldFetchClientType("openai") {
-		openaiClients, _ := h.openaiService.GetByUserID(ctx, uid)
-		for _, client := range openaiClients {
-			allClients = append(allClients, toClientResponse(client))
-		}
-	}
-
-	if shouldFetchClientType("ollama") {
-		ollamaClients, _ := h.ollamaService.GetByUserID(ctx, uid)
-		for _, client := range ollamaClients {
-			allClients = append(allClients, toClientResponse(client))
-		}
-	}
-
-	if shouldFetchClientType("claude") {
-		claudeClients, _ := h.claudeService.GetByUserID(ctx, uid)
-		for _, client := range claudeClients {
-			allClients = append(allClients, toClientResponse(client))
-		}
-	}
-
-	if shouldFetchClientType("openai") {
-		openaiClients, _ := h.openaiService.GetByUserID(ctx, uid)
-		for _, client := range openaiClients {
-			allClients = append(allClients, toClientResponse(client))
-		}
-	}
-	if shouldFetchClientType("ollama") {
-		ollamaClients, _ := h.ollamaService.GetByUserID(ctx, uid)
-		for _, client := range ollamaClients {
-			allClients = append(allClients, toClientResponse(client))
-		}
-	}
-
-	log.Info().
-		Uint64("userID", uid).
-		Int("clientCount", len(allClients)).
-		Str("typeFilter", typeFilter).
-		Str("clientTypeFilter", clientTypeFilter).
-		Msg("Retrieved filtered clients")
-
-	responses.RespondOK(c, allClients, "Clients retrieved successfully")
+	responses.RespondOK(c, clientList, "clients retrieved successfully")
 }
 
-func toClientResponse[T types.ClientConfig](client *models.Client[T]) responses.ClientResponse {
-	return responses.ClientResponse{
-		ID:         client.ID,
-		UserID:     client.UserID,
-		Name:       client.Name,
-		IsEnabled:  client.IsEnabled,
-		ClientType: client.Type, // Already a ClientType
-		Client:     client.Config.Data,
-		CreatedAt:  client.CreatedAt,
-		UpdatedAt:  client.UpdatedAt,
-	}
-}
-
-// GetClientConfigs godoc
-// @Summary Reference for all client config types
-// @Description This endpoint doesn't exist but serves as a reference for all client config types
-// @Tags swagger-reference
+// TestNewConnection godoc
+// @Summary Test client connection
+// @Description Tests the connection to a client using the provided configuration
+// @Tags clients
 // @Accept json
 // @Produce json
-// @Success 200 {object} types.EmbyConfig "Emby client config"
-// @Success 200 {object} types.JellyfinConfig "Jellyfin client config"
-// @Success 200 {object} types.PlexConfig "Plex client config"
-// @Success 200 {object} types.SubsonicConfig "Subsonic client config"
-// @Success 200 {object} types.SonarrConfig "Sonarr client config"
-// @Success 200 {object} types.RadarrConfig "Radarr client config"
-// @Success 200 {object} types.LidarrConfig "Lidarr client config"
-// @Success 200 {object} types.ClaudeConfig "Claude client config"
-// @Success 200 {object} types.OpenAIConfig "OpenAI client config"
-// @Success 200 {object} types.OllamaConfig "Ollama client config"
-// @Router /docs/client-types [get]
-func SwaggerClientTypes() {
-	// Define all client config types for Swagger reference
-	_ = &types.EmbyConfig{}
-	_ = &types.JellyfinConfig{}
-	_ = &types.PlexConfig{}
-	_ = &types.SubsonicConfig{}
-	_ = &types.SonarrConfig{}
-	_ = &types.RadarrConfig{}
-	_ = &types.LidarrConfig{}
-	_ = &types.ClaudeConfig{}
-	_ = &types.OpenAIConfig{}
-	_ = &types.OllamaConfig{}
+// @Security BearerAuth
+// @Param request body requests.ClientTestRequest[client.ClientConfig] true "Updated client data"
+// @Param clientType path string true "Client type"
+// @Success 200 {object} responses.APIResponse[responses.TestConnectionResponse] "Connection test result"
+// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
+// @Example response
+//
+//	{
+//	  "data": {
+//	    "success": true,
+//	    "message": "Successfully connected to Emby server",
+//	    "version": "4.7.0"
+//	  },
+//	  "message": "Connection test completed"
+//	}
+//
+// @Router /api/v1/admin/clients/{clientType}/test [get]
+func (h *ClientsHandler) TestNewConnection(c *gin.Context) {
+	clientType, _ := checkClientType(c)
+
+	switch clientType {
+	case types.ClientTypeEmby:
+		testConnection[*types.EmbyConfig](c, clientType, h.embyService)
+	case types.ClientTypeJellyfin:
+		testConnection[*types.JellyfinConfig](c, clientType, h.jellyfinService)
+	case types.ClientTypePlex:
+		testConnection[*types.PlexConfig](c, clientType, h.plexService)
+	case types.ClientTypeSubsonic:
+		testConnection[*types.SubsonicConfig](c, clientType, h.subsonicService)
+	case types.ClientTypeSonarr:
+		testConnection[*types.SonarrConfig](c, clientType, h.sonarrService)
+	case types.ClientTypeRadarr:
+		testConnection[*types.RadarrConfig](c, clientType, h.radarrService)
+	case types.ClientTypeLidarr:
+		testConnection[*types.LidarrConfig](c, clientType, h.lidarrService)
+	case types.ClientTypeClaude:
+		testConnection[*types.ClaudeConfig](c, clientType, h.claudeService)
+	case types.ClientTypeOpenAI:
+		testConnection[*types.OpenAIConfig](c, clientType, h.openaiService)
+	case types.ClientTypeOllama:
+		testConnection[*types.OllamaConfig](c, clientType, h.ollamaService)
+	default:
+		responses.RespondBadRequest(c, nil, "Unknown client type")
+		return
+	}
+}
+
+// GetClientsByType godoc
+// @Summary Get clients by type
+// @Description Retrieves all clients of a specific type for the user
+// @Tags clients
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param clientType path string true "Client type (e.g. 'plex', 'jellyfin', 'emby')"
+// @Success 200 {object} responses.APIResponse[[]models.Client[types.EmbyConfig]] "Clients retrieved"
+// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
+// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
+// @Router /api/v1/admin/clients/{clientType} [get]
+func (h *ClientsHandler) GetClientsByType(c *gin.Context) {
+
+	clientType, _ := checkClientType(c)
+
+	switch clientType {
+	case types.ClientTypeEmby:
+		clients := getClientsByType[*types.EmbyConfig](c, clientType, h.embyService)
+		responses.RespondOK(c, clients, "clients retrieved successfully")
+	case types.ClientTypeJellyfin:
+		clients := getClientsByType[*types.JellyfinConfig](c, clientType, h.jellyfinService)
+		responses.RespondOK(c, clients, "clients retrieved successfully")
+	case types.ClientTypePlex:
+		clients := getClientsByType[*types.PlexConfig](c, clientType, h.plexService)
+		responses.RespondOK(c, clients, "clients retrieved successfully")
+	case types.ClientTypeSubsonic:
+		clients := getClientsByType[*types.SubsonicConfig](c, clientType, h.subsonicService)
+		responses.RespondOK(c, clients, "clients retrieved successfully")
+	case types.ClientTypeSonarr:
+		clients := getClientsByType[*types.SonarrConfig](c, clientType, h.sonarrService)
+		responses.RespondOK(c, clients, "clients retrieved successfully")
+	case types.ClientTypeRadarr:
+		clients := getClientsByType[*types.RadarrConfig](c, clientType, h.radarrService)
+		responses.RespondOK(c, clients, "clients retrieved successfully")
+	case types.ClientTypeLidarr:
+		clients := getClientsByType[*types.LidarrConfig](c, clientType, h.lidarrService)
+		responses.RespondOK(c, clients, "clients retrieved successfully")
+	case types.ClientTypeClaude:
+		clients := getClientsByType[*types.ClaudeConfig](c, clientType, h.claudeService)
+		responses.RespondOK(c, clients, "clients retrieved successfully")
+	case types.ClientTypeOpenAI:
+		clients := getClientsByType[*types.OpenAIConfig](c, clientType, h.openaiService)
+		responses.RespondOK(c, clients, "clients retrieved successfully")
+	case types.ClientTypeOllama:
+		clients := getClientsByType[*types.OllamaConfig](c, clientType, h.ollamaService)
+		responses.RespondOK(c, clients, "clients retrieved successfully")
+	default:
+		responses.RespondBadRequest(c, nil, "Unknown client type")
+		return
+	}
+}
+
+func testConnection[T types.ClientConfig](c *gin.Context, clientType types.ClientType, service services.ClientService[T]) {
+	ctx := c.Request.Context()
+	log := logger.LoggerFromContext(ctx)
+
+	log.Info().
+		Str("clientType", clientType.String()).
+		Msg("Testing new client connection")
+
+	var request requests.ClientTestRequest[T]
+	if err := c.ShouldBindJSON(&request); err != nil {
+		responses.RespondValidationError(c, err)
+		return
+	}
+
+	result, err := service.TestNewConnection(ctx, &request.Client)
+	if err != nil {
+		responses.RespondInternalError(c, err, result.Message)
+		return
+	}
+
+	responses.RespondOK(c, result, "Connection test completed")
+}
+
+func getClientsByType[T types.ClientConfig](c *gin.Context, clientType types.ClientType, service services.ClientService[T]) []*models.Client[T] {
+	ctx := c.Request.Context()
+
+	clients, err := service.GetByType(ctx, clientType, 0)
+	if err != nil {
+		responses.RespondInternalError(c, err, "Failed to retrieve clients")
+		return nil
+	}
+
+	return clients
 }

@@ -2,102 +2,77 @@
 package router
 
 import (
-	"fmt"
-	"github.com/gin-gonic/gin"
+	"context"
+	clienttypes "suasor/clients/types"
 	"suasor/di/container"
-	handlerbundles "suasor/handlers/bundles"
+	"suasor/handlers"
+	"suasor/router/middleware"
 	"suasor/types/responses"
-	"suasor/utils/logger"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-// ClientHandlerInterface defines the common operations for all client handlers
-type ClientHandlerInterface interface {
-	CreateClient(c *gin.Context)
-	GetAllClients(c *gin.Context)
-	GetClientsByType(c *gin.Context)
-	GetClient(c *gin.Context)
-	UpdateClient(c *gin.Context)
-	DeleteClient(c *gin.Context)
-	TestConnection(c *gin.Context)
-	TestNewConnection(c *gin.Context)
+// RegisterClientRoutes configures routes for client endpoints
+// These endpoints are specific to a single client instance.
+func RegisterClientRoutes(ctx context.Context, r *gin.RouterGroup, c *container.Container) {
+	db := container.MustGet[*gorm.DB](c)
+
+	clientGroup := r.Group("/client/:clientID")
+	clientGroup.Use(middleware.ClientTypeMiddleware(db))
+	{
+		clientGroup.GET("", func(g *gin.Context) {
+			clientType := g.Param("clientType")
+			getClientHandler(g, c, clientType).GetClient(g)
+		})
+		clientGroup.PUT("", func(g *gin.Context) {
+			clientType := g.Param("clientType")
+			getClientHandler(g, c, clientType).UpdateClient(g)
+		})
+		clientGroup.DELETE("", func(g *gin.Context) {
+			clientType := g.Param("clientType")
+			getClientHandler(g, c, clientType).DeleteClient(g)
+		})
+
+		clientGroup.GET("/:clientID/test", func(g *gin.Context) {
+			clientType := g.Param("clientType")
+			getClientHandler(g, c, clientType).TestConnection(g)
+		})
+	}
+
+	automationHandler := container.MustGet[*handlers.ClientAutomationHandler](c)
+	automationClientGroup := r.Group("client/:clientID/automation")
+	{
+		automationClientGroup.GET("/status", automationHandler.GetSystemStatus)
+		automationClientGroup.POST("/library", automationHandler.GetLibraryItems)
+		automationClientGroup.GET("/item/:itemID", automationHandler.GetMediaByID)
+		automationClientGroup.POST("/item", automationHandler.AddMedia)
+		automationClientGroup.PUT("/item/:itemID", automationHandler.UpdateMedia)
+		automationClientGroup.DELETE("/item/:itemID", automationHandler.DeleteMedia)
+		automationClientGroup.GET("/command", automationHandler.ExecuteCommand)
+		automationClientGroup.GET("/calendar", automationHandler.GetCalendar)
+		automationClientGroup.GET("/search", automationHandler.SearchMedia)
+
+	}
 }
 
-// SetupClientRoutes configures routes for client endpoints
-func RegisterClientRoutes(r *gin.RouterGroup, c *container.Container) {
-
-	clientHandlers := container.MustGet[handlerbundles.ClientHandlers](c)
-
-	// Create a map of client type to handler using the interface
-	handlerMap := map[string]ClientHandlerInterface{
-		"emby":     clientHandlers.EmbyClientHandler(),
-		"jellyfin": clientHandlers.JellyfinClientHandler(),
-		"subsonic": clientHandlers.SubsonicClientHandler(),
-		"plex":     clientHandlers.PlexClientHandler(),
-
-		"sonarr": clientHandlers.SonarrClientHandler(),
-		"radarr": clientHandlers.RadarrClientHandler(),
-		"lidarr": clientHandlers.LidarrClientHandler(),
-
-		"claude": clientHandlers.ClaudeClientHandler(),
+func getClientHandler(g *gin.Context, c *container.Container, clientType string) handlers.ClientHandler[clienttypes.ClientConfig] {
+	handlers := map[string]handlers.ClientHandler[clienttypes.ClientConfig]{
+		"emby":     container.MustGet[handlers.ClientHandler[*clienttypes.EmbyConfig]](c),
+		"jellyfin": container.MustGet[handlers.ClientHandler[*clienttypes.JellyfinConfig]](c),
+		"plex":     container.MustGet[handlers.ClientHandler[*clienttypes.PlexConfig]](c),
+		"subsonic": container.MustGet[handlers.ClientHandler[*clienttypes.SubsonicConfig]](c),
+		"sonarr":   container.MustGet[handlers.ClientHandler[*clienttypes.SonarrConfig]](c),
+		"radarr":   container.MustGet[handlers.ClientHandler[*clienttypes.RadarrConfig]](c),
+		"lidarr":   container.MustGet[handlers.ClientHandler[*clienttypes.LidarrConfig]](c),
+		"claude":   container.MustGet[handlers.ClientHandler[*clienttypes.ClaudeConfig]](c),
+		"openai":   container.MustGet[handlers.ClientHandler[*clienttypes.OpenAIConfig]](c),
+		"ollama":   container.MustGet[handlers.ClientHandler[*clienttypes.OllamaConfig]](c),
 	}
-
-	// Helper function to get the appropriate handler
-	getHandler := func(c *gin.Context) ClientHandlerInterface {
-		clientType := c.Param("clientType")
-		handler, exists := handlerMap[clientType]
-		if !exists {
-			err := fmt.Errorf("unsupported client type: %s", clientType)
-			responses.RespondBadRequest(c, err, "Unsupported client type")
-			return nil
-		}
-		return handler
+	handler, exists := handlers[clientType]
+	if !exists {
+		responses.RespondInternalError(g, nil, "Client handler not found")
+		return nil
 	}
-
-	clientGroup := r.Group("/client")
-
-	client := clientGroup.Group("/:clientType")
-	{
-		client.POST("", func(c *gin.Context) {
-			log := logger.LoggerFromContext(c.Request.Context())
-			log.Info().Msg("Creating new media client")
-			if handler := getHandler(c); handler != nil {
-				handler.CreateClient(c)
-			}
-		})
-
-		client.GET("", func(c *gin.Context) {
-			if handler := getHandler(c); handler != nil {
-				handler.GetClientsByType(c)
-			}
-		})
-
-		client.GET("/:id", func(c *gin.Context) {
-			if handler := getHandler(c); handler != nil {
-				handler.GetClient(c)
-			}
-		})
-
-		client.PUT("/:id", func(c *gin.Context) {
-			if handler := getHandler(c); handler != nil {
-				handler.UpdateClient(c)
-			}
-		})
-
-		client.DELETE("/:id", func(c *gin.Context) {
-			if handler := getHandler(c); handler != nil {
-				handler.DeleteClient(c)
-			}
-		})
-		client.POST("/test", func(c *gin.Context) {
-			if handler := getHandler(c); handler != nil {
-				handler.TestNewConnection(c)
-			}
-		})
-
-		client.GET("/:id/test", func(c *gin.Context) {
-			if handler := getHandler(c); handler != nil {
-				handler.TestConnection(c)
-			}
-		})
-	}
+	return handler
 }

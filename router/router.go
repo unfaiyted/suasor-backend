@@ -59,8 +59,11 @@ func Setup(ctx context.Context, c *container.Container) *gin.Engine {
 		// {base}/user-config/
 		RegisterUserConfigRoutes(authenticated, c)
 
-		// {base}/media-data/
+		// {base}/user-data/
 		RegisterMediaItemDataRoutes(authenticated, c) // Register media play history routes
+
+		// {base}/item/
+		RegisterMediaItemRoutes(ctx, authenticated, c)
 
 		// {base}/people/
 		RegisterPeopleBasedRoutes(authenticated, c)
@@ -68,20 +71,21 @@ func Setup(ctx context.Context, c *container.Container) *gin.Engine {
 		// {base}/metadata/
 		RegisterMetadataRoutes(authenticated, c) // Register metadata routes
 
-		// {base}/playlists or {base}/collections
+		// {base}/playlist or {base}/collection
 		RegisterLocalMediaListRoutes(authenticated, c)
 
 		// {base}/history/
-		// RegisterMediaPlayHistoryRoutes(authenticated, c)
+		RegisterMediaPlayHistoryRoutes(authenticated, c)
 
 		// {base}/ai/
 		RegisterAIRoutes(authenticated, c) // Register AI routes
-		// {base}/clients/
-		RegisterClientsRoutes(authenticated, c) // Register all clients route
+
 		// {base}/jobs/
 		RegisterJobRoutes(authenticated, c) // Register job routes
+
 		// {base}/recommendations/
 		RegisterRecommendationRoutes(authenticated, c) // Register recommendation routes
+
 		// {base}/search/
 		RegisterSearchRoutes(authenticated, c) // Register search routes
 	}
@@ -93,7 +97,9 @@ func Setup(ctx context.Context, c *container.Container) *gin.Engine {
 		// {base}/admin/config/
 		RegisterConfigRoutes(adminRoutes, configService)
 		// {base}/admin/client/
-		// RegisterClientRoutes(adminRoutes, c)
+		RegisterClientRoutes(ctx, adminRoutes, c)
+		// {base}/admin/clients/
+		RegisterClientsRoutes(authenticated, c) // Register all clients route
 	}
 
 	return r

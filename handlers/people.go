@@ -37,7 +37,7 @@ func NewPeopleHandler(personService *services.PersonService) *PeopleHandler {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid person ID"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Person not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /people/{personID} [get]
+// @Router /api/v1/people/{personID} [get]
 func (h *PeopleHandler) GetPersonByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -80,7 +80,7 @@ func (h *PeopleHandler) GetPersonByID(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid person ID"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Person not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /people/{personID}/credits [get]
+// @Router /api/v1/people/{personID}/credits [get]
 func (h *PeopleHandler) GetPersonWithCredits(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -126,7 +126,7 @@ func (h *PeopleHandler) GetPersonWithCredits(c *gin.Context) {
 // @Success 200 {array} models.Person "People retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Missing search query or invalid limit"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /people [get]
+// @Router /api/v1/people [get]
 func (h *PeopleHandler) SearchPeople(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -170,7 +170,7 @@ func (h *PeopleHandler) SearchPeople(c *gin.Context) {
 // @Success 200 {array} models.Person "Popular people retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid limit"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /people/popular [get]
+// @Router /api/v1/people/popular [get]
 func (h *PeopleHandler) GetPopularPeople(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -207,7 +207,7 @@ func (h *PeopleHandler) GetPopularPeople(c *gin.Context) {
 // @Success 200 {array} models.Person "People retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Missing role parameter"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /people/roles/{role} [get]
+// @Router /api/v1/people/roles/{role} [get]
 func (h *PeopleHandler) GetPeopleByRole(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -242,7 +242,7 @@ func (h *PeopleHandler) GetPeopleByRole(c *gin.Context) {
 // @Success 201 {object} models.Person "Person created successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /people [post]
+// @Router /api/v1/people [post]
 func (h *PeopleHandler) CreatePerson(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -297,7 +297,7 @@ func (h *PeopleHandler) CreatePerson(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid person ID or request format"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Person not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /people/{personID} [put]
+// @Router /api/v1/people/{personID} [put]
 func (h *PeopleHandler) UpdatePerson(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -394,7 +394,7 @@ func (h *PeopleHandler) UpdatePerson(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid person ID"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Person not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /people/{personID} [delete]
+// @Router /api/v1/people/{personID} [delete]
 func (h *PeopleHandler) DeletePerson(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -437,7 +437,7 @@ func (h *PeopleHandler) DeletePerson(c *gin.Context) {
 // @Success 200 {object} map[string]map[string][]models.Credit "Credits grouped by department and role"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid person ID"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /people/{personID}/credits/grouped [get]
+// @Router /api/v1/people/{personID}/credits/grouped [get]
 func (h *PeopleHandler) GetPersonCreditsGrouped(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -474,7 +474,7 @@ func (h *PeopleHandler) GetPersonCreditsGrouped(c *gin.Context) {
 // @Success 200 {object} models.Person "Person imported successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /people/import [post]
+// @Router /api/v1/people/import [post]
 func (h *PeopleHandler) ImportPerson(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -528,7 +528,7 @@ func (h *PeopleHandler) ImportPerson(c *gin.Context) {
 // @Success 200 {object} map[string]bool "External ID added successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid person ID or request format"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /people/{personID}/external-ids [post]
+// @Router /api/v1/people/{personID}/external-ids [post]
 func (h *PeopleHandler) AddExternalIDToPerson(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -560,4 +560,3 @@ func (h *PeopleHandler) AddExternalIDToPerson(c *gin.Context) {
 	// Return success
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
-

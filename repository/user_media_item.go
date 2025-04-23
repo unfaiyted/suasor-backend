@@ -73,9 +73,6 @@ func (r *userMediaItemRepository[T]) GetPopularItems(ctx context.Context, limit 
 	return r.Search(ctx, options)
 }
 
-func (r *userMediaItemRepository[T]) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error) {
-	return r.GetAll(ctx, limit, offset)
-}
 func (r *userMediaItemRepository[T]) GetMediaItemsByIDs(ctx context.Context, ids []uint64) ([]*models.MediaItem[T], error) {
 	return r.GetMediaItemsByIDs(ctx, ids)
 }

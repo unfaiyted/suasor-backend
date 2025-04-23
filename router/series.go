@@ -35,13 +35,13 @@ func RegisterSeriesRoutes(rg *gin.RouterGroup, c *container.Container) {
 	series := rg.Group("/series")
 	{
 		// Basic CRUD operations
-		series.GET("/:id", coreSeriesHandler.GetByID)
+		series.GET("/:itemID", coreSeriesHandler.GetByID)
 		series.GET("", coreSeriesHandler.GetAll)
 
 		// Core metadata operations
-		series.GET("/:id/seasons", coreSeriesHandler.GetSeasonsBySeriesID)
-		series.GET("/:id/seasons/:seasonNumber/episodes", coreSeriesHandler.GetEpisodesBySeriesIDAndSeasonNumber)
-		series.GET("/:id/episodes", coreSeriesHandler.GetAllEpisodes)
+		series.GET("/:itemID/seasons", coreSeriesHandler.GetSeasonsBySeriesID)
+		series.GET("/:itemID/seasons/:seasonNumber/episodes", coreSeriesHandler.GetEpisodesBySeriesIDAndSeasonNumber)
+		series.GET("/:itemID/episodes", coreSeriesHandler.GetAllEpisodes)
 
 		// Specialized metadata filters
 		series.GET("/network/:network", coreSeriesHandler.GetSeriesByNetwork)
@@ -70,7 +70,7 @@ func RegisterSeriesRoutes(rg *gin.RouterGroup, c *container.Container) {
 		userSeries.GET("/watchlist", userSeriesHandler.GetWatchlistSeries)
 
 		// User interactions with series
-		userSeries.PATCH("/:id", userSeriesHandler.UpdateSeriesUserData)
+		userSeries.PATCH("/:itemID", userSeriesHandler.UpdateSeriesUserData)
 
 		// Personalized recommendations
 		// userSeries.GET("/continue-watching", userSeriesHandler.GetContinueWatching)

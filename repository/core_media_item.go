@@ -33,7 +33,7 @@ type MediaItemRepository[T types.MediaData] interface {
 	GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error)
 	GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error)
 	GetByClientItemID(ctx context.Context, clientItemID string, clientID uint64) (*models.MediaItem[T], error)
-	GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error)
+	GetAll(ctx context.Context, limit int, offset int, publicOnly bool) ([]*models.MediaItem[T], error)
 	Delete(ctx context.Context, id uint64) error
 
 	// Batch operations
@@ -493,11 +493,12 @@ func (r *mediaItemRepository[T]) GetMixedMediaItemsByIDs(ctx context.Context, id
 
 }
 
-func (r *mediaItemRepository[T]) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error) {
+func (r *mediaItemRepository[T]) GetAll(ctx context.Context, limit int, offset int, publicOnly bool) ([]*models.MediaItem[T], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Int("limit", limit).
 		Int("offset", offset).
+		Bool("publicOnly", publicOnly).
 		Msg("Getting all media items")
 
 	var items []*models.MediaItem[T]
@@ -512,6 +513,11 @@ func (r *mediaItemRepository[T]) GetAll(ctx context.Context, limit int, offset i
 	// Add offset if provided
 	if offset > 0 {
 		dbQuery = dbQuery.Offset(offset)
+	}
+	dbQuery = dbQuery.Order("created_at DESC")
+	if publicOnly {
+		//TODO: validate this is correct path to this public indicator
+		dbQuery = dbQuery.Where("is_public = ?", true)
 	}
 
 	if err := dbQuery.Find(&items).Error; err != nil {

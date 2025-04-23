@@ -174,6 +174,7 @@ type MediaItem[T types.MediaData] struct {
 	SyncClients SyncClients `json:"syncClients" gorm:"type:jsonb"`      // Client IDs for this item (mapping client to their IDs)
 	ExternalIDs ExternalIDs `json:"externalIds" gorm:"type:jsonb"`      // External IDs for this item (TMDB, IMDB, etc.)
 	OwnerID     uint64      `json:"ownerId"`                            // ID of the user that owns this item, 0 for system owned items
+	IsPublic    bool        `json:"isPublic"`                           // Whether this item is public or not
 
 	Type types.MediaType `json:"type" gorm:"type:varchar(50)"` // Type of media (movie, show, episode, etc.)
 
@@ -194,6 +195,7 @@ func NewMediaItem[T types.MediaData](itemType types.MediaType, data T) *MediaIte
 		UUID:        uuid.New().String(),
 		Type:        itemType,
 		SyncClients: clientIDs,
+		IsPublic:    true,
 		Data:        data,
 		ExternalIDs: externalIDs,
 	}
@@ -201,6 +203,10 @@ func NewMediaItem[T types.MediaData](itemType types.MediaType, data T) *MediaIte
 
 func (m *MediaItem[T]) SetData(data T) {
 	m.Data = data
+}
+
+func (m *MediaItem[T]) SetIsPublic(isPublic bool) {
+	m.IsPublic = isPublic
 }
 
 // ExternalID represents an ID that identifies this media item in an external system

@@ -20,11 +20,11 @@ func RegisterUserRoutes(rg *gin.RouterGroup, c *container.Container) {
 		users.POST("/avatar", userHandlers.UploadAvatar)
 
 		// Admin routes
-		users.GET("/:id", userHandlers.GetByID)
-		users.PUT("/:id/role", userHandlers.ChangeRole)
-		users.POST("/:id/activate", userHandlers.ActivateUser)
-		users.POST("/:id/deactivate", userHandlers.DeactivateUser)
-		users.DELETE("/:id", userHandlers.Delete)
+		users.GET("/:userID", userHandlers.GetByID)
+		users.PUT("/:userID/role", userHandlers.ChangeRole)
+		users.POST("/:userID/activate", userHandlers.ActivateUser)
+		users.POST("/:userID/deactivate", userHandlers.DeactivateUser)
+		users.DELETE("/:userID", userHandlers.Delete)
 	}
 
 	// Avatar files are served statically from the main router

@@ -14,7 +14,7 @@ import (
 	"suasor/types/responses"
 )
 
-// {baseURL}/api/v1/client/{clientID}/playlists/{action}
+// {baseURL}/api/v1/client/{clientID}/playlist/{action}
 // We are using the clientID to get the clientType with middleware.
 // The actions are where the handler methods are defined below.
 
@@ -23,14 +23,14 @@ func RegisterClientListRoutes(ctx context.Context, rg *gin.RouterGroup, c *conta
 	db := container.MustGet[*gorm.DB](c)
 
 	// Client resource group
-	clientGroup := rg.Group("/client/:clientID")
+	clientGroup := rg.Group("/:clientID")
 	// Gets the client type based on the clientID
 	clientGroup.Use(middleware.ClientTypeMiddleware(db))
-
-	// Register routes for playlists
-	registerMediaRoutes[*mediatypes.Playlist](clientGroup, c)
-	registerMediaRoutes[*mediatypes.Collection](clientGroup, c)
-
+	{
+		// Register routes for playlists
+		registerMediaRoutes[*mediatypes.Playlist](clientGroup, c)
+		registerMediaRoutes[*mediatypes.Collection](clientGroup, c)
+	}
 }
 
 // registerMediaRoutes sets up routes for a specific media resource type

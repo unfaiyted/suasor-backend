@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"suasor/utils"
 
 	mediatypes "suasor/clients/media/types"
 	"suasor/services"
@@ -63,11 +64,12 @@ func NewUserListHandler[T mediatypes.ListData](
 // @Security BearerAuth
 // @Param limit query int false "Maximum number of lists to return (default 20)"
 // @Param offset query int false "Offset for pagination (default 0)"
+// @Param userID query uint64 false "User ID"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Playlist]] "Lists retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /user/lists [get]
-func (h *userListHandler[T]) GetAll(c *gin.Context) {
+// @Router /api/v1/{listType}/user [get]
+func (h *userListHandler[T]) GetUserLists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
@@ -78,17 +80,9 @@ func (h *userListHandler[T]) GetAll(c *gin.Context) {
 		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
-	limitStr := c.DefaultQuery("limit", "20")
-	offsetStr := c.DefaultQuery("offset", "0")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		limit = 20
-	}
-	offset, err := strconv.Atoi(offsetStr)
-	if err != nil {
-		offset = 0
-	}
 
+	limit := utils.GetLimit(c, 20, 100, true)
+	offset := utils.GetOffset(c, 0)
 	uid := userID.(uint64)
 
 	log.Debug().
@@ -124,7 +118,7 @@ func (h *userListHandler[T]) GetAll(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /user/lists [post]
+// @Router /api/v1/{listType}/ [post]
 func (h *userListHandler[T]) Create(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -209,7 +203,7 @@ func (h *userListHandler[T]) Create(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "List ID"
+// @Param listId path int true "List ID"
 // @Param list body requests.ListUpdateRequest true "Updated list details"
 // @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "List updated successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
@@ -217,7 +211,7 @@ func (h *userListHandler[T]) Create(c *gin.Context) {
 // @Failure 403 {object} responses.ErrorResponse[any] "Forbidden"
 // @Failure 404 {object} responses.ErrorResponse[any] "List not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /user/lists/{id} [put]
+// @Router /user/lists/{listId} [put]
 func (h *userListHandler[T]) Update(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -235,7 +229,7 @@ func (h *userListHandler[T]) Update(c *gin.Context) {
 	// Parse list ID
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid list ID")
+		log.Warn().Err(err).Str("id", c.Param("listId")).Msg("Invalid list ID")
 		responses.RespondBadRequest(c, err, "Invalid list ID")
 		return
 	}
@@ -593,13 +587,14 @@ func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path int true "List ID"
 // @Param request body requests.ListReorderRequest true "Reorder request"
+// @Param listType path string true "List type (e.g. 'playlist', 'collection')"
 // @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "List reordered successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 403 {object} responses.ErrorResponse[any] "Forbidden"
 // @Failure 404 {object} responses.ErrorResponse[any] "List not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /user/lists/{id}/reorder [post]
+// @Router /api/v1/{listType}/{id}/reorder [post]
 func (h *userListHandler[T]) ReorderItems(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -683,7 +678,7 @@ func (h *userListHandler[T]) ReorderItems(c *gin.Context) {
 	responses.RespondOK(c, updatedList, "List reordered successfully")
 }
 
-// GetFavorite godoc
+// GetFavorites godoc
 // @Summary Get favorites
 // @Description Retrieves the favorites for the authenticated user
 // @Tags lists
@@ -692,10 +687,12 @@ func (h *userListHandler[T]) ReorderItems(c *gin.Context) {
 // @Security BearerAuth
 // @Param limit query int false "Maximum number of lists to return (default 20)"
 // @Param offset query int false "Offset for pagination (default 0)"
+// @Param userID path uint64 false "User ID"
+// @Param listType path string true "List type (e.g. 'playlist', 'collection')"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Playlist]] "Lists retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /user/favorites [get]
+// @Router /api/v1/{listType}/favorites [get]
 func (h *userListHandler[T]) GetFavorite(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -739,62 +736,4 @@ func (h *userListHandler[T]) GetFavorite(c *gin.Context) {
 		Int("count", len(favorites)).
 		Msg("Favorites retrieved successfully")
 	responses.RespondOK(c, favorites, "Favorites retrieved successfully")
-}
-
-// GetUserLists godoc
-// @Summary Get user's lists
-// @Description Retrieves all lists owned by the authenticated user
-// @Tags lists
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param limit query int false "Maximum number of lists to return (default 20)"
-// @Param offset query int false "Offset for pagination (default 0)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Playlist]] "Lists retrieved successfully"
-// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// Note: GetAll function already implements this route
-func (h *userListHandler[T]) GetUserLists(c *gin.Context) {
-	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
-
-	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to retrieve lists without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
-	limitStr := c.DefaultQuery("limit", "20")
-	offsetStr := c.DefaultQuery("offset", "0")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		limit = 20
-	}
-	offset, err := strconv.Atoi(offsetStr)
-	if err != nil {
-		offset = 0
-	}
-
-	uid := userID.(uint64)
-
-	log.Debug().
-		Uint64("userID", uid).
-		Msg("Getting user lists")
-
-	// Get lists
-	lists, err := h.listService.GetByUserID(ctx, uid, limit, offset)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Msg("Failed to retrieve user lists")
-		responses.RespondInternalError(c, err, "Failed to retrieve lists")
-		return
-	}
-
-	log.Info().
-		Uint64("userID", uid).
-		Int("count", len(lists)).
-		Msg("Lists retrieved successfully")
-	responses.RespondOK(c, lists, "Lists retrieved successfully")
 }

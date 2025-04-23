@@ -12,6 +12,7 @@ import (
 	"suasor/types/models"
 	"suasor/types/requests"
 	"suasor/types/responses"
+	"suasor/utils"
 	"suasor/utils/logger"
 )
 
@@ -54,12 +55,12 @@ func NewClientUserMediaItemDataHandler[T clienttypes.ClientMediaConfig, U mediat
 // @Accept json
 // @Produce json
 // @Param clientId path int true "Client ID"
-// @Param userId query int true "User ID"
+// @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
 // @Param items body requests.UserMediaItemDataSyncRequest true "Media item data to synchronize"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /user-media-data/client/{clientId}/sync [post]
+// @Router /api/v1/client/{clientId}/user-data/{mediaType}/sync [post]
 func (h *clientUserMediaItemDataHandler[T, U]) SyncClientItemData(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -71,7 +72,7 @@ func (h *clientUserMediaItemDataHandler[T, U]) SyncClientItemData(c *gin.Context
 		return
 	}
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
+	userID, err := utils.GetUserID(c)
 	if err != nil {
 		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
 		responses.RespondBadRequest(c, err, "Invalid user ID")
@@ -117,13 +118,14 @@ func (h *clientUserMediaItemDataHandler[T, U]) SyncClientItemData(c *gin.Context
 // @Accept json
 // @Produce json
 // @Param clientId path int true "Client ID"
-// @Param userId query int true "User ID"
+// @Param mediaType path string true "Media type like movie, series, track, etc."
+// @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
 // @Param since query string false "Since date (default 24 hours ago)"
 // @Success 200 {object} responses.APIResponse[[]models.UserMediaItemData[mediatypes.Movie]] "Successfully retrieved client media item data"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /user-media-data/client/{clientId} [get]
+// @Router /api/v1/client/{clientId}/user-data/{mediaType} [get]
 func (h *clientUserMediaItemDataHandler[T, U]) GetClientItemData(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -135,7 +137,7 @@ func (h *clientUserMediaItemDataHandler[T, U]) GetClientItemData(c *gin.Context)
 		return
 	}
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
+	userID, err := utils.GetUserID(c)
 	if err != nil {
 		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
 		responses.RespondBadRequest(c, err, "Invalid user ID")
@@ -181,12 +183,12 @@ func (h *clientUserMediaItemDataHandler[T, U]) GetClientItemData(c *gin.Context)
 // @Produce json
 // @Param clientId path int true "Client ID"
 // @Param clientItemId path string true "Client Item ID"
-// @Param userId query int true "User ID"
+// @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
 // @Success 200 {object} responses.APIResponse[models.UserMediaItemData[mediatypes.Movie]] "Successfully retrieved user media item data"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /user-media-data/client/{clientId}/item/{clientItemId} [get]
+// @Router /api/v1/client/{clientId}/user-data/{mediaType}/{clientItemId} [get]
 func (h *clientUserMediaItemDataHandler[T, U]) GetMediaItemDataByClientID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -205,7 +207,7 @@ func (h *clientUserMediaItemDataHandler[T, U]) GetMediaItemDataByClientID(c *gin
 		return
 	}
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
+	userID, err := utils.GetUserID(c)
 	if err != nil {
 		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
 		responses.RespondBadRequest(c, err, "Invalid user ID")
@@ -246,13 +248,13 @@ func (h *clientUserMediaItemDataHandler[T, U]) GetMediaItemDataByClientID(c *gin
 // @Produce json
 // @Param clientId path int true "Client ID"
 // @Param clientItemId path string true "Client Item ID"
-// @Param userId query int true "User ID"
+// @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
 // @Param mediaPlay body requests.UserMediaItemDataRequest true "Media play information"
 // @Success 201 {object} responses.APIResponse[models.UserMediaItemData[mediatypes.Movie]] "Play event recorded successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /user-media-data/client/{clientId}/item/{clientItemId}/play [post]
+// @Router /api/v1/client/{clientId}/user-data/{mediaType}/{clientItemId}/play [post]
 func (h *clientUserMediaItemDataHandler[T, U]) RecordClientPlay(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -271,7 +273,7 @@ func (h *clientUserMediaItemDataHandler[T, U]) RecordClientPlay(c *gin.Context) 
 		return
 	}
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
+	userID, err := utils.GetUserID(c)
 	if err != nil {
 		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
 		responses.RespondBadRequest(c, err, "Invalid user ID")
@@ -336,14 +338,15 @@ func (h *clientUserMediaItemDataHandler[T, U]) RecordClientPlay(c *gin.Context) 
 // @Tags History
 // @Accept json
 // @Produce json
+// @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
 // @Param clientId path int true "Client ID"
 // @Param clientItemId path string true "Client Item ID"
-// @Param userId query int true "User ID"
+// @Param mediaType path string true "Media type like movie, series, track, etc."
 // @Success 200 {object} responses.APIResponse[models.UserMediaItemData[mediatypes.Movie]] "Successfully retrieved playback state"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /user-media-data/client/{clientId}/item/{clientItemId}/state [get]
+// @Router /api/v1/client/{clientId}/user-data/{mediaType}/{clientItemId}/state [get]
 func (h *clientUserMediaItemDataHandler[T, U]) GetPlaybackState(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -362,7 +365,7 @@ func (h *clientUserMediaItemDataHandler[T, U]) GetPlaybackState(c *gin.Context) 
 		return
 	}
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
+	userID, err := utils.GetUserID(c)
 	if err != nil {
 		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
 		responses.RespondBadRequest(c, err, "Invalid user ID")
@@ -401,15 +404,15 @@ func (h *clientUserMediaItemDataHandler[T, U]) GetPlaybackState(c *gin.Context) 
 // @Tags History
 // @Accept json
 // @Produce json
+// @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
 // @Param clientId path int true "Client ID"
 // @Param clientItemId path string true "Client Item ID"
-// @Param userId query int true "User ID"
 // @Param state body object true "Playback state information"
 // @Success 200 {object} responses.APIResponse[models.UserMediaItemData[mediatypes.Movie]] "Playback state updated successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /user-media-data/client/{clientId}/item/{clientItemId}/state [put]
+// @Router /api/v1/client/{clientId}/user-data/{mediaType}/{clientItemId}/state [put]
 func (h *clientUserMediaItemDataHandler[T, U]) UpdatePlaybackState(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -428,7 +431,7 @@ func (h *clientUserMediaItemDataHandler[T, U]) UpdatePlaybackState(c *gin.Contex
 		return
 	}
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
+	userID, err := utils.GetUserID(c)
 	if err != nil {
 		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
 		responses.RespondBadRequest(c, err, "Invalid user ID")
@@ -475,3 +478,4 @@ func (h *clientUserMediaItemDataHandler[T, U]) UpdatePlaybackState(c *gin.Contex
 
 	responses.RespondOK(c, result, "Playback state updated successfully")
 }
+

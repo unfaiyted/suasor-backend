@@ -14,7 +14,7 @@ import (
 // RegisterMediaItemDataRoutes configures routes for user media item data
 func RegisterMediaItemDataRoutes(rg *gin.RouterGroup, c *container.Container) {
 	// Base routes for all media types
-	userMediaData := rg.Group("/media-data")
+	userMediaData := rg.Group("/user-data")
 	{
 		registerDataRoutes[*mediatypes.Movie](userMediaData, c)
 		registerDataRoutes[*mediatypes.Series](userMediaData, c)
@@ -31,7 +31,7 @@ func RegisterMediaItemDataRoutes(rg *gin.RouterGroup, c *container.Container) {
 			container.MustGet[handlers.UserMediaItemDataHandler[*mediatypes.Track]](c))
 	}
 
-	clientMediaData := rg.Group("/client/:clientId/media-data")
+	clientMediaData := rg.Group("/client/:clientId/user-data")
 	{
 		registerClientDataRoutes[*mediatypes.Movie](clientMediaData, c)
 		registerClientDataRoutes[*mediatypes.Series](clientMediaData, c)
@@ -55,16 +55,19 @@ func registerDataRoutes[T mediatypes.MediaData](rg *gin.RouterGroup, c *containe
 	dataGroup := rg.Group("/" + string(mediaType))
 
 	// Core routes
-	dataGroup.GET("/:id", userDataHandlers.GetMediaItemDataByID)
-	dataGroup.GET("/check", userDataHandlers.CheckUserMediaItemData)
-	dataGroup.GET("/user-media", userDataHandlers.GetMediaItemDataByUserAndMedia)
-	dataGroup.DELETE("/:id", userDataHandlers.DeleteMediaItemData)
+	dataGroup.GET("/data/:dataId", userDataHandlers.GetMediaItemDataByID)
+
+	// Primariy working with mediaItemID (id) to keep things simple
+	dataGroup.GET("/:itemId/check", userDataHandlers.CheckUserMediaItemData)
+	dataGroup.GET("/:itemId", userDataHandlers.GetUserMediaItemDataByItemID)
+	dataGroup.DELETE("/:itemId", userDataHandlers.DeleteMediaItemData)
+
 	dataGroup.GET("/history", userDataHandlers.GetMediaPlayHistory)
 	dataGroup.GET("/continue-watching", userDataHandlers.GetContinuePlaying)
 	dataGroup.GET("/recent", userDataHandlers.GetRecentHistory)
-	dataGroup.POST("/record", userDataHandlers.RecordMediaPlay)
-	dataGroup.PUT("/media/:mediaItemId/favorite", userDataHandlers.ToggleFavorite)
-	dataGroup.PUT("/media/:mediaItemId/rating", userDataHandlers.UpdateUserRating)
+	dataGroup.POST(":itemId/record", userDataHandlers.RecordMediaPlay)
+	dataGroup.PUT("/:itemId/favorite", userDataHandlers.ToggleFavorite)
+	dataGroup.PUT("/:itemId/rating", userDataHandlers.UpdateUserRating)
 	dataGroup.GET("/favorites", userDataHandlers.GetFavorites)
 	dataGroup.DELETE("/clear", userDataHandlers.ClearUserHistory)
 
@@ -124,12 +127,12 @@ func registerClientDataRoutes[T mediatypes.MediaData](rg *gin.RouterGroup, c *co
 			handler.GetClientItemData(g)
 		}
 	})
-	clientDataGroup.GET("/item/:clientItemId", func(g *gin.Context) {
+	clientDataGroup.GET("/:clientItemId", func(g *gin.Context) {
 		if handler := getClientDataHandler[T](g, c); handler != nil {
 			handler.GetMediaItemDataByClientID(g)
 		}
 	})
-	clientDataGroup.POST("/item/:clientItemId/play", func(g *gin.Context) {
+	clientDataGroup.POST("/:clientItemId/play", func(g *gin.Context) {
 		if handler := getClientDataHandler[T](g, c); handler != nil {
 			handler.RecordClientPlay(g)
 		}

@@ -23,32 +23,6 @@ func NewConfigHandler(configService services.ConfigService) *ConfigHandler {
 	}
 }
 
-// checkAdminAccess verifies if the request is from an admin user
-func (h *ConfigHandler) checkAdminAccess(c *gin.Context) (uint64, bool) {
-	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
-
-	// Check if user is authenticated
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Unauthorized access attempt")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return 0, false
-	}
-
-	// Check if user has admin role
-	userRole, exists := c.Get("userRole")
-	if !exists || userRole != "admin" {
-		log.Warn().
-			Interface("userID", userID).
-			Msg("Forbidden access attempt - admin required")
-		responses.RespondForbidden(c, nil, "Admin privileges required")
-		return 0, false
-	}
-
-	return userID.(uint64), true
-}
-
 // GetConfig godoc
 // @Summary Get current configuration
 // @Description Returns the current system configuration
@@ -59,13 +33,13 @@ func (h *ConfigHandler) checkAdminAccess(c *gin.Context) (uint64, bool) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
 // @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - admin access required"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /config [get]
+// @Router /api/v1/config [get]
 func (h *ConfigHandler) GetConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Check if user is authenticated and has admin role
-	_, ok := h.checkAdminAccess(c)
+	_, ok := checkAdminAccess(c)
 	if !ok {
 		return
 	}
@@ -90,13 +64,13 @@ func (h *ConfigHandler) GetConfig(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
 // @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - admin access required"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /config [put]
+// @Router /api/v1/config [put]
 func (h *ConfigHandler) UpdateConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Check if user is authenticated and has admin role
-	userID, ok := h.checkAdminAccess(c)
+	userID, ok := checkAdminAccess(c)
 	if !ok {
 		return
 	}
@@ -135,13 +109,13 @@ func (h *ConfigHandler) UpdateConfig(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
 // @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - admin access required"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /config/file [get]
+// @Router /api/v1/config/file [get]
 // GetFileConfig uses the admin access check helper
 func (h *ConfigHandler) GetFileConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	userID, ok := h.checkAdminAccess(c)
+	userID, ok := checkAdminAccess(c)
 	if !ok {
 		return
 	}
@@ -178,13 +152,13 @@ func (h *ConfigHandler) GetFileConfig(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
 // @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - admin access required"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /config/file [put]
+// @Router /api/v1/config/file [put]
 func (h *ConfigHandler) SaveFileConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Check if user is authenticated and has admin role
-	userID, ok := h.checkAdminAccess(c)
+	userID, ok := checkAdminAccess(c)
 	if !ok {
 		return
 	}
@@ -223,12 +197,12 @@ func (h *ConfigHandler) SaveFileConfig(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
 // @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - admin access required"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /config/reset [post]
+// @Router /api/v1/config/reset [post]
 func (h *ConfigHandler) ResetConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	userID, ok := h.checkAdminAccess(c)
+	userID, ok := checkAdminAccess(c)
 	if !ok {
 		return
 	}

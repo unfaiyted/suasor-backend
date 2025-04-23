@@ -625,8 +625,10 @@ func (s *coreListService[T]) GetAll(ctx context.Context, limit int, offset int) 
 		Int("offset", offset).
 		Msg("Getting all lists")
 
+	publicOnly := true
+
 	// Delegate to repository
-	results, err := s.itemRepo.GetAll(ctx, limit, offset)
+	results, err := s.itemRepo.GetAll(ctx, limit, offset, publicOnly)
 	if err != nil {
 		log.Error().Err(err).
 			Int("limit", limit).

@@ -275,8 +275,9 @@ func (s *coreMediaItemService[T]) GetAll(ctx context.Context, limit int, offset 
 		Int("offset", offset).
 		Msg("Getting all media items")
 
+	publicOnly := true
 	// Delegate to repository
-	results, err := s.repo.GetAll(ctx, limit, offset)
+	results, err := s.repo.GetAll(ctx, limit, offset, publicOnly)
 	if err != nil {
 		log.Error().Err(err).
 			Int("limit", limit).
