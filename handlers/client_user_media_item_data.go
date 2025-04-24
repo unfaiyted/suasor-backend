@@ -65,9 +65,8 @@ func (h *clientUserMediaItemDataHandler[T, U]) SyncClientItemData(c *gin.Context
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Warn().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID")
 		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}

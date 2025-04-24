@@ -2,8 +2,6 @@
 package handlers
 
 import (
-	"strconv"
-
 	"github.com/gin-gonic/gin"
 	"suasor/utils"
 
@@ -80,19 +78,12 @@ func (h *coreMusicHandler) GetAlbumTracks(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	albumID, err := strconv.ParseUint(c.Param("albumID"), 10, 64)
+	albumID, err := checkItemID(c, "albumID")
 	if err != nil {
-		log.Warn().Err(err).Str("albumID", c.Param("albumID")).Msg("Invalid album ID")
-		responses.RespondBadRequest(c, err, "Invalid album ID")
 		return
 	}
 
-	userID, err := strconv.ParseUint(c.Query("userID"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userID", c.Query("userID")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
-		return
-	}
+	userID, _ := checkUserAccess(c)
 
 	log.Debug().
 		Uint64("albumID", albumID).
@@ -102,10 +93,7 @@ func (h *coreMusicHandler) GetAlbumTracks(c *gin.Context) {
 	// Get the album first to ensure it exists
 	album, err := h.albumService.GetByID(ctx, albumID)
 	if err != nil {
-		log.Error().Err(err).
-			Uint64("albumID", albumID).
-			Msg("Failed to retrieve album")
-		responses.RespondNotFound(c, err, "Album not found")
+		handleServiceError(c, err, "Retrieving album", "Album not found", "Failed to retrieve album")
 		return
 	}
 
@@ -206,10 +194,7 @@ func (h *coreMusicHandler) GetTopTracks(c *gin.Context) {
 
 	allTracks, err := h.trackService.Search(ctx, *options)
 	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", userID).
-			Msg("Failed to retrieve tracks")
-		responses.RespondInternalError(c, err, "Failed to retrieve tracks")
+		handleServiceError(c, err, "Retrieving top tracks", "", "Failed to retrieve tracks")
 		return
 	}
 
@@ -357,19 +342,12 @@ func (h *coreMusicHandler) GetAlbumsByArtistID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	artistID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	artistID, err := checkItemID(c, "id")
 	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid artist ID")
-		responses.RespondBadRequest(c, err, "Invalid artist ID")
 		return
 	}
 
-	userID, err := strconv.ParseUint(c.Query("userID"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userID", c.Query("userID")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
-		return
-	}
+	userID, _ := checkUserAccess(c)
 
 	log.Debug().
 		Uint64("artistID", artistID).
@@ -378,11 +356,7 @@ func (h *coreMusicHandler) GetAlbumsByArtistID(c *gin.Context) {
 
 	// Get the artist first to ensure it exists
 	artist, err := h.artistService.GetByID(ctx, artistID)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("artistID", artistID).
-			Msg("Failed to retrieve artist")
-		responses.RespondNotFound(c, err, "Artist not found")
+	if handleServiceError(c, err, "Failed to retrieve artist", "Artist not found", "Failed to retrieve artist") {
 		return
 	}
 
@@ -416,17 +390,15 @@ func (h *coreMusicHandler) GetSimilarArtists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	artistID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	artistID, err := checkItemID(c, "id")
 	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid artist ID")
-		responses.RespondBadRequest(c, err, "Invalid artist ID")
 		return
 	}
 
-	userID, err := strconv.ParseUint(c.Query("userID"), 10, 64)
+	userID, err := utils.GetUserID(c)
 	if err != nil {
-		log.Warn().Err(err).Str("userID", c.Query("userID")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
+		log.Warn().Err(err).Msg("Invalid or missing user ID")
+		responses.RespondBadRequest(c, err, "Invalid or missing user ID")
 		return
 	}
 
@@ -438,10 +410,7 @@ func (h *coreMusicHandler) GetSimilarArtists(c *gin.Context) {
 	// Get the artist first to ensure it exists
 	artist, err := h.artistService.GetByID(ctx, artistID)
 	if err != nil {
-		log.Error().Err(err).
-			Uint64("artistID", artistID).
-			Msg("Failed to retrieve artist")
-		responses.RespondNotFound(c, err, "Artist not found")
+		handleServiceError(c, err, "Retrieving artist", "Artist not found", "Failed to retrieve artist")
 		return
 	}
 
@@ -527,22 +496,9 @@ func (h *coreMusicHandler) GetRecentlyAddedMusic(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	userID, err := strconv.ParseUint(c.Query("userID"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userID", c.Query("userID")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
-		return
-	}
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
-
-	days, err := strconv.Atoi(c.DefaultQuery("days", "30"))
-	if err != nil {
-		days = 30
-	}
+	userID, _ := checkUserAccess(c)
+	limit := utils.GetLimit(c, 10, 100, true)
+	days := checkDaysParam(c, 30)
 
 	log.Debug().
 		Uint64("userID", userID).
@@ -553,11 +509,7 @@ func (h *coreMusicHandler) GetRecentlyAddedMusic(c *gin.Context) {
 	// Get recently added music
 	// TODO: get all 3 types of music
 	items, err := h.coreMusicService.GetRecentlyAddedAlbums(ctx, days, limit)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", userID).
-			Msg("Failed to retrieve recently added music")
-		responses.RespondInternalError(c, err, "Failed to retrieve recently added music")
+	if handleServiceError(c, err, "Failed to retrieve recently added music", "", "Failed to retrieve recently added music") {
 		return
 	}
 
@@ -583,10 +535,8 @@ func (h *coreMusicHandler) GetGenreRecommendations(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	genre := c.Param("genre")
-	if genre == "" {
-		log.Warn().Msg("Genre is required")
-		responses.RespondBadRequest(c, nil, "Genre is required")
+	genre, ok := checkRequiredStringParam(c, "genre", "Genre is required")
+	if !ok {
 		return
 	}
 
@@ -602,11 +552,7 @@ func (h *coreMusicHandler) GetGenreRecommendations(c *gin.Context) {
 
 	// Search music items
 	items, err := h.coreMusicService.SearchMusicLibrary(ctx, options)
-	if err != nil {
-		log.Error().Err(err).
-			Str("genre", genre).
-			Msg("Failed to search music items")
-		responses.RespondInternalError(c, err, "Failed to search music items")
+	if handleServiceError(c, err, "Failed to search music items", "", "Failed to search music items") {
 		return
 	}
 
@@ -633,10 +579,8 @@ func (h *coreMusicHandler) GetTrackByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	trackID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	trackID, err := checkItemID(c, "id")
 	if err != nil {
-		log.Warn().Err(err).Str("itemID", c.Param("itemID")).Msg("Invalid track ID")
-		responses.RespondBadRequest(c, err, "Invalid track ID")
 		return
 	}
 
@@ -645,11 +589,7 @@ func (h *coreMusicHandler) GetTrackByID(c *gin.Context) {
 		Msg("Getting track by ID")
 
 	track, err := h.trackService.GetByID(ctx, trackID)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("trackID", trackID).
-			Msg("Failed to retrieve track")
-		responses.RespondNotFound(c, err, "Track not found")
+	if handleServiceError(c, err, "Failed to retrieve track", "Track not found", "Track not found") {
 		return
 	}
 
@@ -1031,20 +971,14 @@ func (h *coreMusicHandler) GetPopularAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Debug().
 		Int("limit", limit).
 		Msg("Getting popular albums")
 
 	albums, err := h.coreMusicService.GetMostPlayedAlbums(ctx, limit)
-	if err != nil {
-		log.Error().Err(err).
-			Msg("Failed to get popular albums")
-		responses.RespondInternalError(c, err, "Failed to get popular albums")
+	if handleServiceError(c, err, "Failed to get popular albums", "", "Failed to get popular albums") {
 		return
 	}
 
@@ -1075,20 +1009,14 @@ func (h *coreMusicHandler) GetPopularArtists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Debug().
 		Int("limit", limit).
 		Msg("Getting popular artists")
 
 	artists, err := h.coreMusicService.GetTopArtists(ctx, limit)
-	if err != nil {
-		log.Error().Err(err).
-			Msg("Failed to get popular artists")
-		responses.RespondInternalError(c, err, "Failed to get popular artists")
+	if handleServiceError(c, err, "Failed to get popular artists", "", "Failed to get popular artists") {
 		return
 	}
 
@@ -1121,18 +1049,13 @@ func (h *coreMusicHandler) SearchMusic(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	query := c.Query("q")
-	if query == "" {
-		log.Warn().Msg("Search query is required")
-		responses.RespondBadRequest(c, nil, "Search query is required")
+	query, ok := checkRequiredQueryParam(c, "q", "Search query is required")
+	if !ok {
 		return
 	}
 
 	mediaType := c.Query("type")
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Debug().
 		Str("query", query).
@@ -1149,11 +1072,7 @@ func (h *coreMusicHandler) SearchMusic(c *gin.Context) {
 
 	// Search music library
 	results, err := h.coreMusicService.SearchMusicLibrary(ctx, options)
-	if err != nil {
-		log.Error().Err(err).
-			Str("query", query).
-			Msg("Failed to search music")
-		responses.RespondInternalError(c, err, "Failed to search music")
+	if handleServiceError(c, err, "Failed to search music", "", "Failed to search music") {
 		return
 	}
 
@@ -1229,24 +1148,12 @@ func (h *coreMusicHandler) GetAlbumsByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	yearStr := c.Param("year")
-	if yearStr == "" {
-		log.Warn().Msg("Year is required")
-		responses.RespondBadRequest(c, nil, "Year is required")
+	year, ok := checkYear(c, "year")
+	if !ok {
 		return
 	}
 
-	year, err := strconv.Atoi(yearStr)
-	if err != nil {
-		log.Warn().Err(err).Str("year", yearStr).Msg("Invalid year format")
-		responses.RespondBadRequest(c, err, "Invalid year format")
-		return
-	}
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Debug().
 		Int("year", year).
@@ -1261,11 +1168,7 @@ func (h *coreMusicHandler) GetAlbumsByYear(c *gin.Context) {
 
 	// Search albums by year
 	albums, err := h.albumService.Search(ctx, *options)
-	if err != nil {
-		log.Error().Err(err).
-			Int("year", year).
-			Msg("Failed to get albums by year")
-		responses.RespondInternalError(c, err, "Failed to get albums")
+	if handleServiceError(c, err, "Failed to get albums by year", "", "Failed to get albums") {
 		return
 	}
 

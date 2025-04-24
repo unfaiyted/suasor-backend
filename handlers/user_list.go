@@ -74,16 +74,13 @@ func (h *userListHandler[T]) GetUserLists(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access lists without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
 	limit := utils.GetLimit(c, 20, 100, true)
 	offset := utils.GetOffset(c, 0)
-	uid := userID.(uint64)
 
 	log.Debug().
 		Uint64("userID", uid).

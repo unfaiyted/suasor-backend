@@ -56,9 +56,8 @@ func NewRecommendationHandler(recommendationService services.RecommendationServi
 // @Router /api/v1/recommendations [get]
 func (h *RecommendationHandler) GetRecommendations(c *gin.Context) {
 	// Get user ID from context
-	userID, exists := c.Get("userID")
-	if !exists {
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	userID, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
@@ -80,24 +79,24 @@ func (h *RecommendationHandler) GetRecommendations(c *gin.Context) {
 	// Get recommendations from service
 	recommendations, err := h.recommendationService.GetRecommendations(
 		c.Request.Context(),
-		userID.(uint64),
+		userID,
 		req.MediaType,
 		req.Limit,
 		req.Offset,
 	)
 	if err != nil {
-		responses.RespondInternalError(c, err, "Failed to retrieve recommendations")
+		handleServiceError(c, err, "Retrieving recommendations", "", "Failed to retrieve recommendations")
 		return
 	}
 
 	// Get total count for pagination
 	total, err := h.recommendationService.GetRecommendationCount(
 		c.Request.Context(),
-		userID.(uint64),
+		userID,
 		req.MediaType,
 	)
 	if err != nil {
-		responses.RespondInternalError(c, err, "Failed to retrieve recommendation count")
+		handleServiceError(c, err, "Retrieving recommendation count", "", "Failed to retrieve recommendation count")
 		return
 	}
 
@@ -130,9 +129,8 @@ func (h *RecommendationHandler) GetRecommendations(c *gin.Context) {
 // @Router /api/v1/recommendations/recent [get]
 func (h *RecommendationHandler) GetRecentRecommendations(c *gin.Context) {
 	// Get user ID from context
-	userID, exists := c.Get("userID")
-	if !exists {
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	userID, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
@@ -157,7 +155,7 @@ func (h *RecommendationHandler) GetRecentRecommendations(c *gin.Context) {
 	// Get recent recommendations from service
 	recommendations, err := h.recommendationService.GetRecentRecommendations(
 		c.Request.Context(),
-		userID.(uint64),
+		userID,
 		req.Days,
 		req.Limit,
 	)
@@ -169,7 +167,7 @@ func (h *RecommendationHandler) GetRecentRecommendations(c *gin.Context) {
 	// Get total count for pagination
 	total, err := h.recommendationService.GetRecommendationCount(
 		c.Request.Context(),
-		userID.(uint64),
+		userID,
 		req.MediaType,
 	)
 	if err != nil {

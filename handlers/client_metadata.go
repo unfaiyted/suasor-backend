@@ -26,14 +26,13 @@ func NewMetadataClientHandler[T types.MetadataClientConfig](service *services.Me
 // GetMovie retrieves a movie by ID
 func (h *MetadataClientHandler[T]) GetMovie(c *gin.Context) {
 	var req requests.MetadataMovieRequest
-	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request parameters"})
+	if !checkJSONBinding(c, &req) {
 		return
 	}
 
 	movie, err := h.service.GetMovie(c.Request.Context(), req.ClientID, req.MovieID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleServiceError(c, err, "Retrieving movie metadata", "Movie not found", "Failed to retrieve movie metadata")
 		return
 	}
 
@@ -43,14 +42,13 @@ func (h *MetadataClientHandler[T]) GetMovie(c *gin.Context) {
 // SearchMovies searches for movies by query
 func (h *MetadataClientHandler[T]) SearchMovies(c *gin.Context) {
 	var req requests.MetadataMovieSearchRequest
-	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request parameters"})
+	if !checkJSONBinding(c, &req) {
 		return
 	}
 
 	movies, err := h.service.SearchMovies(c.Request.Context(), req.ClientID, req.Query)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleServiceError(c, err, "Searching movies metadata", "", "Failed to search movies metadata")
 		return
 	}
 

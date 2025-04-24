@@ -37,13 +37,10 @@ func NewSearchHandler(service services.SearchService) *SearchHandler {
 // @Router /api/v1/search [get]
 func (h *SearchHandler) Search(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
 
 	// Get current user ID from context
-	userID, exists := c.Get("userID")
-	if !exists {
-		err := errors.New("user not authenticated")
-		responses.RespondUnauthorized(c, err, "User not authenticated")
+	userID, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
@@ -69,10 +66,9 @@ func (h *SearchHandler) Search(c *gin.Context) {
 	}
 
 	// Perform search
-	results, err := h.service.SearchAll(ctx, userID.(uint64), options)
+	results, err := h.service.SearchAll(ctx, userID, options)
 	if err != nil {
-		log.Error().Err(err).Msg("Error performing search")
-		responses.RespondInternalError(c, err, "Error performing search")
+		handleServiceError(c, err, "Performing search", "", "Error performing search")
 		return
 	}
 
@@ -96,13 +92,10 @@ func (h *SearchHandler) Search(c *gin.Context) {
 // @Router /api/v1/search/recent [get]
 func (h *SearchHandler) GetRecentSearches(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
 
 	// Get current user ID from context
-	userID, exists := c.Get("userID")
-	if !exists {
-		err := errors.New("user not authenticated")
-		responses.RespondUnauthorized(c, err, "User not authenticated")
+	userID, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
@@ -110,10 +103,9 @@ func (h *SearchHandler) GetRecentSearches(c *gin.Context) {
 	limit := utils.GetLimit(c, 10, 50, true)
 
 	// Get recent searches
-	searches, err := h.service.GetRecentSearches(ctx, userID.(uint64), limit)
+	searches, err := h.service.GetRecentSearches(ctx, userID, limit)
 	if err != nil {
-		log.Error().Err(err).Msg("Error retrieving recent searches")
-		responses.RespondInternalError(c, err, "Error retrieving recent searches")
+		handleServiceError(c, err, "Retrieving recent searches", "", "Error retrieving recent searches")
 		return
 	}
 

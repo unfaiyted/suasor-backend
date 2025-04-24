@@ -40,9 +40,7 @@ func (h *UserConfigHandler) GetUserConfig(c *gin.Context) {
 	userID, _ := checkUserAccess(c)
 
 	config, err := h.userConfigService.GetUserConfig(ctx, userID)
-	if err != nil {
-		log.Error().Err(err).Uint64("userID", userID).Msg("Failed to retrieve user configuration")
-		responses.RespondInternalError(c, err, "Failed to retrieve user configuration")
+	if handleServiceError(c, err, "Failed to retrieve user configuration", "", "Failed to retrieve user configuration") {
 		return
 	}
 
@@ -70,9 +68,7 @@ func (h *UserConfigHandler) UpdateUserConfig(c *gin.Context) {
 	userID, _ := checkUserAccess(c)
 
 	var cfg models.UserConfig
-	if err := c.ShouldBindJSON(&cfg); err != nil {
-		log.Error().Err(err).Msg("Invalid user configuration format")
-		responses.RespondValidationError(c, err)
+	if !checkJSONBinding(c, &cfg) {
 		return
 	}
 
@@ -81,9 +77,8 @@ func (h *UserConfigHandler) UpdateUserConfig(c *gin.Context) {
 
 	log.Info().Uint64("userID", userID).Msg("Updating user configuration")
 
-	if err := h.userConfigService.SaveUserConfig(ctx, cfg); err != nil {
-		log.Error().Err(err).Uint64("userID", userID).Msg("Failed to update user configuration")
-		responses.RespondInternalError(c, err, "Failed to update user configuration")
+	err := h.userConfigService.SaveUserConfig(ctx, cfg)
+	if handleServiceError(c, err, "Failed to update user configuration", "", "Failed to update user configuration") {
 		return
 	}
 

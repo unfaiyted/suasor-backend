@@ -64,20 +64,14 @@ func (h *clientSeriesHandler[T]) GetSeriesByID(c *gin.Context) {
 	log.Info().Msg("Getting series by ID")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access series without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
@@ -91,12 +85,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByID(c *gin.Context) {
 
 	series, err := h.seriesService.GetSeriesByID(ctx, clientID, seriesID)
 	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Uint64("clientID", clientID).
-			Str("seriesID", seriesID).
-			Msg("Failed to retrieve series")
-		responses.RespondInternalError(c, err, "Failed to retrieve series")
+		handleServiceError(c, err, "Retrieving series", "Series not found", "Failed to retrieve series")
 		return
 	}
 
@@ -127,15 +116,15 @@ func (h *clientSeriesHandler[T]) GetSeriesByGenre(c *gin.Context) {
 	log.Info().Msg("Getting series by genre")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access series without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-	genre := c.Param("genre")
+	genre, ok := checkRequiredStringParam(c, "genre", "Genre name is required")
+	if !ok {
+		return
+	}
 
 	log.Info().
 		Uint64("userID", uid).
@@ -143,12 +132,10 @@ func (h *clientSeriesHandler[T]) GetSeriesByGenre(c *gin.Context) {
 		Msg("Retrieving series by genre")
 
 	series, err := h.seriesService.GetSeriesByGenre(ctx, uid, genre)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Str("genre", genre).
-			Msg("Failed to retrieve series by genre")
-		responses.RespondInternalError(c, err, "Failed to retrieve series")
+	if handleServiceError(c, err,
+		"Failed to retrieve series by genre",
+		"No series found for this genre",
+		"Failed to retrieve series") {
 		return
 	}
 
@@ -179,19 +166,13 @@ func (h *clientSeriesHandler[T]) GetSeriesByYear(c *gin.Context) {
 	log.Info().Msg("Getting series by year")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access series without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-
-	year, err := strconv.Atoi(c.Param("year"))
-	if err != nil {
-		log.Error().Err(err).Str("year", c.Param("year")).Msg("Invalid year format")
-		responses.RespondBadRequest(c, err, "Invalid year")
+	year, ok := checkYear(c, "year")
+	if !ok {
 		return
 	}
 
@@ -201,12 +182,10 @@ func (h *clientSeriesHandler[T]) GetSeriesByYear(c *gin.Context) {
 		Msg("Retrieving series by year")
 
 	series, err := h.seriesService.GetSeriesByYear(ctx, uid, year)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Int("year", year).
-			Msg("Failed to retrieve series by year")
-		responses.RespondInternalError(c, err, "Failed to retrieve series")
+	if handleServiceError(c, err,
+		"Failed to retrieve series by year",
+		"No series found for this year",
+		"Failed to retrieve series") {
 		return
 	}
 
@@ -236,15 +215,15 @@ func (h *clientSeriesHandler[T]) GetSeriesByActor(c *gin.Context) {
 	log.Info().Msg("Getting series by actor")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access series without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-	actor := c.Param("actor")
+	actor, ok := checkRequiredStringParam(c, "actor", "Actor name is required")
+	if !ok {
+		return
+	}
 
 	log.Info().
 		Uint64("userID", uid).
@@ -252,12 +231,10 @@ func (h *clientSeriesHandler[T]) GetSeriesByActor(c *gin.Context) {
 		Msg("Retrieving series by actor")
 
 	series, err := h.seriesService.GetSeriesByActor(ctx, uid, actor)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Str("actor", actor).
-			Msg("Failed to retrieve series by actor")
-		responses.RespondInternalError(c, err, "Failed to retrieve series")
+	if handleServiceError(c, err,
+		"Failed to retrieve series by actor",
+		"No series found with this actor",
+		"Failed to retrieve series") {
 		return
 	}
 

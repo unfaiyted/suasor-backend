@@ -76,9 +76,7 @@ func (h *ConfigHandler) UpdateConfig(c *gin.Context) {
 	}
 
 	var cfg types.Configuration
-	if err := c.ShouldBindJSON(&cfg); err != nil {
-		log.Error().Err(err).Msg("Invalid configuration format")
-		responses.RespondValidationError(c, err)
+	if !checkJSONBinding(c, &cfg) {
 		return
 	}
 
@@ -164,9 +162,7 @@ func (h *ConfigHandler) SaveFileConfig(c *gin.Context) {
 	}
 
 	var cfg types.Configuration
-	if err := c.ShouldBindJSON(&cfg); err != nil {
-		log.Error().Err(err).Msg("Invalid configuration format")
-		responses.RespondValidationError(c, err)
+	if !checkJSONBinding(c, &cfg) {
 		return
 	}
 

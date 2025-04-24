@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"strconv"
 	"suasor/services"
 
 	"github.com/gin-gonic/gin"
@@ -72,9 +71,7 @@ func (h *clientHandler[T]) CreateClient(c *gin.Context) {
 	uid, _ := checkUserAccess(c)
 
 	var req requests.ClientRequest[T]
-	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Error().Err(err).Msg("Failed to parse request body")
-		responses.RespondValidationError(c, err)
+	if !checkJSONBinding(c, &req) {
 		return
 	}
 
@@ -155,10 +152,8 @@ func (h *clientHandler[T]) GetClient(c *gin.Context) {
 	uid, _ := checkUserAccess(c)
 
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	clientID, err := checkItemID(c, "id")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("id")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
@@ -221,8 +216,7 @@ func (h *clientHandler[T]) UpdateClient(c *gin.Context) {
 	clientID, _ := checkClientID(c)
 
 	var req requests.ClientRequest[T]
-	if err := c.ShouldBindJSON(&req); err != nil {
-		responses.RespondValidationError(c, err)
+	if !checkJSONBinding(c, &req) {
 		return
 	}
 

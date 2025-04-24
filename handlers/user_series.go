@@ -2,14 +2,13 @@
 package handlers
 
 import (
-	"strconv"
-
 	"github.com/gin-gonic/gin"
 
 	mediatypes "suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/responses"
+	"suasor/utils"
 	"suasor/utils/logger"
 )
 
@@ -82,23 +81,13 @@ func (h *userSeriesHandler) GetFavoriteSeries(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access favorites without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
-	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
-	if err != nil {
-		offset = 0
-	}
+	limit := utils.GetLimit(c, 10, 100, true)
+	offset := utils.GetOffset(c, 0)
 
 	log.Debug().
 		Uint64("userID", uid).
@@ -107,10 +96,7 @@ func (h *userSeriesHandler) GetFavoriteSeries(c *gin.Context) {
 
 	series, err := h.seriesDataService.GetFavorites(ctx, uid, limit, offset)
 	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Msg("Failed to retrieve favorite series")
-		responses.RespondInternalError(c, err, "Failed to retrieve favorite series")
+		handleServiceError(c, err, "Retrieving favorite series", "", "Failed to retrieve favorite series")
 		return
 	}
 
@@ -138,19 +124,12 @@ func (h *userSeriesHandler) GetWatchedSeries(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access watched series without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Debug().
 		Uint64("userID", uid).
@@ -171,10 +150,10 @@ func (h *userSeriesHandler) GetWatchedSeries(c *gin.Context) {
 
 	series, err := h.seriesDataService.GetUserPlayHistory(ctx, options.OwnerID, &options)
 	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Msg("Failed to retrieve watched series")
-		responses.RespondInternalError(c, err, "Failed to retrieve watched series")
+		handleServiceError(c, err,
+			"Failed to retrieve watched series",
+			"No watched series found",
+			"Failed to retrieve watched series")
 		return
 	}
 
@@ -202,19 +181,12 @@ func (h *userSeriesHandler) GetWatchlistSeries(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access watchlist without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Debug().
 		Uint64("userID", uid).
@@ -233,10 +205,10 @@ func (h *userSeriesHandler) GetWatchlistSeries(c *gin.Context) {
 
 	series, err := h.seriesDataService.Search(ctx, &options)
 	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Msg("Failed to retrieve watchlist series")
-		responses.RespondInternalError(c, err, "Failed to retrieve watchlist series")
+		handleServiceError(c, err,
+			"Failed to retrieve watchlist series",
+			"No watchlist series found",
+			"Failed to retrieve watchlist series")
 		return
 	}
 
@@ -267,27 +239,20 @@ func (h *userSeriesHandler) UpdateSeriesUserData(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to update series data without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-
-	seriesID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	// Check for valid ID parameter
+	seriesID, err := checkItemID(c, "id")
 	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid series ID")
-		responses.RespondBadRequest(c, err, "Invalid series ID")
 		return
 	}
 
 	// Parse request body
 	var userData models.UserMediaItemData[*mediatypes.Series]
-	if err := c.ShouldBindJSON(&userData); err != nil {
-		log.Warn().Err(err).Msg("Invalid request body")
-		responses.RespondBadRequest(c, err, "Invalid request body")
+	if !checkJSONBinding(c, &userData) {
 		return
 	}
 
@@ -300,10 +265,10 @@ func (h *userSeriesHandler) UpdateSeriesUserData(c *gin.Context) {
 	// Get the existing series first
 	series, err := h.seriesDataService.GetByID(ctx, seriesID)
 	if err != nil {
-		log.Error().Err(err).
-			Uint64("seriesID", seriesID).
-			Msg("Failed to retrieve series")
-		responses.RespondNotFound(c, err, "Series not found")
+		handleServiceError(c, err,
+			"Failed to retrieve series",
+			"Series not found",
+			"Failed to retrieve series")
 		return
 	}
 
@@ -316,10 +281,10 @@ func (h *userSeriesHandler) UpdateSeriesUserData(c *gin.Context) {
 	// Update the series
 	updatedSeries, err := h.seriesDataService.Update(ctx, series)
 	if err != nil {
-		log.Error().Err(err).
-			Uint64("seriesID", seriesID).
-			Msg("Failed to update series")
-		responses.RespondInternalError(c, err, "Failed to update series")
+		handleServiceError(c, err,
+			"Failed to update series",
+			"",
+			"Failed to update series")
 		return
 	}
 
@@ -347,17 +312,14 @@ func (h *userSeriesHandler) GetContinueWatchingSeries(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
+	userID, err := utils.GetUserID(c)
 	if err != nil {
 		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
 		responses.RespondBadRequest(c, err, "Invalid user ID")
 		return
 	}
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Debug().
 		Uint64("userID", userID).
@@ -391,17 +353,14 @@ func (h *userSeriesHandler) GetNextUpEpisodes(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
+	userID, err := utils.GetUserID(c)
 	if err != nil {
 		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
 		responses.RespondBadRequest(c, err, "Invalid user ID")
 		return
 	}
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Debug().
 		Uint64("userID", userID).
@@ -436,34 +395,29 @@ func (h *userSeriesHandler) GetRecentlyWatchedEpisodes(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
+	userID, err := utils.GetUserID(c)
 	if err != nil {
 		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
 		responses.RespondBadRequest(c, err, "Invalid user ID")
 		return
 	}
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
-	days, err := strconv.Atoi(c.DefaultQuery("days", "7"))
-	if err != nil {
-		days = 7
-	}
+	limit := utils.GetLimit(c, 10, 100, true)
+	days := utils.GetDays(c, 7)
 
 	log.Debug().
 		Uint64("userID", userID).
 		Int("limit", limit).
+		Int("days", days).
 		Msg("Getting recently watched series")
 
 	// Get recently watched series
 	series, err := h.episodeDataService.GetRecentHistory(ctx, userID, days, limit)
 	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", userID).
-			Msg("Failed to retrieve recently watched series")
-		responses.RespondInternalError(c, err, "Failed to retrieve series")
+		handleServiceError(c, err,
+			"Failed to retrieve recently watched series",
+			"No recently watched series found",
+			"Failed to retrieve series")
 		return
 	}
 

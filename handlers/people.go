@@ -3,12 +3,11 @@ package handlers
 import (
 	"errors"
 	"net/http"
-	"strconv"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/requests"
 	"suasor/types/responses"
-	"suasor/utils/logger"
+	"suasor/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -40,22 +39,17 @@ func NewPeopleHandler(personService *services.PersonService) *PeopleHandler {
 // @Router /api/v1/people/{personID} [get]
 func (h *PeopleHandler) GetPersonByID(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
 
 	// Get person ID from path
-	personIDStr := c.Param("personID")
-	personID, err := strconv.ParseUint(personIDStr, 10, 64)
+	personID, err := checkItemID(c, "personID")
 	if err != nil {
-		log.Error().Err(err).Str("personID", personIDStr).Msg("Invalid person ID")
-		responses.RespondBadRequest(c, err, "Invalid person ID")
 		return
 	}
 
 	// Get person
 	person, err := h.personService.GetPersonByID(ctx, personID)
 	if err != nil {
-		log.Error().Err(err).Uint64("personID", personID).Msg("Failed to get person")
-		responses.RespondInternalError(c, err, "Failed to get person")
+		handleServiceError(c, err, "Retrieving person", "Person not found", "Failed to get person")
 		return
 	}
 
@@ -83,22 +77,16 @@ func (h *PeopleHandler) GetPersonByID(c *gin.Context) {
 // @Router /api/v1/people/{personID}/credits [get]
 func (h *PeopleHandler) GetPersonWithCredits(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
 
 	// Get person ID from path
-	personIDStr := c.Param("personID")
-	personID, err := strconv.ParseUint(personIDStr, 10, 64)
+	personID, err := checkItemID(c, "personID")
 	if err != nil {
-		log.Error().Err(err).Str("personID", personIDStr).Msg("Invalid person ID")
-		responses.RespondBadRequest(c, err, "Invalid person ID")
 		return
 	}
 
 	// Get person with credits
 	person, credits, err := h.personService.GetPersonWithCredits(ctx, personID)
-	if err != nil {
-		log.Error().Err(err).Uint64("personID", personID).Msg("Failed to get person with credits")
-		responses.RespondInternalError(c, err, "Failed to get person with credits")
+	if handleServiceError(c, err, "Failed to get person with credits", "", "Failed to get person with credits") {
 		return
 	}
 
@@ -129,7 +117,6 @@ func (h *PeopleHandler) GetPersonWithCredits(c *gin.Context) {
 // @Router /api/v1/people [get]
 func (h *PeopleHandler) SearchPeople(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
 
 	// Get query from request
 	query := c.Query("q")
@@ -139,19 +126,12 @@ func (h *PeopleHandler) SearchPeople(c *gin.Context) {
 	}
 
 	// Get limit from request
-	limitStr := c.DefaultQuery("limit", "20")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit")
-		responses.RespondBadRequest(c, err, "Invalid limit")
-		return
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
 
 	// Search people
 	people, err := h.personService.SearchPeople(ctx, query, limit)
 	if err != nil {
-		log.Error().Err(err).Str("query", query).Msg("Failed to search people")
-		responses.RespondInternalError(c, err, "Failed to search people")
+		handleServiceError(c, err, "Searching people", "", "Failed to search people")
 		return
 	}
 
@@ -173,22 +153,13 @@ func (h *PeopleHandler) SearchPeople(c *gin.Context) {
 // @Router /api/v1/people/popular [get]
 func (h *PeopleHandler) GetPopularPeople(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
 
 	// Get limit from request
-	limitStr := c.DefaultQuery("limit", "20")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit")
-		responses.RespondBadRequest(c, err, "Invalid limit")
-		return
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
 
 	// Get popular people
 	people, err := h.personService.GetPopularPeople(ctx, limit)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to get popular people")
-		responses.RespondInternalError(c, err, "Failed to get popular people")
+	if handleServiceError(c, err, "Failed to get popular people", "", "Failed to get popular people") {
 		return
 	}
 
@@ -210,7 +181,6 @@ func (h *PeopleHandler) GetPopularPeople(c *gin.Context) {
 // @Router /api/v1/people/roles/{role} [get]
 func (h *PeopleHandler) GetPeopleByRole(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
 
 	// Get role from path
 	role := c.Param("role")
@@ -221,9 +191,7 @@ func (h *PeopleHandler) GetPeopleByRole(c *gin.Context) {
 
 	// Get people by role
 	people, err := h.personService.GetPeopleByRole(ctx, role)
-	if err != nil {
-		log.Error().Err(err).Str("role", role).Msg("Failed to get people by role")
-		responses.RespondInternalError(c, err, "Failed to get people by role")
+	if handleServiceError(c, err, "Failed to get people by role", "", "Failed to get people by role") {
 		return
 	}
 
@@ -245,13 +213,10 @@ func (h *PeopleHandler) GetPeopleByRole(c *gin.Context) {
 // @Router /api/v1/people [post]
 func (h *PeopleHandler) CreatePerson(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
 
 	// Parse request body
 	var req requests.CreatePersonRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Error().Err(err).Msg("Invalid request body")
-		responses.RespondBadRequest(c, err, "Invalid request body")
+	if !checkJSONBinding(c, &req) {
 		return
 	}
 
@@ -274,9 +239,7 @@ func (h *PeopleHandler) CreatePerson(c *gin.Context) {
 
 	// Create person
 	createdPerson, err := h.personService.CreatePerson(ctx, person)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to create person")
-		responses.RespondInternalError(c, err, "Failed to create person")
+	if handleServiceError(c, err, "Failed to create person", "", "Failed to create person") {
 		return
 	}
 
@@ -300,30 +263,22 @@ func (h *PeopleHandler) CreatePerson(c *gin.Context) {
 // @Router /api/v1/people/{personID} [put]
 func (h *PeopleHandler) UpdatePerson(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
 
 	// Get person ID from path
-	personIDStr := c.Param("personID")
-	personID, err := strconv.ParseUint(personIDStr, 10, 64)
+	personID, err := checkItemID(c, "personID")
 	if err != nil {
-		log.Error().Err(err).Str("personID", personIDStr).Msg("Invalid person ID")
-		responses.RespondBadRequest(c, err, "Invalid person ID")
 		return
 	}
 
 	// Parse request body
 	var req requests.UpdatePersonRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Error().Err(err).Msg("Invalid request body")
-		responses.RespondBadRequest(c, err, "Invalid request body")
+	if !checkJSONBinding(c, &req) {
 		return
 	}
 
 	// Get existing person
 	existingPerson, err := h.personService.GetPersonByID(ctx, personID)
-	if err != nil {
-		log.Error().Err(err).Uint64("personID", personID).Msg("Failed to get person")
-		responses.RespondInternalError(c, err, "Failed to get person")
+	if handleServiceError(c, err, "Failed to get person", "", "Failed to get person") {
 		return
 	}
 
@@ -365,16 +320,7 @@ func (h *PeopleHandler) UpdatePerson(c *gin.Context) {
 
 	// Update person
 	updatedPerson, err := h.personService.UpdatePerson(ctx, existingPerson)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to update person")
-
-		// Check for specific errors
-		if errors.Is(err, errors.New("person not found")) {
-			responses.RespondNotFound(c, err, "Person not found")
-			return
-		}
-
-		responses.RespondInternalError(c, err, "Failed to update person")
+	if handleServiceError(c, err, "Failed to update person", "person not found", "Failed to update person") {
 		return
 	}
 
@@ -397,28 +343,16 @@ func (h *PeopleHandler) UpdatePerson(c *gin.Context) {
 // @Router /api/v1/people/{personID} [delete]
 func (h *PeopleHandler) DeletePerson(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
 
 	// Get person ID from path
-	personIDStr := c.Param("personID")
-	personID, err := strconv.ParseUint(personIDStr, 10, 64)
+	personID, err := checkItemID(c, "personID")
 	if err != nil {
-		log.Error().Err(err).Str("personID", personIDStr).Msg("Invalid person ID")
-		responses.RespondBadRequest(c, err, "Invalid person ID")
 		return
 	}
 
 	// Delete person
-	if err := h.personService.DeletePerson(ctx, personID); err != nil {
-		log.Error().Err(err).Msg("Failed to delete person")
-
-		// Check for specific errors
-		if errors.Is(err, errors.New("person not found")) {
-			responses.RespondNotFound(c, err, "Person not found")
-			return
-		}
-
-		responses.RespondInternalError(c, err, "Failed to delete person")
+	err = h.personService.DeletePerson(ctx, personID)
+	if handleServiceError(c, err, "Failed to delete person", "person not found", "Failed to delete person") {
 		return
 	}
 
@@ -440,22 +374,16 @@ func (h *PeopleHandler) DeletePerson(c *gin.Context) {
 // @Router /api/v1/people/{personID}/credits/grouped [get]
 func (h *PeopleHandler) GetPersonCreditsGrouped(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
 
 	// Get person ID from path
-	personIDStr := c.Param("personID")
-	personID, err := strconv.ParseUint(personIDStr, 10, 64)
+	personID, err := checkItemID(c, "personID")
 	if err != nil {
-		log.Error().Err(err).Str("personID", personIDStr).Msg("Invalid person ID")
-		responses.RespondBadRequest(c, err, "Invalid person ID")
 		return
 	}
 
 	// Get person credits grouped
 	creditsGrouped, err := h.personService.GetPersonCreditsGrouped(ctx, personID)
-	if err != nil {
-		log.Error().Err(err).Uint64("personID", personID).Msg("Failed to get person credits")
-		responses.RespondInternalError(c, err, "Failed to get person credits")
+	if handleServiceError(c, err, "Failed to get person credits", "", "Failed to get person credits") {
 		return
 	}
 
@@ -477,13 +405,10 @@ func (h *PeopleHandler) GetPersonCreditsGrouped(c *gin.Context) {
 // @Router /api/v1/people/import [post]
 func (h *PeopleHandler) ImportPerson(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
 
 	// Parse request body
 	var req requests.ImportPersonRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Error().Err(err).Msg("Invalid request body")
-		responses.RespondBadRequest(c, err, "Invalid request body")
+	if !checkJSONBinding(c, &req) {
 		return
 	}
 
@@ -506,9 +431,7 @@ func (h *PeopleHandler) ImportPerson(c *gin.Context) {
 
 	// Import person
 	importedPerson, err := h.personService.ImportPerson(ctx, req.Source, req.ExternalID, person)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to import person")
-		responses.RespondInternalError(c, err, "Failed to import person")
+	if handleServiceError(c, err, "Failed to import person", "", "Failed to import person") {
 		return
 	}
 
@@ -531,29 +454,22 @@ func (h *PeopleHandler) ImportPerson(c *gin.Context) {
 // @Router /api/v1/people/{personID}/external-ids [post]
 func (h *PeopleHandler) AddExternalIDToPerson(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
 
 	// Get person ID from path
-	personIDStr := c.Param("personID")
-	personID, err := strconv.ParseUint(personIDStr, 10, 64)
+	personID, err := checkItemID(c, "personID")
 	if err != nil {
-		log.Error().Err(err).Str("personID", personIDStr).Msg("Invalid person ID")
-		responses.RespondBadRequest(c, err, "Invalid person ID")
 		return
 	}
 
 	// Parse request body
 	var req requests.ExternalIDRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Error().Err(err).Msg("Invalid request body")
-		responses.RespondBadRequest(c, err, "Invalid request body")
+	if !checkJSONBinding(c, &req) {
 		return
 	}
 
 	// Add external ID
-	if err := h.personService.AddExternalIDToPerson(ctx, personID, req.Source, req.ID); err != nil {
-		log.Error().Err(err).Msg("Failed to add external ID")
-		responses.RespondInternalError(c, err, "Failed to add external ID")
+	err = h.personService.AddExternalIDToPerson(ctx, personID, req.Source, req.ID)
+	if handleServiceError(c, err, "Failed to add external ID", "", "Failed to add external ID") {
 		return
 	}
 

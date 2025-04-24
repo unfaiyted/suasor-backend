@@ -70,20 +70,14 @@ func (h *clientMovieHandler[T]) GetClientMovieByID(c *gin.Context) {
 	log.Info().Msg("Getting movie by ID")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access movie without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
@@ -132,14 +126,10 @@ func (h *clientMovieHandler[T]) GetClientMoviesByGenre(c *gin.Context) {
 	log.Info().Msg("Getting movies by genre")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access movies without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
-
-	uid := userID.(uint64)
 	genre := c.Param("genre")
 
 	log.Info().
@@ -184,19 +174,13 @@ func (h *clientMovieHandler[T]) GetClientMoviesByYear(c *gin.Context) {
 	log.Info().Msg("Getting movies by year")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access movies without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-
-	year, err := strconv.Atoi(c.Param("year"))
-	if err != nil {
-		log.Error().Err(err).Str("year", c.Param("year")).Msg("Invalid year format")
-		responses.RespondBadRequest(c, err, "Invalid year")
+	year, ok := checkYear(c, "year")
+	if !ok {
 		return
 	}
 
@@ -206,12 +190,10 @@ func (h *clientMovieHandler[T]) GetClientMoviesByYear(c *gin.Context) {
 		Msg("Retrieving movies by year")
 
 	movies, err := h.movieService.GetClientMoviesByYear(ctx, uid, year)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Int("year", year).
-			Msg("Failed to retrieve movies by year")
-		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+	if handleServiceError(c, err,
+		"Failed to retrieve movies by year",
+		"No movies found for this year",
+		"Failed to retrieve movies") {
 		return
 	}
 
@@ -241,15 +223,15 @@ func (h *clientMovieHandler[T]) GetClientMoviesByActor(c *gin.Context) {
 	log.Info().Msg("Getting movies by actor")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access movies without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-	actor := c.Param("actor")
+	actor, ok := checkRequiredStringParam(c, "actor", "Actor name is required")
+	if !ok {
+		return
+	}
 
 	log.Info().
 		Uint64("userID", uid).
@@ -257,12 +239,10 @@ func (h *clientMovieHandler[T]) GetClientMoviesByActor(c *gin.Context) {
 		Msg("Retrieving movies by actor")
 
 	movies, err := h.movieService.GetClientMoviesByActor(ctx, uid, actor)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Str("actor", actor).
-			Msg("Failed to retrieve movies by actor")
-		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+	if handleServiceError(c, err,
+		"Failed to retrieve movies by actor",
+		"No movies found for this actor",
+		"Failed to retrieve movies") {
 		return
 	}
 
@@ -292,15 +272,15 @@ func (h *clientMovieHandler[T]) GetClientMoviesByDirector(c *gin.Context) {
 	log.Info().Msg("Getting movies by director")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access movies without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-	director := c.Param("director")
+	director, ok := checkRequiredStringParam(c, "director", "Director name is required")
+	if !ok {
+		return
+	}
 
 	log.Info().
 		Uint64("userID", uid).
@@ -308,12 +288,10 @@ func (h *clientMovieHandler[T]) GetClientMoviesByDirector(c *gin.Context) {
 		Msg("Retrieving movies by director")
 
 	movies, err := h.movieService.GetClientMoviesByDirector(ctx, uid, director)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Str("director", director).
-			Msg("Failed to retrieve movies by director")
-		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+	if handleServiceError(c, err,
+		"Failed to retrieve movies by director",
+		"No movies found for this director",
+		"Failed to retrieve movies") {
 		return
 	}
 
@@ -345,25 +323,31 @@ func (h *clientMovieHandler[T]) GetClientMoviesByRating(c *gin.Context) {
 	log.Info().Msg("Getting movies by rating")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access movies without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
+	minRatingStr, ok := checkRequiredQueryParam(c, "min", "Minimum rating is required")
+	if !ok {
+		return
+	}
 
-	minRating, err := strconv.ParseFloat(c.Query("min"), 64)
+	maxRatingStr, ok := checkRequiredQueryParam(c, "max", "Maximum rating is required")
+	if !ok {
+		return
+	}
+
+	minRating, err := strconv.ParseFloat(minRatingStr, 64)
 	if err != nil {
-		log.Error().Err(err).Str("min", c.Query("min")).Msg("Invalid minimum rating format")
+		log.Error().Err(err).Str("min", minRatingStr).Msg("Invalid minimum rating format")
 		responses.RespondBadRequest(c, err, "Invalid minimum rating")
 		return
 	}
 
-	maxRating, err := strconv.ParseFloat(c.Query("max"), 64)
+	maxRating, err := strconv.ParseFloat(maxRatingStr, 64)
 	if err != nil {
-		log.Error().Err(err).Str("max", c.Query("max")).Msg("Invalid maximum rating format")
+		log.Error().Err(err).Str("max", maxRatingStr).Msg("Invalid maximum rating format")
 		responses.RespondBadRequest(c, err, "Invalid maximum rating")
 		return
 	}
@@ -375,13 +359,10 @@ func (h *clientMovieHandler[T]) GetClientMoviesByRating(c *gin.Context) {
 		Msg("Retrieving movies by rating range")
 
 	movies, err := h.movieService.GetClientMoviesByRating(ctx, uid, minRating, maxRating)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Float64("minRating", minRating).
-			Float64("maxRating", maxRating).
-			Msg("Failed to retrieve movies by rating")
-		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+	if handleServiceError(c, err,
+		"Failed to retrieve movies by rating",
+		"No movies found in this rating range",
+		"Failed to retrieve movies") {
 		return
 	}
 
@@ -413,18 +394,19 @@ func (h *clientMovieHandler[T]) GetClientMoviesLatestByAdded(c *gin.Context) {
 	log.Info().Msg("Getting latest movies by added date")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access movies without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
+	countStr, ok := checkRequiredStringParam(c, "count", "Count is required")
+	if !ok {
+		return
+	}
 
-	count, err := strconv.Atoi(c.Param("count"))
+	count, err := strconv.Atoi(countStr)
 	if err != nil {
-		log.Error().Err(err).Str("count", c.Param("count")).Msg("Invalid count format")
+		log.Error().Err(err).Str("count", countStr).Msg("Invalid count format")
 		responses.RespondBadRequest(c, err, "Invalid count")
 		return
 	}
@@ -435,12 +417,10 @@ func (h *clientMovieHandler[T]) GetClientMoviesLatestByAdded(c *gin.Context) {
 		Msg("Retrieving latest movies by added date")
 
 	movies, err := h.movieService.GetClientMoviesLatestByAdded(ctx, uid, count)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Int("count", count).
-			Msg("Failed to retrieve latest movies")
-		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+	if handleServiceError(c, err,
+		"Failed to retrieve latest movies",
+		"No recent movies found",
+		"Failed to retrieve movies") {
 		return
 	}
 
@@ -471,18 +451,19 @@ func (h *clientMovieHandler[T]) GetClientMoviesPopular(c *gin.Context) {
 	log.Info().Msg("Getting popular movies")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access movies without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
+	countStr, ok := checkRequiredStringParam(c, "count", "Count is required")
+	if !ok {
+		return
+	}
 
-	count, err := strconv.Atoi(c.Param("count"))
+	count, err := strconv.Atoi(countStr)
 	if err != nil {
-		log.Error().Err(err).Str("count", c.Param("count")).Msg("Invalid count format")
+		log.Error().Err(err).Str("count", countStr).Msg("Invalid count format")
 		responses.RespondBadRequest(c, err, "Invalid count")
 		return
 	}
@@ -493,12 +474,10 @@ func (h *clientMovieHandler[T]) GetClientMoviesPopular(c *gin.Context) {
 		Msg("Retrieving popular movies")
 
 	movies, err := h.movieService.GetClientPopularMovies(ctx, uid, count)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Int("count", count).
-			Msg("Failed to retrieve popular movies")
-		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+	if handleServiceError(c, err,
+		"Failed to retrieve popular movies",
+		"No popular movies found",
+		"Failed to retrieve movies") {
 		return
 	}
 
@@ -530,18 +509,19 @@ func (h *clientMovieHandler[T]) GetClientMoviesTopRated(c *gin.Context) {
 	log.Info().Msg("Getting top rated movies")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access movies without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
+	countStr, ok := checkRequiredStringParam(c, "count", "Count is required")
+	if !ok {
+		return
+	}
 
-	count, err := strconv.Atoi(c.Param("count"))
+	count, err := strconv.Atoi(countStr)
 	if err != nil {
-		log.Error().Err(err).Str("count", c.Param("count")).Msg("Invalid count format")
+		log.Error().Err(err).Str("count", countStr).Msg("Invalid count format")
 		responses.RespondBadRequest(c, err, "Invalid count")
 		return
 	}
@@ -552,12 +532,10 @@ func (h *clientMovieHandler[T]) GetClientMoviesTopRated(c *gin.Context) {
 		Msg("Retrieving top rated movies")
 
 	movies, err := h.movieService.GetClientTopRatedMovies(ctx, uid, count)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Int("count", count).
-			Msg("Failed to retrieve top rated movies")
-		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+	if handleServiceError(c, err,
+		"Failed to retrieve top rated movies",
+		"No top rated movies found",
+		"Failed to retrieve movies") {
 		return
 	}
 
@@ -589,19 +567,13 @@ func (h *clientMovieHandler[T]) SearchClientMovies(c *gin.Context) {
 	log.Info().Msg("Searching movies")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to search movies without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-	query := c.Query("q")
-
-	if query == "" {
-		log.Warn().Uint64("userID", uid).Msg("Empty search query provided")
-		responses.RespondBadRequest(c, nil, "Search query is required")
+	query, ok := checkRequiredQueryParam(c, "q", "Search query is required")
+	if !ok {
 		return
 	}
 
@@ -615,12 +587,10 @@ func (h *clientMovieHandler[T]) SearchClientMovies(c *gin.Context) {
 	}
 
 	movies, err := h.movieService.SearchClientMovies(ctx, uid, &options)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Str("query", query).
-			Msg("Failed to search movies")
-		responses.RespondInternalError(c, err, "Failed to search movies")
+	if handleServiceError(c, err,
+		"Failed to search movies",
+		"No movies found matching the search query",
+		"Failed to search movies") {
 		return
 	}
 

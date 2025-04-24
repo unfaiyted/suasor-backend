@@ -68,7 +68,7 @@ func NewAuthHandler(service services.AuthService) *AuthHandler {
 //	    "error": "email already exists"
 //	  },
 //	  "timestamp": "2025-03-16T10:30:45Z",
-//	  "requestId": "c7f3305d-8c9a-4b9b-b701-3b9a1e36c1f0"
+//	  "requestID": "c7f3305d-8c9a-4b9b-b701-3b9a1e36c1f0"
 //	}
 //
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
@@ -78,9 +78,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	var req requests.RegisterRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Error().Err(err).Msg("Invalid request format for user registration")
-		responses.RespondValidationError(c, err)
+	if !checkJSONBinding(c, &req) {
 		return
 	}
 
@@ -102,7 +100,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	log.Info().Uint64("userId", result.User.ID).Str("email", result.User.Email).Msg("Successfully registered user")
+	log.Info().Uint64("userID", result.User.ID).Str("email", result.User.Email).Msg("Successfully registered user")
 
 	responses.RespondCreated(c, result, "User registered successfully")
 }
@@ -149,7 +147,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 //	  "message": "Invalid email or password",
 //	  "details": {},
 //	  "timestamp": "2025-03-16T10:30:45Z",
-//	  "requestId": "c7f3305d-8c9a-4b9b-b701-3b9a1e36c1f0"
+//	  "requestID": "c7f3305d-8c9a-4b9b-b701-3b9a1e36c1f0"
 //	}
 //
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
@@ -159,9 +157,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	var req requests.LoginRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Error().Err(err).Msg("Invalid request format for user login")
-		responses.RespondValidationError(c, err)
+	if !checkJSONBinding(c, &req) {
 		return
 	}
 
@@ -169,9 +165,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	result, err := h.service.Login(ctx, req)
 	if err != nil {
-		if strings.Contains(err.Error(), "invalid") || strings.Contains(err.Error(), "inactive") {
-			log.Warn().Err(err).Str("email", req.Email).Msg("Login failed - authentication error")
-			responses.RespondUnauthorized(c, err, err.Error())
+		if checkErrorType(c, err, "Login error") {
 			return
 		}
 
@@ -180,7 +174,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	log.Info().Uint64("userId", result.User.ID).Str("email", result.User.Email).Msg("User successfully logged in")
+	log.Info().Uint64("userID", result.User.ID).Str("email", result.User.Email).Msg("User successfully logged in")
 
 	responses.RespondOK(c, result, "Login successful")
 }
@@ -226,7 +220,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 //	  "message": "Invalid refresh token",
 //	  "details": {},
 //	  "timestamp": "2025-03-16T10:30:45Z",
-//	  "requestId": "c7f3305d-8c9a-4b9b-b701-3b9a1e36c1f0"
+//	  "requestID": "c7f3305d-8c9a-4b9b-b701-3b9a1e36c1f0"
 //	}
 //
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
@@ -236,9 +230,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	var req requests.RefreshTokenRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Error().Err(err).Msg("Invalid request format for token refresh")
-		responses.RespondValidationError(c, err)
+	if !checkJSONBinding(c, &req) {
 		return
 	}
 
@@ -246,9 +238,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 
 	result, err := h.service.RefreshToken(ctx, req.RefreshToken)
 	if err != nil {
-		if strings.Contains(err.Error(), "invalid") || strings.Contains(err.Error(), "expired") {
-			log.Warn().Err(err).Msg("Token refresh failed - invalid token")
-			responses.RespondUnauthorized(c, err, err.Error())
+		if checkErrorType(c, err, "Token refresh error") {
 			return
 		}
 
@@ -257,7 +247,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	log.Info().Uint64("userId", result.User.ID).Msg("Token refreshed successfully")
+	log.Info().Uint64("userID", result.User.ID).Msg("Token refreshed successfully")
 
 	responses.RespondOK(c, result, "Token refreshed successfully")
 }
@@ -292,9 +282,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	var req requests.LogoutRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Error().Err(err).Msg("Invalid request format for logout")
-		responses.RespondValidationError(c, err)
+	if !checkJSONBinding(c, &req) {
 		return
 	}
 
@@ -302,9 +290,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 
 	err := h.service.Logout(ctx, req.RefreshToken)
 	if err != nil {
-		if strings.Contains(err.Error(), "invalid") {
-			log.Warn().Err(err).Msg("Logout failed - invalid token")
-			responses.RespondUnauthorized(c, err, err.Error())
+		if checkErrorType(c, err, "Logout error") {
 			return
 		}
 
@@ -349,7 +335,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 //	  "message": "Invalid or expired session token",
 //	  "details": {},
 //	  "timestamp": "2025-03-16T10:30:45Z",
-//	  "requestId": "c7f3305d-8c9a-4b9b-b701-3b9a1e36c1f0"
+//	  "requestID": "c7f3305d-8c9a-4b9b-b701-3b9a1e36c1f0"
 //	}
 //
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
@@ -358,27 +344,8 @@ func (h *AuthHandler) ValidateSession(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	// Extract the token from the Authorization header
-	authHeader := c.GetHeader("Authorization")
-	if authHeader == "" {
-		log.Warn().Msg("Missing Authorization header")
-		responses.RespondUnauthorized(c, nil, "Missing Authorization header")
-		return
-	}
-
-	// Check if the Authorization header has the correct format
-	bearerPrefix := "Bearer "
-	if !strings.HasPrefix(authHeader, bearerPrefix) {
-		log.Warn().Msg("Invalid Authorization header format")
-		responses.RespondUnauthorized(c, nil, "Invalid Authorization header format")
-		return
-	}
-
-	// Extract the token
-	token := strings.TrimPrefix(authHeader, bearerPrefix)
-	if token == "" {
-		log.Warn().Msg("Empty token provided")
-		responses.RespondUnauthorized(c, nil, "Empty token provided")
+	token, ok := extractToken(c)
+	if !ok {
 		return
 	}
 
@@ -397,7 +364,7 @@ func (h *AuthHandler) ValidateSession(c *gin.Context) {
 		log.Warn().Err(err).Msg("Getting Authorize User failed")
 		responses.RespondInternalError(c, err, "Unable to get authorized user information")
 	}
-	log.Info().Uint64("userId", user.ID).Str("email", user.Email).Msg("Session validated successfully")
+	log.Info().Uint64("userID", user.ID).Str("email", user.Email).Msg("Session validated successfully")
 
 	// Return the user profile
 	responses.RespondOK(c, user, "Session is valid")

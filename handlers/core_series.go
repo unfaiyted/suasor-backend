@@ -9,6 +9,7 @@ import (
 	mediatypes "suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/responses"
+	"suasor/utils"
 	"suasor/utils/logger"
 )
 
@@ -78,11 +79,7 @@ func (h *coreSeriesHandler) GetSeasonsBySeriesID(c *gin.Context) {
 
 	// Get the series first to ensure it exists
 	series, err := h.seriesService.GetByID(ctx, seriesID)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("seriesID", seriesID).
-			Msg("Failed to retrieve series")
-		responses.RespondNotFound(c, err, "Series not found")
+	if handleServiceError(c, err, "Failed to retrieve series", "Series not found", "Series not found") {
 		return
 	}
 
@@ -120,10 +117,8 @@ func (h *coreSeriesHandler) GetEpisodesBySeriesIDAndSeasonNumber(c *gin.Context)
 	seriesID, _ := checkItemID(c, "seriesID")
 	userID, _ := checkUserAccess(c)
 
-	seasonNumber, err := strconv.Atoi(c.Param("seasonNumber"))
-	if err != nil {
-		log.Warn().Err(err).Str("seasonNumber", c.Param("seasonNumber")).Msg("Invalid season number")
-		responses.RespondBadRequest(c, err, "Invalid season number")
+	seasonNumber, ok := checkSeasonNumber(c, "seasonNumber")
+	if !ok {
 		return
 	}
 
@@ -135,11 +130,7 @@ func (h *coreSeriesHandler) GetEpisodesBySeriesIDAndSeasonNumber(c *gin.Context)
 
 	// Get the series first to ensure it exists
 	series, err := h.seriesService.GetByID(ctx, seriesID)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("seriesID", seriesID).
-			Msg("Failed to retrieve series")
-		responses.RespondNotFound(c, err, "Series not found")
+	if handleServiceError(c, err, "Failed to retrieve series", "Series not found", "Series not found") {
 		return
 	}
 
@@ -234,19 +225,12 @@ func (h *coreSeriesHandler) GetAllEpisodes(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	seriesID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	seriesID, err := checkItemID(c, "id")
 	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid series ID")
-		responses.RespondBadRequest(c, err, "Invalid series ID")
 		return
 	}
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
-		return
-	}
+	userID, _ := checkUserAccess(c)
 
 	log.Debug().
 		Uint64("seriesID", seriesID).
@@ -255,11 +239,7 @@ func (h *coreSeriesHandler) GetAllEpisodes(c *gin.Context) {
 
 	// Get the series first to ensure it exists
 	series, err := h.seriesService.GetByID(ctx, seriesID)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("seriesID", seriesID).
-			Msg("Failed to retrieve series")
-		responses.RespondNotFound(c, err, "Series not found")
+	if handleServiceError(c, err, "Failed to retrieve series", "Series not found", "Series not found") {
 		return
 	}
 
@@ -295,17 +275,8 @@ func (h *coreSeriesHandler) GetNextUpEpisodes(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
-		return
-	}
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
+	userID, _ := checkUserAccess(c)
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Debug().
 		Uint64("userID", userID).
@@ -339,22 +310,9 @@ func (h *coreSeriesHandler) GetRecentlyAiredEpisodes(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
-		return
-	}
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
-
-	days, err := strconv.Atoi(c.DefaultQuery("days", "7"))
-	if err != nil {
-		days = 7
-	}
+	userID, _ := checkUserAccess(c)
+	limit := utils.GetLimit(c, 10, 100, true)
+	days := checkDaysParam(c, 7)
 
 	log.Debug().
 		Uint64("userID", userID).
@@ -387,21 +345,13 @@ func (h *coreSeriesHandler) GetSeriesByNetwork(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	network := c.Param("network")
-	if network == "" {
-		log.Warn().Msg("Network name is required")
-		responses.RespondBadRequest(c, nil, "Network name is required")
+	network, ok := checkRequiredStringParam(c, "network", "Network name is required")
+	if !ok {
 		return
 	}
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
-	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
-	if err != nil {
-		offset = 0
-	}
+	limit := utils.GetLimit(c, 10, 100, true)
+	offset := utils.GetOffset(c, 0)
 
 	log.Debug().
 		Str("network", network).
@@ -410,10 +360,7 @@ func (h *coreSeriesHandler) GetSeriesByNetwork(c *gin.Context) {
 
 	// Get all series for the user
 	allSeries, err := h.seriesService.GetAll(ctx, limit, offset)
-	if err != nil {
-		log.Error().Err(err).
-			Msg("Failed to retrieve series")
-		responses.RespondInternalError(c, err, "Failed to retrieve series")
+	if handleServiceError(c, err, "Failed to retrieve series", "", "Failed to retrieve series") {
 		return
 	}
 
@@ -463,26 +410,17 @@ func (h *coreSeriesHandler) GetSeasonWithEpisodes(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	seriesID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	seriesID, err := checkItemID(c, "id")
 	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid series ID")
-		responses.RespondBadRequest(c, err, "Invalid series ID")
 		return
 	}
 
-	seasonNumber, err := strconv.Atoi(c.Param("seasonNumber"))
-	if err != nil {
-		log.Warn().Err(err).Str("seasonNumber", c.Param("seasonNumber")).Msg("Invalid season number")
-		responses.RespondBadRequest(c, err, "Invalid season number")
+	seasonNumber, ok := checkSeasonNumber(c, "seasonNumber")
+	if !ok {
 		return
 	}
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
-		return
-	}
+	userID, _ := checkUserAccess(c)
 
 	log.Debug().
 		Uint64("seriesID", seriesID).
@@ -492,11 +430,7 @@ func (h *coreSeriesHandler) GetSeasonWithEpisodes(c *gin.Context) {
 
 	// Get the series first to ensure it exists
 	series, err := h.seriesService.GetByID(ctx, seriesID)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("seriesID", seriesID).
-			Msg("Failed to retrieve series")
-		responses.RespondNotFound(c, err, "Series not found")
+	if handleServiceError(c, err, "Failed to retrieve series", "Series not found", "Series not found") {
 		return
 	}
 
@@ -550,21 +484,13 @@ func (h *coreSeriesHandler) GetByCreator(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	creatorID, err := strconv.ParseUint(c.Param("creatorId"), 10, 64)
+	creatorID, err := checkItemID(c, "creatorId")
 	if err != nil {
-		log.Warn().Err(err).Str("creatorId", c.Param("creatorId")).Msg("Invalid creator ID")
-		responses.RespondBadRequest(c, err, "Invalid creator ID")
 		return
 	}
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
-	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
-	if err != nil {
-		offset = 0
-	}
+	limit := utils.GetLimit(c, 10, 100, true)
+	offset := utils.GetOffset(c, 0)
 
 	log.Debug().
 		Uint64("creatorID", creatorID).
@@ -573,10 +499,7 @@ func (h *coreSeriesHandler) GetByCreator(c *gin.Context) {
 
 	// Get all series for the user
 	allSeries, err := h.seriesService.GetAll(ctx, limit, offset)
-	if err != nil {
-		log.Error().Err(err).
-			Msg("Failed to retrieve series")
-		responses.RespondInternalError(c, err, "Failed to retrieve series")
+	if handleServiceError(c, err, "Failed to retrieve series", "", "Failed to retrieve series") {
 		return
 	}
 
@@ -626,26 +549,17 @@ func (h *coreSeriesHandler) GetEpisodesBySeasonID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	seriesID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	seriesID, err := checkItemID(c, "id")
 	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid series ID")
-		responses.RespondBadRequest(c, err, "Invalid series ID")
 		return
 	}
 
-	seasonNumber, err := strconv.Atoi(c.Param("seasonNumber"))
-	if err != nil {
-		log.Warn().Err(err).Str("seasonNumber", c.Param("seasonNumber")).Msg("Invalid season number")
-		responses.RespondBadRequest(c, err, "Invalid season number")
+	seasonNumber, ok := checkSeasonNumber(c, "seasonNumber")
+	if !ok {
 		return
 	}
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
-		return
-	}
+	userID, _ := checkUserAccess(c)
 
 	log.Debug().
 		Uint64("seriesID", seriesID).
@@ -655,11 +569,7 @@ func (h *coreSeriesHandler) GetEpisodesBySeasonID(c *gin.Context) {
 
 	// Get the series first to ensure it exists
 	series, err := h.seriesService.GetByID(ctx, seriesID)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("seriesID", seriesID).
-			Msg("Failed to retrieve series")
-		responses.RespondNotFound(c, err, "Series not found")
+	if handleServiceError(c, err, "Failed to retrieve series", "Series not found", "Series not found") {
 		return
 	}
 

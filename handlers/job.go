@@ -7,6 +7,7 @@ import (
 	"suasor/types/models"
 	"suasor/types/requests"
 	"suasor/types/responses"
+	"suasor/utils"
 
 	"github.com/gin-gonic/gin"
 	"suasor/utils/logger"
@@ -58,7 +59,7 @@ func (h *JobHandler) GetJobScheduleByName(c *gin.Context) {
 	name := c.Param("name")
 	schedule, err := h.jobService.GetJobScheduleByName(c.Request.Context(), name)
 	if err != nil {
-		responses.RespondInternalError(c, err, "Failed to get job schedule")
+		handleServiceError(c, err, "Getting job schedule", "", "Failed to get job schedule")
 		return
 	}
 
@@ -83,8 +84,7 @@ func (h *JobHandler) GetJobScheduleByName(c *gin.Context) {
 // @Router /api/v1/jobs/schedules [post]
 func (h *JobHandler) CreateJobSchedule(c *gin.Context) {
 	var schedule models.JobSchedule
-	if err := c.ShouldBindJSON(&schedule); err != nil {
-		responses.RespondValidationError(c, err, "Invalid job schedule")
+	if !checkJSONBinding(c, &schedule) {
 		return
 	}
 
@@ -123,8 +123,7 @@ func (h *JobHandler) CreateJobSchedule(c *gin.Context) {
 // @Router /api/v1/jobs/schedules [put]
 func (h *JobHandler) UpdateJobSchedule(c *gin.Context) {
 	var req requests.UpdateJobScheduleRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		responses.RespondValidationError(c, err, "Invalid request")
+	if !checkJSONBinding(c, &req) {
 		return
 	}
 
@@ -186,8 +185,7 @@ func (h *JobHandler) RunJobManually(c *gin.Context) {
 
 	// Run the job
 	if err := h.jobService.RunJobManually(c.Request.Context(), name); err != nil {
-		log.Error().Err(err).Msg("Failed to run job")
-		responses.RespondInternalError(c, err, "Failed to run job")
+		handleServiceError(c, err, "Running job manually", "", "Failed to run job")
 		return
 	}
 
@@ -206,11 +204,7 @@ func (h *JobHandler) RunJobManually(c *gin.Context) {
 // @Failure 500 {object} responses.ErrorResponse[error]
 // @Router /api/v1/jobs/runs [get]
 func (h *JobHandler) GetRecentJobRuns(c *gin.Context) {
-	limitStr := c.DefaultQuery("limit", "50")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil || limit <= 0 {
-		limit = 50
-	}
+	limit := utils.GetLimit(c, 50, 100, true)
 
 	runs, err := h.jobService.GetRecentJobRuns(c.Request.Context(), limit)
 	if err != nil {

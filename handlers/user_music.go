@@ -2,14 +2,13 @@
 package handlers
 
 import (
-	"strconv"
-
 	"github.com/gin-gonic/gin"
 
 	mediatypes "suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/responses"
+	"suasor/utils"
 	"suasor/utils/logger"
 )
 
@@ -50,19 +49,11 @@ func (h *UserMusicHandler) GetFavoriteTracks(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access favorites without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
-
-	uid := userID.(uint64)
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Debug().
 		Uint64("userID", uid).
@@ -80,10 +71,7 @@ func (h *UserMusicHandler) GetFavoriteTracks(c *gin.Context) {
 
 	tracks, err := h.trackService.SearchUserContent(ctx, options)
 	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Msg("Failed to retrieve favorite tracks")
-		responses.RespondInternalError(c, err, "Failed to retrieve favorite tracks")
+		handleServiceError(c, err, "Retrieving favorite tracks", "", "Failed to retrieve favorite tracks")
 		return
 	}
 
@@ -111,19 +99,8 @@ func (h *UserMusicHandler) GetFavoriteAlbums(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access favorites without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
-
-	uid := userID.(uint64)
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
+	uid, _ := checkUserAccess(c)
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Debug().
 		Uint64("userID", uid).
@@ -172,19 +149,8 @@ func (h *UserMusicHandler) GetFavoriteArtists(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access favorites without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
-
-	uid := userID.(uint64)
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
+	uid, _ := checkUserAccess(c)
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Debug().
 		Uint64("userID", uid).
@@ -233,19 +199,8 @@ func (h *UserMusicHandler) GetRecentlyPlayedTracks(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access recently played without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
-
-	uid := userID.(uint64)
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
+	uid, _ := checkUserAccess(c)
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Debug().
 		Uint64("userID", uid).
@@ -286,34 +241,21 @@ func (h *UserMusicHandler) GetRecentlyPlayedTracks(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "Track ID"
+// @Param trackID path int true "Track ID"
 // @Param data body requests.UserMediaItemDataRequest true "Updated user data"
 // @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Track]] "Track updated successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 404 {object} responses.ErrorResponse[any] "Track not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/user/tracks/{id} [patch]
+// @Router /api/v1/media/music/user/tracks/{trackID} [patch]
 func (h *UserMusicHandler) UpdateTrackUserData(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to update track data without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
-
-	uid := userID.(uint64)
-
-	trackID, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid track ID")
-		responses.RespondBadRequest(c, err, "Invalid track ID")
-		return
-	}
+	uid, _ := checkUserAccess(c)
+	trackID, _ := checkItemID(c, "trackID")
 
 	// Parse request body
 	var userData models.UserMediaItemData[*mediatypes.Track]

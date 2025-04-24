@@ -2,14 +2,13 @@
 package handlers
 
 import (
-	"strconv"
-
 	"github.com/gin-gonic/gin"
 
 	mediatypes "suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/responses"
+	"suasor/utils"
 	"suasor/utils/logger"
 )
 
@@ -44,19 +43,12 @@ func (h *UserMovieHandler) GetFavoriteMovies(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access favorites without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if err != nil {
-		limit = 20
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
 
 	log.Debug().
 		Uint64("userID", uid).
@@ -74,10 +66,10 @@ func (h *UserMovieHandler) GetFavoriteMovies(c *gin.Context) {
 
 	movies, err := h.userMovieService.SearchUserContent(ctx, options)
 	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Msg("Failed to retrieve favorite movies")
-		responses.RespondInternalError(c, err, "Failed to retrieve favorite movies")
+		handleServiceError(c, err, 
+			"Failed to retrieve favorite movies", 
+			"No favorite movies found", 
+			"Failed to retrieve favorite movies")
 		return
 	}
 
@@ -105,19 +97,12 @@ func (h *UserMovieHandler) GetWatchedMovies(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access watched movies without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if err != nil {
-		limit = 20
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
 
 	log.Debug().
 		Uint64("userID", uid).
@@ -137,10 +122,10 @@ func (h *UserMovieHandler) GetWatchedMovies(c *gin.Context) {
 
 	movies, err := h.userMovieService.SearchUserContent(ctx, options)
 	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Msg("Failed to retrieve watched movies")
-		responses.RespondInternalError(c, err, "Failed to retrieve watched movies")
+		handleServiceError(c, err, 
+			"Failed to retrieve watched movies", 
+			"No watched movies found", 
+			"Failed to retrieve watched movies")
 		return
 	}
 
@@ -168,19 +153,12 @@ func (h *UserMovieHandler) GetWatchlistMovies(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access watchlist without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if err != nil {
-		limit = 20
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
 
 	log.Debug().
 		Uint64("userID", uid).
@@ -198,10 +176,10 @@ func (h *UserMovieHandler) GetWatchlistMovies(c *gin.Context) {
 
 	movies, err := h.userMovieService.SearchUserContent(ctx, options)
 	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Msg("Failed to retrieve watchlist movies")
-		responses.RespondInternalError(c, err, "Failed to retrieve watchlist movies")
+		handleServiceError(c, err, 
+			"Failed to retrieve watchlist movies", 
+			"No watchlist movies found", 
+			"Failed to retrieve watchlist movies")
 		return
 	}
 
@@ -229,19 +207,12 @@ func (h *UserMovieHandler) GetRecommendedMovies(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access recommendations without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if err != nil {
-		limit = 20
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
 
 	log.Debug().
 		Uint64("userID", uid).
@@ -261,10 +232,10 @@ func (h *UserMovieHandler) GetRecommendedMovies(c *gin.Context) {
 
 	movies, err := h.userMovieService.Search(ctx, options)
 	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Msg("Failed to retrieve recommended movies")
-		responses.RespondInternalError(c, err, "Failed to retrieve recommended movies")
+		handleServiceError(c, err, 
+			"Failed to retrieve recommended movies", 
+			"No recommended movies found", 
+			"Failed to retrieve recommended movies")
 		return
 	}
 

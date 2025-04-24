@@ -85,9 +85,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	var req requests.RegisterRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Error().Err(err).Msg("Invalid request format for user registration")
-		responses.RespondValidationError(c, err)
+	if !checkJSONBinding(c, &req) {
 		return
 	}
 
@@ -219,9 +217,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	userID, _ := checkUserAccess(c)
 
 	var req requests.ProfileRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Error().Err(err).Msg("Invalid request format for profile update")
-		responses.RespondValidationError(c, err)
+	if !checkJSONBinding(c, &req) {
 		return
 	}
 
@@ -309,9 +305,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 	userID, _ := checkUserAccess(c)
 
 	var req requests.ChangePasswordRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Error().Err(err).Msg("Invalid request format for password change")
-		responses.RespondValidationError(c, err)
+	if !checkJSONBinding(c, &req) {
 		return
 	}
 
@@ -369,11 +363,9 @@ func (h *UserHandler) GetByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	// Verify admin role (should be done by middleware, but double-checking)
-	role, exists := c.Get("userRole")
-	if !exists || role.(string) != "admin" {
-		log.Warn().Msg("Non-admin attempted to access user by ID")
-		responses.RespondForbidden(c, nil, "Admin access required")
+	// Verify admin role
+	_, ok := checkAdminAccess(c)
+	if !ok {
 		return
 	}
 
@@ -434,11 +426,9 @@ func (h *UserHandler) ChangeRole(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	// Verify admin role (should be done by middleware, but double-checking)
-	role, exists := c.Get("userRole")
-	if !exists || role.(string) != "admin" {
-		log.Warn().Msg("Non-admin attempted to change user role")
-		responses.RespondForbidden(c, nil, "Admin access required")
+	// Verify admin role
+	_, ok := checkAdminAccess(c)
+	if !ok {
 		return
 	}
 
@@ -446,9 +436,7 @@ func (h *UserHandler) ChangeRole(c *gin.Context) {
 	userID, _ := checkUserAccess(c)
 
 	var req requests.ChangeRoleRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Error().Err(err).Msg("Invalid request format for role change")
-		responses.RespondValidationError(c, err)
+	if !checkJSONBinding(c, &req) {
 		return
 	}
 
@@ -514,11 +502,9 @@ func (h *UserHandler) ActivateUser(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	// Verify admin role (should be done by middleware, but double-checking)
-	role, exists := c.Get("userRole")
-	if !exists || role.(string) != "admin" {
-		log.Warn().Msg("Non-admin attempted to activate user account")
-		responses.RespondForbidden(c, nil, "Admin access required")
+	// Verify admin role
+	_, ok := checkAdminAccess(c)
+	if !ok {
 		return
 	}
 
@@ -582,11 +568,9 @@ func (h *UserHandler) DeactivateUser(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	// Verify admin role (should be done by middleware, but double-checking)
-	role, exists := c.Get("userRole")
-	if !exists || role.(string) != "admin" {
-		log.Warn().Msg("Non-admin attempted to deactivate user account")
-		responses.RespondForbidden(c, nil, "Admin access required")
+	// Verify admin role
+	_, ok := checkAdminAccess(c)
+	if !ok {
 		return
 	}
 
@@ -684,14 +668,10 @@ func (h *UserHandler) UploadAvatar(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get user userID from context (set by auth middleware)
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("User userID not found in context")
-		responses.RespondUnauthorized(c, nil, "Not authenticated")
+	id, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
-
-	id := userID.(uint64)
 
 	// Log request details for debugging
 	log.Debug().

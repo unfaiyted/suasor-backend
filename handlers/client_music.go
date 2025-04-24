@@ -8,6 +8,7 @@ import (
 	"suasor/services"
 	_ "suasor/types/models"
 	"suasor/types/responses"
+	"suasor/utils"
 	"suasor/utils/logger"
 
 	"github.com/gin-gonic/gin"
@@ -97,20 +98,14 @@ func (h *clientMusicHandler[T]) GetClientTrackByID(c *gin.Context) {
 	log.Info().Msg("Getting track by ID")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access track without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
@@ -123,13 +118,7 @@ func (h *clientMusicHandler[T]) GetClientTrackByID(c *gin.Context) {
 		Msg("Retrieving track by ID")
 
 	track, err := h.musicService.GetClientTrackByID(ctx, clientID, trackID)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Uint64("clientID", clientID).
-			Str("trackID", trackID).
-			Msg("Failed to retrieve track")
-		responses.RespondInternalError(c, err, "Failed to retrieve track")
+	if handleServiceError(c, err, "Failed to retrieve track", "", "Failed to retrieve track") {
 		return
 	}
 
@@ -161,20 +150,14 @@ func (h *clientMusicHandler[T]) GetClientAlbumByID(c *gin.Context) {
 	log.Info().Msg("Getting album by ID")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access album without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
@@ -187,13 +170,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumByID(c *gin.Context) {
 		Msg("Retrieving album by ID")
 
 	album, err := h.musicService.GetClientAlbumByID(ctx, clientID, albumID)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Uint64("clientID", clientID).
-			Str("albumID", albumID).
-			Msg("Failed to retrieve album")
-		responses.RespondInternalError(c, err, "Failed to retrieve album")
+	if handleServiceError(c, err, "Failed to retrieve album", "", "Failed to retrieve album") {
 		return
 	}
 
@@ -225,20 +202,14 @@ func (h *clientMusicHandler[T]) GetClientTracksByAlbum(c *gin.Context) {
 	log.Info().Msg("Getting tracks by album")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access tracks without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
@@ -251,13 +222,7 @@ func (h *clientMusicHandler[T]) GetClientTracksByAlbum(c *gin.Context) {
 		Msg("Retrieving tracks by album")
 
 	tracks, err := h.musicService.GetClientTracksByAlbum(ctx, clientID, albumID)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Uint64("clientID", clientID).
-			Str("albumID", albumID).
-			Msg("Failed to retrieve tracks by album")
-		responses.RespondInternalError(c, err, "Failed to retrieve tracks")
+	if handleServiceError(c, err, "Failed to retrieve tracks by album", "", "Failed to retrieve tracks") {
 		return
 	}
 
@@ -290,20 +255,14 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByArtist(c *gin.Context) {
 	log.Info().Msg("Getting albums by artist")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access albums without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
@@ -316,13 +275,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByArtist(c *gin.Context) {
 		Msg("Retrieving albums by artist")
 
 	albums, err := h.musicService.GetClientAlbumsByArtist(ctx, clientID, artistID)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Uint64("clientID", clientID).
-			Str("artistID", artistID).
-			Msg("Failed to retrieve albums by artist")
-		responses.RespondInternalError(c, err, "Failed to retrieve albums")
+	if handleServiceError(c, err, "Failed to retrieve albums by artist", "", "Failed to retrieve albums") {
 		return
 	}
 
@@ -355,14 +308,11 @@ func (h *clientMusicHandler[T]) GetClientArtistsByGenre(c *gin.Context) {
 	log.Info().Msg("Getting artists by genre")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access artists without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
 	genre := c.Param("genre")
 
 	log.Info().
@@ -371,12 +321,7 @@ func (h *clientMusicHandler[T]) GetClientArtistsByGenre(c *gin.Context) {
 		Msg("Retrieving artists by genre")
 
 	artists, err := h.musicService.GetClientArtistsByGenre(ctx, uid, genre)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Str("genre", genre).
-			Msg("Failed to retrieve artists by genre")
-		responses.RespondInternalError(c, err, "Failed to retrieve artists")
+	if handleServiceError(c, err, "Failed to retrieve artists by genre", "", "Failed to retrieve artists") {
 		return
 	}
 
@@ -406,35 +351,26 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByGenre(c *gin.Context) {
 	log.Info().Msg("Getting albums by genre")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access albums without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
 	genre := c.Param("genre")
 
 	log.Info().
 		Uint64("userID", uid).
 		Str("genre", genre).
 		Msg("Retrieving albums by genre")
-	clientIDStr := c.Param("clientID")
-	clientID, err := strconv.ParseUint(clientIDStr, 10, 64)
+		
+	// Parse client ID from URL
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", clientIDStr).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
 	albums, err := h.musicService.GetClientAlbumsByGenre(ctx, clientID, genre)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Str("genre", genre).
-			Msg("Failed to retrieve albums by genre")
-		responses.RespondInternalError(c, err, "Failed to retrieve albums")
+	if handleServiceError(c, err, "Failed to retrieve albums by genre", "", "Failed to retrieve albums") {
 		return
 	}
 
@@ -464,35 +400,26 @@ func (h *clientMusicHandler[T]) GetClientTracksByGenre(c *gin.Context) {
 	log.Info().Msg("Getting tracks by genre")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access tracks without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
 	genre := c.Param("genre")
 
 	log.Info().
 		Uint64("userID", uid).
 		Str("genre", genre).
 		Msg("Retrieving tracks by genre")
-	clientIDStr := c.Param("clientID")
-	clientID, err := strconv.ParseUint(clientIDStr, 10, 64)
+		
+	// Parse client ID from URL
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", clientIDStr).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
 	tracks, err := h.musicService.GetClientTracksByGenre(ctx, clientID, genre)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Str("genre", genre).
-			Msg("Failed to retrieve tracks by genre")
-		responses.RespondInternalError(c, err, "Failed to retrieve tracks")
+	if handleServiceError(c, err, "Failed to retrieve tracks by genre", "", "Failed to retrieve tracks") {
 		return
 	}
 
@@ -523,14 +450,10 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByYear(c *gin.Context) {
 	log.Info().Msg("Getting albums by year")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access albums without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
-
-	uid := userID.(uint64)
 
 	year, err := strconv.Atoi(c.Param("year"))
 	if err != nil {
@@ -543,21 +466,15 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByYear(c *gin.Context) {
 		Uint64("userID", uid).
 		Int("year", year).
 		Msg("Retrieving albums by year")
-	clientIDStr := c.Param("clientID")
-	clientID, err := strconv.ParseUint(clientIDStr, 10, 64)
+		
+	// Parse client ID from URL
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", clientIDStr).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
 	albums, err := h.musicService.GetClientAlbumsByYear(ctx, clientID, year)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Int("year", year).
-			Msg("Failed to retrieve albums by year")
-		responses.RespondInternalError(c, err, "Failed to retrieve albums")
+	if handleServiceError(c, err, "Failed to retrieve albums by year", "", "Failed to retrieve albums") {
 		return
 	}
 
@@ -588,14 +505,10 @@ func (h *clientMusicHandler[T]) GetClientLatestAlbumsByAdded(c *gin.Context) {
 	log.Info().Msg("Getting latest albums by added date")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access albums without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
-
-	uid := userID.(uint64)
 
 	count, err := strconv.Atoi(c.Param("count"))
 	if err != nil {
@@ -608,21 +521,15 @@ func (h *clientMusicHandler[T]) GetClientLatestAlbumsByAdded(c *gin.Context) {
 		Uint64("userID", uid).
 		Int("count", count).
 		Msg("Retrieving latest albums by added date")
-	clientIDStr := c.Param("clientID")
-	clientID, err := strconv.ParseUint(clientIDStr, 10, 64)
+		
+	// Parse client ID from URL
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", clientIDStr).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
 	albums, err := h.musicService.GetClientRecentlyAddedAlbums(ctx, clientID, count)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Int("count", count).
-			Msg("Failed to retrieve latest albums")
-		responses.RespondInternalError(c, err, "Failed to retrieve albums")
+	if handleServiceError(c, err, "Failed to retrieve latest albums", "", "Failed to retrieve albums") {
 		return
 	}
 
@@ -654,14 +561,10 @@ func (h *clientMusicHandler[T]) GetClientPopularAlbums(c *gin.Context) {
 	log.Info().Msg("Getting popular albums")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access albums without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
-
-	uid := userID.(uint64)
 
 	count, err := strconv.Atoi(c.Param("count"))
 	if err != nil {
@@ -676,12 +579,7 @@ func (h *clientMusicHandler[T]) GetClientPopularAlbums(c *gin.Context) {
 		Msg("Retrieving popular albums")
 
 	albums, err := h.musicService.GetClientTopAlbums(ctx, uid, count)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Int("count", count).
-			Msg("Failed to retrieve popular albums")
-		responses.RespondInternalError(c, err, "Failed to retrieve albums")
+	if handleServiceError(c, err, "Failed to retrieve popular albums", "", "Failed to retrieve albums") {
 		return
 	}
 
@@ -713,14 +611,10 @@ func (h *clientMusicHandler[T]) GetClientPopularArtists(c *gin.Context) {
 	log.Info().Msg("Getting popular artists")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access artists without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
-
-	uid := userID.(uint64)
 
 	count, err := strconv.Atoi(c.Param("count"))
 	if err != nil {
@@ -735,12 +629,7 @@ func (h *clientMusicHandler[T]) GetClientPopularArtists(c *gin.Context) {
 		Msg("Retrieving popular artists")
 
 	artists, err := h.musicService.GetClientTopArtists(ctx, uid, count)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Int("count", count).
-			Msg("Failed to retrieve popular artists")
-		responses.RespondInternalError(c, err, "Failed to retrieve artists")
+	if handleServiceError(c, err, "Failed to retrieve popular artists", "", "Failed to retrieve artists") {
 		return
 	}
 
@@ -772,14 +661,11 @@ func (h *clientMusicHandler[T]) SearchClientMusic(c *gin.Context) {
 	log.Info().Msg("Searching music")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to search music without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
 	query := c.Query("q")
 
 	if query == "" {
@@ -792,24 +678,19 @@ func (h *clientMusicHandler[T]) SearchClientMusic(c *gin.Context) {
 		Uint64("userID", uid).
 		Str("query", query).
 		Msg("Searching music")
-	clientIDStr := c.Param("clientID")
-	clientID, err := strconv.ParseUint(clientIDStr, 10, 64)
+		
+	// Parse client ID from URL
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", clientIDStr).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
+	
 	options := mediatypes.QueryOptions{
 		Query: query,
 	}
 
 	results, err := h.musicService.SearchMusic(ctx, clientID, &options)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Str("query", query).
-			Msg("Failed to search music")
-		responses.RespondInternalError(c, err, "Failed to search music")
+	if handleServiceError(c, err, "Failed to search music", "", "Failed to search music") {
 		return
 	}
 
@@ -851,31 +732,19 @@ func (h *clientMusicHandler[T]) GetClientTopTracks(c *gin.Context) {
 	log.Info().Msg("Getting top tracks")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access top tracks without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
-
-	uid := userID.(uint64)
 
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
-	// Parse limit parameter (optional)
-	limitStr := c.DefaultQuery("limit", "10")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
-		responses.RespondBadRequest(c, err, "Invalid limit parameter")
-		return
-	}
+	// Get limit from query parameters
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Info().
 		Uint64("userID", uid).
@@ -884,13 +753,7 @@ func (h *clientMusicHandler[T]) GetClientTopTracks(c *gin.Context) {
 		Msg("Retrieving top tracks")
 
 	tracks, err := h.musicService.GetClientTopTracks(ctx, clientID, limit)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Uint64("clientID", clientID).
-			Int("limit", limit).
-			Msg("Failed to retrieve top tracks")
-		responses.RespondInternalError(c, err, "Failed to retrieve top tracks")
+	if handleServiceError(c, err, "Failed to retrieve top tracks", "", "Failed to retrieve top tracks") {
 		return
 	}
 
@@ -923,31 +786,19 @@ func (h *clientMusicHandler[T]) GetClientRecentlyAddedTracks(c *gin.Context) {
 	log.Info().Msg("Getting recently added tracks")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access recently added tracks without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
-
-	uid := userID.(uint64)
 
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
-	// Parse limit parameter (optional)
-	limitStr := c.DefaultQuery("limit", "10")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
-		responses.RespondBadRequest(c, err, "Invalid limit parameter")
-		return
-	}
+	// Get limit from query parameters
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Info().
 		Uint64("userID", uid).
@@ -956,13 +807,7 @@ func (h *clientMusicHandler[T]) GetClientRecentlyAddedTracks(c *gin.Context) {
 		Msg("Retrieving recently added tracks")
 
 	tracks, err := h.musicService.GetClientRecentlyAddedTracks(ctx, clientID, limit)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Uint64("clientID", clientID).
-			Int("limit", limit).
-			Msg("Failed to retrieve recently added tracks")
-		responses.RespondInternalError(c, err, "Failed to retrieve recently added tracks")
+	if handleServiceError(c, err, "Failed to retrieve recently added tracks", "", "Failed to retrieve recently added tracks") {
 		return
 	}
 
@@ -995,31 +840,19 @@ func (h *clientMusicHandler[T]) GetClientTopAlbums(c *gin.Context) {
 	log.Info().Msg("Getting top albums")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access top albums without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
-
-	uid := userID.(uint64)
 
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
-	// Parse limit parameter (optional)
-	limitStr := c.DefaultQuery("limit", "10")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
-		responses.RespondBadRequest(c, err, "Invalid limit parameter")
-		return
-	}
+	// Get limit from query parameters
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Info().
 		Uint64("userID", uid).
@@ -1028,13 +861,7 @@ func (h *clientMusicHandler[T]) GetClientTopAlbums(c *gin.Context) {
 		Msg("Retrieving top albums")
 
 	albums, err := h.musicService.GetClientTopAlbums(ctx, clientID, limit)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Uint64("clientID", clientID).
-			Int("limit", limit).
-			Msg("Failed to retrieve top albums")
-		responses.RespondInternalError(c, err, "Failed to retrieve top albums")
+	if handleServiceError(c, err, "Failed to retrieve top albums", "", "Failed to retrieve top albums") {
 		return
 	}
 
@@ -1067,31 +894,19 @@ func (h *clientMusicHandler[T]) GetClientTopArtists(c *gin.Context) {
 	log.Info().Msg("Getting top artists")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access top artists without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
-
-	uid := userID.(uint64)
 
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
-	// Parse limit parameter (optional)
-	limitStr := c.DefaultQuery("limit", "10")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
-		responses.RespondBadRequest(c, err, "Invalid limit parameter")
-		return
-	}
+	// Get limit from query parameters
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Info().
 		Uint64("userID", uid).
@@ -1100,13 +915,7 @@ func (h *clientMusicHandler[T]) GetClientTopArtists(c *gin.Context) {
 		Msg("Retrieving top artists")
 
 	artists, err := h.musicService.GetClientTopArtists(ctx, clientID, limit)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Uint64("clientID", clientID).
-			Int("limit", limit).
-			Msg("Failed to retrieve top artists")
-		responses.RespondInternalError(c, err, "Failed to retrieve top artists")
+	if handleServiceError(c, err, "Failed to retrieve top artists", "", "Failed to retrieve top artists") {
 		return
 	}
 
@@ -1139,31 +948,19 @@ func (h *clientMusicHandler[T]) GetClientFavoriteArtists(c *gin.Context) {
 	log.Info().Msg("Getting favorite artists")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access favorite artists without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
-
-	uid := userID.(uint64)
 
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
-	// Parse limit parameter (optional)
-	limitStr := c.DefaultQuery("limit", "10")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
-		responses.RespondBadRequest(c, err, "Invalid limit parameter")
-		return
-	}
+	// Get limit from query parameters
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Info().
 		Uint64("userID", uid).
@@ -1172,13 +969,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteArtists(c *gin.Context) {
 		Msg("Retrieving favorite artists")
 
 	artists, err := h.musicService.GetClientFavoriteArtists(ctx, clientID, limit)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Uint64("clientID", clientID).
-			Int("limit", limit).
-			Msg("Failed to retrieve favorite artists")
-		responses.RespondInternalError(c, err, "Failed to retrieve favorite artists")
+	if handleServiceError(c, err, "Failed to retrieve favorite artists", "", "Failed to retrieve favorite artists") {
 		return
 	}
 
@@ -1211,33 +1002,21 @@ func (h *clientMusicHandler[T]) GetClientSimilarTracks(c *gin.Context) {
 	log.Info().Msg("Getting similar tracks")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access similar tracks without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
 	trackID := c.Param("trackID")
 
-	// Parse limit parameter (optional)
-	limitStr := c.DefaultQuery("limit", "10")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
-		responses.RespondBadRequest(c, err, "Invalid limit parameter")
-		return
-	}
+	// Get limit from query parameters
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Info().
 		Uint64("userID", uid).
@@ -1247,13 +1026,7 @@ func (h *clientMusicHandler[T]) GetClientSimilarTracks(c *gin.Context) {
 		Msg("Retrieving similar tracks")
 
 	tracks, err := h.musicService.GetClientSimilarTracks(ctx, clientID, trackID, limit)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Uint64("clientID", clientID).
-			Str("trackID", trackID).
-			Msg("Failed to retrieve similar tracks")
-		responses.RespondInternalError(c, err, "Failed to retrieve similar tracks")
+	if handleServiceError(c, err, "Failed to retrieve similar tracks", "", "Failed to retrieve similar tracks") {
 		return
 	}
 
@@ -1286,31 +1059,19 @@ func (h *clientMusicHandler[T]) GetClientRecentlyPlayedTracks(c *gin.Context) {
 	log.Info().Msg("Getting recently played tracks")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access recently played tracks without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
-
-	uid := userID.(uint64)
 
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
-	// Parse limit parameter (optional)
-	limitStr := c.DefaultQuery("limit", "10")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
-		responses.RespondBadRequest(c, err, "Invalid limit parameter")
-		return
-	}
+	// Get limit from query parameters
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Info().
 		Uint64("userID", uid).
@@ -1319,13 +1080,7 @@ func (h *clientMusicHandler[T]) GetClientRecentlyPlayedTracks(c *gin.Context) {
 		Msg("Retrieving recently played tracks")
 
 	tracks, err := h.musicService.GetClientRecentlyPlayedTracks(ctx, uid, limit)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Uint64("clientID", clientID).
-			Int("limit", limit).
-			Msg("Failed to retrieve recently played tracks")
-		responses.RespondInternalError(c, err, "Failed to retrieve recently played tracks")
+	if handleServiceError(c, err, "Failed to retrieve recently played tracks", "", "Failed to retrieve recently played tracks") {
 		return
 	}
 
@@ -1357,31 +1112,19 @@ func (h *clientMusicHandler[T]) GetClientFavoriteTracks(c *gin.Context) {
 	log.Info().Msg("Getting favorite tracks")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access favorite tracks without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
-
-	uid := userID.(uint64)
 
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
-	// Parse limit parameter (optional)
-	limitStr := c.DefaultQuery("limit", "10")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
-		responses.RespondBadRequest(c, err, "Invalid limit parameter")
-		return
-	}
+	// Get limit from query parameters
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Info().
 		Uint64("userID", uid).
@@ -1390,13 +1133,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteTracks(c *gin.Context) {
 		Msg("Retrieving favorite tracks")
 
 	tracks, err := h.musicService.GetClientFavoriteTracks(ctx, clientID, limit)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Uint64("clientID", clientID).
-			Int("limit", limit).
-			Msg("Failed to retrieve favorite tracks")
-		responses.RespondInternalError(c, err, "Failed to retrieve favorite tracks")
+	if handleServiceError(c, err, "Failed to retrieve favorite tracks", "", "Failed to retrieve favorite tracks") {
 		return
 	}
 
@@ -1428,31 +1165,19 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 	log.Info().Msg("Getting favorite albums")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access favorite albums without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
-
-	uid := userID.(uint64)
 
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
-	// Parse limit parameter (optional)
-	limitStr := c.DefaultQuery("limit", "10")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
-		responses.RespondBadRequest(c, err, "Invalid limit parameter")
-		return
-	}
+	// Get limit from query parameters
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Info().
 		Uint64("userID", uid).
@@ -1461,13 +1186,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 		Msg("Retrieving favorite albums")
 
 	albums, err := h.musicService.GetClientFavoriteAlbums(ctx, clientID, limit)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Uint64("clientID", clientID).
-			Int("limit", limit).
-			Msg("Failed to retrieve favorite albums")
-		responses.RespondInternalError(c, err, "Failed to retrieve favorite albums")
+	if handleServiceError(c, err, "Failed to retrieve favorite albums", "", "Failed to retrieve favorite albums") {
 		return
 	}
 
@@ -1759,33 +1478,21 @@ func (h *clientMusicHandler[T]) GetClientSimilarArtists(c *gin.Context) {
 	log.Info().Msg("Getting similar artists")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access similar artists without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
 	artistID := c.Param("artistID")
 
-	// Parse limit parameter (optional)
-	limitStr := c.DefaultQuery("limit", "10")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		log.Error().Err(err).Str("limit", limitStr).Msg("Invalid limit format")
-		responses.RespondBadRequest(c, err, "Invalid limit parameter")
-		return
-	}
+	// Get limit from query parameters
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Info().
 		Uint64("userID", uid).
@@ -1795,13 +1502,7 @@ func (h *clientMusicHandler[T]) GetClientSimilarArtists(c *gin.Context) {
 		Msg("Retrieving similar artists")
 
 	artists, err := h.musicService.GetClientSimilarArtists(ctx, clientID, artistID, limit)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Uint64("clientID", clientID).
-			Str("artistID", artistID).
-			Msg("Failed to retrieve similar artists")
-		responses.RespondInternalError(c, err, "Failed to retrieve similar artists")
+	if handleServiceError(c, err, "Failed to retrieve similar artists", "", "Failed to retrieve similar artists") {
 		return
 	}
 
@@ -1821,20 +1522,14 @@ func (h *clientMusicHandler[T]) GetClientArtistByID(c *gin.Context) {
 	log.Info().Msg("Getting artist by ID")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access artist without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
+	uid, ok := checkUserAccess(c)
+	if !ok {
 		return
 	}
 
-	uid := userID.(uint64)
-
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
@@ -1847,13 +1542,7 @@ func (h *clientMusicHandler[T]) GetClientArtistByID(c *gin.Context) {
 		Msg("Retrieving artist by ID")
 
 	artist, err := h.musicService.GetClientArtistByID(ctx, clientID, artistID)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("userID", uid).
-			Uint64("clientID", clientID).
-			Str("artistID", artistID).
-			Msg("Failed to retrieve artist")
-		responses.RespondInternalError(c, err, "Failed to retrieve artist")
+	if handleServiceError(c, err, "Failed to retrieve artist", "", "Failed to retrieve artist") {
 		return
 	}
 

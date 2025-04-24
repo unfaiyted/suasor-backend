@@ -3,7 +3,6 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"strconv"
 	"suasor/utils"
 
 	mediatypes "suasor/clients/media/types"
@@ -62,9 +61,7 @@ func (h *coreListHandler[T]) GetAll(c *gin.Context) {
 
 	// Get all lists
 	lists, err := h.listService.GetAll(ctx, limit, offset)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to retrieve lists")
-		responses.RespondInternalError(c, err, "Failed to retrieve lists")
+	if handleServiceError(c, err, "Failed to retrieve lists", "", "Failed to retrieve lists") {
 		return
 	}
 
@@ -91,10 +88,8 @@ func (h *coreListHandler[T]) GetByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := checkItemID(c, "id")
 	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid playlist ID")
-		responses.RespondBadRequest(c, err, "Invalid playlist ID")
 		return
 	}
 
@@ -103,11 +98,7 @@ func (h *coreListHandler[T]) GetByID(c *gin.Context) {
 		Msg("Getting playlist by ID")
 
 	playlist, err := h.listService.GetByID(ctx, id)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("id", id).
-			Msg("Failed to retrieve playlist")
-		responses.RespondNotFound(c, err, "List not found")
+	if handleServiceError(c, err, "Failed to retrieve playlist", "List not found", "List not found") {
 		return
 	}
 
@@ -134,10 +125,8 @@ func (h *coreListHandler[T]) GetItemsByListID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := checkItemID(c, "id")
 	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid playlist ID")
-		responses.RespondBadRequest(c, err, "Invalid playlist ID")
 		return
 	}
 
@@ -146,11 +135,7 @@ func (h *coreListHandler[T]) GetItemsByListID(c *gin.Context) {
 		Msg("Getting tracks for playlist")
 
 	playlist, err := h.listService.GetByID(ctx, id)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("id", id).
-			Msg("Failed to retrieve playlist")
-		responses.RespondNotFound(c, err, "List not found")
+	if handleServiceError(c, err, "Failed to retrieve playlist", "List not found", "List not found") {
 		return
 	}
 
@@ -200,11 +185,7 @@ func (h *coreListHandler[T]) GetByGenre(c *gin.Context) {
 
 	// Search lists by genre
 	lists, err := h.listService.Search(ctx, options)
-	if err != nil {
-		log.Error().Err(err).
-			Str("genre", genre).
-			Msg("Failed to retrieve lists by genre")
-		responses.RespondInternalError(c, err, "Failed to retrieve lists")
+	if handleServiceError(c, err, "Failed to retrieve lists by genre", "", "Failed to retrieve lists") {
 		return
 	}
 
@@ -253,11 +234,7 @@ func (h *coreListHandler[T]) Search(c *gin.Context) {
 
 	// Search lists
 	lists, err := h.listService.Search(ctx, options)
-	if err != nil {
-		log.Error().Err(err).
-			Str("query", query).
-			Msg("Failed to search lists")
-		responses.RespondInternalError(c, err, "Failed to search lists")
+	if handleServiceError(c, err, "Failed to search lists", "", "Failed to search lists") {
 		return
 	}
 
@@ -286,42 +263,23 @@ func (h *coreListHandler[T]) AddItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	listID, err := checkItemID(c, "id")
 	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid playlist ID")
-		responses.RespondBadRequest(c, err, "Invalid play		list ID")
 		return
 	}
 
-	itemIDStr := c.Param("itemID")
-	// Parse item ID
-	itemID, err := strconv.ParseUint(itemIDStr, 10, 64)
+	itemID, err := checkItemID(c, "itemID")
 	if err != nil {
-		log.Warn().Err(err).Str("itemID", itemIDStr).Msg("Invalid item ID format")
-		responses.RespondBadRequest(c, err, "Invalid item ID format")
-		return
-	}
-	listIDStr := c.Param("id")
-	// Parse list ID
-	listID, err := strconv.ParseUint(listIDStr, 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("listID", listIDStr).Msg("Invalid list ID format")
-		responses.RespondBadRequest(c, err, "Invalid list ID format")
 		return
 	}
 
 	err = h.listService.AddItem(ctx, listID, itemID)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("id", id).
-			Uint64("itemID", itemID).
-			Msg("Failed to add item to playlist")
-		responses.RespondInternalError(c, err, "Failed to add item to playlist")
+	if handleServiceError(c, err, "Failed to add item to playlist", "", "Failed to add item to playlist") {
 		return
 	}
 
 	log.Info().
-		Uint64("id", id).
+		Uint64("id", listID).
 		Uint64("itemID", itemID).
 		Msg("Item added to playlist successfully")
 	responses.RespondOK(c, "Item added to playlist", "Item added to playlist successfully")

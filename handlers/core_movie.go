@@ -2,8 +2,6 @@
 package handlers
 
 import (
-	"strconv"
-
 	"github.com/gin-gonic/gin"
 
 	mediatypes "suasor/clients/media/types"
@@ -60,9 +58,7 @@ func (h *coreMovieHandler) GetAll(c *gin.Context) {
 
 	// Get all movies
 	movies, err := h.itemService.GetAll(ctx, limit, offset)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to retrieve movies")
-		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+	if handleServiceError(c, err, "Failed to retrieve movies", "", "Failed to retrieve movies") {
 		return
 	}
 
@@ -88,10 +84,8 @@ func (h *coreMovieHandler) GetByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := checkItemID(c, "id")
 	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid movie ID")
-		responses.RespondBadRequest(c, err, "Invalid movie ID")
 		return
 	}
 
@@ -100,11 +94,7 @@ func (h *coreMovieHandler) GetByID(c *gin.Context) {
 		Msg("Getting movie by ID")
 
 	movie, err := h.itemService.GetByID(ctx, id)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("id", id).
-			Msg("Failed to retrieve movie")
-		responses.RespondNotFound(c, err, "Movie not found")
+	if handleServiceError(c, err, "Failed to retrieve movie", "Movie not found", "Movie not found") {
 		return
 	}
 
@@ -130,17 +120,12 @@ func (h *coreMovieHandler) GetByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	genre := c.Param("genre")
-	if genre == "" {
-		log.Warn().Msg("Genre is required")
-		responses.RespondBadRequest(c, nil, "Genre is required")
+	genre, ok := checkRequiredStringParam(c, "genre", "Genre is required")
+	if !ok {
 		return
 	}
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if err != nil {
-		limit = 20
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
 
 	log.Debug().
 		Str("genre", genre).
@@ -156,11 +141,7 @@ func (h *coreMovieHandler) GetByGenre(c *gin.Context) {
 
 	// Search movies by genre
 	movies, err := h.itemService.Search(ctx, options)
-	if err != nil {
-		log.Error().Err(err).
-			Str("genre", genre).
-			Msg("Failed to retrieve movies by genre")
-		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+	if handleServiceError(c, err, "Failed to retrieve movies by genre", "", "Failed to retrieve movies") {
 		return
 	}
 
@@ -187,18 +168,12 @@ func (h *coreMovieHandler) GetByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	yearStr := c.Param("year")
-	year, err := strconv.Atoi(yearStr)
-	if err != nil {
-		log.Warn().Err(err).Str("year", yearStr).Msg("Invalid year format")
-		responses.RespondBadRequest(c, err, "Invalid year format")
+	year, ok := checkYear(c, "year")
+	if !ok {
 		return
 	}
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if err != nil {
-		limit = 20
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
 
 	log.Debug().
 		Int("year", year).
@@ -214,11 +189,7 @@ func (h *coreMovieHandler) GetByYear(c *gin.Context) {
 
 	// Search movies by year
 	movies, err := h.itemService.Search(ctx, options)
-	if err != nil {
-		log.Error().Err(err).
-			Int("year", year).
-			Msg("Failed to retrieve movies by year")
-		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+	if handleServiceError(c, err, "Failed to retrieve movies by year", "", "Failed to retrieve movies") {
 		return
 	}
 
@@ -245,17 +216,12 @@ func (h *coreMovieHandler) GetByActor(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	actor := c.Param("actor")
-	if actor == "" {
-		log.Warn().Msg("Actor name is required")
-		responses.RespondBadRequest(c, nil, "Actor name is required")
+	actor, ok := checkRequiredStringParam(c, "actor", "Actor name is required")
+	if !ok {
 		return
 	}
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if err != nil {
-		limit = 20
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
 
 	log.Debug().
 		Str("actor", actor).
@@ -271,11 +237,7 @@ func (h *coreMovieHandler) GetByActor(c *gin.Context) {
 
 	// Search movies by actor
 	movies, err := h.itemService.Search(ctx, options)
-	if err != nil {
-		log.Error().Err(err).
-			Str("actor", actor).
-			Msg("Failed to retrieve movies by actor")
-		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+	if handleServiceError(c, err, "Failed to retrieve movies by actor", "", "Failed to retrieve movies") {
 		return
 	}
 
@@ -302,17 +264,12 @@ func (h *coreMovieHandler) GetByDirector(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	director := c.Param("director")
-	if director == "" {
-		log.Warn().Msg("Director name is required")
-		responses.RespondBadRequest(c, nil, "Director name is required")
+	director, ok := checkRequiredStringParam(c, "director", "Director name is required")
+	if !ok {
 		return
 	}
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if err != nil {
-		limit = 20
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
 
 	log.Debug().
 		Str("director", director).
@@ -328,11 +285,7 @@ func (h *coreMovieHandler) GetByDirector(c *gin.Context) {
 
 	// Search movies by director
 	movies, err := h.itemService.Search(ctx, options)
-	if err != nil {
-		log.Error().Err(err).
-			Str("director", director).
-			Msg("Failed to retrieve movies by director")
-		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+	if handleServiceError(c, err, "Failed to retrieve movies by director", "", "Failed to retrieve movies") {
 		return
 	}
 
@@ -359,17 +312,12 @@ func (h *coreMovieHandler) Search(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	query := c.Query("q")
-	if query == "" {
-		log.Warn().Msg("Search query is required")
-		responses.RespondBadRequest(c, nil, "Search query is required")
+	query, ok := checkRequiredQueryParam(c, "q", "Search query is required")
+	if !ok {
 		return
 	}
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if err != nil {
-		limit = 20
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
 
 	log.Debug().
 		Str("query", query).
@@ -385,11 +333,7 @@ func (h *coreMovieHandler) Search(c *gin.Context) {
 
 	// Search movies
 	movies, err := h.itemService.Search(ctx, options)
-	if err != nil {
-		log.Error().Err(err).
-			Str("query", query).
-			Msg("Failed to search movies")
-		responses.RespondInternalError(c, err, "Failed to search movies")
+	if handleServiceError(c, err, "Failed to search movies", "", "Failed to search movies") {
 		return
 	}
 
@@ -414,10 +358,7 @@ func (h *coreMovieHandler) GetTopRated(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if err != nil {
-		limit = 20
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
 
 	log.Debug().
 		Int("limit", limit).
@@ -433,10 +374,7 @@ func (h *coreMovieHandler) GetTopRated(c *gin.Context) {
 
 	// Get top rated movies
 	movies, err := h.itemService.Search(ctx, options)
-	if err != nil {
-		log.Error().Err(err).
-			Msg("Failed to retrieve top rated movies")
-		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+	if handleServiceError(c, err, "Failed to retrieve top rated movies", "", "Failed to retrieve movies") {
 		return
 	}
 
@@ -461,15 +399,8 @@ func (h *coreMovieHandler) GetRecentlyAdded(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if err != nil {
-		limit = 20
-	}
-
-	days, err := strconv.Atoi(c.DefaultQuery("days", "30"))
-	if err != nil {
-		days = 30
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
+	days := checkDaysParam(c, 30)
 
 	log.Debug().
 		Int("limit", limit).
@@ -478,10 +409,7 @@ func (h *coreMovieHandler) GetRecentlyAdded(c *gin.Context) {
 
 	// Get recently added movies
 	movies, err := h.itemService.GetRecentItems(ctx, days, limit)
-	if err != nil {
-		log.Error().Err(err).
-			Msg("Failed to retrieve recently added movies")
-		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+	if handleServiceError(c, err, "Failed to retrieve recently added movies", "", "Failed to retrieve movies") {
 		return
 	}
 
@@ -507,17 +435,12 @@ func (h *coreMovieHandler) GetByRating(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	rating, err := strconv.ParseFloat(c.Param("rating"), 32)
-	if err != nil {
-		log.Warn().Err(err).Str("rating", c.Param("rating")).Msg("Invalid rating value")
-		responses.RespondBadRequest(c, err, "Invalid rating value")
+	rating, ok := checkRating(c, "rating")
+	if !ok {
 		return
 	}
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if err != nil {
-		limit = 20
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
 
 	log.Debug().
 		Float64("rating", rating).
@@ -533,11 +456,7 @@ func (h *coreMovieHandler) GetByRating(c *gin.Context) {
 
 	// Search movies by rating
 	movies, err := h.itemService.Search(ctx, options)
-	if err != nil {
-		log.Error().Err(err).
-			Float64("rating", rating).
-			Msg("Failed to retrieve movies by rating")
-		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+	if handleServiceError(c, err, "Failed to retrieve movies by rating", "", "Failed to retrieve movies") {
 		return
 	}
 
@@ -563,15 +482,8 @@ func (h *coreMovieHandler) GetLatestByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if err != nil {
-		limit = 20
-	}
-
-	days, err := strconv.Atoi(c.DefaultQuery("days", "30"))
-	if err != nil {
-		days = 30
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
+	days := checkDaysParam(c, 30)
 
 	log.Debug().
 		Int("limit", limit).
@@ -580,10 +492,7 @@ func (h *coreMovieHandler) GetLatestByAdded(c *gin.Context) {
 
 	// Get latest added movies
 	movies, err := h.itemService.GetRecentItems(ctx, days, limit)
-	if err != nil {
-		log.Error().Err(err).
-			Msg("Failed to retrieve latest added movies")
-		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+	if handleServiceError(c, err, "Failed to retrieve latest added movies", "", "Failed to retrieve movies") {
 		return
 	}
 
@@ -607,10 +516,7 @@ func (h *coreMovieHandler) GetPopular(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if err != nil {
-		limit = 20
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
 
 	log.Debug().
 		Int("limit", limit).
@@ -618,10 +524,7 @@ func (h *coreMovieHandler) GetPopular(c *gin.Context) {
 
 	// Get popular movies
 	movies, err := h.itemService.GetMostPlayed(ctx, limit)
-	if err != nil {
-		log.Error().Err(err).
-			Msg("Failed to retrieve popular movies")
-		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+	if handleServiceError(c, err, "Failed to retrieve popular movies", "", "Failed to retrieve movies") {
 		return
 	}
 
@@ -649,25 +552,17 @@ func (h *coreMovieHandler) GetByClientItemID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
+	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
-		log.Warn().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
-	clientItemID := c.Param("clientItemID")
-	// parse uint64 from clientItemID
-	if clientItemID == "" {
-		log.Warn().Msg("Client item ID is required")
-		responses.RespondBadRequest(c, nil, "Client item ID is required")
+	clientItemID, err := checkClientItemID(c, "clientItemID")
+	if err != nil {
 		return
 	}
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if err != nil {
-		limit = 20
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
 
 	log.Debug().
 		Uint64("clientID", clientID).
@@ -677,12 +572,7 @@ func (h *coreMovieHandler) GetByClientItemID(c *gin.Context) {
 
 	// Get movies by client ID
 	movie, err := h.itemService.GetByClientItemID(ctx, clientItemID, clientID)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("clientID", clientID).
-			Str("clientItemID", clientItemID).
-			Msg("Failed to retrieve movies by client ID")
-		responses.RespondInternalError(c, err, "Failed to retrieve movies")
+	if handleServiceError(c, err, "Failed to retrieve movies by client ID", "", "Failed to retrieve movies") {
 		return
 	}
 
