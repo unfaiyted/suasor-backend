@@ -28,7 +28,7 @@ func NewClientAutomationHandler(service services.AutomationClientService) *Clien
 // GetSystemStatus godoc
 // @Summary Get automation client system status
 // @Description Retrieves system status information from the automation client
-// @Tags automation
+// @Tags automation, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -79,7 +79,7 @@ func (h *ClientAutomationHandler) GetSystemStatus(c *gin.Context) {
 // GetLibraryItems godoc
 // @Summary Get library items from automation client
 // @Description Retrieves all library items from the automation client
-// @Tags automation
+// @Tags automation, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -148,7 +148,7 @@ func (h *ClientAutomationHandler) GetLibraryItems(c *gin.Context) {
 // GetMediaByID godoc
 // @Summary Get media by ID from automation client
 // @Description Retrieves a specific media item from the automation client
-// @Tags automation
+// @Tags automation, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -204,7 +204,7 @@ func (h *ClientAutomationHandler) GetMediaByID(c *gin.Context) {
 // AddMedia godoc
 // @Summary Add media to automation client
 // @Description Adds a new media item to the automation client
-// @Tags automation
+// @Tags automation, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -265,7 +265,7 @@ func (h *ClientAutomationHandler) AddMedia(c *gin.Context) {
 // UpdateMedia godoc
 // @Summary Update media in automation client
 // @Description Updates an existing media item in the automation client
-// @Tags automation
+// @Tags automation, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -331,7 +331,7 @@ func (h *ClientAutomationHandler) UpdateMedia(c *gin.Context) {
 // DeleteMedia godoc
 // @Summary Delete media from automation client
 // @Description Deletes a media item from the automation client
-// @Tags automation
+// @Tags automation, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -387,7 +387,7 @@ func (h *ClientAutomationHandler) DeleteMedia(c *gin.Context) {
 // SearchMedia godoc
 // @Summary Search media in automation client
 // @Description Searches for media items in the automation client
-// @Tags automation
+// @Tags automation, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -448,7 +448,7 @@ func (h *ClientAutomationHandler) SearchMedia(c *gin.Context) {
 // GetQualityProfiles godoc
 // @Summary Get quality profiles from automation client
 // @Description Retrieves all quality profiles from the automation client
-// @Tags automation
+// @Tags automation, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -499,7 +499,7 @@ func (h *ClientAutomationHandler) GetQualityProfiles(c *gin.Context) {
 // GetMetadataProfiles godoc
 // @Summary Get metadata profiles from automation client
 // @Description Retrieves all metadata profiles from the automation client
-// @Tags automation
+// @Tags automation, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -550,7 +550,7 @@ func (h *ClientAutomationHandler) GetMetadataProfiles(c *gin.Context) {
 // GetTags godoc
 // @Summary Get tags from automation client
 // @Description Retrieves all tags from the automation client
-// @Tags automation
+// @Tags automation, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -601,7 +601,7 @@ func (h *ClientAutomationHandler) GetTags(c *gin.Context) {
 // CreateTag godoc
 // @Summary Create tag in automation client
 // @Description Creates a new tag in the automation client
-// @Tags automation
+// @Tags automation, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -662,7 +662,7 @@ func (h *ClientAutomationHandler) CreateTag(c *gin.Context) {
 // GetCalendar godoc
 // @Summary Get calendar from automation client
 // @Description Retrieves calendar events from the automation client
-// @Tags automation
+// @Tags automation, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -735,7 +735,7 @@ func (h *ClientAutomationHandler) GetCalendar(c *gin.Context) {
 // ExecuteCommand godoc
 // @Summary Execute command on automation client
 // @Description Executes a command on the automation client
-// @Tags automation
+// @Tags automation, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth

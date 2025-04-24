@@ -44,7 +44,7 @@ func NewUserMusicHandler(
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /user/music/tracks/favorites [get]
+// @Router /api/v1/media/music/user/tracks/favorites [get]
 func (h *UserMusicHandler) GetFavoriteTracks(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -105,7 +105,7 @@ func (h *UserMusicHandler) GetFavoriteTracks(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /user/music/albums/favorites [get]
+// @Router /api/v1/media/music/user/albums/favorites [get]
 func (h *UserMusicHandler) GetFavoriteAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -166,7 +166,7 @@ func (h *UserMusicHandler) GetFavoriteAlbums(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Artist]] "Artists retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /user/music/artists/favorites [get]
+// @Router /api/v1/media/music/user/artists/favorites [get]
 func (h *UserMusicHandler) GetFavoriteArtists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -227,7 +227,7 @@ func (h *UserMusicHandler) GetFavoriteArtists(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /user/music/tracks/recently-played [get]
+// @Router /api/v1/media/music/user/tracks/recently-played [get]
 func (h *UserMusicHandler) GetRecentlyPlayedTracks(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -293,7 +293,7 @@ func (h *UserMusicHandler) GetRecentlyPlayedTracks(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 404 {object} responses.ErrorResponse[any] "Track not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /user/music/tracks/{id} [patch]
+// @Router /api/v1/media/music/user/tracks/{id} [patch]
 func (h *UserMusicHandler) UpdateTrackUserData(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

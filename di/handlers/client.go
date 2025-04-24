@@ -91,6 +91,6 @@ func RegisterClientHandlers(ctx context.Context, c *container.Container) {
 func registerClientHandler[T types.ClientConfig](c *container.Container) {
 	container.RegisterFactory[handlers.ClientHandler[T]](c, func(c *container.Container) handlers.ClientHandler[T] {
 		service := container.MustGet[services.ClientService[T]](c)
-		return *handlers.NewClientHandler[T](service)
+		return handlers.NewClientHandler[T](service)
 	})
 }

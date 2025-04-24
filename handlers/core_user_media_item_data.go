@@ -45,7 +45,7 @@ func (h *coreUserMediaItemDataHandler[T]) Service() services.CoreUserMediaItemDa
 // GetMediaItemDataByID godoc
 // @Summary Get a specific user media item data entry by ID
 // @Description Retrieves a specific user media item data entry by its ID
-// @Tags UserMediaItemData
+// @Tags user-data
 // @Accept json
 // @Produce json
 // @Param id path int true "User Media Item Data ID"
@@ -53,7 +53,7 @@ func (h *coreUserMediaItemDataHandler[T]) Service() services.CoreUserMediaItemDa
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /user-data/data/{id} [get]
+// @Router /api/v1/user-data/data/{id} [get]
 func (h *coreUserMediaItemDataHandler[T]) GetMediaItemDataByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -81,7 +81,7 @@ func (h *coreUserMediaItemDataHandler[T]) GetMediaItemDataByID(c *gin.Context) {
 // CheckUserMediaItemData godoc
 // @Summary Check if a user has data for a specific media item
 // @Description Checks if a user has data for a specific media item
-// @Tags UserMediaItemData
+// @Tags user-data
 // @Accept json
 // @Produce json
 // @Param id path int true "Media Item ID"
@@ -90,7 +90,7 @@ func (h *coreUserMediaItemDataHandler[T]) GetMediaItemDataByID(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[bool] "Successfully checked user media item data"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /user-data/{mediaType}/{id}/check [get]
+// @Router /api/v1/user-data/{mediaType}/{id}/check [get]
 func (h *coreUserMediaItemDataHandler[T]) CheckUserMediaItemData(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -136,7 +136,7 @@ func (h *coreUserMediaItemDataHandler[T]) CheckUserMediaItemData(c *gin.Context)
 // GetUserMediaItemDataByItemID godoc
 // @Summary Get user media item data for a specific user and media item
 // @Description Retrieves user media item data for a specific user and media item
-// @Tags UserMediaItemData
+// @Tags user-data
 // @Accept json
 // @Produce json
 // @Param id path int true "Media Item ID"
@@ -146,7 +146,7 @@ func (h *coreUserMediaItemDataHandler[T]) CheckUserMediaItemData(c *gin.Context)
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /user-data/{mediaType}/{id} [get]
+// @Router /api/v1/user-data/{mediaType}/{id} [get]
 func (h *coreUserMediaItemDataHandler[T]) GetUserMediaItemDataByItemID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -191,7 +191,7 @@ func (h *coreUserMediaItemDataHandler[T]) GetUserMediaItemDataByItemID(c *gin.Co
 // DeleteMediaItemData godoc
 // @Summary Delete a specific user media item data entry
 // @Description Deletes a specific user media item data entry by its ID
-// @Tags UserMediaItemData
+// @Tags user-data
 // @Accept json
 // @Produce json
 // @Param id path int true "User Media Item ID"
@@ -200,7 +200,7 @@ func (h *coreUserMediaItemDataHandler[T]) GetUserMediaItemDataByItemID(c *gin.Co
 // @Success 200 {object} responses.APIResponse[models.UserMediaItemData[mediatypes.Movie]] "Successfully deleted user media item data"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /user-data/{mediaType}/{id} [delete]
+// @Router /api/v1/user-data/{mediaType}/{id} [delete]
 func (h *coreUserMediaItemDataHandler[T]) DeleteMediaItemData(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

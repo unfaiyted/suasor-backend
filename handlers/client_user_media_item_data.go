@@ -51,7 +51,7 @@ func NewClientUserMediaItemDataHandler[T clienttypes.ClientMediaConfig, U mediat
 // SyncClientItemData godoc
 // @Summary Synchronize user media item data from a client
 // @Description Synchronizes user media item data from an external client
-// @Tags History
+// @Tags user-data
 // @Accept json
 // @Produce json
 // @Param clientId path int true "Client ID"
@@ -114,7 +114,7 @@ func (h *clientUserMediaItemDataHandler[T, U]) SyncClientItemData(c *gin.Context
 // GetClientItemData godoc
 // @Summary Get user media item data for a client
 // @Description Retrieves user media item data for synchronization with a client
-// @Tags History
+// @Tags user-data
 // @Accept json
 // @Produce json
 // @Param clientId path int true "Client ID"
@@ -178,7 +178,7 @@ func (h *clientUserMediaItemDataHandler[T, U]) GetClientItemData(c *gin.Context)
 // GetMediaItemDataByClientID godoc
 // @Summary Get user media item data by client ID
 // @Description Retrieves user media item data for a specific user and client item
-// @Tags History
+// @Tags user-data
 // @Accept json
 // @Produce json
 // @Param clientId path int true "Client ID"
@@ -243,7 +243,7 @@ func (h *clientUserMediaItemDataHandler[T, U]) GetMediaItemDataByClientID(c *gin
 // RecordClientPlay godoc
 // @Summary Record a client play event
 // @Description Records a play event from a client
-// @Tags History
+// @Tags user-data
 // @Accept json
 // @Produce json
 // @Param clientId path int true "Client ID"
@@ -335,7 +335,7 @@ func (h *clientUserMediaItemDataHandler[T, U]) RecordClientPlay(c *gin.Context) 
 // GetPlaybackState godoc
 // @Summary Get playback state for a client item
 // @Description Retrieves the current playback state for a client item
-// @Tags History
+// @Tags user-data
 // @Accept json
 // @Produce json
 // @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
@@ -401,7 +401,7 @@ func (h *clientUserMediaItemDataHandler[T, U]) GetPlaybackState(c *gin.Context) 
 // UpdatePlaybackState godoc
 // @Summary Update playback state for a client item
 // @Description Updates the playback state for a client item
-// @Tags History
+// @Tags user-data
 // @Accept json
 // @Produce json
 // @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
@@ -478,4 +478,3 @@ func (h *clientUserMediaItemDataHandler[T, U]) UpdatePlaybackState(c *gin.Contex
 
 	responses.RespondOK(c, result, "Playback state updated successfully")
 }
-

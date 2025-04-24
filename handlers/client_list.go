@@ -47,7 +47,7 @@ func NewClientListHandler[T clienttypes.ClientMediaConfig, U mediatypes.ListData
 // GetListByID godoc
 // @Summary Get playlist by ID
 // @Description Retrieves a specific playlist from the client by ID
-// @Tags playlists
+// @Tags lists, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -111,7 +111,7 @@ func (h *clientListHandler[T, U]) GetListByID(c *gin.Context) {
 // GetLists godoc
 // @Summary Get all playlists
 // @Description Retrieves all playlists from the client
-// @Tags playlists
+// @Tags lists, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -176,7 +176,7 @@ func (h *clientListHandler[T, U]) GetLists(c *gin.Context) {
 // CreateList godoc
 // @Summary Create a new playlist
 // @Description Creates a new playlist on the specified client
-// @Tags playlists
+// @Tags lists, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -250,7 +250,7 @@ func (h *clientListHandler[T, U]) CreateList(c *gin.Context) {
 // UpdateList godoc
 // @Summary Update a playlist
 // @Description Updates an existing playlist on the specified client
-// @Tags playlists
+// @Tags lists, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -328,7 +328,7 @@ func (h *clientListHandler[T, U]) UpdateList(c *gin.Context) {
 // DeleteList godoc
 // @Summary Delete a playlist
 // @Description Deletes a playlist from the specified client
-// @Tags playlists
+// @Tags lists, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -392,7 +392,7 @@ func (h *clientListHandler[T, U]) DeleteList(c *gin.Context) {
 // AddItemToList godoc
 // @Summary Add an item to a playlist
 // @Description Adds a media item to an existing playlist
-// @Tags playlists
+// @Tags lists, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -471,7 +471,7 @@ func (h *clientListHandler[T, U]) AddItemToList(c *gin.Context) {
 // RemoveItemFromList godoc
 // @Summary Remove an item from a playlist
 // @Description Removes a media item from an existing playlist
-// @Tags playlists
+// @Tags lists, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -540,7 +540,7 @@ func (h *clientListHandler[T, U]) RemoveItemFromList(c *gin.Context) {
 // SearchLists godoc
 // @Summary Search playlists
 // @Description Searches for playlists matching the given query
-// @Tags playlists
+// @Tags lists, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth

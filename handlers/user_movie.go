@@ -38,7 +38,7 @@ func NewUserMovieHandler(
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /user/movies/favorites [get]
+// @Router /api/v1/media/movies/user/favorites [get]
 func (h *UserMovieHandler) GetFavoriteMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -99,7 +99,7 @@ func (h *UserMovieHandler) GetFavoriteMovies(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /user/movies/watched [get]
+// @Router /api/v1/media/movies/user/watched [get]
 func (h *UserMovieHandler) GetWatchedMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -162,7 +162,7 @@ func (h *UserMovieHandler) GetWatchedMovies(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /user/movies/watchlist [get]
+// @Router /api/v1/media/movies/user/watchlist [get]
 func (h *UserMovieHandler) GetWatchlistMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -223,7 +223,7 @@ func (h *UserMovieHandler) GetWatchlistMovies(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /user/movies/recommended [get]
+// @Router /api/v1/media/movies/user/recommended [get]
 func (h *UserMovieHandler) GetRecommendedMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -289,7 +289,7 @@ func (h *UserMovieHandler) GetRecommendedMovies(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 404 {object} responses.ErrorResponse[any] "Movie not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /user/movies/{id} [patch]
+// @Router /api/v1/media/movies/user/{id} [patch]
 func (h *UserMovieHandler) UpdateMovieUserData(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

@@ -57,7 +57,7 @@ func NewClientSeriesHandler[T clienttypes.ClientMediaConfig](
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /clients/media/{clientID}/series/{seriesID} [get]
+// @Router /api/v1/client/{clientID}/media/series/{seriesID} [get]
 func (h *clientSeriesHandler[T]) GetSeriesByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -116,10 +116,11 @@ func (h *clientSeriesHandler[T]) GetSeriesByID(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param genre path string true "Genre name"
+// @Param clientID path int true "Client ID"
 // @Success 200 {object} responses.APIResponse[[]responses.MediaItemResponse] "Series retrieved"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /series/genre/{genre} [get]
+// @Router /api/v1/client/{clientID}/media/series/genre/{genre} [get]
 func (h *clientSeriesHandler[T]) GetSeriesByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -171,7 +172,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByGenre(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid year"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /series/year/{year} [get]
+// @Router /api/v1/client/{clientID}/media/series/year/{year} [get]
 func (h *clientSeriesHandler[T]) GetSeriesByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -228,7 +229,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByYear(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Series]] "Series retrieved"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /series/actor/{actor} [get]
+// @Router /api/v1/client/{clientID}/media/series/actor/{actor} [get]
 func (h *clientSeriesHandler[T]) GetSeriesByActor(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -279,7 +280,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByActor(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Series]] "Series retrieved"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /series/creator/{creator} [get]
+// @Router /api/v1/client/{clientID}/media/series/creator/{creator} [get]
 func (h *clientSeriesHandler[T]) GetSeriesByCreator(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -332,7 +333,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByCreator(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid rating parameters"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /series/rating [get]
+// @Router /api/v1/client/{clientID}/media/series/rating [get]
 func (h *clientSeriesHandler[T]) GetSeriesByRating(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -400,7 +401,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByRating(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid count"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /series/latest/{count} [get]
+// @Router /api/v1/client/{clientID}/media/series/latest/{count} [get]
 func (h *clientSeriesHandler[T]) GetLatestSeriesByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -458,7 +459,7 @@ func (h *clientSeriesHandler[T]) GetLatestSeriesByAdded(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid count"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /series/popular/{count} [get]
+// @Router /api/v1/client/{clientID}/media/series/popular/{count} [get]
 func (h *clientSeriesHandler[T]) GetPopularSeries(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -516,7 +517,7 @@ func (h *clientSeriesHandler[T]) GetPopularSeries(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid count"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /series/top-rated/{count} [get]
+// @Router /api/v1/client/{clientID}/media/series/top-rated/{count} [get]
 func (h *clientSeriesHandler[T]) GetTopRatedSeries(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -574,7 +575,7 @@ func (h *clientSeriesHandler[T]) GetTopRatedSeries(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid query"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /series/search [get]
+// @Router /api/v1/client/{clientID}/media/series/search [get]
 func (h *clientSeriesHandler[T]) SearchSeries(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -644,7 +645,7 @@ func (h *clientSeriesHandler[T]) SearchSeries(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /clients/media/{clientID}/series/{seriesID}/seasons [get]
+// @Router /api/v1/client/{clientID}/media/series/{seriesID}/seasons [get]
 func (h *clientSeriesHandler[T]) GetSeasonsBySeriesID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

@@ -51,7 +51,7 @@ func NewClientMediaItemHandler[T clientTypes.ClientMediaConfig, U types.MediaDat
 // CreateMediaItem godoc
 // @Summary Create a new media item associated with a client
 // @Description Creates a new media item in the database with client association
-// @Tags client-media
+// @Tags media, clients
 // @Accept json
 // @Produce json
 // @Param mediaItem body object true "Media item data with type, client info, and type-specific data"
@@ -120,7 +120,7 @@ func (h *clientMediaItemHandler[T, U]) CreateClientItem(c *gin.Context) {
 // UpdateMediaItem godoc
 // @Summary Update an existing client media item
 // @Description Updates a client media item in the database by ID
-// @Tags client-media
+// @Tags  media, clients
 // @Accept json
 // @Produce json
 // @Param id path int true "Media item ID"
@@ -198,7 +198,7 @@ func (h *clientMediaItemHandler[T, U]) UpdateClientItem(c *gin.Context) {
 // GetMediaItemsByClient godoc
 // @Summary Get media items by client
 // @Description Retrieves all media items for a specific client
-// @Tags client-media
+// @Tags  media, clients
 // @Accept json
 // @Produce json
 // @Param clientId path int true "Client ID"
@@ -257,7 +257,7 @@ func (h *clientMediaItemHandler[T, U]) GetAllClientItems(c *gin.Context) {
 // GetMediaItemByClientItemID godoc
 // @Summary Get media item by client-specific ID
 // @Description Retrieves a media item using its client-specific ID
-// @Tags client-media
+// @Tags  media, clients
 // @Accept json
 // @Produce json
 // @Param clientId path int true "Client ID"
@@ -312,7 +312,7 @@ func (h *clientMediaItemHandler[T, U]) GetClientItemByItemID(c *gin.Context) {
 // GetMediaItemsByMultipleClients godoc
 // @Summary Get media items from multiple clients
 // @Description Retrieves media items associated with any of the specified clients
-// @Tags client-media
+// @Tags  media, clients
 // @Accept json
 // @Produce json
 // @Param clientIds query string true "Comma-separated list of client IDs"
@@ -369,7 +369,7 @@ func (h *clientMediaItemHandler[T, U]) GetItemsByMultipleClients(c *gin.Context)
 // SearchAcrossClients godoc
 // @Summary Search for media items across multiple clients
 // @Description Searches for media items across multiple clients based on query parameters
-// @Tags client-media
+// @Tags media, clients
 // @Accept json
 // @Produce json
 // @Param q query string true "Search query"
@@ -453,7 +453,7 @@ func (h *clientMediaItemHandler[T, U]) SearchAcrossClients(c *gin.Context) {
 // SyncItemBetweenClients godoc
 // @Summary Sync a media item between clients
 // @Description Creates or updates a mapping between a media item and a target client
-// @Tags client-media
+// @Tags media, clients
 // @Accept json
 // @Produce json
 // @Param syncRequest body object true "Sync request with source and target client info"
@@ -637,7 +637,7 @@ func (h *clientMediaItemHandler[T, U]) GetMediaItemsByYear(c *gin.Context) {
 // DeleteClientItem godoc
 // @Summary Delete a media item from a client
 // @Description Deletes a media item from a client
-// @Tags client-media
+// @Tags media, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -696,4 +696,21 @@ func (h *clientMediaItemHandler[T, U]) DeleteClientItem(c *gin.Context) {
 		Str("itemID", itemID).
 		Msg("Client item deleted successfully")
 	responses.RespondOK(c, "Item deleted successfully", "Item deleted successfully")
+}
+
+// GetByClientItemID godoc
+// @Summary Get media item by client-specific ID
+// @Description Retrieves a media item using its client-specific ID
+// @Tags media, clients
+// @Accept json
+// @Produce json
+// @Param clientId path int true "Client ID"
+// @Param clientItemId path string true "Client Item ID"
+// @Success 200 {object} responses.APIResponse[models.MediaItem[any]] "Media item retrieved successfully"
+// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
+// @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
+// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+// @Router /media/{mediaType}/client/{clientId}/item/{clientItemId} [get]
+func (h *coreMediaItemHandler[T]) GetByClientItemID(c *gin.Context) {
+
 }

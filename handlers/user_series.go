@@ -71,13 +71,12 @@ func NewUserSeriesHandler(
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-
 // @Param limit query int false "Maximum number of series to return (default 10)"
 // @Param offset query int false "Offset for pagination (default 0)"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Series]] "Series retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /user/series/favorites [get]
+// @Router /api/v1/series/user/favorites [get]
 func (h *userSeriesHandler) GetFavoriteSeries(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -133,7 +132,7 @@ func (h *userSeriesHandler) GetFavoriteSeries(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Series]] "Series retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /user/series/watched [get]
+// @Router /api/v1/series/user/watched [get]
 func (h *userSeriesHandler) GetWatchedSeries(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -197,7 +196,7 @@ func (h *userSeriesHandler) GetWatchedSeries(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Series]] "Series retrieved successfully"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /user/series/watchlist [get]
+// @Router /api/v1/series/user/watchlist [get]
 func (h *userSeriesHandler) GetWatchlistSeries(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -262,7 +261,7 @@ func (h *userSeriesHandler) GetWatchlistSeries(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Series not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /user/series/{id} [patch]
+// @Router /api/v1/series/user/{id} [patch]
 func (h *userSeriesHandler) UpdateSeriesUserData(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -343,7 +342,7 @@ func (h *userSeriesHandler) UpdateSeriesUserData(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Series]] "Series retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /user/series/continue-watching [get]
+// @Router /api/v1/series/user/continue-watching [get]
 func (h *userSeriesHandler) GetContinueWatchingSeries(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -387,7 +386,7 @@ func (h *userSeriesHandler) GetContinueWatchingSeries(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Episode]] "Episodes retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /user/series/next-up [get]
+// @Router /api/v1/series/user/next-up [get]
 func (h *userSeriesHandler) GetNextUpEpisodes(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -432,7 +431,7 @@ func (h *userSeriesHandler) GetNextUpEpisodes(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Episode]] "Episodes retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /user/series/recently-watched [get]
+// @Router /api/v1/series/user/recently-watched [get]
 func (h *userSeriesHandler) GetRecentlyWatchedEpisodes(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

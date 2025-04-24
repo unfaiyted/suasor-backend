@@ -32,7 +32,7 @@ func NewJobHandler(jobService services.JobService) *JobHandler {
 // @Produce json
 // @Success 200 {object} responses.APIResponse[[]models.JobSchedule]
 // @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /jobs/schedules [get]
+// @Router /api/v1/jobs/schedules [get]
 func (h *JobHandler) GetAllJobSchedules(c *gin.Context) {
 	schedules, err := h.jobService.GetAllJobSchedules(c.Request.Context())
 	if err != nil {
@@ -53,7 +53,7 @@ func (h *JobHandler) GetAllJobSchedules(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[models.JobSchedule]
 // @Failure 404 {object} responses.ErrorResponse[error]
 // @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /jobs/schedules/{name} [get]
+// @Router /api/v1/jobs/schedules/{name} [get]
 func (h *JobHandler) GetJobScheduleByName(c *gin.Context) {
 	name := c.Param("name")
 	schedule, err := h.jobService.GetJobScheduleByName(c.Request.Context(), name)
@@ -80,7 +80,7 @@ func (h *JobHandler) GetJobScheduleByName(c *gin.Context) {
 // @Success 201 {object} responses.APIResponse[models.JobSchedule]
 // @Failure 400 {object} responses.ErrorResponse[error]
 // @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /jobs/schedules [post]
+// @Router /api/v1/jobs/schedules [post]
 func (h *JobHandler) CreateJobSchedule(c *gin.Context) {
 	var schedule models.JobSchedule
 	if err := c.ShouldBindJSON(&schedule); err != nil {
@@ -120,7 +120,7 @@ func (h *JobHandler) CreateJobSchedule(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[error]
 // @Failure 404 {object} responses.ErrorResponse[error]
 // @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /jobs/schedules [put]
+// @Router /api/v1/jobs/schedules [put]
 func (h *JobHandler) UpdateJobSchedule(c *gin.Context) {
 	var req requests.UpdateJobScheduleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -164,7 +164,7 @@ func (h *JobHandler) UpdateJobSchedule(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[error]
 // @Failure 404 {object} responses.ErrorResponse[error]
 // @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /jobs/{name}/run [post]
+// @Router /api/v1/jobs/{name}/run [post]
 func (h *JobHandler) RunJobManually(c *gin.Context) {
 	name := c.Param("name")
 	log := logger.LoggerFromContext(c)
@@ -204,7 +204,7 @@ func (h *JobHandler) RunJobManually(c *gin.Context) {
 // @Param limit query int false "Limit number of results (default 50)"
 // @Success 200 {object} responses.APIResponse[[]models.JobRun]
 // @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /jobs/runs [get]
+// @Router /api/v1/jobs/runs [get]
 func (h *JobHandler) GetRecentJobRuns(c *gin.Context) {
 	limitStr := c.DefaultQuery("limit", "50")
 	limit, err := strconv.Atoi(limitStr)
@@ -230,7 +230,7 @@ func (h *JobHandler) GetRecentJobRuns(c *gin.Context) {
 // @Param limit query int false "Limit number of results (default 50)"
 // @Success 200 {object} responses.APIResponse[[]models.MediaSyncJob]
 // @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /jobs/media-sync [get]
+// @Router /api/v1/jobs/media-sync [get]
 func (h *JobHandler) GetMediaSyncJobs(c *gin.Context) {
 	// Get the user ID from the context
 	userID, exists := c.Get("userID")
@@ -258,7 +258,7 @@ func (h *JobHandler) GetMediaSyncJobs(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[any]
 // @Failure 400 {object} responses.ErrorResponse[error]
 // @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /jobs/media-sync [post]
+// @Router /api/v1/jobs/media-sync [post]
 func (h *JobHandler) SetupMediaSyncJob(c *gin.Context) {
 	var req requests.SetupMediaSyncJobRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -291,7 +291,7 @@ func (h *JobHandler) SetupMediaSyncJob(c *gin.Context) {
 // @Success 202 {object} responses.APIResponse[any]
 // @Failure 400 {object} responses.ErrorResponse[error]
 // @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /jobs/media-sync/run [post]
+// @Router /api/v1/jobs/media-sync/run [post]
 func (h *JobHandler) RunMediaSyncJob(c *gin.Context) {
 	var req requests.RunMediaSyncJobRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -324,7 +324,7 @@ func (h *JobHandler) RunMediaSyncJob(c *gin.Context) {
 // @Param limit query int false "Limit number of results (default 50)"
 // @Success 200 {object} responses.APIResponse[[]models.Recommendation]
 // @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /jobs/recommendations [get]
+// @Router /api/v1/jobs/recommendations [get]
 func (h *JobHandler) GetUserRecommendations(c *gin.Context) {
 	// Get the user ID from the context
 	userID, exists := c.Get("userID")
@@ -363,7 +363,7 @@ func (h *JobHandler) GetUserRecommendations(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[models.JobRun]
 // @Failure 404 {object} responses.ErrorResponse[error]
 // @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /jobs/runs/{id}/progress [get]
+// @Router /api/v1/jobs/runs/{id}/progress [get]
 func (h *JobHandler) GetJobRunProgress(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -394,7 +394,7 @@ func (h *JobHandler) GetJobRunProgress(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} responses.APIResponse[[]models.JobRun]
 // @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /jobs/active [get]
+// @Router /api/v1/jobs/active [get]
 func (h *JobHandler) GetActiveJobRuns(c *gin.Context) {
 	runs, err := h.jobService.GetActiveJobRuns(c.Request.Context())
 	if err != nil {
@@ -415,7 +415,7 @@ func (h *JobHandler) GetActiveJobRuns(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[any]
 // @Failure 400 {object} responses.ErrorResponse[error]
 // @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /jobs/recommendations/{id}/dismiss [post]
+// @Router /api/v1/jobs/recommendations/{id}/dismiss [post]
 func (h *JobHandler) DismissRecommendation(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -443,7 +443,7 @@ func (h *JobHandler) DismissRecommendation(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[any]
 // @Failure 400 {object} responses.ErrorResponse[error]
 // @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /jobs/recommendations/{id}/viewed [put]
+// @Router /api/v1/jobs/recommendations/{id}/viewed [put]
 func (h *JobHandler) UpdateRecommendationViewedStatus(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)

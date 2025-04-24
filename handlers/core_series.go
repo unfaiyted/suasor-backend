@@ -63,7 +63,7 @@ func NewCoreSeriesHandler(
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Series not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /series/{id}/seasons [get]
+// @Router /api/v1/media/series/{id}/seasons [get]
 func (h *coreSeriesHandler) GetSeasonsBySeriesID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -123,7 +123,7 @@ func (h *coreSeriesHandler) GetSeasonsBySeriesID(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Series or season not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/series/{id}/seasons/{seasonNumber}/episodes [get]
+// @Router /api/v1/media/series/{id}/seasons/{seasonNumber}/episodes [get]
 func (h *coreSeriesHandler) GetEpisodesBySeriesIDAndSeasonNumber(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -209,7 +209,7 @@ func (h *coreSeriesHandler) GetEpisodesBySeriesIDAndSeasonNumber(c *gin.Context)
 // @Success 200 {object} responses.APIResponse[[]mediatypes.Series] "Series retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /series/continue-watching [get]
+// @Router /api/v1/media/series/continue-watching [get]
 func (h *coreSeriesHandler) GetContinueWatchingSeries(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -251,7 +251,7 @@ func (h *coreSeriesHandler) GetContinueWatchingSeries(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Series not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /series/{id}/episodes [get]
+// @Router /api/v1/media/series/{id}/episodes [get]
 func (h *coreSeriesHandler) GetAllEpisodes(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -312,7 +312,7 @@ func (h *coreSeriesHandler) GetAllEpisodes(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]mediatypes.Episode] "Episodes retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /series/next-up [get]
+// @Router /api/v1/media/series/next-up [get]
 func (h *coreSeriesHandler) GetNextUpEpisodes(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -356,7 +356,7 @@ func (h *coreSeriesHandler) GetNextUpEpisodes(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]mediatypes.Episode] "Episodes retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /series/recently-aired [get]
+// @Router /api/v1/media/series/recently-aired [get]
 func (h *coreSeriesHandler) GetRecentlyAiredEpisodes(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -404,7 +404,7 @@ func (h *coreSeriesHandler) GetRecentlyAiredEpisodes(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]mediatypes.Series] "Series retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /series/network/{network} [get]
+// @Router /api/v1/media/series/network/{network} [get]
 func (h *coreSeriesHandler) GetSeriesByNetwork(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -567,7 +567,7 @@ func (h *coreSeriesHandler) GetSeasonWithEpisodes(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]mediatypes.Series] "Series retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /series/creator/{creatorId} [get]
+// @Router /api/v1/media/series/creator/{creatorId} [get]
 func (h *coreSeriesHandler) GetByCreator(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

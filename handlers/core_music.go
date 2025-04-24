@@ -191,7 +191,7 @@ func (h *coreMusicHandler) GetArtistAlbums(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /music/tracks/top [get]
+// @Router /api/v1/media/music/tracks/top [get]
 func (h *coreMusicHandler) GetTopTracks(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -260,7 +260,7 @@ func (h *coreMusicHandler) GetTopTracks(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /music/tracks/recently-added [get]
+// @Router /api/v1/media/music/tracks/recently-added [get]
 func (h *coreMusicHandler) GetRecentlyAddedTracks(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -322,7 +322,7 @@ func (h *coreMusicHandler) GetRecentlyAddedTracks(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /music/albums/top [get]
+// @Router /api/v1/media/music/albums/top [get]
 func (h *coreMusicHandler) GetTopAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -392,7 +392,7 @@ func (h *coreMusicHandler) GetTopAlbums(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Artist not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/music/artists/{id}/albums [get]
+// @Router /api/v1/media/music/artists/{id}/albums [get]
 func (h *coreMusicHandler) GetAlbumsByArtistID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -451,7 +451,7 @@ func (h *coreMusicHandler) GetAlbumsByArtistID(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Artist not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /music/artists/{id}/similar [get]
+// @Router /api/v1/media/music/artists/{id}/similar [get]
 func (h *coreMusicHandler) GetSimilarArtists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -562,7 +562,7 @@ func (h *coreMediaItemHandler[T]) GetMediaItemByExternalSourceID(c *gin.Context)
 // @Param days query int false "Number of days to look back (default 30)"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Music items retrieved successfully"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /music/recently-added [get]
+// @Router /api/v1/media/music/recently-added [get]
 func (h *coreMusicHandler) GetRecentlyAddedMusic(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -618,7 +618,7 @@ func (h *coreMusicHandler) GetRecentlyAddedMusic(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Music items retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /music/genre/{genre} [get]
+// @Router /api/v1/media/music/genre/{genre} [get]
 func (h *coreMusicHandler) GetGenreRecommendations(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -668,7 +668,7 @@ func (h *coreMusicHandler) GetGenreRecommendations(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Track not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /music/tracks/{id} [get]
+// @Router /api/v1/media/music/tracks/{id} [get]
 func (h *coreMusicHandler) GetTrackByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -710,7 +710,7 @@ func (h *coreMusicHandler) GetTrackByID(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Album not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /music/albums/{id} [get]
+// @Router /api/v1/media/music/albums/{id} [get]
 func (h *coreMusicHandler) GetAlbumByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -752,7 +752,7 @@ func (h *coreMusicHandler) GetAlbumByID(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Artist not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /music/artists/{id} [get]
+// @Router /api/v1/media/music/artists/{id} [get]
 func (h *coreMusicHandler) GetArtistByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -794,7 +794,7 @@ func (h *coreMusicHandler) GetArtistByID(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Album not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/music/albums/{id}/tracks [get]
+// @Router /api/v1/media/music/albums/{id}/tracks [get]
 func (h *coreMusicHandler) GetTracksByAlbum(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -843,7 +843,7 @@ func (h *coreMusicHandler) GetTracksByAlbum(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Artist not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /music/artists/{id}/albums [get]
+// @Router /api/v1/media/music/artists/{id}/albums [get]
 func (h *coreMusicHandler) GetAlbumsByArtist(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -892,7 +892,7 @@ func (h *coreMusicHandler) GetAlbumsByArtist(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Artist]] "Artists retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /music/genres/{genre}/artists [get]
+// @Router /api/v1/media/music/genres/{genre}/artists [get]
 func (h *coreMusicHandler) GetArtistsByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -947,7 +947,7 @@ func (h *coreMusicHandler) GetArtistsByGenre(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /music/genres/{genre}/albums [get]
+// @Router /api/v1/media/music/genres/{genre}/albums [get]
 func (h *coreMusicHandler) GetAlbumsByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -1002,7 +1002,7 @@ func (h *coreMusicHandler) GetAlbumsByGenre(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /music/genres/{genre}/tracks [get]
+// @Router /api/v1/media/music/genres/{genre}/tracks [get]
 func (h *coreMusicHandler) GetTracksByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -1057,7 +1057,7 @@ func (h *coreMusicHandler) GetTracksByGenre(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /music/albums/latest [get]
+// @Router /api/v1/media/music/albums/latest [get]
 func (h *coreMusicHandler) GetLatestAlbumsByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -1107,7 +1107,7 @@ func (h *coreMusicHandler) GetLatestAlbumsByAdded(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /music/albums/popular [get]
+// @Router /api/v1/media/music/albums/popular [get]
 func (h *coreMusicHandler) GetPopularAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -1151,7 +1151,7 @@ func (h *coreMusicHandler) GetPopularAlbums(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Artist]] "Artists retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /music/artists/popular [get]
+// @Router /api/v1/media/music/artists/popular [get]
 func (h *coreMusicHandler) GetPopularArtists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -1197,7 +1197,7 @@ func (h *coreMusicHandler) GetPopularArtists(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[models.MediaItemList] "Search results retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/music/search [get]
+// @Router /api/v1/media/music/search [get]
 func (h *coreMusicHandler) SearchMusic(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -1257,7 +1257,7 @@ func (h *coreMusicHandler) SearchMusic(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Track not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /music/tracks/{id}/similar [get]
+// @Router /api/v1/media/music/tracks/{id}/similar [get]
 func (h *coreMusicHandler) GetSimilarTracks(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -1323,7 +1323,7 @@ func (h *coreMusicHandler) GetSimilarTracks(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /music/albums/year/{year} [get]
+// @Router /api/v1/media/music/albums/year/{year} [get]
 func (h *coreMusicHandler) GetAlbumsByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

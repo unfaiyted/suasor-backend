@@ -204,6 +204,7 @@ func (h *userListHandler[T]) Create(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param listId path int true "List ID"
+// @Param listType path string true "List type (e.g. 'playlist', 'collection')"
 // @Param list body requests.ListUpdateRequest true "Updated list details"
 // @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "List updated successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
@@ -211,7 +212,7 @@ func (h *userListHandler[T]) Create(c *gin.Context) {
 // @Failure 403 {object} responses.ErrorResponse[any] "Forbidden"
 // @Failure 404 {object} responses.ErrorResponse[any] "List not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /user/lists/{listId} [put]
+// @Router /api/v1/{listType}/{listId} [put]
 func (h *userListHandler[T]) Update(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -308,7 +309,7 @@ func (h *userListHandler[T]) Update(c *gin.Context) {
 // @Failure 403 {object} responses.ErrorResponse[any] "Forbidden"
 // @Failure 404 {object} responses.ErrorResponse[any] "List not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /user/lists/{id} [delete]
+// @Router /api/v1/{listType}/{id} [delete]
 func (h *userListHandler[T]) Delete(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -389,7 +390,7 @@ func (h *userListHandler[T]) Delete(c *gin.Context) {
 // @Failure 403 {object} responses.ErrorResponse[any] "Forbidden"
 // @Failure 404 {object} responses.ErrorResponse[any] "List not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /user/lists/{id}/tracks [post]
+// @Router /api/v1/{listType}/{id}/tracks [post]
 func (h *userListHandler[T]) AddItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -476,7 +477,7 @@ func (h *userListHandler[T]) AddItem(c *gin.Context) {
 	responses.RespondOK(c, updatedList, "Track added to list successfully")
 }
 
-// RemoveTrackFromList godoc
+// RemoveItemFromList godoc
 // @Summary Remove a track from a list
 // @Description Removes a track from a list owned by the authenticated user
 // @Tags lists
@@ -491,7 +492,7 @@ func (h *userListHandler[T]) AddItem(c *gin.Context) {
 // @Failure 403 {object} responses.ErrorResponse[any] "Forbidden"
 // @Failure 404 {object} responses.ErrorResponse[any] "List not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /user/lists/{id}/tracks/{trackId} [delete]
+// @Router /api/v1/{listType}/{id}/tracks/{trackId} [delete]
 func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

@@ -48,16 +48,16 @@ func NewUserMediaItemDataHandler[T mediatypes.MediaData](
 }
 
 // GetMediaPlayHistory godoc
-// @Summary Get a user's media play history
-// @Description Get a user's media play history with optional filtering
-// @Tags History
+// @Summary Get a user's media play user-data
+// @Description Get a user's media play user-data with optional filtering
+// @Tags user-data
 // @Accept json
 // @Produce json
 // @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
 // @Param limit query int false "Number of items to return (default 10)"
 // @Param offset query int false "Number of items to skip (default 0)"
 // @Param completed query bool false "Filter by completion status"
-// @Success 200 {object} responses.APIResponse[[]models.UserMediaItemData[mediatypes.Movie]] "Successfully retrieved play history"
+// @Success 200 {object} responses.APIResponse[[]models.UserMediaItemData[mediatypes.Movie]] "Successfully retrieved play user-data"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
@@ -96,7 +96,7 @@ func (h *userMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) {
 		Int("limit", limit).
 		Int("offset", offset).
 		Str("mediaType", string(mediaType)).
-		Msg("Getting user media play history")
+		Msg("Getting user media play user-data")
 
 	query := mediatypes.QueryOptions{
 		MediaType: mediaType,
@@ -107,23 +107,23 @@ func (h *userMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) {
 
 	history, err := h.service.GetUserPlayHistory(ctx, userID, &query)
 	if err != nil {
-		log.Error().Err(err).Uint64("userId", userID).Msg("Failed to retrieve play history")
-		responses.RespondInternalError(c, err, "Failed to retrieve play history")
+		log.Error().Err(err).Uint64("userId", userID).Msg("Failed to retrieve play user-data")
+		responses.RespondInternalError(c, err, "Failed to retrieve play user-data")
 		return
 	}
 
 	log.Info().
 		Uint64("userId", userID).
 		Int("count", len(history)).
-		Msg("Play history retrieved successfully")
+		Msg("Play user-data retrieved successfully")
 
-	responses.RespondOK(c, history, "Play history retrieved successfully")
+	responses.RespondOK(c, user-data, "Play history retrieved successfully")
 }
 
 // GetContinuePlaying godoc
 // @Summary Get a user's continue watching list
 // @Description Get media items that a user has started but not completed
-// @Tags History
+// @Tags user-data
 // @Accept json
 // @Produce json
 // @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
@@ -169,15 +169,15 @@ func (h *userMediaItemDataHandler[T]) GetContinuePlaying(c *gin.Context) {
 }
 
 // GetRecentHistory godoc
-// @Summary Get a user's recent media history
-// @Description Get a user's recent media history
-// @Tags History
+// @Summary Get a user's recent media user-data
+// @Description Get a user's recent media user-data
+// @Tags user-data
 // @Accept json
 // @Produce json
 // @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
 // @Param limit query int false "Number of items to return (default 10)"
 // @Param days query int false "Number of days to look back (default 7)"
-// @Success 200 {object} responses.APIResponse[[]models.UserMediaItemData[mediatypes.Movie]] "Successfully retrieved recent history"
+// @Success 200 {object} responses.APIResponse[[]models.UserMediaItemData[mediatypes.Movie]] "Successfully retrieved recent user-data"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
@@ -202,27 +202,27 @@ func (h *userMediaItemDataHandler[T]) GetRecentHistory(c *gin.Context) {
 	log.Debug().
 		Uint64("userId", userID).
 		Int("limit", limit).
-		Msg("Getting recent user media history")
+		Msg("Getting recent user media user-data")
 
 	history, err := h.service.GetRecentHistory(ctx, userID, days, limit)
 	if err != nil {
-		log.Error().Err(err).Uint64("userId", userID).Msg("Failed to retrieve recent history")
-		responses.RespondInternalError(c, err, "Failed to retrieve recent history")
+		log.Error().Err(err).Uint64("userId", userID).Msg("Failed to retrieve recent user-data")
+		responses.RespondInternalError(c, err, "Failed to retrieve recent user-data")
 		return
 	}
 
 	log.Info().
 		Uint64("userId", userID).
 		Int("count", len(history)).
-		Msg("Recent history retrieved successfully")
+		Msg("Recent user-data retrieved successfully")
 
-	responses.RespondOK(c, history, "Recent history retrieved successfully")
+	responses.RespondOK(c, user-data, "Recent history retrieved successfully")
 }
 
 // RecordMediaPlay godoc
 // @Summary Record a media play event
 // @Description Record a new play event for a media item
-// @Tags History
+// @Tags user-data
 // @Accept json
 // @Produce json
 // @Param mediaPlay body requests.UserMediaItemDataRequest true "Media play information"
@@ -260,7 +260,7 @@ func (h *userMediaItemDataHandler[T]) RecordMediaPlay(c *gin.Context) {
 		Str("type", string(req.Type)).
 		Msg("Recording media play event")
 
-	// Create a play history record
+	// Create a play user-data record
 	playHistory := &models.UserMediaItemData[T]{
 		UserID:           req.UserID,
 		MediaItemID:      req.MediaItemID,
@@ -301,7 +301,7 @@ func (h *userMediaItemDataHandler[T]) RecordMediaPlay(c *gin.Context) {
 // ToggleFavorite godoc
 // @Summary Toggle favorite status for a media item
 // @Description Mark or unmark a media item as a favorite
-// @Tags History
+// @Tags user-data
 // @Accept json
 // @Produce json
 // @Param favorite query bool true "Favorite status"
@@ -366,7 +366,7 @@ func (h *userMediaItemDataHandler[T]) ToggleFavorite(c *gin.Context) {
 // UpdateUserRating godoc
 // @Summary Update user rating for a media item
 // @Description Set a user's rating for a media item
-// @Tags History
+// @Tags user-data
 // @Accept json
 // @Produce json
 // @Param rating query number true "User rating (0-10)"
@@ -437,7 +437,7 @@ func (h *userMediaItemDataHandler[T]) UpdateUserRating(c *gin.Context) {
 // GetFavorites godoc
 // @Summary Get a user's favorite media items
 // @Description Get all media items marked as favorites by a user
-// @Tags History
+// @Tags user-data
 // @Accept json
 // @Produce json
 // @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
@@ -485,9 +485,9 @@ func (h *userMediaItemDataHandler[T]) GetFavorites(c *gin.Context) {
 }
 
 // ClearUserHistory godoc
-// @Summary Clear a user's play history
-// @Description Delete all play history entries for a user
-// @Tags History
+// @Summary Clear a user's play user-data
+// @Description Delete all play user-data entries for a user
+// @Tags user-data
 // @Accept json
 // @Produce json
 // @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
@@ -510,12 +510,12 @@ func (h *userMediaItemDataHandler[T]) ClearUserHistory(c *gin.Context) {
 
 	log.Debug().
 		Uint64("userId", userID).
-		Msg("Clearing user history")
+		Msg("Clearing user user-data")
 
 	err = h.service.ClearUserHistory(ctx, userID)
 	if err != nil {
-		log.Error().Err(err).Uint64("userId", userID).Msg("Failed to clear history")
-		responses.RespondInternalError(c, err, "Failed to clear history")
+		log.Error().Err(err).Uint64("userId", userID).Msg("Failed to clear user-data")
+		responses.RespondInternalError(c, err, "Failed to clear user-data")
 		return
 	}
 
@@ -525,4 +525,3 @@ func (h *userMediaItemDataHandler[T]) ClearUserHistory(c *gin.Context) {
 
 	responses.RespondOK(c, responses.EmptyResponse{Success: true}, "History cleared successfully")
 }
-
