@@ -8,6 +8,7 @@ import (
 	"suasor/services"
 	_ "suasor/types/models"
 	"suasor/types/responses"
+	"suasor/utils"
 	"suasor/utils/logger"
 
 	"github.com/gin-gonic/gin"
@@ -45,23 +46,24 @@ func NewClientListHandler[T clienttypes.ClientMediaConfig, U mediatypes.ListData
 }
 
 // GetListByID godoc
-// @Summary Get playlist by ID
-// @Description Retrieves a specific playlist from the client by ID
+// @Summary Get list by ID
+// @Description Retrieves a specific list from the client by ID
 // @Tags lists, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
-// @Param playlistID path string true "List ID"
+// @Param listID path string true "List ID"
+// @Param listType path string true "List type (e.g. 'playlist', 'collection')"
 // @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "List retrieved"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /clients/media/{clientID}/playlists/{playlistID} [get]
+// @Router /api/v1/client/{clientID}/{listType}/{listID} [get]
 func (h *clientListHandler[T, U]) GetListByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
-	log.Info().Msg("Getting playlist by ID")
+	log.Info().Msg("Getting list by ID")
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
@@ -116,50 +118,32 @@ func (h *clientListHandler[T, U]) GetListByID(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
-// @Param count query int false "Maximum number of playlists to return"
+// @Param listType path string true "List type (e.g. 'playlist', 'collection')"
+// @Param limit query int false "Maximum number of playlists to return"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Playlist]] "Lists retrieved"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /clients/media/{clientID}/playlists [get]
+// @Router /api/v1/client/{clientID}/{listType} [get]
 func (h *clientListHandler[T, U]) GetLists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting all playlists")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access playlists without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
-
-	uid := userID.(uint64)
-
-	// Get count parameter
-	count := 0
-	countParam := c.Query("count")
-	if countParam != "" {
-		var err error
-		count, err = strconv.Atoi(countParam)
-		if err != nil {
-			log.Error().Err(err).Str("count", countParam).Msg("Invalid count format")
-			responses.RespondBadRequest(c, err, "Invalid count")
-			return
-		}
-	}
+	uid, _ := checkUserAccess(c)
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Info().
 		Uint64("userID", uid).
-		Int("count", count).
+		Int("count", limit).
 		Msg("Retrieving playlists")
 
-	playlists, err := h.listService.GetClientLists(ctx, uid, count)
+	playlists, err := h.listService.GetClientLists(ctx, uid, limit)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
-			Int("count", count).
+			Int("count", limit).
 			Msg("Failed to retrieve playlists")
 		responses.RespondInternalError(c, err, "Failed to retrieve playlists")
 		return
@@ -167,7 +151,7 @@ func (h *clientListHandler[T, U]) GetLists(c *gin.Context) {
 
 	log.Info().
 		Uint64("userID", uid).
-		Int("count", count).
+		Int("count", limit).
 		Int("playlistsReturned", len(playlists)).
 		Msg("Lists retrieved successfully")
 	responses.RespondOK(c, playlists, "Lists retrieved successfully")
@@ -181,34 +165,22 @@ func (h *clientListHandler[T, U]) GetLists(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
-// @Param playlist body object true "List creation data"
+// @Param listType path string true "List type (e.g. 'playlist', 'collection')"
+// @Param list body object true "List creation data"
 // @Success 201 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "List created"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /clients/media/{clientID}/playlists [post]
+// @Router /api/v1/client/{clientID}/{listType} [post]
 func (h *clientListHandler[T, U]) CreateList(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
-	log.Info().Msg("Creating playlist")
+	log.Info().Msg("Creating list")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to create playlist without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
-
-	uid := userID.(uint64)
-
+	uid, _ := checkUserAccess(c)
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
-	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
-		return
-	}
+	clientID, _ := checkClientID(c)
 
 	// Parse request body
 	var req struct {
@@ -228,7 +200,7 @@ func (h *clientListHandler[T, U]) CreateList(c *gin.Context) {
 		Str("name", req.Name).
 		Msg("Creating playlist")
 
-	playlist, err := h.listService.CreateClientList(ctx, clientID, req.Name, req.Description)
+	list, err := h.listService.CreateClientList(ctx, clientID, req.Name, req.Description)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -244,7 +216,7 @@ func (h *clientListHandler[T, U]) CreateList(c *gin.Context) {
 		Uint64("clientID", clientID).
 		Str("name", req.Name).
 		Msg("List created successfully")
-	responses.RespondCreated(c, playlist, "List created successfully")
+	responses.RespondCreated(c, list, "List created successfully")
 }
 
 // UpdateList godoc
@@ -255,37 +227,24 @@ func (h *clientListHandler[T, U]) CreateList(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
-// @Param playlistID path string true "List ID"
-// @Param playlist body object true "List update data"
+// @Param listType path string true "List type (e.g. 'playlist', 'collection')"
+// @Param listID path string true "List ID"
+// @Param list body object true "List update data"
 // @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "List updated"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /clients/media/{clientID}/playlists/{playlistID} [put]
+// @Router /api/v1/client/{clientID}/{listType}/{listID} [put]
 func (h *clientListHandler[T, U]) UpdateList(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Updating playlist")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to update playlist without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
-
-	uid := userID.(uint64)
-
+	uid, _ := checkUserAccess(c)
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
-	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
-		return
-	}
-
-	playlistID := c.Param("id")
+	clientID, _ := checkClientID(c)
+	listID := c.Param("listID")
 
 	// Parse request body
 	var req struct {
@@ -302,16 +261,16 @@ func (h *clientListHandler[T, U]) UpdateList(c *gin.Context) {
 	log.Info().
 		Uint64("userID", uid).
 		Uint64("clientID", clientID).
-		Str("playlistID", playlistID).
+		Str("playlistID", listID).
 		Str("name", req.Name).
 		Msg("Updating playlist")
 
-	playlist, err := h.listService.UpdateClientList(ctx, clientID, playlistID, req.Name, req.Description)
+	list, err := h.listService.UpdateClientList(ctx, clientID, listID, req.Name, req.Description)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
 			Uint64("clientID", clientID).
-			Str("playlistID", playlistID).
+			Str("playlistID", listID).
 			Msg("Failed to update playlist")
 		responses.RespondInternalError(c, err, "Failed to update playlist")
 		return
@@ -320,9 +279,9 @@ func (h *clientListHandler[T, U]) UpdateList(c *gin.Context) {
 	log.Info().
 		Uint64("userID", uid).
 		Uint64("clientID", clientID).
-		Str("playlistID", playlistID).
+		Str("playlistID", listID).
 		Msg("List updated successfully")
-	responses.RespondOK(c, playlist, "List updated successfully")
+	responses.RespondOK(c, list, "List updated successfully")
 }
 
 // DeleteList godoc
@@ -333,58 +292,46 @@ func (h *clientListHandler[T, U]) UpdateList(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
-// @Param playlistID path string true "List ID"
+// @Param listType path string true "List type (e.g. 'playlist', 'collection')"
+// @Param listID path string true "List ID"
 // @Success 200 {object} responses.APIResponse[string] "List deleted"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /clients/media/{clientID}/playlists/{playlistID} [delete]
+// @Router /api/v1/client/{clientID}/{listType}/{listID} [delete]
 func (h *clientListHandler[T, U]) DeleteList(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
-	log.Info().Msg("Deleting playlist")
+	log.Info().Msg("Deleting list")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to delete playlist without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
+	uid, _ := checkUserAccess(c)
 
-	uid := userID.(uint64)
+	clientID, _ := checkClientID(c)
 
-	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
-	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
-		return
-	}
-
-	playlistID := c.Param("id")
+	listID := c.Param("id")
 
 	log.Info().
 		Uint64("userID", uid).
 		Uint64("clientID", clientID).
-		Str("playlistID", playlistID).
-		Msg("Deleting playlist")
+		Str("playlistID", listID).
+		Msg("Deleting list")
 
-	err = h.listService.DeleteClientList(ctx, clientID, playlistID)
+	err := h.listService.DeleteClientList(ctx, clientID, listID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
 			Uint64("clientID", clientID).
-			Str("playlistID", playlistID).
-			Msg("Failed to delete playlist")
-		responses.RespondInternalError(c, err, "Failed to delete playlist")
+			Str("playlistID", listID).
+			Msg("Failed to delete list")
+		responses.RespondInternalError(c, err, "Failed to delete list")
 		return
 	}
 
 	log.Info().
 		Uint64("userID", uid).
 		Uint64("clientID", clientID).
-		Str("playlistID", playlistID).
+		Str("listID", listID).
 		Msg("List deleted successfully")
 	responses.RespondOK(c, "List deleted successfully", "List deleted successfully")
 }
@@ -397,13 +344,14 @@ func (h *clientListHandler[T, U]) DeleteList(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
-// @Param playlistID path string true "List ID"
+// @Param listType path string true "List type (e.g. 'playlist', 'collection')"
+// @Param listID path string true "List ID"
 // @Param item body object true "Item to add"
 // @Success 200 {object} responses.APIResponse[string] "Item added to playlist"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /clients/media/{clientID}/playlists/{playlistID}/items [post]
+// @Router /api/v1/client/{clientID}/{listType}/{listID}/items [post]
 func (h *clientListHandler[T, U]) AddItemToList(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -482,7 +430,7 @@ func (h *clientListHandler[T, U]) AddItemToList(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /clients/media/{clientID}/playlists/{playlistID}/items/{itemID} [delete]
+// @Router /api/v1/client/{clientID}/{listType}/{playlistID}/items/{itemID} [delete]
 func (h *clientListHandler[T, U]) RemoveItemFromList(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -545,12 +493,13 @@ func (h *clientListHandler[T, U]) RemoveItemFromList(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
+// @Param listType path string true "List type (e.g. 'playlist', 'collection')"
 // @Param q query string true "Search query"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Playlist]] "Lists found"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /lists/search [get]
+// @Router /api/v1/client/{clientID}/{listType}/search [get]
 func (h *clientListHandler[T, U]) SearchLists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

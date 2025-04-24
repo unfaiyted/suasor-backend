@@ -80,13 +80,13 @@ func (h *coreListHandler[T]) GetAll(c *gin.Context) {
 // @Tags lists
 // @Accept json
 // @Produce json
-// @Param listId path int true "List ID"
+// @Param listID path int true "List ID"
 // @Param listType path string true "List type (e.g. 'playlist', 'collection')"
 // @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "List retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "List not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/{listType}/{listId} [get]
+// @Router /api/v1/{listType}/{listID} [get]
 func (h *coreListHandler[T]) GetByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -123,13 +123,13 @@ func (h *coreListHandler[T]) GetByID(c *gin.Context) {
 // @Tags lists
 // @Accept json
 // @Produce json
-// @Param listId path int true "List ID"
+// @Param listID path int true "List ID"
 // @Param listType path string true "List type (e.g. 'playlist', 'collection')"
 // @Success 200 {object} responses.APIResponse[[]mediatypes.Track] "Tracks retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "List not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/{listType}/{listId}/items [get]
+// @Router /api/v1/{listType}/{listID}/items [get]
 func (h *coreListHandler[T]) GetItemsByListID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -274,14 +274,14 @@ func (h *coreListHandler[T]) Search(c *gin.Context) {
 // @Tags lists
 // @Accept json
 // @Produce json
-// @Param listId path int true "List ID"
+// @Param listID path int true "List ID"
 // @Param itemID path string true "Item ID to add"
 // @Param listType path string true "List type (e.g. 'playlist', 'collection')"
 // @Success 200 {object} responses.APIResponse[string] "Item added to playlist"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "List not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/{listType}/{listId}/items/{itemID} [post]
+// @Router /api/v1/{listType}/{listID}/items/{itemID} [post]
 func (h *coreListHandler[T]) AddItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

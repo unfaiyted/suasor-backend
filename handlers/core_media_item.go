@@ -53,7 +53,7 @@ func NewCoreMediaItemHandler[T types.MediaData](
 // GetAll godoc
 // @Summary Get all media items
 // @Description Retrieves all media items of a specific type from the database
-// @Tags media
+// @Tags media, core
 // @Accept json
 // @Produce json
 // @Param limit query int false "Maximum number of items to return (default 20)"
@@ -93,7 +93,7 @@ func (h *coreMediaItemHandler[T]) GetAll(c *gin.Context) {
 // GetByID godoc
 // @Summary Get media item by ID
 // @Description Retrieves a specific media item by ID
-// @Tags media
+// @Tags media, core
 // @Accept json
 // @Produce json
 // @Param id path int true "Media Item ID"
@@ -136,7 +136,7 @@ func (h *coreMediaItemHandler[T]) GetByID(c *gin.Context) {
 // GetByExternalID godoc
 // @Summary Get media item by external ID
 // @Description Retrieves a specific media item by its external ID from a source
-// @Tags media
+// @Tags media, core
 // @Accept json
 // @Produce json
 // @Param source path string true "Source of the external ID (e.g., tmdb, imdb)"
@@ -190,7 +190,7 @@ func (h *coreMediaItemHandler[T]) GetByExternalID(c *gin.Context) {
 // Search godoc
 // @Summary Search media items
 // @Description Searches for media items based on query parameters
-// @Tags media
+// @Tags media, core
 // @Accept json
 // @Produce json
 // @Param q query string true "Search query"
@@ -260,7 +260,7 @@ func (h *coreMediaItemHandler[T]) Search(c *gin.Context) {
 // GetRecentlyAdded godoc
 // @Summary Get recently added media items
 // @Description Retrieves recently added media items of a specific type
-// @Tags media
+// @Tags media, core
 // @Accept json
 // @Produce json
 // @Param limit query int false "Maximum number of items to return (default 20)"
@@ -310,7 +310,7 @@ func (h *coreMediaItemHandler[T]) GetRecentlyAdded(c *gin.Context) {
 // GetByType godoc
 // @Summary Get media items by type
 // @Description Retrieves media items of a specific type
-// @Tags media
+// @Tags media, core
 // @Accept json
 // @Produce json
 // @Param limit query int false "Maximum number of items to return (default 20)"
@@ -369,24 +369,24 @@ func (h *coreMediaItemHandler[T]) GetByType(c *gin.Context) {
 // GetByPerson godoc
 // @Summary Get media items by person
 // @Description Retrieves media items associated with a specific person (actor, director, etc.)
-// @Tags media
+// @Tags media, core
 // @Accept json
 // @Produce json
-// @Param personId path int true "Person ID"
+// @Param personID path int true "Person ID"
 // @Param mediaType path string true "Media type"
 // @Param role query string false "Role filter (actor, director, etc.)"
 // @Param limit query int false "Maximum number of items to return (default 20)"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.Movie]] "Media items retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/{mediaType}/person/{personId} [get]
+// @Router /api/v1/media/{mediaType}/person/{personID} [get]
 func (h *coreMediaItemHandler[T]) GetByPerson(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	personID, err := strconv.ParseUint(c.Param("personId"), 10, 64)
+	personID, err := strconv.ParseUint(c.Param("personID"), 10, 64)
 	if err != nil {
-		log.Warn().Err(err).Str("personId", c.Param("personId")).Msg("Invalid person ID")
+		log.Warn().Err(err).Str("personID", c.Param("personID")).Msg("Invalid person ID")
 		responses.RespondBadRequest(c, err, "Invalid person ID")
 		return
 	}
@@ -399,7 +399,7 @@ func (h *coreMediaItemHandler[T]) GetByPerson(c *gin.Context) {
 	}
 
 	log.Debug().
-		Uint64("personId", personID).
+		Uint64("personID", personID).
 		Str("role", role).
 		Int("limit", limit).
 		Msg("Getting media items by person")
@@ -419,7 +419,7 @@ func (h *coreMediaItemHandler[T]) GetByPerson(c *gin.Context) {
 	items, err := h.mediaService.Search(ctx, options)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("personId", personID).
+			Uint64("personID", personID).
 			Str("role", role).
 			Msg("Failed to retrieve media items by person")
 		responses.RespondInternalError(c, err, "Failed to retrieve media items")
@@ -427,7 +427,7 @@ func (h *coreMediaItemHandler[T]) GetByPerson(c *gin.Context) {
 	}
 
 	log.Info().
-		Uint64("personId", personID).
+		Uint64("personID", personID).
 		Str("role", role).
 		Int("count", len(items)).
 		Msg("Media items by person retrieved successfully")
@@ -437,7 +437,7 @@ func (h *coreMediaItemHandler[T]) GetByPerson(c *gin.Context) {
 // GetByYear godoc
 // @Summary Get media items by release year
 // @Description Retrieves media items released in a specific year
-// @Tags media
+// @Tags media, core
 // @Accept json
 // @Produce json
 // @Param year path int true "Release year"
@@ -505,7 +505,7 @@ func (h *coreMediaItemHandler[T]) GetByYear(c *gin.Context) {
 // GetLatestByAdded godoc
 // @Summary Get latest added media items
 // @Description Retrieves the most recently added media items
-// @Tags media
+// @Tags media, core
 // @Accept json
 // @Produce json
 // @Param limit query int false "Maximum number of items to return (default 20)"
@@ -566,23 +566,23 @@ func (h *coreMediaItemHandler[T]) GetLatestByAdded(c *gin.Context) {
 // GetByClient godoc
 // @Summary Get media items by client
 // @Description Retrieves media items associated with a specific client
-// @Tags media
+// @Tags media, core
 // @Accept json
 // @Produce json
-// @Param clientId path int true "Client ID"
+// @Param clientID path int true "Client ID"
 // @Param mediaType path string true "Media type"
 // @Param limit query int false "Maximum number of items to return (default 20)"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.Movie]] "Media items retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/{mediaType}/client/{clientId} [get]
+// @Router /api/v1/media/{mediaType}/client/{clientID} [get]
 func (h *coreMediaItemHandler[T]) GetByClient(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	clientID, err := strconv.ParseUint(c.Param("clientId"), 10, 64)
+	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
 	if err != nil {
-		log.Warn().Err(err).Str("clientId", c.Param("clientId")).Msg("Invalid client ID")
+		log.Warn().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID")
 		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
@@ -593,7 +593,7 @@ func (h *coreMediaItemHandler[T]) GetByClient(c *gin.Context) {
 	}
 
 	log.Debug().
-		Uint64("clientId", clientID).
+		Uint64("clientID", clientID).
 		Int("limit", limit).
 		Msg("Getting media items by client")
 
@@ -611,14 +611,14 @@ func (h *coreMediaItemHandler[T]) GetByClient(c *gin.Context) {
 	items, err := h.mediaService.Search(ctx, options)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("clientId", clientID).
+			Uint64("clientID", clientID).
 			Msg("Failed to retrieve media items by client")
 		responses.RespondInternalError(c, err, "Failed to retrieve media items")
 		return
 	}
 
 	log.Info().
-		Uint64("clientId", clientID).
+		Uint64("clientID", clientID).
 		Int("count", len(items)).
 		Msg("Media items by client retrieved successfully")
 	responses.RespondOK(c, items, "Media items retrieved successfully")
@@ -627,7 +627,7 @@ func (h *coreMediaItemHandler[T]) GetByClient(c *gin.Context) {
 // GetByGenre godoc
 // @Summary Get media items by genre
 // @Description Retrieves media items that match a specific genre
-// @Tags media
+// @Tags media, core
 // @Accept json
 // @Produce json
 // @Param genre path string true "Genre name"
@@ -688,7 +688,7 @@ func (h *coreMediaItemHandler[T]) GetByGenre(c *gin.Context) {
 // GetByExternalSourceID godoc
 // @Summary Get media item by external source ID
 // @Description Retrieves a media item using its external source ID (e.g., TMDB ID)
-// @Tags media
+// @Tags media, core
 // @Accept json
 // @Produce json
 // @Param source path string true "External source name (e.g., tmdb, imdb)"
@@ -707,7 +707,7 @@ func (h *coreMediaItemHandler[T]) GetByExternalSourceID(c *gin.Context) {
 // GetPopular godoc
 // @Summary Get popular media items
 // @Description Retrieves popular media items based on views or ratings
-// @Tags media
+// @Tags media, core
 // @Accept json
 // @Produce json
 // @Param limit query int false "Maximum number of items to return (default 20)"
@@ -757,7 +757,7 @@ func (h *coreMediaItemHandler[T]) GetPopular(c *gin.Context) {
 // GetTopRated godoc
 // @Summary Get top rated media items
 // @Description Retrieves the highest rated media items
-// @Tags media
+// @Tags media, core
 // @Accept json
 // @Produce json
 // @Param limit query int false "Maximum number of items to return (default 20)"
@@ -807,10 +807,10 @@ func (h *coreMediaItemHandler[T]) GetTopRated(c *gin.Context) {
 // GetMostPlayed godoc
 // @Summary Get most played media items
 // @Description Retrieves the most played media items
-// @Tags media
+// @Tags media, core
 // @Accept json
 // @Produce json
-// @Param userId query int false "User ID"
+// @Param userID query int false "User ID"
 // @Param mediaType path string true "Media type"
 // @Param limit query int false "Maximum quantity items to return (default 20)"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[types.Movie]] "Media items retrieved successfully"
@@ -820,9 +820,9 @@ func (h *coreMediaItemHandler[T]) GetMostPlayed(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
+	userID, err := strconv.ParseUint(c.Query("userID"), 10, 64)
 	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
+		log.Warn().Err(err).Str("userID", c.Query("userID")).Msg("Invalid user ID")
 		responses.RespondBadRequest(c, err, "Invalid user ID")
 		return
 	}
@@ -857,7 +857,7 @@ func (h *coreMediaItemHandler[T]) GetMostPlayed(c *gin.Context) {
 // GetByRating godoc
 // @Summary Get media items by rating
 // @Description Retrieves media items that match a specific rating
-// @Tags media
+// @Tags media, core
 // @Accept json
 // @Produce json
 // @Param rating path number true "Rating"

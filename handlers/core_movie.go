@@ -42,7 +42,7 @@ func NewCoreMovieHandler(
 // GetAll godoc
 // @Summary Get all movies
 // @Description Retrieves all movies in the database
-// @Tags movies
+// @Tags movies, core
 // @Accept json
 // @Produce json
 // @Param limit query int false "Maximum number of movies to return (default 20)"
@@ -75,7 +75,7 @@ func (h *coreMovieHandler) GetAll(c *gin.Context) {
 // GetByID godoc
 // @Summary Get movie by ID
 // @Description Retrieves a specific movie by ID
-// @Tags movies
+// @Tags movies, core
 // @Accept json
 // @Produce json
 // @Param id path int true "Movie ID"
@@ -117,7 +117,7 @@ func (h *coreMovieHandler) GetByID(c *gin.Context) {
 // GetByGenre godoc
 // @Summary Get movies by genre
 // @Description Retrieves movies that match a specific genre
-// @Tags movies
+// @Tags movies, core
 // @Accept json
 // @Produce json
 // @Param genre path string true "Genre name"
@@ -174,7 +174,7 @@ func (h *coreMovieHandler) GetByGenre(c *gin.Context) {
 // GetByYear godoc
 // @Summary Get movies by year
 // @Description Retrieves movies released in a specific year
-// @Tags movies
+// @Tags movies, core
 // @Accept json
 // @Produce json
 // @Param year path int true "Release year"
@@ -232,7 +232,7 @@ func (h *coreMovieHandler) GetByYear(c *gin.Context) {
 // GetByActor godoc
 // @Summary Get movies by actor
 // @Description Retrieves movies featuring a specific actor
-// @Tags movies
+// @Tags movies, core
 // @Accept json
 // @Produce json
 // @Param actor path string true "Actor name"
@@ -289,7 +289,7 @@ func (h *coreMovieHandler) GetByActor(c *gin.Context) {
 // GetByDirector godoc
 // @Summary Get movies by director
 // @Description Retrieves movies directed by a specific director
-// @Tags movies
+// @Tags movies, core
 // @Accept json
 // @Produce json
 // @Param director path string true "Director name"
@@ -346,7 +346,7 @@ func (h *coreMovieHandler) GetByDirector(c *gin.Context) {
 // Search godoc
 // @Summary Search movies
 // @Description Searches for movies that match the query
-// @Tags movies
+// @Tags movies, core
 // @Accept json
 // @Produce json
 // @Param q query string true "Search query"
@@ -403,7 +403,7 @@ func (h *coreMovieHandler) Search(c *gin.Context) {
 // GetTopRated godoc
 // @Summary Get top rated movies
 // @Description Retrieves the highest rated movies
-// @Tags movies
+// @Tags movies, core
 // @Accept json
 // @Produce json
 // @Param limit query int false "Maximum number of movies to return (default 20)"
@@ -449,7 +449,7 @@ func (h *coreMovieHandler) GetTopRated(c *gin.Context) {
 // GetRecentlyAdded godoc
 // @Summary Get recently added movies
 // @Description Retrieves the most recently added movies
-// @Tags movies
+// @Tags movies, core
 // @Accept json
 // @Produce json
 // @Param limit query int false "Maximum number of movies to return (default 20)"
@@ -494,7 +494,7 @@ func (h *coreMovieHandler) GetRecentlyAdded(c *gin.Context) {
 // GetByRating godoc
 // @Summary Get movies by rating
 // @Description Retrieves movies that match a specific rating
-// @Tags movies
+// @Tags movies, core
 // @Accept json
 // @Produce json
 // @Param rating path number true "Rating"
@@ -551,7 +551,7 @@ func (h *coreMovieHandler) GetByRating(c *gin.Context) {
 // GetLatestByAdded godoc
 // @Summary Get latest added movies
 // @Description Retrieves the most recently added movies
-// @Tags movies
+// @Tags movies, core
 // @Accept json
 // @Produce json
 // @Param limit query int false "Maximum number of movies to return (default 20)"
@@ -596,7 +596,7 @@ func (h *coreMovieHandler) GetLatestByAdded(c *gin.Context) {
 // GetPopularByID godoc
 // @Summary Get popular movies
 // @Description Retrieves the most popular movies
-// @Tags movies
+// @Tags movies, core
 // @Accept json
 // @Produce json
 // @Param limit query int false "Maximum number of movies to return (default 20)"
@@ -634,29 +634,29 @@ func (h *coreMovieHandler) GetPopular(c *gin.Context) {
 // GetByClientItemID godoc
 // @Summary Get movies by client-specific ID
 // @Description Retrieves movies associated with a specific client
-// @Tags movies
+// @Tags movies, core
 // @Accept json
 // @Produce json
-// @Param clientId path int true "Client ID"
-// @Param clientItemId path string true "Client Item ID"
+// @Param clientID path int true "Client ID"
+// @Param clientItemID path string true "Client Item ID"
 // @Param limit query int false "Maximum number of movies to return (default 20)"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Movie not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/movie/client/{clientId}/item/{clientItemId} [get]
+// @Router /api/v1/media/movie/client/{clientID}/item/{clientItemID} [get]
 func (h *coreMovieHandler) GetByClientItemID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	clientID, err := strconv.ParseUint(c.Param("clientId"), 10, 64)
+	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
 	if err != nil {
-		log.Warn().Err(err).Str("clientId", c.Param("clientId")).Msg("Invalid client ID")
+		log.Warn().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID")
 		responses.RespondBadRequest(c, err, "Invalid client ID")
 		return
 	}
 
-	clientItemID := c.Param("clientItemId")
+	clientItemID := c.Param("clientItemID")
 	// parse uint64 from clientItemID
 	if clientItemID == "" {
 		log.Warn().Msg("Client item ID is required")
@@ -670,8 +670,8 @@ func (h *coreMovieHandler) GetByClientItemID(c *gin.Context) {
 	}
 
 	log.Debug().
-		Uint64("clientId", clientID).
-		Str("clientItemId", clientItemID).
+		Uint64("clientID", clientID).
+		Str("clientItemID", clientItemID).
 		Int("limit", limit).
 		Msg("Getting movies by client ID")
 
@@ -679,16 +679,16 @@ func (h *coreMovieHandler) GetByClientItemID(c *gin.Context) {
 	movie, err := h.itemService.GetByClientItemID(ctx, clientItemID, clientID)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("clientId", clientID).
-			Str("clientItemId", clientItemID).
+			Uint64("clientID", clientID).
+			Str("clientItemID", clientItemID).
 			Msg("Failed to retrieve movies by client ID")
 		responses.RespondInternalError(c, err, "Failed to retrieve movies")
 		return
 	}
 
 	log.Info().
-		Uint64("clientId", clientID).
-		Str("clientItemId", clientItemID).
+		Uint64("clientID", clientID).
+		Str("clientItemID", clientItemID).
 		Msg("Movies by client ID retrieved successfully")
 	responses.RespondOK(c, movie, "Movies retrieved successfully")
 }

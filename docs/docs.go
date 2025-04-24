@@ -24,246 +24,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/ai/analyze": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Use AI to analyze provided content",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ai"
-                ],
-                "summary": "Analyze content with AI",
-                "parameters": [
-                    {
-                        "description": "Content analysis request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/requests.AiContentAnalysisRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Analysis response",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-responses_AiContentAnalysisResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/ai/conversation/message": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Continue a conversation with the AI by sending a new message",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ai"
-                ],
-                "summary": "Send a message in an existing AI conversation",
-                "parameters": [
-                    {
-                        "description": "Message request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/requests.ConversationMessageRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "AI response",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-responses_ConversationMessageResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "403": {
-                        "description": "Conversation not owned by user",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "404": {
-                        "description": "Conversation not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/ai/conversation/start": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Initialize a new conversational session with the AI for personalized recommendations",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ai"
-                ],
-                "summary": "Start a new AI conversation for recommendations",
-                "parameters": [
-                    {
-                        "description": "Conversation initialization request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/requests.StartConversationRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Conversation started",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-responses_ConversationResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/ai/recommendations": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get content recommendations from an AI service",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ai"
-                ],
-                "summary": "Get AI-powered content recommendations",
-                "parameters": [
-                    {
-                        "description": "Recommendation request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/requests.AiRecommendationRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Recommendation response",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-responses_AiRecommendationResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/admin/client/{clientID}": {
             "delete": {
                 "security": [
@@ -533,6 +293,246 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/ai/analyze": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Use AI to analyze provided content",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ai"
+                ],
+                "summary": "Analyze content with AI",
+                "parameters": [
+                    {
+                        "description": "Content analysis request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.AiContentAnalysisRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Analysis response",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-responses_AiContentAnalysisResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ai/conversation/message": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Continue a conversation with the AI by sending a new message",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ai"
+                ],
+                "summary": "Send a message in an existing AI conversation",
+                "parameters": [
+                    {
+                        "description": "Message request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.ConversationMessageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "AI response",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-responses_ConversationMessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "Conversation not owned by user",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Conversation not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ai/conversation/start": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Initialize a new conversational session with the AI for personalized recommendations",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ai"
+                ],
+                "summary": "Start a new AI conversation for recommendations",
+                "parameters": [
+                    {
+                        "description": "Conversation initialization request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.StartConversationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Conversation started",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-responses_ConversationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ai/recommendations": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get content recommendations from an AI service",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ai"
+                ],
+                "summary": "Get AI-powered content recommendations",
+                "parameters": [
+                    {
+                        "description": "Recommendation request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.AiRecommendationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Recommendation response",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-responses_AiRecommendationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/auth/login": {
             "post": {
                 "description": "Authenticates a user with email and password",
@@ -778,7 +778,1048 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/client/{clientID}/media/album/{clientItemId}/tracks": {
+        "/api/v1/client/media/multi": {
+            "get": {
+                "description": "Retrieves media items associated with any of the specified clients",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "media",
+                    "clients"
+                ],
+                "summary": "Get media items from multiple clients",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Comma-separated list of client IDs",
+                        "name": "clientIds",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Media items retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/media/search": {
+            "get": {
+                "description": "Searches for media items across multiple clients based on query parameters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "media",
+                    "clients"
+                ],
+                "summary": "Search for media items across multiple clients",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated list of client IDs",
+                        "name": "clientIds",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Media type filter",
+                        "name": "type",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Media items retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-map_string_array_models_MediaItem-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/media/sync": {
+            "post": {
+                "description": "Creates or updates a mapping between a media item and a target client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "media",
+                    "clients"
+                ],
+                "summary": "Sync a media item between clients",
+                "parameters": [
+                    {
+                        "description": "Sync request with source and target client info",
+                        "name": "syncRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Item synced successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Media item not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/automation/calendar": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves calendar events from the automation client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "automation",
+                    "clients"
+                ],
+                "summary": "Get calendar from automation client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Start date (YYYY-MM-DD)",
+                        "name": "start",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "End date (YYYY-MM-DD)",
+                        "name": "end",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Calendar events retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.EmptyAPIResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID or dates",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/automation/command": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Executes a command on the automation client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "automation",
+                    "clients"
+                ],
+                "summary": "Execute command on automation client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Command details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.AutomationExecuteCommandRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Command execution response",
+                        "schema": {
+                            "$ref": "#/definitions/responses.AutomationExecuteCommandResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/automation/item": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Adds a new media item to the automation client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "automation",
+                    "clients"
+                ],
+                "summary": "Add media to automation client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Media details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.AddMediaRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Media added",
+                        "schema": {
+                            "$ref": "#/definitions/responses.EmptyAPIResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/automation/item/{itemID}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a specific media item from the automation client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "automation",
+                    "clients"
+                ],
+                "summary": "Get media by ID from automation client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Media Item ID",
+                        "name": "itemID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Media retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.EmptyAPIResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client or media ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates an existing media item in the automation client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "automation",
+                    "clients"
+                ],
+                "summary": "Update media in automation client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Media Item ID",
+                        "name": "itemID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Media details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.UpdateMediaRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Media updated",
+                        "schema": {
+                            "$ref": "#/definitions/responses.EmptyAPIResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes a media item from the automation client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "automation",
+                    "clients"
+                ],
+                "summary": "Delete media from automation client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Item ID",
+                        "name": "itemID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Media deleted",
+                        "schema": {
+                            "$ref": "#/definitions/responses.EmptyAPIResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client or media ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/automation/library": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all library items from the automation client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "automation",
+                    "clients"
+                ],
+                "summary": "Get library items from automation client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort by",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort order",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Library items retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.EmptyAPIResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/automation/profiles/metadata": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all metadata profiles from the automation client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "automation",
+                    "clients"
+                ],
+                "summary": "Get metadata profiles from automation client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Metadata profiles retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.EmptyAPIResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/automation/profiles/quality": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all quality profiles from the automation client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "automation",
+                    "clients"
+                ],
+                "summary": "Get quality profiles from automation client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Quality profiles retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.EmptyAPIResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/automation/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Searches for media items in the automation client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "automation",
+                    "clients"
+                ],
+                "summary": "Search media in automation client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Search results",
+                        "schema": {
+                            "$ref": "#/definitions/responses.EmptyAPIResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID or query",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/automation/status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves system status information from the automation client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "automation",
+                    "clients"
+                ],
+                "summary": "Get automation client system status",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "System status retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.EmptyAPIResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/automation/tags": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all tags from the automation client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "automation",
+                    "clients"
+                ],
+                "summary": "Get tags from automation client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tags retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.EmptyAPIResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new tag in the automation client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "automation",
+                    "clients"
+                ],
+                "summary": "Create tag in automation client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Tag details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.CreateTagRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Tag created",
+                        "schema": {
+                            "$ref": "#/definitions/responses.EmptyAPIResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/media/album/item/{clientItemID}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a specific music album from the client by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "music",
+                    "clients"
+                ],
+                "summary": "Get album by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Album ID",
+                        "name": "albumID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Album retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Album"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/media/album/{clientItemID}/tracks": {
             "get": {
                 "security": [
                     {
@@ -793,7 +1834,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "clients"
                 ],
                 "summary": "Get artist by ID",
                 "parameters": [
@@ -840,6 +1882,764 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/client/{clientID}/media/item/{itemID}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes a media item from a client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "media",
+                    "clients"
+                ],
+                "summary": "Delete a media item from a client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Item ID",
+                        "name": "itemID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Item deleted",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/media/movies/actor/{actor}": {
+            "get": {
+                "description": "Retrieves movies featuring a specific actor",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "client"
+                ],
+                "summary": "Get movies by actor",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Actor name",
+                        "name": "actor",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of movies to return (default 20)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Movie not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/media/movies/director/{director}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves movies from all connected clients directed by the specified director",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "client"
+                ],
+                "summary": "Get movies by director",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Director name",
+                        "name": "director",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/media/movies/genre/{genre}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves movies from all connected clients that match the specified genre",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "client"
+                ],
+                "summary": "Get movies by genre",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Genre name",
+                        "name": "genre",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/media/movies/latest/{count}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves the most recently added movies from all connected clients",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "client"
+                ],
+                "summary": "Get latest added movies",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of movies to retrieve",
+                        "name": "count",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid count format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/media/movies/popular/{count}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves the most popular movies from all connected clients",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "client"
+                ],
+                "summary": "Get popular movies",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of movies to retrieve",
+                        "name": "count",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid count format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/media/movies/rating": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves movies from all connected clients with ratings in the specified range",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "client"
+                ],
+                "summary": "Get movies by rating range",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "description": "Minimum rating (e.g. 7.5)",
+                        "name": "min",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Maximum rating (e.g. 10.0)",
+                        "name": "max",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid rating format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/media/movies/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Searches for movies across all connected clients matching the query",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Search for movies",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing search query",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/media/movies/top-rated/{count}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves the highest rated movies from all connected clients",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "client"
+                ],
+                "summary": "Get top rated movies",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of movies to retrieve",
+                        "name": "count",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid count format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/media/movies/year/{year}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves movies from all connected clients that were released in the specified year",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "client"
+                ],
+                "summary": "Get movies by release year",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Release year",
+                        "name": "year",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid year",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/media/movies/{movieID}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a specific movie from the client by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "client"
+                ],
+                "summary": "Get movie by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Movie ID",
+                        "name": "movieID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/media/movies/{source}/{externalID}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a movie from all connected clients by external ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "client"
+                ],
+                "summary": "Get movie by external ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source",
+                        "name": "source",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "External ID",
+                        "name": "externalID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/client/{clientID}/media/music/albums/favorites": {
             "get": {
                 "security": [
@@ -855,7 +2655,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "clients"
                 ],
                 "summary": "Get favorite albums",
                 "parameters": [
@@ -916,7 +2717,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "clients"
                 ],
                 "summary": "Get albums by genre",
                 "parameters": [
@@ -950,6 +2752,62 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/client/{clientID}/media/music/albums/latest/{count}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves the most recently added albums",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "music",
+                    "clients"
+                ],
+                "summary": "Get latest albums by added date",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of albums to retrieve",
+                        "name": "count",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Albums retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Album"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid count",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/client/{clientID}/media/music/albums/popular/{count}": {
             "get": {
                 "security": [
@@ -965,7 +2823,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "clients"
                 ],
                 "summary": "Get popular albums",
                 "parameters": [
@@ -1027,7 +2886,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "clients"
                 ],
                 "summary": "Get top albums from a client",
                 "parameters": [
@@ -1095,7 +2955,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "clients"
                 ],
                 "summary": "Get albums by release year",
                 "parameters": [
@@ -1150,7 +3011,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "clients"
                 ],
                 "summary": "Get favorite artists from a client",
                 "parameters": [
@@ -1218,7 +3080,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "clients"
                 ],
                 "summary": "Get artists by genre",
                 "parameters": [
@@ -1280,7 +3143,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "clients"
                 ],
                 "summary": "Get popular artists",
                 "parameters": [
@@ -1342,7 +3206,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "clients"
                 ],
                 "summary": "Get top artists from a client",
                 "parameters": [
@@ -1395,6 +3260,69 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/client/{clientID}/media/music/artists/{artistID}/albums": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all albums for a specific artist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "music",
+                    "clients"
+                ],
+                "summary": "Get albums by artist",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Artist ID",
+                        "name": "artistID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Albums retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Album"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/client/{clientID}/media/music/artists/{artistID}/similar": {
             "get": {
                 "security": [
@@ -1410,7 +3338,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "clients"
                 ],
                 "summary": "Get similar artists",
                 "parameters": [
@@ -1478,7 +3407,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "clients"
                 ],
                 "summary": "Search music (artists, albums, tracks)",
                 "parameters": [
@@ -1540,7 +3470,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "clients"
                 ],
                 "summary": "Get favorite tracks",
                 "parameters": [
@@ -1601,7 +3532,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "clients"
                 ],
                 "summary": "Get tracks by genre",
                 "parameters": [
@@ -1650,7 +3582,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "clients"
                 ],
                 "summary": "Get recently added tracks from a client",
                 "parameters": [
@@ -1718,7 +3651,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "clients"
                 ],
                 "summary": "Get recently played tracks",
                 "parameters": [
@@ -1779,7 +3713,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "clients"
                 ],
                 "summary": "Get top tracks from a client",
                 "parameters": [
@@ -1847,7 +3782,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "clients"
                 ],
                 "summary": "Get similar tracks",
                 "parameters": [
@@ -1915,7 +3851,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "series"
+                    "series",
+                    "clients"
                 ],
                 "summary": "Get series by actor",
                 "parameters": [
@@ -1964,7 +3901,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "series"
+                    "series",
+                    "clients"
                 ],
                 "summary": "Get series by creator",
                 "parameters": [
@@ -2013,7 +3951,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "series"
+                    "series",
+                    "clients"
                 ],
                 "summary": "Get series by genre",
                 "parameters": [
@@ -2069,7 +4008,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "series"
+                    "series",
+                    "clients"
                 ],
                 "summary": "Get latest series by added date",
                 "parameters": [
@@ -2124,7 +4064,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "series"
+                    "series",
+                    "clients"
                 ],
                 "summary": "Get popular series",
                 "parameters": [
@@ -2179,7 +4120,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "series"
+                    "series",
+                    "clients"
                 ],
                 "summary": "Get series by rating range",
                 "parameters": [
@@ -2241,7 +4183,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "series"
+                    "series",
+                    "clients"
                 ],
                 "summary": "Search series",
                 "parameters": [
@@ -2296,7 +4239,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "series"
+                    "series",
+                    "clients"
                 ],
                 "summary": "Get top rated series",
                 "parameters": [
@@ -2351,7 +4295,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "series"
+                    "series",
+                    "clients"
                 ],
                 "summary": "Get series by release year",
                 "parameters": [
@@ -2406,7 +4351,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "series"
+                    "series",
+                    "clients"
                 ],
                 "summary": "Get series by ID",
                 "parameters": [
@@ -2468,7 +4414,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "series"
+                    "series",
+                    "clients"
                 ],
                 "summary": "Get seasons for a series",
                 "parameters": [
@@ -2515,14 +4462,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/client/{clientID}/movies/actor/{actor}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves movies from all connected clients featuring the specified actor",
+        "/api/v1/client/{clientID}/media/{id}": {
+            "put": {
+                "description": "Updates a client media item in the database by ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -2530,208 +4472,59 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "media",
+                    "clients"
                 ],
-                "summary": "Get movies by actor",
+                "summary": "Update an existing client media item",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Actor name",
-                        "name": "actor",
+                        "type": "integer",
+                        "description": "Media item ID",
+                        "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Media item data to update",
+                        "name": "mediaItem",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.MediaItem-any"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Movies retrieved",
+                        "description": "Media item updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientID}/movies/director/{director}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves movies from all connected clients directed by the specified director",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies"
-                ],
-                "summary": "Get movies by director",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Director name",
-                        "name": "director",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientID}/movies/genre/{genre}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves movies from all connected clients that match the specified genre",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies"
-                ],
-                "summary": "Get movies by genre",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Genre name",
-                        "name": "genre",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientID}/movies/rating": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves movies from all connected clients with ratings in the specified range",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies"
-                ],
-                "summary": "Get movies by rating range",
-                "parameters": [
-                    {
-                        "type": "number",
-                        "description": "Minimum rating (e.g. 7.5)",
-                        "name": "min",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "number",
-                        "description": "Maximum rating (e.g. 10.0)",
-                        "name": "max",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-any"
                         }
                     },
                     "400": {
-                        "description": "Invalid rating format",
+                        "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "404": {
+                        "description": "Media item not found",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
                         }
                     }
                 }
             }
         },
-        "/api/v1/client/{clientID}/movies/search": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Searches for movies across all connected clients matching the query",
+        "/api/v1/client/{clientID}/media/{mediaType}": {
+            "post": {
+                "description": "Creates a new media item in the database with client association",
                 "consumes": [
                     "application/json"
                 ],
@@ -2739,78 +4532,46 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "media",
+                    "clients"
                 ],
-                "summary": "Search for movies",
+                "summary": "Create a new media item associated with a client",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Search query",
-                        "name": "q",
-                        "in": "query",
-                        "required": true
+                        "description": "Media item data with type, client info, and type-specific data",
+                        "name": "mediaItem",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.MediaItem-any"
+                        }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
+                    "201": {
+                        "description": "Media item created successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-any"
                         }
                     },
                     "400": {
-                        "description": "Missing search query",
+                        "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
                         }
                     }
                 }
             }
         },
-        "/api/v1/client/{clientID}/movies/year/{year}": {
+        "/api/v1/client/{clientID}/user-data/{mediaType}": {
             "get": {
-                "responses": {
-                    "400": {
-                        "description": "Invalid year",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/media/album/item/{clientItemId}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves a specific music album from the client by ID",
+                "description": "Retrieves user media item data for synchronization with a client",
                 "consumes": [
                     "application/json"
                 ],
@@ -2818,9 +4579,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "user-data",
+                    "clients"
                 ],
-                "summary": "Get album by ID",
+                "summary": "Get user media item data for a client",
                 "parameters": [
                     {
                         "type": "integer",
@@ -2831,35 +4593,1010 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Album ID",
-                        "name": "albumID",
+                        "description": "Media type like movie, series, track, etc.",
+                        "name": "mediaType",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID (optional, uses authenticated user ID if not provided)",
+                        "name": "userID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Since date (default 24 hours ago)",
+                        "name": "since",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved client media item data",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_UserMediaItemData-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/user-data/{mediaType}/sync": {
+            "post": {
+                "description": "Synchronizes user media item data from an external client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user-data",
+                    "clients"
+                ],
+                "summary": "Synchronize user media item data from a client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID (optional, uses authenticated user ID if not provided)",
+                        "name": "userID",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Media item data to synchronize",
+                        "name": "items",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.UserMediaItemDataSyncRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/user-data/{mediaType}/{clientItemID}": {
+            "get": {
+                "description": "Retrieves user media item data for a specific user and client item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user-data",
+                    "clients"
+                ],
+                "summary": "Get user media item data by client ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Client Item ID",
+                        "name": "clientItemID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID (optional, uses authenticated user ID if not provided)",
+                        "name": "userID",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved user media item data",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_UserMediaItemData-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/user-data/{mediaType}/{clientItemID}/play": {
+            "post": {
+                "description": "Records a play event from a client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user-data",
+                    "clients"
+                ],
+                "summary": "Record a client play event",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Client Item ID",
+                        "name": "clientItemID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID (optional, uses authenticated user ID if not provided)",
+                        "name": "userID",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Media play information",
+                        "name": "mediaPlay",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.UserMediaItemDataRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Play event recorded successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_UserMediaItemData-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/user-data/{mediaType}/{clientItemID}/state": {
+            "get": {
+                "description": "Retrieves the current playback state for a client item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user-data",
+                    "clients"
+                ],
+                "summary": "Get playback state for a client item",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID (optional, uses authenticated user ID if not provided)",
+                        "name": "userID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Client Item ID",
+                        "name": "clientItemID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Media type like movie, series, track, etc.",
+                        "name": "mediaType",
                         "in": "path",
                         "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Album retrieved",
+                        "description": "Successfully retrieved playback state",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Album"
+                            "$ref": "#/definitions/responses.APIResponse-models_UserMediaItemData-suasor_clients_media_types_Movie"
                         }
                     },
                     "400": {
-                        "description": "Invalid client ID",
+                        "description": "Bad request",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Updates the playback state for a client item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user-data",
+                    "clients"
+                ],
+                "summary": "Update playback state for a client item",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID (optional, uses authenticated user ID if not provided)",
+                        "name": "userID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Client Item ID",
+                        "name": "clientItemID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Playback state information",
+                        "name": "state",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Playback state updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_UserMediaItemData-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/{listType}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all playlists from the client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lists",
+                    "clients"
+                ],
+                "summary": "Get all playlists",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "List type (e.g. 'playlist', 'collection')",
+                        "name": "listType",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of playlists to return",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lists retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Playlist"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new playlist on the specified client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lists",
+                    "clients"
+                ],
+                "summary": "Create a new playlist",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "List type (e.g. 'playlist', 'collection')",
+                        "name": "listType",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "List creation data",
+                        "name": "list",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "List created",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Playlist"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/{listType}/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Searches for playlists matching the given query",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lists",
+                    "clients"
+                ],
+                "summary": "Search playlists",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "List type (e.g. 'playlist', 'collection')",
+                        "name": "listType",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lists found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Playlist"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/{listType}/{listID}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a specific list from the client by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lists",
+                    "clients"
+                ],
+                "summary": "Get list by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "List ID",
+                        "name": "listID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "List type (e.g. 'playlist', 'collection')",
+                        "name": "listType",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Playlist"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates an existing playlist on the specified client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lists",
+                    "clients"
+                ],
+                "summary": "Update a playlist",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "List type (e.g. 'playlist', 'collection')",
+                        "name": "listType",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "List ID",
+                        "name": "listID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "List update data",
+                        "name": "list",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List updated",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Playlist"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes a playlist from the specified client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lists",
+                    "clients"
+                ],
+                "summary": "Delete a playlist",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "List type (e.g. 'playlist', 'collection')",
+                        "name": "listType",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "List ID",
+                        "name": "listID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List deleted",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/{listType}/{listID}/items": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Adds a media item to an existing playlist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lists",
+                    "clients"
+                ],
+                "summary": "Add an item to a playlist",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "List type (e.g. 'playlist', 'collection')",
+                        "name": "listType",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "List ID",
+                        "name": "listID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Item to add",
+                        "name": "item",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Item added to playlist",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/{listType}/{playlistID}/items/{itemID}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Removes a media item from an existing playlist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lists",
+                    "clients"
+                ],
+                "summary": "Remove an item from a playlist",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "List ID",
+                        "name": "playlistID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Item ID to remove",
+                        "name": "itemID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Item removed from playlist",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientId}/media": {
+            "get": {
+                "description": "Retrieves all media items for a specific client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "media",
+                    "clients"
+                ],
+                "summary": "Get media items by client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Media type filter",
+                        "name": "type",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Media items retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
                         }
                     }
                 }
@@ -2880,7 +5617,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "clients"
                 ],
                 "summary": "Get track by ID from client",
                 "parameters": [
@@ -2927,6 +5665,136 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/client/{clientId}/media/{mediaType}/{clientItemId}": {
+            "get": {
+                "description": "Retrieves a media item using its client-specific ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "media",
+                    "clients"
+                ],
+                "summary": "Get media item by client-specific ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Client-specific item ID",
+                        "name": "clientItemId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Media type",
+                        "name": "mediaType",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Media item retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Media item not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientId}/media/{mediaType}/{itemId}": {
+            "get": {
+                "description": "Retrieves a media item using its client-specific ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "media",
+                    "clients"
+                ],
+                "summary": "Get media item by client-specific ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Media type",
+                        "name": "mediaType",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Client-specific item ID",
+                        "name": "itemId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Media item retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Media item not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/client/{clientId}/movie/actor/{actor}": {
             "get": {
                 "security": [
@@ -2942,7 +5810,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "clients"
                 ],
                 "summary": "Get movies by actor",
                 "parameters": [
@@ -2991,7 +5860,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "clients"
                 ],
                 "summary": "Get movies by director",
                 "parameters": [
@@ -3027,6 +5897,39 @@ const docTemplate = `{
         },
         "/api/v1/client/{clientId}/movie/external/{source}/{externalID}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a movie from all connected clients by external ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "clients"
+                ],
+                "summary": "Get movie by external ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Source",
+                        "name": "source",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "External ID",
+                        "name": "externalID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Movies retrieved",
@@ -3070,7 +5973,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "clients"
                 ],
                 "summary": "Get movies by genre",
                 "parameters": [
@@ -3119,7 +6023,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "clients"
                 ],
                 "summary": "Get movie by ID",
                 "parameters": [
@@ -3181,7 +6086,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "clients"
                 ],
                 "summary": "Get latest added movies",
                 "parameters": [
@@ -3236,7 +6142,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "clients"
                 ],
                 "summary": "Get popular movies",
                 "parameters": [
@@ -3291,7 +6198,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "clients"
                 ],
                 "summary": "Get movies by rating range",
                 "parameters": [
@@ -3353,7 +6261,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "clients"
                 ],
                 "summary": "Search for movies",
                 "parameters": [
@@ -3408,7 +6317,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "clients"
                 ],
                 "summary": "Get top rated movies",
                 "parameters": [
@@ -3450,7 +6360,39 @@ const docTemplate = `{
         },
         "/api/v1/client/{clientId}/movie/year/{year}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves movies from all connected clients that were released in the specified year",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "clients"
+                ],
+                "summary": "Get movies by release year",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Release year",
+                        "name": "year",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
                     "400": {
                         "description": "Invalid year",
                         "schema": {
@@ -3465,409 +6407,6 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/user-data/{mediaType}": {
-            "get": {
-                "description": "Retrieves user media item data for synchronization with a client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "History"
-                ],
-                "summary": "Get user media item data for a client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Media type like movie, series, track, etc.",
-                        "name": "mediaType",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "User ID (optional, uses authenticated user ID if not provided)",
-                        "name": "userId",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Since date (default 24 hours ago)",
-                        "name": "since",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successfully retrieved client media item data",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_UserMediaItemData-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/user-data/{mediaType}/sync": {
-            "post": {
-                "description": "Synchronizes user media item data from an external client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "History"
-                ],
-                "summary": "Synchronize user media item data from a client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "User ID (optional, uses authenticated user ID if not provided)",
-                        "name": "userId",
-                        "in": "query"
-                    },
-                    {
-                        "description": "Media item data to synchronize",
-                        "name": "items",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/requests.UserMediaItemDataSyncRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/user-data/{mediaType}/{clientItemId}": {
-            "get": {
-                "description": "Retrieves user media item data for a specific user and client item",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "History"
-                ],
-                "summary": "Get user media item data by client ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Client Item ID",
-                        "name": "clientItemId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "User ID (optional, uses authenticated user ID if not provided)",
-                        "name": "userId",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successfully retrieved user media item data",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_UserMediaItemData-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "404": {
-                        "description": "Not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/user-data/{mediaType}/{clientItemId}/play": {
-            "post": {
-                "description": "Records a play event from a client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "History"
-                ],
-                "summary": "Record a client play event",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Client Item ID",
-                        "name": "clientItemId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "User ID (optional, uses authenticated user ID if not provided)",
-                        "name": "userId",
-                        "in": "query"
-                    },
-                    {
-                        "description": "Media play information",
-                        "name": "mediaPlay",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/requests.UserMediaItemDataRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Play event recorded successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_UserMediaItemData-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/user-data/{mediaType}/{clientItemId}/state": {
-            "get": {
-                "description": "Retrieves the current playback state for a client item",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "History"
-                ],
-                "summary": "Get playback state for a client item",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID (optional, uses authenticated user ID if not provided)",
-                        "name": "userId",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Client Item ID",
-                        "name": "clientItemId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Media type like movie, series, track, etc.",
-                        "name": "mediaType",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successfully retrieved playback state",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_UserMediaItemData-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "404": {
-                        "description": "Not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Updates the playback state for a client item",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "History"
-                ],
-                "summary": "Update playback state for a client item",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID (optional, uses authenticated user ID if not provided)",
-                        "name": "userId",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Client Item ID",
-                        "name": "clientItemId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Playback state information",
-                        "name": "state",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Playback state updated successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_UserMediaItemData-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
                         }
@@ -5359,7 +7898,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "core"
                 ],
                 "summary": "Get movies by actor",
                 "parameters": [
@@ -5399,7 +7939,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/media/movie/client/{clientId}/item/{clientItemId}": {
+        "/api/v1/media/movie/client/{clientID}/item/{clientItemID}": {
             "get": {
                 "description": "Retrieves movies associated with a specific client",
                 "consumes": [
@@ -5409,21 +7949,22 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "core"
                 ],
                 "summary": "Get movies by client-specific ID",
                 "parameters": [
                     {
                         "type": "integer",
                         "description": "Client ID",
-                        "name": "clientId",
+                        "name": "clientID",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "Client Item ID",
-                        "name": "clientItemId",
+                        "name": "clientItemID",
                         "in": "path",
                         "required": true
                     },
@@ -5472,7 +8013,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "core"
                 ],
                 "summary": "Get movies by director",
                 "parameters": [
@@ -5522,7 +8064,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "core"
                 ],
                 "summary": "Get movies by genre",
                 "parameters": [
@@ -5572,7 +8115,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "core"
                 ],
                 "summary": "Get latest added movies",
                 "parameters": [
@@ -5615,7 +8159,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "core"
                 ],
                 "summary": "Get popular movies",
                 "parameters": [
@@ -5652,7 +8197,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "core"
                 ],
                 "summary": "Get movies by rating",
                 "parameters": [
@@ -5702,7 +8248,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "core"
                 ],
                 "summary": "Get recently added movies",
                 "parameters": [
@@ -5745,7 +8292,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "core"
                 ],
                 "summary": "Search movies",
                 "parameters": [
@@ -5795,7 +8343,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "core"
                 ],
                 "summary": "Get top rated movies",
                 "parameters": [
@@ -5832,7 +8381,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "core"
                 ],
                 "summary": "Get movies by year",
                 "parameters": [
@@ -5882,7 +8432,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "core"
                 ],
                 "summary": "Get movie by ID",
                 "parameters": [
@@ -5932,7 +8483,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "movies"
+                    "movies",
+                    "core"
                 ],
                 "summary": "Get all movies",
                 "parameters": [
@@ -6237,7 +8789,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "core"
                 ],
                 "summary": "Get latest albums by added date",
                 "parameters": [
@@ -6286,7 +8839,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "core"
                 ],
                 "summary": "Get popular albums",
                 "parameters": [
@@ -6329,14 +8883,15 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "core"
                 ],
                 "summary": "Get top albums",
                 "parameters": [
                     {
                         "type": "integer",
                         "description": "User ID",
-                        "name": "userId",
+                        "name": "userID",
                         "in": "query",
                         "required": true
                     },
@@ -6379,7 +8934,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "core"
                 ],
                 "summary": "Get albums by release year",
                 "parameters": [
@@ -6419,7 +8975,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/media/music/albums/{id}": {
+        "/api/v1/media/music/albums/{albumID}": {
             "get": {
                 "description": "Retrieves an album by its ID",
                 "consumes": [
@@ -6429,14 +8985,15 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "core"
                 ],
                 "summary": "Get album by ID",
                 "parameters": [
                     {
                         "type": "integer",
                         "description": "Album ID",
-                        "name": "id",
+                        "name": "albumID",
                         "in": "path",
                         "required": true
                     }
@@ -6479,7 +9036,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "core"
                 ],
                 "summary": "Get tracks by album ID",
                 "parameters": [
@@ -6519,100 +9077,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/media/music/artists/popular": {
-            "get": {
-                "description": "Retrieves the most popular artists based on play count, ratings, etc.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "music"
-                ],
-                "summary": "Get popular artists",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Maximum number of artists to return (default 10)",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Artists retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Artist"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/media/music/artists/{id}": {
-            "get": {
-                "description": "Retrieves an artist by their ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "music"
-                ],
-                "summary": "Get artist by ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Artist ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Artist retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Artist"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "Artist not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/media/music/artists/{id}/albums": {
+        "/api/v1/media/music/artist/{artistID}/albums": {
             "get": {
                 "description": "Retrieves all albums for a specific artist",
                 "consumes": [
@@ -6622,14 +9087,15 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "core"
                 ],
                 "summary": "Get albums by artist ID",
                 "parameters": [
                     {
                         "type": "integer",
                         "description": "Artist ID",
-                        "name": "id",
+                        "name": "artistID",
                         "in": "path",
                         "required": true
                     }
@@ -6662,7 +9128,65 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/media/music/artists/{id}/similar": {
+        "/api/v1/media/music/artist/{id}/albums": {
+            "get": {
+                "description": "Retrieves all albums for a specific artist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "music",
+                    "core"
+                ],
+                "summary": "Get albums for an artist",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Artist ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "userID",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Albums retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Album"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Artist not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/media/music/artist/{id}/similar": {
             "get": {
                 "description": "Retrieves the similar artists to a specific artist",
                 "consumes": [
@@ -6672,7 +9196,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "core"
                 ],
                 "summary": "Get similar artists",
                 "parameters": [
@@ -6686,7 +9211,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "User ID",
-                        "name": "userId",
+                        "name": "userID",
                         "in": "query",
                         "required": true
                     }
@@ -6696,6 +9221,101 @@ const docTemplate = `{
                         "description": "Similar artists retrieved successfully",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Artist"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Artist not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/media/music/artists/popular": {
+            "get": {
+                "description": "Retrieves the most popular artists based on play count, ratings, etc.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "music",
+                    "core"
+                ],
+                "summary": "Get popular artists",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of artists to return (default 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Artists retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Artist"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/media/music/artists/{artistID}": {
+            "get": {
+                "description": "Retrieves an artist by their ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "music",
+                    "core"
+                ],
+                "summary": "Get artist by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Artist ID",
+                        "name": "artistID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Artist retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Artist"
                         }
                     },
                     "400": {
@@ -6729,7 +9349,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "core"
                 ],
                 "summary": "Get genre recommendations",
                 "parameters": [
@@ -6773,7 +9394,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "core"
                 ],
                 "summary": "Get albums by genre",
                 "parameters": [
@@ -6823,7 +9445,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "core"
                 ],
                 "summary": "Get artists by genre",
                 "parameters": [
@@ -6873,7 +9496,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "core"
                 ],
                 "summary": "Get tracks by genre",
                 "parameters": [
@@ -6923,14 +9547,15 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "core"
                 ],
                 "summary": "Get recently added music",
                 "parameters": [
                     {
                         "type": "integer",
                         "description": "User ID",
-                        "name": "userId",
+                        "name": "userID",
                         "in": "query",
                         "required": true
                     },
@@ -6973,7 +9598,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "core"
                 ],
                 "summary": "Search music",
                 "parameters": [
@@ -7019,6 +9645,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/media/music/track/{itemID}": {
+            "get": {
+                "description": "Retrieves a track by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "music",
+                    "core"
+                ],
+                "summary": "Get track by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Track ID",
+                        "name": "itemID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Track retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Track"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Track not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/media/music/tracks/recently-added": {
             "get": {
                 "description": "Retrieves tracks that were recently added to the library",
@@ -7029,14 +9706,15 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "core"
                 ],
                 "summary": "Get recently added tracks",
                 "parameters": [
                     {
                         "type": "integer",
                         "description": "User ID",
-                        "name": "userId",
+                        "name": "userID",
                         "in": "query",
                         "required": true
                     },
@@ -7085,14 +9763,15 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "core"
                 ],
                 "summary": "Get top tracks",
                 "parameters": [
                     {
                         "type": "integer",
                         "description": "User ID",
-                        "name": "userId",
+                        "name": "userID",
                         "in": "query",
                         "required": true
                     },
@@ -7125,56 +9804,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/media/music/tracks/{id}": {
-            "get": {
-                "description": "Retrieves a track by its ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "music"
-                ],
-                "summary": "Get track by ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Track ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Track retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Track"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "Track not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/media/music/tracks/{id}/similar": {
             "get": {
                 "description": "Retrieves tracks similar to a specific track",
@@ -7185,7 +9814,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "music"
+                    "music",
+                    "core"
                 ],
                 "summary": "Get similar tracks",
                 "parameters": [
@@ -7503,7 +10133,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "series"
+                    "series",
+                    "core"
                 ],
                 "summary": "Get series in progress",
                 "parameters": [
@@ -7553,7 +10184,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "series"
+                    "series",
+                    "core"
                 ],
                 "summary": "Get series by creator",
                 "parameters": [
@@ -7609,7 +10241,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "series"
+                    "series",
+                    "core"
                 ],
                 "summary": "Get series by network",
                 "parameters": [
@@ -7665,7 +10298,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "series"
+                    "series",
+                    "core"
                 ],
                 "summary": "Get next episodes to watch",
                 "parameters": [
@@ -7715,7 +10349,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "series"
+                    "series",
+                    "core"
                 ],
                 "summary": "Get recently aired episodes",
                 "parameters": [
@@ -7771,7 +10406,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "series"
+                    "series",
+                    "core"
                 ],
                 "summary": "Get all episodes for a series",
                 "parameters": [
@@ -7828,7 +10464,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "series"
+                    "series",
+                    "core"
                 ],
                 "summary": "Get seasons for a series",
                 "parameters": [
@@ -7885,7 +10522,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "series"
+                    "series",
+                    "core"
                 ],
                 "summary": "Get episodes for a season",
                 "parameters": [
@@ -7949,7 +10587,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "media"
+                    "media",
+                    "core"
                 ],
                 "summary": "Get media items by type",
                 "parameters": [
@@ -8052,7 +10691,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/media/{mediaType}/client/{clientId}": {
+        "/api/v1/media/{mediaType}/client/{clientID}": {
             "get": {
                 "description": "Retrieves media items associated with a specific client",
                 "consumes": [
@@ -8062,14 +10701,15 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "media"
+                    "media",
+                    "core"
                 ],
                 "summary": "Get media items by client",
                 "parameters": [
                     {
                         "type": "integer",
                         "description": "Client ID",
-                        "name": "clientId",
+                        "name": "clientID",
                         "in": "path",
                         "required": true
                     },
@@ -8119,7 +10759,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "media"
+                    "media",
+                    "core"
                 ],
                 "summary": "Get media item by external source ID",
                 "parameters": [
@@ -8183,7 +10824,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "media"
+                    "media",
+                    "core"
                 ],
                 "summary": "Get media item by external ID",
                 "parameters": [
@@ -8247,7 +10889,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "media"
+                    "media",
+                    "core"
                 ],
                 "summary": "Get media items by genre",
                 "parameters": [
@@ -8304,7 +10947,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "media"
+                    "media",
+                    "core"
                 ],
                 "summary": "Get latest added media items",
                 "parameters": [
@@ -8348,14 +10992,15 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "media"
+                    "media",
+                    "core"
                 ],
                 "summary": "Get most played media items",
                 "parameters": [
                     {
                         "type": "integer",
                         "description": "User ID",
-                        "name": "userId",
+                        "name": "userID",
                         "in": "query"
                     },
                     {
@@ -8388,7 +11033,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/media/{mediaType}/person/{personId}": {
+        "/api/v1/media/{mediaType}/person/{personID}": {
             "get": {
                 "description": "Retrieves media items associated with a specific person (actor, director, etc.)",
                 "consumes": [
@@ -8398,14 +11043,15 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "media"
+                    "media",
+                    "core"
                 ],
                 "summary": "Get media items by person",
                 "parameters": [
                     {
                         "type": "integer",
                         "description": "Person ID",
-                        "name": "personId",
+                        "name": "personID",
                         "in": "path",
                         "required": true
                     },
@@ -8461,7 +11107,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "media"
+                    "media",
+                    "core"
                 ],
                 "summary": "Get popular media items",
                 "parameters": [
@@ -8505,7 +11152,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "media"
+                    "media",
+                    "core"
                 ],
                 "summary": "Get media items by rating",
                 "parameters": [
@@ -8562,7 +11210,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "media"
+                    "media",
+                    "core"
                 ],
                 "summary": "Get recently added media items",
                 "parameters": [
@@ -8612,7 +11261,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "media"
+                    "media",
+                    "core"
                 ],
                 "summary": "Search media items",
                 "parameters": [
@@ -8675,7 +11325,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "media"
+                    "media",
+                    "core"
                 ],
                 "summary": "Get top rated media items",
                 "parameters": [
@@ -8781,7 +11432,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "media"
+                    "media",
+                    "core"
                 ],
                 "summary": "Get media items by release year",
                 "parameters": [
@@ -8838,7 +11490,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "media"
+                    "media",
+                    "core"
                 ],
                 "summary": "Get media item by ID",
                 "parameters": [
@@ -8993,61 +11646,6 @@ const docTemplate = `{
                         "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/music/albums/latest/{count}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves the most recently added albums",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "music"
-                ],
-                "summary": "Get latest albums by added date",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Number of albums to retrieve",
-                        "name": "count",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Albums retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Album"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid count",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-error"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-error"
                         }
                     }
                 }
@@ -10738,7 +13336,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserMediaItemData"
+                    "user-data",
+                    "core"
                 ],
                 "summary": "Get a specific user media item data entry by ID",
                 "parameters": [
@@ -10780,7 +13379,7 @@ const docTemplate = `{
         },
         "/api/v1/user-data/{mediaType}/clear": {
             "delete": {
-                "description": "Delete all play history entries for a user",
+                "description": "Delete all play user-data entries for a user",
                 "consumes": [
                     "application/json"
                 ],
@@ -10788,9 +13387,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "History"
+                    "user-data"
                 ],
-                "summary": "Clear a user's play history",
+                "summary": "Clear a user's play user-data",
                 "parameters": [
                     {
                         "type": "integer",
@@ -10844,7 +13443,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "History"
+                    "user-data"
                 ],
                 "summary": "Get a user's continue watching list",
                 "parameters": [
@@ -10905,7 +13504,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "History"
+                    "user-data"
                 ],
                 "summary": "Get a user's favorite media items",
                 "parameters": [
@@ -10965,7 +13564,7 @@ const docTemplate = `{
         },
         "/api/v1/user-data/{mediaType}/history": {
             "get": {
-                "description": "Get a user's media play history with optional filtering",
+                "description": "Get a user's media play user-data with optional filtering",
                 "consumes": [
                     "application/json"
                 ],
@@ -10973,9 +13572,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "History"
+                    "user-data"
                 ],
-                "summary": "Get a user's media play history",
+                "summary": "Get a user's media play user-data",
                 "parameters": [
                     {
                         "type": "integer",
@@ -11004,7 +13603,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Successfully retrieved play history",
+                        "description": "Successfully retrieved play user-data",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse-array_models_UserMediaItemData-suasor_clients_media_types_Movie"
                         }
@@ -11032,7 +13631,7 @@ const docTemplate = `{
         },
         "/api/v1/user-data/{mediaType}/recent": {
             "get": {
-                "description": "Get a user's recent media history",
+                "description": "Get a user's recent media user-data",
                 "consumes": [
                     "application/json"
                 ],
@@ -11040,9 +13639,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "History"
+                    "user-data"
                 ],
-                "summary": "Get a user's recent media history",
+                "summary": "Get a user's recent media user-data",
                 "parameters": [
                     {
                         "type": "integer",
@@ -11065,7 +13664,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Successfully retrieved recent history",
+                        "description": "Successfully retrieved recent user-data",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse-array_models_UserMediaItemData-suasor_clients_media_types_Movie"
                         }
@@ -11101,7 +13700,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserMediaItemData"
+                    "user-data",
+                    "core"
                 ],
                 "summary": "Get user media item data for a specific user and media item",
                 "parameters": [
@@ -11162,7 +13762,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserMediaItemData"
+                    "user-data",
+                    "core"
                 ],
                 "summary": "Delete a specific user media item data entry",
                 "parameters": [
@@ -11219,7 +13820,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserMediaItemData"
+                    "user-data",
+                    "core"
                 ],
                 "summary": "Check if a user has data for a specific media item",
                 "parameters": [
@@ -11276,7 +13878,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "History"
+                    "user-data"
                 ],
                 "summary": "Toggle favorite status for a media item",
                 "parameters": [
@@ -11346,7 +13948,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "History"
+                    "user-data"
                 ],
                 "summary": "Update user rating for a media item",
                 "parameters": [
@@ -11416,7 +14018,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "History"
+                    "user-data"
                 ],
                 "summary": "Record a media play event",
                 "parameters": [
@@ -12675,7 +15277,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/{listType}/{listId}": {
+        "/api/v1/{listType}/{listID}": {
             "get": {
                 "description": "Retrieves a specific playlist by ID",
                 "consumes": [
@@ -12692,7 +15294,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "List ID",
-                        "name": "listId",
+                        "name": "listID",
                         "in": "path",
                         "required": true
                     },
@@ -12730,7 +15332,130 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
+            }
+        },
+        "/api/v1/{listType}/{listID}/items": {
+            "get": {
+                "description": "Retrieves all tracks in a specific playlist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lists"
+                ],
+                "summary": "Get tracks in a playlist",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "List ID",
+                        "name": "listID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "List type (e.g. 'playlist', 'collection')",
+                        "name": "listType",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tracks retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_types_Track"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "List not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/{listType}/{listID}/items/{itemID}": {
+            "post": {
+                "description": "Adds a media item to an existing playlist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lists"
+                ],
+                "summary": "Add an item to a playlist",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "List ID",
+                        "name": "listID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Item ID to add",
+                        "name": "itemID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "List type (e.g. 'playlist', 'collection')",
+                        "name": "listType",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Item added to playlist",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "List not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/{listType}/{listId}": {
             "put": {
                 "security": [
                     {
@@ -12808,2254 +15533,6 @@ const docTemplate = `{
                         "description": "Server error",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/{listType}/{listId}/items": {
-            "get": {
-                "description": "Retrieves all tracks in a specific playlist",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "lists"
-                ],
-                "summary": "Get tracks in a playlist",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "List ID",
-                        "name": "listId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "List type (e.g. 'playlist', 'collection')",
-                        "name": "listType",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Tracks retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_types_Track"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "List not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/{listType}/{listId}/items/{itemID}": {
-            "post": {
-                "description": "Adds a media item to an existing playlist",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "lists"
-                ],
-                "summary": "Add an item to a playlist",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "List ID",
-                        "name": "listId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Item ID to add",
-                        "name": "itemID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "List type (e.g. 'playlist', 'collection')",
-                        "name": "listType",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Item added to playlist",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-string"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "List not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/media/multi": {
-            "get": {
-                "description": "Retrieves media items associated with any of the specified clients",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "client-media"
-                ],
-                "summary": "Get media items from multiple clients",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Comma-separated list of client IDs",
-                        "name": "clientIds",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Media items retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-any"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/media/search": {
-            "get": {
-                "description": "Searches for media items across multiple clients based on query parameters",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "client-media"
-                ],
-                "summary": "Search for media items across multiple clients",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Search query",
-                        "name": "q",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Comma-separated list of client IDs",
-                        "name": "clientIds",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Media type filter",
-                        "name": "type",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Media items retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-map_string_array_models_MediaItem-any"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/media/sync": {
-            "post": {
-                "description": "Creates or updates a mapping between a media item and a target client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "client-media"
-                ],
-                "summary": "Sync a media item between clients",
-                "parameters": [
-                    {
-                        "description": "Sync request with source and target client info",
-                        "name": "syncRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Item synced successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-any"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "Media item not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/{clientID}/automation/calendar": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves calendar events from the automation client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "automation"
-                ],
-                "summary": "Get calendar from automation client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Start date (YYYY-MM-DD)",
-                        "name": "start",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "End date (YYYY-MM-DD)",
-                        "name": "end",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Calendar events retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.EmptyAPIResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client ID or dates",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/{clientID}/automation/command": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Executes a command on the automation client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "automation"
-                ],
-                "summary": "Execute command on automation client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Command details",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/requests.AutomationExecuteCommandRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Command execution response",
-                        "schema": {
-                            "$ref": "#/definitions/responses.AutomationExecuteCommandResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/{clientID}/automation/item": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Adds a new media item to the automation client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "automation"
-                ],
-                "summary": "Add media to automation client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Media details",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/requests.AddMediaRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Media added",
-                        "schema": {
-                            "$ref": "#/definitions/responses.EmptyAPIResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/{clientID}/automation/item/{itemID}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves a specific media item from the automation client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "automation"
-                ],
-                "summary": "Get media by ID from automation client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Media Item ID",
-                        "name": "itemID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Media retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.EmptyAPIResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client or media ID",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Updates an existing media item in the automation client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "automation"
-                ],
-                "summary": "Update media in automation client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Media Item ID",
-                        "name": "itemID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Media details",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/requests.UpdateMediaRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Media updated",
-                        "schema": {
-                            "$ref": "#/definitions/responses.EmptyAPIResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Deletes a media item from the automation client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "automation"
-                ],
-                "summary": "Delete media from automation client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Item ID",
-                        "name": "itemID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Media deleted",
-                        "schema": {
-                            "$ref": "#/definitions/responses.EmptyAPIResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client or media ID",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/{clientID}/automation/library": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves all library items from the automation client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "automation"
-                ],
-                "summary": "Get library items from automation client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Limit",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Offset",
-                        "name": "offset",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort by",
-                        "name": "sortBy",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort order",
-                        "name": "sortOrder",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Library items retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.EmptyAPIResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client ID",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/{clientID}/automation/profiles/metadata": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves all metadata profiles from the automation client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "automation"
-                ],
-                "summary": "Get metadata profiles from automation client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Metadata profiles retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.EmptyAPIResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client ID",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/{clientID}/automation/profiles/quality": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves all quality profiles from the automation client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "automation"
-                ],
-                "summary": "Get quality profiles from automation client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Quality profiles retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.EmptyAPIResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client ID",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/{clientID}/automation/search": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Searches for media items in the automation client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "automation"
-                ],
-                "summary": "Search media in automation client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Search query",
-                        "name": "q",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Search results",
-                        "schema": {
-                            "$ref": "#/definitions/responses.EmptyAPIResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client ID or query",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/{clientID}/automation/status": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves system status information from the automation client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "automation"
-                ],
-                "summary": "Get automation client system status",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "System status retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.EmptyAPIResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client ID",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/{clientID}/automation/tags": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves all tags from the automation client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "automation"
-                ],
-                "summary": "Get tags from automation client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Tags retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.EmptyAPIResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client ID",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Creates a new tag in the automation client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "automation"
-                ],
-                "summary": "Create tag in automation client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Tag details",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/requests.CreateTagRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Tag created",
-                        "schema": {
-                            "$ref": "#/definitions/responses.EmptyAPIResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/{clientID}/movies/actor/{actor}": {
-            "get": {
-                "description": "Retrieves movies featuring a specific actor",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies"
-                ],
-                "summary": "Get movies by actor",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Actor name",
-                        "name": "actor",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Maximum number of movies to return (default 20)",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "Movie not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/{clientId}/media": {
-            "get": {
-                "description": "Retrieves all media items for a specific client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "client-media"
-                ],
-                "summary": "Get media items by client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Media type filter",
-                        "name": "type",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Media items retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-any"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client ID",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/{clientId}/media/item/{itemId}": {
-            "get": {
-                "description": "Retrieves a media item using its client-specific ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "client-media"
-                ],
-                "summary": "Get media item by client-specific ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Client-specific item ID",
-                        "name": "itemId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Media item retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-any"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "Media item not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/clients/media/{clientID}/item/{itemID}": {
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Deletes a media item from a client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "client-media"
-                ],
-                "summary": "Delete a media item from a client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Item ID",
-                        "name": "itemID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Item deleted",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-string"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-error"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-error"
-                        }
-                    }
-                }
-            }
-        },
-        "/clients/media/{clientID}/movies/{movieID}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves a specific movie from the client by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies"
-                ],
-                "summary": "Get movie by ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Movie ID",
-                        "name": "movieID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client ID",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/clients/media/{clientID}/movies/{source}/{externalID}": {
-            "get": {
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client ID",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/clients/media/{clientID}/music/artists/{artistID}/albums": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves all albums for a specific artist",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "music"
-                ],
-                "summary": "Get albums by artist",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Artist ID",
-                        "name": "artistID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Albums retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Album"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client ID",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-error"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-error"
-                        }
-                    }
-                }
-            }
-        },
-        "/clients/media/{clientID}/playlists": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves all playlists from the client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "playlists"
-                ],
-                "summary": "Get all playlists",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Maximum number of playlists to return",
-                        "name": "count",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Lists retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Playlist"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client ID",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Creates a new playlist on the specified client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "playlists"
-                ],
-                "summary": "Create a new playlist",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "List creation data",
-                        "name": "playlist",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "List created",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Playlist"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/clients/media/{clientID}/playlists/{playlistID}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves a specific playlist from the client by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "playlists"
-                ],
-                "summary": "Get playlist by ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "List ID",
-                        "name": "playlistID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Playlist"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client ID",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Updates an existing playlist on the specified client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "playlists"
-                ],
-                "summary": "Update a playlist",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "List ID",
-                        "name": "playlistID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "List update data",
-                        "name": "playlist",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List updated",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Playlist"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Deletes a playlist from the specified client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "playlists"
-                ],
-                "summary": "Delete a playlist",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "List ID",
-                        "name": "playlistID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List deleted",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-string"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/clients/media/{clientID}/playlists/{playlistID}/items": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Adds a media item to an existing playlist",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "playlists"
-                ],
-                "summary": "Add an item to a playlist",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "List ID",
-                        "name": "playlistID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Item to add",
-                        "name": "item",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Item added to playlist",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-string"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/clients/media/{clientID}/playlists/{playlistID}/items/{itemID}": {
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Removes a media item from an existing playlist",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "playlists"
-                ],
-                "summary": "Remove an item from a playlist",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "List ID",
-                        "name": "playlistID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Item ID to remove",
-                        "name": "itemID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Item removed from playlist",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-string"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/item/media": {
-            "post": {
-                "description": "Creates a new media item in the database with client association",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "client-media"
-                ],
-                "summary": "Create a new media item associated with a client",
-                "parameters": [
-                    {
-                        "description": "Media item data with type, client info, and type-specific data",
-                        "name": "mediaItem",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Media item created successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-any"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/item/media/{id}": {
-            "put": {
-                "description": "Updates a client media item in the database by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "client-media"
-                ],
-                "summary": "Update an existing client media item",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Media item ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Media item data to update",
-                        "name": "mediaItem",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Media item updated successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-any"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "Media item not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/lists/search": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Searches for playlists matching the given query",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "playlists"
-                ],
-                "summary": "Search playlists",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Search query",
-                        "name": "q",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Lists found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Playlist"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/movies/latest/{count}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves the most recently added movies from all connected clients",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies"
-                ],
-                "summary": "Get latest added movies",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Number of movies to retrieve",
-                        "name": "count",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid count format",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/movies/popular/{count}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves the most popular movies from all connected clients",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies"
-                ],
-                "summary": "Get popular movies",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Number of movies to retrieve",
-                        "name": "count",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid count format",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/movies/top-rated/{count}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves the highest rated movies from all connected clients",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies"
-                ],
-                "summary": "Get top rated movies",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Number of movies to retrieve",
-                        "name": "count",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid count format",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
                         }
                     }
                 }

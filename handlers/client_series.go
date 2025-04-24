@@ -47,7 +47,7 @@ func NewClientSeriesHandler[T clienttypes.ClientMediaConfig](
 // GetSeriesByID godoc
 // @Summary Get series by ID
 // @Description Retrieves a specific TV series from the client by ID
-// @Tags series
+// @Tags series, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -111,7 +111,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByID(c *gin.Context) {
 // GetSeriesByGenre godoc
 // @Summary Get series by genre
 // @Description Retrieves TV series from all connected clients that match the specified genre
-// @Tags series
+// @Tags series, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -163,7 +163,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByGenre(c *gin.Context) {
 // GetSeriesByYear godoc
 // @Summary Get series by release year
 // @Description Retrieves TV series from all connected clients that were released in the specified year
-// @Tags series
+// @Tags series, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -221,7 +221,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByYear(c *gin.Context) {
 // GetSeriesByActor godoc
 // @Summary Get series by actor
 // @Description Retrieves TV series featuring a specific actor
-// @Tags series
+// @Tags series, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -272,7 +272,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByActor(c *gin.Context) {
 // GetSeriesByCreator godoc
 // @Summary Get series by creator
 // @Description Retrieves TV series by a specific creator/director
-// @Tags series
+// @Tags series, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -323,7 +323,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByCreator(c *gin.Context) {
 // GetSeriesByRating godoc
 // @Summary Get series by rating range
 // @Description Retrieves TV series with ratings within the specified range
-// @Tags series
+// @Tags series, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -392,7 +392,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByRating(c *gin.Context) {
 // GetLatestSeriesByAdded godoc
 // @Summary Get latest series by added date
 // @Description Retrieves the most recently added TV series
-// @Tags series
+// @Tags series, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -450,7 +450,7 @@ func (h *clientSeriesHandler[T]) GetLatestSeriesByAdded(c *gin.Context) {
 // GetPopularSeries godoc
 // @Summary Get popular series
 // @Description Retrieves most popular TV series
-// @Tags series
+// @Tags series, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -508,7 +508,7 @@ func (h *clientSeriesHandler[T]) GetPopularSeries(c *gin.Context) {
 // GetTopRatedSeries godoc
 // @Summary Get top rated series
 // @Description Retrieves the highest rated TV series
-// @Tags series
+// @Tags series, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -566,7 +566,7 @@ func (h *clientSeriesHandler[T]) GetTopRatedSeries(c *gin.Context) {
 // SearchSeries godoc
 // @Summary Search series
 // @Description Search for TV series across all connected clients
-// @Tags series
+// @Tags series, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -635,7 +635,7 @@ func (h *clientSeriesHandler[T]) SearchSeries(c *gin.Context) {
 // GetSeasonsBySeriesID godoc
 // @Summary Get seasons for a series
 // @Description Retrieves all seasons for a specific TV series
-// @Tags series
+// @Tags series, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth

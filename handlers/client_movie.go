@@ -53,7 +53,7 @@ func NewClientMovieHandler[T clienttypes.ClientMediaConfig](
 // GetMovieByID godoc
 // @Summary Get movie by ID
 // @Description Retrieves a specific movie from the client by ID
-// @Tags movies
+// @Tags movies, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -117,7 +117,7 @@ func (h *clientMovieHandler[T]) GetClientMovieByID(c *gin.Context) {
 // GetMoviesByGenre godoc
 // @Summary Get movies by genre
 // @Description Retrieves movies from all connected clients that match the specified genre
-// @Tags movies
+// @Tags movies, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -168,13 +168,12 @@ func (h *clientMovieHandler[T]) GetClientMoviesByGenre(c *gin.Context) {
 // GetMoviesByYear godoc
 // @Summary Get movies by release year
 // @Description Retrieves movies from all connected clients that were released in the specified year
-// @Tags movies
+// @Tags movies, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
 // @Param year path int true "Release year"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved"
-
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid year"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
@@ -227,7 +226,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesByYear(c *gin.Context) {
 // GetMoviesByActor godoc
 // @Summary Get movies by actor
 // @Description Retrieves movies from all connected clients featuring the specified actor
-// @Tags movies
+// @Tags movies, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -278,7 +277,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesByActor(c *gin.Context) {
 // GetMoviesByDirector godoc
 // @Summary Get movies by director
 // @Description Retrieves movies from all connected clients directed by the specified director
-// @Tags movies
+// @Tags movies, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -329,7 +328,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesByDirector(c *gin.Context) {
 // GetMoviesByRating godoc
 // @Summary Get movies by rating range
 // @Description Retrieves movies from all connected clients with ratings in the specified range
-// @Tags movies
+// @Tags movies, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -398,7 +397,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesByRating(c *gin.Context) {
 // GetLatestMoviesByAdded godoc
 // @Summary Get latest added movies
 // @Description Retrieves the most recently added movies from all connected clients
-// @Tags movies
+// @Tags movies, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -456,7 +455,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesLatestByAdded(c *gin.Context) {
 // GetPopularMovies godoc
 // @Summary Get popular movies
 // @Description Retrieves the most popular movies from all connected clients
-// @Tags movies
+// @Tags movies, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -514,7 +513,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesPopular(c *gin.Context) {
 // GetTopRatedMovies godoc
 // @Summary Get top rated movies
 // @Description Retrieves the highest rated movies from all connected clients
-// @Tags movies
+// @Tags movies, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -572,7 +571,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesTopRated(c *gin.Context) {
 // SearchMovies godoc
 // @Summary Search for movies
 // @Description Searches for movies across all connected clients matching the query
-// @Tags movies
+// @Tags movies, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -631,16 +630,15 @@ func (h *clientMovieHandler[T]) SearchClientMovies(c *gin.Context) {
 	responses.RespondOK(c, movies, "Movies retrieved successfully")
 }
 
-// GetMovieByExternalID gets a movie by external ID
+// GetMovieByExternalID godoc
 // @Summary Get movie by external ID
 // @Description Retrieves a movie from all connected clients by external ID
-// @Tags movies
+// @Tags movies, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
 // @Param source path int true "Source"
 // @Param externalID path string true "External ID"
-
 // @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Movie]] "Movies retrieved"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
@@ -672,7 +670,7 @@ func createMovieMediaItem[T mediatypes.Movie](clientID uint64, clientType client
 // GetClientByActor godoc
 // @Summary Get movies by actor
 // @Description Retrieves movies featuring a specific actor
-// @Tags movies
+// @Tags movies, clients
 // @Accept json
 // @Produce json
 // @Param actor path string true "Actor name"

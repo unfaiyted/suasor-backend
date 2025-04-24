@@ -54,7 +54,7 @@ func NewCoreSeriesHandler(
 // GetSeasonsBySeriesID godoc
 // @Summary Get seasons for a series
 // @Description Retrieves all seasons for a specific series
-// @Tags series
+// @Tags series, core
 // @Accept json
 // @Produce json
 // @Param id path int true "Series ID"
@@ -113,7 +113,7 @@ func (h *coreSeriesHandler) GetSeasonsBySeriesID(c *gin.Context) {
 // GetEpisodesBySeriesIDAndSeasonNumber godoc
 // @Summary Get episodes for a season
 // @Description Retrieves all episodes for a specific season of a series
-// @Tags series
+// @Tags series, core
 // @Accept json
 // @Produce json
 // @Param id path int true "Series ID"
@@ -201,7 +201,7 @@ func (h *coreSeriesHandler) GetEpisodesBySeriesIDAndSeasonNumber(c *gin.Context)
 // GetContinueWatchingSeries godoc
 // @Summary Get series in progress
 // @Description Retrieves series that are currently in progress (partially watched)
-// @Tags series
+// @Tags series, core
 // @Accept json
 // @Produce json
 // @Param userId query int true "User ID"
@@ -242,7 +242,7 @@ func (h *coreSeriesHandler) GetContinueWatchingSeries(c *gin.Context) {
 // GetAllEpisodes godoc
 // @Summary Get all episodes for a series
 // @Description Retrieves all episodes across all seasons for a specific series
-// @Tags series
+// @Tags series, core
 // @Accept json
 // @Produce json
 // @Param id path int true "Series ID"
@@ -304,7 +304,7 @@ func (h *coreSeriesHandler) GetAllEpisodes(c *gin.Context) {
 // GetNextUpEpisodes godoc
 // @Summary Get next episodes to watch
 // @Description Retrieves the next unwatched episodes for series in progress
-// @Tags series
+// @Tags series, core
 // @Accept json
 // @Produce json
 // @Param userId query int true "User ID"
@@ -347,7 +347,7 @@ func (h *coreSeriesHandler) GetNextUpEpisodes(c *gin.Context) {
 // GetRecentlyAiredEpisodes godoc
 // @Summary Get recently aired episodes
 // @Description Retrieves episodes that have recently aired based on their air date
-// @Tags series
+// @Tags series, core
 // @Accept json
 // @Produce json
 // @Param userId query int true "User ID"
@@ -395,7 +395,7 @@ func (h *coreSeriesHandler) GetRecentlyAiredEpisodes(c *gin.Context) {
 // GetSeriesByNetwork godoc
 // @Summary Get series by network
 // @Description Retrieves series from a specific TV network
-// @Tags series
+// @Tags series, core
 // @Accept json
 // @Produce json
 // @Param network path string true "Network name"
@@ -470,7 +470,7 @@ func (h *coreSeriesHandler) GetSeriesByNetwork(c *gin.Context) {
 // GetSeasonWithEpisodes godoc
 // @Summary Get a season and all its episodes
 // @Description Retrieves a specific season and all its episodes
-// @Tags series
+// @Tags series, core
 // @Accept json
 // @Produce json
 // @Param id path int true "Series ID"
@@ -558,7 +558,7 @@ func (h *coreSeriesHandler) GetSeasonWithEpisodes(c *gin.Context) {
 // GetByCreator godoc
 // @Summary Get series by creator
 // @Description Retrieves series created by a specific creator
-// @Tags series
+// @Tags series, core
 // @Accept json
 // @Produce json
 // @Param creatorId path int true "Creator ID"
@@ -633,7 +633,7 @@ func (h *coreSeriesHandler) GetByCreator(c *gin.Context) {
 // GetEpisodesBySeasonID godoc
 // @Summary Get episodes for a season
 // @Description Retrieves all episodes for a specific season of a series
-// @Tags series
+// @Tags series, core
 // @Accept json
 // @Produce json
 // @Param id path int true "Series ID"

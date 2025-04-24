@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"strconv"
 	clienttypes "suasor/clients/types"
@@ -118,4 +119,25 @@ func checkClientType(c *gin.Context) (clienttypes.ClientType, bool) {
 		return "", false
 	}
 
+}
+
+func checkItemID(c *gin.Context, paramName string) (uint64, error) {
+	ctx := c.Request.Context()
+	log := logger.LoggerFromContext(ctx)
+
+	itemIDStr := c.Param(paramName)
+	if itemIDStr == "" {
+		log.Warn().Msg("Item ID not found in request parameters")
+		responses.RespondBadRequest(c, nil, "Item ID not found in request parameters")
+		return 0, fmt.Errorf("item ID not found in request parameters")
+	}
+
+	itemID, err := strconv.ParseUint(itemIDStr, 10, 64)
+	if err != nil {
+		log.Warn().Err(err).Str(paramName, itemIDStr).Msg("Invalid item ID format")
+		responses.RespondBadRequest(c, err, "Invalid item ID format")
+		return 0, fmt.Errorf("invalid item ID format: %s", itemIDStr)
+	}
+
+	return itemID, nil
 }

@@ -117,7 +117,7 @@ func (h *userMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) {
 		Int("count", len(history)).
 		Msg("Play user-data retrieved successfully")
 
-	responses.RespondOK(c, user-data, "Play history retrieved successfully")
+	responses.RespondOK(c, history, "Play history retrieved successfully")
 }
 
 // GetContinuePlaying godoc
@@ -216,7 +216,7 @@ func (h *userMediaItemDataHandler[T]) GetRecentHistory(c *gin.Context) {
 		Int("count", len(history)).
 		Msg("Recent user-data retrieved successfully")
 
-	responses.RespondOK(c, user-data, "Recent history retrieved successfully")
+	responses.RespondOK(c, history, "Recent history retrieved successfully")
 }
 
 // RecordMediaPlay godoc

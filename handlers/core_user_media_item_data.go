@@ -45,7 +45,7 @@ func (h *coreUserMediaItemDataHandler[T]) Service() services.CoreUserMediaItemDa
 // GetMediaItemDataByID godoc
 // @Summary Get a specific user media item data entry by ID
 // @Description Retrieves a specific user media item data entry by its ID
-// @Tags user-data
+// @Tags user-data, core
 // @Accept json
 // @Produce json
 // @Param id path int true "User Media Item Data ID"
@@ -81,7 +81,7 @@ func (h *coreUserMediaItemDataHandler[T]) GetMediaItemDataByID(c *gin.Context) {
 // CheckUserMediaItemData godoc
 // @Summary Check if a user has data for a specific media item
 // @Description Checks if a user has data for a specific media item
-// @Tags user-data
+// @Tags user-data, core
 // @Accept json
 // @Produce json
 // @Param id path int true "Media Item ID"
@@ -136,7 +136,7 @@ func (h *coreUserMediaItemDataHandler[T]) CheckUserMediaItemData(c *gin.Context)
 // GetUserMediaItemDataByItemID godoc
 // @Summary Get user media item data for a specific user and media item
 // @Description Retrieves user media item data for a specific user and media item
-// @Tags user-data
+// @Tags user-data, core
 // @Accept json
 // @Produce json
 // @Param id path int true "Media Item ID"
@@ -191,7 +191,7 @@ func (h *coreUserMediaItemDataHandler[T]) GetUserMediaItemDataByItemID(c *gin.Co
 // DeleteMediaItemData godoc
 // @Summary Delete a specific user media item data entry
 // @Description Deletes a specific user media item data entry by its ID
-// @Tags user-data
+// @Tags user-data, core
 // @Accept json
 // @Produce json
 // @Param id path int true "User Media Item ID"

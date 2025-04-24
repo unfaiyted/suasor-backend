@@ -45,7 +45,7 @@ func NewAIHandler[T types.AIClientConfig](
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /ai/recommendations [post]
+// @Router /api/v1/ai/recommendations [post]
 func (h *AIHandler[T]) RequestRecommendation(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -104,7 +104,7 @@ func (h *AIHandler[T]) RequestRecommendation(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /ai/analyze [post]
+// @Router /api/v1/ai/analyze [post]
 func (h *AIHandler[T]) AnalyzeContent(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -163,7 +163,7 @@ func (h *AIHandler[T]) AnalyzeContent(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /ai/conversation/start [post]
+// @Router /api/v1/ai/conversation/start [post]
 func (h *AIHandler[T]) StartConversation(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -271,7 +271,7 @@ func (h *AIHandler[T]) getAIClient(ctx context.Context, userID uint64, clientTyp
 // @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Conversation not owned by user"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Conversation not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /ai/conversation/message [post]
+// @Router /api/v1/ai/conversation/message [post]
 func (h *AIHandler[T]) SendConversationMessage(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

@@ -150,7 +150,7 @@ func GetPage(offset, limit int) int {
 func GetListID(c *gin.Context) (uint64, error) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
-	
+
 	// First try path parameter "id" (most common)
 	idStr := c.Param("id")
 	if idStr == "" {
@@ -161,7 +161,7 @@ func GetListID(c *gin.Context) (uint64, error) {
 		// Try path parameter "list_id"
 		idStr = c.Param("list_id")
 	}
-	
+
 	// If still not found in path, check query parameters
 	if idStr == "" {
 		idStr = c.Query("id")
@@ -172,19 +172,50 @@ func GetListID(c *gin.Context) (uint64, error) {
 	if idStr == "" {
 		idStr = c.Query("list_id")
 	}
-	
+
 	// If no ID found in any parameter
 	if idStr == "" {
 		log.Warn().Msg("List ID not found in request parameters")
 		return 0, fmt.Errorf("List ID is required")
 	}
-	
+
 	// Parse the ID as uint64
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
 		log.Warn().Err(err).Str("listId", idStr).Msg("Invalid list ID format")
 		return 0, err
 	}
-	
+
 	return id, nil
+}
+
+// GetDays extracts and validates the days parameter from query parameters
+// If days is not provided or invalid, returns the default value
+// The default value is used when days is not provided, invalid, or outside the allowed range
+func GetDays(c *gin.Context, defaultValue int) int {
+	daysStr := c.Query("days")
+	if daysStr == "" {
+		return defaultValue
+	}
+
+	days, err := strconv.Atoi(daysStr)
+	if err != nil || days < 0 {
+		// Invalid days value, use default
+		return defaultValue
+	}
+
+	return days
+}
+
+func GetRequiredParam(c *gin.Context, paramName string) (string, error) {
+	ctx := c.Request.Context()
+	log := logger.LoggerFromContext(ctx)
+
+	param := c.Param(paramName)
+	if param == "" {
+		log.Warn().Str(paramName, param).Msg("Required parameter not found in request parameters")
+		return "", fmt.Errorf("required parameter not found in request parameters")
+	}
+
+	return param, nil
 }

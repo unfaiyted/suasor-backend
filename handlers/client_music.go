@@ -80,7 +80,7 @@ func NewClientMusicHandler[T clienttypes.ClientMediaConfig](
 // GetClientTrackByID godoc
 // @Summary Get track by ID from client
 // @Description Retrieves a specific music track from the client by ID
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -144,7 +144,7 @@ func (h *clientMusicHandler[T]) GetClientTrackByID(c *gin.Context) {
 // GetAlbumByID godoc
 // @Summary Get album by ID
 // @Description Retrieves a specific music album from the client by ID
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -154,7 +154,7 @@ func (h *clientMusicHandler[T]) GetClientTrackByID(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientId}/media/album/item/{clientItemId} [get]
+// @Router /api/v1/client/{clientID}/media/album/item/{clientItemID} [get]
 func (h *clientMusicHandler[T]) GetClientAlbumByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -208,7 +208,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumByID(c *gin.Context) {
 // GetArtistByID godoc
 // @Summary Get artist by ID
 // @Description Retrieves a specific music artist from the client by ID
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -218,7 +218,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumByID(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/album/{clientItemId}/tracks [get]
+// @Router /api/v1/client/{clientID}/media/album/{clientItemID}/tracks [get]
 func (h *clientMusicHandler[T]) GetClientTracksByAlbum(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -273,7 +273,7 @@ func (h *clientMusicHandler[T]) GetClientTracksByAlbum(c *gin.Context) {
 // GetAlbumsByArtist godoc
 // @Summary Get albums by artist
 // @Description Retrieves all albums for a specific artist
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -283,7 +283,7 @@ func (h *clientMusicHandler[T]) GetClientTracksByAlbum(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /clients/media/{clientID}/music/artists/{artistID}/albums [get]
+// @Router /api/v1/client/{clientID}/media/music/artists/{artistID}/albums [get]
 func (h *clientMusicHandler[T]) GetClientAlbumsByArtist(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -338,7 +338,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByArtist(c *gin.Context) {
 // GetArtistsByGenre godoc
 // @Summary Get artists by genre
 // @Description Retrieves artists from all connected clients that match the specified genre
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -391,7 +391,7 @@ func (h *clientMusicHandler[T]) GetClientArtistsByGenre(c *gin.Context) {
 // GetAlbumsByGenre godoc
 // @Summary Get albums by genre
 // @Description Retrieves albums from all connected clients that match the specified genre
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -449,7 +449,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByGenre(c *gin.Context) {
 // GetTracksByGenre godoc
 // @Summary Get tracks by genre
 // @Description Retrieves tracks from all connected clients that match the specified genre
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -507,7 +507,7 @@ func (h *clientMusicHandler[T]) GetClientTracksByGenre(c *gin.Context) {
 // GetAlbumsByYear godoc
 // @Summary Get albums by release year
 // @Description Retrieves albums from all connected clients that were released in the specified year
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -572,7 +572,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByYear(c *gin.Context) {
 // GetLatestAlbumsByAdded godoc
 // @Summary Get latest albums by added date
 // @Description Retrieves the most recently added albums
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -581,7 +581,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByYear(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[error] "Invalid count"
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/music/albums/latest/{count} [get]
+// @Router /api/v1/client/{clientID}/media/music/albums/latest/{count} [get]
 func (h *clientMusicHandler[T]) GetClientLatestAlbumsByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -637,7 +637,7 @@ func (h *clientMusicHandler[T]) GetClientLatestAlbumsByAdded(c *gin.Context) {
 // GetPopularAlbums godoc
 // @Summary Get popular albums
 // @Description Retrieves most popular albums
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -696,7 +696,7 @@ func (h *clientMusicHandler[T]) GetClientPopularAlbums(c *gin.Context) {
 // GetPopularArtists godoc
 // @Summary Get popular artists
 // @Description Retrieves most popular artists
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -755,7 +755,7 @@ func (h *clientMusicHandler[T]) GetClientPopularArtists(c *gin.Context) {
 // SearchMusic godoc
 // @Summary Search music (artists, albums, tracks)
 // @Description Search for music across all connected clients
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -833,7 +833,7 @@ func (h *clientMusicHandler[T]) SearchClientMusic(c *gin.Context) {
 // GetTopTracks godoc
 // @Summary Get top tracks from a client
 // @Description Retrieves the most popular tracks from a client
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -905,7 +905,7 @@ func (h *clientMusicHandler[T]) GetClientTopTracks(c *gin.Context) {
 // GetRecentlyAddedTracks godoc
 // @Summary Get recently added tracks from a client
 // @Description Retrieves the most recently added tracks from a client
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -977,7 +977,7 @@ func (h *clientMusicHandler[T]) GetClientRecentlyAddedTracks(c *gin.Context) {
 // GetTopAlbums godoc
 // @Summary Get top albums from a client
 // @Description Retrieves the most popular albums from a client
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -989,7 +989,6 @@ func (h *clientMusicHandler[T]) GetClientRecentlyAddedTracks(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[error] "Server error"
 // @Router /api/v1/client/{clientID}/media/music/albums/top [get]
-// This method name remains unchanged to match the interface in the router
 func (h *clientMusicHandler[T]) GetClientTopAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -1050,7 +1049,7 @@ func (h *clientMusicHandler[T]) GetClientTopAlbums(c *gin.Context) {
 // GetTopArtists godoc
 // @Summary Get top artists from a client
 // @Description Retrieves the most popular artists from a client
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -1122,7 +1121,7 @@ func (h *clientMusicHandler[T]) GetClientTopArtists(c *gin.Context) {
 // GetFavoriteArtists godoc
 // @Summary Get favorite artists from a client
 // @Description Retrieves the user's favorite artists from a client
-// @Tags music
+// @Tags music,clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -1194,7 +1193,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteArtists(c *gin.Context) {
 // GetSimilarTracks godoc
 // @Summary Get similar tracks
 // @Description Retrieves tracks similar to a specific track from a client
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -1270,7 +1269,7 @@ func (h *clientMusicHandler[T]) GetClientSimilarTracks(c *gin.Context) {
 // GetRecentlyPlayedTracks godoc
 // @Summary Get recently played tracks
 // @Description Retrieves the user's recently played tracks from a client
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -1341,7 +1340,7 @@ func (h *clientMusicHandler[T]) GetClientRecentlyPlayedTracks(c *gin.Context) {
 // GetFavoriteTracks godoc
 // @Summary Get favorite tracks
 // @Description Retrieves the user's favorite tracks from a client
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -1412,7 +1411,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteTracks(c *gin.Context) {
 // GetFavoriteAlbums godoc
 // @Summary Get favorite albums
 // @Description Retrieves the user's favorite albums from a client
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -1483,7 +1482,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 // StartTrackPlayback godoc
 // @Summary Start track playback
 // @Description Start playback of a specific track on the client
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -1547,7 +1546,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 // GetPlaybackState godoc
 // @Summary Get playback state
 // @Description Get the current playback state of the client
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -1605,7 +1604,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 // GetPlaybackInfo godoc
 // @Summary Get playback info
 // @Description Get detailed information about the current playback
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -1663,7 +1662,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 // GetUserPlaylists godoc
 // @Summary Get user playlists
 // @Description Retrieve the user's playlists from a client
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -1677,7 +1676,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 // GetPlaylistTracks godoc
 // @Summary Get playlist tracks
 // @Description Retrieve tracks from a specific playlist
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -1742,7 +1741,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 // GetClientSimilarArtists godoc
 // @Summary Get similar artists
 // @Description Retrieves artists similar to a specific artist from a client
-// @Tags music
+// @Tags music, clients
 // @Accept json
 // @Produce json
 // @Security BearerAuth
