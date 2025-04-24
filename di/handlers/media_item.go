@@ -118,6 +118,31 @@ func registerSpecializedMediaHandlers(c *container.Container) {
 		episodeService := container.MustGet[services.CoreMediaItemService[*mediatypes.Episode]](c)
 		return handlers.NewCoreSeriesHandler(coreHandler, seriesService, seasonService, episodeService)
 	})
+	
+	// User series handler
+	container.RegisterFactory[handlers.UserSeriesHandler](c, func(c *container.Container) handlers.UserSeriesHandler {
+		coreHandler := container.MustGet[handlers.CoreSeriesHandler](c)
+		
+		// Item Services
+		seriesService := container.MustGet[services.UserMediaItemService[*mediatypes.Series]](c)
+		seasonService := container.MustGet[services.UserMediaItemService[*mediatypes.Season]](c)
+		episodeService := container.MustGet[services.UserMediaItemService[*mediatypes.Episode]](c)
+		
+		// Data Services
+		seriesDataService := container.MustGet[services.UserMediaItemDataService[*mediatypes.Series]](c)
+		seasonDataService := container.MustGet[services.UserMediaItemDataService[*mediatypes.Season]](c)
+		episodeDataService := container.MustGet[services.UserMediaItemDataService[*mediatypes.Episode]](c)
+		
+		return handlers.NewUserSeriesHandler(
+			coreHandler,
+			seriesService,
+			seasonService,
+			episodeService,
+			seriesDataService,
+			seasonDataService,
+			episodeDataService,
+		)
+	})
 }
 
 func registerCoreMediaItemHandler[T mediatypes.MediaData](c *container.Container) {

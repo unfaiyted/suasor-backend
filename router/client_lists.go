@@ -48,7 +48,7 @@ func registerMediaRoutes[T mediatypes.ListData](rg *gin.RouterGroup, c *containe
 				handler.GetAll(g)
 			}
 		})
-		listGroup.GET("/:id", func(g *gin.Context) {
+		listGroup.GET("/:listID", func(g *gin.Context) {
 			if handler := getHandler[T](g, c); handler != nil {
 				handler.GetByID(g)
 			}
@@ -100,7 +100,7 @@ func registerMediaRoutes[T mediatypes.ListData](rg *gin.RouterGroup, c *containe
 		})
 
 		// Get items in a list - use specialized handler
-		listGroup.GET("/:id/items", func(g *gin.Context) {
+		listGroup.GET("/:listID/items", func(g *gin.Context) {
 			if handler := getHandler[T](g, c); handler != nil {
 				handler.GetItemsByListID(g)
 			}

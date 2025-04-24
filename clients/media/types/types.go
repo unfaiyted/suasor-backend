@@ -119,26 +119,63 @@ const (
 )
 
 func GetMediaTypeFromTypeName(ofType any) MediaType {
-	typeName := reflect.TypeOf(ofType).String()
-
-	switch typeName {
-	case "*types.Movie":
+	// First try direct type assertion which is more reliable
+	switch ofType.(type) {
+	case *Movie:
 		return MediaTypeMovie
-	case "*types.Series":
+	case *Series:
 		return MediaTypeSeries
-	case "*types.Season":
+	case *Season:
 		return MediaTypeSeason
-	case "*types.Episode":
+	case *Episode:
 		return MediaTypeEpisode
-	case "*types.Artist":
+	case *Artist:
 		return MediaTypeArtist
-	case "*types.Album":
+	case *Album:
 		return MediaTypeAlbum
-	case "*types.Track":
+	case *Track:
 		return MediaTypeTrack
-	case "*types.Playlist":
+	case *Playlist:
 		return MediaTypePlaylist
-	case "*types.Collection":
+	case *Collection:
+		return MediaTypeCollection
+	}
+
+	// If type assertion fails, try to extract type name
+	t := reflect.TypeOf(ofType)
+	if t == nil {
+		return MediaTypeUnknown
+	}
+	
+	// Normalize the type name by removing package paths and pointer symbols
+	typeName := t.String()
+	// Handle pointer types
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+		typeName = t.Name()
+	} else {
+		typeName = t.Name()
+	}
+	
+	// Now match on just the type name, not the full path
+	switch typeName {
+	case "Movie":
+		return MediaTypeMovie
+	case "Series":
+		return MediaTypeSeries
+	case "Season":
+		return MediaTypeSeason
+	case "Episode":
+		return MediaTypeEpisode
+	case "Artist":
+		return MediaTypeArtist
+	case "Album":
+		return MediaTypeAlbum
+	case "Track":
+		return MediaTypeTrack
+	case "Playlist":
+		return MediaTypePlaylist
+	case "Collection":
 		return MediaTypeCollection
 	default:
 		return MediaTypeUnknown

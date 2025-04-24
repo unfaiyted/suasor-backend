@@ -16,7 +16,7 @@ func RegisterRecommendationRoutes(rg *gin.RouterGroup, c *container.Container) {
 	{
 		// Base routes
 		recommendations.GET("", recommendationHandler.GetRecommendations)
-		recommendations.GET("/:id", recommendationHandler.GetRecommendationByID)
+		recommendations.GET("/:recommendationID", recommendationHandler.GetRecommendationByID)
 
 		// Special routes
 		recommendations.GET("/recent", recommendationHandler.GetRecentRecommendations)

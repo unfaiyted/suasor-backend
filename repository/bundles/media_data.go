@@ -9,6 +9,7 @@ import (
 type CoreUserMediaItemDataRepositories interface {
 	MovieCoreService() repository.CoreUserMediaItemDataRepository[*mediatypes.Movie]
 	SeriesCoreService() repository.CoreUserMediaItemDataRepository[*mediatypes.Series]
+	SeasonCoreService() repository.CoreUserMediaItemDataRepository[*mediatypes.Season]
 	EpisodeCoreService() repository.CoreUserMediaItemDataRepository[*mediatypes.Episode]
 	TrackCoreService() repository.CoreUserMediaItemDataRepository[*mediatypes.Track]
 	AlbumCoreService() repository.CoreUserMediaItemDataRepository[*mediatypes.Album]
@@ -21,6 +22,7 @@ type CoreUserMediaItemDataRepositories interface {
 type UserMediaDataRepositories interface {
 	MovieDataRepo() repository.UserMediaItemDataRepository[*mediatypes.Movie]
 	SeriesDataRepo() repository.UserMediaItemDataRepository[*mediatypes.Series]
+	SeasonDataRepo() repository.UserMediaItemDataRepository[*mediatypes.Season]
 	EpisodeDataRepo() repository.UserMediaItemDataRepository[*mediatypes.Episode]
 	TrackDataRepo() repository.UserMediaItemDataRepository[*mediatypes.Track]
 	AlbumDataRepo() repository.UserMediaItemDataRepository[*mediatypes.Album]
@@ -33,6 +35,7 @@ type UserMediaDataRepositories interface {
 type ClientUserMediaDataRepositories interface {
 	MovieDataRepo() repository.ClientUserMediaItemDataRepository[*mediatypes.Movie]
 	SeriesDataRepo() repository.ClientUserMediaItemDataRepository[*mediatypes.Series]
+	SeasonDataRepo() repository.ClientUserMediaItemDataRepository[*mediatypes.Season]
 	EpisodeDataRepo() repository.ClientUserMediaItemDataRepository[*mediatypes.Episode]
 	TrackDataRepo() repository.ClientUserMediaItemDataRepository[*mediatypes.Track]
 	AlbumDataRepo() repository.ClientUserMediaItemDataRepository[*mediatypes.Album]
@@ -45,6 +48,7 @@ type ClientUserMediaDataRepositories interface {
 type coreUserMediaItemDataRepositoriesImpl struct {
 	movieCoreService      repository.CoreUserMediaItemDataRepository[*mediatypes.Movie]
 	seriesCoreService     repository.CoreUserMediaItemDataRepository[*mediatypes.Series]
+	seasonCoreService     repository.CoreUserMediaItemDataRepository[*mediatypes.Season]
 	episodeCoreService    repository.CoreUserMediaItemDataRepository[*mediatypes.Episode]
 	trackCoreService      repository.CoreUserMediaItemDataRepository[*mediatypes.Track]
 	albumCoreService      repository.CoreUserMediaItemDataRepository[*mediatypes.Album]
@@ -59,6 +63,10 @@ func (r *coreUserMediaItemDataRepositoriesImpl) MovieCoreService() repository.Co
 
 func (r *coreUserMediaItemDataRepositoriesImpl) SeriesCoreService() repository.CoreUserMediaItemDataRepository[*mediatypes.Series] {
 	return r.seriesCoreService
+}
+
+func (r *coreUserMediaItemDataRepositoriesImpl) SeasonCoreService() repository.CoreUserMediaItemDataRepository[*mediatypes.Season] {
+	return r.seasonCoreService
 }
 
 func (r *coreUserMediaItemDataRepositoriesImpl) EpisodeCoreService() repository.CoreUserMediaItemDataRepository[*mediatypes.Episode] {
@@ -89,6 +97,7 @@ func (r *coreUserMediaItemDataRepositoriesImpl) PlaylistCoreService() repository
 type userDataRepositoriesImpl struct {
 	movieDataRepo      repository.UserMediaItemDataRepository[*mediatypes.Movie]
 	seriesDataRepo     repository.UserMediaItemDataRepository[*mediatypes.Series]
+	seasonDataRepo     repository.UserMediaItemDataRepository[*mediatypes.Season]
 	episodeDataRepo    repository.UserMediaItemDataRepository[*mediatypes.Episode]
 	trackDataRepo      repository.UserMediaItemDataRepository[*mediatypes.Track]
 	albumDataRepo      repository.UserMediaItemDataRepository[*mediatypes.Album]
@@ -103,6 +112,10 @@ func (r *userDataRepositoriesImpl) MovieDataRepo() repository.UserMediaItemDataR
 
 func (r *userDataRepositoriesImpl) SeriesDataRepo() repository.UserMediaItemDataRepository[*mediatypes.Series] {
 	return r.seriesDataRepo
+}
+
+func (r *userDataRepositoriesImpl) SeasonDataRepo() repository.UserMediaItemDataRepository[*mediatypes.Season] {
+	return r.seasonDataRepo
 }
 
 func (r *userDataRepositoriesImpl) EpisodeDataRepo() repository.UserMediaItemDataRepository[*mediatypes.Episode] {

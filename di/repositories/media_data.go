@@ -14,6 +14,7 @@ func registerMediaItemDataRepositories(c *container.Container) {
 
 	registerDataRepository[*mediatypes.Movie](c, db)
 	registerDataRepository[*mediatypes.Series](c, db)
+	registerDataRepository[*mediatypes.Season](c, db)
 	registerDataRepository[*mediatypes.Episode](c, db)
 	registerDataRepository[*mediatypes.Track](c, db)
 	registerDataRepository[*mediatypes.Album](c, db)
@@ -27,6 +28,7 @@ func registerMediaItemDataRepositories(c *container.Container) {
 		return repobundles.NewUserMediaDataRepositories(
 			container.MustGet[repository.UserMediaItemDataRepository[*mediatypes.Movie]](c),
 			container.MustGet[repository.UserMediaItemDataRepository[*mediatypes.Series]](c),
+			container.MustGet[repository.UserMediaItemDataRepository[*mediatypes.Season]](c),
 			container.MustGet[repository.UserMediaItemDataRepository[*mediatypes.Episode]](c),
 			container.MustGet[repository.UserMediaItemDataRepository[*mediatypes.Track]](c),
 			container.MustGet[repository.UserMediaItemDataRepository[*mediatypes.Album]](c),

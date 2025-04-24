@@ -21,7 +21,7 @@ func RegisterJobRoutes(r *gin.RouterGroup, c *container.Container) {
 
 		// Job runs
 		jobs.GET("/runs", jobHandler.GetRecentJobRuns)
-		jobs.GET("/runs/:id/progress", jobHandler.GetJobRunProgress)
+		jobs.GET("/runs/:jobID/progress", jobHandler.GetJobRunProgress)
 		jobs.GET("/active", jobHandler.GetActiveJobRuns)
 		// jobs.GET("/runs/user", jobHandler.GetUserJobRuns)
 		jobs.POST("/:name/run", jobHandler.RunJobManually)
@@ -33,7 +33,7 @@ func RegisterJobRoutes(r *gin.RouterGroup, c *container.Container) {
 
 		// Recommendations
 		jobs.GET("/recommendations", jobHandler.GetUserRecommendations)
-		jobs.POST("/recommendations/:id/dismiss", jobHandler.DismissRecommendation)
-		jobs.PUT("/recommendations/:id/viewed", jobHandler.UpdateRecommendationViewedStatus)
+		jobs.POST("/recommendations/:jobID/dismiss", jobHandler.DismissRecommendation)
+		jobs.PUT("/recommendations/:jobID/viewed", jobHandler.UpdateRecommendationViewedStatus)
 	}
 }

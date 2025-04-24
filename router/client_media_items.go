@@ -19,7 +19,7 @@ func RegisterClientMediaItemRoutes(ctx context.Context, rg *gin.RouterGroup, c *
 	// Base routes for all media types
 	db := container.MustGet[*gorm.DB](c)
 
-	clientGroup := rg.Group("/:clientId/media")
+	clientGroup := rg.Group("/:clientID/media")
 	clientGroup.Use(middleware.ClientTypeMiddleware(db))
 	{
 		registerClientItemRoutes[mediatypes.Movie](clientGroup, c)
@@ -34,6 +34,16 @@ func registerClientItemRoutes[T mediatypes.MediaData](rg *gin.RouterGroup, c *co
 
 	var zero T
 	mediaType := mediatypes.GetMediaTypeFromTypeName(zero)
+
+	// Print debug info
+	fmt.Printf("Registering routes for media type: %T -> %s\n", zero, mediaType)
+
+	// Don't register routes if media type is unknown
+	if mediaType == mediatypes.MediaTypeUnknown {
+		fmt.Printf("WARNING: Not registering routes for unknown media type: %T\n", zero)
+		return
+	}
+
 	itemGroup := rg.Group("/" + string(mediaType))
 
 	// Core routes
@@ -43,27 +53,27 @@ func registerClientItemRoutes[T mediatypes.MediaData](rg *gin.RouterGroup, c *co
 			handler.GetAllClientItems(g)
 		}
 	})
-	itemGroup.GET("/:clientItemId", func(g *gin.Context) {
+	itemGroup.GET("/:clientItemID", func(g *gin.Context) {
 		if handler := getItemHandler[T](g, c); handler != nil {
 			handler.GetClientItemByItemID(g)
 		}
 	})
-	itemGroup.POST("/:clientItemId/play", func(g *gin.Context) {
+	itemGroup.POST("/:clientItemID/play", func(g *gin.Context) {
 		if handler := getItemHandler[T](g, c); handler != nil {
 			// handler.RecordClientPlay(g)
 		}
 	})
-	itemGroup.GET("/:clientItemId/state", func(g *gin.Context) {
+	itemGroup.GET("/:clientItemID/state", func(g *gin.Context) {
 		if handler := getItemHandler[T](g, c); handler != nil {
 			// handler.GetPlaybackState(g)
 		}
 	})
-	itemGroup.PUT("/:clientItemId/state", func(g *gin.Context) {
+	itemGroup.PUT("/:clientItemID/state", func(g *gin.Context) {
 		if handler := getItemHandler[T](g, c); handler != nil {
 			// handler.UpdatePlaybackState(g)
 		}
 	})
-	itemGroup.DELETE("/:clientItemId", func(g *gin.Context) {
+	itemGroup.DELETE("/:clientItemID", func(g *gin.Context) {
 		if handler := getItemHandler[T](g, c); handler != nil {
 			// handler.DeleteMediaItemData(g)
 		}

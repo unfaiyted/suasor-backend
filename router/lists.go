@@ -28,22 +28,22 @@ func registerGenericListRoutes[T mediatypes.ListData](c *container.Container, rg
 
 	// Basic CRUD operations
 	listGroup.GET("", coreHandler.GetAll)
-	listGroup.GET("/:listId", coreHandler.GetByID)
-	listGroup.GET("/:listId/items", coreHandler.GetItemsByListID)
+	listGroup.GET("/:listID", coreHandler.GetByID)
+	listGroup.GET("/:listID/items", coreHandler.GetItemsByListID)
 	listGroup.GET("/search", coreHandler.Search)
 
 	// User-specific operations
 	listGroup.POST("", userHandler.Create)
-	listGroup.PUT("/:listId", userHandler.Update)
-	listGroup.DELETE("/:listId", userHandler.Delete)
+	listGroup.PUT("/:listID", userHandler.Update)
+	listGroup.DELETE("/:listID", userHandler.Delete)
 	listGroup.GET("/user", userHandler.GetUserLists)
-	listGroup.POST("/:listId/items", userHandler.AddItem)
-	listGroup.DELETE("/:listId/items/:itemId", userHandler.Delete)
+	listGroup.POST("/:listID/items", userHandler.AddItem)
+	listGroup.DELETE("/:listID/items/:itemId", userHandler.Delete)
 
 	// Type-specific operations based on list type
 	if mediaType == mediatypes.MediaTypePlaylist {
 		// Playlist-specific routes
-		listGroup.POST("/:listId/reorder", userHandler.ReorderItems)
+		listGroup.POST("/:listID/reorder", userHandler.ReorderItems)
 	} else if mediaType == mediatypes.MediaTypeCollection {
 		// Collection-specific routes (can be extended as needed)
 	}

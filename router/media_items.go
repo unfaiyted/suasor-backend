@@ -13,13 +13,13 @@ import (
 func RegisterLocalMediaItemRoutes(ctx context.Context, rg *gin.RouterGroup, c *container.Container) {
 
 	// Register generic media routes that work across all types
-	registerGenericMediaRoutes[mediatypes.Movie](c, rg)
-	registerGenericMediaRoutes[mediatypes.Series](c, rg)
-	registerGenericMediaRoutes[mediatypes.Season](c, rg)
-	registerGenericMediaRoutes[mediatypes.Episode](c, rg)
-	registerGenericMediaRoutes[mediatypes.Track](c, rg)
-	registerGenericMediaRoutes[mediatypes.Album](c, rg)
-	registerGenericMediaRoutes[mediatypes.Artist](c, rg)
+	registerGenericMediaRoutes[*mediatypes.Movie](c, rg)
+	registerGenericMediaRoutes[*mediatypes.Series](c, rg)
+	registerGenericMediaRoutes[*mediatypes.Season](c, rg)
+	registerGenericMediaRoutes[*mediatypes.Episode](c, rg)
+	registerGenericMediaRoutes[*mediatypes.Track](c, rg)
+	registerGenericMediaRoutes[*mediatypes.Album](c, rg)
+	registerGenericMediaRoutes[*mediatypes.Artist](c, rg)
 
 	// Register specialized routes for series
 	registerSeriesRoutes(c, rg)

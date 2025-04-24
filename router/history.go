@@ -39,10 +39,10 @@ func RegisterMediaPlayHistoryRoutes(rg *gin.RouterGroup, c *container.Container)
 		// history.GET("/media/:mediaItemId", handler.GetMediaPlayHistoryByMediaItem)
 
 		// Toggle favorite status for a media item
-		history.PUT("/media/:itemId/favorite", handler.ToggleFavorite)
+		history.PUT("/media/:itemID/favorite", handler.ToggleFavorite)
 
 		// Update rating for a media item
-		history.PUT("/media/:itemId/rating", handler.UpdateUserRating)
+		history.PUT("/media/:itemID/rating", handler.UpdateUserRating)
 	}
 
 	// Favorites routes

@@ -31,7 +31,7 @@ func RegisterMediaItemDataRoutes(rg *gin.RouterGroup, c *container.Container) {
 			container.MustGet[handlers.UserMediaItemDataHandler[*mediatypes.Track]](c))
 	}
 
-	clientMediaData := rg.Group("/client/:clientId/user-data")
+	clientMediaData := rg.Group("/client/:clientID/user-data")
 	{
 		registerClientDataRoutes[*mediatypes.Movie](clientMediaData, c)
 		registerClientDataRoutes[*mediatypes.Series](clientMediaData, c)
@@ -58,16 +58,16 @@ func registerDataRoutes[T mediatypes.MediaData](rg *gin.RouterGroup, c *containe
 	dataGroup.GET("/data/:dataId", userDataHandlers.GetMediaItemDataByID)
 
 	// Primariy working with mediaItemID (id) to keep things simple
-	dataGroup.GET("/:itemId/check", userDataHandlers.CheckUserMediaItemData)
-	dataGroup.GET("/:itemId", userDataHandlers.GetUserMediaItemDataByItemID)
-	dataGroup.DELETE("/:itemId", userDataHandlers.DeleteMediaItemData)
+	dataGroup.GET("/:itemID/check", userDataHandlers.CheckUserMediaItemData)
+	dataGroup.GET("/:itemID", userDataHandlers.GetUserMediaItemDataByItemID)
+	dataGroup.DELETE("/:itemID", userDataHandlers.DeleteMediaItemData)
 
 	dataGroup.GET("/history", userDataHandlers.GetMediaPlayHistory)
 	dataGroup.GET("/continue-watching", userDataHandlers.GetContinuePlaying)
 	dataGroup.GET("/recent", userDataHandlers.GetRecentHistory)
-	dataGroup.POST(":itemId/record", userDataHandlers.RecordMediaPlay)
-	dataGroup.PUT("/:itemId/favorite", userDataHandlers.ToggleFavorite)
-	dataGroup.PUT("/:itemId/rating", userDataHandlers.UpdateUserRating)
+	dataGroup.POST(":itemID/record", userDataHandlers.RecordMediaPlay)
+	dataGroup.PUT("/:itemID/favorite", userDataHandlers.ToggleFavorite)
+	dataGroup.PUT("/:itemID/rating", userDataHandlers.UpdateUserRating)
 	dataGroup.GET("/favorites", userDataHandlers.GetFavorites)
 	dataGroup.DELETE("/clear", userDataHandlers.ClearUserHistory)
 
@@ -127,22 +127,22 @@ func registerClientDataRoutes[T mediatypes.MediaData](rg *gin.RouterGroup, c *co
 			handler.GetClientItemData(g)
 		}
 	})
-	clientDataGroup.GET("/:clientItemId", func(g *gin.Context) {
+	clientDataGroup.GET("/:clientItemID", func(g *gin.Context) {
 		if handler := getClientDataHandler[T](g, c); handler != nil {
 			handler.GetMediaItemDataByClientID(g)
 		}
 	})
-	clientDataGroup.POST("/:clientItemId/play", func(g *gin.Context) {
+	clientDataGroup.POST("/:clientItemID/play", func(g *gin.Context) {
 		if handler := getClientDataHandler[T](g, c); handler != nil {
 			handler.RecordClientPlay(g)
 		}
 	})
-	clientDataGroup.GET("/item/:clientItemId/state", func(g *gin.Context) {
+	clientDataGroup.GET("/item/:clientItemID/state", func(g *gin.Context) {
 		if handler := getClientDataHandler[T](g, c); handler != nil {
 			handler.GetPlaybackState(g)
 		}
 	})
-	clientDataGroup.PUT("/item/:clientItemId/state", func(g *gin.Context) {
+	clientDataGroup.PUT("/item/:clientItemID/state", func(g *gin.Context) {
 		if handler := getClientDataHandler[T](g, c); handler != nil {
 			handler.UpdatePlaybackState(g)
 		}

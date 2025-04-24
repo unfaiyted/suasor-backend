@@ -86,6 +86,12 @@ func RegisterClientHandlers(ctx context.Context, c *container.Container) {
 			ollamaHandler,
 		)
 	})
+	
+	// Register ClientAutomationHandler for automation endpoints
+	container.RegisterFactory[*handlers.ClientAutomationHandler](c, func(c *container.Container) *handlers.ClientAutomationHandler {
+		automationService := container.MustGet[services.AutomationClientService](c)
+		return handlers.NewClientAutomationHandler(automationService)
+	})
 }
 
 func registerClientHandler[T types.ClientConfig](c *container.Container) {

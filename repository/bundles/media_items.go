@@ -268,6 +268,7 @@ func NewClientMediaItemRepositories(
 func NewCoreUserMediaItemDataRepositories(
 	movieRepo repository.CoreUserMediaItemDataRepository[*mediatypes.Movie],
 	seriesRepo repository.CoreUserMediaItemDataRepository[*mediatypes.Series],
+	seasonRepo repository.CoreUserMediaItemDataRepository[*mediatypes.Season],
 	episodeRepo repository.CoreUserMediaItemDataRepository[*mediatypes.Episode],
 	trackRepo repository.CoreUserMediaItemDataRepository[*mediatypes.Track],
 	albumRepo repository.CoreUserMediaItemDataRepository[*mediatypes.Album],
@@ -278,6 +279,7 @@ func NewCoreUserMediaItemDataRepositories(
 	return &coreUserMediaItemDataRepositoriesImpl{
 		movieCoreService:      movieRepo,
 		seriesCoreService:     seriesRepo,
+		seasonCoreService:     seasonRepo,
 		episodeCoreService:    episodeRepo,
 		trackCoreService:      trackRepo,
 		albumCoreService:      albumRepo,
@@ -291,6 +293,7 @@ func NewCoreUserMediaItemDataRepositories(
 func NewUserMediaDataRepositories(
 	movieRepo repository.UserMediaItemDataRepository[*mediatypes.Movie],
 	seriesRepo repository.UserMediaItemDataRepository[*mediatypes.Series],
+	seasonRepo repository.UserMediaItemDataRepository[*mediatypes.Season],
 	episodeRepo repository.UserMediaItemDataRepository[*mediatypes.Episode],
 	trackRepo repository.UserMediaItemDataRepository[*mediatypes.Track],
 	albumRepo repository.UserMediaItemDataRepository[*mediatypes.Album],
@@ -301,6 +304,7 @@ func NewUserMediaDataRepositories(
 	return &userDataRepositoriesImpl{
 		movieDataRepo:      movieRepo,
 		seriesDataRepo:     seriesRepo,
+		seasonDataRepo:     seasonRepo,
 		episodeDataRepo:    episodeRepo,
 		trackDataRepo:      trackRepo,
 		albumDataRepo:      albumRepo,

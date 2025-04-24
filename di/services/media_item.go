@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"gorm.io/gorm"
 	mediatypes "suasor/clients/media/types"
 	clienttypes "suasor/clients/types"
 
@@ -87,6 +88,36 @@ func registerMediaItemServices(ctx context.Context, c *container.Container) {
 		return svcbundles.NewPeopleServices(&personService, &creditService)
 	})
 
+	// Register CoreMediaItemServices bundle
+	container.RegisterFactory[svcbundles.CoreMediaItemServices](c, func(c *container.Container) svcbundles.CoreMediaItemServices {
+		return &coreMediaItemServicesImpl{
+			movieCoreService:      container.MustGet[services.CoreMediaItemService[*mediatypes.Movie]](c),
+			seriesCoreService:     container.MustGet[services.CoreMediaItemService[*mediatypes.Series]](c),
+			seasonCoreService:     container.MustGet[services.CoreMediaItemService[*mediatypes.Season]](c),
+			episodeCoreService:    container.MustGet[services.CoreMediaItemService[*mediatypes.Episode]](c),
+			trackCoreService:      container.MustGet[services.CoreMediaItemService[*mediatypes.Track]](c),
+			albumCoreService:      container.MustGet[services.CoreMediaItemService[*mediatypes.Album]](c),
+			artistCoreService:     container.MustGet[services.CoreMediaItemService[*mediatypes.Artist]](c),
+			collectionCoreService: container.MustGet[services.CoreMediaItemService[*mediatypes.Collection]](c),
+			playlistCoreService:   container.MustGet[services.CoreMediaItemService[*mediatypes.Playlist]](c),
+		}
+	})
+	
+	// Register MusicRepository
+	container.RegisterFactory[repository.MusicRepository](c, func(c *container.Container) repository.MusicRepository {
+		db := container.MustGet[*gorm.DB](c)
+		trackRepo := container.MustGet[repository.MediaItemRepository[*mediatypes.Track]](c)
+		albumRepo := container.MustGet[repository.MediaItemRepository[*mediatypes.Album]](c)
+		artistRepo := container.MustGet[repository.MediaItemRepository[*mediatypes.Artist]](c)
+		return repository.NewMusicRepository(db, trackRepo, albumRepo, artistRepo)
+	})
+	
+	// Register CoreMusicService
+	container.RegisterFactory[services.CoreMusicService](c, func(c *container.Container) services.CoreMusicService {
+		musicRepo := container.MustGet[repository.MusicRepository](c)
+		return services.NewCoreMusicService(musicRepo)
+	})
+
 }
 
 func registerMediaItemService[T mediatypes.MediaData](c *container.Container) {
@@ -108,4 +139,53 @@ func registerClientMediaItemService[T clienttypes.ClientMediaConfig, U mediatype
 		itemRepo := container.MustGet[repository.ClientMediaItemRepository[U]](c)
 		return services.NewClientMediaItemService[T, U](coreService, clientRepo, itemRepo)
 	})
+}
+
+// CoreMediaItemServices implementation
+type coreMediaItemServicesImpl struct {
+	movieCoreService      services.CoreMediaItemService[*mediatypes.Movie]
+	seriesCoreService     services.CoreMediaItemService[*mediatypes.Series]
+	seasonCoreService     services.CoreMediaItemService[*mediatypes.Season]
+	episodeCoreService    services.CoreMediaItemService[*mediatypes.Episode]
+	trackCoreService      services.CoreMediaItemService[*mediatypes.Track]
+	albumCoreService      services.CoreMediaItemService[*mediatypes.Album]
+	artistCoreService     services.CoreMediaItemService[*mediatypes.Artist]
+	collectionCoreService services.CoreMediaItemService[*mediatypes.Collection]
+	playlistCoreService   services.CoreMediaItemService[*mediatypes.Playlist]
+}
+
+func (s *coreMediaItemServicesImpl) MovieCoreService() services.CoreMediaItemService[*mediatypes.Movie] {
+	return s.movieCoreService
+}
+
+func (s *coreMediaItemServicesImpl) SeriesCoreService() services.CoreMediaItemService[*mediatypes.Series] {
+	return s.seriesCoreService
+}
+
+func (s *coreMediaItemServicesImpl) SeasonCoreService() services.CoreMediaItemService[*mediatypes.Season] {
+	return s.seasonCoreService
+}
+
+func (s *coreMediaItemServicesImpl) EpisodeCoreService() services.CoreMediaItemService[*mediatypes.Episode] {
+	return s.episodeCoreService
+}
+
+func (s *coreMediaItemServicesImpl) TrackCoreService() services.CoreMediaItemService[*mediatypes.Track] {
+	return s.trackCoreService
+}
+
+func (s *coreMediaItemServicesImpl) AlbumCoreService() services.CoreMediaItemService[*mediatypes.Album] {
+	return s.albumCoreService
+}
+
+func (s *coreMediaItemServicesImpl) ArtistCoreService() services.CoreMediaItemService[*mediatypes.Artist] {
+	return s.artistCoreService
+}
+
+func (s *coreMediaItemServicesImpl) CollectionCoreService() services.CoreMediaItemService[*mediatypes.Collection] {
+	return s.collectionCoreService
+}
+
+func (s *coreMediaItemServicesImpl) PlaylistCoreService() services.CoreMediaItemService[*mediatypes.Playlist] {
+	return s.playlistCoreService
 }
