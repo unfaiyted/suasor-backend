@@ -61,10 +61,10 @@ type QueryOptions struct {
 	// going to scale all of them to a range of 0-100 and then take the average of these ratings.
 	// MinimumNormalizedRating float32 `json:"minimumNormalizedRating,omitempty"` // Filter by minimum normalized rating
 	IsPublic         bool   `json:"isPublic,omitempty"`         // Filter by public status
-	OwnerID          uint64 `json:"ownerId,omitempty"`          // Filter by owner ID
-	ClientID         uint64 `json:"clientId,omitempty"`         // Filter by client ID
-	PersonID         uint64 `json:"personId,omitempty"`         // Filter by person ID
-	ItemIDs          string `json:"itemIds,omitempty"`          // Filter by external ID (emby, jellyfin, plex, etc.)
+	OwnerID          uint64 `json:"ownerID,omitempty"`          // Filter by owner ID
+	ClientID         uint64 `json:"clientID,omitempty"`         // Filter by client ID
+	PersonID         uint64 `json:"personID,omitempty"`         // Filter by person ID
+	ItemIDs          string `json:"itemIDs,omitempty"`          // Filter by external ID (emby, jellyfin, plex, etc.)
 	ExternalSourceID string `json:"externalSourceID,omitempty"` // Filter by external source ID (TMDB, IMDB, etc.)
 }
 

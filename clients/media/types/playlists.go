@@ -18,15 +18,15 @@ const (
 
 // ChangeRecord tracks when and where an item was changed
 type ChangeRecord struct {
-	ClientID   uint64    `json:"clientId"` // 0 = internal client
-	ItemID     string    `json:"itemId,omitempty"`
+	ClientID   uint64    `json:"clientID"` // 0 = internal client
+	ItemID     string    `json:"itemID,omitempty"`
 	ChangeType string    `json:"changeType"` // "add", "remove", "update", "reorder", "sync"
 	Timestamp  time.Time `json:"timestamp"`
 }
 
 // For internal use
 type ListItem struct {
-	ItemID        uint64         `json:"itemId"`
+	ItemID        uint64         `json:"itemID"`
 	Type          MediaType      `json:"type"`
 	Position      int            `json:"position"`
 	LastChanged   time.Time      `json:"lastChanged"`
@@ -35,7 +35,7 @@ type ListItem struct {
 
 // For external sync
 type SyncListItem struct {
-	ItemID        string         `json:"itemId"`
+	ItemID        string         `json:"itemID"`
 	Position      int            `json:"position"`
 	LastChanged   time.Time      `json:"lastChanged"`
 	ChangeHistory []ChangeRecord `json:"changeHistory,omitempty"`

@@ -1170,43 +1170,25 @@ func (h *coreMusicHandler) SearchMusic(c *gin.Context) {
 // @Tags music, core
 // @Accept json
 // @Produce json
-// @Param id path int true "Track ID"
+// @Param trackID path int true "Track ID"
 // @Param limit query int false "Maximum number of tracks to return (default 10)"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Similar tracks retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Track not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/tracks/{id}/similar [get]
+// @Router /api/v1/media/music/track/{trackID}/similar [get]
 func (h *coreMusicHandler) GetSimilarTracks(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	trackID, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid track ID")
-		responses.RespondBadRequest(c, err, "Invalid track ID")
-		return
-	}
+	trackID, _ := checkItemID(c, "trackID")
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		limit = 10
-	}
+	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Debug().
 		Uint64("trackID", trackID).
 		Int("limit", limit).
 		Msg("Getting similar tracks")
-
-	// First, check if the track exists
-	// track, err := h.trackService.GetByID(ctx, trackID)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("trackID", trackID).
-			Msg("Failed to retrieve track")
-		responses.RespondNotFound(c, err, "Track not found")
-		return
-	}
 
 	// Get similar tracks
 	similarTracks, err := h.coreMusicService.GetSimilarTracks(ctx, trackID, limit)

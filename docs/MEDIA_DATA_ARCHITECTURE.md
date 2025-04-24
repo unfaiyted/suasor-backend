@@ -126,5 +126,5 @@ favorites, err := userMovieService.GetUserFavorites(ctx, userId, limit, offset)
 
 ```go
 // Get movies from a specific Jellyfin server
-jellyfinMovies, err := clientMovieService.GetFromClient(ctx, clientId, limit, offset)
+jellyfinMovies, err := clientMovieService.GetFromClient(ctx, clientID, limit, offset)
 ```

@@ -185,7 +185,7 @@ type NewRelease struct {
 	ImageURL     string      `json:"imageUrl,omitempty"`     // Poster or cover art
 	Rating       float64     `json:"rating,omitempty"`       // Rating if available
 	Source       string      `json:"source,omitempty"`       // Source of this new release data
-	SourceItemID uint64      `json:"sourceItemId,omitempty"` // ID of item in our system if known
+	SourceItemID uint64      `json:"sourceItemID,omitempty"` // ID of item in our system if known
 	SourceURL    string      `json:"sourceUrl,omitempty"`    // URL to view details
 	Metadata     interface{} `json:"-"`                      // Additional metadata (not stored)
 }

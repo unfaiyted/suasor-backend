@@ -57,30 +57,19 @@ func NewCoreSeriesHandler(
 // @Tags series, core
 // @Accept json
 // @Produce json
-// @Param id path int true "Series ID"
+// @Param seriesID path int true "Series ID"
 // @Param userId query int true "User ID"
 // @Success 200 {object} responses.APIResponse[[]mediatypes.Season] "Seasons retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Series not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/series/{id}/seasons [get]
+// @Router /api/v1/media/series/{seriesID}/seasons [get]
 func (h *coreSeriesHandler) GetSeasonsBySeriesID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	seriesID, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid series ID")
-		responses.RespondBadRequest(c, err, "Invalid series ID")
-		return
-	}
-
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
-		return
-	}
+	seriesID, _ := checkItemID(c, "seriesID")
+	userID, _ := checkUserAccess(c)
 
 	log.Debug().
 		Uint64("seriesID", seriesID).
@@ -116,36 +105,25 @@ func (h *coreSeriesHandler) GetSeasonsBySeriesID(c *gin.Context) {
 // @Tags series, core
 // @Accept json
 // @Produce json
-// @Param id path int true "Series ID"
+// @Param seriesID path int true "Series ID"
 // @Param seasonNumber path int true "Season number"
 // @Param userId query int true "User ID"
 // @Success 200 {object} responses.APIResponse[[]mediatypes.Episode] "Episodes retrieved successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[any] "Series or season not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/series/{id}/seasons/{seasonNumber}/episodes [get]
+// @Router /api/v1/media/series/{seriesID}/seasons/{seasonNumber}/episodes [get]
 func (h *coreSeriesHandler) GetEpisodesBySeriesIDAndSeasonNumber(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	seriesID, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid series ID")
-		responses.RespondBadRequest(c, err, "Invalid series ID")
-		return
-	}
+	seriesID, _ := checkItemID(c, "seriesID")
+	userID, _ := checkUserAccess(c)
 
 	seasonNumber, err := strconv.Atoi(c.Param("seasonNumber"))
 	if err != nil {
 		log.Warn().Err(err).Str("seasonNumber", c.Param("seasonNumber")).Msg("Invalid season number")
 		responses.RespondBadRequest(c, err, "Invalid season number")
-		return
-	}
-
-	userID, err := strconv.ParseUint(c.Query("userId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
 		return
 	}
 

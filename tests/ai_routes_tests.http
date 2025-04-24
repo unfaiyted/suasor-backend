@@ -42,7 +42,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
     "genre": "sci-fi",
     "releaseYear": "2010-2023"
   },
-  "clientId": {{createClaudeClient.response.body.$.data.id}}
+  "clientID": {{createClaudeClient.response.body.$.data.id}}
 }
 
 ###

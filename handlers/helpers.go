@@ -141,3 +141,17 @@ func checkItemID(c *gin.Context, paramName string) (uint64, error) {
 
 	return itemID, nil
 }
+
+func checkClientItemID(c *gin.Context, paramName string) (string, error) {
+	ctx := c.Request.Context()
+	log := logger.LoggerFromContext(ctx)
+
+	itemIDStr := c.Param(paramName)
+	if itemIDStr == "" {
+		log.Warn().Msg("Client item ID not found in request parameters")
+		responses.RespondBadRequest(c, nil, "Client item ID not found in request parameters")
+		return "", fmt.Errorf("client item ID not found in request parameters")
+	}
+
+	return itemIDStr, nil
+}

@@ -196,7 +196,7 @@ func (h *clientHandler[T]) GetClient(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Client not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/clients/{clientType}/{clientId} [put]
+// @Router /api/v1/clients/{clientType}/{clientID} [put]
 // @Example request - Jellyfin client
 // {
 //   "name": "My Jellyfin Server",

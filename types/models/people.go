@@ -12,8 +12,8 @@ import (
 type Person struct {
 	BaseModel        // Include base fields (ID, timestamps)
 	Name      string `json:"name" gorm:"type:varchar(255);index"`
-	// ClientIDs   ClientIDs   `json:"clientIds" gorm:"type:jsonb"`
-	ExternalIDs ExternalIDs `json:"externalIds" gorm:"type:jsonb"`
+	// ClientIDs   ClientIDs   `json:"clientIDs" gorm:"type:jsonb"`
+	ExternalIDs ExternalIDs `json:"externalIDs" gorm:"type:jsonb"`
 
 	// Biographical information
 	Photo       string     `json:"photo,omitempty" gorm:"type:text"`

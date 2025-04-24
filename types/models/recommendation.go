@@ -23,8 +23,8 @@ const (
 // @Description Media recommendation stored in the database
 type Recommendation struct {
 	BaseModel
-	UserID           uint64          `json:"userId" gorm:"index;not null"`
-	MediaItemID      uint64          `json:"mediaItemId" gorm:"index"`
+	UserID           uint64          `json:"userID" gorm:"index;not null"`
+	MediaItemID      uint64          `json:"mediaItemID" gorm:"index"`
 	MediaType        types.MediaType `json:"mediaType" gorm:"index;not null"` // "movie", "series", "music"
 	Title            string          `json:"title" gorm:"not null"`
 	Year             int             `json:"year,omitempty"`
@@ -36,16 +36,16 @@ type Recommendation struct {
 	MatchesGenres    StringArray     `json:"matchesGenres" gorm:"type:jsonb;serializer:json"`
 	RecommendedBy    string          `json:"recommendedBy" gorm:"not null"` // "AI", "popular", "similar_users"
 	AIModel          string          `json:"aiModel,omitempty"`             // AI model used if recommendedBy="AI"
-	JobRunID         uint64          `json:"jobRunId,omitempty"`            // Job run that created this recommendation
+	JobRunID         uint64          `json:"jobRunID,omitempty"`            // Job run that created this recommendation
 	CreatedAt        time.Time       `json:"createdAt" gorm:"not null"`
 	ExpiresAt        *time.Time      `json:"expiresAt,omitempty"`           // When this recommendation expires
 	IsViewed         bool            `json:"isViewed" gorm:"default:false"` // Whether user has viewed this item
 	UserRating       float32         `json:"userRating" gorm:"default:0"`   // If user has rated this recommendation
-	ExternalIDs      *ExternalIDMap  `json:"externalIds" gorm:"type:jsonb;serializer:json"`
+	ExternalIDs      *ExternalIDMap  `json:"externalIDs" gorm:"type:jsonb;serializer:json"`
 	// Source of the recommendation (AI, system, manual)
 	Source RecommendationSource `json:"source" gorm:"index;not null"`
 	// ID of the client that generated this recommendation, if applicable
-	SourceClientID *uint64 `json:"sourceClientId" gorm:"index"`
+	SourceClientID *uint64 `json:"sourceClientID" gorm:"index"`
 	// Type of the client that generated this recommendation
 	SourceClientType string `json:"sourceClientType"`
 	// Confidence score (0.0 to 1.0) if available

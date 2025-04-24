@@ -379,7 +379,7 @@ func (h *clientListHandler[T, U]) AddItemToList(c *gin.Context) {
 
 	// Parse request body
 	var req struct {
-		ItemID string `json:"itemId" binding:"required"`
+		ItemID string `json:"itemID" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {

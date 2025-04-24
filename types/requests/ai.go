@@ -63,7 +63,7 @@ type AiRecommendationRequest struct {
 	ClientType string `json:"clientType,omitempty"`
 
 	// Client ID to use for the conversation
-	ClientID uint64 `json:"clientId,omitempty"`
+	ClientID uint64 `json:"clientID,omitempty"`
 }
 
 // AiContentAnalysisRequest defines the request for AI content analysis
@@ -88,7 +88,7 @@ type AiContentAnalysisRequest struct {
 	ClientType string `json:"clientType,omitempty"`
 
 	// Client ID to use for the conversation
-	ClientID uint64 `json:"clientId,omitempty"`
+	ClientID uint64 `json:"clientID,omitempty"`
 }
 
 // StartConversationRequest defines the request to start a new AI conversation
@@ -108,7 +108,7 @@ type StartConversationRequest struct {
 	SystemInstructions string `json:"systemInstructions,omitempty"`
 
 	// Client ID to use for the conversation
-	ClientID uint64 `json:"clientId,omitempty"`
+	ClientID uint64 `json:"clientID,omitempty"`
 }
 
 // ConversationMessageRequest defines a message in an existing conversation
@@ -129,6 +129,5 @@ type ConversationMessageRequest struct {
 	Context map[string]any `json:"context,omitempty"`
 
 	// Client ID to use for the conversation
-	ClientID uint64 `json:"clientId,omitempty"`
+	ClientID uint64 `json:"clientID,omitempty"`
 }
-

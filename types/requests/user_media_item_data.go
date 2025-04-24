@@ -7,8 +7,8 @@ import (
 // UserMediaItemDataRequest represents the data for recording a new play history entry
 // @Description Request payload for recording a new play history entry
 type UserMediaItemDataRequest struct {
-	UserID           uint64          `json:"userId" binding:"required"`
-	MediaItemID      uint64          `json:"mediaItemId" binding:"required"`
+	UserID           uint64          `json:"userID" binding:"required"`
+	MediaItemID      uint64          `json:"mediaItemID" binding:"required"`
 	Type             types.MediaType `json:"type" binding:"required"`
 	IsFavorite       bool            `json:"isFavorite,omitempty"`
 	UserRating       float32         `json:"userRating,omitempty"`
@@ -22,8 +22,8 @@ type UserMediaItemDataRequest struct {
 // UserMediaItemDataSyncRequest represents the data for synchronizing media item data
 // @Description Request payload for synchronizing media item data
 type UserMediaItemDataSyncRequest struct {
-	UserID           uint64          `json:"userId" binding:"required"`
-	MediaItemID      uint64          `json:"mediaItemId" binding:"required"`
+	UserID           uint64          `json:"userID" binding:"required"`
+	MediaItemID      uint64          `json:"mediaItemID" binding:"required"`
 	Type             types.MediaType `json:"type" binding:"required"`
 	IsFavorite       bool            `json:"isFavorite,omitempty"`
 	UserRating       float32         `json:"userRating,omitempty"`
@@ -35,8 +35,8 @@ type UserMediaItemDataSyncRequest struct {
 }
 
 type UserMediaItemDataUpdateRequest struct {
-	UserID           uint64          `json:"userId" binding:"required"`
-	MediaItemID      uint64          `json:"mediaItemId" binding:"required"`
+	UserID           uint64          `json:"userID" binding:"required"`
+	MediaItemID      uint64          `json:"mediaItemID" binding:"required"`
 	Type             types.MediaType `json:"type" binding:"required"`
 	IsFavorite       bool            `json:"isFavorite,omitempty"`
 	UserRating       float32         `json:"userRating,omitempty"`

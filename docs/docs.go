@@ -796,7 +796,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Comma-separated list of client IDs",
-                        "name": "clientIds",
+                        "name": "clientIDs",
                         "in": "query",
                         "required": true
                     }
@@ -848,7 +848,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Comma-separated list of client IDs",
-                        "name": "clientIds",
+                        "name": "clientIDs",
                         "in": "query",
                         "required": true
                     },
@@ -1751,6 +1751,57 @@ const docTemplate = `{
                         "description": "Server error",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/media": {
+            "get": {
+                "description": "Retrieves all media items for a specific client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "media",
+                    "clients"
+                ],
+                "summary": "Get media items by client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Media type filter",
+                        "name": "type",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Media items retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
                         }
                     }
                 }
@@ -4462,7 +4513,70 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/client/{clientID}/media/{id}": {
+        "/api/v1/client/{clientID}/media/track/item/{clientItemId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a specific music track from the client by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "music",
+                    "clients"
+                ],
+                "summary": "Get track by ID from client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Track ID",
+                        "name": "trackID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Track retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Track"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/media/{itemID}": {
             "put": {
                 "description": "Updates a client media item in the database by ID",
                 "consumes": [
@@ -4478,9 +4592,9 @@ const docTemplate = `{
                 "summary": "Update an existing client media item",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "Media item ID",
-                        "name": "id",
+                        "name": "itemID",
                         "in": "path",
                         "required": true
                     },
@@ -4564,6 +4678,776 @@ const docTemplate = `{
                         "description": "Server error",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/media/{mediaType}/{clientItemID}": {
+            "get": {
+                "description": "Retrieves a media item using its client-specific ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "media",
+                    "clients"
+                ],
+                "summary": "Get media item by client-specific ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Client-specific item ID",
+                        "name": "clientItemID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Media type",
+                        "name": "mediaType",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Media item retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Media item not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/media/{mediaType}/{itemID}": {
+            "get": {
+                "description": "Retrieves a media item using its client-specific ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "media",
+                    "clients"
+                ],
+                "summary": "Get media item by client-specific ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Media type",
+                        "name": "mediaType",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Client-specific item ID",
+                        "name": "itemID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Media item retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Media item not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/movie/actor/{actor}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves movies from all connected clients featuring the specified actor",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "clients"
+                ],
+                "summary": "Get movies by actor",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Actor name",
+                        "name": "actor",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/movie/director/{director}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves movies from all connected clients directed by the specified director",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "clients"
+                ],
+                "summary": "Get movies by director",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Director name",
+                        "name": "director",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/movie/external/{source}/{externalID}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a movie from all connected clients by external ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "clients"
+                ],
+                "summary": "Get movie by external ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Source",
+                        "name": "source",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "External ID",
+                        "name": "externalID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/movie/genre/{genre}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves movies from all connected clients that match the specified genre",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "clients"
+                ],
+                "summary": "Get movies by genre",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Genre name",
+                        "name": "genre",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/movie/item/{clientItemId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a specific movie from the client by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "clients"
+                ],
+                "summary": "Get movie by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Movie ID",
+                        "name": "clientItemID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/movie/latest/{count}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves the most recently added movies from all connected clients",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "clients"
+                ],
+                "summary": "Get latest added movies",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of movies to retrieve",
+                        "name": "count",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid count format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/movie/popular/{count}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves the most popular movies from all connected clients",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "clients"
+                ],
+                "summary": "Get popular movies",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of movies to retrieve",
+                        "name": "count",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid count format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/movie/rating": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves movies from all connected clients with ratings in the specified range",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "clients"
+                ],
+                "summary": "Get movies by rating range",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "description": "Minimum rating (e.g. 7.5)",
+                        "name": "min",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Maximum rating (e.g. 10.0)",
+                        "name": "max",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid rating format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/movie/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Searches for movies across all connected clients matching the query",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "clients"
+                ],
+                "summary": "Search for movies",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing search query",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/movie/top-rated/{count}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves the highest rated movies from all connected clients",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "clients"
+                ],
+                "summary": "Get top rated movies",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of movies to retrieve",
+                        "name": "count",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid count format",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/client/{clientID}/movie/year/{year}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves movies from all connected clients that were released in the specified year",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies",
+                    "clients"
+                ],
+                "summary": "Get movies by release year",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Release year",
+                        "name": "year",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movies retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid year",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
                         }
                     }
                 }
@@ -5532,869 +6416,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/media": {
-            "get": {
-                "description": "Retrieves all media items for a specific client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "media",
-                    "clients"
-                ],
-                "summary": "Get media items by client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Media type filter",
-                        "name": "type",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Media items retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-any"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client ID",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/media/track/item/{clientItemId}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves a specific music track from the client by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "music",
-                    "clients"
-                ],
-                "summary": "Get track by ID from client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Track ID",
-                        "name": "trackID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Track retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Track"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client ID",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-error"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-error"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/media/{mediaType}/{clientItemId}": {
-            "get": {
-                "description": "Retrieves a media item using its client-specific ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "media",
-                    "clients"
-                ],
-                "summary": "Get media item by client-specific ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Client-specific item ID",
-                        "name": "clientItemId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Media type",
-                        "name": "mediaType",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Media item retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-any"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "Media item not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/media/{mediaType}/{itemId}": {
-            "get": {
-                "description": "Retrieves a media item using its client-specific ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "media",
-                    "clients"
-                ],
-                "summary": "Get media item by client-specific ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Media type",
-                        "name": "mediaType",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Client-specific item ID",
-                        "name": "itemId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Media item retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-any"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "Media item not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/movie/actor/{actor}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves movies from all connected clients featuring the specified actor",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies",
-                    "clients"
-                ],
-                "summary": "Get movies by actor",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Actor name",
-                        "name": "actor",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/movie/director/{director}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves movies from all connected clients directed by the specified director",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies",
-                    "clients"
-                ],
-                "summary": "Get movies by director",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Director name",
-                        "name": "director",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/movie/external/{source}/{externalID}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves a movie from all connected clients by external ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies",
-                    "clients"
-                ],
-                "summary": "Get movie by external ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Source",
-                        "name": "source",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "External ID",
-                        "name": "externalID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client ID",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/movie/genre/{genre}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves movies from all connected clients that match the specified genre",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies",
-                    "clients"
-                ],
-                "summary": "Get movies by genre",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Genre name",
-                        "name": "genre",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/movie/item/{clientItemId}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves a specific movie from the client by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies",
-                    "clients"
-                ],
-                "summary": "Get movie by ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Movie ID",
-                        "name": "movieID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client ID",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/movie/latest/{count}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves the most recently added movies from all connected clients",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies",
-                    "clients"
-                ],
-                "summary": "Get latest added movies",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Number of movies to retrieve",
-                        "name": "count",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid count format",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/movie/popular/{count}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves the most popular movies from all connected clients",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies",
-                    "clients"
-                ],
-                "summary": "Get popular movies",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Number of movies to retrieve",
-                        "name": "count",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid count format",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/movie/rating": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves movies from all connected clients with ratings in the specified range",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies",
-                    "clients"
-                ],
-                "summary": "Get movies by rating range",
-                "parameters": [
-                    {
-                        "type": "number",
-                        "description": "Minimum rating (e.g. 7.5)",
-                        "name": "min",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "number",
-                        "description": "Maximum rating (e.g. 10.0)",
-                        "name": "max",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid rating format",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/movie/search": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Searches for movies across all connected clients matching the query",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies",
-                    "clients"
-                ],
-                "summary": "Search for movies",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Search query",
-                        "name": "q",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Missing search query",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/movie/top-rated/{count}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves the highest rated movies from all connected clients",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies",
-                    "clients"
-                ],
-                "summary": "Get top rated movies",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Number of movies to retrieve",
-                        "name": "count",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid count format",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/client/{clientId}/movie/year/{year}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves movies from all connected clients that were released in the specified year",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies",
-                    "clients"
-                ],
-                "summary": "Get movies by release year",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Release year",
-                        "name": "year",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movies retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid year",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
                         }
@@ -8473,6 +8494,76 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/media/movie/{itemID}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates user-specific data for a movie (favorite, watched status, rating, etc.)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Update user data for a movie",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Movie ID",
+                        "name": "itemID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated user data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.UserMediaItemDataUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Movie updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-suasor_clients_media_types_Movie"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Movie not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/media/movies": {
             "get": {
                 "description": "Retrieves all movies in the database",
@@ -8696,76 +8787,6 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/media/movies/user/{id}": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Updates user-specific data for a movie (favorite, watched status, rating, etc.)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies"
-                ],
-                "summary": "Update user data for a movie",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Movie ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Updated user data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/requests.UserMediaItemDataUpdateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Movie updated successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-suasor_clients_media_types_Movie"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "Movie not found",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-any"
                         }
@@ -9696,6 +9717,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/media/music/track/{trackID}/similar": {
+            "get": {
+                "description": "Retrieves tracks similar to a specific track",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "music",
+                    "core"
+                ],
+                "summary": "Get similar tracks",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Track ID",
+                        "name": "trackID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of tracks to return (default 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Similar tracks retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Track"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Track not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/media/music/tracks/recently-added": {
             "get": {
                 "description": "Retrieves tracks that were recently added to the library",
@@ -9791,63 +9869,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/media/music/tracks/{id}/similar": {
-            "get": {
-                "description": "Retrieves tracks similar to a specific track",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "music",
-                    "core"
-                ],
-                "summary": "Get similar tracks",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Track ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Maximum number of tracks to return (default 10)",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Similar tracks retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Track"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "Track not found",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-any"
                         }
@@ -10454,7 +10475,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/media/series/{id}/seasons": {
+        "/api/v1/media/series/{seriesID}/seasons": {
             "get": {
                 "description": "Retrieves all seasons for a specific series",
                 "consumes": [
@@ -10472,7 +10493,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Series ID",
-                        "name": "id",
+                        "name": "seriesID",
                         "in": "path",
                         "required": true
                     },
@@ -10512,7 +10533,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/media/series/{id}/seasons/{seasonNumber}/episodes": {
+        "/api/v1/media/series/{seriesID}/seasons/{seasonNumber}/episodes": {
             "get": {
                 "description": "Retrieves all episodes for a specific season of a series",
                 "consumes": [
@@ -10530,7 +10551,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Series ID",
-                        "name": "id",
+                        "name": "seriesID",
                         "in": "path",
                         "required": true
                     },
@@ -11538,7 +11559,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/media/{mediaType}/{itemId}": {
+        "/api/v1/media/{mediaType}/{itemID}": {
             "put": {
                 "description": "Updates an existing media item owned by a user",
                 "consumes": [
@@ -11555,7 +11576,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Media Item ID",
-                        "name": "itemId",
+                        "name": "itemID",
                         "in": "path",
                         "required": true
                     },
@@ -11618,7 +11639,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "User Media Item ID",
-                        "name": "itemId",
+                        "name": "itemID",
                         "in": "path",
                         "required": true
                     }
@@ -13326,7 +13347,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/user-data/data/{id}": {
+        "/api/v1/user-data/data/{dataID}": {
             "get": {
                 "description": "Retrieves a specific user media item data entry by its ID",
                 "consumes": [
@@ -13344,7 +13365,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "User Media Item Data ID",
-                        "name": "id",
+                        "name": "dataID",
                         "in": "path",
                         "required": true
                     }
@@ -13394,7 +13415,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "User ID (optional, uses authenticated user ID if not provided)",
-                        "name": "userId",
+                        "name": "userID",
                         "in": "query"
                     },
                     {
@@ -13450,7 +13471,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "User ID (optional, uses authenticated user ID if not provided)",
-                        "name": "userId",
+                        "name": "userID",
                         "in": "query"
                     },
                     {
@@ -13511,7 +13532,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "User ID (optional, uses authenticated user ID if not provided)",
-                        "name": "userId",
+                        "name": "userID",
                         "in": "query"
                     },
                     {
@@ -13579,7 +13600,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "User ID (optional, uses authenticated user ID if not provided)",
-                        "name": "userId",
+                        "name": "userID",
                         "in": "query"
                     },
                     {
@@ -13646,7 +13667,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "User ID (optional, uses authenticated user ID if not provided)",
-                        "name": "userId",
+                        "name": "userID",
                         "in": "query"
                     },
                     {
@@ -13690,7 +13711,65 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/user-data/{mediaType}/{id}": {
+        "/api/v1/user-data/{mediaType}/{id}/check": {
+            "get": {
+                "description": "Checks if a user has data for a specific media item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user-data",
+                    "core"
+                ],
+                "summary": "Check if a user has data for a specific media item",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Media Item ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Media type like movie, series, track, etc.",
+                        "name": "mediaType",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID (optional, uses authenticated user ID if not provided)",
+                        "name": "userID",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully checked user media item data",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-bool"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user-data/{mediaType}/{itemID}": {
             "get": {
                 "description": "Retrieves user media item data for a specific user and media item",
                 "consumes": [
@@ -13708,7 +13787,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Media Item ID",
-                        "name": "id",
+                        "name": "itemID",
                         "in": "path",
                         "required": true
                     },
@@ -13722,7 +13801,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "User ID (optional, uses authenticated user ID if not provided)",
-                        "name": "userId",
+                        "name": "userID",
                         "in": "query"
                     }
                 ],
@@ -13770,7 +13849,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "User Media Item ID",
-                        "name": "id",
+                        "name": "itemID",
                         "in": "path",
                         "required": true
                     },
@@ -13784,7 +13863,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "User ID (optional, uses authenticated user ID if not provided)",
-                        "name": "userId",
+                        "name": "userID",
                         "in": "query"
                     }
                 ],
@@ -13810,65 +13889,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/user-data/{mediaType}/{id}/check": {
-            "get": {
-                "description": "Checks if a user has data for a specific media item",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user-data",
-                    "core"
-                ],
-                "summary": "Check if a user has data for a specific media item",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Media Item ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Media type like movie, series, track, etc.",
-                        "name": "mediaType",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "User ID (optional, uses authenticated user ID if not provided)",
-                        "name": "userId",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successfully checked user media item data",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-bool"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/user-data/{mediaType}/{itemId}/favorite": {
+        "/api/v1/user-data/{mediaType}/{itemID}/favorite": {
             "put": {
                 "description": "Mark or unmark a media item as a favorite",
                 "consumes": [
@@ -13899,14 +13920,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Media Item ID",
-                        "name": "itemId",
+                        "name": "itemID",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
                         "description": "User ID (optional, uses authenticated user ID if not provided)",
-                        "name": "userId",
+                        "name": "userID",
                         "in": "query"
                     }
                 ],
@@ -13938,7 +13959,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/user-data/{mediaType}/{itemId}/rating": {
+        "/api/v1/user-data/{mediaType}/{itemID}/rating": {
             "put": {
                 "description": "Set a user's rating for a media item",
                 "consumes": [
@@ -13969,14 +13990,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Media Item ID",
-                        "name": "itemId",
+                        "name": "itemID",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
                         "description": "User ID (optional, uses authenticated user ID if not provided)",
-                        "name": "userId",
+                        "name": "userID",
                         "in": "query"
                     }
                 ],
@@ -14008,7 +14029,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/user-data/{mediaType}/{itemId}/record": {
+        "/api/v1/user-data/{mediaType}/{itemID}/record": {
             "post": {
                 "description": "Record a new play event for a media item",
                 "consumes": [
@@ -14034,7 +14055,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Media Item ID",
-                        "name": "itemId",
+                        "name": "itemID",
                         "in": "path",
                         "required": true
                     }
@@ -15657,7 +15678,7 @@ const docTemplate = `{
                 "updatedAt": {
                     "type": "string"
                 },
-                "userId": {
+                "userID": {
                     "type": "integer"
                 }
             }
@@ -15693,7 +15714,7 @@ const docTemplate = `{
                 "updatedAt": {
                     "type": "string"
                 },
-                "userId": {
+                "userID": {
                     "type": "integer"
                 }
             }
@@ -15760,7 +15781,7 @@ const docTemplate = `{
                     "description": "Specific job title",
                     "type": "string"
                 },
-                "mediaItemId": {
+                "mediaItemID": {
                     "type": "integer"
                 },
                 "metadata": {
@@ -15782,7 +15803,7 @@ const docTemplate = `{
                 "person": {
                     "$ref": "#/definitions/models.Person"
                 },
-                "personId": {
+                "personID": {
                     "type": "integer"
                 },
                 "role": {
@@ -16052,7 +16073,7 @@ const docTemplate = `{
                 "updatedAt": {
                     "type": "string"
                 },
-                "userId": {
+                "userID": {
                     "description": "User ID associated with the job, if applicable",
                     "type": "integer"
                 }
@@ -16102,7 +16123,7 @@ const docTemplate = `{
                 "updatedAt": {
                     "type": "string"
                 },
-                "userId": {
+                "userID": {
                     "description": "User ID associated with the job, if applicable (for user-specific jobs)",
                     "type": "integer"
                 }
@@ -16143,7 +16164,7 @@ const docTemplate = `{
         "models.ListItem": {
             "type": "object",
             "properties": {
-                "itemUuid": {
+                "itemUUID": {
                     "type": "string"
                 },
                 "lastChanged": {
@@ -16887,7 +16908,7 @@ const docTemplate = `{
         "models.MediaSyncJob": {
             "type": "object",
             "properties": {
-                "clientId": {
+                "clientID": {
                     "description": "ID of the client to sync from",
                     "type": "integer"
                 },
@@ -16928,7 +16949,7 @@ const docTemplate = `{
                 "updatedAt": {
                     "type": "string"
                 },
-                "userId": {
+                "userID": {
                     "description": "ID of the user",
                     "type": "integer"
                 }
@@ -16955,8 +16976,8 @@ const docTemplate = `{
                 "deletedAt": {
                     "type": "string"
                 },
-                "externalIds": {
-                    "description": "ClientIDs   ClientIDs   ` + "`" + `json:\"clientIds\" gorm:\"type:jsonb\"` + "`" + `",
+                "externalIDs": {
+                    "description": "ClientIDs   ClientIDs   ` + "`" + `json:\"clientIDs\" gorm:\"type:jsonb\"` + "`" + `",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.ExternalID"
@@ -17079,7 +17100,7 @@ const docTemplate = `{
                     "description": "When this recommendation expires",
                     "type": "string"
                 },
-                "externalIds": {
+                "externalIDs": {
                     "$ref": "#/definitions/models.ExternalIDMap"
                 },
                 "genres": {
@@ -17100,7 +17121,7 @@ const docTemplate = `{
                     "description": "Whether user has viewed this item",
                     "type": "boolean"
                 },
-                "jobRunId": {
+                "jobRunID": {
                     "description": "Job run that created this recommendation",
                     "type": "integer"
                 },
@@ -17122,7 +17143,7 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "mediaItemId": {
+                "mediaItemID": {
                     "type": "integer"
                 },
                 "mediaType": {
@@ -17158,7 +17179,7 @@ const docTemplate = `{
                         }
                     ]
                 },
-                "sourceClientId": {
+                "sourceClientID": {
                     "description": "ID of the client that generated this recommendation, if applicable",
                     "type": "integer"
                 },
@@ -17172,7 +17193,7 @@ const docTemplate = `{
                 "updatedAt": {
                     "type": "string"
                 },
-                "userId": {
+                "userID": {
                     "type": "integer"
                 },
                 "userRating": {
@@ -17234,7 +17255,7 @@ const docTemplate = `{
         "models.SyncClient": {
             "type": "object",
             "properties": {
-                "clientId": {
+                "clientID": {
                     "description": "ID of the client that this external ID belongs to (optional for service IDs like TMDB)",
                     "type": "integer"
                 },
@@ -17246,7 +17267,7 @@ const docTemplate = `{
                         }
                     ]
                 },
-                "itemId": {
+                "itemID": {
                     "description": "The actual ID value in the external system",
                     "type": "string"
                 }
@@ -17774,7 +17795,7 @@ const docTemplate = `{
                 "contentType"
             ],
             "properties": {
-                "clientId": {
+                "clientID": {
                     "description": "Client ID to use for the conversation",
                     "type": "integer"
                 },
@@ -17804,7 +17825,7 @@ const docTemplate = `{
                 "contentType"
             ],
             "properties": {
-                "clientId": {
+                "clientID": {
                     "description": "Client ID to use for the conversation",
                     "type": "integer"
                 },
@@ -17949,7 +17970,7 @@ const docTemplate = `{
                 "message"
             ],
             "properties": {
-                "clientId": {
+                "clientID": {
                     "description": "Client ID to use for the conversation",
                     "type": "integer"
                 },
@@ -18179,7 +18200,7 @@ const docTemplate = `{
         "requests.ListAddTrackRequest": {
             "type": "object",
             "properties": {
-                "trackId": {
+                "trackID": {
                     "type": "integer"
                 }
             }
@@ -18219,7 +18240,7 @@ const docTemplate = `{
         "requests.ListReorderRequest": {
             "type": "object",
             "properties": {
-                "itemIds": {
+                "itemIDs": {
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -18455,11 +18476,11 @@ const docTemplate = `{
         "requests.RunMediaSyncJobRequest": {
             "type": "object",
             "required": [
-                "clientId",
+                "clientID",
                 "mediaType"
             ],
             "properties": {
-                "clientId": {
+                "clientID": {
                     "type": "integer"
                 },
                 "mediaType": {
@@ -18470,13 +18491,13 @@ const docTemplate = `{
         "requests.SetupMediaSyncJobRequest": {
             "type": "object",
             "required": [
-                "clientId",
+                "clientID",
                 "clientType",
                 "frequency",
                 "mediaType"
             ],
             "properties": {
-                "clientId": {
+                "clientID": {
                     "type": "integer"
                 },
                 "clientType": {
@@ -18497,7 +18518,7 @@ const docTemplate = `{
                 "contentType"
             ],
             "properties": {
-                "clientId": {
+                "clientID": {
                     "description": "Client ID to use for the conversation",
                     "type": "integer"
                 },
@@ -18694,9 +18715,9 @@ const docTemplate = `{
             "description": "Request payload for recording a new play history entry",
             "type": "object",
             "required": [
-                "mediaItemId",
+                "mediaItemID",
                 "type",
-                "userId"
+                "userID"
             ],
             "properties": {
                 "completed": {
@@ -18712,7 +18733,7 @@ const docTemplate = `{
                 "isFavorite": {
                     "type": "boolean"
                 },
-                "mediaItemId": {
+                "mediaItemID": {
                     "type": "integer"
                 },
                 "playedPercentage": {
@@ -18724,7 +18745,7 @@ const docTemplate = `{
                 "type": {
                     "$ref": "#/definitions/types.MediaType"
                 },
-                "userId": {
+                "userID": {
                     "type": "integer"
                 },
                 "userRating": {
@@ -18736,9 +18757,9 @@ const docTemplate = `{
             "description": "Request payload for synchronizing media item data",
             "type": "object",
             "required": [
-                "mediaItemId",
+                "mediaItemID",
                 "type",
-                "userId"
+                "userID"
             ],
             "properties": {
                 "completed": {
@@ -18754,7 +18775,7 @@ const docTemplate = `{
                 "isFavorite": {
                     "type": "boolean"
                 },
-                "mediaItemId": {
+                "mediaItemID": {
                     "type": "integer"
                 },
                 "playedPercentage": {
@@ -18766,7 +18787,7 @@ const docTemplate = `{
                 "type": {
                     "$ref": "#/definitions/types.MediaType"
                 },
-                "userId": {
+                "userID": {
                     "type": "integer"
                 },
                 "userRating": {
@@ -18777,9 +18798,9 @@ const docTemplate = `{
         "requests.UserMediaItemDataUpdateRequest": {
             "type": "object",
             "required": [
-                "mediaItemId",
+                "mediaItemID",
                 "type",
-                "userId"
+                "userID"
             ],
             "properties": {
                 "completed": {
@@ -18795,7 +18816,7 @@ const docTemplate = `{
                 "isFavorite": {
                     "type": "boolean"
                 },
-                "mediaItemId": {
+                "mediaItemID": {
                     "type": "integer"
                 },
                 "playedPercentage": {
@@ -18807,7 +18828,7 @@ const docTemplate = `{
                 "type": {
                     "$ref": "#/definitions/types.MediaType"
                 },
-                "userId": {
+                "userID": {
                     "type": "integer"
                 },
                 "userRating": {
@@ -19934,7 +19955,7 @@ const docTemplate = `{
         "responses.MediaItemResponse": {
             "type": "object",
             "properties": {
-                "clientId": {
+                "clientID": {
                     "type": "integer"
                 },
                 "clientType": {
@@ -19944,7 +19965,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "data": {},
-                "externalId": {
+                "externalID": {
                     "type": "string"
                 },
                 "id": {
@@ -21081,11 +21102,11 @@ const docTemplate = `{
                     "description": "\"add\", \"remove\", \"update\", \"reorder\", \"sync\"",
                     "type": "string"
                 },
-                "clientId": {
+                "clientID": {
                     "description": "0 = internal client",
                     "type": "integer"
                 },
-                "itemId": {
+                "itemID": {
                     "type": "string"
                 },
                 "timestamp": {
@@ -21499,7 +21520,7 @@ const docTemplate = `{
                         "$ref": "#/definitions/types.ChangeRecord"
                     }
                 },
-                "itemId": {
+                "itemID": {
                     "type": "integer"
                 },
                 "lastChanged": {
@@ -21790,11 +21811,11 @@ const docTemplate = `{
         "types.SyncClient": {
             "type": "object",
             "properties": {
-                "clientId": {
+                "clientID": {
                     "description": "ID of the client that this external ID belongs to (optional for service IDs like TMDB)",
                     "type": "integer"
                 },
-                "itemId": {
+                "itemID": {
                     "description": "The actual ID value in the external system",
                     "type": "string"
                 }
@@ -21831,7 +21852,7 @@ const docTemplate = `{
                         "$ref": "#/definitions/types.ChangeRecord"
                     }
                 },
-                "itemId": {
+                "itemID": {
                     "type": "string"
                 },
                 "lastChanged": {

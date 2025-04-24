@@ -88,7 +88,7 @@ definitions:
         $ref: '#/definitions/types.ClientType'
       updatedAt:
         type: string
-      userId:
+      userID:
         type: integer
     type: object
   models.Client-types_EmbyConfig:
@@ -112,7 +112,7 @@ definitions:
         $ref: '#/definitions/types.ClientType'
       updatedAt:
         type: string
-      userId:
+      userID:
         type: integer
     type: object
   models.ClientConfigWrapper-types_ClientConfig:
@@ -158,7 +158,7 @@ definitions:
       job:
         description: Specific job title
         type: string
-      mediaItemId:
+      mediaItemID:
         type: integer
       metadata:
         allOf:
@@ -172,7 +172,7 @@ definitions:
         type: integer
       person:
         $ref: '#/definitions/models.Person'
-      personId:
+      personID:
         type: integer
       role:
         description: e.g., "Director", "Actor"
@@ -360,7 +360,7 @@ definitions:
         type: integer
       updatedAt:
         type: string
-      userId:
+      userID:
         description: User ID associated with the job, if applicable
         type: integer
     type: object
@@ -394,7 +394,7 @@ definitions:
         type: string
       updatedAt:
         type: string
-      userId:
+      userID:
         description: User ID associated with the job, if applicable (for user-specific
           jobs)
         type: integer
@@ -427,7 +427,7 @@ definitions:
     - JobTypeAnalysis
   models.ListItem:
     properties:
-      itemUuid:
+      itemUUID:
         type: string
       lastChanged:
         type: string
@@ -922,7 +922,7 @@ definitions:
     type: object
   models.MediaSyncJob:
     properties:
-      clientId:
+      clientID:
         description: ID of the client to sync from
         type: integer
       clientType:
@@ -952,7 +952,7 @@ definitions:
         type: string
       updatedAt:
         type: string
-      userId:
+      userID:
         description: ID of the user
         type: integer
     type: object
@@ -970,8 +970,8 @@ definitions:
         type: string
       deletedAt:
         type: string
-      externalIds:
-        description: ClientIDs   ClientIDs   `json:"clientIds" gorm:"type:jsonb"`
+      externalIDs:
+        description: ClientIDs   ClientIDs   `json:"clientIDs" gorm:"type:jsonb"`
         items:
           $ref: '#/definitions/models.ExternalID'
         type: array
@@ -1055,7 +1055,7 @@ definitions:
       expiresAt:
         description: When this recommendation expires
         type: string
-      externalIds:
+      externalIDs:
         $ref: '#/definitions/models.ExternalIDMap'
       genres:
         items:
@@ -1070,7 +1070,7 @@ definitions:
       isViewed:
         description: Whether user has viewed this item
         type: boolean
-      jobRunId:
+      jobRunID:
         description: Job run that created this recommendation
         type: integer
       matchesActors:
@@ -1085,7 +1085,7 @@ definitions:
         items:
           type: string
         type: array
-      mediaItemId:
+      mediaItemID:
         type: integer
       mediaType:
         allOf:
@@ -1107,7 +1107,7 @@ definitions:
         allOf:
         - $ref: '#/definitions/models.RecommendationSource'
         description: Source of the recommendation (AI, system, manual)
-      sourceClientId:
+      sourceClientID:
         description: ID of the client that generated this recommendation, if applicable
         type: integer
       sourceClientType:
@@ -1117,7 +1117,7 @@ definitions:
         type: string
       updatedAt:
         type: string
-      userId:
+      userID:
         type: integer
       userRating:
         description: If user has rated this recommendation
@@ -1160,7 +1160,7 @@ definitions:
     type: object
   models.SyncClient:
     properties:
-      clientId:
+      clientID:
         description: ID of the client that this external ID belongs to (optional for
           service IDs like TMDB)
         type: integer
@@ -1168,7 +1168,7 @@ definitions:
         allOf:
         - $ref: '#/definitions/types.ClientType'
         description: Type of client this ID belongs to (optional for service IDs)
-      itemId:
+      itemID:
         description: The actual ID value in the external system
         type: string
     type: object
@@ -1549,7 +1549,7 @@ definitions:
   requests.AiContentAnalysisRequest:
     description: Request for AI-powered content analysis
     properties:
-      clientId:
+      clientID:
         description: Client ID to use for the conversation
         type: integer
       clientType:
@@ -1582,7 +1582,7 @@ definitions:
   requests.AiRecommendationRequest:
     description: Request for AI-powered content recommendations
     properties:
-      clientId:
+      clientID:
         description: Client ID to use for the conversation
         type: integer
       clientType:
@@ -1707,7 +1707,7 @@ definitions:
   requests.ConversationMessageRequest:
     description: Request to send a message in an existing AI conversation
     properties:
-      clientId:
+      clientID:
         description: Client ID to use for the conversation
         type: integer
       context:
@@ -1971,7 +1971,7 @@ definitions:
     type: object
   requests.ListAddTrackRequest:
     properties:
-      trackId:
+      trackID:
         type: integer
     type: object
   requests.ListCreateRequest:
@@ -1997,7 +1997,7 @@ definitions:
     type: object
   requests.ListReorderRequest:
     properties:
-      itemIds:
+      itemIDs:
         items:
           type: integer
         type: array
@@ -2191,17 +2191,17 @@ definitions:
     type: object
   requests.RunMediaSyncJobRequest:
     properties:
-      clientId:
+      clientID:
         type: integer
       mediaType:
         type: string
     required:
-    - clientId
+    - clientID
     - mediaType
     type: object
   requests.SetupMediaSyncJobRequest:
     properties:
-      clientId:
+      clientID:
         type: integer
       clientType:
         type: string
@@ -2210,7 +2210,7 @@ definitions:
       mediaType:
         type: string
     required:
-    - clientId
+    - clientID
     - clientType
     - frequency
     - mediaType
@@ -2218,7 +2218,7 @@ definitions:
   requests.StartConversationRequest:
     description: Request to start a new AI-powered conversation for recommendations
     properties:
-      clientId:
+      clientID:
         description: Client ID to use for the conversation
         type: integer
       contentType:
@@ -2448,7 +2448,7 @@ definitions:
         type: integer
       isFavorite:
         type: boolean
-      mediaItemId:
+      mediaItemID:
         type: integer
       playedPercentage:
         type: number
@@ -2456,14 +2456,14 @@ definitions:
         type: integer
       type:
         $ref: '#/definitions/types.MediaType'
-      userId:
+      userID:
         type: integer
       userRating:
         type: number
     required:
-    - mediaItemId
+    - mediaItemID
     - type
-    - userId
+    - userID
     type: object
   requests.UserMediaItemDataSyncRequest:
     description: Request payload for synchronizing media item data
@@ -2477,7 +2477,7 @@ definitions:
         type: integer
       isFavorite:
         type: boolean
-      mediaItemId:
+      mediaItemID:
         type: integer
       playedPercentage:
         type: number
@@ -2485,14 +2485,14 @@ definitions:
         type: integer
       type:
         $ref: '#/definitions/types.MediaType'
-      userId:
+      userID:
         type: integer
       userRating:
         type: number
     required:
-    - mediaItemId
+    - mediaItemID
     - type
-    - userId
+    - userID
     type: object
   requests.UserMediaItemDataUpdateRequest:
     properties:
@@ -2505,7 +2505,7 @@ definitions:
         type: integer
       isFavorite:
         type: boolean
-      mediaItemId:
+      mediaItemID:
         type: integer
       playedPercentage:
         type: number
@@ -2513,14 +2513,14 @@ definitions:
         type: integer
       type:
         $ref: '#/definitions/types.MediaType'
-      userId:
+      userID:
         type: integer
       userRating:
         type: number
     required:
-    - mediaItemId
+    - mediaItemID
     - type
-    - userId
+    - userID
     type: object
   responses.APIResponse-any:
     properties:
@@ -3312,14 +3312,14 @@ definitions:
     type: object
   responses.MediaItemResponse:
     properties:
-      clientId:
+      clientID:
         type: integer
       clientType:
         type: string
       createdAt:
         type: string
       data: {}
-      externalId:
+      externalID:
         type: string
       id:
         type: integer
@@ -4093,10 +4093,10 @@ definitions:
       changeType:
         description: '"add", "remove", "update", "reorder", "sync"'
         type: string
-      clientId:
+      clientID:
         description: 0 = internal client
         type: integer
-      itemId:
+      itemID:
         type: string
       timestamp:
         type: string
@@ -4413,7 +4413,7 @@ definitions:
         items:
           $ref: '#/definitions/types.ChangeRecord'
         type: array
-      itemId:
+      itemID:
         type: integer
       lastChanged:
         type: string
@@ -4615,11 +4615,11 @@ definitions:
     type: object
   types.SyncClient:
     properties:
-      clientId:
+      clientID:
         description: ID of the client that this external ID belongs to (optional for
           service IDs like TMDB)
         type: integer
-      itemId:
+      itemID:
         description: The actual ID value in the external system
         type: string
     type: object
@@ -4644,7 +4644,7 @@ definitions:
         items:
           $ref: '#/definitions/types.ChangeRecord'
         type: array
-      itemId:
+      itemID:
         type: string
       lastChanged:
         type: string
@@ -6680,7 +6680,41 @@ paths:
       tags:
       - automation
       - clients
-  /api/v1/client/{clientID}/media/{id}:
+  /api/v1/client/{clientID}/media:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all media items for a specific client
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Media type filter
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Media items retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-any'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Get media items by client
+      tags:
+      - media
+      - clients
+  /api/v1/client/{clientID}/media/{itemID}:
     put:
       consumes:
       - application/json
@@ -6688,9 +6722,9 @@ paths:
       parameters:
       - description: Media item ID
         in: path
-        name: id
+        name: itemID
         required: true
-        type: integer
+        type: string
       - description: Media item data to update
         in: body
         name: mediaItem
@@ -6748,6 +6782,94 @@ paths:
           schema:
             $ref: '#/definitions/responses.ErrorResponse-any'
       summary: Create a new media item associated with a client
+      tags:
+      - media
+      - clients
+  /api/v1/client/{clientID}/media/{mediaType}/{clientItemID}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a media item using its client-specific ID
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Client-specific item ID
+        in: path
+        name: clientItemID
+        required: true
+        type: string
+      - description: Media type
+        in: path
+        name: mediaType
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Media item retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-any'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "404":
+          description: Media item not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Get media item by client-specific ID
+      tags:
+      - media
+      - clients
+  /api/v1/client/{clientID}/media/{mediaType}/{itemID}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a media item using its client-specific ID
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Media type
+        in: path
+        name: mediaType
+        required: true
+        type: string
+      - description: Client-specific item ID
+        in: path
+        name: itemID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Media item retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-any'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "404":
+          description: Media item not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Get media item by client-specific ID
       tags:
       - media
       - clients
@@ -8518,6 +8640,466 @@ paths:
       tags:
       - series
       - clients
+  /api/v1/client/{clientID}/media/track/item/{clientItemId}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific music track from the client by ID
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Track ID
+        in: path
+        name: trackID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Track retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_Track'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get track by ID from client
+      tags:
+      - music
+      - clients
+  /api/v1/client/{clientID}/movie/actor/{actor}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves movies from all connected clients featuring the specified
+        actor
+      parameters:
+      - description: Actor name
+        in: path
+        name: actor
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get movies by actor
+      tags:
+      - movies
+      - clients
+  /api/v1/client/{clientID}/movie/director/{director}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves movies from all connected clients directed by the specified
+        director
+      parameters:
+      - description: Director name
+        in: path
+        name: director
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get movies by director
+      tags:
+      - movies
+      - clients
+  /api/v1/client/{clientID}/movie/external/{source}/{externalID}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a movie from all connected clients by external ID
+      parameters:
+      - description: Source
+        in: path
+        name: source
+        required: true
+        type: integer
+      - description: External ID
+        in: path
+        name: externalID
+        required: true
+        type: string
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-suasor_clients_media_types_Movie'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get movie by external ID
+      tags:
+      - movies
+      - clients
+  /api/v1/client/{clientID}/movie/genre/{genre}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves movies from all connected clients that match the specified
+        genre
+      parameters:
+      - description: Genre name
+        in: path
+        name: genre
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get movies by genre
+      tags:
+      - movies
+      - clients
+  /api/v1/client/{clientID}/movie/item/{clientItemId}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific movie from the client by ID
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Movie ID
+        in: path
+        name: clientItemID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-suasor_clients_media_types_Movie'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get movie by ID
+      tags:
+      - movies
+      - clients
+  /api/v1/client/{clientID}/movie/latest/{count}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the most recently added movies from all connected clients
+      parameters:
+      - description: Number of movies to retrieve
+        in: path
+        name: count
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+        "400":
+          description: Invalid count format
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get latest added movies
+      tags:
+      - movies
+      - clients
+  /api/v1/client/{clientID}/movie/popular/{count}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the most popular movies from all connected clients
+      parameters:
+      - description: Number of movies to retrieve
+        in: path
+        name: count
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+        "400":
+          description: Invalid count format
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get popular movies
+      tags:
+      - movies
+      - clients
+  /api/v1/client/{clientID}/movie/rating:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves movies from all connected clients with ratings in the
+        specified range
+      parameters:
+      - description: Minimum rating (e.g. 7.5)
+        in: query
+        name: min
+        required: true
+        type: number
+      - description: Maximum rating (e.g. 10.0)
+        in: query
+        name: max
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+        "400":
+          description: Invalid rating format
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get movies by rating range
+      tags:
+      - movies
+      - clients
+  /api/v1/client/{clientID}/movie/search:
+    get:
+      consumes:
+      - application/json
+      description: Searches for movies across all connected clients matching the query
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+        "400":
+          description: Missing search query
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Search for movies
+      tags:
+      - movies
+      - clients
+  /api/v1/client/{clientID}/movie/top-rated/{count}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the highest rated movies from all connected clients
+      parameters:
+      - description: Number of movies to retrieve
+        in: path
+        name: count
+        required: true
+        type: integer
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+        "400":
+          description: Invalid count format
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get top rated movies
+      tags:
+      - movies
+      - clients
+  /api/v1/client/{clientID}/movie/year/{year}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves movies from all connected clients that were released
+        in the specified year
+      parameters:
+      - description: Release year
+        in: path
+        name: year
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movies retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+        "400":
+          description: Invalid year
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get movies by release year
+      tags:
+      - movies
+      - clients
   /api/v1/client/{clientID}/user-data/{mediaType}:
     get:
       consumes:
@@ -8793,573 +9375,6 @@ paths:
       tags:
       - user-data
       - clients
-  /api/v1/client/{clientId}/media:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves all media items for a specific client
-      parameters:
-      - description: Client ID
-        in: path
-        name: clientId
-        required: true
-        type: integer
-      - description: Media type filter
-        in: query
-        name: type
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Media items retrieved successfully
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-any'
-        "400":
-          description: Invalid client ID
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-      summary: Get media items by client
-      tags:
-      - media
-      - clients
-  /api/v1/client/{clientId}/media/{mediaType}/{clientItemId}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a media item using its client-specific ID
-      parameters:
-      - description: Client ID
-        in: path
-        name: clientId
-        required: true
-        type: integer
-      - description: Client-specific item ID
-        in: path
-        name: clientItemId
-        required: true
-        type: string
-      - description: Media type
-        in: path
-        name: mediaType
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Media item retrieved successfully
-          schema:
-            $ref: '#/definitions/responses.APIResponse-models_MediaItem-any'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "404":
-          description: Media item not found
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-      summary: Get media item by client-specific ID
-      tags:
-      - media
-      - clients
-  /api/v1/client/{clientId}/media/{mediaType}/{itemId}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a media item using its client-specific ID
-      parameters:
-      - description: Client ID
-        in: path
-        name: clientId
-        required: true
-        type: integer
-      - description: Media type
-        in: path
-        name: mediaType
-        required: true
-        type: string
-      - description: Client-specific item ID
-        in: path
-        name: itemId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Media item retrieved successfully
-          schema:
-            $ref: '#/definitions/responses.APIResponse-models_MediaItem-any'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "404":
-          description: Media item not found
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-      summary: Get media item by client-specific ID
-      tags:
-      - media
-      - clients
-  /api/v1/client/{clientId}/media/track/item/{clientItemId}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a specific music track from the client by ID
-      parameters:
-      - description: Client ID
-        in: path
-        name: clientID
-        required: true
-        type: integer
-      - description: Track ID
-        in: path
-        name: trackID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Track retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_Track'
-        "400":
-          description: Invalid client ID
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-error'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-error'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-error'
-      security:
-      - BearerAuth: []
-      summary: Get track by ID from client
-      tags:
-      - music
-      - clients
-  /api/v1/client/{clientId}/movie/actor/{actor}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves movies from all connected clients featuring the specified
-        actor
-      parameters:
-      - description: Actor name
-        in: path
-        name: actor
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get movies by actor
-      tags:
-      - movies
-      - clients
-  /api/v1/client/{clientId}/movie/director/{director}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves movies from all connected clients directed by the specified
-        director
-      parameters:
-      - description: Director name
-        in: path
-        name: director
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get movies by director
-      tags:
-      - movies
-      - clients
-  /api/v1/client/{clientId}/movie/external/{source}/{externalID}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a movie from all connected clients by external ID
-      parameters:
-      - description: Source
-        in: path
-        name: source
-        required: true
-        type: integer
-      - description: External ID
-        in: path
-        name: externalID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Invalid client ID
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get movie by external ID
-      tags:
-      - movies
-      - clients
-  /api/v1/client/{clientId}/movie/genre/{genre}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves movies from all connected clients that match the specified
-        genre
-      parameters:
-      - description: Genre name
-        in: path
-        name: genre
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get movies by genre
-      tags:
-      - movies
-      - clients
-  /api/v1/client/{clientId}/movie/item/{clientItemId}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a specific movie from the client by ID
-      parameters:
-      - description: Client ID
-        in: path
-        name: clientID
-        required: true
-        type: integer
-      - description: Movie ID
-        in: path
-        name: movieID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Invalid client ID
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get movie by ID
-      tags:
-      - movies
-      - clients
-  /api/v1/client/{clientId}/movie/latest/{count}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves the most recently added movies from all connected clients
-      parameters:
-      - description: Number of movies to retrieve
-        in: path
-        name: count
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Invalid count format
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get latest added movies
-      tags:
-      - movies
-      - clients
-  /api/v1/client/{clientId}/movie/popular/{count}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves the most popular movies from all connected clients
-      parameters:
-      - description: Number of movies to retrieve
-        in: path
-        name: count
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Invalid count format
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get popular movies
-      tags:
-      - movies
-      - clients
-  /api/v1/client/{clientId}/movie/rating:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves movies from all connected clients with ratings in the
-        specified range
-      parameters:
-      - description: Minimum rating (e.g. 7.5)
-        in: query
-        name: min
-        required: true
-        type: number
-      - description: Maximum rating (e.g. 10.0)
-        in: query
-        name: max
-        required: true
-        type: number
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Invalid rating format
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get movies by rating range
-      tags:
-      - movies
-      - clients
-  /api/v1/client/{clientId}/movie/search:
-    get:
-      consumes:
-      - application/json
-      description: Searches for movies across all connected clients matching the query
-      parameters:
-      - description: Search query
-        in: query
-        name: q
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Missing search query
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Search for movies
-      tags:
-      - movies
-      - clients
-  /api/v1/client/{clientId}/movie/top-rated/{count}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves the highest rated movies from all connected clients
-      parameters:
-      - description: Number of movies to retrieve
-        in: path
-        name: count
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Invalid count format
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get top rated movies
-      tags:
-      - movies
-      - clients
-  /api/v1/client/{clientId}/movie/year/{year}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves movies from all connected clients that were released
-        in the specified year
-      parameters:
-      - description: Release year
-        in: path
-        name: year
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Invalid year
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get movies by release year
-      tags:
-      - movies
-      - clients
   /api/v1/client/{clientType}:
     post:
       consumes:
@@ -9409,7 +9424,7 @@ paths:
       parameters:
       - description: Comma-separated list of client IDs
         in: query
-        name: clientIds
+        name: clientIDs
         required: true
         type: string
       produces:
@@ -9445,7 +9460,7 @@ paths:
         type: string
       - description: Comma-separated list of client IDs
         in: query
-        name: clientIds
+        name: clientIDs
         required: true
         type: string
       - description: Media type filter
@@ -10184,7 +10199,7 @@ paths:
       tags:
       - media
       - core
-  /api/v1/media/{mediaType}/{itemId}:
+  /api/v1/media/{mediaType}/{itemID}:
     delete:
       consumes:
       - application/json
@@ -10192,7 +10207,7 @@ paths:
       parameters:
       - description: User Media Item ID
         in: path
-        name: itemId
+        name: itemID
         required: true
         type: integer
       produces:
@@ -10224,7 +10239,7 @@ paths:
       parameters:
       - description: Media Item ID
         in: path
-        name: itemId
+        name: itemID
         required: true
         type: integer
       - description: Updated media item data
@@ -11183,6 +11198,52 @@ paths:
       tags:
       - movies
       - core
+  /api/v1/media/movie/{itemID}:
+    patch:
+      consumes:
+      - application/json
+      description: Updates user-specific data for a movie (favorite, watched status,
+        rating, etc.)
+      parameters:
+      - description: Movie ID
+        in: path
+        name: itemID
+        required: true
+        type: integer
+      - description: Updated user data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/requests.UserMediaItemDataUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Movie updated successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-suasor_clients_media_types_Movie'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "404":
+          description: Movie not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Update user data for a movie
+      tags:
+      - movies
   /api/v1/media/movie/actor/{actor}:
     get:
       consumes:
@@ -11567,52 +11628,6 @@ paths:
       tags:
       - movies
       - core
-  /api/v1/media/movies/user/{id}:
-    patch:
-      consumes:
-      - application/json
-      description: Updates user-specific data for a movie (favorite, watched status,
-        rating, etc.)
-      parameters:
-      - description: Movie ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Updated user data
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/requests.UserMediaItemDataUpdateRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movie updated successfully
-          schema:
-            $ref: '#/definitions/responses.APIResponse-models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "404":
-          description: Movie not found
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Update user data for a movie
-      tags:
-      - movies
   /api/v1/media/movies/user/favorites:
     get:
       consumes:
@@ -12347,7 +12362,7 @@ paths:
       tags:
       - music
       - core
-  /api/v1/media/music/tracks/{id}/similar:
+  /api/v1/media/music/track/{trackID}/similar:
     get:
       consumes:
       - application/json
@@ -12355,7 +12370,7 @@ paths:
       parameters:
       - description: Track ID
         in: path
-        name: id
+        name: trackID
         required: true
         type: integer
       - description: Maximum number of tracks to return (default 10)
@@ -12661,7 +12676,7 @@ paths:
       tags:
       - series
       - core
-  /api/v1/media/series/{id}/seasons:
+  /api/v1/media/series/{seriesID}/seasons:
     get:
       consumes:
       - application/json
@@ -12669,7 +12684,7 @@ paths:
       parameters:
       - description: Series ID
         in: path
-        name: id
+        name: seriesID
         required: true
         type: integer
       - description: User ID
@@ -12700,7 +12715,7 @@ paths:
       tags:
       - series
       - core
-  /api/v1/media/series/{id}/seasons/{seasonNumber}/episodes:
+  /api/v1/media/series/{seriesID}/seasons/{seasonNumber}/episodes:
     get:
       consumes:
       - application/json
@@ -12708,7 +12723,7 @@ paths:
       parameters:
       - description: Series ID
         in: path
-        name: id
+        name: seriesID
         required: true
         type: integer
       - description: Season number
@@ -14008,13 +14023,13 @@ paths:
       summary: Update user configuration
       tags:
       - config
-  /api/v1/user-data/{mediaType}/{id}:
-    delete:
+  /api/v1/user-data/{mediaType}/{id}/check:
+    get:
       consumes:
       - application/json
-      description: Deletes a specific user media item data entry by its ID
+      description: Checks if a user has data for a specific media item
       parameters:
-      - description: User Media Item ID
+      - description: Media Item ID
         in: path
         name: id
         required: true
@@ -14026,7 +14041,46 @@ paths:
         type: string
       - description: User ID (optional, uses authenticated user ID if not provided)
         in: query
-        name: userId
+        name: userID
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully checked user media item data
+          schema:
+            $ref: '#/definitions/responses.APIResponse-bool'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      summary: Check if a user has data for a specific media item
+      tags:
+      - user-data
+      - core
+  /api/v1/user-data/{mediaType}/{itemID}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a specific user media item data entry by its ID
+      parameters:
+      - description: User Media Item ID
+        in: path
+        name: itemID
+        required: true
+        type: integer
+      - description: Media type like movie, series, track, etc.
+        in: path
+        name: mediaType
+        required: true
+        type: string
+      - description: User ID (optional, uses authenticated user ID if not provided)
+        in: query
+        name: userID
         type: integer
       produces:
       - application/json
@@ -14054,7 +14108,7 @@ paths:
       parameters:
       - description: Media Item ID
         in: path
-        name: id
+        name: itemID
         required: true
         type: integer
       - description: Media type
@@ -14064,7 +14118,7 @@ paths:
         type: string
       - description: User ID (optional, uses authenticated user ID if not provided)
         in: query
-        name: userId
+        name: userID
         type: integer
       produces:
       - application/json
@@ -14089,46 +14143,7 @@ paths:
       tags:
       - user-data
       - core
-  /api/v1/user-data/{mediaType}/{id}/check:
-    get:
-      consumes:
-      - application/json
-      description: Checks if a user has data for a specific media item
-      parameters:
-      - description: Media Item ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Media type like movie, series, track, etc.
-        in: path
-        name: mediaType
-        required: true
-        type: string
-      - description: User ID (optional, uses authenticated user ID if not provided)
-        in: query
-        name: userId
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Successfully checked user media item data
-          schema:
-            $ref: '#/definitions/responses.APIResponse-bool'
-        "400":
-          description: Bad request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      summary: Check if a user has data for a specific media item
-      tags:
-      - user-data
-      - core
-  /api/v1/user-data/{mediaType}/{itemId}/favorite:
+  /api/v1/user-data/{mediaType}/{itemID}/favorite:
     put:
       consumes:
       - application/json
@@ -14146,12 +14161,12 @@ paths:
         type: string
       - description: Media Item ID
         in: path
-        name: itemId
+        name: itemID
         required: true
         type: integer
       - description: User ID (optional, uses authenticated user ID if not provided)
         in: query
-        name: userId
+        name: userID
         type: integer
       produces:
       - application/json
@@ -14175,7 +14190,7 @@ paths:
       summary: Toggle favorite status for a media item
       tags:
       - user-data
-  /api/v1/user-data/{mediaType}/{itemId}/rating:
+  /api/v1/user-data/{mediaType}/{itemID}/rating:
     put:
       consumes:
       - application/json
@@ -14193,12 +14208,12 @@ paths:
         type: string
       - description: Media Item ID
         in: path
-        name: itemId
+        name: itemID
         required: true
         type: integer
       - description: User ID (optional, uses authenticated user ID if not provided)
         in: query
-        name: userId
+        name: userID
         type: integer
       produces:
       - application/json
@@ -14222,7 +14237,7 @@ paths:
       summary: Update user rating for a media item
       tags:
       - user-data
-  /api/v1/user-data/{mediaType}/{itemId}/record:
+  /api/v1/user-data/{mediaType}/{itemID}/record:
     post:
       consumes:
       - application/json
@@ -14236,7 +14251,7 @@ paths:
           $ref: '#/definitions/requests.UserMediaItemDataRequest'
       - description: Media Item ID
         in: path
-        name: itemId
+        name: itemID
         required: true
         type: integer
       produces:
@@ -14269,7 +14284,7 @@ paths:
       parameters:
       - description: User ID (optional, uses authenticated user ID if not provided)
         in: query
-        name: userId
+        name: userID
         type: integer
       - description: Media type like movie, series, track, etc.
         in: path
@@ -14306,7 +14321,7 @@ paths:
       parameters:
       - description: User ID (optional, uses authenticated user ID if not provided)
         in: query
-        name: userId
+        name: userID
         type: integer
       - description: Number of items to return (default 10)
         in: query
@@ -14346,7 +14361,7 @@ paths:
       parameters:
       - description: User ID (optional, uses authenticated user ID if not provided)
         in: query
-        name: userId
+        name: userID
         type: integer
       - description: Number of items to return (default 10)
         in: query
@@ -14391,7 +14406,7 @@ paths:
       parameters:
       - description: User ID (optional, uses authenticated user ID if not provided)
         in: query
-        name: userId
+        name: userID
         type: integer
       - description: Number of items to return (default 10)
         in: query
@@ -14435,7 +14450,7 @@ paths:
       parameters:
       - description: User ID (optional, uses authenticated user ID if not provided)
         in: query
-        name: userId
+        name: userID
         type: integer
       - description: Number of items to return (default 10)
         in: query
@@ -14467,7 +14482,7 @@ paths:
       summary: Get a user's recent media user-data
       tags:
       - user-data
-  /api/v1/user-data/data/{id}:
+  /api/v1/user-data/data/{dataID}:
     get:
       consumes:
       - application/json
@@ -14475,7 +14490,7 @@ paths:
       parameters:
       - description: User Media Item Data ID
         in: path
-        name: id
+        name: dataID
         required: true
         type: integer
       produces:

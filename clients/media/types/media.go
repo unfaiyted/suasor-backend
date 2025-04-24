@@ -21,9 +21,9 @@ type ArtistReference struct {
 
 type SyncClient struct {
 	// ID of the client that this external ID belongs to (optional for service IDs like TMDB)
-	ID uint64 `json:"clientId,omitempty"`
+	ID uint64 `json:"clientID,omitempty"`
 	// The actual ID value in the external system
-	ItemID string `json:"itemId"`
+	ItemID string `json:"itemID"`
 }
 
 type SyncClients []SyncClient

@@ -32,7 +32,7 @@ type MetadataClients struct {
 // Client represents a download client configuration
 type Client[T client.ClientConfig] struct {
 	BaseModel
-	UserID    uint64                 `json:"userId" gorm:"not null"`
+	UserID    uint64                 `json:"userID" gorm:"not null"`
 	Category  client.ClientCategory  `json:"category" gorm:"not null"`
 	Type      client.ClientType      `json:"type" gorm:"not null"`
 	Config    ClientConfigWrapper[T] `json:"config" gorm:"type:jsonb"`

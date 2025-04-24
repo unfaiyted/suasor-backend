@@ -13,7 +13,7 @@ type Session struct {
 
 	// UserID is the foreign key to the user
 	// @Description ID of the user this session belongs to
-	UserID uint64 `json:"userId" gorm:"not null"`
+	UserID uint64 `json:"userID" gorm:"not null"`
 
 	// RefreshToken is used to generate new access tokens
 	// @Description Refresh token value (hashed in database)

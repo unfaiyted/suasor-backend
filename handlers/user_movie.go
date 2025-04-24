@@ -275,41 +275,28 @@ func (h *UserMovieHandler) GetRecommendedMovies(c *gin.Context) {
 	responses.RespondOK(c, movies, "Recommended movies retrieved successfully")
 }
 
-// UpdateMovieUserData godoc
+// UpdateMovie godoc
 // @Summary Update user data for a movie
 // @Description Updates user-specific data for a movie (favorite, watched status, rating, etc.)
 // @Tags movies
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "Movie ID"
+// @Param itemID path int true "Movie ID"
 // @Param data body requests.UserMediaItemDataUpdateRequest true "Updated user data"
 // @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Movie]] "Movie updated successfully"
 // @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
 // @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
 // @Failure 404 {object} responses.ErrorResponse[any] "Movie not found"
 // @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/movies/user/{id} [patch]
-func (h *UserMovieHandler) UpdateMovieUserData(c *gin.Context) {
+// @Router /api/v1/media/movie/{itemID} [patch]
+func (h *UserMovieHandler) UpdateMovie(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to update movie data without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
-
-	uid := userID.(uint64)
-
-	movieID, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid movie ID")
-		responses.RespondBadRequest(c, err, "Invalid movie ID")
-		return
-	}
+	uid, _ := checkUserAccess(c)
+	movieID, _ := checkItemID(c, "itemID")
 
 	// Parse request body
 	var userData models.UserMediaItemData[mediatypes.Movie]

@@ -13,11 +13,11 @@ Client IDs are stored in the `media_items` table as a JSONB field called `sync_c
 ```go
 type SyncClient struct {
     // ID of the client that this external ID belongs to
-    ID uint64 `json:"clientId,omitempty"`
+    ID uint64 `json:"clientID,omitempty"`
     // Type of client this ID belongs to
     Type client.ClientType `json:"clientType,omitempty" gorm:"type:varchar(50)"`
     // The actual ID value in the external system
-    ItemID string `json:"itemId"`
+    ItemID string `json:"itemID"`
 }
 ```
 
@@ -81,7 +81,7 @@ The helper uses PostgreSQL JSONB queries to efficiently search within the SyncCl
 
 ```sql
 SELECT id FROM media_items 
-WHERE sync_clients @> '[{"id": 123, "itemId": "client_item_abc"}]'::jsonb
+WHERE sync_clients @> '[{"id": 123, "itemID": "client_item_abc"}]'::jsonb
 ```
 
 This query finds all media items where the `sync_clients` array contains an object with the specified client ID and item ID.

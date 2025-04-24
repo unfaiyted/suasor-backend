@@ -134,7 +134,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "itemId": {{getMovies.response.body.$.data.items[0].id}}
+  "itemID": {{getMovies.response.body.$.data.items[0].id}}
 }
 
 ###
@@ -146,7 +146,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "itemId": {{getMovies.response.body.$.data.items[1].id}}
+  "itemID": {{getMovies.response.body.$.data.items[1].id}}
 }
 
 ###
@@ -158,7 +158,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "itemId": {{getMovies.response.body.$.data.items[2].id}}
+  "itemID": {{getMovies.response.body.$.data.items[2].id}}
 }
 
 ###
@@ -179,7 +179,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "itemIds": [
+  "itemIDs": [
     {{getMovies.response.body.$.data.items[2].id}},
     {{getMovies.response.body.$.data.items[0].id}},
     {{getMovies.response.body.$.data.items[1].id}}
@@ -258,7 +258,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "itemId": "{{getMovies.response.body.$.data.items[0].clientIDs.emby}}"
+  "itemID": "{{getMovies.response.body.$.data.items[0].clientIDs.emby}}"
 }
 
 ###
@@ -270,7 +270,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "itemId": "{{getMovies.response.body.$.data.items[1].clientIDs.emby}}"
+  "itemID": "{{getMovies.response.body.$.data.items[1].clientIDs.emby}}"
 }
 
 ###
@@ -310,7 +310,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 # @name createPlaylistForSync
 # @require getUserProfile
 # @require embyClient
-POST http://localhost:8080/api/v1/playlists?userId={{getUserProfile.response.body.$.data.id}}&clientId={{embyClient.response.body.$.data.id}}
+POST http://localhost:8080/api/v1/playlists?userID={{getUserProfile.response.body.$.data.id}}&clientID={{embyClient.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -329,7 +329,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "itemId": {{getMovies.response.body.$.data.items[0].id}}
+  "itemID": {{getMovies.response.body.$.data.items[0].id}}
 }
 
 ###
@@ -341,7 +341,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "itemId": {{getMovies.response.body.$.data.items[1].id}}
+  "itemID": {{getMovies.response.body.$.data.items[1].id}}
 }
 
 ###
@@ -355,7 +355,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "clientId": {{embyClient.response.body.$.data.id}}
+  "clientID": {{embyClient.response.body.$.data.id}}
 }
 
 ###
@@ -376,7 +376,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "clientId": {{embyClient2.response.body.$.data.id}}
+  "clientID": {{embyClient2.response.body.$.data.id}}
 }
 
 ###

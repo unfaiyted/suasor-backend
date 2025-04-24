@@ -178,14 +178,14 @@ func (h *userMediaItemHandler[T]) Create(c *gin.Context) {
 // @Tags  media
 // @Accept json
 // @Produce json
-// @Param itemId path int true "Media Item ID"
+// @Param itemID path int true "Media Item ID"
 // @Param mediaItem body requests.MediaItemUpdateRequest true "Updated media item data"
 // @Success 200 {object} responses.APIResponse[models.MediaItem[any]] "Media item updated successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Media item not found"
 // @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Not authorized to update this media item"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/media/{mediaType}/{itemId} [put]
+// @Router /api/v1/media/{mediaType}/{itemID} [put]
 func (h *userMediaItemHandler[T]) Update(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -282,26 +282,19 @@ func (h *userMediaItemHandler[T]) Update(c *gin.Context) {
 // @Tags media
 // @Accept json
 // @Produce json
-// @Param itemId path int true "User Media Item ID"
+// @Param itemID path int true "User Media Item ID"
 // @Success 200 {object} responses.APIResponse[any] "Successfully deleted user media item"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /api/v1/media/{mediaType}/{itemId} [delete]
+// @Router /api/v1/media/{mediaType}/{itemID} [delete]
 func (h *userMediaItemHandler[T]) Delete(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid user media item ID")
-		responses.RespondBadRequest(c, err, "Invalid user media item ID")
-		return
-	}
+	id, _ := checkItemID(c, "itemID")
 
-	// log.Debug.Uint64("id", id).Msg("Deleting user media item")
-
-	err = h.userService.Delete(ctx, id)
+	err := h.userService.Delete(ctx, id)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("id", id).

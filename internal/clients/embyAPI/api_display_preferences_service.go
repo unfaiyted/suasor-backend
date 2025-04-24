@@ -1,4 +1,3 @@
-
 /*
  * Emby Server REST API
  *
@@ -9,11 +8,11 @@ package embyclient
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
-	"fmt"
 )
 
 // Linger please
@@ -22,21 +21,23 @@ var (
 )
 
 type DisplayPreferencesServiceApiService service
+
 /*
 DisplayPreferencesServiceApiService Gets a user&#x27;s display preferences for an item
 Requires authentication as user
- * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param id Item Id
- * @param userId User Id
- * @param client Client
+  - @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @param id Item Id
+  - @param userID User Id
+  - @param client Client
+
 @return DisplayPreferences
 */
-func (a *DisplayPreferencesServiceApiService) GetDisplaypreferencesById(ctx context.Context, id string, userId string, client string) (DisplayPreferences, *http.Response, error) {
+func (a *DisplayPreferencesServiceApiService) GetDisplaypreferencesById(ctx context.Context, id string, userID string, client string) (DisplayPreferences, *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarHttpMethod  = strings.ToUpper("Get")
+		localVarPostBody    interface{}
+		localVarFileName    string
+		localVarFileBytes   []byte
 		localVarReturnValue DisplayPreferences
 	)
 
@@ -48,7 +49,7 @@ func (a *DisplayPreferencesServiceApiService) GetDisplaypreferencesById(ctx cont
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	localVarQueryParams.Add("UserId", parameterToString(userId, ""))
+	localVarQueryParams.Add("UserId", parameterToString(userID, ""))
 	localVarQueryParams.Add("Client", parameterToString(client, ""))
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{}
@@ -76,7 +77,7 @@ func (a *DisplayPreferencesServiceApiService) GetDisplaypreferencesById(ctx cont
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -98,48 +99,47 @@ func (a *DisplayPreferencesServiceApiService) GetDisplaypreferencesById(ctx cont
 
 	if localVarHttpResponse.StatusCode < 300 {
 		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-		if err == nil { 
+		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+		if err == nil {
 			return localVarReturnValue, localVarHttpResponse, err
 		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
 			var v DisplayPreferences
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarReturnValue, localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
 
 	return localVarReturnValue, localVarHttpResponse, nil
 }
+
 /*
 DisplayPreferencesServiceApiService Updates a user&#x27;s display preferences for an item
 Requires authentication as user
- * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param body DisplayPreferences: 
- * @param userId User Id
- * @param displayPreferencesId DisplayPreferences Id
-
+  - @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @param body DisplayPreferences:
+  - @param userID User Id
+  - @param displayPreferencesId DisplayPreferences Id
 */
-func (a *DisplayPreferencesServiceApiService) PostDisplaypreferencesByDisplaypreferencesid(ctx context.Context, body DisplayPreferences, userId string, displayPreferencesId string) (*http.Response, error) {
+func (a *DisplayPreferencesServiceApiService) PostDisplaypreferencesByDisplaypreferencesid(ctx context.Context, body DisplayPreferences, userID string, displayPreferencesId string) (*http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -150,7 +150,7 @@ func (a *DisplayPreferencesServiceApiService) PostDisplaypreferencesByDisplaypre
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	localVarQueryParams.Add("UserId", parameterToString(userId, ""))
+	localVarQueryParams.Add("userId", parameterToString(userID, ""))
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{"application/json", "application/xml"}
 
@@ -179,7 +179,7 @@ func (a *DisplayPreferencesServiceApiService) PostDisplaypreferencesByDisplaypre
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -199,10 +199,9 @@ func (a *DisplayPreferencesServiceApiService) PostDisplaypreferencesByDisplaypre
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr

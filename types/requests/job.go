@@ -9,7 +9,7 @@ type UpdateJobScheduleRequest struct {
 
 // SetupMediaSyncJobRequest represents a request to setup a media sync job
 type SetupMediaSyncJobRequest struct {
-	ClientID   uint64 `json:"clientId" binding:"required"`
+	ClientID   uint64 `json:"clientID" binding:"required"`
 	ClientType string `json:"clientType" binding:"required"`
 	MediaType  string `json:"mediaType" binding:"required"`
 	Frequency  string `json:"frequency" binding:"required"`
@@ -17,7 +17,7 @@ type SetupMediaSyncJobRequest struct {
 
 // RunMediaSyncJobRequest represents a request to run a media sync job
 type RunMediaSyncJobRequest struct {
-	ClientID  uint64 `json:"clientId" binding:"required"`
+	ClientID  uint64 `json:"clientID" binding:"required"`
 	MediaType string `json:"mediaType" binding:"required"`
 }
 
@@ -25,3 +25,4 @@ type RunMediaSyncJobRequest struct {
 type UpdateRecommendationViewedRequest struct {
 	Viewed bool `json:"viewed"`
 }
+

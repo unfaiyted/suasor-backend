@@ -47,7 +47,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   },
   "systemInstructions": "You are a knowledgeable film critic with expertise in science fiction cinema. Help the user discover films they might enjoy based on their preferences, providing insightful commentary on themes, direction, and performances.",
   "clientType": "claude",
-  "clientId": {{createClaudeClient.response.body.$.data.id}}
+  "clientID": {{createClaudeClient.response.body.$.data.id}}
 }
 
 ### 
@@ -57,9 +57,9 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "conversationId": "{{startMovieConversation.response.body.$.data.conversationId}}",
+  "conversationID": "{{startMovieConversation.response.body.$.data.conversationID}}",
   "message": "I'm looking for recent sci-fi movies with complex plots and strong visuals, similar to Arrival or Blade Runner 2049.",
-  "clientId": {{createClaudeClient.response.body.$.data.id}}
+  "clientID": {{createClaudeClient.response.body.$.data.id}}
 }
 
 ### 
@@ -69,9 +69,9 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "conversationId": "{{startMovieConversation.response.body.$.data.conversationId}}",
+  "conversationID": "{{startMovieConversation.response.body.$.data.conversationID}}",
   "message": "I especially enjoy films that explore the concept of time, like Interstellar did.",
-  "clientId": {{createClaudeClient.response.body.$.data.id}}
+  "clientID": {{createClaudeClient.response.body.$.data.id}}
 
 
 }
@@ -83,9 +83,9 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "conversationId": "{{startMovieConversation.response.body.$.data.conversationId}}",
+  "conversationID": "{{startMovieConversation.response.body.$.data.conversationID}}",
   "message": "From your recommendations, which one would you say has the most emotional impact?",
-  "clientId": {{createClaudeClient.response.body.$.data.id}},
+  "clientID": {{createClaudeClient.response.body.$.data.id}},
   "context": {
     "extractRecommendations": false
   }
@@ -107,7 +107,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
     "streamingServices": ["Netflix", "HBO Max"]
   },
   "clientType": "claude",
-  "clientId": {{createClaudeClient.response.body.$.data.id}}
+  "clientID": {{createClaudeClient.response.body.$.data.id}}
 }
 
 ### 
@@ -117,9 +117,9 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "conversationId": "{{startTVConversation.response.body.$.data.conversationId}}",
+  "conversationID": "{{startTVConversation.response.body.$.data.conversationID}}",
   "message": "I'm looking for a dark comedy series with well-developed characters, preferably something that's completed so I can binge-watch it.",
-  "clientId": {{createClaudeClient.response.body.$.data.id}}
+  "clientID": {{createClaudeClient.response.body.$.data.id}}
 }
 
 ### 
@@ -129,9 +129,9 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "conversationId": "{{startTVConversation.response.body.$.data.conversationId}}",
+  "conversationID": "{{startTVConversation.response.body.$.data.conversationID}}",
   "message": "I enjoy shows with morally complex protagonists, like in Breaking Bad.",
-  "clientId": {{createClaudeClient.response.body.$.data.id}}
+  "clientID": {{createClaudeClient.response.body.$.data.id}}
 }
 
 ### 
@@ -149,7 +149,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
     "recentlyListened": ["OK Computer", "The Suburbs", "Sound of Silver"]
   },
   "clientType": "claude",
-  "clientId": "{{createClaudeClient.response.body.$.data.id}}"
+  "clientID": "{{createClaudeClient.response.body.$.data.id}}"
 }
 
 ### 
@@ -159,9 +159,9 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "conversationId": "{{startMusicConversation.response.body.$.data.conversationId}}",
+  "conversationID": "{{startMusicConversation.response.body.$.data.conversationID}}",
   "message": "I'm interested in discovering new bands with complex, atmospheric sounds similar to Radiohead.",
-  "clientId": {{createClaudeClient.response.body.$.data.id}}
+  "clientID": {{createClaudeClient.response.body.$.data.id}}
 
 }
 
@@ -172,12 +172,12 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "conversationId": "{{startMusicConversation.response.body.$.data.conversationId}}",
+  "conversationID": "{{startMusicConversation.response.body.$.data.conversationID}}",
   "message": "I particularly enjoy albums with cohesive themes that work well as a complete listening experience.",
   "context": {
     "focusOn": "albumRecommendations"
   },
-  "clientId": {{createClaudeClient.response.body.$.data.id}}
+  "clientID": {{createClaudeClient.response.body.$.data.id}}
 }
 
 ### 
@@ -195,7 +195,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
     "recentlyRead": ["Exhalation", "The Left Hand of Darkness", "Ficciones"]
   },
   "clientType": "claude",
-  "clientId": "{{createClaudeClient.response.body.$.data.id}}"
+  "clientID": "{{createClaudeClient.response.body.$.data.id}}"
 }
 
 ### 
@@ -205,9 +205,9 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "conversationId": "{{startBookConversation.response.body.$.data.conversationId}}",
+  "conversationID": "{{startBookConversation.response.body.$.data.conversationID}}",
   "message": "I'm looking for philosophical science fiction that explores consciousness and perception, similar to Ted Chiang's stories.",
-  "clientId": {{createClaudeClient.response.body.$.data.id}}
+  "clientID": {{createClaudeClient.response.body.$.data.id}}
 }
 
 ### 
@@ -217,9 +217,9 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "conversationId": "{{startBookConversation.response.body.$.data.conversationId}}",
+  "conversationID": "{{startBookConversation.response.body.$.data.conversationID}}",
   "message": "I prefer books that aren't too long and can be read in a few sittings.",
-  "clientId": {{createClaudeClient.response.body.$.data.id}}
+  "clientID": {{createClaudeClient.response.body.$.data.id}}
 }
 
 ### 
@@ -236,7 +236,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
     "favoriteGenres": ["sci-fi", "thriller"]
   },
   "clientType": "claude",
-  "clientId": {{createClaudeClient.response.body.$.data.id}}
+  "clientID": {{createClaudeClient.response.body.$.data.id}}
 }
 
 ### 
@@ -246,9 +246,9 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "conversationId": "non-existent-id-12345",
+  "conversationID": "non-existent-id-12345",
   "message": "This should fail because the conversation doesn't exist.",
-  "clientId": {{createClaudeClient.response.body.$.data.id}}
+  "clientID": {{createClaudeClient.response.body.$.data.id}}
 }
 
 ### 

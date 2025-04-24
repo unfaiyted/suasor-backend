@@ -32,7 +32,7 @@ func (h *ClientMediaItemHelper) GetMediaItemByClientID(ctx context.Context, clie
 		Table("media_items").
 		Select("id").
 		Where("sync_clients @> ?::jsonb",
-			fmt.Sprintf(`[{"id": %d, "itemId": "%s"}]`, clientID, clientItemID)).
+			fmt.Sprintf(`[{"id": %d, "itemID": "%s"}]`, clientID, clientItemID)).
 		First(&mediaItemID)
 
 	if result.Error != nil {
@@ -54,7 +54,7 @@ func (h *ClientMediaItemHelper) GetMediaItemByClientIDAndType(ctx context.Contex
 		Table("media_items").
 		Select("id").
 		Where("sync_clients @> ?::jsonb AND type = ?",
-			fmt.Sprintf(`[{"id": %d, "itemId": "%s"}]`, clientID, clientItemID),
+			fmt.Sprintf(`[{"id": %d, "itemID": "%s"}]`, clientID, clientItemID),
 			mediaType).
 		First(&mediaItemID)
 

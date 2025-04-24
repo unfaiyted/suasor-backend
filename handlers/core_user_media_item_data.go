@@ -48,33 +48,28 @@ func (h *coreUserMediaItemDataHandler[T]) Service() services.CoreUserMediaItemDa
 // @Tags user-data, core
 // @Accept json
 // @Produce json
-// @Param id path int true "User Media Item Data ID"
+// @Param dataID path int true "User Media Item Data ID"
 // @Success 200 {object} responses.APIResponse[models.UserMediaItemData[mediatypes.Movie]] "Successfully retrieved user media item data"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /api/v1/user-data/data/{id} [get]
+// @Router /api/v1/user-data/data/{dataID} [get]
 func (h *coreUserMediaItemDataHandler[T]) GetMediaItemDataByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid user media item data ID")
-		responses.RespondBadRequest(c, err, "Invalid user media item data ID")
-		return
-	}
+	dataID, _ := checkItemID(c, "dataID")
 
-	log.Debug().Uint64("id", id).Msg("Getting user media item data by ID")
+	log.Debug().Uint64("id", dataID).Msg("Getting user media item data by ID")
 
-	data, err := h.service.GetByID(ctx, id)
+	data, err := h.service.GetByID(ctx, dataID)
 	if err != nil {
-		log.Error().Err(err).Uint64("id", id).Msg("Failed to get user media item data")
+		log.Error().Err(err).Uint64("id", dataID).Msg("Failed to get user media item data")
 		responses.RespondNotFound(c, err, "User media item data not found")
 		return
 	}
 
-	log.Info().Uint64("id", id).Msg("User media item data retrieved successfully")
+	log.Info().Uint64("id", dataID).Msg("User media item data retrieved successfully")
 	responses.RespondOK(c, data, "User media item data retrieved successfully")
 }
 
@@ -86,7 +81,7 @@ func (h *coreUserMediaItemDataHandler[T]) GetMediaItemDataByID(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Media Item ID"
 // @Param mediaType path string true "Media type like movie, series, track, etc."
-// @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
+// @Param userID query int false "User ID (optional, uses authenticated user ID if not provided)"
 // @Success 200 {object} responses.APIResponse[bool] "Successfully checked user media item data"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
@@ -97,36 +92,36 @@ func (h *coreUserMediaItemDataHandler[T]) CheckUserMediaItemData(c *gin.Context)
 
 	userID, err := utils.GetUserID(c)
 	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
+		log.Warn().Err(err).Str("userID", c.Query("userID")).Msg("Invalid user ID")
 		responses.RespondBadRequest(c, err, "Invalid user ID")
 		return
 	}
 
-	mediaItemID, err := strconv.ParseUint(c.Query("mediaItemId"), 10, 64)
+	itemID, err := strconv.ParseUint(c.Query("itemID"), 10, 64)
 	if err != nil {
-		log.Warn().Err(err).Str("mediaItemId", c.Query("mediaItemId")).Msg("Invalid media item ID")
+		log.Warn().Err(err).Str("itemID", c.Query("itemID")).Msg("Invalid media item ID")
 		responses.RespondBadRequest(c, err, "Invalid media item ID")
 		return
 	}
 
 	log.Debug().
-		Uint64("userId", userID).
-		Uint64("mediaItemId", mediaItemID).
+		Uint64("userID", userID).
+		Uint64("itemID", itemID).
 		Msg("Checking if user has media item data")
 
-	hasData, err := h.service.HasUserMediaItemData(ctx, userID, mediaItemID)
+	hasData, err := h.service.HasUserMediaItemData(ctx, userID, itemID)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("userId", userID).
-			Uint64("mediaItemId", mediaItemID).
+			Uint64("userID", userID).
+			Uint64("itemID", itemID).
 			Msg("Failed to check user media item data")
 		responses.RespondInternalError(c, err, "Failed to check user media item data")
 		return
 	}
 
 	log.Info().
-		Uint64("userId", userID).
-		Uint64("mediaItemId", mediaItemID).
+		Uint64("userID", userID).
+		Uint64("itemID", itemID).
 		Bool("hasData", hasData).
 		Msg("User media item data check completed")
 
@@ -139,50 +134,45 @@ func (h *coreUserMediaItemDataHandler[T]) CheckUserMediaItemData(c *gin.Context)
 // @Tags user-data, core
 // @Accept json
 // @Produce json
-// @Param id path int true "Media Item ID"
+// @Param itemID path int true "Media Item ID"
 // @Param mediaType path string true "Media type"
-// @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
+// @Param userID query int false "User ID (optional, uses authenticated user ID if not provided)"
 // @Success 200 {object} responses.APIResponse[models.UserMediaItemData[mediatypes.Movie]] "Successfully retrieved user media item data"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Not found"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /api/v1/user-data/{mediaType}/{id} [get]
+// @Router /api/v1/user-data/{mediaType}/{itemID} [get]
 func (h *coreUserMediaItemDataHandler[T]) GetUserMediaItemDataByItemID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	userID, err := utils.GetUserID(c)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
-		return
-	}
+	userID, _ := checkUserAccess(c)
 
-	mediaItemID, err := strconv.ParseUint(c.Query("mediaItemId"), 10, 64)
+	itemID, err := strconv.ParseUint(c.Query("itemID"), 10, 64)
 	if err != nil {
-		log.Warn().Err(err).Str("mediaItemId", c.Query("mediaItemId")).Msg("Invalid media item ID")
+		log.Warn().Err(err).Str("itemID", c.Query("itemID")).Msg("Invalid media item ID")
 		responses.RespondBadRequest(c, err, "Invalid media item ID")
 		return
 	}
 
 	log.Debug().
-		Uint64("userId", userID).
-		Uint64("mediaItemId", mediaItemID).
+		Uint64("userID", userID).
+		Uint64("itemID", itemID).
 		Msg("Getting user media item data")
 
-	data, err := h.service.GetByUserIDAndMediaItemID(ctx, userID, mediaItemID)
+	data, err := h.service.GetByUserIDAndMediaItemID(ctx, userID, itemID)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("userId", userID).
-			Uint64("mediaItemId", mediaItemID).
+			Uint64("userID", userID).
+			Uint64("itemID", itemID).
 			Msg("Failed to get user media item data")
 		responses.RespondNotFound(c, err, "User media item data not found")
 		return
 	}
 
 	log.Info().
-		Uint64("userId", userID).
-		Uint64("mediaItemId", mediaItemID).
+		Uint64("userID", userID).
+		Uint64("itemID", itemID).
 		Msg("User media item data retrieved successfully")
 
 	responses.RespondOK(c, data, "User media item data retrieved successfully")
@@ -194,42 +184,29 @@ func (h *coreUserMediaItemDataHandler[T]) GetUserMediaItemDataByItemID(c *gin.Co
 // @Tags user-data, core
 // @Accept json
 // @Produce json
-// @Param id path int true "User Media Item ID"
+// @Param itemID path int true "User Media Item ID"
 // @Param mediaType path string true "Media type like movie, series, track, etc."
-// @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
+// @Param userID query int false "User ID (optional, uses authenticated user ID if not provided)"
 // @Success 200 {object} responses.APIResponse[models.UserMediaItemData[mediatypes.Movie]] "Successfully deleted user media item data"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /api/v1/user-data/{mediaType}/{id} [delete]
+// @Router /api/v1/user-data/{mediaType}/{itemID} [delete]
 func (h *coreUserMediaItemDataHandler[T]) DeleteMediaItemData(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid user media item data ID")
-		responses.RespondBadRequest(c, err, "Invalid user media item data ID")
-		return
-	}
+	userID, _ := checkUserAccess(c)
+	itemID, _ := checkItemID(c, "itemitemID")
 
-	// We get the userId from the context just to confirm user authentication,
-	// though currently we don't use it for permission validation
-	_, err = utils.GetUserID(c)
-	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
-		return
-	}
+	log.Debug().Uint64("userID", userID).Uint64("itemID", itemID).Msg("Deleting user media item data")
 
-	log.Debug().Uint64("id", id).Msg("Deleting user media item data")
-
-	err = h.service.Delete(ctx, id)
+	err := h.service.Delete(ctx, itemID)
 	if err != nil {
-		log.Error().Err(err).Uint64("id", id).Msg("Failed to delete user media item data")
+		log.Error().Err(err).Uint64("itemID", itemID).Msg("Failed to delete user media item data")
 		responses.RespondInternalError(c, err, "Failed to delete user media item data")
 		return
 	}
 
-	log.Info().Uint64("id", id).Msg("User media item data deleted successfully")
+	log.Info().Uint64("itemID", itemID).Msg("User media item data deleted successfully")
 	responses.RespondOK(c, responses.EmptyResponse{Success: true}, "User media item data deleted successfully")
 }

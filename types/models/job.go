@@ -48,7 +48,7 @@ type JobRun struct {
 	// When the job finished running
 	EndTime *time.Time `json:"endTime"`
 	// User ID associated with the job, if applicable
-	UserID *uint64 `json:"userId" gorm:"index"`
+	UserID *uint64 `json:"userID" gorm:"index"`
 	// Any error message from the job run
 	ErrorMessage string `json:"errorMessage"`
 	// Progress percentage (0-100)
@@ -77,7 +77,7 @@ type JobSchedule struct {
 	// Whether the job is enabled
 	Enabled bool `json:"enabled" gorm:"not null;default:true"`
 	// User ID associated with the job, if applicable (for user-specific jobs)
-	UserID *uint64 `json:"userId" gorm:"index"`
+	UserID *uint64 `json:"userID" gorm:"index"`
 	// Any configuration for the job (stored as JSON)
 	Config string `json:"config" gorm:"type:jsonb"`
 }
@@ -86,9 +86,9 @@ type JobSchedule struct {
 type MediaSyncJob struct {
 	BaseModel
 	// ID of the user
-	UserID uint64 `json:"userId" gorm:"index;not null"`
+	UserID uint64 `json:"userID" gorm:"index;not null"`
 	// ID of the client to sync from
-	ClientID uint64 `json:"clientId" gorm:"index;not null"`
+	ClientID uint64 `json:"clientID" gorm:"index;not null"`
 	// Type of the client
 	ClientType string `json:"clientType" gorm:"not null"`
 	// Type of media to sync (movies, series, music, etc.)
@@ -102,4 +102,3 @@ type MediaSyncJob struct {
 	// Sync filter criteria (stored as JSON)
 	Filters string `json:"filters" gorm:"type:jsonb;default:'{}'"`
 }
-

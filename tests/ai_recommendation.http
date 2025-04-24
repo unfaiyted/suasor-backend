@@ -108,7 +108,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
     "includeThemes": true,
     "includeSentiment": true
   },
-  "clientId": {{createClaudeClient.response.body.$.data.id}}
+  "clientID": {{createClaudeClient.response.body.$.data.id}}
   
 }
 
@@ -125,7 +125,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
     "recentlyWatched": ["Interstellar", "Tenet", "Inception"]
   },
   "clientType": "claude",
-  "clientId": {{createClaudeClient.response.body.$.data.id}}
+  "clientID": {{createClaudeClient.response.body.$.data.id}}
 }
 
 ### Send Message in Conversation
@@ -138,7 +138,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 {
   "conversationId": "{{startConversation.response.body.$.data.conversationId}}",
   "message": "I'm looking for sci-fi movies with mind-bending plots, similar to Inception but more recent.",
-  "clientId": {{createClaudeClient.response.body.$.data.id}}
+  "clientID": {{createClaudeClient.response.body.$.data.id}}
 }
 
 ### Continue Conversation
@@ -150,5 +150,5 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 {
   "conversationId": "{{startConversation.response.body.$.data.conversationId}}",
   "message": "I'd like something with time travel elements too.",
-  "clientId": {{createClaudeClient.response.body.$.data.id}}
+  "clientID": {{createClaudeClient.response.body.$.data.id}}
 }

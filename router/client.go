@@ -34,7 +34,7 @@ func RegisterClientRoutes(ctx context.Context, r *gin.RouterGroup, c *container.
 			getClientHandler(g, c, clientType).DeleteClient(g)
 		})
 
-		clientGroup.GET("/:clientID/test", func(g *gin.Context) {
+		clientGroup.GET("/test", func(g *gin.Context) {
 			clientType := g.Param("clientType")
 			getClientHandler(g, c, clientType).TestConnection(g)
 		})

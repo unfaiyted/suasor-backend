@@ -26,15 +26,15 @@ type ListUpdateRequest struct {
 }
 
 type ListAddTrackRequest struct {
-	TrackID uint64 `json:"trackId"`
+	TrackID uint64 `json:"trackID"`
 }
 
 type ListRemoveTrackRequest struct {
-	TrackID uint64 `json:"trackId"`
+	TrackID uint64 `json:"trackID"`
 }
 
 type ListReorderRequest struct {
-	ItemIDs []uint64 `json:"itemIds"`
+	ItemIDs []uint64 `json:"itemIDs"`
 }
 
 type ListSearchRequest struct {

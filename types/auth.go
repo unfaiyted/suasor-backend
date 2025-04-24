@@ -35,7 +35,7 @@ type TokenDetails struct {
 // JWTClaim defines the structure of the JWT claim
 // @Description JWT claim st eructure
 type JWTClaim struct {
-	UserID uint64 `json:"userId"`
+	UserID uint64 `json:"userID"`
 	UUID   string `json:"uuid"`
 	Role   string `json:"role"`
 	jwt.RegisteredClaims

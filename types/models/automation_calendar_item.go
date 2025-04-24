@@ -12,13 +12,13 @@ import (
 
 // AutomationCalendarItem represents an upcoming media item
 type AutomationCalendarItem[T types.AutomationData] struct {
-	ID         uint64                      `json:"id" gorm:"primaryKey;autoIncrement"`
-	ExternalID string                      `json:"externalId" gorm:"index;size:255"` // ID from external media client
-	ClientID   uint32                      `json:"clientId" gorm:"index"`
+	ID         uint64                      `json:"ID" gorm:"primaryKey;autoIncrement"`
+	ExternalID string                      `json:"externalID" gorm:"index;size:255"` // ID from external media client
+	ClientID   uint32                      `json:"clientID" gorm:"index"`
 	ClientType client.AutomationClientType `json:"clientType" gorm:"type:varchar(50)"`
 
 	// Foreign key to the media item
-	ItemID uint64                    `json:"itemId" gorm:"index"`
+	ItemID uint64                    `json:"itemID" gorm:"index"`
 	Item   *T                        `json:"item" gorm:"foreignKey:ItemID"`
 	Type   types.AutomationMediaType `json:"type" gorm:"type:varchar(50)"`
 

@@ -29,8 +29,8 @@ The user handler extends the core handler with user-centric endpoints:
 - `GET /user-media-data/continue-watching` - Get media items that a user has started but not completed
 - `GET /user-media-data/recent` - Get a user's recent media history
 - `POST /user-media-data/record` - Record a new play event
-- `PUT /user-media-data/media/:mediaItemId/favorite` - Toggle favorite status for a media item
-- `PUT /user-media-data/media/:mediaItemId/rating` - Update user rating for a media item
+- `PUT /user-media-data/media/:mediaItemID/favorite` - Toggle favorite status for a media item
+- `PUT /user-media-data/media/:mediaItemID/rating` - Update user rating for a media item
 - `GET /user-media-data/favorites` - Get a user's favorite media items
 - `DELETE /user-media-data/clear` - Clear a user's play history
 
@@ -40,12 +40,12 @@ The user layer also includes forwarding methods for all core layer endpoints, en
 
 The client handler extends the user handler with client-specific endpoints:
 
-- `POST /user-media-data/client/:clientId/sync` - Synchronize user media item data from an external client
-- `GET /user-media-data/client/:clientId` - Get user media item data for synchronization with a client
-- `GET /user-media-data/client/:clientId/item/:clientItemId` - Get user media item data by client ID
-- `POST /user-media-data/client/:clientId/item/:clientItemId/play` - Record a play event from a client
-- `GET /user-media-data/client/:clientId/item/:clientItemId/state` - Get playback state for a client item
-- `PUT /user-media-data/client/:clientId/item/:clientItemId/state` - Update playback state for a client item
+- `POST /user-media-data/client/:clientID/sync` - Synchronize user media item data from an external client
+- `GET /user-media-data/client/:clientID` - Get user media item data for synchronization with a client
+- `GET /user-media-data/client/:clientID/item/:clientItemID` - Get user media item data by client ID
+- `POST /user-media-data/client/:clientID/item/:clientItemID/play` - Record a play event from a client
+- `GET /user-media-data/client/:clientID/item/:clientItemID/state` - Get playback state for a client item
+- `PUT /user-media-data/client/:clientID/item/:clientItemID/state` - Update playback state for a client item
 
 The client layer includes forwarding methods for all user and core layer endpoints, ensuring a complete API surface.
 
@@ -109,10 +109,10 @@ Routes are organized in a hierarchical structure that mirrors the three-pronged 
   /favorites
   ...
 
-  /client/:clientId                  # Client endpoints
+  /client/:clientID                  # Client endpoints
     /sync
-    /item/:clientItemId
-    /item/:clientItemId/play
+    /item/:clientItemID
+    /item/:clientItemID/play
     ...
 
   /movies                            # Media-type specific endpoints
@@ -179,7 +179,7 @@ clientHandler := handlers.NewClientUserMediaItemDataHandler[*types.Movie](client
 
 // Register routes
 router.GET("/user-media-data/history", userHandler.GetMediaPlayHistory)
-router.POST("/user-media-data/client/:clientId/sync", clientHandler.SyncClientItemData)
+router.POST("/user-media-data/client/:clientID/sync", clientHandler.SyncClientItemData)
 ```
 
 ## Conclusion

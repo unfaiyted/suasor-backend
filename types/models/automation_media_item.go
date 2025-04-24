@@ -14,8 +14,8 @@ import (
 // AutomationMediaItem represents a generic automation media item
 type AutomationMediaItem[T types.AutomationData] struct {
 	ID         uint64                      `json:"id" gorm:"primaryKey;autoIncrement"`
-	ExternalID string                      `json:"externalId" gorm:"index;size:255"` // ID from external media client
-	ClientID   uint64                      `json:"clientId" gorm:"index"`
+	ExternalID string                      `json:"externalID" gorm:"index;size:255"` // ID from external media client
+	ClientID   uint64                      `json:"clientID" gorm:"index"`
 	ClientType client.AutomationClientType `json:"clientType" gorm:"type:varchar(50)"`
 
 	Title            string                 `json:"title" gorm:"type:varchar(255)"`
@@ -25,7 +25,7 @@ type AutomationMediaItem[T types.AutomationData] struct {
 	Ratings          []types.Rating         `json:"ratings" gorm:"type:jsonb"`
 	DownloadedStatus types.DownloadedStatus `json:"downloadedStatus" gorm:"type:varchar(50)"`
 
-	ExternalIDs    []types.ExternalID           `json:"externalIds" gorm:"type:jsonb"`
+	ExternalIDs    []types.ExternalID           `json:"externalIDs" gorm:"type:jsonb"`
 	Status         types.AutomationStatusType   `json:"status" gorm:"type:varchar(50)"`
 	Path           string                       `json:"path" gorm:"type:varchar(1024)"`
 	Genres         []string                     `json:"genres" gorm:"type:jsonb"`

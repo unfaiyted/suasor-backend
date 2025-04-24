@@ -58,12 +58,12 @@ func NewClientMovieHandler[T clienttypes.ClientMediaConfig](
 // @Produce json
 // @Security BearerAuth
 // @Param clientID path int true "Client ID"
-// @Param movieID path string true "Movie ID"
+// @Param clientItemID path string true "Movie ID"
 // @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Movie]] "Movies retrieved"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientId}/movie/item/{clientItemId} [get]
+// @Router /api/v1/client/{clientID}/movie/item/{clientItemId} [get]
 func (h *clientMovieHandler[T]) GetClientMovieByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -87,7 +87,7 @@ func (h *clientMovieHandler[T]) GetClientMovieByID(c *gin.Context) {
 		return
 	}
 
-	movieID := c.Param("id")
+	movieID, _ := checkClientItemID(c, "clientItemID")
 
 	log.Info().
 		Uint64("userID", uid).
@@ -125,7 +125,7 @@ func (h *clientMovieHandler[T]) GetClientMovieByID(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientId}/movie/genre/{genre} [get]
+// @Router /api/v1/client/{clientID}/movie/genre/{genre} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -177,7 +177,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesByGenre(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid year"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientId}/movie/year/{year} [get]
+// @Router /api/v1/client/{clientID}/movie/year/{year} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -234,7 +234,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesByYear(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientId}/movie/actor/{actor} [get]
+// @Router /api/v1/client/{clientID}/movie/actor/{actor} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByActor(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -285,7 +285,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesByActor(c *gin.Context) {
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientId}/movie/director/{director} [get]
+// @Router /api/v1/client/{clientID}/movie/director/{director} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByDirector(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -338,7 +338,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesByDirector(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid rating format"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientId}/movie/rating [get]
+// @Router /api/v1/client/{clientID}/movie/rating [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByRating(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -406,7 +406,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesByRating(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid count format"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientId}/movie/latest/{count} [get]
+// @Router /api/v1/client/{clientID}/movie/latest/{count} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesLatestByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -464,7 +464,7 @@ func (h *clientMovieHandler[T]) GetClientMoviesLatestByAdded(c *gin.Context) {
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid count format"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientId}/movie/popular/{count} [get]
+// @Router /api/v1/client/{clientID}/movie/popular/{count} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesPopular(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -518,11 +518,12 @@ func (h *clientMovieHandler[T]) GetClientMoviesPopular(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param count path int true "Number of movies to retrieve"
+// @Param clientID path int true "Client ID"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid count format"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientId}/movie/top-rated/{count} [get]
+// @Router /api/v1/client/{clientID}/movie/top-rated/{count} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesTopRated(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -576,11 +577,12 @@ func (h *clientMovieHandler[T]) GetClientMoviesTopRated(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param q query string true "Search query"
+// @Param clientID path int true "Client ID"
 // @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Missing search query"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientId}/movie/search [get]
+// @Router /api/v1/client/{clientID}/movie/search [get]
 func (h *clientMovieHandler[T]) SearchClientMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -639,11 +641,12 @@ func (h *clientMovieHandler[T]) SearchClientMovies(c *gin.Context) {
 // @Security BearerAuth
 // @Param source path int true "Source"
 // @Param externalID path string true "External ID"
+// @Param clientID path int true "Client ID"
 // @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Movie]] "Movies retrieved"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientId}/movie/external/{source}/{externalID} [get]
+// @Router /api/v1/client/{clientID}/movie/external/{source}/{externalID} [get]
 func (h *clientMovieHandler[T]) GetClientMovieByExternalID(c *gin.Context) {
 
 }

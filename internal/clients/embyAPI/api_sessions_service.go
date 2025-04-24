@@ -1,4 +1,3 @@
-
 /*
  * Emby Server REST API
  *
@@ -9,12 +8,12 @@ package embyclient
 
 import (
 	"context"
+	"fmt"
+	"github.com/antihax/optional"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
-	"fmt"
-	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -23,12 +22,12 @@ var (
 )
 
 type SessionsServiceApiService service
+
 /*
 SessionsServiceApiService
 Requires authentication as administrator
- * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param key Auth Key
-
+  - @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @param key Auth Key
 */
 func (a *SessionsServiceApiService) DeleteAuthKeysByKey(ctx context.Context, key string) (*http.Response, error) {
 	var (
@@ -36,7 +35,6 @@ func (a *SessionsServiceApiService) DeleteAuthKeysByKey(ctx context.Context, key
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -73,7 +71,7 @@ func (a *SessionsServiceApiService) DeleteAuthKeysByKey(ctx context.Context, key
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -93,10 +91,9 @@ func (a *SessionsServiceApiService) DeleteAuthKeysByKey(ctx context.Context, key
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr
@@ -104,13 +101,13 @@ func (a *SessionsServiceApiService) DeleteAuthKeysByKey(ctx context.Context, key
 
 	return localVarHttpResponse, nil
 }
+
 /*
 SessionsServiceApiService Removes an additional user from a session
 Requires authentication as user
- * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param id Session Id
- * @param userId UserId Id
-
+  - @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @param id Session Id
+  - @param userId UserId Id
 */
 func (a *SessionsServiceApiService) DeleteSessionsByIdUsersByUserid(ctx context.Context, id string, userId string) (*http.Response, error) {
 	var (
@@ -118,7 +115,6 @@ func (a *SessionsServiceApiService) DeleteSessionsByIdUsersByUserid(ctx context.
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -156,7 +152,7 @@ func (a *SessionsServiceApiService) DeleteSessionsByIdUsersByUserid(ctx context.
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -176,10 +172,9 @@ func (a *SessionsServiceApiService) DeleteSessionsByIdUsersByUserid(ctx context.
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr
@@ -187,6 +182,7 @@ func (a *SessionsServiceApiService) DeleteSessionsByIdUsersByUserid(ctx context.
 
 	return localVarHttpResponse, nil
 }
+
 /*
 SessionsServiceApiService
 Requires authentication as administrator
@@ -198,8 +194,8 @@ Requires authentication as administrator
 */
 
 type SessionsServiceApiGetAuthKeysOpts struct {
-    StartIndex optional.Int32
-    Limit optional.Int32
+	StartIndex optional.Int32
+	Limit      optional.Int32
 }
 
 func (a *SessionsServiceApiService) GetAuthKeys(ctx context.Context, localVarOptionals *SessionsServiceApiGetAuthKeysOpts) (*http.Response, error) {
@@ -208,7 +204,6 @@ func (a *SessionsServiceApiService) GetAuthKeys(ctx context.Context, localVarOpt
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -250,7 +245,7 @@ func (a *SessionsServiceApiService) GetAuthKeys(ctx context.Context, localVarOpt
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -270,10 +265,9 @@ func (a *SessionsServiceApiService) GetAuthKeys(ctx context.Context, localVarOpt
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr
@@ -281,18 +275,20 @@ func (a *SessionsServiceApiService) GetAuthKeys(ctx context.Context, localVarOpt
 
 	return localVarHttpResponse, nil
 }
+
 /*
 SessionsServiceApiService
 Requires authentication as administrator
- * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+
 @return []NameIdPair
 */
 func (a *SessionsServiceApiService) GetAuthProviders(ctx context.Context) ([]NameIdPair, *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarHttpMethod  = strings.ToUpper("Get")
+		localVarPostBody    interface{}
+		localVarFileName    string
+		localVarFileBytes   []byte
 		localVarReturnValue []NameIdPair
 	)
 
@@ -329,7 +325,7 @@ func (a *SessionsServiceApiService) GetAuthProviders(ctx context.Context) ([]Nam
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -351,32 +347,33 @@ func (a *SessionsServiceApiService) GetAuthProviders(ctx context.Context) ([]Nam
 
 	if localVarHttpResponse.StatusCode < 300 {
 		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-		if err == nil { 
+		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+		if err == nil {
 			return localVarReturnValue, localVarHttpResponse, err
 		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
 			var v []NameIdPair
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarReturnValue, localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
 
 	return localVarReturnValue, localVarHttpResponse, nil
 }
+
 /*
 SessionsServiceApiService Gets a list of sessions
 Requires authentication as user
@@ -389,17 +386,17 @@ Requires authentication as user
 */
 
 type SessionsServiceApiGetSessionsOpts struct {
-    ControllableByUserId optional.String
-    DeviceId optional.String
-    Id optional.String
+	ControllableByUserId optional.String
+	DeviceId             optional.String
+	Id                   optional.String
 }
 
 func (a *SessionsServiceApiService) GetSessions(ctx context.Context, localVarOptionals *SessionsServiceApiGetSessionsOpts) ([]SessionSessionInfo, *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarHttpMethod  = strings.ToUpper("Get")
+		localVarPostBody    interface{}
+		localVarFileName    string
+		localVarFileBytes   []byte
 		localVarReturnValue []SessionSessionInfo
 	)
 
@@ -445,7 +442,7 @@ func (a *SessionsServiceApiService) GetSessions(ctx context.Context, localVarOpt
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -467,32 +464,33 @@ func (a *SessionsServiceApiService) GetSessions(ctx context.Context, localVarOpt
 
 	if localVarHttpResponse.StatusCode < 300 {
 		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-		if err == nil { 
+		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+		if err == nil {
 			return localVarReturnValue, localVarHttpResponse, err
 		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
 			var v []SessionSessionInfo
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarReturnValue, localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
 
 	return localVarReturnValue, localVarHttpResponse, nil
 }
+
 /*
 SessionsServiceApiService Gets a the current play queue from a session
 Requires authentication as user
@@ -504,16 +502,16 @@ Requires authentication as user
 */
 
 type SessionsServiceApiGetSessionsPlayqueueOpts struct {
-    Id optional.String
-    DeviceId optional.String
+	Id       optional.String
+	DeviceId optional.String
 }
 
 func (a *SessionsServiceApiService) GetSessionsPlayqueue(ctx context.Context, localVarOptionals *SessionsServiceApiGetSessionsPlayqueueOpts) (QueryResultBaseItemDto, *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarHttpMethod  = strings.ToUpper("Get")
+		localVarPostBody    interface{}
+		localVarFileName    string
+		localVarFileBytes   []byte
 		localVarReturnValue QueryResultBaseItemDto
 	)
 
@@ -556,7 +554,7 @@ func (a *SessionsServiceApiService) GetSessionsPlayqueue(ctx context.Context, lo
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -578,38 +576,38 @@ func (a *SessionsServiceApiService) GetSessionsPlayqueue(ctx context.Context, lo
 
 	if localVarHttpResponse.StatusCode < 300 {
 		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-		if err == nil { 
+		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+		if err == nil {
 			return localVarReturnValue, localVarHttpResponse, err
 		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
 			var v QueryResultBaseItemDto
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarReturnValue, localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
 
 	return localVarReturnValue, localVarHttpResponse, nil
 }
+
 /*
 SessionsServiceApiService
 Requires authentication as administrator
- * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param app App
-
+  - @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @param app App
 */
 func (a *SessionsServiceApiService) PostAuthKeys(ctx context.Context, app string) (*http.Response, error) {
 	var (
@@ -617,7 +615,6 @@ func (a *SessionsServiceApiService) PostAuthKeys(ctx context.Context, app string
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -654,7 +651,7 @@ func (a *SessionsServiceApiService) PostAuthKeys(ctx context.Context, app string
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -674,10 +671,9 @@ func (a *SessionsServiceApiService) PostAuthKeys(ctx context.Context, app string
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr
@@ -685,12 +681,12 @@ func (a *SessionsServiceApiService) PostAuthKeys(ctx context.Context, app string
 
 	return localVarHttpResponse, nil
 }
+
 /*
 SessionsServiceApiService
 Requires authentication as administrator
- * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param key Auth Key
-
+  - @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @param key Auth Key
 */
 func (a *SessionsServiceApiService) PostAuthKeysByKeyDelete(ctx context.Context, key string) (*http.Response, error) {
 	var (
@@ -698,7 +694,6 @@ func (a *SessionsServiceApiService) PostAuthKeysByKeyDelete(ctx context.Context,
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -735,7 +730,7 @@ func (a *SessionsServiceApiService) PostAuthKeysByKeyDelete(ctx context.Context,
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -755,10 +750,9 @@ func (a *SessionsServiceApiService) PostAuthKeysByKeyDelete(ctx context.Context,
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr
@@ -766,13 +760,13 @@ func (a *SessionsServiceApiService) PostAuthKeysByKeyDelete(ctx context.Context,
 
 	return localVarHttpResponse, nil
 }
+
 /*
 SessionsServiceApiService Issues a system command to a client
 Requires authentication as user
- * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param body GeneralCommand: 
- * @param id Session Id
-
+  - @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @param body GeneralCommand:
+  - @param id Session Id
 */
 func (a *SessionsServiceApiService) PostSessionsByIdCommand(ctx context.Context, body GeneralCommand, id string) (*http.Response, error) {
 	var (
@@ -780,7 +774,6 @@ func (a *SessionsServiceApiService) PostSessionsByIdCommand(ctx context.Context,
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -819,7 +812,7 @@ func (a *SessionsServiceApiService) PostSessionsByIdCommand(ctx context.Context,
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -839,10 +832,9 @@ func (a *SessionsServiceApiService) PostSessionsByIdCommand(ctx context.Context,
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr
@@ -850,13 +842,13 @@ func (a *SessionsServiceApiService) PostSessionsByIdCommand(ctx context.Context,
 
 	return localVarHttpResponse, nil
 }
+
 /*
 SessionsServiceApiService Issues a system command to a client
 Requires authentication as user
- * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param id Session Id
- * @param command The command to send.
-
+  - @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @param id Session Id
+  - @param command The command to send.
 */
 func (a *SessionsServiceApiService) PostSessionsByIdCommandByCommand(ctx context.Context, id string, command string) (*http.Response, error) {
 	var (
@@ -864,7 +856,6 @@ func (a *SessionsServiceApiService) PostSessionsByIdCommandByCommand(ctx context
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -902,7 +893,7 @@ func (a *SessionsServiceApiService) PostSessionsByIdCommandByCommand(ctx context
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -922,10 +913,9 @@ func (a *SessionsServiceApiService) PostSessionsByIdCommandByCommand(ctx context
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr
@@ -933,6 +923,7 @@ func (a *SessionsServiceApiService) PostSessionsByIdCommandByCommand(ctx context
 
 	return localVarHttpResponse, nil
 }
+
 /*
 SessionsServiceApiService Issues a command to a client to display a message to the user
 Requires authentication as user
@@ -946,7 +937,7 @@ Requires authentication as user
 */
 
 type SessionsServiceApiPostSessionsByIdMessageOpts struct {
-    TimeoutMs optional.Int64
+	TimeoutMs optional.Int64
 }
 
 func (a *SessionsServiceApiService) PostSessionsByIdMessage(ctx context.Context, id string, text string, header string, localVarOptionals *SessionsServiceApiPostSessionsByIdMessageOpts) (*http.Response, error) {
@@ -955,7 +946,6 @@ func (a *SessionsServiceApiService) PostSessionsByIdMessage(ctx context.Context,
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -997,7 +987,7 @@ func (a *SessionsServiceApiService) PostSessionsByIdMessage(ctx context.Context,
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -1017,10 +1007,9 @@ func (a *SessionsServiceApiService) PostSessionsByIdMessage(ctx context.Context,
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr
@@ -1028,12 +1017,13 @@ func (a *SessionsServiceApiService) PostSessionsByIdMessage(ctx context.Context,
 
 	return localVarHttpResponse, nil
 }
+
 /*
 SessionsServiceApiService Instructs a session to play an item
 Requires authentication as user
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param body PlayRequest: 
- * @param itemIds The ids of the items to play, comma delimited
+ * @param body PlayRequest:
+ * @param itemIDs The ids of the items to play, comma delimited
  * @param playCommand The type of play command to issue (PlayNow, PlayNext, PlayLast). Clients who have not yet implemented play next and play last may play now.
  * @param id Session Id
  * @param optional nil or *SessionsServiceApiPostSessionsByIdPlayingOpts - Optional Parameters:
@@ -1042,7 +1032,7 @@ Requires authentication as user
 */
 
 type SessionsServiceApiPostSessionsByIdPlayingOpts struct {
-    StartPositionTicks optional.Int64
+	StartPositionTicks optional.Int64
 }
 
 func (a *SessionsServiceApiService) PostSessionsByIdPlaying(ctx context.Context, body PlayRequest, itemIds []int64, playCommand PlayCommand, id string, localVarOptionals *SessionsServiceApiPostSessionsByIdPlayingOpts) (*http.Response, error) {
@@ -1051,7 +1041,6 @@ func (a *SessionsServiceApiService) PostSessionsByIdPlaying(ctx context.Context,
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -1095,7 +1084,7 @@ func (a *SessionsServiceApiService) PostSessionsByIdPlaying(ctx context.Context,
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -1115,10 +1104,9 @@ func (a *SessionsServiceApiService) PostSessionsByIdPlaying(ctx context.Context,
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr
@@ -1126,14 +1114,14 @@ func (a *SessionsServiceApiService) PostSessionsByIdPlaying(ctx context.Context,
 
 	return localVarHttpResponse, nil
 }
+
 /*
 SessionsServiceApiService Issues a playstate command to a client
 Requires authentication as user
- * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param body PlaystateRequest: 
- * @param id Session Id
- * @param command
-
+  - @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @param body PlaystateRequest:
+  - @param id Session Id
+  - @param command
 */
 func (a *SessionsServiceApiService) PostSessionsByIdPlayingByCommand(ctx context.Context, body PlaystateRequest, id string, command PlaystateCommand) (*http.Response, error) {
 	var (
@@ -1141,7 +1129,6 @@ func (a *SessionsServiceApiService) PostSessionsByIdPlayingByCommand(ctx context
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -1181,7 +1168,7 @@ func (a *SessionsServiceApiService) PostSessionsByIdPlayingByCommand(ctx context
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -1201,10 +1188,9 @@ func (a *SessionsServiceApiService) PostSessionsByIdPlayingByCommand(ctx context
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr
@@ -1212,13 +1198,13 @@ func (a *SessionsServiceApiService) PostSessionsByIdPlayingByCommand(ctx context
 
 	return localVarHttpResponse, nil
 }
+
 /*
 SessionsServiceApiService Issues a system command to a client
 Requires authentication as user
- * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param id Session Id
- * @param command The command to send.
-
+  - @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @param id Session Id
+  - @param command The command to send.
 */
 func (a *SessionsServiceApiService) PostSessionsByIdSystemByCommand(ctx context.Context, id string, command string) (*http.Response, error) {
 	var (
@@ -1226,7 +1212,6 @@ func (a *SessionsServiceApiService) PostSessionsByIdSystemByCommand(ctx context.
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -1264,7 +1249,7 @@ func (a *SessionsServiceApiService) PostSessionsByIdSystemByCommand(ctx context.
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -1284,10 +1269,9 @@ func (a *SessionsServiceApiService) PostSessionsByIdSystemByCommand(ctx context.
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr
@@ -1295,13 +1279,13 @@ func (a *SessionsServiceApiService) PostSessionsByIdSystemByCommand(ctx context.
 
 	return localVarHttpResponse, nil
 }
+
 /*
 SessionsServiceApiService Adds an additional user to a session
 Requires authentication as user
- * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param id Session Id
- * @param userId UserId Id
-
+  - @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @param id Session Id
+  - @param userId UserId Id
 */
 func (a *SessionsServiceApiService) PostSessionsByIdUsersByUserid(ctx context.Context, id string, userId string) (*http.Response, error) {
 	var (
@@ -1309,7 +1293,6 @@ func (a *SessionsServiceApiService) PostSessionsByIdUsersByUserid(ctx context.Co
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -1347,7 +1330,7 @@ func (a *SessionsServiceApiService) PostSessionsByIdUsersByUserid(ctx context.Co
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -1367,10 +1350,9 @@ func (a *SessionsServiceApiService) PostSessionsByIdUsersByUserid(ctx context.Co
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr
@@ -1378,13 +1360,13 @@ func (a *SessionsServiceApiService) PostSessionsByIdUsersByUserid(ctx context.Co
 
 	return localVarHttpResponse, nil
 }
+
 /*
 SessionsServiceApiService Removes an additional user from a session
 Requires authentication as user
- * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param id Session Id
- * @param userId UserId Id
-
+  - @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @param id Session Id
+  - @param userId UserId Id
 */
 func (a *SessionsServiceApiService) PostSessionsByIdUsersByUseridDelete(ctx context.Context, id string, userId string) (*http.Response, error) {
 	var (
@@ -1392,7 +1374,6 @@ func (a *SessionsServiceApiService) PostSessionsByIdUsersByUseridDelete(ctx cont
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -1430,7 +1411,7 @@ func (a *SessionsServiceApiService) PostSessionsByIdUsersByUseridDelete(ctx cont
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -1450,10 +1431,9 @@ func (a *SessionsServiceApiService) PostSessionsByIdUsersByUseridDelete(ctx cont
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr
@@ -1461,15 +1441,15 @@ func (a *SessionsServiceApiService) PostSessionsByIdUsersByUseridDelete(ctx cont
 
 	return localVarHttpResponse, nil
 }
+
 /*
 SessionsServiceApiService Instructs a session to browse to an item or view
 Requires authentication as user
- * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param id Session Id
- * @param itemType The type of item to browse to.
- * @param itemId The Id of the item.
- * @param itemName The name of the item.
-
+  - @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @param id Session Id
+  - @param itemType The type of item to browse to.
+  - @param itemId The Id of the item.
+  - @param itemName The name of the item.
 */
 func (a *SessionsServiceApiService) PostSessionsByIdViewing(ctx context.Context, id string, itemType string, itemId string, itemName string) (*http.Response, error) {
 	var (
@@ -1477,7 +1457,6 @@ func (a *SessionsServiceApiService) PostSessionsByIdViewing(ctx context.Context,
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -1517,7 +1496,7 @@ func (a *SessionsServiceApiService) PostSessionsByIdViewing(ctx context.Context,
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -1537,10 +1516,9 @@ func (a *SessionsServiceApiService) PostSessionsByIdViewing(ctx context.Context,
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr
@@ -1548,6 +1526,7 @@ func (a *SessionsServiceApiService) PostSessionsByIdViewing(ctx context.Context,
 
 	return localVarHttpResponse, nil
 }
+
 /*
 SessionsServiceApiService Updates capabilities for a device
 Requires authentication as user
@@ -1562,10 +1541,10 @@ Requires authentication as user
 */
 
 type SessionsServiceApiPostSessionsCapabilitiesOpts struct {
-    PlayableMediaTypes optional.String
-    SupportedCommands optional.String
-    SupportsMediaControl optional.Bool
-    SupportsSync optional.Bool
+	PlayableMediaTypes   optional.String
+	SupportedCommands    optional.String
+	SupportsMediaControl optional.Bool
+	SupportsSync         optional.Bool
 }
 
 func (a *SessionsServiceApiService) PostSessionsCapabilities(ctx context.Context, id string, localVarOptionals *SessionsServiceApiPostSessionsCapabilitiesOpts) (*http.Response, error) {
@@ -1574,7 +1553,6 @@ func (a *SessionsServiceApiService) PostSessionsCapabilities(ctx context.Context
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -1623,7 +1601,7 @@ func (a *SessionsServiceApiService) PostSessionsCapabilities(ctx context.Context
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -1643,10 +1621,9 @@ func (a *SessionsServiceApiService) PostSessionsCapabilities(ctx context.Context
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr
@@ -1654,13 +1631,13 @@ func (a *SessionsServiceApiService) PostSessionsCapabilities(ctx context.Context
 
 	return localVarHttpResponse, nil
 }
+
 /*
 SessionsServiceApiService Updates capabilities for a device
 Requires authentication as user
- * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param body ClientCapabilities: 
- * @param id Session Id
-
+  - @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @param body ClientCapabilities:
+  - @param id Session Id
 */
 func (a *SessionsServiceApiService) PostSessionsCapabilitiesFull(ctx context.Context, body ClientCapabilities, id string) (*http.Response, error) {
 	var (
@@ -1668,7 +1645,6 @@ func (a *SessionsServiceApiService) PostSessionsCapabilitiesFull(ctx context.Con
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -1707,7 +1683,7 @@ func (a *SessionsServiceApiService) PostSessionsCapabilitiesFull(ctx context.Con
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -1727,10 +1703,9 @@ func (a *SessionsServiceApiService) PostSessionsCapabilitiesFull(ctx context.Con
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr
@@ -1738,11 +1713,11 @@ func (a *SessionsServiceApiService) PostSessionsCapabilitiesFull(ctx context.Con
 
 	return localVarHttpResponse, nil
 }
+
 /*
 SessionsServiceApiService Reports that a session has ended
 Requires authentication as user
- * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-
+  - @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 */
 func (a *SessionsServiceApiService) PostSessionsLogout(ctx context.Context) (*http.Response, error) {
 	var (
@@ -1750,7 +1725,6 @@ func (a *SessionsServiceApiService) PostSessionsLogout(ctx context.Context) (*ht
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -1786,7 +1760,7 @@ func (a *SessionsServiceApiService) PostSessionsLogout(ctx context.Context) (*ht
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -1806,10 +1780,9 @@ func (a *SessionsServiceApiService) PostSessionsLogout(ctx context.Context) (*ht
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr

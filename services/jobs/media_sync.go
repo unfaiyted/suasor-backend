@@ -208,7 +208,7 @@ func (j *MediaSyncJob) runSyncJob(ctx context.Context, syncJob models.MediaSyncJ
 		Status:    models.JobStatusRunning,
 		StartTime: &now,
 		UserID:    &syncJob.UserID,
-		Metadata:  fmt.Sprintf(`{"clientId":%d,"mediaType":"%s"}`, syncJob.ClientID, syncJob.MediaType),
+		Metadata:  fmt.Sprintf(`{"clientID":%d,"mediaType":"%s"}`, syncJob.ClientID, syncJob.MediaType),
 	}
 
 	// Save the job run

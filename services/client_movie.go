@@ -642,8 +642,8 @@ func (s *clientMovieService[T]) getMovieProviders(ctx context.Context, userID ui
 	// Filter and instantiate clients that support movies
 	for _, clientConfig := range clients {
 		if clientConfig.Config.Data.SupportsMovies() {
-			clientId := clientConfig.GetID()
-			provider, err := s.clientFactory.GetMovieProvider(ctx, clientId, clientConfig.Config.Data)
+			clientID := clientConfig.GetID()
+			provider, err := s.clientFactory.GetMovieProvider(ctx, clientID, clientConfig.Config.Data)
 			if err != nil {
 				// Log error but continue with other clients
 				continue

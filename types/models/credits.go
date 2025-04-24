@@ -10,9 +10,9 @@ import (
 // Credit represents a person's involvement with a particular media item
 type Credit struct {
 	BaseModel                               // Include base fields (ID, timestamps)
-	PersonID    uint64                      `json:"personId" gorm:"index;not null"`
+	PersonID    uint64                      `json:"personID" gorm:"index;not null"`
 	Person      Person                      `json:"person,omitempty" gorm:"foreignKey:PersonID"`
-	MediaItemID uint64                      `json:"mediaItemId" gorm:"index;not null"`
+	MediaItemID uint64                      `json:"mediaItemID" gorm:"index;not null"`
 	MediaItem   *MediaItem[types.MediaData] `json:"-" gorm:"foreignKey:MediaItemID"` // Use pointer to avoid recursion issues
 
 	Name         string `json:"name" gorm:"type:varchar(255)"`                 // Name as it appears in the credits
@@ -51,7 +51,7 @@ func (cm CreditMetadata) Value() (driver.Value, error) {
 }
 
 // Scan implements the sql.Scanner interface for database deserialization
-func (cm *CreditMetadata) Scan(value interface{}) error {
+func (cm *CreditMetadata) Scan(value any) error {
 	bytes, ok := value.([]byte)
 	if !ok {
 		return errors.New("type assertion to []byte failed")
@@ -154,12 +154,12 @@ func (c Credits) GetWriters() Credits {
 }
 
 // GetCreditPublicView returns a view of the credit for API responses
-func (c *Credit) GetCreditPublicView() map[string]interface{} {
-	result := map[string]interface{}{
+func (c *Credit) GetCreditPublicView() map[string]any {
+	result := map[string]any{
 		"id":       c.ID,
 		"name":     c.Name,
 		"role":     c.Role,
-		"personId": c.PersonID,
+		"personID": c.PersonID,
 	}
 
 	if c.IsCast {
@@ -300,7 +300,7 @@ func (c Credits) ToTableFormatted() []map[string]interface{} {
 			"id":       credit.ID,
 			"name":     credit.Name,
 			"role":     credit.Role,
-			"personId": credit.PersonID,
+			"personID": credit.PersonID,
 		}
 
 		if credit.Department != "" {
@@ -338,10 +338,10 @@ func (c *Credit) GetCreditWithoutPerson() Credit {
 // GetCreditWithDetails returns a credit with minimal person details
 // Used for API responses to avoid circular references
 func (c *Credit) GetCreditWithDetails() map[string]interface{} {
-	result := map[string]interface{}{
+	result := map[string]any{
 		"id":          c.ID,
-		"personId":    c.PersonID,
-		"mediaItemId": c.MediaItemID,
+		"personID":    c.PersonID,
+		"mediaItemID": c.MediaItemID,
 		"name":        c.Name,
 		"role":        c.Role,
 		"department":  c.Department,
@@ -358,7 +358,7 @@ func (c *Credit) GetCreditWithDetails() map[string]interface{} {
 
 	// Add basic person details
 	if c.Person.ID > 0 {
-		result["person"] = map[string]interface{}{
+		result["person"] = map[string]any{
 			"id":    c.Person.ID,
 			"name":  c.Person.Name,
 			"photo": c.Person.Photo,

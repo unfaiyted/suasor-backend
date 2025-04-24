@@ -53,19 +53,19 @@ func ContainsIgnoreCase(s, substr string) bool {
 }
 
 // GetUserID extracts the user ID from query parameters or from the authenticated context
-// If userId query parameter is provided, it uses that value; otherwise, uses the authenticated user's ID
+// If userID query parameter is provided, it uses that value; otherwise, uses the authenticated user's ID
 // Returns an error if no valid user ID is found or if the user ID is not a valid uint64
 func GetUserID(c *gin.Context) (uint64, error) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Check if userId is provided in query parameters
-	userIDStr := c.Query("userId")
+	userIDStr := c.Query("userID")
 	if userIDStr != "" {
-		// Parse the userId from query parameter
+		// Parse the userID from query parameter
 		userID, err := strconv.ParseUint(userIDStr, 10, 64)
 		if err != nil {
-			log.Warn().Err(err).Str("userId", userIDStr).Msg("Invalid user ID format in query parameter")
+			log.Warn().Err(err).Str("userID", userIDStr).Msg("Invalid user ID format in query parameter")
 			return 0, err
 		}
 		return userID, nil

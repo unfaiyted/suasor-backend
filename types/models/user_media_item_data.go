@@ -9,7 +9,7 @@ import (
 )
 
 type DataListItem struct {
-	ItemUUID string `json:"itemId"`
+	ItemUUID string `json:"itemUUID"`
 	Position int    `json:"position"`
 }
 

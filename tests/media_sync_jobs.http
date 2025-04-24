@@ -10,7 +10,7 @@ Content-Type: application/json
 
 ###
 # @name getEmbyClients
-# First, get your Emby clients to find clientId
+# First, get your Emby clients to find clientID
 GET http://localhost:8080/api/v1/clients?clientType=emby
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
@@ -30,7 +30,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "clientId": {{getEmbyClients.response.body.$.data[0].id}},
+  "clientID": {{getEmbyClients.response.body.$.data[0].id}},
   "clientType": "emby",
   "mediaType": "movie",
   "frequency": "daily"
@@ -44,7 +44,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "clientId": {{getEmbyClients.response.body.$.data[0].id}},
+  "clientID": {{getEmbyClients.response.body.$.data[0].id}},
   "clientType": "emby",
   "mediaType": "series",
   "frequency": "weekly"
@@ -58,7 +58,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "clientId": {{getEmbyClients.response.body.$.data[0].id}},
+  "clientID": {{getEmbyClients.response.body.$.data[0].id}},
   "clientType": "emby",
   "mediaType": "music",
   "frequency": "daily"
@@ -72,7 +72,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "clientId": {{getEmbyClients.response.body.$.data[0].id}},
+  "clientID": {{getEmbyClients.response.body.$.data[0].id}},
   "mediaType": "movie"
 }
 
@@ -84,7 +84,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "clientId": {{getEmbyClients.response.body.$.data[0].id}},
+  "clientID": {{getEmbyClients.response.body.$.data[0].id}},
   "mediaType": "series"
 }
 
@@ -96,7 +96,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "clientId": {{getEmbyClients.response.body.$.data[0].id}},
+  "clientID": {{getEmbyClients.response.body.$.data[0].id}},
   "mediaType": "music"
 }
 

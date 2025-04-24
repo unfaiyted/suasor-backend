@@ -53,7 +53,7 @@ func NewUserMediaItemDataHandler[T mediatypes.MediaData](
 // @Tags user-data
 // @Accept json
 // @Produce json
-// @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
+// @Param userID query int false "User ID (optional, uses authenticated user ID if not provided)"
 // @Param limit query int false "Number of items to return (default 10)"
 // @Param offset query int false "Number of items to skip (default 0)"
 // @Param completed query bool false "Filter by completion status"
@@ -68,7 +68,7 @@ func (h *userMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) {
 
 	userID, err := utils.GetUserID(c)
 	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
+		log.Warn().Err(err).Str("userID", c.Query("userID")).Msg("Invalid user ID")
 		responses.RespondBadRequest(c, err, "Invalid user ID")
 		return
 	}
@@ -92,7 +92,7 @@ func (h *userMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) {
 	mediaType := mediatypes.GetMediaTypeFromTypeName(zero)
 
 	log.Debug().
-		Uint64("userId", userID).
+		Uint64("userID", userID).
 		Int("limit", limit).
 		Int("offset", offset).
 		Str("mediaType", string(mediaType)).
@@ -107,13 +107,13 @@ func (h *userMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) {
 
 	history, err := h.service.GetUserPlayHistory(ctx, userID, &query)
 	if err != nil {
-		log.Error().Err(err).Uint64("userId", userID).Msg("Failed to retrieve play user-data")
+		log.Error().Err(err).Uint64("userID", userID).Msg("Failed to retrieve play user-data")
 		responses.RespondInternalError(c, err, "Failed to retrieve play user-data")
 		return
 	}
 
 	log.Info().
-		Uint64("userId", userID).
+		Uint64("userID", userID).
 		Int("count", len(history)).
 		Msg("Play user-data retrieved successfully")
 
@@ -126,7 +126,7 @@ func (h *userMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) {
 // @Tags user-data
 // @Accept json
 // @Produce json
-// @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
+// @Param userID query int false "User ID (optional, uses authenticated user ID if not provided)"
 // @Param limit query int false "Number of items to return (default 10)"
 // @Param type query string false "Media type filter (movie, series, episode, track, etc.)"
 // @Success 200 {object} responses.APIResponse[[]models.UserMediaItemData[mediatypes.Movie]] "Successfully retrieved continue watching items"
@@ -140,7 +140,7 @@ func (h *userMediaItemDataHandler[T]) GetContinuePlaying(c *gin.Context) {
 
 	userID, err := utils.GetUserID(c)
 	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
+		log.Warn().Err(err).Str("userID", c.Query("userID")).Msg("Invalid user ID")
 		responses.RespondBadRequest(c, err, "Invalid user ID")
 		return
 	}
@@ -148,20 +148,20 @@ func (h *userMediaItemDataHandler[T]) GetContinuePlaying(c *gin.Context) {
 	limit := utils.GetLimit(c, 10, 100, true)
 
 	log.Debug().
-		Uint64("userId", userID).
+		Uint64("userID", userID).
 		Int("limit", limit).
 		Msg("Getting continue watching items")
 
 	// Get items that are not completed and have been played recently
 	items, err := h.service.GetContinueWatching(ctx, userID, limit)
 	if err != nil {
-		log.Error().Err(err).Uint64("userId", userID).Msg("Failed to retrieve continue watching items")
+		log.Error().Err(err).Uint64("userID", userID).Msg("Failed to retrieve continue watching items")
 		responses.RespondInternalError(c, err, "Failed to retrieve continue watching items")
 		return
 	}
 
 	log.Info().
-		Uint64("userId", userID).
+		Uint64("userID", userID).
 		Int("count", len(items)).
 		Msg("Continue watching items retrieved successfully")
 
@@ -174,7 +174,7 @@ func (h *userMediaItemDataHandler[T]) GetContinuePlaying(c *gin.Context) {
 // @Tags user-data
 // @Accept json
 // @Produce json
-// @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
+// @Param userID query int false "User ID (optional, uses authenticated user ID if not provided)"
 // @Param limit query int false "Number of items to return (default 10)"
 // @Param days query int false "Number of days to look back (default 7)"
 // @Success 200 {object} responses.APIResponse[[]models.UserMediaItemData[mediatypes.Movie]] "Successfully retrieved recent user-data"
@@ -188,7 +188,7 @@ func (h *userMediaItemDataHandler[T]) GetRecentHistory(c *gin.Context) {
 
 	userID, err := utils.GetUserID(c)
 	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
+		log.Warn().Err(err).Str("userID", c.Query("userID")).Msg("Invalid user ID")
 		responses.RespondBadRequest(c, err, "Invalid user ID")
 		return
 	}
@@ -200,19 +200,19 @@ func (h *userMediaItemDataHandler[T]) GetRecentHistory(c *gin.Context) {
 	}
 
 	log.Debug().
-		Uint64("userId", userID).
+		Uint64("userID", userID).
 		Int("limit", limit).
 		Msg("Getting recent user media user-data")
 
 	history, err := h.service.GetRecentHistory(ctx, userID, days, limit)
 	if err != nil {
-		log.Error().Err(err).Uint64("userId", userID).Msg("Failed to retrieve recent user-data")
+		log.Error().Err(err).Uint64("userID", userID).Msg("Failed to retrieve recent user-data")
 		responses.RespondInternalError(c, err, "Failed to retrieve recent user-data")
 		return
 	}
 
 	log.Info().
-		Uint64("userId", userID).
+		Uint64("userID", userID).
 		Int("count", len(history)).
 		Msg("Recent user-data retrieved successfully")
 
@@ -226,12 +226,12 @@ func (h *userMediaItemDataHandler[T]) GetRecentHistory(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param mediaPlay body requests.UserMediaItemDataRequest true "Media play information"
-// @Param itemId path int true "Media Item ID"
+// @Param itemID path int true "Media Item ID"
 // @Success 201 {object} responses.APIResponse[models.UserMediaItemData[mediatypes.Movie]] "Play event recorded successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /api/v1/user-data/{mediaType}/{itemId}/record [post]
+// @Router /api/v1/user-data/{mediaType}/{itemID}/record [post]
 func (h *userMediaItemDataHandler[T]) RecordMediaPlay(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -255,8 +255,8 @@ func (h *userMediaItemDataHandler[T]) RecordMediaPlay(c *gin.Context) {
 	}
 
 	log.Debug().
-		Uint64("userId", req.UserID).
-		Uint64("mediaItemId", req.MediaItemID).
+		Uint64("userID", req.UserID).
+		Uint64("itemID", req.MediaItemID).
 		Str("type", string(req.Type)).
 		Msg("Recording media play event")
 
@@ -283,16 +283,16 @@ func (h *userMediaItemDataHandler[T]) RecordMediaPlay(c *gin.Context) {
 	result, err := h.service.RecordPlay(ctx, playHistory)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("userId", req.UserID).
-			Uint64("mediaItemId", req.MediaItemID).
+			Uint64("userID", req.UserID).
+			Uint64("itemID", req.MediaItemID).
 			Msg("Failed to record play event")
 		responses.RespondInternalError(c, err, "Failed to record play event")
 		return
 	}
 
 	log.Info().
-		Uint64("userId", req.UserID).
-		Uint64("mediaItemId", req.MediaItemID).
+		Uint64("userID", req.UserID).
+		Uint64("itemID", req.MediaItemID).
 		Msg("Play event recorded successfully")
 
 	responses.RespondCreated(c, result, "Play event recorded successfully")
@@ -306,27 +306,27 @@ func (h *userMediaItemDataHandler[T]) RecordMediaPlay(c *gin.Context) {
 // @Produce json
 // @Param favorite query bool true "Favorite status"
 // @Param mediaType path string true "Media type like movie, series, track, etc."
-// @Param itemId path int true "Media Item ID"
-// @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
+// @Param itemID path int true "Media Item ID"
+// @Param userID query int false "User ID (optional, uses authenticated user ID if not provided)"
 // @Success 200 {object} responses.APIResponse[models.UserMediaItemData[mediatypes.Movie]] "Favorite status updated successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /api/v1/user-data/{mediaType}/{itemId}/favorite [put]
+// @Router /api/v1/user-data/{mediaType}/{itemID}/favorite [put]
 func (h *userMediaItemDataHandler[T]) ToggleFavorite(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	mediaItemID, err := strconv.ParseUint(c.Param("mediaItemId"), 10, 64)
+	itemID, err := strconv.ParseUint(c.Param("itemID"), 10, 64)
 	if err != nil {
-		log.Warn().Err(err).Str("mediaItemId", c.Param("mediaItemId")).Msg("Invalid media item ID")
+		log.Warn().Err(err).Str("itemID", c.Param("itemID")).Msg("Invalid media item ID")
 		responses.RespondBadRequest(c, err, "Invalid media item ID")
 		return
 	}
 
 	userID, err := utils.GetUserID(c)
 	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
+		log.Warn().Err(err).Str("userID", c.Query("userID")).Msg("Invalid user ID")
 		responses.RespondBadRequest(c, err, "Invalid user ID")
 		return
 	}
@@ -339,24 +339,24 @@ func (h *userMediaItemDataHandler[T]) ToggleFavorite(c *gin.Context) {
 	}
 
 	log.Debug().
-		Uint64("userId", userID).
-		Uint64("mediaItemId", mediaItemID).
+		Uint64("userID", userID).
+		Uint64("itemID", itemID).
 		Bool("favorite", favorite).
 		Msg("Toggling favorite status")
 
-	err = h.service.ToggleFavorite(ctx, mediaItemID, userID, favorite)
+	err = h.service.ToggleFavorite(ctx, itemID, userID, favorite)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("userId", userID).
-			Uint64("mediaItemId", mediaItemID).
+			Uint64("userID", userID).
+			Uint64("itemID", itemID).
 			Msg("Failed to update favorite status")
 		responses.RespondInternalError(c, err, "Failed to update favorite status")
 		return
 	}
 
 	log.Info().
-		Uint64("userId", userID).
-		Uint64("mediaItemId", mediaItemID).
+		Uint64("userID", userID).
+		Uint64("itemID", itemID).
 		Bool("favorite", favorite).
 		Msg("Favorite status updated successfully")
 
@@ -371,27 +371,27 @@ func (h *userMediaItemDataHandler[T]) ToggleFavorite(c *gin.Context) {
 // @Produce json
 // @Param rating query number true "User rating (0-10)"
 // @Param mediaType path string true "Media type like movie, series, track, etc."
-// @Param itemId path int true "Media Item ID"
-// @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
+// @Param itemID path int true "Media Item ID"
+// @Param userID query int false "User ID (optional, uses authenticated user ID if not provided)"
 // @Success 200 {object} responses.APIResponse[models.UserMediaItemData[mediatypes.Movie]] "Rating updated successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
 // @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
 // @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /api/v1/user-data/{mediaType}/{itemId}/rating [put]
+// @Router /api/v1/user-data/{mediaType}/{itemID}/rating [put]
 func (h *userMediaItemDataHandler[T]) UpdateUserRating(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	mediaItemID, err := strconv.ParseUint(c.Param("mediaItemId"), 10, 64)
+	itemID, err := strconv.ParseUint(c.Param("itemID"), 10, 64)
 	if err != nil {
-		log.Warn().Err(err).Str("mediaItemId", c.Param("mediaItemId")).Msg("Invalid media item ID")
+		log.Warn().Err(err).Str("itemID", c.Param("itemID")).Msg("Invalid media item ID")
 		responses.RespondBadRequest(c, err, "Invalid media item ID")
 		return
 	}
 
 	userID, err := utils.GetUserID(c)
 	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
+		log.Warn().Err(err).Str("userID", c.Query("userID")).Msg("Invalid user ID")
 		responses.RespondBadRequest(c, err, "Invalid user ID")
 		return
 	}
@@ -410,24 +410,24 @@ func (h *userMediaItemDataHandler[T]) UpdateUserRating(c *gin.Context) {
 	}
 
 	log.Debug().
-		Uint64("userId", userID).
-		Uint64("mediaItemId", mediaItemID).
+		Uint64("userID", userID).
+		Uint64("itemID", itemID).
 		Float64("rating", rating).
 		Msg("Updating user rating")
 
-	err = h.service.UpdateRating(ctx, mediaItemID, userID, float32(rating))
+	err = h.service.UpdateRating(ctx, itemID, userID, float32(rating))
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("userId", userID).
-			Uint64("mediaItemId", mediaItemID).
+			Uint64("userID", userID).
+			Uint64("itemID", itemID).
 			Msg("Failed to update rating")
 		responses.RespondInternalError(c, err, "Failed to update rating")
 		return
 	}
 
 	log.Info().
-		Uint64("userId", userID).
-		Uint64("mediaItemId", mediaItemID).
+		Uint64("userID", userID).
+		Uint64("itemID", itemID).
 		Float64("rating", rating).
 		Msg("Rating updated successfully")
 
@@ -440,7 +440,7 @@ func (h *userMediaItemDataHandler[T]) UpdateUserRating(c *gin.Context) {
 // @Tags user-data
 // @Accept json
 // @Produce json
-// @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
+// @Param userID query int false "User ID (optional, uses authenticated user ID if not provided)"
 // @Param limit query int false "Number of items to return (default 10)"
 // @Param offset query int false "Number of items to skip (default 0)"
 // @Param mediaType path string true "Media type like movie, series, track, etc."
@@ -455,7 +455,7 @@ func (h *userMediaItemDataHandler[T]) GetFavorites(c *gin.Context) {
 
 	userID, err := utils.GetUserID(c)
 	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
+		log.Warn().Err(err).Str("userID", c.Query("userID")).Msg("Invalid user ID")
 		responses.RespondBadRequest(c, err, "Invalid user ID")
 		return
 	}
@@ -464,20 +464,20 @@ func (h *userMediaItemDataHandler[T]) GetFavorites(c *gin.Context) {
 	offset := utils.GetOffset(c, 0)
 
 	log.Debug().
-		Uint64("userId", userID).
+		Uint64("userID", userID).
 		Int("limit", limit).
 		Int("offset", offset).
 		Msg("Getting user favorites")
 
 	favorites, err := h.service.GetFavorites(ctx, userID, limit, offset)
 	if err != nil {
-		log.Error().Err(err).Uint64("userId", userID).Msg("Failed to retrieve favorites")
+		log.Error().Err(err).Uint64("userID", userID).Msg("Failed to retrieve favorites")
 		responses.RespondInternalError(c, err, "Failed to retrieve favorites")
 		return
 	}
 
 	log.Info().
-		Uint64("userId", userID).
+		Uint64("userID", userID).
 		Int("count", len(favorites)).
 		Msg("Favorites retrieved successfully")
 
@@ -490,7 +490,7 @@ func (h *userMediaItemDataHandler[T]) GetFavorites(c *gin.Context) {
 // @Tags user-data
 // @Accept json
 // @Produce json
-// @Param userId query int false "User ID (optional, uses authenticated user ID if not provided)"
+// @Param userID query int false "User ID (optional, uses authenticated user ID if not provided)"
 // @Param mediaType path string true "Media type like movie, series, track, etc."
 // @Success 200 {object} responses.APIResponse[any] "History cleared successfully"
 // @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
@@ -503,24 +503,24 @@ func (h *userMediaItemDataHandler[T]) ClearUserHistory(c *gin.Context) {
 
 	userID, err := utils.GetUserID(c)
 	if err != nil {
-		log.Warn().Err(err).Str("userId", c.Query("userId")).Msg("Invalid user ID")
+		log.Warn().Err(err).Str("userID", c.Query("userID")).Msg("Invalid user ID")
 		responses.RespondBadRequest(c, err, "Invalid user ID")
 		return
 	}
 
 	log.Debug().
-		Uint64("userId", userID).
+		Uint64("userID", userID).
 		Msg("Clearing user user-data")
 
 	err = h.service.ClearUserHistory(ctx, userID)
 	if err != nil {
-		log.Error().Err(err).Uint64("userId", userID).Msg("Failed to clear user-data")
+		log.Error().Err(err).Uint64("userID", userID).Msg("Failed to clear user-data")
 		responses.RespondInternalError(c, err, "Failed to clear user-data")
 		return
 	}
 
 	log.Info().
-		Uint64("userId", userID).
+		Uint64("userID", userID).
 		Msg("History cleared successfully")
 
 	responses.RespondOK(c, responses.EmptyResponse{Success: true}, "History cleared successfully")
