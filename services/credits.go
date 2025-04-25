@@ -23,7 +23,7 @@ func NewCreditService(creditRepo repository.CreditRepository, personRepo reposit
 }
 
 // GetCreditsForMediaItem gets all credits for a media item
-func (s *CreditService) GetCreditsForMediaItem(ctx context.Context, mediaItemID uint64) ([]models.Credit, error) {
+func (s *CreditService) GetCreditsForMediaItem(ctx context.Context, mediaItemID uint64) ([]*models.Credit, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	credits, err := s.creditRepo.GetByMediaItemID(ctx, mediaItemID)
@@ -36,7 +36,7 @@ func (s *CreditService) GetCreditsForMediaItem(ctx context.Context, mediaItemID 
 }
 
 // GetCastForMediaItem gets cast credits for a media item
-func (s *CreditService) GetCastForMediaItem(ctx context.Context, mediaItemID uint64) ([]models.Credit, error) {
+func (s *CreditService) GetCastForMediaItem(ctx context.Context, mediaItemID uint64) ([]*models.Credit, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	credits, err := s.creditRepo.GetCastForMediaItem(ctx, mediaItemID)
@@ -49,7 +49,7 @@ func (s *CreditService) GetCastForMediaItem(ctx context.Context, mediaItemID uin
 }
 
 // GetCrewForMediaItem gets crew credits for a media item
-func (s *CreditService) GetCrewForMediaItem(ctx context.Context, mediaItemID uint64) ([]models.Credit, error) {
+func (s *CreditService) GetCrewForMediaItem(ctx context.Context, mediaItemID uint64) ([]*models.Credit, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	credits, err := s.creditRepo.GetCrewForMediaItem(ctx, mediaItemID)
@@ -62,7 +62,7 @@ func (s *CreditService) GetCrewForMediaItem(ctx context.Context, mediaItemID uin
 }
 
 // GetCrewByDepartment gets crew credits for a media item filtered by department
-func (s *CreditService) GetCrewByDepartment(ctx context.Context, mediaItemID uint64, department string) ([]models.Credit, error) {
+func (s *CreditService) GetCrewByDepartment(ctx context.Context, mediaItemID uint64, department models.MediaDepartment) ([]*models.Credit, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	credits, err := s.creditRepo.GetCrewForMediaItem(ctx, mediaItemID)
@@ -72,7 +72,7 @@ func (s *CreditService) GetCrewByDepartment(ctx context.Context, mediaItemID uin
 	}
 
 	// Filter by department
-	var filteredCredits []models.Credit
+	var filteredCredits []*models.Credit
 	for _, credit := range credits {
 		if credit.Department == department {
 			filteredCredits = append(filteredCredits, credit)
@@ -83,7 +83,7 @@ func (s *CreditService) GetCrewByDepartment(ctx context.Context, mediaItemID uin
 }
 
 // GetDirectorsForMediaItem gets director credits for a media item
-func (s *CreditService) GetDirectorsForMediaItem(ctx context.Context, mediaItemID uint64) ([]models.Credit, error) {
+func (s *CreditService) GetDirectorsForMediaItem(ctx context.Context, mediaItemID uint64) ([]*models.Credit, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	credits, err := s.creditRepo.GetDirectorsForMediaItem(ctx, mediaItemID)
@@ -96,7 +96,7 @@ func (s *CreditService) GetDirectorsForMediaItem(ctx context.Context, mediaItemI
 }
 
 // GetCreditsByPerson gets all credits for a person
-func (s *CreditService) GetCreditsByPerson(ctx context.Context, personID uint64) ([]models.Credit, error) {
+func (s *CreditService) GetCreditsByPerson(ctx context.Context, personID uint64) ([]*models.Credit, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	credits, err := s.creditRepo.GetByPersonID(ctx, personID)
@@ -186,7 +186,7 @@ func (s *CreditService) DeleteCredit(ctx context.Context, id uint64) error {
 }
 
 // CreateCreditsForMediaItem creates multiple credits for a media item
-func (s *CreditService) CreateCreditsForMediaItem(ctx context.Context, mediaItemID uint64, credits []models.Credit) ([]models.Credit, error) {
+func (s *CreditService) CreateCreditsForMediaItem(ctx context.Context, mediaItemID uint64, credits []*models.Credit) ([]*models.Credit, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Set media item ID for all credits
@@ -205,19 +205,19 @@ func (s *CreditService) CreateCreditsForMediaItem(ctx context.Context, mediaItem
 }
 
 // TabularizeCredits organizes credits by department and role
-func (s *CreditService) TabularizeCredits(ctx context.Context, credits []models.Credit) map[string]map[string][]models.Credit {
-	result := make(map[string]map[string][]models.Credit)
+func (s *CreditService) TabularizeCredits(ctx context.Context, credits []*models.Credit) map[models.MediaDepartment]map[models.MediaRole][]*models.Credit {
+	result := make(map[models.MediaDepartment]map[models.MediaRole][]*models.Credit)
 
 	for _, credit := range credits {
 		// Determine department
 		dept := credit.Department
 		if dept == "" {
 			if credit.IsCast {
-				dept = "Cast"
+				dept = models.DepartmentCast
 			} else if credit.IsCrew {
-				dept = "Crew"
+				dept = models.DepartmentCrew
 			} else {
-				dept = "Other"
+				dept = models.DepartmentOther
 			}
 		}
 
@@ -225,15 +225,15 @@ func (s *CreditService) TabularizeCredits(ctx context.Context, credits []models.
 		role := credit.Role
 		if role == "" {
 			if credit.IsCast {
-				role = "Actor"
+				role = models.RoleActor
 			} else {
-				role = "Unknown"
+				role = models.RoleOther
 			}
 		}
 
 		// Add to result
 		if _, ok := result[dept]; !ok {
-			result[dept] = make(map[string][]models.Credit)
+			result[dept] = make(map[models.MediaRole][]*models.Credit)
 		}
 
 		result[dept][role] = append(result[dept][role], credit)
@@ -241,4 +241,3 @@ func (s *CreditService) TabularizeCredits(ctx context.Context, credits []models.
 
 	return result
 }
-

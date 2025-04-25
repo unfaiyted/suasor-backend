@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"suasor/utils"
 
-	mediatypes "suasor/clients/media/types"
+	"suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/requests"
@@ -18,7 +18,7 @@ import (
 )
 
 // Define list handler interface
-type UserListHandler[T mediatypes.ListData] interface {
+type UserListHandler[T types.ListData] interface {
 	CoreListHandler[T]
 
 	// User needs to be authenticated to access these operations
@@ -35,7 +35,7 @@ type UserListHandler[T mediatypes.ListData] interface {
 }
 
 // userListHandler handles user-specific operations for lists
-type userListHandler[T mediatypes.ListData] struct {
+type userListHandler[T types.ListData] struct {
 	CoreListHandler[T]
 
 	itemService services.UserMediaItemService[T]
@@ -43,7 +43,7 @@ type userListHandler[T mediatypes.ListData] struct {
 }
 
 // NewuserListHandler creates a new user list handler
-func NewUserListHandler[T mediatypes.ListData](
+func NewUserListHandler[T types.ListData](
 	coreHandler CoreListHandler[T],
 	itemService services.UserMediaItemService[T],
 	listService services.UserListService[T],
@@ -56,19 +56,20 @@ func NewUserListHandler[T mediatypes.ListData](
 }
 
 // GetUserLists godoc
-// @Summary Get user's lists
-// @Description Retrieves all lists owned by the authenticated user
-// @Tags lists
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param limit query int false "Maximum number of lists to return (default 20)"
-// @Param offset query int false "Offset for pagination (default 0)"
-// @Param userID query uint64 false "User ID"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Playlist]] "Lists retrieved successfully"
-// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/{listType}/user [get]
+//
+//	@Summary		Get user's lists
+//	@Description	Retrieves all lists owned by the authenticated user
+//	@Tags			lists
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			limit	query		int																false	"Maximum number of lists to return (default 20)"
+//	@Param			offset	query		int																false	"Offset for pagination (default 0)"
+//	@Param			userID	query		uint64															false	"User ID"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.ListData]]	"Lists retrieved successfully"
+//	@Failure		401		{object}	responses.ErrorResponse[any]									"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[any]									"Server error"
+//	@Router			/{listType}/user [get]
 func (h *userListHandler[T]) GetUserLists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -104,18 +105,19 @@ func (h *userListHandler[T]) GetUserLists(c *gin.Context) {
 }
 
 // CreateList godoc
-// @Summary Create a new list
-// @Description Creates a new list for the authenticated user
-// @Tags lists
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param list body requests.ListCreateRequest true "List details"
-// @Success 201 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "List created successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/{listType}/ [post]
+//
+//	@Summary		Create a new list
+//	@Description	Creates a new list for the authenticated user
+//	@Tags			lists
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			list	body		requests.ListCreateRequest										true	"List details"
+//	@Success		201		{object}	responses.APIResponse[models.MediaItem[types.Playlist]]	"List created successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]									"Invalid request"
+//	@Failure		401		{object}	responses.ErrorResponse[any]									"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[any]									"Server error"
+//	@Router			/{listType}/ [post]
 func (h *userListHandler[T]) Create(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -143,10 +145,10 @@ func (h *userListHandler[T]) Create(c *gin.Context) {
 		Str("name", req.Name).
 		Msg("Creating new list")
 
-	itemList := mediatypes.ItemList{
+	itemList := types.ItemList{
 		ItemCount: 0,
 		OwnerID:   uid,
-		Details: mediatypes.MediaDetails{
+		Details: types.MediaDetails{
 			Title:       req.Name,
 			Description: req.Description,
 		},
@@ -160,16 +162,16 @@ func (h *userListHandler[T]) Create(c *gin.Context) {
 		},
 	}
 
-	list := mediatypes.NewList[T](mediatypes.MediaDetails{}, itemList)
+	list := types.NewList[T](types.MediaDetails{}, itemList)
 
-	list.AddListItem(mediatypes.ListItem{
+	list.AddListItem(types.ListItem{
 		ItemID:        0,
 		Position:      0,
 		LastChanged:   time.Now(),
-		ChangeHistory: []mediatypes.ChangeRecord{},
+		ChangeHistory: []types.ChangeRecord{},
 	})
 	var zero T
-	mediaType := mediatypes.GetMediaTypeFromTypeName(zero)
+	mediaType := types.GetMediaTypeFromTypeName(zero)
 
 	// Create media item
 	mediaItem := models.NewMediaItem[T](mediaType, list)
@@ -194,22 +196,23 @@ func (h *userListHandler[T]) Create(c *gin.Context) {
 }
 
 // UpdateList godoc
-// @Summary Update a list
-// @Description Updates an existing list owned by the authenticated user
-// @Tags lists
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param listId path int true "List ID"
-// @Param listType path string true "List type (e.g. 'playlist', 'collection')"
-// @Param list body requests.ListUpdateRequest true "Updated list details"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "List updated successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
-// @Failure 403 {object} responses.ErrorResponse[any] "Forbidden"
-// @Failure 404 {object} responses.ErrorResponse[any] "List not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/{listType}/{listId} [put]
+//
+//	@Summary		Update a list
+//	@Description	Updates an existing list owned by the authenticated user
+//	@Tags			lists
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			listId		path		int																true	"List ID"
+//	@Param			listType	path		string															true	"List type (e.g. 'playlist', 'collection')"
+//	@Param			list		body		requests.ListUpdateRequest										true	"Updated list details"
+//	@Success		200			{object}	responses.APIResponse[models.MediaItem[types.Playlist]]	"List updated successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[any]									"Invalid request"
+//	@Failure		401			{object}	responses.ErrorResponse[any]									"Unauthorized"
+//	@Failure		403			{object}	responses.ErrorResponse[any]									"Forbidden"
+//	@Failure		404			{object}	responses.ErrorResponse[any]									"List not found"
+//	@Failure		500			{object}	responses.ErrorResponse[any]									"Server error"
+//	@Router			/{listType}/{listId} [put]
 func (h *userListHandler[T]) Update(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -293,20 +296,21 @@ func (h *userListHandler[T]) Update(c *gin.Context) {
 }
 
 // DeleteList godoc
-// @Summary Delete a list
-// @Description Deletes a list owned by the authenticated user
-// @Tags lists
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "List ID"
-// @Success 200 {object} responses.APIResponse[any] "List deleted successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
-// @Failure 403 {object} responses.ErrorResponse[any] "Forbidden"
-// @Failure 404 {object} responses.ErrorResponse[any] "List not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/{listType}/{id} [delete]
+//
+//	@Summary		Delete a list
+//	@Description	Deletes a list owned by the authenticated user
+//	@Tags			lists
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id	path		int								true	"List ID"
+//	@Success		200	{object}	responses.APIResponse[any]		"List deleted successfully"
+//	@Failure		400	{object}	responses.ErrorResponse[any]	"Invalid request"
+//	@Failure		401	{object}	responses.ErrorResponse[any]	"Unauthorized"
+//	@Failure		403	{object}	responses.ErrorResponse[any]	"Forbidden"
+//	@Failure		404	{object}	responses.ErrorResponse[any]	"List not found"
+//	@Failure		500	{object}	responses.ErrorResponse[any]	"Server error"
+//	@Router			/{listType}/{id} [delete]
 func (h *userListHandler[T]) Delete(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -373,21 +377,22 @@ func (h *userListHandler[T]) Delete(c *gin.Context) {
 }
 
 // AddTrackToList godoc
-// @Summary Add a track to a list
-// @Description Adds a track to a list owned by the authenticated user
-// @Tags lists
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "List ID"
-// @Param track body requests.ListAddTrackRequest true "Track details"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "Track added successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
-// @Failure 403 {object} responses.ErrorResponse[any] "Forbidden"
-// @Failure 404 {object} responses.ErrorResponse[any] "List not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/{listType}/{id}/tracks [post]
+//
+//	@Summary		Add a track to a list
+//	@Description	Adds a track to a list owned by the authenticated user
+//	@Tags			lists
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id		path		int																true	"List ID"
+//	@Param			track	body		requests.ListAddTrackRequest									true	"Track details"
+//	@Success		200		{object}	responses.APIResponse[models.MediaItem[types.Playlist]]	"Track added successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]									"Invalid request"
+//	@Failure		401		{object}	responses.ErrorResponse[any]									"Unauthorized"
+//	@Failure		403		{object}	responses.ErrorResponse[any]									"Forbidden"
+//	@Failure		404		{object}	responses.ErrorResponse[any]									"List not found"
+//	@Failure		500		{object}	responses.ErrorResponse[any]									"Server error"
+//	@Router			/{listType}/{id}/tracks [post]
 func (h *userListHandler[T]) AddItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -475,21 +480,22 @@ func (h *userListHandler[T]) AddItem(c *gin.Context) {
 }
 
 // RemoveItemFromList godoc
-// @Summary Remove a track from a list
-// @Description Removes a track from a list owned by the authenticated user
-// @Tags lists
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "List ID"
-// @Param trackId path int true "Track ID"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "Track removed successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
-// @Failure 403 {object} responses.ErrorResponse[any] "Forbidden"
-// @Failure 404 {object} responses.ErrorResponse[any] "List not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/{listType}/{id}/tracks/{trackId} [delete]
+//
+//	@Summary		Remove a track from a list
+//	@Description	Removes a track from a list owned by the authenticated user
+//	@Tags			lists
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id		path		int																true	"List ID"
+//	@Param			trackId	path		int																true	"Track ID"
+//	@Success		200		{object}	responses.APIResponse[models.MediaItem[types.Playlist]]	"Track removed successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]									"Invalid request"
+//	@Failure		401		{object}	responses.ErrorResponse[any]									"Unauthorized"
+//	@Failure		403		{object}	responses.ErrorResponse[any]									"Forbidden"
+//	@Failure		404		{object}	responses.ErrorResponse[any]									"List not found"
+//	@Failure		500		{object}	responses.ErrorResponse[any]									"Server error"
+//	@Router			/{listType}/{id}/tracks/{trackId} [delete]
 func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -577,22 +583,23 @@ func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 }
 
 // Reorder godoc
-// @Summary Reorder list items
-// @Description Reorders the items in a list
-// @Tags lists
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "List ID"
-// @Param request body requests.ListReorderRequest true "Reorder request"
-// @Param listType path string true "List type (e.g. 'playlist', 'collection')"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Playlist]] "List reordered successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
-// @Failure 403 {object} responses.ErrorResponse[any] "Forbidden"
-// @Failure 404 {object} responses.ErrorResponse[any] "List not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/{listType}/{id}/reorder [post]
+//
+//	@Summary		Reorder list items
+//	@Description	Reorders the items in a list
+//	@Tags			lists
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id			path		int																true	"List ID"
+//	@Param			request		body		requests.ListReorderRequest										true	"Reorder request"
+//	@Param			listType	path		string															true	"List type (e.g. 'playlist', 'collection')"
+//	@Success		200			{object}	responses.APIResponse[models.MediaItem[types.ListData]]	"List reordered successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[any]									"Invalid request"
+//	@Failure		401			{object}	responses.ErrorResponse[any]									"Unauthorized"
+//	@Failure		403			{object}	responses.ErrorResponse[any]									"Forbidden"
+//	@Failure		404			{object}	responses.ErrorResponse[any]									"List not found"
+//	@Failure		500			{object}	responses.ErrorResponse[any]									"Server error"
+//	@Router			/{listType}/{id}/reorder [post]
 func (h *userListHandler[T]) ReorderItems(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -677,20 +684,21 @@ func (h *userListHandler[T]) ReorderItems(c *gin.Context) {
 }
 
 // GetFavorites godoc
-// @Summary Get favorites
-// @Description Retrieves the favorites for the authenticated user
-// @Tags lists
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param limit query int false "Maximum number of lists to return (default 20)"
-// @Param offset query int false "Offset for pagination (default 0)"
-// @Param userID path uint64 false "User ID"
-// @Param listType path string true "List type (e.g. 'playlist', 'collection')"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Playlist]] "Lists retrieved successfully"
-// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/{listType}/favorites [get]
+//
+//	@Summary		Get favorites
+//	@Description	Retrieves the favorites for the authenticated user
+//	@Tags			lists
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			limit		query		int																false	"Maximum number of lists to return (default 20)"
+//	@Param			offset		query		int																false	"Offset for pagination (default 0)"
+//	@Param			userID		path		uint64															false	"User ID"
+//	@Param			listType	path		string															true	"List type (e.g. 'playlist', 'collection')"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.ListData]]	"Lists retrieved successfully"
+//	@Failure		401			{object}	responses.ErrorResponse[any]									"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[any]									"Server error"
+//	@Router			/{listType}/favorites [get]
 func (h *userListHandler[T]) GetFavorite(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

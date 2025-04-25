@@ -3,7 +3,7 @@ package handlers
 
 import (
 	"strconv"
-	mediatypes "suasor/clients/media/types"
+	"suasor/clients/media/types"
 	clienttypes "suasor/clients/types"
 	"suasor/services"
 	_ "suasor/types/models"
@@ -79,19 +79,20 @@ func NewClientMusicHandler[T clienttypes.ClientMediaConfig](
 }
 
 // GetClientTrackByID godoc
-// @Summary Get track by ID from client
-// @Description Retrieves a specific music track from the client by ID
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Param trackID path string true "Track ID"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Track]] "Track retrieved"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/track/item/{clientItemId} [get]
+//
+//	@Summary		Get track by ID from client
+//	@Description	Retrieves a specific music track from the client by ID
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int															true	"Client ID"
+//	@Param			trackID		path		string														true	"Track ID"
+//	@Success		200			{object}	responses.APIResponse[models.MediaItem[types.Track]]	"Track retrieved"
+//	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid client ID"
+//	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
+//	@Router			/client/{clientID}/media/track/item/{clientItemId} [get]
 func (h *clientMusicHandler[T]) GetClientTrackByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -131,19 +132,20 @@ func (h *clientMusicHandler[T]) GetClientTrackByID(c *gin.Context) {
 }
 
 // GetAlbumByID godoc
-// @Summary Get album by ID
-// @Description Retrieves a specific music album from the client by ID
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Param albumID path string true "Album ID"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Album]] "Album retrieved"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/album/item/{clientItemID} [get]
+//
+//	@Summary		Get album by ID
+//	@Description	Retrieves a specific music album from the client by ID
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int															true	"Client ID"
+//	@Param			albumID		path		string														true	"Album ID"
+//	@Success		200			{object}	responses.APIResponse[models.MediaItem[types.Album]]	"Album retrieved"
+//	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid client ID"
+//	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
+//	@Router			/client/{clientID}/media/album/item/{clientItemID} [get]
 func (h *clientMusicHandler[T]) GetClientAlbumByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -183,19 +185,20 @@ func (h *clientMusicHandler[T]) GetClientAlbumByID(c *gin.Context) {
 }
 
 // GetArtistByID godoc
-// @Summary Get artist by ID
-// @Description Retrieves a specific music artist from the client by ID
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Param artistID path string true "Artist ID"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Artist]] "Artist retrieved"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/album/{clientItemID}/tracks [get]
+//
+//	@Summary		Get artist by ID
+//	@Description	Retrieves a specific music artist from the client by ID
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int															true	"Client ID"
+//	@Param			artistID	path		string														true	"Artist ID"
+//	@Success		200			{object}	responses.APIResponse[models.MediaItem[types.Artist]]	"Artist retrieved"
+//	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid client ID"
+//	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
+//	@Router			/client/{clientID}/media/album/{clientItemID}/tracks [get]
 func (h *clientMusicHandler[T]) GetClientTracksByAlbum(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -236,19 +239,20 @@ func (h *clientMusicHandler[T]) GetClientTracksByAlbum(c *gin.Context) {
 }
 
 // GetAlbumsByArtist godoc
-// @Summary Get albums by artist
-// @Description Retrieves all albums for a specific artist
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Param artistID path string true "Artist ID"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/artists/{artistID}/albums [get]
+//
+//	@Summary		Get albums by artist
+//	@Description	Retrieves all albums for a specific artist
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int															true	"Client ID"
+//	@Param			artistID	path		string														true	"Artist ID"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved"
+//	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid client ID"
+//	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
+//	@Router			/client/{clientID}/media/music/artists/{artistID}/albums [get]
 func (h *clientMusicHandler[T]) GetClientAlbumsByArtist(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -289,19 +293,20 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByArtist(c *gin.Context) {
 }
 
 // GetArtistsByGenre godoc
-// @Summary Get artists by genre
-// @Description Retrieves artists from all connected clients that match the specified genre
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param genre path string true "Genre name"
-// @Param limit query int false "Maximum number of artists to return (default 10)"
-// @Param clientID path int true "Client ID"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Artist]] "Artists retrieved"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/artists/genre/{genre} [get]
+//
+//	@Summary		Get artists by genre
+//	@Description	Retrieves artists from all connected clients that match the specified genre
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			genre		path		string															true	"Genre name"
+//	@Param			limit		query		int																false	"Maximum number of artists to return (default 10)"
+//	@Param			clientID	path		int																true	"Client ID"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Artist]]	"Artists retrieved"
+//	@Failure		401			{object}	responses.ErrorResponse[error]									"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]									"Server error"
+//	@Router			/client/{clientID}/media/music/artists/genre/{genre} [get]
 func (h *clientMusicHandler[T]) GetClientArtistsByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -334,17 +339,18 @@ func (h *clientMusicHandler[T]) GetClientArtistsByGenre(c *gin.Context) {
 }
 
 // GetAlbumsByGenre godoc
-// @Summary Get albums by genre
-// @Description Retrieves albums from all connected clients that match the specified genre
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param genre path string true "Genre name"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/albums/genre/{genre} [get]
+//
+//	@Summary		Get albums by genre
+//	@Description	Retrieves albums from all connected clients that match the specified genre
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			genre	path		string														true	"Genre name"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved"
+//	@Failure		401		{object}	responses.ErrorResponse[error]								"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[error]								"Server error"
+//	@Router			/client/{clientID}/media/music/albums/genre/{genre} [get]
 func (h *clientMusicHandler[T]) GetClientAlbumsByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -362,7 +368,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByGenre(c *gin.Context) {
 		Uint64("userID", uid).
 		Str("genre", genre).
 		Msg("Retrieving albums by genre")
-		
+
 	// Parse client ID from URL
 	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
@@ -383,17 +389,18 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByGenre(c *gin.Context) {
 }
 
 // GetTracksByGenre godoc
-// @Summary Get tracks by genre
-// @Description Retrieves tracks from all connected clients that match the specified genre
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param genre path string true "Genre name"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/tracks/genre/{genre} [get]
+//
+//	@Summary		Get tracks by genre
+//	@Description	Retrieves tracks from all connected clients that match the specified genre
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			genre	path		string														true	"Genre name"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Tracks retrieved"
+//	@Failure		401		{object}	responses.ErrorResponse[error]								"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[error]								"Server error"
+//	@Router			/client/{clientID}/media/music/tracks/genre/{genre} [get]
 func (h *clientMusicHandler[T]) GetClientTracksByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -411,7 +418,7 @@ func (h *clientMusicHandler[T]) GetClientTracksByGenre(c *gin.Context) {
 		Uint64("userID", uid).
 		Str("genre", genre).
 		Msg("Retrieving tracks by genre")
-		
+
 	// Parse client ID from URL
 	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
@@ -432,18 +439,19 @@ func (h *clientMusicHandler[T]) GetClientTracksByGenre(c *gin.Context) {
 }
 
 // GetAlbumsByYear godoc
-// @Summary Get albums by release year
-// @Description Retrieves albums from all connected clients that were released in the specified year
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param year path int true "Release year"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid year"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/albums/year/{year} [get]
+//
+//	@Summary		Get albums by release year
+//	@Description	Retrieves albums from all connected clients that were released in the specified year
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			year	path		int															true	"Release year"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved"
+//	@Failure		400		{object}	responses.ErrorResponse[error]								"Invalid year"
+//	@Failure		401		{object}	responses.ErrorResponse[error]								"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[error]								"Server error"
+//	@Router			/client/{clientID}/media/music/albums/year/{year} [get]
 func (h *clientMusicHandler[T]) GetClientAlbumsByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -466,7 +474,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByYear(c *gin.Context) {
 		Uint64("userID", uid).
 		Int("year", year).
 		Msg("Retrieving albums by year")
-		
+
 	// Parse client ID from URL
 	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
@@ -487,18 +495,19 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByYear(c *gin.Context) {
 }
 
 // GetLatestAlbumsByAdded godoc
-// @Summary Get latest albums by added date
-// @Description Retrieves the most recently added albums
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param count path int true "Number of albums to retrieve"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid count"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/albums/latest/{count} [get]
+//
+//	@Summary		Get latest albums by added date
+//	@Description	Retrieves the most recently added albums
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			count	path		int															true	"Number of albums to retrieve"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved"
+//	@Failure		400		{object}	responses.ErrorResponse[error]								"Invalid count"
+//	@Failure		401		{object}	responses.ErrorResponse[error]								"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[error]								"Server error"
+//	@Router			/client/{clientID}/media/music/albums/latest/{count} [get]
 func (h *clientMusicHandler[T]) GetClientLatestAlbumsByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -521,7 +530,7 @@ func (h *clientMusicHandler[T]) GetClientLatestAlbumsByAdded(c *gin.Context) {
 		Uint64("userID", uid).
 		Int("count", count).
 		Msg("Retrieving latest albums by added date")
-		
+
 	// Parse client ID from URL
 	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
@@ -542,19 +551,20 @@ func (h *clientMusicHandler[T]) GetClientLatestAlbumsByAdded(c *gin.Context) {
 }
 
 // GetPopularAlbums godoc
-// @Summary Get popular albums
-// @Description Retrieves most popular albums
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param count path int true "Number of albums to retrieve"
-// @Param clientID path int true "Client ID"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid count"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/albums/popular/{count} [get]
+//
+//	@Summary		Get popular albums
+//	@Description	Retrieves most popular albums
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			count		path		int															true	"Number of albums to retrieve"
+//	@Param			clientID	path		int															true	"Client ID"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved"
+//	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid count"
+//	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
+//	@Router			/client/{clientID}/media/music/albums/popular/{count} [get]
 func (h *clientMusicHandler[T]) GetClientPopularAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -592,19 +602,20 @@ func (h *clientMusicHandler[T]) GetClientPopularAlbums(c *gin.Context) {
 }
 
 // GetPopularArtists godoc
-// @Summary Get popular artists
-// @Description Retrieves most popular artists
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Param count path int true "Number of artists to retrieve"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Artist]] "Artists retrieved"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid count"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/artists/popular/{count} [get]
+//
+//	@Summary		Get popular artists
+//	@Description	Retrieves most popular artists
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int																true	"Client ID"
+//	@Param			count		path		int																true	"Number of artists to retrieve"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Artist]]	"Artists retrieved"
+//	@Failure		400			{object}	responses.ErrorResponse[error]									"Invalid count"
+//	@Failure		401			{object}	responses.ErrorResponse[error]									"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]									"Server error"
+//	@Router			/client/{clientID}/media/music/artists/popular/{count} [get]
 func (h *clientMusicHandler[T]) GetClientPopularArtists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -642,19 +653,20 @@ func (h *clientMusicHandler[T]) GetClientPopularArtists(c *gin.Context) {
 }
 
 // SearchMusic godoc
-// @Summary Search music (artists, albums, tracks)
-// @Description Search for music across all connected clients
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param q query string true "Search query"
-// @Param clientID path int true "Client ID"
-// @Success 200 {object} responses.APIResponse[responses.MediaItemResponse] "Music search results retrieved"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid query"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/search [get]
+//
+//	@Summary		Search music (artists, albums, tracks)
+//	@Description	Search for music across all connected clients
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			q			query		string												true	"Search query"
+//	@Param			clientID	path		int													true	"Client ID"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemResponse]	"Music search results retrieved"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]		"Invalid query"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]		"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]		"Server error"
+//	@Router			/client/{clientID}/media/music/search [get]
 func (h *clientMusicHandler[T]) SearchClientMusic(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -678,14 +690,14 @@ func (h *clientMusicHandler[T]) SearchClientMusic(c *gin.Context) {
 		Uint64("userID", uid).
 		Str("query", query).
 		Msg("Searching music")
-		
+
 	// Parse client ID from URL
 	clientID, err := checkItemID(c, "clientID")
 	if err != nil {
 		return
 	}
-	
-	options := mediatypes.QueryOptions{
+
+	options := types.QueryOptions{
 		Query: query,
 	}
 
@@ -712,20 +724,21 @@ func (h *clientMusicHandler[T]) SearchClientMusic(c *gin.Context) {
 }
 
 // GetTopTracks godoc
-// @Summary Get top tracks from a client
-// @Description Retrieves the most popular tracks from a client
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientType path string true "Client Type"
-// @Param clientID path int true "Client ID"
-// @Param limit query int false "Number of tracks to retrieve (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/tracks/top [get]
+//
+//	@Summary		Get top tracks from a client
+//	@Description	Retrieves the most popular tracks from a client
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientType	path		string														true	"Client Type"
+//	@Param			clientID	path		int															true	"Client ID"
+//	@Param			limit		query		int															false	"Number of tracks to retrieve (default 10)"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Tracks retrieved"
+//	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid client ID"
+//	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
+//	@Router			/client/{clientID}/media/music/tracks/top [get]
 func (h *clientMusicHandler[T]) GetClientTopTracks(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -766,20 +779,21 @@ func (h *clientMusicHandler[T]) GetClientTopTracks(c *gin.Context) {
 }
 
 // GetRecentlyAddedTracks godoc
-// @Summary Get recently added tracks from a client
-// @Description Retrieves the most recently added tracks from a client
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientType path string true "Client Type"
-// @Param clientID path int true "Client ID"
-// @Param limit query int false "Number of tracks to retrieve (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/tracks/recently-added [get]
+//
+//	@Summary		Get recently added tracks from a client
+//	@Description	Retrieves the most recently added tracks from a client
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientType	path		string														true	"Client Type"
+//	@Param			clientID	path		int															true	"Client ID"
+//	@Param			limit		query		int															false	"Number of tracks to retrieve (default 10)"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Tracks retrieved"
+//	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid client ID"
+//	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
+//	@Router			/client/{clientID}/media/music/tracks/recently-added [get]
 func (h *clientMusicHandler[T]) GetClientRecentlyAddedTracks(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -820,20 +834,21 @@ func (h *clientMusicHandler[T]) GetClientRecentlyAddedTracks(c *gin.Context) {
 }
 
 // GetTopAlbums godoc
-// @Summary Get top albums from a client
-// @Description Retrieves the most popular albums from a client
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientType path string true "Client Type"
-// @Param clientID path int true "Client ID"
-// @Param limit query int false "Number of albums to retrieve (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/albums/top [get]
+//
+//	@Summary		Get top albums from a client
+//	@Description	Retrieves the most popular albums from a client
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientType	path		string														true	"Client Type"
+//	@Param			clientID	path		int															true	"Client ID"
+//	@Param			limit		query		int															false	"Number of albums to retrieve (default 10)"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved"
+//	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid client ID"
+//	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
+//	@Router			/client/{clientID}/media/music/albums/top [get]
 func (h *clientMusicHandler[T]) GetClientTopAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -874,20 +889,21 @@ func (h *clientMusicHandler[T]) GetClientTopAlbums(c *gin.Context) {
 }
 
 // GetTopArtists godoc
-// @Summary Get top artists from a client
-// @Description Retrieves the most popular artists from a client
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientType path string true "Client Type"
-// @Param clientID path int true "Client ID"
-// @Param limit query int false "Number of artists to retrieve (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Artist]] "Artists retrieved"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/artists/top [get]
+//
+//	@Summary		Get top artists from a client
+//	@Description	Retrieves the most popular artists from a client
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientType	path		string															true	"Client Type"
+//	@Param			clientID	path		int																true	"Client ID"
+//	@Param			limit		query		int																false	"Number of artists to retrieve (default 10)"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Artist]]	"Artists retrieved"
+//	@Failure		400			{object}	responses.ErrorResponse[error]									"Invalid client ID"
+//	@Failure		401			{object}	responses.ErrorResponse[error]									"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]									"Server error"
+//	@Router			/client/{clientID}/media/music/artists/top [get]
 func (h *clientMusicHandler[T]) GetClientTopArtists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -928,20 +944,21 @@ func (h *clientMusicHandler[T]) GetClientTopArtists(c *gin.Context) {
 }
 
 // GetFavoriteArtists godoc
-// @Summary Get favorite artists from a client
-// @Description Retrieves the user's favorite artists from a client
-// @Tags music,clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientType path string true "Client Type"
-// @Param clientID path int true "Client ID"
-// @Param limit query int false "Number of artists to retrieve (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Artist]] "Artists retrieved"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/artists/favorites [get]
+//
+//	@Summary		Get favorite artists from a client
+//	@Description	Retrieves the user's favorite artists from a client
+//	@Tags			music,clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientType	path		string															true	"Client Type"
+//	@Param			clientID	path		int																true	"Client ID"
+//	@Param			limit		query		int																false	"Number of artists to retrieve (default 10)"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Artist]]	"Artists retrieved"
+//	@Failure		400			{object}	responses.ErrorResponse[error]									"Invalid client ID"
+//	@Failure		401			{object}	responses.ErrorResponse[error]									"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]									"Server error"
+//	@Router			/client/{clientID}/media/music/artists/favorites [get]
 func (h *clientMusicHandler[T]) GetClientFavoriteArtists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -982,20 +999,21 @@ func (h *clientMusicHandler[T]) GetClientFavoriteArtists(c *gin.Context) {
 }
 
 // GetSimilarTracks godoc
-// @Summary Get similar tracks
-// @Description Retrieves tracks similar to a specific track from a client
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Param trackID path string true "Track ID"
-// @Param limit query int false "Maximum number of tracks to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Similar tracks retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/tracks/{trackID}/similar [get]
+//
+//	@Summary		Get similar tracks
+//	@Description	Retrieves tracks similar to a specific track from a client
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int															true	"Client ID"
+//	@Param			trackID		path		string														true	"Track ID"
+//	@Param			limit		query		int															false	"Maximum number of tracks to return (default 10)"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Similar tracks retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid request"
+//	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
+//	@Router			/client/{clientID}/media/music/tracks/{trackID}/similar [get]
 func (h *clientMusicHandler[T]) GetClientSimilarTracks(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -1040,19 +1058,20 @@ func (h *clientMusicHandler[T]) GetClientSimilarTracks(c *gin.Context) {
 }
 
 // GetRecentlyPlayedTracks godoc
-// @Summary Get recently played tracks
-// @Description Retrieves the user's recently played tracks from a client
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Param limit query int false "Maximum number of tracks to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Recently played tracks retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/tracks/recently-played [get]
+//
+//	@Summary		Get recently played tracks
+//	@Description	Retrieves the user's recently played tracks from a client
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int															true	"Client ID"
+//	@Param			limit		query		int															false	"Maximum number of tracks to return (default 10)"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Recently played tracks retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid request"
+//	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
+//	@Router			/client/{clientID}/media/music/tracks/recently-played [get]
 func (h *clientMusicHandler[T]) GetClientRecentlyPlayedTracks(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -1093,19 +1112,20 @@ func (h *clientMusicHandler[T]) GetClientRecentlyPlayedTracks(c *gin.Context) {
 }
 
 // GetFavoriteTracks godoc
-// @Summary Get favorite tracks
-// @Description Retrieves the user's favorite tracks from a client
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Param limit query int false "Maximum number of tracks to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Favorite tracks retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/tracks/favorites [get]
+//
+//	@Summary		Get favorite tracks
+//	@Description	Retrieves the user's favorite tracks from a client
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int															true	"Client ID"
+//	@Param			limit		query		int															false	"Maximum number of tracks to return (default 10)"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Favorite tracks retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid request"
+//	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
+//	@Router			/client/{clientID}/media/music/tracks/favorites [get]
 func (h *clientMusicHandler[T]) GetClientFavoriteTracks(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -1146,19 +1166,20 @@ func (h *clientMusicHandler[T]) GetClientFavoriteTracks(c *gin.Context) {
 }
 
 // GetFavoriteAlbums godoc
-// @Summary Get favorite albums
-// @Description Retrieves the user's favorite albums from a client
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Param limit query int false "Maximum number of albums to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Favorite albums retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/albums/favorites [get]
+//
+//	@Summary		Get favorite albums
+//	@Description	Retrieves the user's favorite albums from a client
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int															true	"Client ID"
+//	@Param			limit		query		int															false	"Maximum number of albums to return (default 10)"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Favorite albums retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid request"
+//	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
+//	@Router			/client/{clientID}/media/music/albums/favorites [get]
 func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -1199,19 +1220,19 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 }
 
 // StartTrackPlayback godoc
-// @Summary Start track playback
-// @Description Start playback of a specific track on the client
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Param trackID path string true "Track ID"
-// @Success 200 {object} responses.APIResponse[any] "Playback started successfully"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/tracks/{trackID}/play [post]
+//	@Summary		Start track playback
+//	@Description	Start playback of a specific track on the client
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int								true	"Client ID"
+//	@Param			trackID		path		string							true	"Track ID"
+//	@Success		200			{object}	responses.APIResponse[any]		"Playback started successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[error]	"Invalid request"
+//	@Failure		401			{object}	responses.ErrorResponse[error]	"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]	"Server error"
+//	@Router			/client/{clientID}/media/music/tracks/{trackID}/play [post]
 // func (h *clientMusicHandler[T]) StartClientTrackPlayback(c *gin.Context) {
 // 	ctx := c.Request.Context()
 // 	log := logger.LoggerFromContext(ctx)
@@ -1263,18 +1284,18 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 // }
 
 // GetPlaybackState godoc
-// @Summary Get playback state
-// @Description Get the current playback state of the client
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Success 200 {object} responses.APIResponse[any] "Playback state retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/playback [get]
+//	@Summary		Get playback state
+//	@Description	Get the current playback state of the client
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int								true	"Client ID"
+//	@Success		200			{object}	responses.APIResponse[any]		"Playback state retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[error]	"Invalid request"
+//	@Failure		401			{object}	responses.ErrorResponse[error]	"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]	"Server error"
+//	@Router			/client/{clientID}/media/music/playback [get]
 // func (h *clientMusicHandler[T]) GetClientPlaybackState(c *gin.Context) {
 // 	ctx := c.Request.Context()
 // 	log := logger.LoggerFromContext(ctx)
@@ -1321,18 +1342,18 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 // }
 
 // GetPlaybackInfo godoc
-// @Summary Get playback info
-// @Description Get detailed information about the current playback
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Success 200 {object} responses.APIResponse[any] "Playback info retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/playback/info [get]
+//	@Summary		Get playback info
+//	@Description	Get detailed information about the current playback
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int								true	"Client ID"
+//	@Success		200			{object}	responses.APIResponse[any]		"Playback info retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[error]	"Invalid request"
+//	@Failure		401			{object}	responses.ErrorResponse[error]	"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]	"Server error"
+//	@Router			/client/{clientID}/media/music/playback/info [get]
 // func (h *clientMusicHandler[T]) GetClientPlaybackInfo(c *gin.Context) {
 // 	ctx := c.Request.Context()
 // 	log := logger.LoggerFromContext(ctx)
@@ -1379,33 +1400,33 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 // }
 
 // GetUserPlaylists godoc
-// @Summary Get user playlists
-// @Description Retrieve the user's playlists from a client
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Playlist]] "User playlists retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/playlists [get]
+//	@Summary		Get user playlists
+//	@Description	Retrieve the user's playlists from a client
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int																true	"Client ID"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Playlist]]	"User playlists retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[error]									"Invalid request"
+//	@Failure		401			{object}	responses.ErrorResponse[error]									"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]									"Server error"
+//	@Router			/client/{clientID}/media/music/playlists [get]
 
 // GetPlaylistTracks godoc
-// @Summary Get playlist tracks
-// @Description Retrieve tracks from a specific playlist
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Param playlistID path string true "Playlist ID"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Playlist tracks retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/playlists/{playlistID}/tracks [get]
+//	@Summary		Get playlist tracks
+//	@Description	Retrieve tracks from a specific playlist
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int															true	"Client ID"
+//	@Param			playlistID	path		string														true	"Playlist ID"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Playlist tracks retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid request"
+//	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
+//	@Router			/client/{clientID}/media/music/playlists/{playlistID}/tracks [get]
 // func (h *clientMusicHandler[T]) GetClientPlaylistTracks(c *gin.Context) {
 // 	ctx := c.Request.Context()
 // 	log := logger.LoggerFromContext(ctx)
@@ -1458,20 +1479,21 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 // }
 
 // GetClientSimilarArtists godoc
-// @Summary Get similar artists
-// @Description Retrieves artists similar to a specific artist from a client
-// @Tags music, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Param artistID path string true "Artist ID"
-// @Param limit query int false "Maximum number of artists to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Artist]] "Similar artists retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/music/artists/{artistID}/similar [get]
+//
+//	@Summary		Get similar artists
+//	@Description	Retrieves artists similar to a specific artist from a client
+//	@Tags			music, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int																true	"Client ID"
+//	@Param			artistID	path		string															true	"Artist ID"
+//	@Param			limit		query		int																false	"Maximum number of artists to return (default 10)"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Artist]]	"Similar artists retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[error]									"Invalid request"
+//	@Failure		401			{object}	responses.ErrorResponse[error]									"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]									"Server error"
+//	@Router			/client/{clientID}/media/music/artists/{artistID}/similar [get]
 func (h *clientMusicHandler[T]) GetClientSimilarArtists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

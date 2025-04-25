@@ -35,20 +35,21 @@ func NewClientHandler[T types.ClientConfig](service services.ClientService[T]) C
 }
 
 // CreateClient godoc
-// @Summary Create a new client
-// @Description Creates a new client configuration
-// @Tags clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param request body requests.ClientRequest[client.ClientConfig] true "client data"
-// @Param clientType path string true "Client type"
-// @Success 201 {object} responses.APIResponse[models.Client[client.ClientConfig]] "client created"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientType} [post]
-// @Example request - Plex client
+//
+//	@Summary		Create a new client
+//	@Description	Creates a new client configuration
+//	@Tags			clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request		body		requests.ClientRequest[client.ClientConfig]					true	"client data"
+//	@Param			clientType	path		string														true	"Client type"
+//	@Success		201			{object}	responses.APIResponse[models.Client[client.ClientConfig]]	"client created"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid request"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/client/{clientType} [post]
+//	@Example		request - Plex client
 //
 //	{
 //	  "name": "My Plex Server",
@@ -111,20 +112,20 @@ func (h *clientHandler[T]) CreateClient(c *gin.Context) {
 }
 
 // GetClient godoc
-// @Summary Get client
-// @Description Retrieves a specific client configuration
-// @Tags clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "Client ID"
-// @Success 200 {object} responses.APIResponse[models.Client[client.ClientConfig]] "Client retrieved"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Client not found"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/:clientType/{id} [get]
-// @Example response
+//	@Summary		Get client
+//	@Description	Retrieves a specific client configuration
+//	@Tags			clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id	path		int															true	"Client ID"
+//	@Success		200	{object}	responses.APIResponse[models.Client[client.ClientConfig]]	"Client retrieved"
+//	@Failure		400	{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid client ID"
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//	@Failure		404	{object}	responses.ErrorResponse[responses.ErrorDetails]				"Client not found"
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/client/:clientType/{id} [get]
+//	@Example		response
 // {
 //   "data": {
 //     "id": 1,
@@ -177,22 +178,22 @@ func (h *clientHandler[T]) GetClient(c *gin.Context) {
 }
 
 // UpdateClient godoc
-// @Summary Update client
-// @Description Updates an existing client configuration
-// @Tags clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Param clientType path string true "Client type"
-// @Param request body requests.ClientRequest true "Updated client data"
-// @Success 200 {object} responses.APIResponse[models.Client[client.ClientConfig]] "clients updated"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request or client ID"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Client not found"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/clients/{clientType}/{clientID} [put]
-// @Example request - Jellyfin client
+//	@Summary		Update client
+//	@Description	Updates an existing client configuration
+//	@Tags			clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int															true	"Client ID"
+//	@Param			clientType	path		string														true	"Client type"
+//	@Param			request		body		requests.ClientRequest										true	"Updated client data"
+//	@Success		200			{object}	responses.APIResponse[models.Client[client.ClientConfig]]	"clients updated"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid request or client ID"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//	@Failure		404			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Client not found"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/clients/{clientType}/{clientID} [put]
+//	@Example		request - Jellyfin client
 // {
 //   "name": "My Jellyfin Server",
 //   "clientType": "jellyfin",
@@ -251,19 +252,20 @@ func (h *clientHandler[T]) UpdateClient(c *gin.Context) {
 }
 
 // DeleteClient godoc
-// @Summary Delete client
-// @Description Deletes a client configuration
-// @Tags clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Success 200 {object} responses.APIResponse[responses.EmptyResponse] "client deleted"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Client not found"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/admin/client/{clientID} [delete]
+//
+//	@Summary		Delete client
+//	@Description	Deletes a client configuration
+//	@Tags			clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int												true	"Client ID"
+//	@Success		200			{object}	responses.APIResponse[responses.EmptyResponse]	"client deleted"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid client ID"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized"
+//	@Failure		404			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Client not found"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/admin/client/{clientID} [delete]
 func (h *clientHandler[T]) DeleteClient(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -291,19 +293,20 @@ func (h *clientHandler[T]) DeleteClient(c *gin.Context) {
 }
 
 // TestConnection godoc
-// @Summary Test client connection
-// @Description Tests the connection to a client using the provided configuration
-// @Tags clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path uint64 true "Client ID"
-// @Success 200 {object} responses.APIResponse[responses.TestConnectionResponse] "Connection test result"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/admin/client/{clientID}/test [get]
-// @Example response
+//
+//	@Summary		Test client connection
+//	@Description	Tests the connection to a client using the provided configuration
+//	@Tags			clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		uint64													true	"Client ID"
+//	@Success		200			{object}	responses.APIResponse[responses.TestConnectionResponse]	"Connection test result"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]			"Invalid request"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]			"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]			"Server error"
+//	@Router			/admin/client/{clientID}/test [get]
+//	@Example		response
 //
 //	{
 //	  "data": {

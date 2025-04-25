@@ -34,18 +34,19 @@ func NewAIHandler[T types.AIClientConfig](
 }
 
 // RequestRecommendation godoc
-// @Summary Get AI-powered content recommendations
-// @Description Get content recommendations from an AI service
-// @Tags ai
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param request body requests.AiRecommendationRequest true "Recommendation request"
-// @Success 200 {object} responses.APIResponse[responses.AiRecommendationResponse] "Recommendation response"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/ai/recommendations [post]
+//
+//	@Summary		Get AI-powered content recommendations
+//	@Description	Get content recommendations from an AI service
+//	@Tags			ai
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body		requests.AiRecommendationRequest							true	"Recommendation request"
+//	@Success		200		{object}	responses.APIResponse[responses.AiRecommendationResponse]	"Recommendation response"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid request"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/ai/recommendations [post]
 func (h *AIHandler[T]) RequestRecommendation(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -93,18 +94,19 @@ func (h *AIHandler[T]) RequestRecommendation(c *gin.Context) {
 }
 
 // AnalyzeContent godoc
-// @Summary Analyze content with AI
-// @Description Use AI to analyze provided content
-// @Tags ai
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param request body requests.AiContentAnalysisRequest true "Content analysis request"
-// @Success 200 {object} responses.APIResponse[responses.AiContentAnalysisResponse] "Analysis response"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/ai/analyze [post]
+//
+//	@Summary		Analyze content with AI
+//	@Description	Use AI to analyze provided content
+//	@Tags			ai
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body		requests.AiContentAnalysisRequest							true	"Content analysis request"
+//	@Success		200		{object}	responses.APIResponse[responses.AiContentAnalysisResponse]	"Analysis response"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid request"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/ai/analyze [post]
 func (h *AIHandler[T]) AnalyzeContent(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -152,18 +154,19 @@ func (h *AIHandler[T]) AnalyzeContent(c *gin.Context) {
 }
 
 // StartConversation godoc
-// @Summary Start a new AI conversation for recommendations
-// @Description Initialize a new conversational session with the AI for personalized recommendations
-// @Tags ai
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param request body requests.StartConversationRequest true "Conversation initialization request"
-// @Success 200 {object} responses.APIResponse[responses.ConversationResponse] "Conversation started"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/ai/conversation/start [post]
+//
+//	@Summary		Start a new AI conversation for recommendations
+//	@Description	Initialize a new conversational session with the AI for personalized recommendations
+//	@Tags			ai
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body		requests.StartConversationRequest						true	"Conversation initialization request"
+//	@Success		200		{object}	responses.APIResponse[responses.ConversationResponse]	"Conversation started"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]			"Invalid request"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]			"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]			"Server error"
+//	@Router			/ai/conversation/start [post]
 func (h *AIHandler[T]) StartConversation(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -258,20 +261,21 @@ func (h *AIHandler[T]) getAIClient(ctx context.Context, userID uint64, clientTyp
 }
 
 // SendConversationMessage godoc
-// @Summary Send a message in an existing AI conversation
-// @Description Continue a conversation with the AI by sending a new message
-// @Tags ai
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param request body requests.ConversationMessageRequest true "Message request"
-// @Success 200 {object} responses.APIResponse[responses.ConversationMessageResponse] "AI response"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Conversation not owned by user"
-// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Conversation not found"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/ai/conversation/message [post]
+//
+//	@Summary		Send a message in an existing AI conversation
+//	@Description	Continue a conversation with the AI by sending a new message
+//	@Tags			ai
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body		requests.ConversationMessageRequest								true	"Message request"
+//	@Success		200		{object}	responses.APIResponse[responses.ConversationMessageResponse]	"AI response"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid request"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
+//	@Failure		403		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Conversation not owned by user"
+//	@Failure		404		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Conversation not found"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
+//	@Router			/ai/conversation/message [post]
 func (h *AIHandler[T]) SendConversationMessage(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

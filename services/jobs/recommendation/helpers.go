@@ -8,8 +8,8 @@ import (
 )
 
 // GetCastFromCredits extracts cast members from Credits, limited to maxCount
-func GetCastFromCredits(credits []models.Credit, maxCount int) []models.Credit {
-	var cast []models.Credit
+func GetCastFromCredits(credits []*models.Credit, maxCount int) []*models.Credit {
+	var cast []*models.Credit
 
 	// Get all cast members
 	for _, credit := range credits {
@@ -32,8 +32,8 @@ func GetCastFromCredits(credits []models.Credit, maxCount int) []models.Credit {
 }
 
 // GetCrewByRole extracts crew members with a specific role
-func GetCrewByRole(credits []models.Credit, role string) []models.Credit {
-	var result []models.Credit
+func GetCrewByRole(credits []*models.Credit, role models.MediaRole) []*models.Credit {
+	var result []*models.Credit
 
 	for _, credit := range credits {
 		if credit.IsCrew && credit.Role == role {
@@ -45,8 +45,8 @@ func GetCrewByRole(credits []models.Credit, role string) []models.Credit {
 }
 
 // GetCrewByDepartment extracts crew members from a specific department
-func GetCrewByDepartment(credits []models.Credit, department string) []models.Credit {
-	var result []models.Credit
+func GetCrewByDepartment(credits []*models.Credit, department models.MediaDepartment) []*models.Credit {
+	var result []*models.Credit
 
 	for _, credit := range credits {
 		if credit.IsCrew && credit.Department == department {
@@ -58,8 +58,8 @@ func GetCrewByDepartment(credits []models.Credit, department string) []models.Cr
 }
 
 // GetCreatorsFromCredits extracts creators from Credits
-func GetCreatorsFromCredits(credits []models.Credit) []models.Credit {
-	var creators []models.Credit
+func GetCreatorsFromCredits(credits []*models.Credit) []*models.Credit {
+	var creators []*models.Credit
 
 	for _, credit := range credits {
 		if credit.IsCreator {
@@ -71,7 +71,7 @@ func GetCreatorsFromCredits(credits []models.Credit) []models.Credit {
 }
 
 // ExtractNamesFromCredits extracts just the names from a list of credits
-func ExtractNamesFromCredits(credits []models.Credit) []string {
+func ExtractNamesFromCredits(credits []*models.Credit) []string {
 	var names []string
 
 	for _, credit := range credits {
@@ -82,7 +82,7 @@ func ExtractNamesFromCredits(credits []models.Credit) []string {
 }
 
 // GetPeopleByRole retrieves people from the repository who have a specific role
-func (j *RecommendationJob) GetPeopleByRole(ctx context.Context, role string) ([]models.Person, error) {
+func (j *RecommendationJob) GetPeopleByRole(ctx context.Context, role models.MediaRole) ([]*models.Person, error) {
 	// If we don't have a people repository, return an error
 	if j.peopleRepo == nil {
 		return nil, fmt.Errorf("people repository not available")
@@ -114,7 +114,7 @@ func (j *RecommendationJob) GetPersonByID(ctx context.Context, personID uint64) 
 }
 
 // getCreditsForMediaItem retrieves all credits for a given media item
-func (j *RecommendationJob) getCreditsForMediaItem(ctx context.Context, mediaItemID uint64) ([]models.Credit, error) {
+func (j *RecommendationJob) getCreditsForMediaItem(ctx context.Context, mediaItemID uint64) ([]*models.Credit, error) {
 	// If we don't have a credit repository, return an error
 	if j.creditRepo == nil {
 		return nil, fmt.Errorf("credit repository not available")
@@ -128,3 +128,4 @@ func (j *RecommendationJob) getCreditsForMediaItem(ctx context.Context, mediaIte
 
 	return credits, nil
 }
+

@@ -43,6 +43,6 @@ type AutomationCreateTagRequest struct {
 
 // ExecuteCommandRequest represents a request to execute a command in an automation client
 type AutomationExecuteCommandRequest struct {
-	Command    string                 `json:"command" binding:"required"`
-	Parameters map[string]interface{} `json:"parameters"`
+	Command    string         `json:"command" binding:"required"`
+	Parameters map[string]any `json:"parameters"`
 }

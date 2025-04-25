@@ -7,6 +7,63 @@ import (
 	"suasor/clients/media/types"
 )
 
+type MediaDepartment string
+
+const (
+	DepartmentCast       MediaDepartment = "Cast"
+	DepartmentCrew       MediaDepartment = "Crew"
+	DepartmentDirecting  MediaDepartment = "Directing"
+	DepartmentWriting    MediaDepartment = "Writing"
+	DepartmentProduction MediaDepartment = "Production"
+	DepartmentCamera     MediaDepartment = "Camera"
+	DepartmentEditing    MediaDepartment = "Editing"
+	DepartmentSound      MediaDepartment = "Sound"
+	DepartmentArt        MediaDepartment = "Art"
+	DepartmentOther      MediaDepartment = "Other"
+)
+
+type MediaRole string
+
+const (
+	// Cast roles
+	RoleActor MediaRole = "Actor"
+	RoleVoice MediaRole = "Voice"
+
+	// Directing roles
+	RoleDirector MediaRole = "Director"
+
+	// Writing roles
+	RoleWriter     MediaRole = "Writer"
+	RoleScreenplay MediaRole = "Screenplay"
+	RoleStory      MediaRole = "Story"
+
+	// Production roles
+	RoleProducer          MediaRole = "Producer"
+	RoleExecutiveProducer MediaRole = "Executive Producer"
+
+	// Add other roles as needed
+	RoleOther MediaRole = "Other"
+)
+
+// RoleToDepartment maps specific roles to their departments
+var RoleToDepartment = map[MediaRole]MediaDepartment{
+	RoleActor:             DepartmentCast,
+	RoleVoice:             DepartmentCast,
+	RoleDirector:          DepartmentDirecting,
+	RoleWriter:            DepartmentWriting,
+	RoleScreenplay:        DepartmentWriting,
+	RoleStory:             DepartmentWriting,
+	RoleProducer:          DepartmentProduction,
+	RoleExecutiveProducer: DepartmentProduction,
+	// Add other mappings
+}
+
+type PersonCreditsByRole struct {
+	Person *Person
+	// Credits is a map of credits grouped by role
+	Credits map[MediaRole][]*Credit
+}
+
 // Credit represents a person's involvement with a particular media item
 type Credit struct {
 	BaseModel                               // Include base fields (ID, timestamps)
@@ -15,14 +72,14 @@ type Credit struct {
 	MediaItemID uint64                      `json:"mediaItemID" gorm:"index;not null"`
 	MediaItem   *MediaItem[types.MediaData] `json:"-" gorm:"foreignKey:MediaItemID"` // Use pointer to avoid recursion issues
 
-	Name         string `json:"name" gorm:"type:varchar(255)"`                 // Name as it appears in the credits
-	Role         string `json:"role,omitempty" gorm:"type:varchar(100);index"` // e.g., "Director", "Actor"
-	Character    string `json:"character,omitempty" gorm:"type:varchar(255)"`  // For actors
-	Department   string `json:"department,omitempty" gorm:"type:varchar(100)"` // e.g., "Directing", "Writing", "Sound"
-	Job          string `json:"job,omitempty" gorm:"type:varchar(100)"`        // Specific job title
-	Order        int    `json:"order,omitempty"`                               // Display order in credits
-	SeasonNumber int    `json:"seasonNumber,omitempty"`                        // For TV series credits
-	EpisodeCount int    `json:"episodeCount,omitempty"`                        // Number of episodes for TV series
+	Name         string          `json:"name" gorm:"type:varchar(255)"`                 // Name as it appears in the credits
+	Role         MediaRole       `json:"role,omitempty" gorm:"type:varchar(100);index"` // e.g., "Director", "Actor"
+	Character    string          `json:"character,omitempty" gorm:"type:varchar(255)"`  // For actors
+	Department   MediaDepartment `json:"department,omitempty" gorm:"type:varchar(100)"` // e.g., "Directing", "Writing", "Sound"
+	Job          string          `json:"job,omitempty" gorm:"type:varchar(100)"`        // Specific job title
+	Order        int             `json:"order,omitempty"`                               // Display order in credits
+	SeasonNumber int             `json:"seasonNumber,omitempty"`                        // For TV series credits
+	EpisodeCount int             `json:"episodeCount,omitempty"`                        // Number of episodes for TV series
 
 	// Credit type flags
 	IsCast    bool `json:"isCast,omitempty" gorm:"index"`
@@ -116,7 +173,7 @@ func (c Credits) GetCreators() Credits {
 }
 
 // GetByDepartment returns credits filtered by department
-func (c Credits) GetByDepartment(department string) Credits {
+func (c Credits) GetByDepartment(department MediaDepartment) Credits {
 	var results Credits
 	for _, credit := range c {
 		if credit.Department == department {
@@ -127,7 +184,7 @@ func (c Credits) GetByDepartment(department string) Credits {
 }
 
 // GetByRole returns credits filtered by role
-func (c Credits) GetByRole(role string) Credits {
+func (c Credits) GetByRole(role MediaRole) Credits {
 	var results Credits
 	for _, credit := range c {
 		if credit.Role == role {
@@ -182,28 +239,28 @@ func (c *Credit) GetCreditPublicView() map[string]any {
 }
 
 // TabularizedCredits returns credits organized by department and role
-func TabularizedCredits(credits Credits) map[string]map[string][]Credit {
-	result := make(map[string]map[string][]Credit)
+func TabularizedCredits(credits Credits) map[MediaDepartment]map[MediaRole][]Credit {
+	result := make(map[MediaDepartment]map[MediaRole][]Credit)
 
 	for _, credit := range credits {
 		dept := credit.Department
 		if dept == "" {
 			if credit.IsCast {
-				dept = "Cast"
+				dept = DepartmentCast
 			} else if credit.IsCrew {
-				dept = "Crew"
+				dept = DepartmentCrew
 			} else {
-				dept = "Other"
+				dept = DepartmentOther
 			}
 		}
 
 		role := credit.Role
 		if role == "" {
-			role = "Unknown"
+			role = RoleOther
 		}
 
 		if _, exists := result[dept]; !exists {
-			result[dept] = make(map[string][]Credit)
+			result[dept] = make(map[MediaRole][]Credit)
 		}
 
 		result[dept][role] = append(result[dept][role], credit)
@@ -213,7 +270,7 @@ func TabularizedCredits(credits Credits) map[string]map[string][]Credit {
 }
 
 // NewCredit creates a new credit with the given person and media item
-func NewCredit(personID, mediaItemID uint64, name, role string, isCast bool) *Credit {
+func NewCredit(personID, mediaItemID uint64, name string, role MediaRole, isCast bool) *Credit {
 	credit := &Credit{
 		PersonID:    personID,
 		MediaItemID: mediaItemID,
@@ -263,7 +320,7 @@ func NewCastCredit(personID, mediaItemID uint64, name string, character string, 
 }
 
 // NewCrewCredit creates a new credit for a crew member
-func NewCrewCredit(personID, mediaItemID uint64, name string, department string, job string) *Credit {
+func NewCrewCredit(personID, mediaItemID uint64, name string, department MediaDepartment, job string) *Credit {
 	credit := &Credit{
 		PersonID:    personID,
 		MediaItemID: mediaItemID,
@@ -279,24 +336,32 @@ func NewCrewCredit(personID, mediaItemID uint64, name string, department string,
 	case "Director":
 		credit.Role = "Director"
 	case "Screenplay", "Writer":
-		credit.Role = job
+		credit.Role = RoleWriter
 	case "Producer", "Executive Producer":
-		credit.Role = job
+		credit.Role = RoleProducer
 	case "Director of Photography", "Cinematographer":
 		credit.Role = "Cinematographer"
 	default:
-		credit.Role = job
+		credit.Role = RoleWriter
 	}
 
 	return credit
 }
 
+// GetDepartmentForRole returns the appropriate department for a given role
+func GetDepartmentForRole(role MediaRole) MediaDepartment {
+	if dept, exists := RoleToDepartment[role]; exists {
+		return dept
+	}
+	return DepartmentCrew // Default department
+}
+
 // ToTableFormatted returns credits formatted for display in a table
-func (c Credits) ToTableFormatted() []map[string]interface{} {
-	result := make([]map[string]interface{}, 0, len(c))
+func (c Credits) ToTableFormatted() []map[string]any {
+	result := make([]map[string]any, 0, len(c))
 
 	for _, credit := range c {
-		item := map[string]interface{}{
+		item := map[string]any{
 			"id":       credit.ID,
 			"name":     credit.Name,
 			"role":     credit.Role,
@@ -337,7 +402,7 @@ func (c *Credit) GetCreditWithoutPerson() Credit {
 
 // GetCreditWithDetails returns a credit with minimal person details
 // Used for API responses to avoid circular references
-func (c *Credit) GetCreditWithDetails() map[string]interface{} {
+func (c *Credit) GetCreditWithDetails() map[string]any {
 	result := map[string]any{
 		"id":          c.ID,
 		"personID":    c.PersonID,

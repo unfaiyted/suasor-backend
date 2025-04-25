@@ -24,16 +24,17 @@ func NewConfigHandler(configService services.ConfigService) *ConfigHandler {
 }
 
 // GetConfig godoc
-// @Summary Get current configuration
-// @Description Returns the current system configuration
-// @Tags config
-// @Accept json
-// @Produce json
-// @Success 200 {object} responses.APIResponse[types.Configuration] "Configuration retrieved successfully"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
-// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - admin access required"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/config [get]
+//
+//	@Summary		Get current configuration
+//	@Description	Returns the current system configuration
+//	@Tags			config
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	responses.APIResponse[types.Configuration]		"Configuration retrieved successfully"
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized access"
+//	@Failure		403	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Forbidden - admin access required"
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/config [get]
 func (h *ConfigHandler) GetConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -53,18 +54,19 @@ func (h *ConfigHandler) GetConfig(c *gin.Context) {
 }
 
 // UpdateConfig godoc
-// @Summary Update application configuration
-// @Description Updates the system-wide application configuration (admin only)
-// @Tags config
-// @Accept json
-// @Produce json
-// @Param request body types.Configuration true "Configuration data"
-// @Success 200 {object} responses.APIResponse[any] "Configuration updated successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
-// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - admin access required"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/config [put]
+//
+//	@Summary		Update application configuration
+//	@Description	Updates the system-wide application configuration (admin only)
+//	@Tags			config
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		types.Configuration								true	"Configuration data"
+//	@Success		200		{object}	responses.SuccessResponse									"Configuration updated successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid request format"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized access"
+//	@Failure		403		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Forbidden - admin access required"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/config [put]
 func (h *ConfigHandler) UpdateConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -98,16 +100,18 @@ func (h *ConfigHandler) UpdateConfig(c *gin.Context) {
 }
 
 // GetFileConfig godoc
-// @Summary Get file-based configuration
-// @Description Returns the file-based system configuration (admin only)
-// @Tags config
-// @Accept json
-// @Produce json
-// @Success 200 {object} responses.APIResponse[types.Configuration] "File configuration retrieved successfully"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
-// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - admin access required"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/config/file [get]
+//
+//	@Summary		Get file-based configuration
+//	@Description	Returns the file-based system configuration (admin only)
+//	@Tags			config
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	responses.APIResponse[types.Configuration]		"File configuration retrieved successfully"
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized access"
+//	@Failure		403	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Forbidden - admin access required"
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/config/file [get]
+//
 // GetFileConfig uses the admin access check helper
 func (h *ConfigHandler) GetFileConfig(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -139,18 +143,19 @@ func (h *ConfigHandler) GetFileConfig(c *gin.Context) {
 // Similar refactoring should be applied to SaveFileConfig, UpdateConfig, and ResetConfig
 
 // SaveFileConfig godoc
-// @Summary Save configuration to file
-// @Description Saves the configuration to file only (admin only)
-// @Tags config
-// @Accept json
-// @Produce json
-// @Param request body types.Configuration true "Configuration data"
-// @Success 200 {object} responses.APIResponse[any] "Configuration saved to file successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
-// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - admin access required"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/config/file [put]
+//
+//	@Summary		Save configuration to file
+//	@Description	Saves the configuration to file only (admin only)
+//	@Tags			config
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		types.Configuration								true	"Configuration data"
+//	@Success		200		{object}	responses.SuccessResponse									"Configuration saved to file successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid request format"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized access"
+//	@Failure		403		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Forbidden - admin access required"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/config/file [put]
 func (h *ConfigHandler) SaveFileConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -184,16 +189,17 @@ func (h *ConfigHandler) SaveFileConfig(c *gin.Context) {
 }
 
 // ResetConfig godoc
-// @Summary Reset configuration to defaults
-// @Description Resets the system configuration to default values (admin only)
-// @Tags config
-// @Accept json
-// @Produce json
-// @Success 200 {object} responses.APIResponse[any] "Configuration reset successfully"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
-// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - admin access required"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/config/reset [post]
+//
+//	@Summary		Reset configuration to defaults
+//	@Description	Resets the system configuration to default values (admin only)
+//	@Tags			config
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	responses.SuccessResponse									"Configuration reset successfully"
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized access"
+//	@Failure		403	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Forbidden - admin access required"
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/config/reset [post]
 func (h *ConfigHandler) ResetConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

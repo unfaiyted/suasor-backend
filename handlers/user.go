@@ -37,13 +37,14 @@ func NewUserHandler(service services.UserService, configSvc services.ConfigServi
 }
 
 // Register godoc
-// @Summary Register a new user
-// @Description Creates a new user account with the provided information
-// @Tags users
-// @Accept json
-// @Produce json
-// @Param request body requests.RegisterRequest true "User registration information"
-// @Example request
+//
+//	@Summary		Register a new user
+//	@Description	Creates a new user account with the provided information
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body	requests.RegisterRequest	true	"User registration information"
+//	@Example		request
 //
 //	{
 //	  "email": "user@example.com",
@@ -51,8 +52,8 @@ func NewUserHandler(service services.UserService, configSvc services.ConfigServi
 //	  "password": "securepassword123"
 //	}
 //
-// @Success 201 {object} responses.APIResponse[responses.UserResponse] "Successfully registered user"
-// @Example response
+//	@Success		201	{object}	responses.APIResponse[responses.UserResponse]	"Successfully registered user"
+//	@Example		response
 //
 //	{
 //	  "success": true,
@@ -65,8 +66,8 @@ func NewUserHandler(service services.UserService, configSvc services.ConfigServi
 //	  "message": "User registered successfully"
 //	}
 //
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format or email/username already exists"
-// @Example response
+//	@Failure		400	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid request format or email/username already exists"
+//	@Example		response
 //
 //	{
 //	  "error": "bad_request",
@@ -78,8 +79,8 @@ func NewUserHandler(service services.UserService, configSvc services.ConfigServi
 //	  "requestId": "c7f3305d-8c9a-4b9b-b701-3b9a1e36c1f0"
 //	}
 //
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/user/register [post]
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/user/register [post]
 func (h *UserHandler) Register(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -129,13 +130,14 @@ func (h *UserHandler) Register(c *gin.Context) {
 }
 
 // GetProfile godoc
-// @Summary Get the current user's profile
-// @Description Retrieves the profile information for the currently authenticated user
-// @Tags users
-// @Produce json
-// @Security BearerAuth
-// @Success 200 {object} responses.APIResponse[responses.UserResponse] "Successfully retrieved user profile"
-// @Example response
+//
+//	@Summary		Get the current user's profile
+//	@Description	Retrieves the profile information for the currently authenticated user
+//	@Tags			users
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Success		200	{object}	responses.APIResponse[responses.UserResponse]	"Successfully retrieved user profile"
+//	@Example		response
 //
 //	{
 //	  "success": true,
@@ -148,9 +150,9 @@ func (h *UserHandler) Register(c *gin.Context) {
 //	  "message": "Profile retrieved successfully"
 //	}
 //
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/user/profile [get]
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized - Not logged in"
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/user/profile [get]
 func (h *UserHandler) GetProfile(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -177,22 +179,23 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 }
 
 // UpdateProfile godoc
-// @Summary Update user profile
-// @Description Updates the profile information for the currently authenticated user
-// @Tags users
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param request body requests.ProfileRequest true "Updated profile information"
-// @Example request
+//
+//	@Summary		Update user profile
+//	@Description	Updates the profile information for the currently authenticated user
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body	requests.UpdateUserRequest	true	"Updated profile information"
+//	@Example		request
 //
 //	{
 //	  "email": "newemail@example.com",
 //	  "username": "newusername"
 //	}
 //
-// @Success 200 {object} responses.APIResponse[responses.UserResponse] "Successfully updated user profile"
-// @Example response
+//	@Success		200	{object}	responses.APIResponse[responses.UserResponse]	"Successfully updated user profile"
+//	@Example		response
 //
 //	{
 //	  "success": true,
@@ -205,10 +208,10 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 //	  "message": "Profile updated successfully"
 //	}
 //
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format or email/username already exists"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/user/profile [put]
+//	@Failure		400	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid request format or email/username already exists"
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized - Not logged in"
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/user/profile [put]
 func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -216,7 +219,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	// Get user userID from context (set by auth middleware)
 	userID, _ := checkUserAccess(c)
 
-	var req requests.ProfileRequest
+	var req requests.UpdateUserRequest
 	if !checkJSONBinding(c, &req) {
 		return
 	}
@@ -270,22 +273,23 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 }
 
 // ChangePassword godoc
-// @Summary Change user password
-// @Description Changes the password for the currently authenticated user
-// @Tags users
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param request body requests.ChangePasswordRequest true "Password change information"
-// @Example request
+//
+//	@Summary		Change user password
+//	@Description	Changes the password for the currently authenticated user
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body	requests.ChangePasswordRequest	true	"Password change information"
+//	@Example		request
 //
 //	{
 //	  "currentPassword": "oldpassword123",
 //	  "newPassword": "newpassword456"
 //	}
 //
-// @Success 200 {object} responses.APIResponse[string] "Successfully changed password"
-// @Example response
+//	@Success		200	{object}	responses.SuccessResponse	"Password changed successfully"
+//	@Example		response
 //
 //	{
 //	  "success": true,
@@ -293,10 +297,10 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 //	  "message": "Password changed successfully"
 //	}
 //
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format or incorrect current password"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/user/password [put]
+//	@Failure		400	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid request format or incorrect current password"
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized - Not logged in"
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/user/password [put]
 func (h *UserHandler) ChangePassword(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -333,14 +337,15 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 }
 
 // GetByID godoc
-// @Summary Get user by ID
-// @Description Retrieves a user by their userID (admin only)
-// @Tags users
-// @Produce json
-// @Security BearerAuth
-// @Param userID path int true "User ID" example:"1"
-// @Success 200 {object} responses.APIResponse[responses.UserResponse] "Successfully retrieved user"
-// @Example response
+//
+//	@Summary		Get user by ID
+//	@Description	Retrieves a user by their userID (admin only)
+//	@Tags			users
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			userID	path		int												true	"User ID"	example:"1"
+//	@Success		200		{object}	responses.APIResponse[responses.UserResponse]	"Successfully retrieved user"
+//	@Example		response
 //
 //	{
 //	  "success": true,
@@ -353,25 +358,23 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 //	  "message": "User retrieved successfully"
 //	}
 //
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid user userID format"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
-// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - Not an admin"
-// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "User not found"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/user/{userID} [get]
+//	@Failure		400	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid user userID format"
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized - Not logged in"
+//	@Failure		403	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Forbidden - Not an admin"
+//	@Failure		404	{object}	responses.ErrorResponse[responses.ErrorDetails]	"User not found"
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/user/{userID} [get]
 func (h *UserHandler) GetByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Verify admin role
-	_, ok := checkAdminAccess(c)
+	userID, ok := checkAdminAccess(c)
 	if !ok {
 		return
 	}
 
-	// Parse user ID
-	userID, _ := checkUserAccess(c)
-	userResponse, err := h.service.GetByID(ctx, userID)
+	user, err := h.service.GetByID(ctx, userID)
 	if err != nil {
 		if err.Error() == "user not found" {
 			log.Warn().Uint64("id", userID).Msg("User not found")
@@ -383,27 +386,29 @@ func (h *UserHandler) GetByID(c *gin.Context) {
 		return
 	}
 
+	userResponse := responses.NewUserResponse(user)
 	log.Info().Uint64("id", userID).Msg("Successfully retrieved user")
 	responses.RespondOK(c, userResponse, "User retrieved successfully")
 }
 
 // ChangeRole godoc
-// @Summary Change user role
-// @Description Changes a user's role (admin only)
-// @Tags users
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param userID path int true "User ID" example:"1"
-// @Param request body requests.ChangeRoleRequest true "New role information"
-// @Example request
+//
+//	@Summary		Change user role
+//	@Description	Changes a user's role (admin only)
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			userID	path	int							true	"User ID"	example:"1"
+//	@Param			request	body	requests.ChangeRoleRequest	true	"New role information"
+//	@Example		request
 //
 //	{
 //	  "role": "admin"
 //	}
 //
-// @Success 200 {object} responses.APIResponse[responses.UserResponse] "Successfully changed user role"
-// @Example response
+//	@Success		200	{object}	responses.APIResponse[responses.UserResponse]	"Successfully changed user role"
+//	@Example		response
 //
 //	{
 //	  "success": true,
@@ -416,45 +421,42 @@ func (h *UserHandler) GetByID(c *gin.Context) {
 //	  "message": "User role changed successfully"
 //	}
 //
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid user userID format or invalid role"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
-// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - Not an admin"
-// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "User not found"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/user/{userID}/role [put]
+//	@Failure		400	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid user userID format or invalid role"
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized - Not logged in"
+//	@Failure		403	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Forbidden - Not an admin"
+//	@Failure		404	{object}	responses.ErrorResponse[responses.ErrorDetails]	"User not found"
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/user/{userID}/role [put]
 func (h *UserHandler) ChangeRole(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Verify admin role
-	_, ok := checkAdminAccess(c)
+	userID, ok := checkAdminAccess(c)
 	if !ok {
 		return
 	}
-
-	// Parse user ID
-	userID, _ := checkUserAccess(c)
 
 	var req requests.ChangeRoleRequest
 	if !checkJSONBinding(c, &req) {
 		return
 	}
 
-	log.Info().Uint64("id", userID).Str("newRole", req.Role).Msg("Changing user role")
+	log.Info().Uint64("userID", userID).Str("newRole", req.Role).Msg("Changing user role")
 
 	if err := h.service.ChangeRole(ctx, userID, req.Role); err != nil {
 		if err.Error() == "invalid role" {
-			log.Warn().Uint64("id", userID).Str("role", req.Role).Msg("Invalid role specified")
+			log.Warn().Uint64("userID", userID).Str("role", req.Role).Msg("Invalid role specified")
 			responses.RespondBadRequest(c, err, "Invalid role specified")
 			return
 		}
 		if err.Error() == "user not found" {
-			log.Warn().Uint64("id", userID).Msg("User not found")
+			log.Warn().Uint64("userID", userID).Msg("User not found")
 			responses.RespondNotFound(c, err, "User not found")
 			return
 		}
 
-		log.Error().Err(err).Uint64("id", userID).Msg("Failed to change user role")
+		log.Error().Err(err).Uint64("userID", userID).Msg("Failed to change user role")
 		responses.RespondInternalError(c, err, "Failed to change user role")
 		return
 	}
@@ -462,24 +464,25 @@ func (h *UserHandler) ChangeRole(c *gin.Context) {
 	// Get updated user response
 	userResponse, err := h.service.GetByID(ctx, userID)
 	if err != nil {
-		log.Error().Err(err).Uint64("id", userID).Msg("Failed to retrieve updated user")
+		log.Error().Err(err).Uint64("userID", userID).Msg("Failed to retrieve updated user")
 		responses.RespondInternalError(c, err, "Failed to retrieve updated user")
 		return
 	}
 
-	log.Info().Uint64("id", userID).Str("newRole", req.Role).Msg("Successfully changed user role")
+	log.Info().Uint64("userID", userID).Str("newRole", req.Role).Msg("Successfully changed user role")
 	responses.RespondOK(c, userResponse, "User role changed successfully")
 }
 
 // ActivateUser godoc
-// @Summary Activate a user account
-// @Description Activates a user account (admin only)
-// @Tags users
-// @Produce json
-// @Security BearerAuth
-// @Param userID path int true "User ID" example:"1"
-// @Success 200 {object} responses.APIResponse[responses.UserResponse] "Successfully activated user account"
-// @Example response
+//
+//	@Summary		Activate a user account
+//	@Description	Activates a user account (admin only)
+//	@Tags			users
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			userID	path		int												true	"User ID"	example:"1"
+//	@Success		200		{object}	responses.APIResponse[responses.UserResponse]	"Successfully activated user account"
+//	@Example		response
 //
 //	{
 //	  "success": true,
@@ -492,26 +495,23 @@ func (h *UserHandler) ChangeRole(c *gin.Context) {
 //	  "message": "User account activated successfully"
 //	}
 //
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid user userID format"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
-// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - Not an admin"
-// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "User not found"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/user/{userID}/activate [post]
+//	@Failure		400	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid user userID format"
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized - Not logged in"
+//	@Failure		403	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Forbidden - Not an admin"
+//	@Failure		404	{object}	responses.ErrorResponse[responses.ErrorDetails]	"User not found"
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/user/{userID}/activate [post]
 func (h *UserHandler) ActivateUser(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Verify admin role
-	_, ok := checkAdminAccess(c)
+	userID, ok := checkAdminAccess(c)
 	if !ok {
 		return
 	}
 
-	// Parse user ID
-	userID, _ := checkUserAccess(c)
-
-	log.Info().Uint64("id", userID).Msg("Activating user account")
+	log.Info().Uint64("userID", userID).Msg("Activating user account")
 
 	if err := h.service.ActivateUser(ctx, userID); err != nil {
 		if err.Error() == "user not found" {
@@ -520,7 +520,7 @@ func (h *UserHandler) ActivateUser(c *gin.Context) {
 			return
 		}
 
-		log.Error().Err(err).Uint64("id", userID).Msg("Failed to activate user account")
+		log.Error().Err(err).Uint64("userID", userID).Msg("Failed to activate user account")
 		responses.RespondInternalError(c, err, "Failed to activate user account")
 		return
 	}
@@ -528,24 +528,25 @@ func (h *UserHandler) ActivateUser(c *gin.Context) {
 	// Get updated user response
 	userResponse, err := h.service.GetByID(ctx, userID)
 	if err != nil {
-		log.Error().Err(err).Uint64("id", userID).Msg("Failed to retrieve updated user")
+		log.Error().Err(err).Uint64("userID", userID).Msg("Failed to retrieve updated user")
 		responses.RespondInternalError(c, err, "Failed to retrieve updated user")
 		return
 	}
 
-	log.Info().Uint64("id", userID).Msg("Successfully activated user account")
+	log.Info().Uint64("userID", userID).Msg("Successfully activated user account")
 	responses.RespondOK(c, userResponse, "User account activated successfully")
 }
 
 // DeactivateUser godoc
-// @Summary Deactivate a user account
-// @Description Deactivates a user account (admin only)
-// @Tags users
-// @Produce json
-// @Security BearerAuth
-// @Param userID path int true "User ID" example:"1"
-// @Success 200 {object} responses.APIResponse[responses.UserResponse] "Successfully deactivated user account"
-// @Example response
+//
+//	@Summary		Deactivate a user account
+//	@Description	Deactivates a user account (admin only)
+//	@Tags			users
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			userID	path		int												true	"User ID"	example:"1"
+//	@Success		200		{object}	responses.APIResponse[responses.UserResponse]	"Successfully deactivated user account"
+//	@Example		response
 //
 //	{
 //	  "success": true,
@@ -558,26 +559,23 @@ func (h *UserHandler) ActivateUser(c *gin.Context) {
 //	  "message": "User account deactivated successfully"
 //	}
 //
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid user userID format"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
-// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - Not an admin"
-// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "User not found"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/user/{userID}/deactivate [post]
+//	@Failure		400	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid user userID format"
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized - Not logged in"
+//	@Failure		403	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Forbidden - Not an admin"
+//	@Failure		404	{object}	responses.ErrorResponse[responses.ErrorDetails]	"User not found"
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/user/{userID}/deactivate [post]
 func (h *UserHandler) DeactivateUser(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Verify admin role
-	_, ok := checkAdminAccess(c)
+	userID, ok := checkAdminAccess(c)
 	if !ok {
 		return
 	}
 
-	// Parse user ID
-	userID, _ := checkUserAccess(c)
-
-	log.Info().Uint64("id", userID).Msg("Deactivating user account")
+	log.Info().Uint64("userID", userID).Msg("Deactivating user account")
 
 	if err := h.service.DeactivateUser(ctx, userID); err != nil {
 		if err.Error() == "user not found" {
@@ -586,7 +584,7 @@ func (h *UserHandler) DeactivateUser(c *gin.Context) {
 			return
 		}
 
-		log.Error().Err(err).Uint64("id", userID).Msg("Failed to deactivate user account")
+		log.Error().Err(err).Uint64("userID", userID).Msg("Failed to deactivate user account")
 		responses.RespondInternalError(c, err, "Failed to deactivate user account")
 		return
 	}
@@ -594,28 +592,29 @@ func (h *UserHandler) DeactivateUser(c *gin.Context) {
 	// Get updated user response
 	userResponse, err := h.service.GetByID(ctx, userID)
 	if err != nil {
-		log.Error().Err(err).Uint64("id", userID).Msg("Failed to retrieve updated user")
+		log.Error().Err(err).Uint64("userID", userID).Msg("Failed to retrieve updated user")
 		responses.RespondInternalError(c, err, "Failed to retrieve updated user")
 		return
 	}
 
-	log.Info().Uint64("id", userID).Msg("Successfully deactivated user account")
+	log.Info().Uint64("userID", userID).Msg("Successfully deactivated user account")
 	responses.RespondOK(c, userResponse, "User account deactivated successfully")
 }
 
 // Delete godoc
-// @Summary Delete a user account
-// @Description Deletes a user account (admin only)
-// @Tags users
-// @Security BearerAuth
-// @Param userID path int true "User ID" example:"1"
-// @Success 204 "No Content - User successfully deleted"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid user userID format"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
-// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Forbidden - Not an admin"
-// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "User not found"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/user/{userID} [delete]
+//
+//	@Summary		Delete a user account
+//	@Description	Deletes a user account (admin only)
+//	@Tags			users
+//	@Security		BearerAuth
+//	@Param			userID	path	int	true	"User ID"	example:"1"
+//	@Success		204		"No Content - User successfully deleted"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid user userID format"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized - Not logged in"
+//	@Failure		403		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Forbidden - Not an admin"
+//	@Failure		404		{object}	responses.ErrorResponse[responses.ErrorDetails]	"User not found"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/user/{userID} [delete]
 func (h *UserHandler) Delete(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -631,25 +630,26 @@ func (h *UserHandler) Delete(c *gin.Context) {
 			return
 		}
 
-		log.Error().Err(err).Uint64("id", userID).Msg("Failed to delete user account")
+		log.Error().Err(err).Uint64("userID", userID).Msg("Failed to delete user account")
 		responses.RespondInternalError(c, err, "Failed to delete user account")
 		return
 	}
 
-	log.Info().Uint64("id", userID).Msg("Successfully deleted user account")
+	log.Info().Uint64("userID", userID).Msg("Successfully deleted user account")
 	c.Status(http.StatusNoContent)
 }
 
 // UploadAvatar godoc
-// @Summary Upload user avatar
-// @Description Uploads a new avatar image for the currently authenticated user
-// @Tags users
-// @Accept multipart/form-data
-// @Produce json
-// @Security BearerAuth
-// @Param avatar formData file true "Avatar image file (jpeg, png, gif only)"
-// @Success 200 {object} responses.APIResponse[requests.AvatarUploadResponse] "Successfully uploaded avatar"
-// @Example response
+//
+//	@Summary		Upload user avatar
+//	@Description	Uploads a new avatar image for the currently authenticated user
+//	@Tags			users
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			avatar	formData	file													true	"Avatar image file (jpeg, png, gif only)"
+//	@Success		200		{object}	responses.APIResponse[requests.AvatarUploadResponse]	"Successfully uploaded avatar"
+//	@Example		response
 //
 //	{
 //	  "success": true,
@@ -659,10 +659,10 @@ func (h *UserHandler) Delete(c *gin.Context) {
 //	  "message": "Avatar uploaded successfully"
 //	}
 //
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid file format or size"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized - Not logged in"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/user/avatar [post]
+//	@Failure		400	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid file format or size"
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized - Not logged in"
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/user/avatar [post]
 func (h *UserHandler) UploadAvatar(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -790,4 +790,104 @@ func (h *UserHandler) validateAvatarFile(header *multipart.FileHeader) error {
 	}
 
 	return nil
+}
+
+// ForgotPassword godoc
+//
+//	@Summary		Forgot password
+//	@Description	Request a password reset email
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body	requests.ForgotPasswordRequest	true	"Forgot password request"
+//	@Success		200		{object}	responses.SuccessResponse	"Password reset email sent"
+//	@Example		response
+//
+//	{
+//	  "success": true,
+//	  "message": "Password reset email sent"
+//	}
+//
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid request format"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized - Not logged in"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/user/forgot-password [post]
+func (h *UserHandler) ForgotPassword(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := logger.LoggerFromContext(ctx)
+
+	var req requests.ForgotPasswordRequest
+	if !checkJSONBinding(c, &req) {
+		return
+	}
+
+	log.Info().
+		Str("email", req.Email).
+		Msg("Sending password reset email")
+
+	if err := h.service.ForgotPassword(ctx, req.Email); err != nil {
+		log.Error().Err(err).
+			Str("email", req.Email).
+			Msg("Failed to send password reset email")
+		responses.RespondInternalError(c, err, "Failed to send password reset email")
+		return
+	}
+
+	log.Info().
+		Str("email", req.Email).
+		Msg("Password reset email sent")
+	responses.RespondOK(c, http.StatusOK, "Password reset email sent")
+}
+
+// ResetPassword godoc
+//
+//	@Summary		Reset password
+//	@Description	Reset the user's password using a password reset token
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body	requests.ResetPasswordRequest	true	"Reset password request"
+//	@Success		200		{object}	responses.SuccessResponse	"Password reset successfully"
+//	@Example		response
+//
+//	{
+//	  "success": true,
+//	  "message": "Password reset successfully"
+//	}
+//
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid request format"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized - Not logged in"
+//	@Failure		404		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Password reset token not found"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/user/reset-password [post]
+func (h *UserHandler) ResetPassword(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := logger.LoggerFromContext(ctx)
+
+	var req requests.ResetPasswordRequest
+	if !checkJSONBinding(c, &req) {
+		return
+	}
+
+	log.Info().
+		Str("email", req.Email).
+		Str("token", req.Token).
+		Msg("Resetting password")
+
+	if err := h.service.ResetPassword(ctx, req.Email, req.Token, req.NewPassword); err != nil {
+		log.Error().Err(err).
+			Str("email", req.Email).
+			Str("token", req.Token).
+			Msg("Failed to reset password")
+		responses.RespondInternalError(c, err, "Failed to reset password")
+		return
+	}
+
+	log.Info().
+		Str("email", req.Email).
+		Str("token", req.Token).
+		Msg("Password reset successfully")
+	responses.RespondOK(c, http.StatusOK, "Password reset successfully")
 }

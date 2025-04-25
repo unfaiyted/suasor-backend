@@ -3,12 +3,13 @@ package services
 import (
 	"context"
 	"errors"
+	jwt "github.com/golang-jwt/jwt/v4"
+	"os"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
 	"suasor/repository"
 	"suasor/types/models"
-	"suasor/types/responses"
 )
 
 // Service errors
@@ -25,10 +26,13 @@ type UserService interface {
 	Create(ctx context.Context, user *models.User) error
 	Update(ctx context.Context, user *models.User) error
 	Delete(ctx context.Context, id uint64) error
-	GetByID(ctx context.Context, id uint64) (*responses.UserResponse, error)
-	GetByEmail(ctx context.Context, email string) (*responses.UserResponse, error)
-	GetByUsername(ctx context.Context, username string) (*responses.UserResponse, error)
+	GetByID(ctx context.Context, id uint64) (*models.User, error)
+	GetByEmail(ctx context.Context, email string) (*models.User, error)
+	GetByUsername(ctx context.Context, username string) (*models.User, error)
 	UpdatePassword(ctx context.Context, id uint64, currentPassword, newPassword string) error
+
+	ResetPassword(ctx context.Context, email, token, newPassword string) error
+	ForgotPassword(ctx context.Context, email string) error
 	UpdateProfile(ctx context.Context, id uint64, updateData map[string]interface{}) error
 	ChangeRole(ctx context.Context, id uint64, newRole string) error
 	ActivateUser(ctx context.Context, id uint64) error
@@ -86,7 +90,7 @@ func (s *userService) Delete(ctx context.Context, id uint64) error {
 }
 
 // GetByID retrieves a user by ID and returns a UserResponse
-func (s *userService) GetByID(ctx context.Context, id uint64) (*responses.UserResponse, error) {
+func (s *userService) GetByID(ctx context.Context, id uint64) (*models.User, error) {
 	user, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -94,18 +98,11 @@ func (s *userService) GetByID(ctx context.Context, id uint64) (*responses.UserRe
 		}
 		return nil, err
 	}
-
-	return &responses.UserResponse{
-		ID:       uint64(user.ID),
-		Email:    user.Email,
-		Username: user.Username,
-		Avatar:   user.Avatar,
-		Role:     user.Role,
-	}, nil
+	return user, nil
 }
 
 // GetByEmail retrieves a user by email and returns a UserResponse
-func (s *userService) GetByEmail(ctx context.Context, email string) (*responses.UserResponse, error) {
+func (s *userService) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	user, err := s.userRepo.FindByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -114,17 +111,11 @@ func (s *userService) GetByEmail(ctx context.Context, email string) (*responses.
 		return nil, err
 	}
 
-	return &responses.UserResponse{
-		ID:       uint64(user.ID),
-		Email:    user.Email,
-		Username: user.Username,
-		Avatar:   user.Avatar,
-		Role:     user.Role,
-	}, nil
+	return user, nil
 }
 
 // GetByUsername retrieves a user by username and returns a UserResponse
-func (s *userService) GetByUsername(ctx context.Context, username string) (*responses.UserResponse, error) {
+func (s *userService) GetByUsername(ctx context.Context, username string) (*models.User, error) {
 	user, err := s.userRepo.FindByUsername(ctx, username)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -133,13 +124,7 @@ func (s *userService) GetByUsername(ctx context.Context, username string) (*resp
 		return nil, err
 	}
 
-	return &responses.UserResponse{
-		ID:       uint64(user.ID),
-		Email:    user.Email,
-		Username: user.Username,
-		Avatar:   user.Avatar,
-		Role:     user.Role,
-	}, nil
+	return user, nil
 }
 
 // UpdatePassword updates a user's password after verifying the current password
@@ -196,7 +181,7 @@ func (s *userService) UpdateProfile(ctx context.Context, id uint64, updateData m
 		}
 		user.Username = username
 	}
-	
+
 	// Update avatar if provided
 	if avatar, ok := updateData["avatar"].(string); ok {
 		user.Avatar = avatar
@@ -265,4 +250,60 @@ func (s *userService) RecordLogin(ctx context.Context, id uint64) error {
 	now := time.Now()
 	user.LastLogin = &now
 	return s.userRepo.Update(ctx, user)
+}
+
+// ResetPassword resets a user's password using a password reset token
+func (s *userService) ResetPassword(ctx context.Context, email, token, newPassword string) error {
+	// Verify the token
+	user, err := s.userRepo.FindByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			return ErrUserNotFound
+		}
+		return err
+	}
+
+	// Verify the token
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordResetToken), []byte(token))
+	if err != nil {
+		return ErrInvalidCredentials
+	}
+
+	// Hash new password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	// Update password
+	user.Password = string(hashedPassword)
+	user.PasswordResetToken = ""
+	return s.userRepo.Update(ctx, user)
+}
+
+// ForgotPassword sends a password reset email to the user
+func (s *userService) ForgotPassword(ctx context.Context, email string) error {
+	user, err := s.userRepo.FindByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			return ErrUserNotFound
+		}
+		return err
+	}
+
+	token, err := s.generateToken(user.ID)
+	if err != nil {
+		return err
+	}
+
+	user.PasswordResetToken = token
+	return s.userRepo.Update(ctx, user)
+}
+
+func (s *userService) generateToken(userID uint64) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"userID": userID,
+		"exp":    time.Now().Add(time.Hour * 24).Unix(),
+	})
+	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 }

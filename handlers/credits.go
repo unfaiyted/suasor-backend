@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"net/http"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/requests"
@@ -25,17 +24,18 @@ func NewCreditHandler(creditService *services.CreditService) *CreditHandler {
 }
 
 // GetCreditsForMediaItem godoc
-// @Summary Get all credits for a media item
-// @Description Retrieves all credits (cast and crew) associated with a specific media item
-// @Tags credits
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param itemID path int true "Media Item ID"
-// @Success 200 {array} models.Credit "Credits retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid media item ID"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/media/credits/{itemID} [get]
+//
+//	@Summary		Get all credits for a media item
+//	@Description	Retrieves all credits (cast and crew) associated with a specific media item
+//	@Tags			credits
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			itemID	path		int												true	"Media Item ID"
+//	@Success		200		{array}		responses.APIResponse[[]models.Credit]									"Credits retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid media item ID"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/media/credits/{itemID} [get]
 func (h *CreditHandler) GetCreditsForMediaItem(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -52,21 +52,22 @@ func (h *CreditHandler) GetCreditsForMediaItem(c *gin.Context) {
 	}
 
 	// Return credits
-	c.JSON(http.StatusOK, credits)
+	responses.RespondOK(c, credits, "Credits retrieved successfully")
 }
 
 // GetCastForMediaItem godoc
-// @Summary Get cast for a media item
-// @Description Retrieves all cast credits associated with a specific media item
-// @Tags credits
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param itemID path int true "Media Item ID"
-// @Success 200 {array} models.Credit "Cast credits retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid media item ID"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/media/credits/{itemID}/cast [get]
+//
+//	@Summary		Get cast for a media item
+//	@Description	Retrieves all cast credits associated with a specific media item
+//	@Tags			credits
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			itemID	path		int												true	"Media Item ID"
+//	@Success		200		{array}		responses.APIResponse[[]models.Credit]									"Cast credits retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid media item ID"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/media/credits/{itemID}/cast [get]
 func (h *CreditHandler) GetCastForMediaItem(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -83,22 +84,23 @@ func (h *CreditHandler) GetCastForMediaItem(c *gin.Context) {
 	}
 
 	// Return cast
-	c.JSON(http.StatusOK, cast)
+	responses.RespondOK(c, cast, "Cast credits retrieved successfully")
 }
 
 // GetCrewForMediaItem godoc
-// @Summary Get crew for a media item
-// @Description Retrieves all crew credits associated with a specific media item, optionally filtered by department
-// @Tags credits
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param itemID path int true "Media Item ID"
-// @Param department query string false "Filter by department (e.g., 'Directing', 'Writing')"
-// @Success 200 {array} models.Credit "Crew credits retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid media item ID"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/media/credits/{itemID}/crew [get]
+//
+//	@Summary		Get crew for a media item
+//	@Description	Retrieves all crew credits associated with a specific media item, optionally filtered by department
+//	@Tags			credits
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			itemID		path		int												true	"Media Item ID"
+//	@Param			department	query		string											false	"Filter by department (e.g., 'Directing', 'Writing')"
+//	@Success		200			{array}		responses.APIResponse[[]models.Credit]									"Crew credits retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid media item ID"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/media/credits/{itemID}/crew [get]
 func (h *CreditHandler) GetCrewForMediaItem(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -109,9 +111,10 @@ func (h *CreditHandler) GetCrewForMediaItem(c *gin.Context) {
 	}
 
 	// Get department from query (optional)
-	department := c.Query("department")
+	departmentStr := c.Query("department")
+	department := models.MediaDepartment(departmentStr)
 
-	var crew []models.Credit
+	var crew []*models.Credit
 
 	// Get crew, filtered by department if provided
 	if department != "" {
@@ -125,21 +128,22 @@ func (h *CreditHandler) GetCrewForMediaItem(c *gin.Context) {
 	}
 
 	// Return crew
-	c.JSON(http.StatusOK, crew)
+	responses.RespondOK(c, crew, "Crew credits retrieved successfully")
 }
 
 // GetDirectorsForMediaItem godoc
-// @Summary Get directors for a media item
-// @Description Retrieves all director credits associated with a specific media item
-// @Tags credits
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param itemID path int true "Media Item ID"
-// @Success 200 {array} models.Credit "Director credits retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid media item ID"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/media/credits/{itemID}/directors [get]
+//
+//	@Summary		Get directors for a media item
+//	@Description	Retrieves all director credits associated with a specific media item
+//	@Tags			credits
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			itemID	path		int												true	"Media Item ID"
+//	@Success		200		{array}		responses.APIResponse[[]models.Credit]									"Director credits retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid media item ID"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/media/credits/{itemID}/directors [get]
 func (h *CreditHandler) GetDirectorsForMediaItem(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -156,21 +160,22 @@ func (h *CreditHandler) GetDirectorsForMediaItem(c *gin.Context) {
 	}
 
 	// Return directors
-	c.JSON(http.StatusOK, directors)
+	responses.RespondOK(c, directors, "Director credits retrieved successfully")
 }
 
 // GetCreditsByPerson godoc
-// @Summary Get all credits for a person
-// @Description Retrieves all credits associated with a specific person
-// @Tags credits
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param personID path int true "Person ID"
-// @Success 200 {array} models.Credit "Credits retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid person ID"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/media/credits/person/{personID} [get]
+//
+//	@Summary		Get all credits for a person
+//	@Description	Retrieves all credits associated with a specific person
+//	@Tags			credits
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			personID	path		int												true	"Person ID"
+//	@Success		200			{array}		responses.APIResponse[[]models.Credit]									"Credits retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid person ID"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/media/credits/person/{personID} [get]
 func (h *CreditHandler) GetCreditsByPerson(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -187,21 +192,22 @@ func (h *CreditHandler) GetCreditsByPerson(c *gin.Context) {
 	}
 
 	// Return credits
-	c.JSON(http.StatusOK, credits)
+	responses.RespondOK(c, credits, "Credits retrieved successfully")
 }
 
 // CreateCredit godoc
-// @Summary Create a new credit
-// @Description Creates a new credit associating a person with a media item
-// @Tags credits
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param request body requests.CreateCreditRequest true "Credit information"
-// @Success 201 {object} models.Credit "Credit created successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/media/credits [post]
+//
+//	@Summary		Create a new credit
+//	@Description	Creates a new credit associating a person with a media item
+//	@Tags			credits
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body		requests.CreateCreditRequest					true	"Credit information"
+//	@Success		201		{object}	responses.APIResponse[models.Credit]									"Credit created successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid request format"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/media/credits [post]
 func (h *CreditHandler) CreateCredit(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -234,23 +240,24 @@ func (h *CreditHandler) CreateCredit(c *gin.Context) {
 	}
 
 	// Return created credit
-	c.JSON(http.StatusCreated, createdCredit)
+	responses.RespondCreated(c, createdCredit, "Credit created successfully")
 }
 
 // UpdateCredit godoc
-// @Summary Update an existing credit
-// @Description Updates a credit record with the provided information
-// @Tags credits
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param creditID path int true "Credit ID"
-// @Param request body requests.UpdateCreditRequest true "Updated credit information"
-// @Success 200 {object} models.Credit "Credit updated successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid credit ID or request format"
-// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Credit not found"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/media/credits/{creditID} [put]
+//
+//	@Summary		Update an existing credit
+//	@Description	Updates a credit record with the provided information
+//	@Tags			credits
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			creditID	path		int												true	"Credit ID"
+//	@Param			request		body		requests.UpdateCreditRequest					true	"Updated credit information"
+//	@Success		200			{object}	models.Credit									"Credit updated successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid credit ID or request format"
+//	@Failure		404			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Credit not found"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/media/credits/{creditID} [put]
 func (h *CreditHandler) UpdateCredit(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -293,22 +300,23 @@ func (h *CreditHandler) UpdateCredit(c *gin.Context) {
 	}
 
 	// Return updated credit
-	c.JSON(http.StatusOK, updatedCredit)
+	responses.RespondOK(c, updatedCredit, "Credit updated successfully")
 }
 
 // DeleteCredit godoc
-// @Summary Delete a credit
-// @Description Deletes a credit record by ID
-// @Tags credits
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param creditID path int true "Credit ID"
-// @Success 200 {object} map[string]bool "Credit deleted successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid credit ID"
-// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Credit not found"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/media/credits/{creditID} [delete]
+//
+//	@Summary		Delete a credit
+//	@Description	Deletes a credit record by ID
+//	@Tags			credits
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			creditID path		int true	"Credit ID"
+//	@Success		200			{object}	responses.SuccessResponse "Credit deleted successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid credit ID"
+//	@Failure		404			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Credit not found"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/media/credits/{creditID} [delete]
 func (h *CreditHandler) DeleteCredit(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -325,22 +333,23 @@ func (h *CreditHandler) DeleteCredit(c *gin.Context) {
 	}
 
 	// Return success
-	c.JSON(http.StatusOK, gin.H{"success": true})
+	responses.RespondOK(c, gin.H{"success": true}, "Credit deleted successfully")
 }
 
 // CreateCreditsForMediaItem godoc
-// @Summary Create multiple credits for a media item
-// @Description Creates multiple credits for a specific media item in a single operation
-// @Tags credits
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param itemID path int true "Media Item ID"
-// @Param request body requests.CreateCreditsRequest true "Multiple credits information"
-// @Success 201 {array} models.Credit "Credits created successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid media item ID or request format"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/media/credits/{itemID} [post]
+//
+//	@Summary		Create multiple credits for a media item
+//	@Description	Creates multiple credits for a specific media item in a single operation
+//	@Tags			credits
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			itemID	path		int												true	"Media Item ID"
+//	@Param			request	body		requests.CreateCreditRequest					true	"Multiple credits information"
+//	@Success		201		{array}		responses.APIResponse[models.Credit]									"Credits created successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid media item ID or request format"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/media/credits/{itemID} [post]
 func (h *CreditHandler) CreateCreditsForMediaItem(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -357,7 +366,7 @@ func (h *CreditHandler) CreateCreditsForMediaItem(c *gin.Context) {
 	}
 
 	// Create credits
-	var credits []models.Credit
+	var credits []*models.Credit
 	for _, creditReq := range req.Credits {
 		credit := models.Credit{
 			PersonID:    creditReq.PersonID,
@@ -374,7 +383,7 @@ func (h *CreditHandler) CreateCreditsForMediaItem(c *gin.Context) {
 			IsCreator:   creditReq.IsCreator,
 			IsArtist:    creditReq.IsArtist,
 		}
-		credits = append(credits, credit)
+		credits = append(credits, &credit)
 	}
 
 	createdCredits, err := h.creditService.CreateCreditsForMediaItem(ctx, itemID, credits)
@@ -383,22 +392,23 @@ func (h *CreditHandler) CreateCreditsForMediaItem(c *gin.Context) {
 	}
 
 	// Return created credits
-	c.JSON(http.StatusCreated, createdCredits)
+	responses.RespondCreated(c, createdCredits, "Credits created successfully")
 }
 
 // GetCreditsByType godoc
-// @Summary Get credits by type for a media item
-// @Description Retrieves credits for a media item filtered by type (cast, crew, directors)
-// @Tags credits
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param itemID path int true "Media Item ID"
-// @Param type path string true "Credit type (cast, crew, directors)"
-// @Success 200 {array} models.Credit "Credits retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid media item ID or credit type"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/media/credits/{itemID}/{type} [get]
+//
+//	@Summary		Get credits by type for a media item
+//	@Description	Retrieves credits for a media item filtered by type (cast, crew, directors)
+//	@Tags			credits
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			itemID	path		int												true	"Media Item ID"
+//	@Param			type	path		string											true	"Credit type (cast, crew, directors)"
+//	@Success		200		{array}		responses.APIResponse[models.Credit]									"Credits retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid media item ID or credit type"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/media/credits/{itemID}/{type} [get]
 func (h *CreditHandler) GetCreditsByType(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -412,7 +422,7 @@ func (h *CreditHandler) GetCreditsByType(c *gin.Context) {
 	// Get type from path
 	creditType := c.Param("type")
 
-	var credits []models.Credit
+	var credits []*models.Credit
 
 	// Get credits based on type
 	switch creditType {
@@ -433,5 +443,5 @@ func (h *CreditHandler) GetCreditsByType(c *gin.Context) {
 	}
 
 	// Return credits
-	c.JSON(http.StatusOK, credits)
+	responses.RespondOK(c, credits, "Credits retrieved successfully")
 }

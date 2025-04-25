@@ -49,16 +49,17 @@ func NewClientMediaItemHandler[T clientTypes.ClientMediaConfig, U types.MediaDat
 }
 
 // CreateMediaItem godoc
-// @Summary Create a new media item associated with a client
-// @Description Creates a new media item in the database with client association
-// @Tags media, clients
-// @Accept json
-// @Produce json
-// @Param mediaItem body models.MediaItem[any] true "Media item data with type, client info, and type-specific data"
-// @Success 201 {object} responses.APIResponse[models.MediaItem[any]] "Media item created successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/client/{clientID}/media/{mediaType} [post]
+//
+//	@Summary		Create a new media item associated with a client
+//	@Description	Creates a new media item in the database with client association
+//	@Tags			media, clients
+//	@Accept			json
+//	@Produce		json
+//	@Param			mediaItem	body		models.MediaItem[any]							true	"Media item data with type, client info, and type-specific data"
+//	@Success		201			{object}	responses.APIResponse[models.MediaItem[types.MediaData]]	"Media item created successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[any]					"Invalid request"
+//	@Failure		500			{object}	responses.ErrorResponse[any]					"Server error"
+//	@Router			/client/{clientID}/media/{mediaType} [post]
 func (h *clientMediaItemHandler[T, U]) CreateClientItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -118,18 +119,19 @@ func (h *clientMediaItemHandler[T, U]) CreateClientItem(c *gin.Context) {
 }
 
 // UpdateClientMediaItem godoc
-// @Summary Update an existing client media item
-// @Description Updates a client media item in the database by ID
-// @Tags  media, clients
-// @Accept json
-// @Produce json
-// @Param itemID path string true "Media item ID"
-// @Param mediaItem body models.MediaItem[any] true "Media item data to update"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[any]] "Media item updated successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/client/{clientID}/media/{itemID} [put]
+//
+//	@Summary		Update an existing client media item
+//	@Description	Updates a client media item in the database by ID
+//	@Tags			media, clients
+//	@Accept			json
+//	@Produce		json
+//	@Param			itemID		path		string											true	"Media item ID"
+//	@Param			mediaItem	body		models.MediaItem[any]							true	"Media item data to update"
+//	@Success		200			{object}	responses.APIResponse[models.MediaItem[types.MediaData]]	"Media item updated successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[any]					"Invalid request"
+//	@Failure		404			{object}	responses.ErrorResponse[any]					"Media item not found"
+//	@Failure		500			{object}	responses.ErrorResponse[any]					"Server error"
+//	@Router			/client/{clientID}/media/{itemID} [put]
 func (h *clientMediaItemHandler[T, U]) UpdateClientItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -190,17 +192,18 @@ func (h *clientMediaItemHandler[T, U]) UpdateClientItem(c *gin.Context) {
 }
 
 // GetMediaItemsByClient godoc
-// @Summary Get media items by client
-// @Description Retrieves all media items for a specific client
-// @Tags  media, clients
-// @Accept json
-// @Produce json
-// @Param clientID path int true "Client ID"
-// @Param type query string false "Media type filter"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[any]] "Media items retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid client ID"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/client/{clientID}/media [get]
+//
+//	@Summary		Get media items by client
+//	@Description	Retrieves all media items for a specific client
+//	@Tags			media, clients
+//	@Accept			json
+//	@Produce		json
+//	@Param			clientID	path		int												true	"Client ID"
+//	@Param			type		query		string											false	"Media type filter"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[any]					"Invalid client ID"
+//	@Failure		500			{object}	responses.ErrorResponse[any]					"Server error"
+//	@Router			/client/{clientID}/media [get]
 func (h *clientMediaItemHandler[T, U]) GetAllClientItems(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -249,19 +252,20 @@ func (h *clientMediaItemHandler[T, U]) GetAllClientItems(c *gin.Context) {
 }
 
 // GetMediaItemByClientItemID godoc
-// @Summary Get media item by client-specific ID
-// @Description Retrieves a media item using its client-specific ID
-// @Tags  media, clients
-// @Accept json
-// @Produce json
-// @Param clientID path int true "Client ID"
-// @Param mediaType path string true "Media type"
-// @Param itemID path string true "Client-specific item ID"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[any]] "Media item retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/client/{clientID}/media/{mediaType}/{itemID} [get]
+//
+//	@Summary		Get media item by client-specific ID
+//	@Description	Retrieves a media item using its client-specific ID
+//	@Tags			media, clients
+//	@Accept			json
+//	@Produce		json
+//	@Param			clientID	path		int												true	"Client ID"
+//	@Param			mediaType	path		string											true	"Media type"
+//	@Param			itemID		path		string											true	"Client-specific item ID"
+//	@Success		200			{object}	responses.APIResponse[models.MediaItem[types.MediaData]]	"Media item retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[any]					"Invalid request"
+//	@Failure		404			{object}	responses.ErrorResponse[any]					"Media item not found"
+//	@Failure		500			{object}	responses.ErrorResponse[any]					"Server error"
+//	@Router			/client/{clientID}/media/{mediaType}/{itemID} [get]
 func (h *clientMediaItemHandler[T, U]) GetClientItemByItemID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -305,16 +309,17 @@ func (h *clientMediaItemHandler[T, U]) GetClientItemByItemID(c *gin.Context) {
 }
 
 // GetMediaItemsByMultipleClients godoc
-// @Summary Get media items from multiple clients
-// @Description Retrieves media items associated with any of the specified clients
-// @Tags  media, clients
-// @Accept json
-// @Produce json
-// @Param clientIDs query string true "Comma-separated list of client IDs"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[any]] "Media items retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/client/media/multi [get]
+//
+//	@Summary		Get media items from multiple clients
+//	@Description	Retrieves media items associated with any of the specified clients
+//	@Tags			media, clients
+//	@Accept			json
+//	@Produce		json
+//	@Param			clientIDs	query		string											true	"Comma-separated list of client IDs"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[any]					"Invalid request"
+//	@Failure		500			{object}	responses.ErrorResponse[any]					"Server error"
+//	@Router			/client/media/multi [get]
 func (h *clientMediaItemHandler[T, U]) GetItemsByMultipleClients(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -362,18 +367,19 @@ func (h *clientMediaItemHandler[T, U]) GetItemsByMultipleClients(c *gin.Context)
 }
 
 // SearchAcrossClients godoc
-// @Summary Search for media items across multiple clients
-// @Description Searches for media items across multiple clients based on query parameters
-// @Tags media, clients
-// @Accept json
-// @Produce json
-// @Param q query string true "Search query"
-// @Param clientIDs query string true "Comma-separated list of client IDs"
-// @Param type query string false "Media type filter"
-// @Success 200 {object} responses.APIResponse[map[string][]models.MediaItem[any]] "Media items retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/client/media/search [get]
+//
+//	@Summary		Search for media items across multiple clients
+//	@Description	Searches for media items across multiple clients based on query parameters
+//	@Tags			media, clients
+//	@Accept			json
+//	@Produce		json
+//	@Param			q			query		string														true	"Search query"
+//	@Param			clientIDs	query		string														true	"Comma-separated list of client IDs"
+//	@Param			type		query		string														false	"Media type filter"
+//	@Success		200			{object}	responses.APIResponse[map[string][]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		500			{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/client/media/search [get]
 func (h *clientMediaItemHandler[T, U]) SearchAcrossClients(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -446,17 +452,18 @@ func (h *clientMediaItemHandler[T, U]) SearchAcrossClients(c *gin.Context) {
 }
 
 // SyncItemBetweenClients godoc
-// @Summary Sync a media item between clients
-// @Description Creates or updates a mapping between a media item and a target client
-// @Tags media, clients
-// @Accept json
-// @Produce json
-// @Param syncRequest body object true "Sync request with source and target client info"
-// @Success 200 {object} responses.APIResponse[any] "Item synced successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/client/media/sync [post]
+//
+//	@Summary		Sync a media item between clients
+//	@Description	Creates or updates a mapping between a media item and a target client
+//	@Tags			media, clients
+//	@Accept			json
+//	@Produce		json
+//	@Param			syncRequest	body		object							true	"Sync request with source and target client info"
+//	@Success		200			{object}	responses.APIResponse[types.MediaData]		"Item synced successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[any]	"Invalid request"
+//	@Failure		404			{object}	responses.ErrorResponse[any]	"Media item not found"
+//	@Failure		500			{object}	responses.ErrorResponse[any]	"Server error"
+//	@Router			/client/media/sync [post]
 func (h *clientMediaItemHandler[T, U]) SyncItemBetweenClients(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -630,19 +637,20 @@ func (h *clientMediaItemHandler[T, U]) GetMediaItemsByYear(c *gin.Context) {
 }
 
 // DeleteClientItem godoc
-// @Summary Delete a media item from a client
-// @Description Deletes a media item from a client
-// @Tags media, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Param itemID path string true "Item ID"
-// @Success 200 {object} responses.APIResponse[string] "Item deleted"
-// @Failure 400 {object} responses.ErrorResponse[error] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[error] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[error] "Server error"
-// @Router /api/v1/client/{clientID}/media/item/{itemID} [delete]
+//
+//	@Summary		Delete a media item from a client
+//	@Description	Deletes a media item from a client
+//	@Tags			media, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int								true	"Client ID"
+//	@Param			itemID		path		string							true	"Item ID"
+//	@Success		200			{object}	responses.SuccessResponse									"Item deleted"
+//	@Failure		400			{object}	responses.ErrorResponse[error]	"Invalid request"
+//	@Failure		401			{object}	responses.ErrorResponse[error]	"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]	"Server error"
+//	@Router			/client/{clientID}/media/item/{itemID} [delete]
 func (h *clientMediaItemHandler[T, U]) DeleteClientItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -694,19 +702,20 @@ func (h *clientMediaItemHandler[T, U]) DeleteClientItem(c *gin.Context) {
 }
 
 // GetByClientItemID godoc
-// @Summary Get media item by client-specific ID
-// @Description Retrieves a media item using its client-specific ID
-// @Tags media, clients
-// @Accept json
-// @Produce json
-// @Param clientID path int true "Client ID"
-// @Param clientItemID path string true "Client-specific item ID"
-// @Param mediaType path string true "Media type"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[any]] "Media item retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/client/{clientID}/media/{mediaType}/{clientItemID} [get]
+//
+//	@Summary		Get media item by client-specific ID
+//	@Description	Retrieves a media item using its client-specific ID
+//	@Tags			media, clients
+//	@Accept			json
+//	@Produce		json
+//	@Param			clientID		path		int												true	"Client ID"
+//	@Param			clientItemID	path		string											true	"Client-specific item ID"
+//	@Param			mediaType		path		string											true	"Media type"
+//	@Success		200				{object}	responses.APIResponse[models.MediaItem[types.MediaData]]	"Media item retrieved successfully"
+//	@Failure		400				{object}	responses.ErrorResponse[any]					"Invalid request"
+//	@Failure		404				{object}	responses.ErrorResponse[any]					"Media item not found"
+//	@Failure		500				{object}	responses.ErrorResponse[any]					"Server error"
+//	@Router			/client/{clientID}/media/{mediaType}/{clientItemID} [get]
 func (h *coreMediaItemHandler[T]) GetByClientItemID(c *gin.Context) {
 
 }

@@ -18,6 +18,8 @@ type APIResponse[T any] struct {
 // StringResponse is the APIResponse for a string
 type StringResponse = APIResponse[string]
 
+type SuccessResponse = APIResponse[EmptyResponse]
+
 // HealthCheckResponse is for health check responses
 type HealthCheckResponse = APIResponse[HealthResponse]
 

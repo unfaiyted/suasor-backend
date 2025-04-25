@@ -23,15 +23,16 @@ func NewUserConfigHandler(userConfigService services.UserConfigService) *UserCon
 }
 
 // GetUserConfig godoc
-// @Summary Get user configuration
-// @Description Returns the configuration for the current user
-// @Tags config
-// @Accept json
-// @Produce json
-// @Success 200 {object} responses.APIResponse[models.UserConfig] "User configuration retrieved successfully"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/user-config [get]
+//
+//	@Summary		Get user configuration
+//	@Description	Returns the configuration for the current user
+//	@Tags			config
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	responses.APIResponse[models.UserConfig]		"User configuration retrieved successfully"
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized access"
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/user-config [get]
 func (h *UserConfigHandler) GetUserConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -49,17 +50,18 @@ func (h *UserConfigHandler) GetUserConfig(c *gin.Context) {
 }
 
 // UpdateUserConfig godoc
-// @Summary Update user configuration
-// @Description Updates the configuration for the current user
-// @Tags config
-// @Accept json
-// @Produce json
-// @Param request body models.UserConfig true "User configuration data"
-// @Success 200 {object} responses.APIResponse[any] "User configuration updated successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized access"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/user-config [put]
+//
+//	@Summary		Update user configuration
+//	@Description	Updates the configuration for the current user
+//	@Tags			config
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		models.UserConfig								true	"User configuration data"
+//	@Success		200		{object}	responses.APIResponse[any]						"User configuration updated successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid request format"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized access"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/user-config [put]
 func (h *UserConfigHandler) UpdateUserConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

@@ -24,13 +24,14 @@ func NewAuthHandler(service services.AuthService) *AuthHandler {
 }
 
 // Register godoc
-// @Summary Register a new user
-// @Description Registers a new user with email, username, and password
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param request body requests.RegisterRequest true "User registration data"
-// @Example request
+//
+//	@Summary		Register a new user
+//	@Description	Registers a new user with email, username, and password
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body	requests.RegisterRequest	true	"User registration data"
+//	@Example		request
 //
 //	{
 //	  "email": "user@example.com",
@@ -38,8 +39,8 @@ func NewAuthHandler(service services.AuthService) *AuthHandler {
 //	  "password": "securePassword123"
 //	}
 //
-// @Success 201 {object} responses.APIResponse[responses.AuthDataResponse] "Successfully registered user"
-// @Example response
+//	@Success		201	{object}	responses.APIResponse[responses.AuthDataResponse]	"Successfully registered user"
+//	@Example		response
 //
 //	{
 //	  "success": true,
@@ -57,9 +58,9 @@ func NewAuthHandler(service services.AuthService) *AuthHandler {
 //	  "message": "User registered successfully"
 //	}
 //
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
-// @Failure 409 {object} responses.ErrorResponse[responses.ErrorDetails] "Email or username already in use"
-// @Example response
+//	@Failure		400	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid request format"
+//	@Failure		409	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Email or username already in use"
+//	@Example		response
 //
 //	{
 //	  "error": "conflict",
@@ -71,8 +72,8 @@ func NewAuthHandler(service services.AuthService) *AuthHandler {
 //	  "requestID": "c7f3305d-8c9a-4b9b-b701-3b9a1e36c1f0"
 //	}
 //
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/auth/register [post]
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -106,21 +107,22 @@ func (h *AuthHandler) Register(c *gin.Context) {
 }
 
 // Login godoc
-// @Summary Log in a user
-// @Description Authenticates a user with email and password
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param request body requests.LoginRequest true "User login data"
-// @Example request
+//
+//	@Summary		Log in a user
+//	@Description	Authenticates a user with email and password
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body	requests.LoginRequest	true	"User login data"
+//	@Example		request
 //
 //	{
 //	  "email": "user@example.com",
 //	  "password": "securePassword123"
 //	}
 //
-// @Success 200 {object} responses.APIResponse[responses.AuthDataResponse] "Successfully authenticated user"
-// @Example response
+//	@Success		200	{object}	responses.APIResponse[responses.AuthDataResponse]	"Successfully authenticated user"
+//	@Example		response
 //
 //	{
 //	  "success": true,
@@ -138,9 +140,9 @@ func (h *AuthHandler) Register(c *gin.Context) {
 //	  "message": "Login successful"
 //	}
 //
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid credentials or inactive account"
-// @Example response
+//	@Failure		400	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid request format"
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid credentials or inactive account"
+//	@Example		response
 //
 //	{
 //	  "error": "unauthorized",
@@ -150,8 +152,8 @@ func (h *AuthHandler) Register(c *gin.Context) {
 //	  "requestID": "c7f3305d-8c9a-4b9b-b701-3b9a1e36c1f0"
 //	}
 //
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/auth/login [post]
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -180,20 +182,21 @@ func (h *AuthHandler) Login(c *gin.Context) {
 }
 
 // RefreshToken godoc
-// @Summary Refresh access token
-// @Description Get a new access token using a refresh token
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param request body requests.RefreshTokenRequest true "Refresh token data"
-// @Example request
+//
+//	@Summary		Refresh access token
+//	@Description	Get a new access token using a refresh token
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body	requests.RefreshTokenRequest	true	"Refresh token data"
+//	@Example		request
 //
 //	{
 //	  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 //	}
 //
-// @Success 200 {object} responses.APIResponse[responses.AuthDataResponse] "Successfully refreshed token"
-// @Example response
+//	@Success		200	{object}	responses.APIResponse[responses.AuthDataResponse]	"Successfully refreshed token"
+//	@Example		response
 //
 //	{
 //	  "success": true,
@@ -211,9 +214,9 @@ func (h *AuthHandler) Login(c *gin.Context) {
 //	  "message": "Token refreshed successfully"
 //	}
 //
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid or expired refresh token"
-// @Example response
+//	@Failure		400	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid request format"
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid or expired refresh token"
+//	@Example		response
 //
 //	{
 //	  "error": "unauthorized",
@@ -223,8 +226,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 //	  "requestID": "c7f3305d-8c9a-4b9b-b701-3b9a1e36c1f0"
 //	}
 //
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/auth/refresh [post]
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/auth/refresh [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -253,30 +256,31 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 }
 
 // Logout godoc
-// @Summary Log out a user
-// @Description Invalidates the refresh token, effectively logging the user out
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param request body requests.LogoutRequest true "Logout data"
-// @Example request
+//
+//	@Summary		Log out a user
+//	@Description	Invalidates the refresh token, effectively logging the user out
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body	requests.LogoutRequest	true	"Logout data"
+//	@Example		request
 //
 //	{
 //	  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 //	}
 //
-// @Success 200 {object} responses.APIResponse[any] "Successfully logged out"
-// @Example response
+//	@Success		200	{object}	responses.APIResponse[any]	"Successfully logged out"
+//	@Example		response
 //
 //	{
 //	  "success": true,
 //	  "message": "Successfully logged out"
 //	}
 //
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request format"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid refresh token"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/auth/logout [post]
+//	@Failure		400	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid request format"
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid refresh token"
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/auth/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -308,13 +312,14 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 }
 
 // ValidateSession godoc
-// @Summary Validate user session
-// @Description Validates the user's session token and returns current user profile
-// @Tags auth
-// @Produce json
-// @Security BearerAuth
-// @Success 200 {object} responses.APIResponse[responses.UserResponse] "Valid session with user details"
-// @Example response
+//
+//	@Summary		Validate user session
+//	@Description	Validates the user's session token and returns current user profile
+//	@Tags			auth
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Success		200	{object}	responses.APIResponse[responses.UserResponse]	"Valid session with user details"
+//	@Example		response
 //
 //	{
 //	  "success": true,
@@ -327,8 +332,8 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 //	  "message": "Session is valid"
 //	}
 //
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid or expired session token"
-// @Example response
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid or expired session token"
+//	@Example		response
 //
 //	{
 //	  "error": "unauthorized",
@@ -338,8 +343,8 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 //	  "requestID": "c7f3305d-8c9a-4b9b-b701-3b9a1e36c1f0"
 //	}
 //
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/auth/validate [get]
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/auth/validate [get]
 func (h *AuthHandler) ValidateSession(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

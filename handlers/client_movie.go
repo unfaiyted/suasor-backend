@@ -4,7 +4,7 @@ package handlers
 import (
 	"strconv"
 	"strings"
-	mediatypes "suasor/clients/media/types"
+	"suasor/clients/media/types"
 	clienttypes "suasor/clients/types"
 	"suasor/services"
 	models "suasor/types/models"
@@ -51,19 +51,20 @@ func NewClientMovieHandler[T clienttypes.ClientMediaConfig](
 }
 
 // GetMovieByID godoc
-// @Summary Get movie by ID
-// @Description Retrieves a specific movie from the client by ID
-// @Tags movies, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientID path int true "Client ID"
-// @Param clientItemID path string true "Movie ID"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Movie]] "Movies retrieved"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientID}/movie/item/{clientItemId} [get]
+//
+//	@Summary		Get movie by ID
+//	@Description	Retrieves a specific movie from the client by ID
+//	@Tags			movies, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID		path		int															true	"Client ID"
+//	@Param			clientItemID	path		string														true	"Movie ID"
+//	@Success		200				{object}	responses.APIResponse[models.MediaItem[types.Movie]]	"Movies retrieved"
+//	@Failure		400				{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid client ID"
+//	@Failure		401				{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//	@Failure		500				{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/client/{clientID}/movie/item/{clientItemId} [get]
 func (h *clientMovieHandler[T]) GetClientMovieByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -109,17 +110,18 @@ func (h *clientMovieHandler[T]) GetClientMovieByID(c *gin.Context) {
 }
 
 // GetMoviesByGenre godoc
-// @Summary Get movies by genre
-// @Description Retrieves movies from all connected clients that match the specified genre
-// @Tags movies, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param genre path string true "Genre name"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientID}/movie/genre/{genre} [get]
+//
+//	@Summary		Get movies by genre
+//	@Description	Retrieves movies from all connected clients that match the specified genre
+//	@Tags			movies, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			genre	path		string														true	"Genre name"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/client/{clientID}/movie/genre/{genre} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -156,18 +158,19 @@ func (h *clientMovieHandler[T]) GetClientMoviesByGenre(c *gin.Context) {
 }
 
 // GetMoviesByYear godoc
-// @Summary Get movies by release year
-// @Description Retrieves movies from all connected clients that were released in the specified year
-// @Tags movies, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param year path int true "Release year"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid year"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientID}/movie/year/{year} [get]
+//
+//	@Summary		Get movies by release year
+//	@Description	Retrieves movies from all connected clients that were released in the specified year
+//	@Tags			movies, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			year	path		int															true	"Release year"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid year"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/client/{clientID}/movie/year/{year} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -206,17 +209,18 @@ func (h *clientMovieHandler[T]) GetClientMoviesByYear(c *gin.Context) {
 }
 
 // GetMoviesByActor godoc
-// @Summary Get movies by actor
-// @Description Retrieves movies from all connected clients featuring the specified actor
-// @Tags movies, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param actor path string true "Actor name"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientID}/movie/actor/{actor} [get]
+//
+//	@Summary		Get movies by actor
+//	@Description	Retrieves movies from all connected clients featuring the specified actor
+//	@Tags			movies, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			actor	path		string														true	"Actor name"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/client/{clientID}/movie/actor/{actor} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByActor(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -255,17 +259,18 @@ func (h *clientMovieHandler[T]) GetClientMoviesByActor(c *gin.Context) {
 }
 
 // GetMoviesByDirector godoc
-// @Summary Get movies by director
-// @Description Retrieves movies from all connected clients directed by the specified director
-// @Tags movies, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param director path string true "Director name"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientID}/movie/director/{director} [get]
+//
+//	@Summary		Get movies by director
+//	@Description	Retrieves movies from all connected clients directed by the specified director
+//	@Tags			movies, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			director	path		string														true	"Director name"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/client/{clientID}/movie/director/{director} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByDirector(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -304,19 +309,20 @@ func (h *clientMovieHandler[T]) GetClientMoviesByDirector(c *gin.Context) {
 }
 
 // GetMoviesByRating godoc
-// @Summary Get movies by rating range
-// @Description Retrieves movies from all connected clients with ratings in the specified range
-// @Tags movies, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param min query number true "Minimum rating (e.g. 7.5)"
-// @Param max query number true "Maximum rating (e.g. 10.0)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid rating format"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientID}/movie/rating [get]
+//
+//	@Summary		Get movies by rating range
+//	@Description	Retrieves movies from all connected clients with ratings in the specified range
+//	@Tags			movies, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			min	query		number														true	"Minimum rating (e.g. 7.5)"
+//	@Param			max	query		number														true	"Maximum rating (e.g. 10.0)"
+//	@Success		200	{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved"
+//	@Failure		400	{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid rating format"
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/client/{clientID}/movie/rating [get]
 func (h *clientMovieHandler[T]) GetClientMoviesByRating(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -376,18 +382,19 @@ func (h *clientMovieHandler[T]) GetClientMoviesByRating(c *gin.Context) {
 }
 
 // GetLatestMoviesByAdded godoc
-// @Summary Get latest added movies
-// @Description Retrieves the most recently added movies from all connected clients
-// @Tags movies, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param count path int true "Number of movies to retrieve"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid count format"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientID}/movie/latest/{count} [get]
+//
+//	@Summary		Get latest added movies
+//	@Description	Retrieves the most recently added movies from all connected clients
+//	@Tags			movies, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			count	path		int															true	"Number of movies to retrieve"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid count format"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/client/{clientID}/movie/latest/{count} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesLatestByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -433,18 +440,19 @@ func (h *clientMovieHandler[T]) GetClientMoviesLatestByAdded(c *gin.Context) {
 }
 
 // GetPopularMovies godoc
-// @Summary Get popular movies
-// @Description Retrieves the most popular movies from all connected clients
-// @Tags movies, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param count path int true "Number of movies to retrieve"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid count format"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientID}/movie/popular/{count} [get]
+//
+//	@Summary		Get popular movies
+//	@Description	Retrieves the most popular movies from all connected clients
+//	@Tags			movies, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			count	path		int															true	"Number of movies to retrieve"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid count format"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/client/{clientID}/movie/popular/{count} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesPopular(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -490,19 +498,20 @@ func (h *clientMovieHandler[T]) GetClientMoviesPopular(c *gin.Context) {
 }
 
 // GetTopRatedMovies godoc
-// @Summary Get top rated movies
-// @Description Retrieves the highest rated movies from all connected clients
-// @Tags movies, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param count path int true "Number of movies to retrieve"
-// @Param clientID path int true "Client ID"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid count format"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientID}/movie/top-rated/{count} [get]
+//
+//	@Summary		Get top rated movies
+//	@Description	Retrieves the highest rated movies from all connected clients
+//	@Tags			movies, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			count		path		int															true	"Number of movies to retrieve"
+//	@Param			clientID	path		int															true	"Client ID"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid count format"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/client/{clientID}/movie/top-rated/{count} [get]
 func (h *clientMovieHandler[T]) GetClientMoviesTopRated(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -548,19 +557,20 @@ func (h *clientMovieHandler[T]) GetClientMoviesTopRated(c *gin.Context) {
 }
 
 // SearchMovies godoc
-// @Summary Search for movies
-// @Description Searches for movies across all connected clients matching the query
-// @Tags movies, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param q query string true "Search query"
-// @Param clientID path int true "Client ID"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Missing search query"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientID}/movie/search [get]
+//
+//	@Summary		Search for movies
+//	@Description	Searches for movies across all connected clients matching the query
+//	@Tags			movies, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			q			query		string														true	"Search query"
+//	@Param			clientID	path		int															true	"Client ID"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Missing search query"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/client/{clientID}/movie/search [get]
 func (h *clientMovieHandler[T]) SearchClientMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -582,7 +592,7 @@ func (h *clientMovieHandler[T]) SearchClientMovies(c *gin.Context) {
 		Str("query", query).
 		Msg("Searching movies")
 
-	options := mediatypes.QueryOptions{
+	options := types.QueryOptions{
 		Query: query,
 	}
 
@@ -603,27 +613,28 @@ func (h *clientMovieHandler[T]) SearchClientMovies(c *gin.Context) {
 }
 
 // GetMovieByExternalID godoc
-// @Summary Get movie by external ID
-// @Description Retrieves a movie from all connected clients by external ID
-// @Tags movies, clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param source path int true "Source"
-// @Param externalID path string true "External ID"
-// @Param clientID path int true "Client ID"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Movie]] "Movies retrieved"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid client ID"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/client/{clientID}/movie/external/{source}/{externalID} [get]
+//
+//	@Summary		Get movie by external ID
+//	@Description	Retrieves a movie from all connected clients by external ID
+//	@Tags			movies, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			source		path		int															true	"Source"
+//	@Param			externalID	path		string														true	"External ID"
+//	@Param			clientID	path		int															true	"Client ID"
+//	@Success		200			{object}	responses.APIResponse[models.MediaItem[types.Movie]]	"Movies retrieved"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid client ID"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/client/{clientID}/movie/external/{source}/{externalID} [get]
 func (h *clientMovieHandler[T]) GetClientMovieByExternalID(c *gin.Context) {
 
 }
 
-func createMovieMediaItem[T mediatypes.Movie](clientID uint64, clientType clienttypes.ClientMediaType, externalID string, data mediatypes.Movie) models.MediaItem[mediatypes.Movie] {
-	mediaItem := models.MediaItem[mediatypes.Movie]{
-		Type:        mediatypes.MediaTypeMovie,
+func createMovieMediaItem[T types.Movie](clientID uint64, clientType clienttypes.ClientMediaType, externalID string, data types.Movie) models.MediaItem[types.Movie] {
+	mediaItem := models.MediaItem[types.Movie]{
+		Type:        types.MediaTypeMovie,
 		SyncClients: []models.SyncClient{},
 		ExternalIDs: []models.ExternalID{},
 		Data:        data,
@@ -641,17 +652,19 @@ func createMovieMediaItem[T mediatypes.Movie](clientID uint64, clientType client
 }
 
 // GetClientByActor godoc
-// @Summary Get movies by actor
-// @Description Retrieves movies featuring a specific actor
-// @Tags movies, clients
-// @Accept json
-// @Produce json
-// @Param actor path string true "Actor name"
-// @Param limit query int false "Maximum number of movies to return (default 20)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 404 {object} responses.ErrorResponse[any] "Movie not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+//
+//	@Summary		Get movies by actor
+//	@Description	Retrieves movies featuring a specific actor
+//	@Tags			movies, clients
+//	@Accept			json
+//	@Produce		json
+//	@Param			actor	path		string														true	"Actor name"
+//	@Param			limit	query		int															false	"Maximum number of movies to return (default 20)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		404		{object}	responses.ErrorResponse[any]								"Movie not found"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//
 // Note: This functionality is redundant, covered by GetClientMoviesByActor
 func (h *clientMovieHandler[T]) GetClientByActor(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -682,7 +695,7 @@ func (h *clientMovieHandler[T]) GetClientByActor(c *gin.Context) {
 		Msg("Getting movies by actor")
 
 	// Create query options
-	options := mediatypes.QueryOptions{
+	options := types.QueryOptions{
 		Actor: actor,
 		Limit: limit,
 	}
@@ -698,7 +711,7 @@ func (h *clientMovieHandler[T]) GetClientByActor(c *gin.Context) {
 	}
 
 	// Filter for items with the specified actor
-	var filtered []*models.MediaItem[*mediatypes.Movie]
+	var filtered []*models.MediaItem[*types.Movie]
 	for _, movie := range movies {
 		if strings.EqualFold(movie.Data.Credits.GetCast()[0].Name, actor) {
 			filtered = append(filtered, movie)

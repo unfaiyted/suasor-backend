@@ -27,17 +27,18 @@ func NewUserMovieHandler(
 }
 
 // GetFavoriteMovies godoc
-// @Summary Get user favorite movies
-// @Description Retrieves movies that a user has marked as favorites
-// @Tags movies
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param limit query int false "Maximum number of movies to return (default 20)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved successfully"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/media/movies/user/favorites [get]
+//
+//	@Summary		Get user favorite movies
+//	@Description	Retrieves movies that a user has marked as favorites
+//	@Tags			movies
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			limit	query		int															false	"Maximum number of movies to return (default 20)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Movie]]	"Movies retrieved successfully"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/media/movies/user/favorites [get]
 func (h *UserMovieHandler) GetFavoriteMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -66,9 +67,9 @@ func (h *UserMovieHandler) GetFavoriteMovies(c *gin.Context) {
 
 	movies, err := h.userMovieService.SearchUserContent(ctx, options)
 	if err != nil {
-		handleServiceError(c, err, 
-			"Failed to retrieve favorite movies", 
-			"No favorite movies found", 
+		handleServiceError(c, err,
+			"Failed to retrieve favorite movies",
+			"No favorite movies found",
 			"Failed to retrieve favorite movies")
 		return
 	}
@@ -81,17 +82,18 @@ func (h *UserMovieHandler) GetFavoriteMovies(c *gin.Context) {
 }
 
 // GetWatchedMovies godoc
-// @Summary Get user watched movies
-// @Description Retrieves movies that a user has watched
-// @Tags movies
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param limit query int false "Maximum number of movies to return (default 20)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved successfully"
-// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/movies/user/watched [get]
+//
+//	@Summary		Get user watched movies
+//	@Description	Retrieves movies that a user has watched
+//	@Tags			movies
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			limit	query		int															false	"Maximum number of movies to return (default 20)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Movie]]	"Movies retrieved successfully"
+//	@Failure		401		{object}	responses.ErrorResponse[any]								"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/movies/user/watched [get]
 func (h *UserMovieHandler) GetWatchedMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -122,9 +124,9 @@ func (h *UserMovieHandler) GetWatchedMovies(c *gin.Context) {
 
 	movies, err := h.userMovieService.SearchUserContent(ctx, options)
 	if err != nil {
-		handleServiceError(c, err, 
-			"Failed to retrieve watched movies", 
-			"No watched movies found", 
+		handleServiceError(c, err,
+			"Failed to retrieve watched movies",
+			"No watched movies found",
 			"Failed to retrieve watched movies")
 		return
 	}
@@ -137,17 +139,18 @@ func (h *UserMovieHandler) GetWatchedMovies(c *gin.Context) {
 }
 
 // GetWatchlistMovies godoc
-// @Summary Get movies in user watchlist
-// @Description Retrieves movies that a user has added to their watchlist
-// @Tags movies
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param limit query int false "Maximum number of movies to return (default 20)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved successfully"
-// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/movies/user/watchlist [get]
+//
+//	@Summary		Get movies in user watchlist
+//	@Description	Retrieves movies that a user has added to their watchlist
+//	@Tags			movies
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			limit	query		int															false	"Maximum number of movies to return (default 20)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Movie]]	"Movies retrieved successfully"
+//	@Failure		401		{object}	responses.ErrorResponse[any]								"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/movies/user/watchlist [get]
 func (h *UserMovieHandler) GetWatchlistMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -176,9 +179,9 @@ func (h *UserMovieHandler) GetWatchlistMovies(c *gin.Context) {
 
 	movies, err := h.userMovieService.SearchUserContent(ctx, options)
 	if err != nil {
-		handleServiceError(c, err, 
-			"Failed to retrieve watchlist movies", 
-			"No watchlist movies found", 
+		handleServiceError(c, err,
+			"Failed to retrieve watchlist movies",
+			"No watchlist movies found",
 			"Failed to retrieve watchlist movies")
 		return
 	}
@@ -191,17 +194,18 @@ func (h *UserMovieHandler) GetWatchlistMovies(c *gin.Context) {
 }
 
 // GetRecommendedMovies godoc
-// @Summary Get recommended movies for user
-// @Description Retrieves movies recommended for the user based on their preferences and watch history
-// @Tags movies
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param limit query int false "Maximum number of movies to return (default 20)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "Movies retrieved successfully"
-// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/movies/user/recommended [get]
+//
+//	@Summary		Get recommended movies for user
+//	@Description	Retrieves movies recommended for the user based on their preferences and watch history
+//	@Tags			movies
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			limit	query		int															false	"Maximum number of movies to return (default 20)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Movie]]	"Movies retrieved successfully"
+//	@Failure		401		{object}	responses.ErrorResponse[any]								"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/movies/user/recommended [get]
 func (h *UserMovieHandler) GetRecommendedMovies(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -232,9 +236,9 @@ func (h *UserMovieHandler) GetRecommendedMovies(c *gin.Context) {
 
 	movies, err := h.userMovieService.Search(ctx, options)
 	if err != nil {
-		handleServiceError(c, err, 
-			"Failed to retrieve recommended movies", 
-			"No recommended movies found", 
+		handleServiceError(c, err,
+			"Failed to retrieve recommended movies",
+			"No recommended movies found",
 			"Failed to retrieve recommended movies")
 		return
 	}
@@ -247,20 +251,21 @@ func (h *UserMovieHandler) GetRecommendedMovies(c *gin.Context) {
 }
 
 // UpdateMovie godoc
-// @Summary Update user data for a movie
-// @Description Updates user-specific data for a movie (favorite, watched status, rating, etc.)
-// @Tags movies
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param itemID path int true "Movie ID"
-// @Param data body requests.UserMediaItemDataUpdateRequest true "Updated user data"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Movie]] "Movie updated successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
-// @Failure 404 {object} responses.ErrorResponse[any] "Movie not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/movie/{itemID} [patch]
+//
+//	@Summary		Update user data for a movie
+//	@Description	Updates user-specific data for a movie (favorite, watched status, rating, etc.)
+//	@Tags			movies
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			itemID	path		int															true	"Movie ID"
+//	@Param			data	body		requests.UserMediaItemDataUpdateRequest						true	"Updated user data"
+//	@Success		200		{object}	responses.APIResponse[models.MediaItem[mediatypes.Movie]]	"Movie updated successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		401		{object}	responses.ErrorResponse[any]								"Unauthorized"
+//	@Failure		404		{object}	responses.ErrorResponse[any]								"Movie not found"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/movie/{itemID} [patch]
 func (h *UserMovieHandler) UpdateMovie(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

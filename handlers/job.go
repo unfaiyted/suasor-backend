@@ -26,14 +26,15 @@ func NewJobHandler(jobService services.JobService) *JobHandler {
 }
 
 // GetAllJobSchedules godoc
-// @Summary Get all job schedules
-// @Description Returns a list of all job schedules
-// @Tags jobs
-// @Accept json
-// @Produce json
-// @Success 200 {object} responses.APIResponse[[]models.JobSchedule]
-// @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /api/v1/jobs/schedules [get]
+//
+//	@Summary		Get all job schedules
+//	@Description	Returns a list of all job schedules
+//	@Tags			jobs
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	responses.APIResponse[[]models.JobSchedule]
+//	@Failure		500	{object}	responses.ErrorResponse[error]
+//	@Router			/jobs/schedules [get]
 func (h *JobHandler) GetAllJobSchedules(c *gin.Context) {
 	schedules, err := h.jobService.GetAllJobSchedules(c.Request.Context())
 	if err != nil {
@@ -45,16 +46,17 @@ func (h *JobHandler) GetAllJobSchedules(c *gin.Context) {
 }
 
 // GetJobScheduleByName godoc
-// @Summary Get job schedule by name
-// @Description Returns a specific job schedule by its name
-// @Tags jobs
-// @Accept json
-// @Produce json
-// @Param name path string true "Job name"
-// @Success 200 {object} responses.APIResponse[models.JobSchedule]
-// @Failure 404 {object} responses.ErrorResponse[error]
-// @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /api/v1/jobs/schedules/{name} [get]
+//
+//	@Summary		Get job schedule by name
+//	@Description	Returns a specific job schedule by its name
+//	@Tags			jobs
+//	@Accept			json
+//	@Produce		json
+//	@Param			name	path		string	true	"Job name"
+//	@Success		200		{object}	responses.APIResponse[models.JobSchedule]
+//	@Failure		404		{object}	responses.ErrorResponse[error]
+//	@Failure		500		{object}	responses.ErrorResponse[error]
+//	@Router			/jobs/schedules/{name} [get]
 func (h *JobHandler) GetJobScheduleByName(c *gin.Context) {
 	name := c.Param("name")
 	schedule, err := h.jobService.GetJobScheduleByName(c.Request.Context(), name)
@@ -72,16 +74,17 @@ func (h *JobHandler) GetJobScheduleByName(c *gin.Context) {
 }
 
 // CreateJobSchedule godoc
-// @Summary Create a new job schedule
-// @Description Creates a new job schedule
-// @Tags jobs
-// @Accept json
-// @Produce json
-// @Param request body models.JobSchedule true "Job schedule to create"
-// @Success 201 {object} responses.APIResponse[models.JobSchedule]
-// @Failure 400 {object} responses.ErrorResponse[error]
-// @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /api/v1/jobs/schedules [post]
+//
+//	@Summary		Create a new job schedule
+//	@Description	Creates a new job schedule
+//	@Tags			jobs
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		models.JobSchedule	true	"Job schedule to create"
+//	@Success		201		{object}	responses.APIResponse[models.JobSchedule]
+//	@Failure		400		{object}	responses.ErrorResponse[error]
+//	@Failure		500		{object}	responses.ErrorResponse[error]
+//	@Router			/jobs/schedules [post]
 func (h *JobHandler) CreateJobSchedule(c *gin.Context) {
 	var schedule models.JobSchedule
 	if !checkJSONBinding(c, &schedule) {
@@ -110,17 +113,18 @@ func (h *JobHandler) CreateJobSchedule(c *gin.Context) {
 }
 
 // UpdateJobSchedule godoc
-// @Summary Update job schedule
-// @Description Updates an existing job schedule
-// @Tags jobs
-// @Accept json
-// @Produce json
-// @Param request body requests.UpdateJobScheduleRequest true "Job schedule update"
-// @Success 200 {object} responses.APIResponse[models.JobSchedule]
-// @Failure 400 {object} responses.ErrorResponse[error]
-// @Failure 404 {object} responses.ErrorResponse[error]
-// @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /api/v1/jobs/schedules [put]
+//
+//	@Summary		Update job schedule
+//	@Description	Updates an existing job schedule
+//	@Tags			jobs
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		requests.UpdateJobScheduleRequest	true	"Job schedule update"
+//	@Success		200		{object}	responses.APIResponse[models.JobSchedule]
+//	@Failure		400		{object}	responses.ErrorResponse[error]
+//	@Failure		404		{object}	responses.ErrorResponse[error]
+//	@Failure		500		{object}	responses.ErrorResponse[error]
+//	@Router			/jobs/schedules [put]
 func (h *JobHandler) UpdateJobSchedule(c *gin.Context) {
 	var req requests.UpdateJobScheduleRequest
 	if !checkJSONBinding(c, &req) {
@@ -153,17 +157,18 @@ func (h *JobHandler) UpdateJobSchedule(c *gin.Context) {
 }
 
 // RunJobManually godoc
-// @Summary Run job manually
-// @Description Triggers a job to run immediately
-// @Tags jobs
-// @Accept json
-// @Produce json
-// @Param name path string true "Job name"
-// @Success 202 {object} responses.APIResponse[any]
-// @Failure 400 {object} responses.ErrorResponse[error]
-// @Failure 404 {object} responses.ErrorResponse[error]
-// @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /api/v1/jobs/{name}/run [post]
+//
+//	@Summary		Run job manually
+//	@Description	Triggers a job to run immediately
+//	@Tags			jobs
+//	@Accept			json
+//	@Produce		json
+//	@Param			name	path		string	true	"Job name"
+//	@Success		202		{object}	responses.APIResponse[any]
+//	@Failure		400		{object}	responses.ErrorResponse[error]
+//	@Failure		404		{object}	responses.ErrorResponse[error]
+//	@Failure		500		{object}	responses.ErrorResponse[error]
+//	@Router			/jobs/{name}/run [post]
 func (h *JobHandler) RunJobManually(c *gin.Context) {
 	name := c.Param("name")
 	log := logger.LoggerFromContext(c)
@@ -194,15 +199,16 @@ func (h *JobHandler) RunJobManually(c *gin.Context) {
 }
 
 // GetRecentJobRuns godoc
-// @Summary Get recent job runs
-// @Description Returns a list of recent job runs
-// @Tags jobs
-// @Accept json
-// @Produce json
-// @Param limit query int false "Limit number of results (default 50)"
-// @Success 200 {object} responses.APIResponse[[]models.JobRun]
-// @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /api/v1/jobs/runs [get]
+//
+//	@Summary		Get recent job runs
+//	@Description	Returns a list of recent job runs
+//	@Tags			jobs
+//	@Accept			json
+//	@Produce		json
+//	@Param			limit	query		int	false	"Limit number of results (default 50)"
+//	@Success		200		{object}	responses.APIResponse[[]models.JobRun]
+//	@Failure		500		{object}	responses.ErrorResponse[error]
+//	@Router			/jobs/runs [get]
 func (h *JobHandler) GetRecentJobRuns(c *gin.Context) {
 	limit := utils.GetLimit(c, 50, 100, true)
 
@@ -216,15 +222,16 @@ func (h *JobHandler) GetRecentJobRuns(c *gin.Context) {
 }
 
 // GetMediaSyncJobs godoc
-// @Summary Get job runs for current user
-// @Description Returns a list of job runs for the current user
-// @Tags jobs
-// @Accept json
-// @Produce json
-// @Param limit query int false "Limit number of results (default 50)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaSyncJob]
-// @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /api/v1/jobs/media-sync [get]
+//
+//	@Summary		Get job runs for current user
+//	@Description	Returns a list of job runs for the current user
+//	@Tags			jobs
+//	@Accept			json
+//	@Produce		json
+//	@Param			limit	query		int	false	"Limit number of results (default 50)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaSyncJob]
+//	@Failure		500		{object}	responses.ErrorResponse[error]
+//	@Router			/jobs/media-sync [get]
 func (h *JobHandler) GetMediaSyncJobs(c *gin.Context) {
 	// Get the user ID from the context
 	userID, exists := c.Get("userID")
@@ -243,16 +250,17 @@ func (h *JobHandler) GetMediaSyncJobs(c *gin.Context) {
 }
 
 // SetupMediaSyncJob godoc
-// @Summary Setup media sync job
-// @Description Creates or updates a media sync job for the current user
-// @Tags jobs
-// @Accept json
-// @Produce json
-// @Param request body requests.SetupMediaSyncJobRequest true "Media sync job setup"
-// @Success 200 {object} responses.APIResponse[any]
-// @Failure 400 {object} responses.ErrorResponse[error]
-// @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /api/v1/jobs/media-sync [post]
+//
+//	@Summary		Setup media sync job
+//	@Description	Creates or updates a media sync job for the current user
+//	@Tags			jobs
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		requests.SetupMediaSyncJobRequest	true	"Media sync job setup"
+//	@Success		200		{object}	responses.APIResponse[any]
+//	@Failure		400		{object}	responses.ErrorResponse[error]
+//	@Failure		500		{object}	responses.ErrorResponse[error]
+//	@Router			/jobs/media-sync [post]
 func (h *JobHandler) SetupMediaSyncJob(c *gin.Context) {
 	var req requests.SetupMediaSyncJobRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -276,16 +284,17 @@ func (h *JobHandler) SetupMediaSyncJob(c *gin.Context) {
 }
 
 // RunMediaSyncJob godoc
-// @Summary Run media sync job manually
-// @Description Runs a media sync job manually for the current user
-// @Tags jobs
-// @Accept json
-// @Produce json
-// @Param request body requests.RunMediaSyncJobRequest true "Media sync job run"
-// @Success 202 {object} responses.APIResponse[any]
-// @Failure 400 {object} responses.ErrorResponse[error]
-// @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /api/v1/jobs/media-sync/run [post]
+//
+//	@Summary		Run media sync job manually
+//	@Description	Runs a media sync job manually for the current user
+//	@Tags			jobs
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		requests.RunMediaSyncJobRequest	true	"Media sync job run"
+//	@Success		202		{object}	responses.APIResponse[any]
+//	@Failure		400		{object}	responses.ErrorResponse[error]
+//	@Failure		500		{object}	responses.ErrorResponse[error]
+//	@Router			/jobs/media-sync/run [post]
 func (h *JobHandler) RunMediaSyncJob(c *gin.Context) {
 	var req requests.RunMediaSyncJobRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -309,16 +318,17 @@ func (h *JobHandler) RunMediaSyncJob(c *gin.Context) {
 }
 
 // GetUserRecommendations godoc
-// @Summary Get recommendations for current user
-// @Description Returns a list of recommendations for the current user
-// @Tags jobs
-// @Accept json
-// @Produce json
-// @Param active query bool false "Only return active recommendations (default true)"
-// @Param limit query int false "Limit number of results (default 50)"
-// @Success 200 {object} responses.APIResponse[[]models.Recommendation]
-// @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /api/v1/jobs/recommendations [get]
+//
+//	@Summary		Get recommendations for current user
+//	@Description	Returns a list of recommendations for the current user
+//	@Tags			jobs
+//	@Accept			json
+//	@Produce		json
+//	@Param			active	query		bool	false	"Only return active recommendations (default true)"
+//	@Param			limit	query		int		false	"Limit number of results (default 50)"
+//	@Success		200		{object}	responses.APIResponse[[]models.Recommendation]
+//	@Failure		500		{object}	responses.ErrorResponse[error]
+//	@Router			/jobs/recommendations [get]
 func (h *JobHandler) GetUserRecommendations(c *gin.Context) {
 	// Get the user ID from the context
 	userID, exists := c.Get("userID")
@@ -348,16 +358,17 @@ func (h *JobHandler) GetUserRecommendations(c *gin.Context) {
 }
 
 // GetJobRunProgress godoc
-// @Summary Get job run progress
-// @Description Returns progress information for a specific job run
-// @Tags jobs
-// @Accept json
-// @Produce json
-// @Param id path int true "Job Run ID"
-// @Success 200 {object} responses.APIResponse[models.JobRun]
-// @Failure 404 {object} responses.ErrorResponse[error]
-// @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /api/v1/jobs/runs/{id}/progress [get]
+//
+//	@Summary		Get job run progress
+//	@Description	Returns progress information for a specific job run
+//	@Tags			jobs
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"Job Run ID"
+//	@Success		200	{object}	responses.APIResponse[models.JobRun]
+//	@Failure		404	{object}	responses.ErrorResponse[error]
+//	@Failure		500	{object}	responses.ErrorResponse[error]
+//	@Router			/jobs/runs/{id}/progress [get]
 func (h *JobHandler) GetJobRunProgress(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -381,14 +392,15 @@ func (h *JobHandler) GetJobRunProgress(c *gin.Context) {
 }
 
 // GetActiveJobRuns godoc
-// @Summary Get all active job runs
-// @Description Returns a list of all currently running jobs
-// @Tags jobs
-// @Accept json
-// @Produce json
-// @Success 200 {object} responses.APIResponse[[]models.JobRun]
-// @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /api/v1/jobs/active [get]
+//
+//	@Summary		Get all active job runs
+//	@Description	Returns a list of all currently running jobs
+//	@Tags			jobs
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	responses.APIResponse[[]models.JobRun]
+//	@Failure		500	{object}	responses.ErrorResponse[error]
+//	@Router			/jobs/active [get]
 func (h *JobHandler) GetActiveJobRuns(c *gin.Context) {
 	runs, err := h.jobService.GetActiveJobRuns(c.Request.Context())
 	if err != nil {
@@ -400,16 +412,17 @@ func (h *JobHandler) GetActiveJobRuns(c *gin.Context) {
 }
 
 // DismissRecommendation godoc
-// @Summary Dismiss recommendation
-// @Description Marks a recommendation as dismissed
-// @Tags jobs
-// @Accept json
-// @Produce json
-// @Param id path int true "Recommendation ID"
-// @Success 200 {object} responses.APIResponse[any]
-// @Failure 400 {object} responses.ErrorResponse[error]
-// @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /api/v1/jobs/recommendations/{id}/dismiss [post]
+//
+//	@Summary		Dismiss recommendation
+//	@Description	Marks a recommendation as dismissed
+//	@Tags			jobs
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"Recommendation ID"
+//	@Success		200	{object}	responses.APIResponse[any]
+//	@Failure		400	{object}	responses.ErrorResponse[error]
+//	@Failure		500	{object}	responses.ErrorResponse[error]
+//	@Router			/jobs/recommendations/{id}/dismiss [post]
 func (h *JobHandler) DismissRecommendation(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -427,17 +440,18 @@ func (h *JobHandler) DismissRecommendation(c *gin.Context) {
 }
 
 // UpdateRecommendationViewedStatus godoc
-// @Summary Update recommendation viewed status
-// @Description Updates whether a recommendation has been viewed
-// @Tags jobs
-// @Accept json
-// @Produce json
-// @Param id path int true "Recommendation ID"
-// @Param request body requests.UpdateRecommendationViewedRequest true "Viewed status update"
-// @Success 200 {object} responses.APIResponse[any]
-// @Failure 400 {object} responses.ErrorResponse[error]
-// @Failure 500 {object} responses.ErrorResponse[error]
-// @Router /api/v1/jobs/recommendations/{id}/viewed [put]
+//
+//	@Summary		Update recommendation viewed status
+//	@Description	Updates whether a recommendation has been viewed
+//	@Tags			jobs
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		int											true	"Recommendation ID"
+//	@Param			request	body		requests.UpdateRecommendationViewedRequest	true	"Viewed status update"
+//	@Success		200		{object}	responses.APIResponse[any]
+//	@Failure		400		{object}	responses.ErrorResponse[error]
+//	@Failure		500		{object}	responses.ErrorResponse[error]
+//	@Router			/jobs/recommendations/{id}/viewed [put]
 func (h *JobHandler) UpdateRecommendationViewedStatus(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)

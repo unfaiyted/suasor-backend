@@ -41,7 +41,7 @@ func (j *RecommendationJob) generateMovieRecommendations(ctx context.Context, jo
 	systemPrompt := "You are a movie recommendation expert. Your goal is to provide personalized movie recommendations based on the user's preferences, watch history, and specified criteria. Provide detailed, thoughtful explanations for why each movie would appeal to this specific user."
 
 	// Set response format as JSON
-	responseFormat := map[string]interface{}{
+	responseFormat := map[string]any{
 		"type": "json_object",
 	}
 
@@ -866,7 +866,7 @@ func (j *RecommendationJob) processMovieHistory(ctx context.Context, profile *Us
 			movieData := movie.Data
 
 			// Get credits if available
-			var credits []models.Credit
+			var credits []*models.Credit
 			if j.creditRepo != nil {
 				credits, _ = j.getCreditsForMediaItem(ctx, movie.ID)
 			}

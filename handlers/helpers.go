@@ -213,28 +213,28 @@ func checkErrorType(c *gin.Context, err error, logMsg string) bool {
 	}
 
 	errStr := err.Error()
-	
+
 	// Handle common error types
 	if strings.Contains(errStr, "not found") {
 		log.Warn().Err(err).Msg(logMsg + " - not found")
 		responses.RespondNotFound(c, err, errStr)
 		return true
 	}
-	
+
 	if strings.Contains(errStr, "already exists") {
 		log.Warn().Err(err).Msg(logMsg + " - conflict")
 		responses.RespondConflict(c, err, errStr)
 		return true
 	}
-	
-	if strings.Contains(errStr, "invalid") || 
-	   strings.Contains(errStr, "unauthorized") || 
-	   strings.Contains(errStr, "expired") {
+
+	if strings.Contains(errStr, "invalid") ||
+		strings.Contains(errStr, "unauthorized") ||
+		strings.Contains(errStr, "expired") {
 		log.Warn().Err(err).Msg(logMsg + " - unauthorized")
 		responses.RespondUnauthorized(c, err, errStr)
 		return true
 	}
-	
+
 	return false
 }
 
@@ -243,21 +243,21 @@ func handleServiceError(c *gin.Context, err error, logMsg string, notFoundMsg st
 	if err == nil {
 		return false
 	}
-	
+
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
-	
+
 	if checkErrorType(c, err, logMsg) {
 		return true
 	}
-	
+
 	// For not found checks (sometimes error messages don't use "not found" pattern)
 	if notFoundMsg != "" && err.Error() == notFoundMsg {
 		log.Warn().Msg(logMsg + " - not found")
 		responses.RespondNotFound(c, err, notFoundMsg)
 		return true
 	}
-	
+
 	// If no special handling was applicable, log as internal error
 	log.Error().Err(err).Msg(logMsg + " - server error")
 	responses.RespondInternalError(c, err, internalErrMsg)
@@ -312,14 +312,14 @@ func checkRating(c *gin.Context, paramName string) (float64, bool) {
 func checkRequiredStringParam(c *gin.Context, paramName string, errorMsg string) (string, bool) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
-	
+
 	paramValue := c.Param(paramName)
 	if paramValue == "" {
 		log.Warn().Str(paramName, paramValue).Msg(errorMsg)
 		responses.RespondBadRequest(c, nil, errorMsg)
 		return "", false
 	}
-	
+
 	return paramValue, true
 }
 
@@ -328,14 +328,14 @@ func checkRequiredStringParam(c *gin.Context, paramName string, errorMsg string)
 func checkRequiredQueryParam(c *gin.Context, paramName string, errorMsg string) (string, bool) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
-	
+
 	paramValue := c.Query(paramName)
 	if paramValue == "" {
 		log.Warn().Str(paramName, paramValue).Msg(errorMsg)
 		responses.RespondBadRequest(c, nil, errorMsg)
 		return "", false
 	}
-	
+
 	return paramValue, true
 }
 

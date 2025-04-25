@@ -4,16 +4,18 @@ package handlers
 import (
 	"strconv"
 
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 
-	mediatypes "suasor/clients/media/types"
+	"suasor/clients/media/types"
 	"suasor/services"
 	models "suasor/types/models"
 	"suasor/types/responses"
 	"suasor/utils/logger"
 )
 
-type UserMediaItemHandler[T mediatypes.MediaData] interface {
+type UserMediaItemHandler[T types.MediaData] interface {
 	CoreMediaItemHandler[T]
 
 	Create(c *gin.Context)
@@ -25,13 +27,13 @@ type UserMediaItemHandler[T mediatypes.MediaData] interface {
 // userMediaItemHandler handles operations for user-owned media items
 // This handler extends CoreMediaItemHandler with operations specific to media items
 // that are owned by users, such as playlists and collections
-type userMediaItemHandler[T mediatypes.MediaData] struct {
+type userMediaItemHandler[T types.MediaData] struct {
 	CoreMediaItemHandler[T] // Embed the core handler
 	userService             services.UserMediaItemService[T]
 }
 
 // NewuserMediaItemHandler creates a new user media item handler
-func NewUserMediaItemHandler[T mediatypes.MediaData](
+func NewUserMediaItemHandler[T types.MediaData](
 	coreHandler CoreMediaItemHandler[T],
 	userService services.UserMediaItemService[T],
 ) UserMediaItemHandler[T] {
@@ -42,19 +44,20 @@ func NewUserMediaItemHandler[T mediatypes.MediaData](
 }
 
 // GetByUserID godoc
-// @Summary Get media items by user ID
-// @Description Retrieves media items owned by a specific user
-// @Tags media
-// @Accept json
-// @Produce json
-// @Param userID path int true "User ID"
-// @Param limit query int false "Maximum number of items to return (default 20)"
-// @Param offset query int false "Offset for pagination (default 0)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Movie]] "User media items retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
-// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "User not found"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/media/{mediaType}/user/{userID} [get]
+//
+//	@Summary		Get media items by user ID
+//	@Description	Retrieves media items owned by a specific user
+//	@Tags			media
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID	path		int															true	"User ID"
+//	@Param			limit	query		int															false	"Maximum number of items to return (default 20)"
+//	@Param			offset	query		int															false	"Offset for pagination (default 0)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"User media items retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid request"
+//	@Failure		404		{object}	responses.ErrorResponse[responses.ErrorDetails]				"User not found"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/media/{mediaType}/user/{userID} [get]
 func (h *userMediaItemHandler[T]) GetByUserID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -98,27 +101,28 @@ func (h *userMediaItemHandler[T]) GetByUserID(c *gin.Context) {
 }
 
 // Create godoc
-// @Summary Create a new user-owned media item
-// @Description Creates a new media item owned by a user
-// @Tags  media
-// @Accept json
-// @Produce json
-// @Param mediaType path string true "Media type"
-// @Param mediaItem body requests.MediaItemCreateRequest true "Media item data with type, client info, and type-specific data"
-// @Success 201 {object} responses.APIResponse[models.MediaItem[any]] "Media item created successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
-// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Media item not found"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/media/{mediaType} [post]
+//
+//	@Summary		Create a new user-owned media item
+//	@Description	Creates a new media item owned by a user
+//	@Tags			media
+//	@Accept			json
+//	@Produce		json
+//	@Param			mediaType	path		string											true	"Media type"
+//	@Param			mediaItem	body		requests.MediaItemCreateRequest					true	"Media item data with type, client info, and type-specific data"
+//	@Success		201			{object}	responses.APIResponse[models.MediaItem[types.MediaData]]	"Media item created successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid request"
+//	@Failure		404			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Media item not found"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/media/{mediaType} [post]
 func (h *userMediaItemHandler[T]) Create(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	var zero T
-	mediaType := mediatypes.GetMediaTypeFromTypeName(zero)
+	mediaType := types.GetMediaTypeFromTypeName(zero)
 	// Bind the request body to a media item struct
 
-	mediaData := mediatypes.NewItem[T]()
+	mediaData := types.NewItem[T]()
 	mediaItem := models.NewMediaItem(mediaType, mediaData)
 	if err := c.ShouldBindJSON(&mediaItem); err != nil {
 		log.Warn().Err(err).Msg("Invalid media item data")
@@ -173,19 +177,20 @@ func (h *userMediaItemHandler[T]) Create(c *gin.Context) {
 }
 
 // Update godoc
-// @Summary Update an existing user-owned media item
-// @Description Updates an existing media item owned by a user
-// @Tags  media
-// @Accept json
-// @Produce json
-// @Param itemID path int true "Media Item ID"
-// @Param mediaItem body requests.MediaItemUpdateRequest true "Updated media item data"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[any]] "Media item updated successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
-// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Media item not found"
-// @Failure 403 {object} responses.ErrorResponse[responses.ErrorDetails] "Not authorized to update this media item"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/media/{mediaType}/{itemID} [put]
+//
+//	@Summary		Update an existing user-owned media item
+//	@Description	Updates an existing media item owned by a user
+//	@Tags			media
+//	@Accept			json
+//	@Produce		json
+//	@Param			itemID		path		int												true	"Media Item ID"
+//	@Param			mediaItem	body		requests.MediaItemUpdateRequest					true	"Updated media item data"
+//	@Success		200			{object}	responses.APIResponse[models.MediaItem[types.MediaData]]	"Media item updated successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid request"
+//	@Failure		404			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Media item not found"
+//	@Failure		403			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Not authorized to update this media item"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/media/{mediaType}/{itemID} [put]
 func (h *userMediaItemHandler[T]) Update(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -198,7 +203,7 @@ func (h *userMediaItemHandler[T]) Update(c *gin.Context) {
 	}
 
 	// var zero T
-	// mediaType := mediatypes.GetMediaTypeFromTypeName(zero)
+	// mediaType := types.GetMediaTypeFromTypeName(zero)
 	// Bind the request body to a media item struct
 	var mediaItem models.MediaItem[T]
 	if err := c.ShouldBindJSON(&mediaItem); err != nil {
@@ -277,17 +282,18 @@ func (h *userMediaItemHandler[T]) Update(c *gin.Context) {
 }
 
 // Delete godoc
-// @Summary Delete a user-owned media item
-// @Description Deletes a user-owned media item by its ID
-// @Tags media
-// @Accept json
-// @Produce json
-// @Param itemID path int true "User Media Item ID"
-// @Success 200 {object} responses.APIResponse[any] "Successfully deleted user media item"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
-// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Not found"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /api/v1/media/{mediaType}/{itemID} [delete]
+//
+//	@Summary		Delete a user-owned media item
+//	@Description	Deletes a user-owned media item by its ID
+//	@Tags			media
+//	@Accept			json
+//	@Produce		json
+//	@Param			itemID	path		int												true	"User Media Item ID"
+//	@Success		200		{object}	responses.SuccessResponse									"Successfully deleted user media item"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Bad request"
+//	@Failure		404		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Not found"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Internal server error"
+//	@Router			/media/{mediaType}/{itemID} [delete]
 func (h *userMediaItemHandler[T]) Delete(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -306,21 +312,21 @@ func (h *userMediaItemHandler[T]) Delete(c *gin.Context) {
 	log.Info().
 		Uint64("id", id).
 		Msg("User media item deleted successfully")
-	responses.RespondOK(c, responses.EmptyResponse{Success: true}, "User media item deleted successfully")
+	responses.RespondSuccess(c, http.StatusOK, responses.EmptyResponse{Success: true}, "User media item deleted successfully")
 }
 
 // and returns the ItemList for modification
-func (h *userMediaItemHandler[T]) hasItemList(mediaData T) (*mediatypes.ItemList, bool) {
-	// Implementation depends on your specific mediatypes.MediaData structure
+func (h *userMediaItemHandler[T]) hasItemList(mediaData T) (*types.ItemList, bool) {
+	// Implementation depends on your specific types.MediaData structure
 	// This is just a placeholder - you'll need to implement based on your actual structure
 
 	// For playlist type
-	if playlist, ok := any(mediaData).(*mediatypes.Playlist); ok && playlist != nil {
+	if playlist, ok := any(mediaData).(*types.Playlist); ok && playlist != nil {
 		return &playlist.ItemList, true
 	}
 
 	// For collection type
-	if collection, ok := any(mediaData).(*mediatypes.Collection); ok && collection != nil {
+	if collection, ok := any(mediaData).(*types.Collection); ok && collection != nil {
 		return &collection.ItemList, true
 	}
 
@@ -329,16 +335,16 @@ func (h *userMediaItemHandler[T]) hasItemList(mediaData T) (*mediatypes.ItemList
 
 // Helper function to check if a mediaData item is owned by a specific user
 func (h *userMediaItemHandler[T]) isUserOwned(mediaData T, userID uint64) bool {
-	// Implementation depends on your specific mediatypes.MediaData structure
+	// Implementation depends on your specific types.MediaData structure
 	// This is just a placeholder - you'll need to implement based on your actual structure
 
 	// Check for playlist ownership
-	if playlist, ok := any(mediaData).(*mediatypes.Playlist); ok && playlist != nil {
+	if playlist, ok := any(mediaData).(*types.Playlist); ok && playlist != nil {
 		return playlist.ItemList.OwnerID == userID
 	}
 
 	// Check for collection ownership
-	if collection, ok := any(mediaData).(*mediatypes.Collection); ok && collection != nil {
+	if collection, ok := any(mediaData).(*types.Collection); ok && collection != nil {
 		return collection.ItemList.OwnerID == userID
 	}
 

@@ -48,20 +48,21 @@ func NewUserMediaItemDataHandler[T mediatypes.MediaData](
 }
 
 // GetMediaPlayHistory godoc
-// @Summary Get a user's media play user-data
-// @Description Get a user's media play user-data with optional filtering
-// @Tags user-data
-// @Accept json
-// @Produce json
-// @Param userID query int false "User ID (optional, uses authenticated user ID if not provided)"
-// @Param limit query int false "Number of items to return (default 10)"
-// @Param offset query int false "Number of items to skip (default 0)"
-// @Param completed query bool false "Filter by completion status"
-// @Success 200 {object} responses.APIResponse[[]models.UserMediaItemData[mediatypes.Movie]] "Successfully retrieved play user-data"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /api/v1/user-data/{mediaType}/history [get]
+//
+//	@Summary		Get a user's media play user-data
+//	@Description	Get a user's media play user-data with optional filtering
+//	@Tags			user-data
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID		query		int																	false	"User ID (optional, uses authenticated user ID if not provided)"
+//	@Param			limit		query		int																	false	"Number of items to return (default 10)"
+//	@Param			offset		query		int																	false	"Number of items to skip (default 0)"
+//	@Param			completed	query		bool																false	"Filter by completion status"
+//	@Success		200			{object}	responses.APIResponse[[]models.UserMediaItemData[mediatypes.MediaData]]	"Successfully retrieved play user-data"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]						"Bad request"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]						"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]						"Internal server error"
+//	@Router			/user-data/{mediaType}/history [get]
 func (h *userMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -121,19 +122,20 @@ func (h *userMediaItemDataHandler[T]) GetMediaPlayHistory(c *gin.Context) {
 }
 
 // GetContinuePlaying godoc
-// @Summary Get a user's continue watching list
-// @Description Get media items that a user has started but not completed
-// @Tags user-data
-// @Accept json
-// @Produce json
-// @Param userID query int false "User ID (optional, uses authenticated user ID if not provided)"
-// @Param limit query int false "Number of items to return (default 10)"
-// @Param type query string false "Media type filter (movie, series, episode, track, etc.)"
-// @Success 200 {object} responses.APIResponse[[]models.UserMediaItemData[mediatypes.Movie]] "Successfully retrieved continue watching items"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /api/v1/user-data/{mediaType}/continue-watching [get]
+//
+//	@Summary		Get a user's continue watching list
+//	@Description	Get media items that a user has started but not completed
+//	@Tags			user-data
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID	query		int																	false	"User ID (optional, uses authenticated user ID if not provided)"
+//	@Param			limit	query		int																	false	"Number of items to return (default 10)"
+//	@Param			type	query		string																false	"Media type filter (movie, series, episode, track, etc.)"
+//	@Success		200		{object}	responses.APIResponse[[]models.UserMediaItemData[mediatypes.MediaData]]	"Successfully retrieved continue watching items"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]						"Bad request"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]						"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]						"Internal server error"
+//	@Router			/user-data/{mediaType}/continue-watching [get]
 func (h *userMediaItemDataHandler[T]) GetContinuePlaying(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -169,19 +171,20 @@ func (h *userMediaItemDataHandler[T]) GetContinuePlaying(c *gin.Context) {
 }
 
 // GetRecentHistory godoc
-// @Summary Get a user's recent media user-data
-// @Description Get a user's recent media user-data
-// @Tags user-data
-// @Accept json
-// @Produce json
-// @Param userID query int false "User ID (optional, uses authenticated user ID if not provided)"
-// @Param limit query int false "Number of items to return (default 10)"
-// @Param days query int false "Number of days to look back (default 7)"
-// @Success 200 {object} responses.APIResponse[[]models.UserMediaItemData[mediatypes.Movie]] "Successfully retrieved recent user-data"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /api/v1/user-data/{mediaType}/recent [get]
+//
+//	@Summary		Get a user's recent media user-data
+//	@Description	Get a user's recent media user-data
+//	@Tags			user-data
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID	query		int																	false	"User ID (optional, uses authenticated user ID if not provided)"
+//	@Param			limit	query		int																	false	"Number of items to return (default 10)"
+//	@Param			days	query		int																	false	"Number of days to look back (default 7)"
+//	@Success		200		{object}	responses.APIResponse[[]models.UserMediaItemData[mediatypes.MediaData]]	"Successfully retrieved recent user-data"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]						"Bad request"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]						"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]						"Internal server error"
+//	@Router			/user-data/{mediaType}/recent [get]
 func (h *userMediaItemDataHandler[T]) GetRecentHistory(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -220,18 +223,19 @@ func (h *userMediaItemDataHandler[T]) GetRecentHistory(c *gin.Context) {
 }
 
 // RecordMediaPlay godoc
-// @Summary Record a media play event
-// @Description Record a new play event for a media item
-// @Tags user-data
-// @Accept json
-// @Produce json
-// @Param mediaPlay body requests.UserMediaItemDataRequest true "Media play information"
-// @Param itemID path int true "Media Item ID"
-// @Success 201 {object} responses.APIResponse[models.UserMediaItemData[mediatypes.Movie]] "Play event recorded successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /api/v1/user-data/{mediaType}/{itemID}/record [post]
+//
+//	@Summary		Record a media play event
+//	@Description	Record a new play event for a media item
+//	@Tags			user-data
+//	@Accept			json
+//	@Produce		json
+//	@Param			mediaPlay	body		requests.UserMediaItemDataRequest									true	"Media play information"
+//	@Param			itemID		path		int																	true	"Media Item ID"
+//	@Success		201			{object}	responses.APIResponse[models.UserMediaItemData[mediatypes.MediaData]]	"Play event recorded successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]						"Bad request"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]						"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]						"Internal server error"
+//	@Router			/user-data/{mediaType}/{itemID}/record [post]
 func (h *userMediaItemDataHandler[T]) RecordMediaPlay(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -299,20 +303,21 @@ func (h *userMediaItemDataHandler[T]) RecordMediaPlay(c *gin.Context) {
 }
 
 // ToggleFavorite godoc
-// @Summary Toggle favorite status for a media item
-// @Description Mark or unmark a media item as a favorite
-// @Tags user-data
-// @Accept json
-// @Produce json
-// @Param favorite query bool true "Favorite status"
-// @Param mediaType path string true "Media type like movie, series, track, etc."
-// @Param itemID path int true "Media Item ID"
-// @Param userID query int false "User ID (optional, uses authenticated user ID if not provided)"
-// @Success 200 {object} responses.APIResponse[models.UserMediaItemData[mediatypes.Movie]] "Favorite status updated successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /api/v1/user-data/{mediaType}/{itemID}/favorite [put]
+//
+//	@Summary		Toggle favorite status for a media item
+//	@Description	Mark or unmark a media item as a favorite
+//	@Tags			user-data
+//	@Accept			json
+//	@Produce		json
+//	@Param			favorite	query		bool																true	"Favorite status"
+//	@Param			mediaType	path		string																true	"Media type like movie, series, track, etc."
+//	@Param			itemID		path		int																	true	"Media Item ID"
+//	@Param			userID		query		int																	false	"User ID (optional, uses authenticated user ID if not provided)"
+//	@Success		200			{object}	responses.APIResponse[models.UserMediaItemData[mediatypes.MediaData]]	"Favorite status updated successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]						"Bad request"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]						"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]						"Internal server error"
+//	@Router			/user-data/{mediaType}/{itemID}/favorite [put]
 func (h *userMediaItemDataHandler[T]) ToggleFavorite(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -364,20 +369,21 @@ func (h *userMediaItemDataHandler[T]) ToggleFavorite(c *gin.Context) {
 }
 
 // UpdateUserRating godoc
-// @Summary Update user rating for a media item
-// @Description Set a user's rating for a media item
-// @Tags user-data
-// @Accept json
-// @Produce json
-// @Param rating query number true "User rating (0-10)"
-// @Param mediaType path string true "Media type like movie, series, track, etc."
-// @Param itemID path int true "Media Item ID"
-// @Param userID query int false "User ID (optional, uses authenticated user ID if not provided)"
-// @Success 200 {object} responses.APIResponse[models.UserMediaItemData[mediatypes.Movie]] "Rating updated successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /api/v1/user-data/{mediaType}/{itemID}/rating [put]
+//
+//	@Summary		Update user rating for a media item
+//	@Description	Set a user's rating for a media item
+//	@Tags			user-data
+//	@Accept			json
+//	@Produce		json
+//	@Param			rating		query		number																true	"User rating (0-10)"
+//	@Param			mediaType	path		string																true	"Media type like movie, series, track, etc."
+//	@Param			itemID		path		int																	true	"Media Item ID"
+//	@Param			userID		query		int																	false	"User ID (optional, uses authenticated user ID if not provided)"
+//	@Success		200			{object}	responses.APIResponse[models.UserMediaItemData[mediatypes.MediaData]]	"Rating updated successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]						"Bad request"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]						"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]						"Internal server error"
+//	@Router			/user-data/{mediaType}/{itemID}/rating [put]
 func (h *userMediaItemDataHandler[T]) UpdateUserRating(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -435,20 +441,21 @@ func (h *userMediaItemDataHandler[T]) UpdateUserRating(c *gin.Context) {
 }
 
 // GetFavorites godoc
-// @Summary Get a user's favorite media items
-// @Description Get all media items marked as favorites by a user
-// @Tags user-data
-// @Accept json
-// @Produce json
-// @Param userID query int false "User ID (optional, uses authenticated user ID if not provided)"
-// @Param limit query int false "Number of items to return (default 10)"
-// @Param offset query int false "Number of items to skip (default 0)"
-// @Param mediaType path string true "Media type like movie, series, track, etc."
-// @Success 200 {object} responses.APIResponse[[]models.UserMediaItemData[mediatypes.Movie]] "Successfully retrieved favorites"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /api/v1/user-data/{mediaType}/favorites [get]
+//
+//	@Summary		Get a user's favorite media items
+//	@Description	Get all media items marked as favorites by a user
+//	@Tags			user-data
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID		query		int																	false	"User ID (optional, uses authenticated user ID if not provided)"
+//	@Param			limit		query		int																	false	"Number of items to return (default 10)"
+//	@Param			offset		query		int																	false	"Number of items to skip (default 0)"
+//	@Param			mediaType	path		string																true	"Media type like movie, series, track, etc."
+//	@Success		200			{object}	responses.APIResponse[[]models.UserMediaItemData[mediatypes.MediaData]]	"Successfully retrieved favorites"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]						"Bad request"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]						"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]						"Internal server error"
+//	@Router			/user-data/{mediaType}/favorites [get]
 func (h *userMediaItemDataHandler[T]) GetFavorites(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -485,18 +492,19 @@ func (h *userMediaItemDataHandler[T]) GetFavorites(c *gin.Context) {
 }
 
 // ClearUserHistory godoc
-// @Summary Clear a user's play user-data
-// @Description Delete all play user-data entries for a user
-// @Tags user-data
-// @Accept json
-// @Produce json
-// @Param userID query int false "User ID (optional, uses authenticated user ID if not provided)"
-// @Param mediaType path string true "Media type like movie, series, track, etc."
-// @Success 200 {object} responses.APIResponse[any] "History cleared successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Bad request"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Internal server error"
-// @Router /api/v1/user-data/{mediaType}/clear [delete]
+//
+//	@Summary		Clear a user's play user-data
+//	@Description	Delete all play user-data entries for a user
+//	@Tags			user-data
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID		query		int												false	"User ID (optional, uses authenticated user ID if not provided)"
+//	@Param			mediaType	path		string											true	"Media type like movie, series, track, etc."
+//	@Success		200			{object}	responses.APIResponse[any]						"History cleared successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Bad request"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]	"Internal server error"
+//	@Router			/user-data/{mediaType}/clear [delete]
 func (h *userMediaItemDataHandler[T]) ClearUserHistory(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"suasor/services"
 
-	"suasor/types/errors"
 	"suasor/types/responses"
 
 	"github.com/gin-gonic/gin"
@@ -22,13 +21,14 @@ func NewHealthHandler(service services.HealthService) *HealthHandler {
 }
 
 // CheckHealth godoc
-// @Summary checks app and database health
-// @Description returns JSON object with health statuses.
-// @Tags health
-// @Produce json
-// @Success 200 {object} responses.HealthResponse
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails]
-// @Router /api/v1/health [get]
+//
+//	@Summary		checks app and database health
+//	@Description	returns JSON object with health statuses.
+//	@Tags			health
+//	@Produce		json
+//	@Success		200	{object}	responses.APIResponse[responses.HealthResponse]
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]
+//	@Router			/health [get]
 func (h *HealthHandler) CheckHealth(c *gin.Context) {
 	appStatus := h.service.CheckApplicationStatus()
 	dbStatus := h.service.CheckDatabaseConnection()
@@ -43,16 +43,14 @@ func (h *HealthHandler) CheckHealth(c *gin.Context) {
 		httpStatus = http.StatusInternalServerError
 
 		// Create error response
-		errorResponse := responses.ErrorResponse[responses.HealthResponse]{
-			Type: errors.ErrorTypeFailedCheck,
-			Details: responses.HealthResponse{
-				Status:      "down",
-				Application: appStatus,
-				Database:    dbStatus,
-			},
+		errorResponse := responses.HealthResponse{
+			Status:      "down",
+			Application: appStatus,
+			Database:    dbStatus,
 		}
 
-		c.JSON(httpStatus, errorResponse)
+		// c.JSON(httpStatus, errorResponse)
+		responses.RespondOK(c, errorResponse, "Health check failed")
 		return
 	}
 
@@ -63,5 +61,5 @@ func (h *HealthHandler) CheckHealth(c *gin.Context) {
 		Database:    dbStatus,
 	}
 
-	c.JSON(httpStatus, response)
+	responses.RespondSuccess(c, httpStatus, response, "Health check successful")
 }

@@ -17,21 +17,21 @@ type CreditRepository interface {
 	Delete(ctx context.Context, id uint64) error
 
 	// Query operations
-	GetByMediaItemID(ctx context.Context, mediaItemID uint64) ([]models.Credit, error)
-	GetByPersonID(ctx context.Context, personID uint64) ([]models.Credit, error)
-	GetByRole(ctx context.Context, role string) ([]models.Credit, error)
-	GetByDepartment(ctx context.Context, department string) ([]models.Credit, error)
+	GetByMediaItemID(ctx context.Context, mediaItemID uint64) ([]*models.Credit, error)
+	GetByPersonID(ctx context.Context, personID uint64) ([]*models.Credit, error)
+	GetByRole(ctx context.Context, role string) ([]*models.Credit, error)
+	GetByDepartment(ctx context.Context, department string) ([]*models.Credit, error)
 
 	// Cast and crew specific operations
-	GetCastForMediaItem(ctx context.Context, mediaItemID uint64) ([]models.Credit, error)
-	GetCrewForMediaItem(ctx context.Context, mediaItemID uint64) ([]models.Credit, error)
+	GetCastForMediaItem(ctx context.Context, mediaItemID uint64) ([]*models.Credit, error)
+	GetCrewForMediaItem(ctx context.Context, mediaItemID uint64) ([]*models.Credit, error)
 
 	// Advanced operations
-	GetDirectorsForMediaItem(ctx context.Context, mediaItemID uint64) ([]models.Credit, error)
-	GetCreatorsForMediaItem(ctx context.Context, mediaItemID uint64) ([]models.Credit, error)
+	GetDirectorsForMediaItem(ctx context.Context, mediaItemID uint64) ([]*models.Credit, error)
+	GetCreatorsForMediaItem(ctx context.Context, mediaItemID uint64) ([]*models.Credit, error)
 
 	// Bulk operations
-	CreateMany(ctx context.Context, credits []models.Credit) ([]models.Credit, error)
+	CreateMany(ctx context.Context, credits []*models.Credit) ([]*models.Credit, error)
 }
 
 // creditRepository is a GORM implementation of CreditRepository
@@ -100,10 +100,10 @@ func (r *creditRepository) Delete(ctx context.Context, id uint64) error {
 }
 
 // GetByMediaItemID gets all credits for a media item
-func (r *creditRepository) GetByMediaItemID(ctx context.Context, mediaItemID uint64) ([]models.Credit, error) {
+func (r *creditRepository) GetByMediaItemID(ctx context.Context, mediaItemID uint64) ([]*models.Credit, error) {
 	log := logger.LoggerFromContext(ctx)
 
-	var credits []models.Credit
+	var credits []*models.Credit
 	if err := r.db.Where("media_item_id = ?", mediaItemID).Find(&credits).Error; err != nil {
 		log.Error().Err(err).Uint64("mediaItemID", mediaItemID).Msg("Failed to get credits for media item")
 		return nil, err
@@ -113,10 +113,10 @@ func (r *creditRepository) GetByMediaItemID(ctx context.Context, mediaItemID uin
 }
 
 // GetByPersonID gets all credits for a person
-func (r *creditRepository) GetByPersonID(ctx context.Context, personID uint64) ([]models.Credit, error) {
+func (r *creditRepository) GetByPersonID(ctx context.Context, personID uint64) ([]*models.Credit, error) {
 	log := logger.LoggerFromContext(ctx)
 
-	var credits []models.Credit
+	var credits []*models.Credit
 	if err := r.db.Where("person_id = ?", personID).Find(&credits).Error; err != nil {
 		log.Error().Err(err).Uint64("personID", personID).Msg("Failed to get credits for person")
 		return nil, err
@@ -126,10 +126,10 @@ func (r *creditRepository) GetByPersonID(ctx context.Context, personID uint64) (
 }
 
 // GetByRole gets all credits with a specific role
-func (r *creditRepository) GetByRole(ctx context.Context, role string) ([]models.Credit, error) {
+func (r *creditRepository) GetByRole(ctx context.Context, role string) ([]*models.Credit, error) {
 	log := logger.LoggerFromContext(ctx)
 
-	var credits []models.Credit
+	var credits []*models.Credit
 	if err := r.db.Where("role = ?", role).Find(&credits).Error; err != nil {
 		log.Error().Err(err).Str("role", role).Msg("Failed to get credits by role")
 		return nil, err
@@ -139,10 +139,10 @@ func (r *creditRepository) GetByRole(ctx context.Context, role string) ([]models
 }
 
 // GetByDepartment gets all credits with a specific department
-func (r *creditRepository) GetByDepartment(ctx context.Context, department string) ([]models.Credit, error) {
+func (r *creditRepository) GetByDepartment(ctx context.Context, department string) ([]*models.Credit, error) {
 	log := logger.LoggerFromContext(ctx)
 
-	var credits []models.Credit
+	var credits []*models.Credit
 	if err := r.db.Where("department = ?", department).Find(&credits).Error; err != nil {
 		log.Error().Err(err).Str("department", department).Msg("Failed to get credits by department")
 		return nil, err
@@ -152,10 +152,10 @@ func (r *creditRepository) GetByDepartment(ctx context.Context, department strin
 }
 
 // GetCastForMediaItem gets cast credits for a media item
-func (r *creditRepository) GetCastForMediaItem(ctx context.Context, mediaItemID uint64) ([]models.Credit, error) {
+func (r *creditRepository) GetCastForMediaItem(ctx context.Context, mediaItemID uint64) ([]*models.Credit, error) {
 	log := logger.LoggerFromContext(ctx)
 
-	var credits []models.Credit
+	var credits []*models.Credit
 	if err := r.db.Where("media_item_id = ? AND is_cast = ?", mediaItemID, true).Order("\"order\" ASC").Find(&credits).Error; err != nil {
 		log.Error().Err(err).Uint64("mediaItemID", mediaItemID).Msg("Failed to get cast for media item")
 		return nil, err
@@ -165,10 +165,10 @@ func (r *creditRepository) GetCastForMediaItem(ctx context.Context, mediaItemID 
 }
 
 // GetCrewForMediaItem gets crew credits for a media item
-func (r *creditRepository) GetCrewForMediaItem(ctx context.Context, mediaItemID uint64) ([]models.Credit, error) {
+func (r *creditRepository) GetCrewForMediaItem(ctx context.Context, mediaItemID uint64) ([]*models.Credit, error) {
 	log := logger.LoggerFromContext(ctx)
 
-	var credits []models.Credit
+	var credits []*models.Credit
 	if err := r.db.Where("media_item_id = ? AND is_crew = ?", mediaItemID, true).Order("department ASC, job ASC").Find(&credits).Error; err != nil {
 		log.Error().Err(err).Uint64("mediaItemID", mediaItemID).Msg("Failed to get crew for media item")
 		return nil, err
@@ -178,10 +178,10 @@ func (r *creditRepository) GetCrewForMediaItem(ctx context.Context, mediaItemID 
 }
 
 // GetDirectorsForMediaItem gets director credits for a media item
-func (r *creditRepository) GetDirectorsForMediaItem(ctx context.Context, mediaItemID uint64) ([]models.Credit, error) {
+func (r *creditRepository) GetDirectorsForMediaItem(ctx context.Context, mediaItemID uint64) ([]*models.Credit, error) {
 	log := logger.LoggerFromContext(ctx)
 
-	var credits []models.Credit
+	var credits []*models.Credit
 	if err := r.db.Where("media_item_id = ? AND department = ? AND job = ?", mediaItemID, "Directing", "Director").Find(&credits).Error; err != nil {
 		log.Error().Err(err).Uint64("mediaItemID", mediaItemID).Msg("Failed to get directors for media item")
 		return nil, err
@@ -191,10 +191,10 @@ func (r *creditRepository) GetDirectorsForMediaItem(ctx context.Context, mediaIt
 }
 
 // GetCreatorsForMediaItem gets creator credits for a media item
-func (r *creditRepository) GetCreatorsForMediaItem(ctx context.Context, mediaItemID uint64) ([]models.Credit, error) {
+func (r *creditRepository) GetCreatorsForMediaItem(ctx context.Context, mediaItemID uint64) ([]*models.Credit, error) {
 	log := logger.LoggerFromContext(ctx)
 
-	var credits []models.Credit
+	var credits []*models.Credit
 	if err := r.db.Where("media_item_id = ? AND is_creator = ?", mediaItemID, true).Find(&credits).Error; err != nil {
 		log.Error().Err(err).Uint64("mediaItemID", mediaItemID).Msg("Failed to get creators for media item")
 		return nil, err
@@ -204,11 +204,11 @@ func (r *creditRepository) GetCreatorsForMediaItem(ctx context.Context, mediaIte
 }
 
 // CreateMany creates multiple credits in a transaction
-func (r *creditRepository) CreateMany(ctx context.Context, credits []models.Credit) ([]models.Credit, error) {
+func (r *creditRepository) CreateMany(ctx context.Context, credits []*models.Credit) ([]*models.Credit, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	if len(credits) == 0 {
-		return []models.Credit{}, nil
+		return []*models.Credit{}, nil
 	}
 
 	// Use a transaction for bulk operations

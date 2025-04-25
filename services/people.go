@@ -36,7 +36,7 @@ func (s *PersonService) GetPersonByID(ctx context.Context, id uint64) (*models.P
 }
 
 // GetPersonWithCredits gets a person with their credits
-func (s *PersonService) GetPersonWithCredits(ctx context.Context, id uint64) (*models.Person, []models.Credit, error) {
+func (s *PersonService) GetPersonWithCredits(ctx context.Context, id uint64) (*models.Person, []*models.Credit, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get the person
@@ -61,7 +61,7 @@ func (s *PersonService) GetPersonWithCredits(ctx context.Context, id uint64) (*m
 }
 
 // SearchPeople searches for people by name
-func (s *PersonService) SearchPeople(ctx context.Context, query string, limit int) ([]models.Person, error) {
+func (s *PersonService) SearchPeople(ctx context.Context, query string, limit int) ([]*models.Person, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	people, err := s.personRepo.SearchByName(ctx, query, limit)
@@ -74,7 +74,7 @@ func (s *PersonService) SearchPeople(ctx context.Context, query string, limit in
 }
 
 // GetPopularPeople gets popular people
-func (s *PersonService) GetPopularPeople(ctx context.Context, limit int) ([]models.Person, error) {
+func (s *PersonService) GetPopularPeople(ctx context.Context, limit int) ([]*models.Person, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	people, err := s.personRepo.GetPopular(ctx, limit)
@@ -87,12 +87,12 @@ func (s *PersonService) GetPopularPeople(ctx context.Context, limit int) ([]mode
 }
 
 // GetPeopleByRole gets people by role
-func (s *PersonService) GetPeopleByRole(ctx context.Context, role string) ([]models.Person, error) {
+func (s *PersonService) GetPeopleByRole(ctx context.Context, role models.MediaRole) ([]*models.Person, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	people, err := s.personRepo.GetByRole(ctx, role)
 	if err != nil {
-		log.Error().Err(err).Str("role", role).Msg("Failed to get people by role")
+		log.Error().Err(err).Str("role", string(role)).Msg("Failed to get people by role")
 		return nil, fmt.Errorf("failed to get people by role: %w", err)
 	}
 
@@ -227,47 +227,53 @@ func (s *PersonService) ImportPerson(ctx context.Context, source string, externa
 }
 
 // GetPersonCreditsGrouped gets a person's credits grouped by type
-func (s *PersonService) GetPersonCreditsGrouped(ctx context.Context, id uint64) (map[string][]models.Credit, error) {
+func (s *PersonService) GetPersonCreditsGrouped(ctx context.Context, id uint64) (*models.PersonCreditsByRole, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get the person's credits
 	credits, err := s.creditRepo.GetByPersonID(ctx, id)
+	person, err := s.GetPersonByID(ctx, id)
 	if err != nil {
 		log.Error().Err(err).Uint64("id", id).Msg("Failed to get credits for person")
 		return nil, fmt.Errorf("failed to get credits: %w", err)
 	}
 
 	// Group by type
-	result := make(map[string][]models.Credit)
+	result := make(map[models.MediaRole][]*models.Credit)
 
 	// Initialize with known types
-	result["cast"] = []models.Credit{}
-	result["crew"] = []models.Credit{}
-	result["directing"] = []models.Credit{}
-	result["writing"] = []models.Credit{}
-	result["producing"] = []models.Credit{}
+	result[models.RoleActor] = []*models.Credit{}
+	result[models.RoleWriter] = []*models.Credit{}
+	result[models.RoleDirector] = []*models.Credit{}
+	result[models.RoleVoice] = []*models.Credit{}
+	result[models.RoleProducer] = []*models.Credit{}
 
 	for _, credit := range credits {
 		if credit.IsCast {
-			result["cast"] = append(result["cast"], credit)
+			result[models.RoleActor] = append(result[models.RoleActor], credit)
 		}
 
 		if credit.IsCrew {
-			result["crew"] = append(result["crew"], credit)
+			result[models.RoleWriter] = append(result[models.RoleWriter], credit)
 
 			// Also add to specific departments
 			switch credit.Department {
 			case "Directing":
-				result["directing"] = append(result["directing"], credit)
+				result[models.RoleDirector] = append(result[models.RoleDirector], credit)
 			case "Writing":
-				result["writing"] = append(result["writing"], credit)
+				result[models.RoleWriter] = append(result[models.RoleWriter], credit)
 			case "Production":
-				result["producing"] = append(result["producing"], credit)
+				result[models.RoleProducer] = append(result[models.RoleProducer], credit)
+			default:
+				result[models.RoleActor] = append(result[models.RoleActor], credit)
 			}
 		}
 	}
+	return &models.PersonCreditsByRole{
+		Person:  person,
+		Credits: result,
+	}, nil
 
-	return result, nil
 }
 
 // AddExternalIDToPerson adds an external ID to a person
@@ -298,4 +304,3 @@ func (s *PersonService) AddExternalIDToPerson(ctx context.Context, personID uint
 
 	return nil
 }
-

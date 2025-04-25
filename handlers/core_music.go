@@ -5,9 +5,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"suasor/utils"
 
-	mediatypes "suasor/clients/media/types"
+	"suasor/clients/media/types"
 	"suasor/services"
-	models "suasor/types/models"
+	"suasor/types/models"
 	"suasor/types/responses"
 	"suasor/utils/logger"
 )
@@ -41,17 +41,17 @@ type CoreMusicHandler interface {
 // coreMusicHandler handles operations for music items in the database
 type coreMusicHandler struct {
 	coreMusicService services.CoreMusicService
-	artistService    services.CoreMediaItemService[*mediatypes.Artist]
-	trackService     services.CoreMediaItemService[*mediatypes.Track]
-	albumService     services.CoreMediaItemService[*mediatypes.Album]
+	artistService    services.CoreMediaItemService[*types.Artist]
+	trackService     services.CoreMediaItemService[*types.Track]
+	albumService     services.CoreMediaItemService[*types.Album]
 }
 
 // NewcoreMusicHandler creates a new core music handler
 func NewCoreMusicHandler(
 	coreMusicService services.CoreMusicService,
-	trackService services.CoreMediaItemService[*mediatypes.Track],
-	albumService services.CoreMediaItemService[*mediatypes.Album],
-	artistService services.CoreMediaItemService[*mediatypes.Artist],
+	trackService services.CoreMediaItemService[*types.Track],
+	albumService services.CoreMediaItemService[*types.Album],
+	artistService services.CoreMediaItemService[*types.Artist],
 ) CoreMusicHandler {
 	return &coreMusicHandler{
 		coreMusicService: coreMusicService,
@@ -62,17 +62,19 @@ func NewCoreMusicHandler(
 }
 
 // GetAlbumTracks godoc
-// @Summary Get tracks for an album
-// @Description Retrieves all tracks for a specific album
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param albumID path int true "Album ID"
-// @Param userID query int true "User ID"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 404 {object} responses.ErrorResponse[any] "Album not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+//
+//	@Summary		Get tracks for an album
+//	@Description	Retrieves all tracks for a specific album
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			albumID	path		int															true	"Album ID"
+//	@Param			userID	query		int															true	"User ID"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Tracks retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		404		{object}	responses.ErrorResponse[any]								"Album not found"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//
 // Note: This documentation refers to a route registered as GetTracksByAlbum
 func (h *coreMusicHandler) GetAlbumTracks(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -100,7 +102,7 @@ func (h *coreMusicHandler) GetAlbumTracks(c *gin.Context) {
 	// Get tracks from the album data
 	tracks := album.Data.Tracks
 	if tracks == nil {
-		tracks = []*mediatypes.Track{}
+		tracks = []*types.Track{}
 	}
 
 	log.Info().
@@ -111,17 +113,19 @@ func (h *coreMusicHandler) GetAlbumTracks(c *gin.Context) {
 }
 
 // GetArtistAlbums godoc
-// @Summary Get albums for an artist
-// @Description Retrieves all albums for a specific artist
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param artistID path int true "Artist ID"
-// @Param userID query int true "User ID"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 404 {object} responses.ErrorResponse[any] "Artist not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+//
+//	@Summary		Get albums for an artist
+//	@Description	Retrieves all albums for a specific artist
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			artistID	path		int															true	"Artist ID"
+//	@Param			userID		query		int															true	"User ID"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		404			{object}	responses.ErrorResponse[any]								"Artist not found"
+//	@Failure		500			{object}	responses.ErrorResponse[any]								"Server error"
+//
 // Note: This documentation refers to a route registered as GetAlbumsByArtistID
 func (h *coreMusicHandler) GetArtistAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -148,7 +152,7 @@ func (h *coreMusicHandler) GetArtistAlbums(c *gin.Context) {
 	// Get albums for the artist
 	albums := artist.Data.Albums
 	if albums == nil {
-		albums = []*mediatypes.Album{}
+		albums = []*types.Album{}
 	}
 
 	log.Info().
@@ -159,17 +163,18 @@ func (h *coreMusicHandler) GetArtistAlbums(c *gin.Context) {
 }
 
 // GetTopTracks godoc
-// @Summary Get top tracks
-// @Description Retrieves the top tracks based on play count, ratings, etc.
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param userID query int true "User ID"
-// @Param limit query int false "Maximum number of tracks to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/tracks/top [get]
+//
+//	@Summary		Get top tracks
+//	@Description	Retrieves the top tracks based on play count, ratings, etc.
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID	query		int															true	"User ID"
+//	@Param			limit	query		int															false	"Maximum number of tracks to return (default 10)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Tracks retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/tracks/top [get]
 func (h *coreMusicHandler) GetTopTracks(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -183,12 +188,12 @@ func (h *coreMusicHandler) GetTopTracks(c *gin.Context) {
 		Int("limit", limit).
 		Msg("Getting top tracks")
 
-	options := &mediatypes.QueryOptions{
+	options := &types.QueryOptions{
 		Limit:         limit,
 		Sort:          "rating",
 		MinimumRating: 7,
 		MaximumRating: 10,
-		SortOrder:     mediatypes.SortOrderDesc,
+		SortOrder:     types.SortOrderDesc,
 		// TODO: Add more logic to better filter
 	}
 
@@ -200,7 +205,7 @@ func (h *coreMusicHandler) GetTopTracks(c *gin.Context) {
 
 	// In a real implementation, you'd sort by play count, rating, etc.
 	// For now we'll just limit the results
-	var topTracks []*mediatypes.Track
+	var topTracks []*types.Track
 	for i, track := range allTracks {
 		if i >= limit {
 			break
@@ -216,18 +221,19 @@ func (h *coreMusicHandler) GetTopTracks(c *gin.Context) {
 }
 
 // GetRecentlyAddedTracks godoc
-// @Summary Get recently added tracks
-// @Description Retrieves tracks that were recently added to the library
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param userID query int true "User ID"
-// @Param limit query int false "Maximum number of tracks to return (default 10)"
-// @Param days query int false "Number of days to look back (default 30)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/tracks/recently-added [get]
+//
+//	@Summary		Get recently added tracks
+//	@Description	Retrieves tracks that were recently added to the library
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID	query		int															true	"User ID"
+//	@Param			limit	query		int															false	"Maximum number of tracks to return (default 10)"
+//	@Param			days	query		int															false	"Number of days to look back (default 30)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Tracks retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/tracks/recently-added [get]
 func (h *coreMusicHandler) GetRecentlyAddedTracks(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -253,7 +259,7 @@ func (h *coreMusicHandler) GetRecentlyAddedTracks(c *gin.Context) {
 	}
 
 	// Extract the track data from the media items
-	var tracks []*mediatypes.Track
+	var tracks []*types.Track
 	for _, item := range recentTracks {
 		tracks = append(tracks, item.Data)
 	}
@@ -266,17 +272,18 @@ func (h *coreMusicHandler) GetRecentlyAddedTracks(c *gin.Context) {
 }
 
 // GetTopAlbums godoc
-// @Summary Get top albums
-// @Description Retrieves the top albums based on play count, ratings, etc.
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param userID query int true "User ID"
-// @Param limit query int false "Maximum number of albums to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/albums/top [get]
+//
+//	@Summary		Get top albums
+//	@Description	Retrieves the top albums based on play count, ratings, etc.
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID	query		int															true	"User ID"
+//	@Param			limit	query		int															false	"Maximum number of albums to return (default 10)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/albums/top [get]
 func (h *coreMusicHandler) GetTopAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -289,12 +296,12 @@ func (h *coreMusicHandler) GetTopAlbums(c *gin.Context) {
 		Int("limit", limit).
 		Msg("Getting top albums")
 
-	options := &mediatypes.QueryOptions{
+	options := &types.QueryOptions{
 		Limit:         limit,
 		Sort:          "rating",
 		MinimumRating: 7,
 		MaximumRating: 10,
-		SortOrder:     mediatypes.SortOrderDesc,
+		SortOrder:     types.SortOrderDesc,
 		// TODO: Add more logic to better filter
 	}
 	// This is a placeholder - in a real implementation you'd query albums by popularity
@@ -310,7 +317,7 @@ func (h *coreMusicHandler) GetTopAlbums(c *gin.Context) {
 
 	// In a real implementation, you'd sort by play count, rating, etc.
 	// For now we'll just limit the results
-	var topAlbums []*mediatypes.Album
+	var topAlbums []*types.Album
 	for i, album := range allAlbums {
 		if i >= limit {
 			break
@@ -326,18 +333,19 @@ func (h *coreMusicHandler) GetTopAlbums(c *gin.Context) {
 }
 
 // GetAlbumsByArtistID godoc
-// @Summary Get albums for an artist
-// @Description Retrieves all albums for a specific artist
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param id path int true "Artist ID"
-// @Param userID query int true "User ID"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 404 {object} responses.ErrorResponse[any] "Artist not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/artist/{id}/albums [get]
+//
+//	@Summary		Get albums for an artist
+//	@Description	Retrieves all albums for a specific artist
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		int															true	"Artist ID"
+//	@Param			userID	query		int															true	"User ID"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		404		{object}	responses.ErrorResponse[any]								"Artist not found"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/artist/{id}/albums [get]
 func (h *coreMusicHandler) GetAlbumsByArtistID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -363,7 +371,7 @@ func (h *coreMusicHandler) GetAlbumsByArtistID(c *gin.Context) {
 	// Get albums for the artist
 	albums := artist.Data.Albums
 	if albums == nil {
-		albums = []*mediatypes.Album{}
+		albums = []*types.Album{}
 	}
 
 	log.Info().
@@ -374,18 +382,19 @@ func (h *coreMusicHandler) GetAlbumsByArtistID(c *gin.Context) {
 }
 
 // GetSimilarArtists godoc
-// @Summary Get similar artists
-// @Description Retrieves the similar artists to a specific artist
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param id path int true "Artist ID"
-// @Param userID query int true "User ID"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Artist]] "Similar artists retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 404 {object} responses.ErrorResponse[any] "Artist not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/artist/{id}/similar [get]
+//
+//	@Summary		Get similar artists
+//	@Description	Retrieves the similar artists to a specific artist
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		int																true	"Artist ID"
+//	@Param			userID	query		int																true	"User ID"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Artist]]	"Similar artists retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]									"Invalid request"
+//	@Failure		404		{object}	responses.ErrorResponse[any]									"Artist not found"
+//	@Failure		500		{object}	responses.ErrorResponse[any]									"Server error"
+//	@Router			/media/music/artist/{id}/similar [get]
 func (h *coreMusicHandler) GetSimilarArtists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -417,7 +426,7 @@ func (h *coreMusicHandler) GetSimilarArtists(c *gin.Context) {
 	// Get similar artists
 	similarArtists := artist.Data.SimilarArtists
 	if similarArtists == nil {
-		similarArtists = []mediatypes.ArtistReference{}
+		similarArtists = []types.ArtistReference{}
 	}
 
 	log.Info().
@@ -428,17 +437,19 @@ func (h *coreMusicHandler) GetSimilarArtists(c *gin.Context) {
 }
 
 // GetMediaItemByExternalSourceID godoc
-// @Summary Get media item by external source ID
-// @Description Retrieves a media item using its external source ID
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param source path string true "External source name (e.g., tmdb, imdb)"
-// @Param externalId path string true "External ID from the source"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[types.Track]] "Media item retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 404 {object} responses.ErrorResponse[any] "Media item not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
+//
+//	@Summary		Get media item by external source ID
+//	@Description	Retrieves a media item using its external source ID
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			source		path		string													true	"External source name (e.g., tmdb, imdb)"
+//	@Param			externalId	path		string													true	"External ID from the source"
+//	@Success		200			{object}	responses.APIResponse[models.MediaItem[types.MediaData]]	"Media item retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[any]							"Invalid request"
+//	@Failure		404			{object}	responses.ErrorResponse[any]							"Media item not found"
+//	@Failure		500			{object}	responses.ErrorResponse[any]							"Server error"
+//
 // Note: This route is handled by the generic GetByExternalID handler
 func (h *coreMediaItemHandler[T]) GetMediaItemByExternalSourceID(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -481,17 +492,18 @@ func (h *coreMediaItemHandler[T]) GetMediaItemByExternalSourceID(c *gin.Context)
 }
 
 // GetRecentlyAddedMusic godoc
-// @Summary Get recently added music
-// @Description Retrieves recently added music
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param userID query int true "User ID"
-// @Param limit query int false "Maximum number of music items to return (default 10)"
-// @Param days query int false "Number of days to look back (default 30)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Music items retrieved successfully"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/recently-added [get]
+//
+//	@Summary		Get recently added music
+//	@Description	Retrieves recently added music
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID	query		int															true	"User ID"
+//	@Param			limit	query		int															false	"Maximum number of music items to return (default 10)"
+//	@Param			days	query		int															false	"Number of days to look back (default 30)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Music items retrieved successfully"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/recently-added [get]
 func (h *coreMusicHandler) GetRecentlyAddedMusic(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -521,16 +533,17 @@ func (h *coreMusicHandler) GetRecentlyAddedMusic(c *gin.Context) {
 }
 
 // GetGenreRecommendations godoc
-// @Summary Get genre recommendations
-// @Description Get music recommendations based on a genre
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param genre path string true "Genre name"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Music items retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/genre/{genre} [get]
+//
+//	@Summary		Get genre recommendations
+//	@Description	Get music recommendations based on a genre
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			genre	path		string														true	"Genre name"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Music items retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/genre/{genre} [get]
 func (h *coreMusicHandler) GetGenreRecommendations(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -545,9 +558,9 @@ func (h *coreMusicHandler) GetGenreRecommendations(c *gin.Context) {
 		Msg("Getting genre recommendations")
 
 	// Create query options
-	options := mediatypes.QueryOptions{
+	options := types.QueryOptions{
 		Genre:     genre,
-		MediaType: mediatypes.MediaTypeArtist,
+		MediaType: types.MediaTypeArtist,
 	}
 
 	// Search music items
@@ -564,17 +577,18 @@ func (h *coreMusicHandler) GetGenreRecommendations(c *gin.Context) {
 }
 
 // GetTrackByID godoc
-// @Summary Get track by ID
-// @Description Retrieves a track by its ID
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param itemID path int true "Track ID"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Track]] "Track retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 404 {object} responses.ErrorResponse[any] "Track not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/track/{itemID} [get]
+//
+//	@Summary		Get track by ID
+//	@Description	Retrieves a track by its ID
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			itemID	path		int															true	"Track ID"
+//	@Success		200		{object}	responses.APIResponse[models.MediaItem[types.Track]]	"Track retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		404		{object}	responses.ErrorResponse[any]								"Track not found"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/track/{itemID} [get]
 func (h *coreMusicHandler) GetTrackByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -600,17 +614,18 @@ func (h *coreMusicHandler) GetTrackByID(c *gin.Context) {
 }
 
 // GetAlbumByID godoc
-// @Summary Get album by ID
-// @Description Retrieves an album by its ID
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param albumID path int true "Album ID"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Album]] "Album retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 404 {object} responses.ErrorResponse[any] "Album not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/albums/{albumID} [get]
+//
+//	@Summary		Get album by ID
+//	@Description	Retrieves an album by its ID
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			albumID	path		int															true	"Album ID"
+//	@Success		200		{object}	responses.APIResponse[models.MediaItem[types.Album]]	"Album retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		404		{object}	responses.ErrorResponse[any]								"Album not found"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/albums/{albumID} [get]
 func (h *coreMusicHandler) GetAlbumByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -637,17 +652,18 @@ func (h *coreMusicHandler) GetAlbumByID(c *gin.Context) {
 }
 
 // GetArtistByID godoc
-// @Summary Get artist by ID
-// @Description Retrieves an artist by their ID
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param artistID path int true "Artist ID"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Artist]] "Artist retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 404 {object} responses.ErrorResponse[any] "Artist not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/artists/{artistID} [get]
+//
+//	@Summary		Get artist by ID
+//	@Description	Retrieves an artist by their ID
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			artistID	path		int															true	"Artist ID"
+//	@Success		200			{object}	responses.APIResponse[models.MediaItem[types.Artist]]	"Artist retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		404			{object}	responses.ErrorResponse[any]								"Artist not found"
+//	@Failure		500			{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/artists/{artistID} [get]
 func (h *coreMusicHandler) GetArtistByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -674,17 +690,18 @@ func (h *coreMusicHandler) GetArtistByID(c *gin.Context) {
 }
 
 // GetTracksByAlbum godoc
-// @Summary Get tracks by album ID
-// @Description Retrieves all tracks for a specific album
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param id path int true "Album ID"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 404 {object} responses.ErrorResponse[any] "Album not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/albums/{id}/tracks [get]
+//
+//	@Summary		Get tracks by album ID
+//	@Description	Retrieves all tracks for a specific album
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int															true	"Album ID"
+//	@Success		200	{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Tracks retrieved successfully"
+//	@Failure		400	{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		404	{object}	responses.ErrorResponse[any]								"Album not found"
+//	@Failure		500	{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/albums/{id}/tracks [get]
 func (h *coreMusicHandler) GetTracksByAlbum(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -705,7 +722,7 @@ func (h *coreMusicHandler) GetTracksByAlbum(c *gin.Context) {
 	}
 
 	// Extract the track data for response
-	var trackData []*mediatypes.Track
+	var trackData []*types.Track
 	for _, track := range tracks {
 		trackData = append(trackData, track.Data)
 	}
@@ -718,17 +735,18 @@ func (h *coreMusicHandler) GetTracksByAlbum(c *gin.Context) {
 }
 
 // GetAlbumsByArtist godoc
-// @Summary Get albums by artist ID
-// @Description Retrieves all albums for a specific artist
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param artistID path int true "Artist ID"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 404 {object} responses.ErrorResponse[any] "Artist not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/artist/{artistID}/albums [get]
+//
+//	@Summary		Get albums by artist ID
+//	@Description	Retrieves all albums for a specific artist
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			artistID	path		int															true	"Artist ID"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		404			{object}	responses.ErrorResponse[any]								"Artist not found"
+//	@Failure		500			{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/artist/{artistID}/albums [get]
 func (h *coreMusicHandler) GetAlbumsByArtist(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -749,7 +767,7 @@ func (h *coreMusicHandler) GetAlbumsByArtist(c *gin.Context) {
 	}
 
 	// Extract the album data for response
-	var albumData []*mediatypes.Album
+	var albumData []*types.Album
 	for _, album := range albums {
 		albumData = append(albumData, album.Data)
 	}
@@ -762,17 +780,18 @@ func (h *coreMusicHandler) GetAlbumsByArtist(c *gin.Context) {
 }
 
 // GetArtistsByGenre godoc
-// @Summary Get artists by genre
-// @Description Retrieves artists by genre
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param genre path string true "Genre name"
-// @Param limit query int false "Maximum number of artists to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Artist]] "Artists retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/genres/{genre}/artists [get]
+//
+//	@Summary		Get artists by genre
+//	@Description	Retrieves artists by genre
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			genre	path		string															true	"Genre name"
+//	@Param			limit	query		int																false	"Maximum number of artists to return (default 10)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Artist]]	"Artists retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]									"Invalid request"
+//	@Failure		500		{object}	responses.ErrorResponse[any]									"Server error"
+//	@Router			/media/music/genres/{genre}/artists [get]
 func (h *coreMusicHandler) GetArtistsByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -799,7 +818,7 @@ func (h *coreMusicHandler) GetArtistsByGenre(c *gin.Context) {
 	}
 
 	// Extract the artist data for response
-	var artistData []*mediatypes.Artist
+	var artistData []*types.Artist
 	for _, artist := range artists {
 		artistData = append(artistData, artist.Data)
 	}
@@ -812,17 +831,18 @@ func (h *coreMusicHandler) GetArtistsByGenre(c *gin.Context) {
 }
 
 // GetAlbumsByGenre godoc
-// @Summary Get albums by genre
-// @Description Retrieves albums by genre
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param genre path string true "Genre name"
-// @Param limit query int false "Maximum number of albums to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/genres/{genre}/albums [get]
+//
+//	@Summary		Get albums by genre
+//	@Description	Retrieves albums by genre
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			genre	path		string														true	"Genre name"
+//	@Param			limit	query		int															false	"Maximum number of albums to return (default 10)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/genres/{genre}/albums [get]
 func (h *coreMusicHandler) GetAlbumsByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -849,7 +869,7 @@ func (h *coreMusicHandler) GetAlbumsByGenre(c *gin.Context) {
 	}
 
 	// Extract the album data for response
-	var albumData []*mediatypes.Album
+	var albumData []*types.Album
 	for _, album := range albums {
 		albumData = append(albumData, album.Data)
 	}
@@ -862,17 +882,18 @@ func (h *coreMusicHandler) GetAlbumsByGenre(c *gin.Context) {
 }
 
 // GetTracksByGenre godoc
-// @Summary Get tracks by genre
-// @Description Retrieves tracks by genre
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param genre path string true "Genre name"
-// @Param limit query int false "Maximum number of tracks to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/genres/{genre}/tracks [get]
+//
+//	@Summary		Get tracks by genre
+//	@Description	Retrieves tracks by genre
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			genre	path		string														true	"Genre name"
+//	@Param			limit	query		int															false	"Maximum number of tracks to return (default 10)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Tracks retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/genres/{genre}/tracks [get]
 func (h *coreMusicHandler) GetTracksByGenre(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -900,7 +921,7 @@ func (h *coreMusicHandler) GetTracksByGenre(c *gin.Context) {
 	}
 
 	// Extract the track data for response
-	var trackData []*mediatypes.Track
+	var trackData []*types.Track
 	for _, track := range tracks {
 		trackData = append(trackData, track.Data)
 	}
@@ -913,17 +934,18 @@ func (h *coreMusicHandler) GetTracksByGenre(c *gin.Context) {
 }
 
 // GetLatestAlbumsByAdded godoc
-// @Summary Get latest albums by added date
-// @Description Retrieves the latest albums added to the library
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param limit query int false "Maximum number of albums to return (default 10)"
-// @Param days query int false "Number of days to look back (default 30)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/albums/latest [get]
+//
+//	@Summary		Get latest albums by added date
+//	@Description	Retrieves the latest albums added to the library
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			limit	query		int															false	"Maximum number of albums to return (default 10)"
+//	@Param			days	query		int															false	"Number of days to look back (default 30)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/albums/latest [get]
 func (h *coreMusicHandler) GetLatestAlbumsByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -945,7 +967,7 @@ func (h *coreMusicHandler) GetLatestAlbumsByAdded(c *gin.Context) {
 	}
 
 	// Extract the album data for response
-	var albumData []*mediatypes.Album
+	var albumData []*types.Album
 	for _, album := range albums {
 		albumData = append(albumData, album.Data)
 	}
@@ -957,16 +979,17 @@ func (h *coreMusicHandler) GetLatestAlbumsByAdded(c *gin.Context) {
 }
 
 // GetPopularAlbums godoc
-// @Summary Get popular albums
-// @Description Retrieves the most popular albums based on play count, ratings, etc.
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param limit query int false "Maximum number of albums to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/albums/popular [get]
+//
+//	@Summary		Get popular albums
+//	@Description	Retrieves the most popular albums based on play count, ratings, etc.
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			limit	query		int															false	"Maximum number of albums to return (default 10)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/albums/popular [get]
 func (h *coreMusicHandler) GetPopularAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -983,7 +1006,7 @@ func (h *coreMusicHandler) GetPopularAlbums(c *gin.Context) {
 	}
 
 	// Extract the album data for response
-	var albumData []*mediatypes.Album
+	var albumData []*types.Album
 	for _, album := range albums {
 		albumData = append(albumData, album.Data)
 	}
@@ -995,16 +1018,17 @@ func (h *coreMusicHandler) GetPopularAlbums(c *gin.Context) {
 }
 
 // GetPopularArtists godoc
-// @Summary Get popular artists
-// @Description Retrieves the most popular artists based on play count, ratings, etc.
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param limit query int false "Maximum number of artists to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Artist]] "Artists retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/artists/popular [get]
+//
+//	@Summary		Get popular artists
+//	@Description	Retrieves the most popular artists based on play count, ratings, etc.
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			limit	query		int																false	"Maximum number of artists to return (default 10)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Artist]]	"Artists retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]									"Invalid request"
+//	@Failure		500		{object}	responses.ErrorResponse[any]									"Server error"
+//	@Router			/media/music/artists/popular [get]
 func (h *coreMusicHandler) GetPopularArtists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -1021,7 +1045,7 @@ func (h *coreMusicHandler) GetPopularArtists(c *gin.Context) {
 	}
 
 	// Extract the artist data for response
-	var artistData []*mediatypes.Artist
+	var artistData []*types.Artist
 	for _, artist := range artists {
 		artistData = append(artistData, artist.Data)
 	}
@@ -1033,18 +1057,19 @@ func (h *coreMusicHandler) GetPopularArtists(c *gin.Context) {
 }
 
 // SearchMusic godoc
-// @Summary Search music
-// @Description Search for music items (tracks, albums, artists) by query
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param q query string true "Search query"
-// @Param type query string false "Media type to search for (track, album, artist)"
-// @Param limit query int false "Maximum number of items to return (default 10)"
-// @Success 200 {object} responses.APIResponse[models.MediaItemList] "Search results retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/search [get]
+//
+//	@Summary		Search music
+//	@Description	Search for music items (tracks, albums, artists) by query
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			q		query		string										true	"Search query"
+//	@Param			type	query		string										false	"Media type to search for (track, album, artist)"
+//	@Param			limit	query		int											false	"Maximum number of items to return (default 10)"
+//	@Success		200		{object}	responses.APIResponse[models.MediaItemList]	"Search results retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]				"Invalid request"
+//	@Failure		500		{object}	responses.ErrorResponse[any]				"Server error"
+//	@Router			/media/music/search [get]
 func (h *coreMusicHandler) SearchMusic(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -1064,10 +1089,10 @@ func (h *coreMusicHandler) SearchMusic(c *gin.Context) {
 		Msg("Searching music")
 
 	// Create query options
-	options := mediatypes.QueryOptions{
+	options := types.QueryOptions{
 		Query:     query,
 		Limit:     limit,
-		MediaType: mediatypes.MediaType(mediaType),
+		MediaType: types.MediaType(mediaType),
 	}
 
 	// Search music library
@@ -1084,18 +1109,19 @@ func (h *coreMusicHandler) SearchMusic(c *gin.Context) {
 }
 
 // GetSimilarTracks godoc
-// @Summary Get similar tracks
-// @Description Retrieves tracks similar to a specific track
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param trackID path int true "Track ID"
-// @Param limit query int false "Maximum number of tracks to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Similar tracks retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 404 {object} responses.ErrorResponse[any] "Track not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/track/{trackID}/similar [get]
+//
+//	@Summary		Get similar tracks
+//	@Description	Retrieves tracks similar to a specific track
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			trackID	path		int															true	"Track ID"
+//	@Param			limit	query		int															false	"Maximum number of tracks to return (default 10)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Similar tracks retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		404		{object}	responses.ErrorResponse[any]								"Track not found"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/track/{trackID}/similar [get]
 func (h *coreMusicHandler) GetSimilarTracks(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -1120,7 +1146,7 @@ func (h *coreMusicHandler) GetSimilarTracks(c *gin.Context) {
 	}
 
 	// Extract the track data for response
-	var trackData []*mediatypes.Track
+	var trackData []*types.Track
 	for _, track := range similarTracks {
 		trackData = append(trackData, track.Data)
 	}
@@ -1133,17 +1159,18 @@ func (h *coreMusicHandler) GetSimilarTracks(c *gin.Context) {
 }
 
 // GetAlbumsByYear godoc
-// @Summary Get albums by release year
-// @Description Retrieves albums released in a specific year
-// @Tags music, core
-// @Accept json
-// @Produce json
-// @Param year path int true "Release year"
-// @Param limit query int false "Maximum number of albums to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/albums/year/{year} [get]
+//
+//	@Summary		Get albums by release year
+//	@Description	Retrieves albums released in a specific year
+//	@Tags			music, core
+//	@Accept			json
+//	@Produce		json
+//	@Param			year	path		int															true	"Release year"
+//	@Param			limit	query		int															false	"Maximum number of albums to return (default 10)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/albums/year/{year} [get]
 func (h *coreMusicHandler) GetAlbumsByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -1161,7 +1188,7 @@ func (h *coreMusicHandler) GetAlbumsByYear(c *gin.Context) {
 		Msg("Getting albums by year")
 
 	// Create query options
-	options := &mediatypes.QueryOptions{
+	options := &types.QueryOptions{
 		Year:  year,
 		Limit: limit,
 	}
@@ -1173,7 +1200,7 @@ func (h *coreMusicHandler) GetAlbumsByYear(c *gin.Context) {
 	}
 
 	// Filter for items with the specified year
-	var filtered []*models.MediaItem[*mediatypes.Album]
+	var filtered []*models.MediaItem[*types.Album]
 	for _, album := range albums {
 		if album.ReleaseYear == year {
 			filtered = append(filtered, album)

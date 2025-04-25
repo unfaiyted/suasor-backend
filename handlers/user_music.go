@@ -33,17 +33,18 @@ func NewUserMusicHandler(
 }
 
 // GetFavoriteTracks godoc
-// @Summary Get user favorite tracks
-// @Description Retrieves tracks that a user has marked as favorites
-// @Tags music
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param limit query int false "Maximum number of tracks to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved successfully"
-// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/user/tracks/favorites [get]
+//
+//	@Summary		Get user favorite tracks
+//	@Description	Retrieves tracks that a user has marked as favorites
+//	@Tags			music
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			limit	query		int															false	"Maximum number of tracks to return (default 10)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Track]]	"Tracks retrieved successfully"
+//	@Failure		401		{object}	responses.ErrorResponse[any]								"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/user/tracks/favorites [get]
 func (h *UserMusicHandler) GetFavoriteTracks(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -83,17 +84,18 @@ func (h *UserMusicHandler) GetFavoriteTracks(c *gin.Context) {
 }
 
 // GetFavoriteAlbums godoc
-// @Summary Get user favorite albums
-// @Description Retrieves albums that a user has marked as favorites
-// @Tags music
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param limit query int false "Maximum number of albums to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Album]] "Albums retrieved successfully"
-// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/user/albums/favorites [get]
+//
+//	@Summary		Get user favorite albums
+//	@Description	Retrieves albums that a user has marked as favorites
+//	@Tags			music
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			limit	query		int															false	"Maximum number of albums to return (default 10)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Album]]	"Albums retrieved successfully"
+//	@Failure		401		{object}	responses.ErrorResponse[any]								"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/user/albums/favorites [get]
 func (h *UserMusicHandler) GetFavoriteAlbums(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -133,17 +135,18 @@ func (h *UserMusicHandler) GetFavoriteAlbums(c *gin.Context) {
 }
 
 // GetFavoriteArtists godoc
-// @Summary Get user favorite artists
-// @Description Retrieves artists that a user has marked as favorites
-// @Tags music
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param limit query int false "Maximum number of artists to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Artist]] "Artists retrieved successfully"
-// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/user/artists/favorites [get]
+//
+//	@Summary		Get user favorite artists
+//	@Description	Retrieves artists that a user has marked as favorites
+//	@Tags			music
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			limit	query		int																false	"Maximum number of artists to return (default 10)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Artist]]	"Artists retrieved successfully"
+//	@Failure		401		{object}	responses.ErrorResponse[any]									"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[any]									"Server error"
+//	@Router			/media/music/user/artists/favorites [get]
 func (h *UserMusicHandler) GetFavoriteArtists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -183,17 +186,18 @@ func (h *UserMusicHandler) GetFavoriteArtists(c *gin.Context) {
 }
 
 // GetRecentlyPlayedTracks godoc
-// @Summary Get recently played tracks
-// @Description Retrieves tracks that a user has recently played
-// @Tags music
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param limit query int false "Maximum number of tracks to return (default 10)"
-// @Success 200 {object} responses.APIResponse[[]models.MediaItem[mediatypes.Track]] "Tracks retrieved successfully"
-// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/user/tracks/recently-played [get]
+//
+//	@Summary		Get recently played tracks
+//	@Description	Retrieves tracks that a user has recently played
+//	@Tags			music
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			limit	query		int															false	"Maximum number of tracks to return (default 10)"
+//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Track]]	"Tracks retrieved successfully"
+//	@Failure		401		{object}	responses.ErrorResponse[any]								"Unauthorized"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/user/tracks/recently-played [get]
 func (h *UserMusicHandler) GetRecentlyPlayedTracks(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -235,20 +239,21 @@ func (h *UserMusicHandler) GetRecentlyPlayedTracks(c *gin.Context) {
 }
 
 // UpdateTrackUserData godoc
-// @Summary Update user data for a track
-// @Description Updates user-specific data for a track (favorite, rating, etc.)
-// @Tags music
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param trackID path int true "Track ID"
-// @Param data body requests.UserMediaItemDataRequest true "Updated user data"
-// @Success 200 {object} responses.APIResponse[models.MediaItem[mediatypes.Track]] "Track updated successfully"
-// @Failure 400 {object} responses.ErrorResponse[any] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[any] "Unauthorized"
-// @Failure 404 {object} responses.ErrorResponse[any] "Track not found"
-// @Failure 500 {object} responses.ErrorResponse[any] "Server error"
-// @Router /api/v1/media/music/user/tracks/{trackID} [patch]
+//
+//	@Summary		Update user data for a track
+//	@Description	Updates user-specific data for a track (favorite, rating, etc.)
+//	@Tags			music
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			trackID	path		int															true	"Track ID"
+//	@Param			data	body		requests.UserMediaItemDataRequest							true	"Updated user data"
+//	@Success		200		{object}	responses.APIResponse[models.MediaItem[mediatypes.Track]]	"Track updated successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
+//	@Failure		401		{object}	responses.ErrorResponse[any]								"Unauthorized"
+//	@Failure		404		{object}	responses.ErrorResponse[any]								"Track not found"
+//	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
+//	@Router			/media/music/user/tracks/{trackID} [patch]
 func (h *UserMusicHandler) UpdateTrackUserData(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

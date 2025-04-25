@@ -26,9 +26,10 @@ type ClientsHandler struct {
 }
 
 // NewClientsHandler godoc
-// @Summary Create a new clients handler
-// @Description Creates a new handler for retrieving and managing all client types
-// @Tags internal
+//
+//	@Summary		Create a new clients handler
+//	@Description	Creates a new handler for retrieving and managing all client types
+//	@Tags			internal
 func NewClientsHandler(
 	embyService services.ClientService[*types.EmbyConfig],
 	jellyfinService services.ClientService[*types.JellyfinConfig],
@@ -56,16 +57,17 @@ func NewClientsHandler(
 }
 
 // GetAllClients godoc
-// @Summary Get all clients
-// @Description Retrieves all client configurations for the user
-// @Tags clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Success 200 {object} responses.APIResponse[[]models.ClientList] "Clients retrieved"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/admin/clients [get]
+//
+//	@Summary		Get all clients
+//	@Description	Retrieves all client configurations for the user
+//	@Tags			clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Success		200	{object}	responses.APIResponse[[]models.ClientList]		"Clients retrieved"
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized"
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/admin/clients [get]
 func (h *ClientsHandler) GetAllClients(c *gin.Context) {
 	ctx := c.Request.Context()
 	// log := logger.LoggerFromContext(ctx)
@@ -139,19 +141,20 @@ func (h *ClientsHandler) GetAllClients(c *gin.Context) {
 }
 
 // TestNewConnection godoc
-// @Summary Test client connection
-// @Description Tests the connection to a client using the provided configuration
-// @Tags clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param request body requests.ClientTestRequest[client.ClientConfig] true "Updated client data"
-// @Param clientType path string true "Client type"
-// @Success 200 {object} responses.APIResponse[responses.TestConnectionResponse] "Connection test result"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Example response
+//
+//	@Summary		Test client connection
+//	@Description	Tests the connection to a client using the provided configuration
+//	@Tags			clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request		body		requests.ClientTestRequest[client.ClientConfig]			true	"Updated client data"
+//	@Param			clientType	path		string													true	"Client type"
+//	@Success		200			{object}	responses.APIResponse[responses.TestConnectionResponse]	"Connection test result"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]			"Invalid request"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]			"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]			"Server error"
+//	@Example		response
 //
 //	{
 //	  "data": {
@@ -162,7 +165,7 @@ func (h *ClientsHandler) GetAllClients(c *gin.Context) {
 //	  "message": "Connection test completed"
 //	}
 //
-// @Router /api/v1/admin/clients/{clientType}/test [get]
+//	@Router			/admin/clients/{clientType}/test [get]
 func (h *ClientsHandler) TestNewConnection(c *gin.Context) {
 	clientType, _ := checkClientType(c)
 
@@ -194,17 +197,18 @@ func (h *ClientsHandler) TestNewConnection(c *gin.Context) {
 }
 
 // GetClientsByType godoc
-// @Summary Get clients by type
-// @Description Retrieves all clients of a specific type for the user
-// @Tags clients
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param clientType path string true "Client type (e.g. 'plex', 'jellyfin', 'emby')"
-// @Success 200 {object} responses.APIResponse[[]models.Client[types.EmbyConfig]] "Clients retrieved"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/admin/clients/{clientType} [get]
+//
+//	@Summary		Get clients by type
+//	@Description	Retrieves all clients of a specific type for the user
+//	@Tags			clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientType	path		string														true	"Client type (e.g. 'plex', 'jellyfin', 'emby')"
+//	@Success		200			{object}	responses.APIResponse[[]models.Client[types.ClientConfig]]	"Clients retrieved"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/admin/clients/{clientType} [get]
 func (h *ClientsHandler) GetClientsByType(c *gin.Context) {
 
 	clientType, _ := checkClientType(c)

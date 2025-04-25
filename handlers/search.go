@@ -22,19 +22,20 @@ func NewSearchHandler(service services.SearchService) *SearchHandler {
 }
 
 // Search godoc
-// @Summary Search for content across all sources
-// @Description Searches for content in the database, media clients, and metadata sources
-// @Tags search
-// @Accept json
-// @Produce json
-// @Param query query string true "Search query"
-// @Param mediaType query string false "Limit search to specific media type (movie, series, music, person)"
-// @Param limit query int false "Maximum number of results" default(20)
-// @Param offset query int false "Offset for pagination" default(0)
-// @Success 200 {object} responses.SearchResponse
-// @Failure 400 {object} responses.ErrorResponse[any]
-// @Failure 500 {object} responses.ErrorResponse[any]
-// @Router /api/v1/search [get]
+//
+//	@Summary		Search for content across all sources
+//	@Description	Searches for content in the database, media clients, and metadata sources
+//	@Tags			search
+//	@Accept			json
+//	@Produce		json
+//	@Param			query		query		string	true	"Search query"
+//	@Param			mediaType	query		string	false	"Limit search to specific media type (movie, series, music, person)"
+//	@Param			limit		query		int		false	"Maximum number of results"	default(20)
+//	@Param			offset		query		int		false	"Offset for pagination"		default(0)
+//	@Success		200			{object}	responses.SearchResponse
+//	@Failure		400			{object}	responses.ErrorResponse[any]
+//	@Failure		500			{object}	responses.ErrorResponse[any]
+//	@Router			/search [get]
 func (h *SearchHandler) Search(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -80,16 +81,17 @@ func (h *SearchHandler) Search(c *gin.Context) {
 }
 
 // GetRecentSearches godoc
-// @Summary Get recent searches for the current user
-// @Description Returns a list of the user's recent searches
-// @Tags search
-// @Accept json
-// @Produce json
-// @Param limit query int false "Maximum number of results" default(10)
-// @Success 200 {object} responses.RecentSearchesResponse
-// @Failure 400 {object} responses.ErrorResponse[any]
-// @Failure 500 {object} responses.ErrorResponse[any]
-// @Router /api/v1/search/recent [get]
+//
+//	@Summary		Get recent searches for the current user
+//	@Description	Returns a list of the user's recent searches
+//	@Tags			search
+//	@Accept			json
+//	@Produce		json
+//	@Param			limit	query		int	false	"Maximum number of results"	default(10)
+//	@Success		200		{object}	responses.RecentSearchesResponse
+//	@Failure		400		{object}	responses.ErrorResponse[any]
+//	@Failure		500		{object}	responses.ErrorResponse[any]
+//	@Router			/search/recent [get]
 func (h *SearchHandler) GetRecentSearches(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -117,16 +119,17 @@ func (h *SearchHandler) GetRecentSearches(c *gin.Context) {
 }
 
 // GetTrendingSearches godoc
-// @Summary Get trending searches across all users
-// @Description Returns a list of popular searches across the platform
-// @Tags search
-// @Accept json
-// @Produce json
-// @Param limit query int false "Maximum number of results" default(10)
-// @Success 200 {object} responses.TrendingSearchesResponse
-// @Failure 400 {object} responses.ErrorResponse[any]
-// @Failure 500 {object} responses.ErrorResponse[any]
-// @Router /api/v1/search/trending [get]
+//
+//	@Summary		Get trending searches across all users
+//	@Description	Returns a list of popular searches across the platform
+//	@Tags			search
+//	@Accept			json
+//	@Produce		json
+//	@Param			limit	query		int	false	"Maximum number of results"	default(10)
+//	@Success		200		{object}	responses.TrendingSearchesResponse
+//	@Failure		400		{object}	responses.ErrorResponse[any]
+//	@Failure		500		{object}	responses.ErrorResponse[any]
+//	@Router			/search/trending [get]
 func (h *SearchHandler) GetTrendingSearches(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -150,17 +153,18 @@ func (h *SearchHandler) GetTrendingSearches(c *gin.Context) {
 }
 
 // GetSearchSuggestions godoc
-// @Summary Get search suggestions
-// @Description Returns suggestions based on partial search input
-// @Tags search
-// @Accept json
-// @Produce json
-// @Param q query string true "Partial search query"
-// @Param limit query int false "Maximum number of suggestions" default(5)
-// @Success 200 {object} responses.SearchSuggestionsResponse
-// @Failure 400 {object} responses.ErrorResponse[any]
-// @Failure 500 {object} responses.ErrorResponse[any]
-// @Router /api/v1/search/suggestions [get]
+//
+//	@Summary		Get search suggestions
+//	@Description	Returns suggestions based on partial search input
+//	@Tags			search
+//	@Accept			json
+//	@Produce		json
+//	@Param			q		query		string	true	"Partial search query"
+//	@Param			limit	query		int		false	"Maximum number of suggestions"	default(5)
+//	@Success		200		{object}	responses.SearchSuggestionsResponse
+//	@Failure		400		{object}	responses.ErrorResponse[any]
+//	@Failure		500		{object}	responses.ErrorResponse[any]
+//	@Router			/search/suggestions [get]
 func (h *SearchHandler) GetSearchSuggestions(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

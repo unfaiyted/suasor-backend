@@ -10,9 +10,8 @@ import (
 
 // Person represents someone involved with media (actors, directors, etc.)
 type Person struct {
-	BaseModel        // Include base fields (ID, timestamps)
-	Name      string `json:"name" gorm:"type:varchar(255);index"`
-	// ClientIDs   ClientIDs   `json:"clientIDs" gorm:"type:jsonb"`
+	BaseModel               // Include base fields (ID, timestamps)
+	Name        string      `json:"name" gorm:"type:varchar(255);index"`
 	ExternalIDs ExternalIDs `json:"externalIDs" gorm:"type:jsonb"`
 
 	// Biographical information
@@ -222,4 +221,9 @@ func (p *Person) AddExternalLink(name, url string) {
 // TableName specifies the database table name for Person
 func (Person) TableName() string {
 	return "people"
+}
+
+type PersonWithCredits struct {
+	Person
+	Credits []*Credit `json:"credits"`
 }

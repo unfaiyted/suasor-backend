@@ -40,20 +40,21 @@ func NewRecommendationHandler(recommendationService services.RecommendationServi
 }
 
 // GetRecommendations godoc
-// @Summary Get recommendations for the current user
-// @Description Retrieves a list of recommendations for the authenticated user
-// @Tags recommendations
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param mediaType query string false "Filter by media type (movie, series, music)"
-// @Param limit query int false "Number of recommendations to return (default: 20)"
-// @Param offset query int false "Offset for pagination (default: 0)"
-// @Success 200 {object} responses.APIResponse[responses.RecommendationsListResponse] "Recommendations retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request parameters"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/recommendations [get]
+//
+//	@Summary		Get recommendations for the current user
+//	@Description	Retrieves a list of recommendations for the authenticated user
+//	@Tags			recommendations
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			mediaType	query		string															false	"Filter by media type (movie, series, music)"
+//	@Param			limit		query		int																false	"Number of recommendations to return (default: 20)"
+//	@Param			offset		query		int																false	"Offset for pagination (default: 0)"
+//	@Success		200			{object}	responses.APIResponse[responses.RecommendationsListResponse]	"Recommendations retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid request parameters"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
+//	@Router			/recommendations [get]
 func (h *RecommendationHandler) GetRecommendations(c *gin.Context) {
 	// Get user ID from context
 	userID, ok := checkUserAccess(c)
@@ -113,20 +114,21 @@ func (h *RecommendationHandler) GetRecommendations(c *gin.Context) {
 }
 
 // GetRecentRecommendations godoc
-// @Summary Get recent recommendations for the current user
-// @Description Retrieves a list of recently created recommendations for the authenticated user
-// @Tags recommendations
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param days query int false "Number of days to look back (default: 7)"
-// @Param mediaType query string false "Filter by media type (movie, series, music)"
-// @Param limit query int false "Number of recommendations to return (default: 20)"
-// @Success 200 {object} responses.APIResponse[responses.RecommendationsListResponse] "Recent recommendations retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request parameters"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/recommendations/recent [get]
+//
+//	@Summary		Get recent recommendations for the current user
+//	@Description	Retrieves a list of recently created recommendations for the authenticated user
+//	@Tags			recommendations
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			days		query		int																false	"Number of days to look back (default: 7)"
+//	@Param			mediaType	query		string															false	"Filter by media type (movie, series, music)"
+//	@Param			limit		query		int																false	"Number of recommendations to return (default: 20)"
+//	@Success		200			{object}	responses.APIResponse[responses.RecommendationsListResponse]	"Recent recommendations retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid request parameters"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
+//	@Router			/recommendations/recent [get]
 func (h *RecommendationHandler) GetRecentRecommendations(c *gin.Context) {
 	// Get user ID from context
 	userID, ok := checkUserAccess(c)
@@ -188,20 +190,21 @@ func (h *RecommendationHandler) GetRecentRecommendations(c *gin.Context) {
 }
 
 // GetTopRecommendations godoc
-// @Summary Get top-scored recommendations for the current user
-// @Description Retrieves a list of top-scored recommendations for the authenticated user
-// @Tags recommendations
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param minScore query string false "Minimum score (0-1) for recommendations (default: 0.7)"
-// @Param mediaType query string false "Filter by media type (movie, series, music)"
-// @Param limit query int false "Number of recommendations to return (default: 20)"
-// @Success 200 {object} responses.APIResponse[responses.RecommendationsListResponse] "Top recommendations retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request parameters"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/recommendations/top [get]
+//
+//	@Summary		Get top-scored recommendations for the current user
+//	@Description	Retrieves a list of top-scored recommendations for the authenticated user
+//	@Tags			recommendations
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			minScore	query		string															false	"Minimum score (0-1) for recommendations (default: 0.7)"
+//	@Param			mediaType	query		string															false	"Filter by media type (movie, series, music)"
+//	@Param			limit		query		int																false	"Number of recommendations to return (default: 20)"
+//	@Success		200			{object}	responses.APIResponse[responses.RecommendationsListResponse]	"Top recommendations retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid request parameters"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
+//	@Router			/recommendations/top [get]
 func (h *RecommendationHandler) GetTopRecommendations(c *gin.Context) {
 	// Get user ID from context
 	userID, exists := c.Get("userID")
@@ -264,19 +267,20 @@ func (h *RecommendationHandler) GetTopRecommendations(c *gin.Context) {
 }
 
 // GetRecommendationByID godoc
-// @Summary Get a specific recommendation by ID
-// @Description Retrieves a specific recommendation by its ID for the authenticated user
-// @Tags recommendations
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "Recommendation ID"
-// @Success 200 {object} responses.APIResponse[responses.RecommendationResponse] "Recommendation retrieved successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid recommendation ID"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Recommendation not found"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/recommendations/{id} [get]
+//
+//	@Summary		Get a specific recommendation by ID
+//	@Description	Retrieves a specific recommendation by its ID for the authenticated user
+//	@Tags			recommendations
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id	path		int														true	"Recommendation ID"
+//	@Success		200	{object}	responses.APIResponse[responses.RecommendationResponse]	"Recommendation retrieved successfully"
+//	@Failure		400	{object}	responses.ErrorResponse[responses.ErrorDetails]			"Invalid recommendation ID"
+//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]			"Unauthorized"
+//	@Failure		404	{object}	responses.ErrorResponse[responses.ErrorDetails]			"Recommendation not found"
+//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]			"Server error"
+//	@Router			/recommendations/{id} [get]
 func (h *RecommendationHandler) GetRecommendationByID(c *gin.Context) {
 	// Get user ID from context
 	userID, exists := c.Get("userID")
@@ -317,19 +321,20 @@ func (h *RecommendationHandler) GetRecommendationByID(c *gin.Context) {
 }
 
 // MarkRecommendationAsViewed godoc
-// @Summary Mark a recommendation as viewed
-// @Description Marks a specific recommendation as viewed for the authenticated user
-// @Tags recommendations
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param request body requests.MarkRecommendationAsViewedRequest true "Recommendation ID to mark as viewed"
-// @Success 200 {object} responses.APIResponse[any] "Recommendation marked as viewed successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request parameters"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Recommendation not found"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/recommendations/view [post]
+//
+//	@Summary		Mark a recommendation as viewed
+//	@Description	Marks a specific recommendation as viewed for the authenticated user
+//	@Tags			recommendations
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body		requests.MarkRecommendationAsViewedRequest		true	"Recommendation ID to mark as viewed"
+//	@Success		200		{object}	responses.APIResponse[any]						"Recommendation marked as viewed successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid request parameters"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized"
+//	@Failure		404		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Recommendation not found"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/recommendations/view [post]
 func (h *RecommendationHandler) MarkRecommendationAsViewed(c *gin.Context) {
 	// Get user ID from context
 	userID, exists := c.Get("userID")
@@ -368,19 +373,20 @@ func (h *RecommendationHandler) MarkRecommendationAsViewed(c *gin.Context) {
 }
 
 // RateRecommendation godoc
-// @Summary Rate a recommendation
-// @Description Sets a user rating for a specific recommendation
-// @Tags recommendations
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param request body requests.RateRecommendationRequest true "Recommendation ID and rating"
-// @Success 200 {object} responses.APIResponse[any] "Recommendation rated successfully"
-// @Failure 400 {object} responses.ErrorResponse[responses.ErrorDetails] "Invalid request parameters"
-// @Failure 401 {object} responses.ErrorResponse[responses.ErrorDetails] "Unauthorized"
-// @Failure 404 {object} responses.ErrorResponse[responses.ErrorDetails] "Recommendation not found"
-// @Failure 500 {object} responses.ErrorResponse[responses.ErrorDetails] "Server error"
-// @Router /api/v1/recommendations/rate [post]
+//
+//	@Summary		Rate a recommendation
+//	@Description	Sets a user rating for a specific recommendation
+//	@Tags			recommendations
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body		requests.RateRecommendationRequest				true	"Recommendation ID and rating"
+//	@Success		200		{object}	responses.APIResponse[any]						"Recommendation rated successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Invalid request parameters"
+//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized"
+//	@Failure		404		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Recommendation not found"
+//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//	@Router			/recommendations/rate [post]
 func (h *RecommendationHandler) RateRecommendation(c *gin.Context) {
 	// Get user ID from context
 	userID, exists := c.Get("userID")
