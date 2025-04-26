@@ -1,7 +1,5 @@
 package types
 
-import "encoding/json"
-
 // @Description Supersonic music server configuration
 type SubsonicConfig struct {
 	ClientMediaConfig
@@ -52,17 +50,5 @@ func (SubsonicConfig) SupportsHistory() bool {
 }
 
 func (c *SubsonicConfig) UnmarshalJSON(data []byte) error {
-	// Create a temporary type to avoid recursion
-	type Alias SubsonicConfig
-	aux := &struct {
-		*Alias
-	}{
-		Alias: (*Alias)(c),
-	}
-
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
-
-	return nil
+	return UnmarshalConfigJSON(data, c)
 }

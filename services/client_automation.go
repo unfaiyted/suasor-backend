@@ -57,7 +57,7 @@ func (s *automationClientService) getAutomationClient(ctx context.Context, userI
 		return nil, err
 	}
 
-	autoClient, err := s.clientFactory.GetClient(ctx, clientID, clientConfig.Config.Data)
+	autoClient, err := s.clientFactory.GetClient(ctx, clientID, clientConfig.Config)
 	if err != nil {
 		return nil, err
 	}

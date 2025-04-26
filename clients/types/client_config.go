@@ -1,12 +1,19 @@
 package types
 
-import "fmt"
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
+	"fmt"
+)
 
 type ClientConfig interface {
 	isClientConfig()
 	GetCategory() ClientCategory
 	SetCategory(ClientCategory)
 	GetType() ClientType
+	GetBaseURL() string
+	SetBaseURL(baseURL string)
 }
 
 type clientConfig struct {
@@ -50,6 +57,37 @@ func (c *clientConfig) Validate() error {
 
 	if c.BaseURL == "" {
 		return fmt.Errorf("missing required field: baseURL")
+	}
+
+	return nil
+}
+
+func (c *clientConfig) GetBaseURL() string {
+	return c.BaseURL
+}
+
+// setBaseURL sets the base URL for the client
+func (c *clientConfig) SetBaseURL(baseURL string) {
+	c.BaseURL = baseURL
+}
+
+// Value implements driver.Valuer for database storage
+func (c *clientConfig) Value() (driver.Value, error) {
+	// Serialize the entire item to JSON for storage
+	return json.Marshal(c)
+}
+
+// Scan implements sql.Scanner for database retrieval
+func (m *clientConfig) Scan(value any) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+
+	// First try to unmarshal into the wrapper structure
+	err := json.Unmarshal(bytes, &m)
+	if err == nil {
+		return nil
 	}
 
 	return nil

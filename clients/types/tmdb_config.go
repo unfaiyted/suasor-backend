@@ -74,3 +74,6 @@ func NewTMDBConfig(apiKey string, baseURL string, enabled bool, validateConn boo
 	}
 }
 
+func (c *TMDBConfig) UnmarshalJSON(data []byte) error {
+	return UnmarshalConfigJSON(data, c)
+}

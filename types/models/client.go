@@ -32,61 +32,61 @@ type MetadataClients struct {
 // Client represents a download client configuration
 type Client[T client.ClientConfig] struct {
 	BaseModel
-	UserID    uint64                 `json:"userID" gorm:"not null"`
-	Category  client.ClientCategory  `json:"category" gorm:"not null"`
-	Type      client.ClientType      `json:"type" gorm:"not null"`
-	Config    ClientConfigWrapper[T] `json:"config" gorm:"type:jsonb"`
-	Name      string                 `json:"name" gorm:"not null"`
-	IsEnabled bool                   `json:"isEnabled" gorm:"default:true"`
+	UserID    uint64                `json:"userID" gorm:"not null"`
+	Category  client.ClientCategory `json:"category" gorm:"not null"`
+	Type      client.ClientType     `json:"type" gorm:"not null"`
+	Config    T                     `json:"config" gorm:"type:jsonb"`
+	Name      string                `json:"name" gorm:"not null"`
+	IsEnabled bool                  `json:"isEnabled" gorm:"default:true"`
 }
 
 func (c Client[T]) GetConfig() T {
-	return c.Config.Data
+	return c.Config
 }
 
 func (c Client[T]) SupportsMovies() bool {
-	if mediaConfig, ok := any(c.Config.Data).(client.ClientMediaConfig); ok {
+	if mediaConfig, ok := any(c.Config).(client.ClientMediaConfig); ok {
 		return mediaConfig.SupportsMovies()
 	}
 	return false
 }
 
 func (c Client[T]) SupportsSeries() bool {
-	if mediaConfig, ok := any(c.Config.Data).(client.ClientMediaConfig); ok {
+	if mediaConfig, ok := any(c.Config).(client.ClientMediaConfig); ok {
 		return mediaConfig.SupportsSeries()
 	}
 	return false
 }
 
 func (c Client[T]) SupportsMusic() bool {
-	if mediaConfig, ok := any(c.Config.Data).(client.ClientMediaConfig); ok {
+	if mediaConfig, ok := any(c.Config).(client.ClientMediaConfig); ok {
 		return mediaConfig.SupportsMusic()
 	}
 	return false
 }
 func (c Client[T]) SupportsPlaylists() bool {
-	if mediaConfig, ok := any(c.Config.Data).(client.ClientMediaConfig); ok {
+	if mediaConfig, ok := any(c.Config).(client.ClientMediaConfig); ok {
 		return mediaConfig.SupportsPlaylists()
 	}
 	return false
 }
 func (c Client[T]) SupportsCollections() bool {
-	if mediaConfig, ok := any(c.Config.Data).(client.ClientMediaConfig); ok {
+	if mediaConfig, ok := any(c.Config).(client.ClientMediaConfig); ok {
 		return mediaConfig.SupportsCollections()
 	}
 	return false
 }
 func (c Client[T]) SupportsHistory() bool {
-	if mediaConfig, ok := any(c.Config.Data).(client.ClientMediaConfig); ok {
+	if mediaConfig, ok := any(c.Config).(client.ClientMediaConfig); ok {
 		return mediaConfig.SupportsHistory()
 	}
 	return false
 }
 
 func (c Client[T]) GetClientType() client.ClientType {
-	if automationConfig, ok := any(c.Config.Data).(client.ClientAutomationConfig); ok {
+	if automationConfig, ok := any(c.Config).(client.ClientAutomationConfig); ok {
 		return automationConfig.GetClientType().AsGenericClient()
-	} else if mediaConfig, ok := any(c.Config.Data).(client.ClientMediaConfig); ok {
+	} else if mediaConfig, ok := any(c.Config).(client.ClientMediaConfig); ok {
 		return mediaConfig.GetClientType().AsGenericClient()
 	}
 	return client.ClientTypeUnknown
@@ -135,7 +135,7 @@ func (*Client[T]) NewAutomationClient(userID uint64, clientType client.Automatio
 	return &Client[T]{
 		UserID:    userID,
 		Category:  clientType.AsCategory(),
-		Config:    ClientConfigWrapper[T]{config.(T)},
+		Config:    config.(T),
 		Name:      name,
 		IsEnabled: isEnabled,
 	}

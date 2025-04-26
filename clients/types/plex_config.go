@@ -1,7 +1,5 @@
 package types
 
-import "encoding/json"
-
 // @Description Plex media server configuration
 type PlexConfig struct {
 	ClientMediaConfig
@@ -47,17 +45,5 @@ func (PlexConfig) SupportsHistory() bool {
 }
 
 func (c *PlexConfig) UnmarshalJSON(data []byte) error {
-	// Create a temporary type to avoid recursion
-	type Alias PlexConfig
-	aux := &struct {
-		*Alias
-	}{
-		Alias: (*Alias)(c),
-	}
-
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
-
-	return nil
+	return UnmarshalConfigJSON(data, c)
 }

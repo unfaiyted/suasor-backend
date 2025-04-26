@@ -79,15 +79,14 @@ func (h *clientHandler[T]) CreateClient(c *gin.Context) {
 	clientType := client.ClientType(req.ClientType)
 	category := clientType.AsCategory()
 
-	client := req.Client
-	client.SetCategory(category)
+	config := req.Config
 
 	clientOfType := models.Client[T]{
 		UserID:   uid,
 		Name:     req.Name,
 		Type:     clientType,
 		Category: category,
-		Config:   models.ClientConfigWrapper[T]{Data: client},
+		Config:   config,
 	}
 	log.Debug().
 		Uint64("userID", uid).
@@ -238,7 +237,7 @@ func (h *clientHandler[T]) UpdateClient(c *gin.Context) {
 		Name:      req.Name,
 		Category:  req.ClientType.AsCategory(),
 		Type:      req.ClientType,
-		Config:    models.ClientConfigWrapper[T]{Data: req.Client},
+		Config:    req.Config,
 		IsEnabled: req.IsEnabled,
 	}
 
@@ -348,7 +347,7 @@ func (h *clientHandler[T]) TestConnection(c *gin.Context) {
 		Str("type", string(client.GetClientType())).
 		Msg("Testing client connection")
 
-	result, err := h.service.TestConnection(ctx, cid, &client.Config.Data)
+	result, err := h.service.TestConnection(ctx, cid, &client.Config)
 	if err != nil {
 		responses.RespondInternalError(c, err, result.Message)
 		return

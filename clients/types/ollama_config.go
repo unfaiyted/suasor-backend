@@ -1,7 +1,5 @@
 package types
 
-import "encoding/json"
-
 // @Description Ollama local AI service configuration
 type OllamaConfig struct {
 	AIClientConfig
@@ -35,17 +33,5 @@ func (OllamaConfig) GetCategory() ClientCategory {
 }
 
 func (c *OllamaConfig) UnmarshalJSON(data []byte) error {
-	// Create a temporary type to avoid recursion
-	type Alias OllamaConfig
-	aux := &struct {
-		*Alias
-	}{
-		Alias: (*Alias)(c),
-	}
-
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
-
-	return nil
+	return UnmarshalConfigJSON(data, c)
 }

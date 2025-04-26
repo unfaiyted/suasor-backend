@@ -241,7 +241,7 @@ func (h *AIHandler[T]) getAIClient(ctx context.Context, userID uint64, clientTyp
 		Uint64("clientID", clientID).
 		Msg("Client Model retrieved")
 	// from factory
-	aiClient, err := h.factory.GetClient(ctx, clientModel.ID, clientModel.Config.Data)
+	aiClient, err := h.factory.GetClient(ctx, clientModel.ID, clientModel.Config)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get AI client")
 		return nil, err

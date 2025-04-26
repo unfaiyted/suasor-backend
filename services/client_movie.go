@@ -64,7 +64,7 @@ func (s *clientMovieService[T]) GetClientMovieByItemID(ctx context.Context, clie
 		Str("movieID", movieID).
 		Msg("Retrieving movie")
 
-	provider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config.Data)
+	provider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config)
 
 	movie, err := provider.GetMovieByID(ctx, movieID)
 	log.Info().
@@ -333,7 +333,7 @@ func (s *clientMovieService[T]) SearchClientMovies(ctx context.Context, clientID
 		Uint64("clientID", clientID).
 		Msg("Searching movies")
 
-	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config.Data)
+	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -359,7 +359,7 @@ func (s *clientMovieService[T]) GetMovieByClientItemID(ctx context.Context, clie
 		Str("movieID", movieID).
 		Msg("Retrieving movie")
 
-	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config.Data)
+	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -388,7 +388,7 @@ func (s *clientMovieService[T]) GetClientMoviesByActor(ctx context.Context, clie
 		Str("actor", actor).
 		Msg("Retrieving movies by actor")
 
-	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config.Data)
+	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -416,7 +416,7 @@ func (s *clientMovieService[T]) GetClientMoviesByDirector(ctx context.Context, c
 		Str("director", director).
 		Msg("Retrieving movies by director")
 
-	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config.Data)
+	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -444,7 +444,7 @@ func (s *clientMovieService[T]) GetClientMoviesByGenre(ctx context.Context, clie
 		Str("genre", genre).
 		Msg("Retrieving movies by genre")
 
-	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config.Data)
+	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -471,7 +471,7 @@ func (s *clientMovieService[T]) GetClientMoviesByRating(ctx context.Context, cli
 		Uint64("clientID", clientID).
 		Msg("Retrieving movies by rating")
 
-	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config.Data)
+	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -500,7 +500,7 @@ func (s *clientMovieService[T]) GetClientMoviesByYear(ctx context.Context, clien
 		Int("year", year).
 		Msg("Retrieving movies by year")
 
-	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config.Data)
+	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -528,7 +528,7 @@ func (s *clientMovieService[T]) GetClientMoviesLatestByAdded(ctx context.Context
 		Int("count", count).
 		Msg("Retrieving movies by latest added")
 
-	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config.Data)
+	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -558,7 +558,7 @@ func (s *clientMovieService[T]) GetClientPopularMovies(ctx context.Context, clie
 		Int("count", count).
 		Msg("Retrieving movies by popularity")
 
-	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config.Data)
+	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -588,7 +588,7 @@ func (s *clientMovieService[T]) GetClientTopRatedMovies(ctx context.Context, cli
 		Int("count", count).
 		Msg("Retrieving movies by rating")
 
-	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config.Data)
+	movieProvider, err := s.clientFactory.GetMovieProvider(ctx, clientID, client.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -641,9 +641,9 @@ func (s *clientMovieService[T]) getMovieProviders(ctx context.Context, userID ui
 
 	// Filter and instantiate clients that support movies
 	for _, clientConfig := range clients {
-		if clientConfig.Config.Data.SupportsMovies() {
+		if clientConfig.Config.SupportsMovies() {
 			clientID := clientConfig.GetID()
-			provider, err := s.clientFactory.GetMovieProvider(ctx, clientID, clientConfig.Config.Data)
+			provider, err := s.clientFactory.GetMovieProvider(ctx, clientID, clientConfig.Config)
 			if err != nil {
 				// Log error but continue with other clients
 				continue

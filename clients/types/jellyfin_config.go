@@ -1,7 +1,5 @@
 package types
 
-import "encoding/json"
-
 // @Description Jellyfin media server configuration
 type JellyfinConfig struct {
 	ClientMediaConfig
@@ -27,19 +25,7 @@ func (c *JellyfinConfig) GetUserID() string {
 }
 
 func (c *JellyfinConfig) UnmarshalJSON(data []byte) error {
-	// Create a temporary type to avoid recursion
-	type Alias JellyfinConfig
-	aux := &struct {
-		*Alias
-	}{
-		Alias: (*Alias)(c),
-	}
-
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
-
-	return nil
+	return UnmarshalConfigJSON(data, c)
 }
 
 func (JellyfinConfig) GetClientType() ClientMediaType {

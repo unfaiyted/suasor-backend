@@ -1,12 +1,16 @@
 package types
 
-import "encoding/json"
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
+)
 
 // @Description Emby media server configuration
 type EmbyConfig struct {
-	ClientMediaConfig
-	UserID   string `json:"userID,omitempty" mapstructure:"userID" example:"your-internal-user-id"`
-	Username string `json:"username" mapstructure:"username" example:"admin"`
+	ClientMediaConfig `json:"details"`
+	UserID            string `json:"userID,omitempty" mapstructure:"userID" example:"your-internal-user-id"`
+	Username          string `json:"username" mapstructure:"username" example:"admin"`
 }
 
 func NewEmbyConfig(username string, userID string, baseURL string, APIKey string, enabled bool, validateConn bool) EmbyConfig {
@@ -53,17 +57,22 @@ func (EmbyConfig) SupportsHistory() bool {
 }
 
 func (c *EmbyConfig) UnmarshalJSON(data []byte) error {
-	// Create a temporary type to avoid recursion
-	type Alias EmbyConfig
-	aux := &struct {
-		*Alias
-	}{
-		Alias: (*Alias)(c),
+	return UnmarshalConfigJSON(data, c)
+}
+
+// Value implements driver.Valuer for database storage
+func (c *EmbyConfig) Value() (driver.Value, error) {
+	// Serialize the entire item to JSON for storage
+	return json.Marshal(c)
+}
+
+// Scan implements sql.Scanner for database retrieval
+func (m *EmbyConfig) Scan(value any) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
 	}
 
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
-
-	return nil
+	// Use the same custom unmarshaling logic we defined in UnmarshalJSON
+	return m.UnmarshalJSON(bytes)
 }

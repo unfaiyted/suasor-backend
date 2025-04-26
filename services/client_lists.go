@@ -635,26 +635,26 @@ func (s *clientListService[T, U]) getListProvider(ctx context.Context, clientID 
 		Str("clientType", clientConfig.Type.String()).
 		Msg("Retrieved client config")
 
-	if !clientConfig.Config.Data.SupportsPlaylists() && !clientConfig.Config.Data.SupportsCollections() {
+	if !clientConfig.Config.SupportsPlaylists() && !clientConfig.Config.SupportsCollections() {
 		log.Warn().
 			Uint64("clientID", clientID).
-			Str("clientType", clientConfig.Config.Data.GetType().String()).
+			Str("clientType", clientConfig.Config.GetType().String()).
 			Msg("Client does not support lists")
 		return nil, ErrUnsupportedFeature
 	}
 
 	log.Debug().
 		Uint64("clientID", clientID).
-		Str("clientType", clientConfig.Config.Data.GetType().String()).
+		Str("clientType", clientConfig.Config.GetType().String()).
 		Msg("Client supports lists")
 
-	client, err := s.clientFactory.GetClient(ctx, clientID, clientConfig.Config.Data)
+	client, err := s.clientFactory.GetClient(ctx, clientID, clientConfig.Config)
 	if err != nil {
 		return nil, err
 	}
 	log.Debug().
 		Uint64("clientID", clientID).
-		Str("clientType", clientConfig.Config.Data.GetType().String()).
+		Str("clientType", clientConfig.Config.GetType().String()).
 		Msg("Retrieved client")
 	return client.(providers.ListProvider[U]), nil
 }
@@ -673,7 +673,7 @@ func (s *clientListService[T, U]) getUserListProviders(ctx context.Context, user
 
 	var providers []providers.ListProvider[U]
 	for _, clientConfig := range clients {
-		if clientConfig.Config.Data.SupportsPlaylists() {
+		if clientConfig.Config.SupportsPlaylists() {
 			clientID := clientConfig.GetID()
 			provider, err := s.getListProvider(ctx, clientID)
 			if err != nil {

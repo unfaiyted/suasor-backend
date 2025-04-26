@@ -1,7 +1,5 @@
 package types
 
-import "encoding/json"
-
 // @Description Lidarr automation server configuration
 type LidarrConfig struct {
 	ClientAutomationConfig
@@ -38,17 +36,5 @@ func (LidarrConfig) SupportsMusic() bool {
 }
 
 func (c *LidarrConfig) UnmarshalJSON(data []byte) error {
-	// Create a temporary type to avoid recursion
-	type Alias LidarrConfig
-	aux := &struct {
-		*Alias
-	}{
-		Alias: (*Alias)(c),
-	}
-
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
-
-	return nil
+	return UnmarshalConfigJSON(data, c)
 }

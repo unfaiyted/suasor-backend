@@ -215,19 +215,19 @@ func (h *ClientsHandler) GetClientsByType(c *gin.Context) {
 
 	switch clientType {
 	case types.ClientTypeEmby:
-		clients := getClientsByType[*types.EmbyConfig](c, h.embyService)
+		clients := getClientsByType(c, h.embyService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	case types.ClientTypeJellyfin:
-		clients := getClientsByType[*types.JellyfinConfig](c, h.jellyfinService)
+		clients := getClientsByType(c, h.jellyfinService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	case types.ClientTypePlex:
-		clients := getClientsByType[*types.PlexConfig](c, h.plexService)
+		clients := getClientsByType(c, h.plexService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	case types.ClientTypeSubsonic:
-		clients := getClientsByType[*types.SubsonicConfig](c, h.subsonicService)
+		clients := getClientsByType(c, h.subsonicService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	case types.ClientTypeSonarr:
-		clients := getClientsByType[*types.SonarrConfig](c, h.sonarrService)
+		clients := getClientsByType(c, h.sonarrService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	case types.ClientTypeRadarr:
 		clients := getClientsByType[*types.RadarrConfig](c, h.radarrService)

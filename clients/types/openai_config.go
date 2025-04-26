@@ -1,7 +1,5 @@
 package types
 
-import "encoding/json"
-
 // @Description OpenAI service configuration
 type OpenAIConfig struct {
 	AIClientConfig
@@ -47,17 +45,5 @@ func (OpenAIConfig) GetCategory() ClientCategory {
 }
 
 func (c *OpenAIConfig) UnmarshalJSON(data []byte) error {
-	// Create a temporary type to avoid recursion
-	type Alias OpenAIConfig
-	aux := &struct {
-		*Alias
-	}{
-		Alias: (*Alias)(c),
-	}
-
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
-
-	return nil
+	return UnmarshalConfigJSON(data, c)
 }

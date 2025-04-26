@@ -1,7 +1,5 @@
 package types
 
-import "encoding/json"
-
 // @Description Radarr movie automation server configuration
 type RadarrConfig struct {
 	ClientAutomationConfig
@@ -28,18 +26,5 @@ func (RadarrConfig) SupportsMovies() bool {
 }
 
 func (c *RadarrConfig) UnmarshalJSON(data []byte) error {
-	// Create a temporary type to avoid recursion
-	type Alias RadarrConfig
-	aux := &struct {
-		*Alias
-	}{
-		Alias: (*Alias)(c),
-	}
-
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
-
-	// Ensure Type is always the correct constant
-	return nil
+	return UnmarshalConfigJSON(data, c)
 }

@@ -31,7 +31,7 @@ func (s *ClientMetadataService[T]) GetClient(ctx context.Context, clientID uint6
 	}
 
 	// Create client instance using the factory
-	clientInstance, err := s.clientService.factory.GetClient(ctx, clientID, clientModel.Config.Data)
+	clientInstance, err := s.clientService.factory.GetClient(ctx, clientID, clientModel.Config)
 	if err != nil {
 		return nil, err
 	}

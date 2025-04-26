@@ -66,8 +66,8 @@ func (s *clientSeriesService[T]) getSeriesProviders(ctx context.Context, userID 
 
 	// Filter and instantiate providers that support TV shows
 	for _, clientConfig := range clients {
-		if clientConfig.Config.Data.SupportsSeries() {
-			provider, err := s.clientFactory.GetSeriesProvider(ctx, clientConfig.ID, clientConfig.Config.Data)
+		if clientConfig.Config.SupportsSeries() {
+			provider, err := s.clientFactory.GetSeriesProvider(ctx, clientConfig.ID, clientConfig.Config)
 			if err != nil {
 				// Log error but continue with other providers
 				continue
@@ -88,15 +88,15 @@ func (s *clientSeriesService[T]) getSeriesProvider(ctx context.Context, clientID
 		return nil, err
 	}
 
-	if !clientConfig.Config.Data.SupportsSeries() {
+	if !clientConfig.Config.SupportsSeries() {
 		log.Warn().
 			Uint64("clientID", clientID).
-			Str("clientType", clientConfig.Config.Data.GetType().String()).
+			Str("clientType", clientConfig.Config.GetType().String()).
 			Msg("Client does not support TV shows")
 		return nil, ErrUnsupportedFeature
 	}
 
-	provider, err := s.clientFactory.GetSeriesProvider(ctx, clientID, clientConfig.Config.Data)
+	provider, err := s.clientFactory.GetSeriesProvider(ctx, clientID, clientConfig.Config)
 	if err != nil {
 		return nil, err
 	}

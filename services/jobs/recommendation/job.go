@@ -84,7 +84,7 @@ func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.
 			claudeClient, err := claudeRepo.GetByID(ctx, config.DefaultClients.AIClientID)
 			if err == nil && claudeClient != nil {
 				// Found the default Claude client
-				client, err := j.clientFactories.GetClient(ctx, claudeClient.ID, claudeClient.Config.Data)
+				client, err := j.clientFactories.GetClient(ctx, claudeClient.ID, claudeClient.Config)
 				if err == nil && client != nil {
 					logger.Printf("Using default Claude AI client ID %d for user %d", claudeClient.ID, userID)
 					return client.(ai.ClientAI), nil
@@ -98,7 +98,7 @@ func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.
 			openAIClient, err := openAIRepo.GetByID(ctx, config.DefaultClients.AIClientID)
 			if err == nil && openAIClient != nil {
 				// Found the default OpenAI client
-				client, err := j.clientFactories.GetClient(ctx, openAIClient.ID, openAIClient.Config.Data)
+				client, err := j.clientFactories.GetClient(ctx, openAIClient.ID, openAIClient.Config)
 				if err == nil && client != nil {
 					logger.Printf("Using default OpenAI client ID %d for user %d", openAIClient.ID, userID)
 					return client.(ai.ClientAI), nil
@@ -112,7 +112,7 @@ func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.
 			ollamaClient, err := ollamaRepo.GetByID(ctx, config.DefaultClients.AIClientID)
 			if err == nil && ollamaClient != nil {
 				// Found the default Ollama client
-				client, err := j.clientFactories.GetClient(ctx, ollamaClient.ID, ollamaClient.Config.Data)
+				client, err := j.clientFactories.GetClient(ctx, ollamaClient.ID, ollamaClient.Config)
 				if err == nil && client != nil {
 					logger.Printf("Using default Ollama client ID %d for user %d", ollamaClient.ID, userID)
 					return client.(ai.ClientAI), nil
@@ -132,7 +132,7 @@ func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.
 		if err == nil && len(claudeClients) > 0 {
 			// Use the first active Claude client
 			for _, clientConfig := range claudeClients {
-				client, err := j.clientFactories.GetClient(ctx, clientConfig.ID, clientConfig.Config.Data)
+				client, err := j.clientFactories.GetClient(ctx, clientConfig.ID, clientConfig.Config)
 				if err == nil && client != nil {
 					logger.Printf("Using first available Claude client ID %d for user %d", clientConfig.ID, userID)
 					return client.(ai.ClientAI), nil
@@ -148,7 +148,7 @@ func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.
 		if err == nil && len(openAIClients) > 0 {
 			// Use the first active OpenAI client
 			for _, clientConfig := range openAIClients {
-				client, err := j.clientFactories.GetClient(ctx, clientConfig.ID, clientConfig.Config.Data)
+				client, err := j.clientFactories.GetClient(ctx, clientConfig.ID, clientConfig.Config)
 				if err == nil && client != nil {
 					logger.Printf("Using first available OpenAI client ID %d for user %d", clientConfig.ID, userID)
 					return client.(ai.ClientAI), nil
@@ -164,7 +164,7 @@ func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.
 		if err == nil && len(ollamaClients) > 0 {
 			// Use the first active Ollama client
 			for _, clientConfig := range ollamaClients {
-				client, err := j.clientFactories.GetClient(ctx, clientConfig.ID, clientConfig.Config.Data)
+				client, err := j.clientFactories.GetClient(ctx, clientConfig.ID, clientConfig.Config)
 				if err == nil && client != nil {
 					logger.Printf("Using first available Ollama client ID %d for user %d", clientConfig.ID, userID)
 					return client.(ai.ClientAI), nil

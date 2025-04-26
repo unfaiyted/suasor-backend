@@ -95,13 +95,13 @@ func (s *mediaMusicService[T]) getMusicProviders(ctx context.Context, userID uin
 
 	// Filter for clients that support music and instantiate them
 	for _, clientConfig := range clients {
-		if clientConfig.Config.Data.SupportsMusic() {
+		if clientConfig.Config.SupportsMusic() {
 			log.Debug().
 				Uint64("clientID", clientConfig.ID).
-				Str("clientType", clientConfig.Config.Data.GetClientType().String()).
+				Str("clientType", clientConfig.Config.GetClientType().String()).
 				Msg("Found music-supporting client")
 
-			provider, err := s.clientFactory.GetMusicProvider(ctx, clientConfig.ID, clientConfig.Config.Data)
+			provider, err := s.clientFactory.GetMusicProvider(ctx, clientConfig.ID, clientConfig.Config)
 			if err != nil {
 				log.Error().
 					Err(err).
@@ -134,20 +134,20 @@ func (s *mediaMusicService[T]) getMusicProvider(ctx context.Context, clientID ui
 		return nil, err
 	}
 
-	if !clientConfig.Config.Data.SupportsMusic() {
+	if !clientConfig.Config.SupportsMusic() {
 		log.Warn().
 			Uint64("clientID", clientID).
-			Str("clientType", clientConfig.Config.Data.GetClientType().String()).
+			Str("clientType", clientConfig.Config.GetClientType().String()).
 			Msg("Client does not support music")
 		return nil, errors.New("client does not support music")
 	}
 
-	provider, err := s.clientFactory.GetMusicProvider(ctx, clientID, clientConfig.Config.Data)
+	provider, err := s.clientFactory.GetMusicProvider(ctx, clientID, clientConfig.Config)
 	if err != nil {
 		log.Error().
 			Err(err).
 			Uint64("clientID", clientID).
-			Str("clientType", clientConfig.Config.Data.GetClientType().String()).
+			Str("clientType", clientConfig.Config.GetClientType().String()).
 			Msg("Failed to instantiate music client")
 		return nil, err
 	}
