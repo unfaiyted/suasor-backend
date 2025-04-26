@@ -17,8 +17,8 @@ func (c *PlexClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Msg("Retrieving movies from Plex server")
 
 	// First, find the movie library section
@@ -27,16 +27,16 @@ func (c *PlexClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("Failed to find movie library section")
 		return nil, err
 	}
 
 	if movieSectionKey == "" {
 		log.Info().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("No movie library section found in Plex")
 		return nil, nil
 	}
@@ -60,8 +60,8 @@ func (c *PlexClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Int("sectionKey", sectionKey).
 			Msg("Failed to get movies from Plex")
 		return nil, fmt.Errorf("failed to get movies: %w", err)
@@ -69,15 +69,15 @@ func (c *PlexClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 
 	if res.Object.MediaContainer == nil || res.Object.MediaContainer.Metadata == nil {
 		log.Info().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("No movies found in Plex")
 		return nil, nil
 	}
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Int("totalItems", len(res.Object.MediaContainer.Metadata)).
 		Msg("Successfully retrieved movies from Plex")
 
@@ -85,15 +85,15 @@ func (c *PlexClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("Failed to get movies from Plex")
 		return nil, fmt.Errorf("failed to get movies: %w", err)
 	}
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Int("moviesReturned", len(movies)).
 		Msg("Completed GetMovies request")
 
@@ -106,8 +106,8 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (*models.Media
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("movieID", id).
 		Msg("Retrieving specific movie from Plex server")
 
@@ -125,8 +125,8 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (*models.Media
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Str("movieID", id).
 			Msg("Failed to get movie from Plex")
 		return nil, fmt.Errorf("failed to get movie: %w", err)
@@ -134,8 +134,8 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (*models.Media
 
 	if res.Object.MediaContainer == nil || res.Object.MediaContainer.Metadata == nil || len(res.Object.MediaContainer.Metadata) == 0 {
 		log.Error().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Str("movieID", id).
 			Msg("Movie not found in Plex")
 		return nil, fmt.Errorf("movie not found")
@@ -144,8 +144,8 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (*models.Media
 	item := res.Object.MediaContainer.Metadata[0]
 	if item.Type != "movie" {
 		log.Error().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Str("movieID", id).
 			Str("actualType", item.Type).
 			Msg("Item retrieved is not a movie")
@@ -153,8 +153,8 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (*models.Media
 	}
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("movieID", id).
 		Str("movieTitle", item.Title).
 		Msg("Successfully retrieved movie from Plex")
@@ -163,8 +163,8 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (*models.Media
 	movie, err := GetMediaItem[*types.Movie](ctx, c, itemMovie, item.RatingKey)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("movieID", id).
 		Str("movieTitle", movie.Data.Details.Title).
 		Msg("Successfully converted movie data")
@@ -178,8 +178,8 @@ func (c *PlexClient) GetMovieGenres(ctx context.Context) ([]string, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Msg("Retrieving movie genres from Plex server")
 
 	// Find the movie library section
@@ -188,16 +188,16 @@ func (c *PlexClient) GetMovieGenres(ctx context.Context) ([]string, error) {
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("Failed to find movie library section")
 		return nil, err
 	}
 
 	if movieSectionKey == "" {
 		log.Info().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("No movie library section found in Plex")
 		return []string{}, nil
 	}
@@ -213,8 +213,8 @@ func (c *PlexClient) GetMovieGenres(ctx context.Context) ([]string, error) {
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Int("sectionKey", sectionKey).
 			Msg("Failed to get movie genres from Plex")
 		return nil, fmt.Errorf("failed to get movie genres: %w", err)
@@ -241,10 +241,11 @@ func (c *PlexClient) GetMovieGenres(ctx context.Context) ([]string, error) {
 	}
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Int("genresFound", len(genres)).
 		Msg("Successfully retrieved movie genres from Plex")
 
 	return genres, nil
 }
+

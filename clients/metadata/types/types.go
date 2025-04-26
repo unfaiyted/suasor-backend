@@ -13,11 +13,11 @@ type ExternalIDs struct {
 
 // MediaImage represents an image associated with a media item
 type MediaImage struct {
-	URL        string  `json:"url"`
-	Type       string  `json:"type"` // poster, backdrop, logo, etc.
-	Language   string  `json:"language,omitempty"`
-	Width      int     `json:"width,omitempty"`
-	Height     int     `json:"height,omitempty"`
+	URL         string  `json:"url"`
+	Type        string  `json:"type"` // poster, backdrop, logo, etc.
+	Language    string  `json:"language,omitempty"`
+	Width       int     `json:"width,omitempty"`
+	Height      int     `json:"height,omitempty"`
 	AspectRatio float64 `json:"aspectRatio,omitempty"`
 }
 
@@ -41,18 +41,18 @@ type Genre struct {
 
 // Person represents a person (actor, director, etc.)
 type Person struct {
-	ID              string       `json:"id"`
-	Name            string       `json:"name"`
-	ProfilePath     string       `json:"profilePath,omitempty"`
-	KnownForDepartment string    `json:"knownForDepartment,omitempty"`
-	Biography       string       `json:"biography,omitempty"`
-	Birthday        string       `json:"birthday,omitempty"`
-	Deathday        string       `json:"deathday,omitempty"`
-	PlaceOfBirth    string       `json:"placeOfBirth,omitempty"`
-	Gender          int          `json:"gender,omitempty"`
-	Popularity      float64      `json:"popularity,omitempty"`
-	Images          []MediaImage `json:"images,omitempty"`
-	ExternalIDs     ExternalIDs  `json:"externalIds,omitempty"`
+	ID                 string       `json:"id"`
+	Name               string       `json:"name"`
+	ProfilePath        string       `json:"profilePath,omitempty"`
+	KnownForDepartment string       `json:"knownForDepartment,omitempty"`
+	Biography          string       `json:"biography,omitempty"`
+	Birthday           string       `json:"birthday,omitempty"`
+	Deathday           string       `json:"deathday,omitempty"`
+	PlaceOfBirth       string       `json:"placeOfBirth,omitempty"`
+	Gender             int          `json:"gender,omitempty"`
+	Popularity         float64      `json:"popularity,omitempty"`
+	Images             []MediaImage `json:"images,omitempty"`
+	ExternalIDs        ExternalIDs  `json:"externalIds,omitempty"`
 }
 
 // CastMember represents a cast member in a movie or TV show
@@ -83,151 +83,160 @@ type Credits struct {
 
 // Movie represents a movie
 type Movie struct {
+	ID                  string       `json:"id"`
+	Title               string       `json:"title"`
+	OriginalTitle       string       `json:"originalTitle,omitempty"`
+	Overview            string       `json:"overview,omitempty"`
+	Tagline             string       `json:"tagline,omitempty"`
+	ReleaseDate         string       `json:"releaseDate,omitempty"`
+	Runtime             int          `json:"runtime,omitempty"`
+	Genres              []Genre      `json:"genres,omitempty"`
+	PosterPath          string       `json:"posterPath,omitempty"`
+	BackdropPath        string       `json:"backdropPath,omitempty"`
+	VoteAverage         float64      `json:"voteAverage,omitempty"`
+	VoteCount           int          `json:"voteCount,omitempty"`
+	Popularity          float64      `json:"popularity,omitempty"`
+	ProductionCountries []string     `json:"productionCountries,omitempty"`
+	ProductionCompanies []string     `json:"productionCompanies,omitempty"`
+	SpokenLanguages     []string     `json:"spokenLanguages,omitempty"`
+	Status              string       `json:"status,omitempty"`
+	Budget              int64        `json:"budget,omitempty"`
+	Revenue             int64        `json:"revenue,omitempty"`
+	Adult               bool         `json:"adult,omitempty"`
+	Video               bool         `json:"video,omitempty"`
+	Images              []MediaImage `json:"images,omitempty"`
+	Videos              []Video      `json:"videos,omitempty"`
+	Credits             Credits      `json:"credits,omitempty"`
+	ExternalIDs         ExternalIDs  `json:"externalIds,omitempty"`
+	CollectionID        string       `json:"collectionId,omitempty"`
+	CollectionName      string       `json:"collectionName,omitempty"`
+}
+
+// TVShow represents a TV show
+type TVShow struct {
 	ID               string       `json:"id"`
-	Title            string       `json:"title"`
-	OriginalTitle    string       `json:"originalTitle,omitempty"`
+	Name             string       `json:"name"`
+	OriginalName     string       `json:"originalName,omitempty"`
 	Overview         string       `json:"overview,omitempty"`
 	Tagline          string       `json:"tagline,omitempty"`
-	ReleaseDate      string       `json:"releaseDate,omitempty"`
-	Runtime          int          `json:"runtime,omitempty"`
+	FirstAirDate     string       `json:"firstAirDate,omitempty"`
+	LastAirDate      string       `json:"lastAirDate,omitempty"`
 	Genres           []Genre      `json:"genres,omitempty"`
 	PosterPath       string       `json:"posterPath,omitempty"`
 	BackdropPath     string       `json:"backdropPath,omitempty"`
 	VoteAverage      float64      `json:"voteAverage,omitempty"`
 	VoteCount        int          `json:"voteCount,omitempty"`
 	Popularity       float64      `json:"popularity,omitempty"`
-	ProductionCountries []string  `json:"productionCountries,omitempty"`
-	ProductionCompanies []string  `json:"productionCompanies,omitempty"`
-	SpokenLanguages    []string   `json:"spokenLanguages,omitempty"`
-	Status            string      `json:"status,omitempty"`
-	Budget            int64       `json:"budget,omitempty"`
-	Revenue           int64       `json:"revenue,omitempty"`
-	Adult             bool        `json:"adult,omitempty"`
-	Video             bool        `json:"video,omitempty"`
-	Images            []MediaImage `json:"images,omitempty"`
-	Videos            []Video     `json:"videos,omitempty"`
-	Credits           Credits     `json:"credits,omitempty"`
-	ExternalIDs       ExternalIDs `json:"externalIds,omitempty"`
-	CollectionID      string      `json:"collectionId,omitempty"`
-	CollectionName    string      `json:"collectionName,omitempty"`
-}
-
-// TVShow represents a TV show
-type TVShow struct {
-	ID                string       `json:"id"`
-	Name              string       `json:"name"`
-	OriginalName      string       `json:"originalName,omitempty"`
-	Overview          string       `json:"overview,omitempty"`
-	Tagline           string       `json:"tagline,omitempty"`
-	FirstAirDate      string       `json:"firstAirDate,omitempty"`
-	LastAirDate       string       `json:"lastAirDate,omitempty"`
-	Genres            []Genre      `json:"genres,omitempty"`
-	PosterPath        string       `json:"posterPath,omitempty"`
-	BackdropPath      string       `json:"backdropPath,omitempty"`
-	VoteAverage       float64      `json:"voteAverage,omitempty"`
-	VoteCount         int          `json:"voteCount,omitempty"`
-	Popularity        float64      `json:"popularity,omitempty"`
-	OriginCountry     []string     `json:"originCountry,omitempty"`
-	OriginalLanguage  string       `json:"originalLanguage,omitempty"`
-	Status            string       `json:"status,omitempty"`
-	Type              string       `json:"type,omitempty"`
-	NumberOfSeasons   int          `json:"numberOfSeasons,omitempty"`
-	NumberOfEpisodes  int          `json:"numberOfEpisodes,omitempty"`
-	InProduction      bool         `json:"inProduction,omitempty"`
-	Images            []MediaImage `json:"images,omitempty"`
-	Videos            []Video      `json:"videos,omitempty"`
-	Credits           Credits      `json:"credits,omitempty"`
-	ExternalIDs       ExternalIDs  `json:"externalIds,omitempty"`
-	CreatedBy         []Person     `json:"createdBy,omitempty"`
-	Networks          []string     `json:"networks,omitempty"`
-	Seasons           []TVSeason   `json:"seasons,omitempty"`
-}
-
-// TVSeason represents a TV season
-type TVSeason struct {
-	ID               string       `json:"id"`
-	TVShowID         string       `json:"tvShowId,omitempty"`
-	Name             string       `json:"name"`
-	Overview         string       `json:"overview,omitempty"`
-	SeasonNumber     int          `json:"seasonNumber"`
-	AirDate          string       `json:"airDate,omitempty"`
-	PosterPath       string       `json:"posterPath,omitempty"`
-	EpisodeCount     int          `json:"episodeCount,omitempty"`
-	VoteAverage      float64      `json:"voteAverage,omitempty"`
-	VoteCount        int          `json:"voteCount,omitempty"`
+	OriginCountry    []string     `json:"originCountry,omitempty"`
+	OriginalLanguage string       `json:"originalLanguage,omitempty"`
+	Status           string       `json:"status,omitempty"`
+	Type             string       `json:"type,omitempty"`
+	NumberOfSeasons  int          `json:"numberOfSeasons,omitempty"`
+	NumberOfEpisodes int          `json:"numberOfEpisodes,omitempty"`
+	InProduction     bool         `json:"inProduction,omitempty"`
 	Images           []MediaImage `json:"images,omitempty"`
 	Videos           []Video      `json:"videos,omitempty"`
 	Credits          Credits      `json:"credits,omitempty"`
 	ExternalIDs      ExternalIDs  `json:"externalIds,omitempty"`
-	Episodes         []TVEpisode  `json:"episodes,omitempty"`
+	CreatedBy        []Person     `json:"createdBy,omitempty"`
+	Networks         []string     `json:"networks,omitempty"`
+	Seasons          []TVSeason   `json:"seasons,omitempty"`
+}
+
+// TVSeason represents a TV season
+type TVSeason struct {
+	ID           string       `json:"id"`
+	TVShowID     string       `json:"tvShowId,omitempty"`
+	Name         string       `json:"name"`
+	Overview     string       `json:"overview,omitempty"`
+	SeasonNumber int          `json:"seasonNumber"`
+	AirDate      string       `json:"airDate,omitempty"`
+	PosterPath   string       `json:"posterPath,omitempty"`
+	EpisodeCount int          `json:"episodeCount,omitempty"`
+	VoteAverage  float64      `json:"voteAverage,omitempty"`
+	VoteCount    int          `json:"voteCount,omitempty"`
+	Images       []MediaImage `json:"images,omitempty"`
+	Videos       []Video      `json:"videos,omitempty"`
+	Credits      Credits      `json:"credits,omitempty"`
+	ExternalIDs  ExternalIDs  `json:"externalIds,omitempty"`
+	Episodes     []TVEpisode  `json:"episodes,omitempty"`
 }
 
 // TVEpisode represents a TV episode
 type TVEpisode struct {
-	ID                 string       `json:"id"`
-	TVShowID           string       `json:"tvShowId,omitempty"`
-	SeasonID           string       `json:"seasonId,omitempty"`
-	Name               string       `json:"name"`
-	Overview           string       `json:"overview,omitempty"`
-	EpisodeNumber      int          `json:"episodeNumber"`
-	SeasonNumber       int          `json:"seasonNumber"`
-	AirDate            string       `json:"airDate,omitempty"`
-	StillPath          string       `json:"stillPath,omitempty"`
-	VoteAverage        float64      `json:"voteAverage,omitempty"`
-	VoteCount          int          `json:"voteCount,omitempty"`
-	Runtime            int          `json:"runtime,omitempty"`
-	Images             []MediaImage `json:"images,omitempty"`
-	Videos             []Video      `json:"videos,omitempty"`
-	Credits            Credits      `json:"credits,omitempty"`
-	ExternalIDs        ExternalIDs  `json:"externalIds,omitempty"`
-	Crew               []CrewMember `json:"crew,omitempty"`
-	GuestStars         []CastMember `json:"guestStars,omitempty"`
+	ID            string       `json:"id"`
+	TVShowID      string       `json:"tvShowId,omitempty"`
+	SeasonID      string       `json:"seasonId,omitempty"`
+	Name          string       `json:"name"`
+	Overview      string       `json:"overview,omitempty"`
+	EpisodeNumber int          `json:"episodeNumber"`
+	SeasonNumber  int          `json:"seasonNumber"`
+	AirDate       string       `json:"airDate,omitempty"`
+	StillPath     string       `json:"stillPath,omitempty"`
+	VoteAverage   float64      `json:"voteAverage,omitempty"`
+	VoteCount     int          `json:"voteCount,omitempty"`
+	Runtime       int          `json:"runtime,omitempty"`
+	Images        []MediaImage `json:"images,omitempty"`
+	Videos        []Video      `json:"videos,omitempty"`
+	Credits       Credits      `json:"credits,omitempty"`
+	ExternalIDs   ExternalIDs  `json:"externalIds,omitempty"`
+	Crew          []CrewMember `json:"crew,omitempty"`
+	GuestStars    []CastMember `json:"guestStars,omitempty"`
 }
 
 // Collection represents a collection of movies
 type Collection struct {
-	ID           string      `json:"id"`
-	Name         string      `json:"name"`
-	Overview     string      `json:"overview,omitempty"`
-	PosterPath   string      `json:"posterPath,omitempty"`
-	BackdropPath string      `json:"backdropPath,omitempty"`
-	Parts        []Movie     `json:"parts,omitempty"`
+	ID           string       `json:"id"`
+	Name         string       `json:"name"`
+	Overview     string       `json:"overview,omitempty"`
+	PosterPath   string       `json:"posterPath,omitempty"`
+	BackdropPath string       `json:"backdropPath,omitempty"`
+	Parts        []Movie      `json:"parts,omitempty"`
 	Images       []MediaImage `json:"images,omitempty"`
 }
 
 // MovieCredit represents a movie credit for a person
 type MovieCredit struct {
-	ID               string  `json:"id"`
-	Title            string  `json:"title"`
-	Character        string  `json:"character,omitempty"`
-	Department       string  `json:"department,omitempty"`
-	Job              string  `json:"job,omitempty"`
-	PosterPath       string  `json:"posterPath,omitempty"`
-	ReleaseDate      string  `json:"releaseDate,omitempty"`
-	VoteAverage      float64 `json:"voteAverage,omitempty"`
-	VoteCount        int     `json:"voteCount,omitempty"`
-	Popularity       float64 `json:"popularity,omitempty"`
+	ID          string  `json:"id"`
+	Title       string  `json:"title"`
+	Character   string  `json:"character,omitempty"`
+	Department  string  `json:"department,omitempty"`
+	Job         string  `json:"job,omitempty"`
+	PosterPath  string  `json:"posterPath,omitempty"`
+	ReleaseDate string  `json:"releaseDate,omitempty"`
+	VoteAverage float64 `json:"voteAverage,omitempty"`
+	VoteCount   int     `json:"voteCount,omitempty"`
+	Popularity  float64 `json:"popularity,omitempty"`
 }
 
 // TVCredit represents a TV credit for a person
 type TVCredit struct {
-	ID               string  `json:"id"`
-	Name             string  `json:"name"`
-	Character        string  `json:"character,omitempty"`
-	Department       string  `json:"department,omitempty"`
-	Job              string  `json:"job,omitempty"`
-	PosterPath       string  `json:"posterPath,omitempty"`
-	FirstAirDate     string  `json:"firstAirDate,omitempty"`
-	VoteAverage      float64 `json:"voteAverage,omitempty"`
-	VoteCount        int     `json:"voteCount,omitempty"`
-	Popularity       float64 `json:"popularity,omitempty"`
-	EpisodeCount     int     `json:"episodeCount,omitempty"`
+	ID           string  `json:"id"`
+	Name         string  `json:"name"`
+	Character    string  `json:"character,omitempty"`
+	Department   string  `json:"department,omitempty"`
+	Job          string  `json:"job,omitempty"`
+	PosterPath   string  `json:"posterPath,omitempty"`
+	FirstAirDate string  `json:"firstAirDate,omitempty"`
+	VoteAverage  float64 `json:"voteAverage,omitempty"`
+	VoteCount    int     `json:"voteCount,omitempty"`
+	Popularity   float64 `json:"popularity,omitempty"`
+	EpisodeCount int     `json:"episodeCount,omitempty"`
 }
 
 // MetadataClientConfig is the interface for metadata client configurations
-type MetadataClientConfig interface {
-	SupportsMovieMetadata() bool
-	SupportsTVMetadata() bool
-	SupportsPersonMetadata() bool
-	SupportsCollectionMetadata() bool
-}
+// type MetadataClientConfig interface {
+// 	SupportsMovieMetadata() bool
+// 	SupportsTVMetadata() bool
+// 	SupportsPersonMetadata() bool
+// 	SupportsCollectionMetadata() bool
+// }
+
+type MetadataType string
+
+const (
+	MetadataTypeMovie      MetadataType = "movie"
+	MetadataTypeTV         MetadataType = "tv"
+	MetadataTypePerson     MetadataType = "person"
+	MetadataTypeCollection MetadataType = "collection"
+)

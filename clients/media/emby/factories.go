@@ -168,11 +168,11 @@ func (e *EmbyClient) trackFactory(ctx context.Context, item *embyclient.BaseItem
 		AlbumName: item.Album,
 	}
 
-	track.SyncAlbum.AddClient(e.ClientID, item.Id)
+	track.SyncAlbum.AddClient(e.GetClientID(), item.Id)
 
 	// Add artist information if available
 	if len(item.ArtistItems) > 0 {
-		track.AddSyncClient(e.ClientID, item.AlbumId, item.ArtistItems[0].Id)
+		track.AddSyncClient(e.GetClientID(), item.AlbumId, item.ArtistItems[0].Id)
 		track.ArtistName = item.ArtistItems[0].Name
 	}
 
@@ -296,7 +296,7 @@ func (e *EmbyClient) seasonFactory(ctx context.Context, item *embyclient.BaseIte
 		EpisodeCount: int(item.ChildCount),
 	}
 
-	season.SyncSeries.AddClient(e.ClientID, item.ParentId)
+	season.SyncSeries.AddClient(e.GetClientID(), item.ParentId)
 
 	if !item.PremiereDate.IsZero() {
 		season.ReleaseDate = item.PremiereDate
@@ -319,7 +319,7 @@ func (e *EmbyClient) episodeFactory(ctx context.Context, item *embyclient.BaseIt
 		ShowTitle:    item.SeriesName,
 	}
 
-	episode.AddSyncClient(e.ClientID, item.SeasonId, item.SeriesId)
+	episode.AddSyncClient(e.GetClientID(), item.SeasonId, item.SeriesId)
 
 	// Add external IDs
 	if item.ProviderIds != nil {

@@ -2,23 +2,22 @@ package types
 
 import "encoding/json"
 
-// @Description Jellyfin media server configuration
+// @Description Lidarr automation server configuration
 type LidarrConfig struct {
-	BaseAutomationClientConfig
+	ClientAutomationConfig
 }
 
-func NewLidarrConfig() LidarrConfig {
+func NewLidarrConfig(baseURL string, apiKey string, enabled bool, validateConn bool) LidarrConfig {
+
+	clientConfig := NewClientAutomationConfig(
+		AutomationClientTypeLidarr, ClientCategoryAutomation,
+		"Lidarr", baseURL,
+		apiKey, enabled, validateConn)
+
 	return LidarrConfig{
-		BaseAutomationClientConfig: BaseAutomationClientConfig{
-			BaseClientConfig: BaseClientConfig{
-				Type: ClientTypeLidarr,
-			},
-			ClientType: AutomationClientTypeLidarr,
-		},
+		ClientAutomationConfig: clientConfig,
 	}
 }
-func (LidarrConfig) isClientConfig()           {}
-func (LidarrConfig) isAutomationClientConfig() {}
 
 func (LidarrConfig) GetClientType() AutomationClientType {
 	return AutomationClientTypeLidarr
@@ -51,8 +50,5 @@ func (c *LidarrConfig) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	// Ensure Type is always the correct constant
-	c.ClientType = AutomationClientTypeLidarr
-	c.Type = ClientTypeLidarr
 	return nil
 }

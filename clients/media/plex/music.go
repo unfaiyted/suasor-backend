@@ -18,8 +18,8 @@ func (c *PlexClient) GetMusic(ctx context.Context, options *types.QueryOptions) 
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Msg("Retrieving music tracks from Plex server")
 
 	// Find the music library section
@@ -28,16 +28,16 @@ func (c *PlexClient) GetMusic(ctx context.Context, options *types.QueryOptions) 
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("Failed to find music library section")
 		return nil, err
 	}
 
 	if musicSectionKey == "" {
 		log.Info().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("No music library section found in Plex")
 		return nil, nil
 	}
@@ -52,8 +52,8 @@ func (c *PlexClient) GetMusic(ctx context.Context, options *types.QueryOptions) 
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Int("sectionKey", sectionKey).
 			Msg("Failed to get music artists from Plex")
 		return nil, fmt.Errorf("failed to get music artists: %w", err)
@@ -126,8 +126,8 @@ func (c *PlexClient) GetMusic(ctx context.Context, options *types.QueryOptions) 
 						if err != nil {
 							log.Error().
 								Err(err).
-								Uint64("clientID", c.ClientID).
-								Str("clientType", string(c.ClientType)).
+								Uint64("clientID", c.GetClientID()).
+								Str("clientType", string(c.GetClientType())).
 								Str("albumID", *album.RatingKey).
 								Str("albumName", *album.Title).
 								Msg("Failed to get tracks for album, skipping")
@@ -147,8 +147,8 @@ func (c *PlexClient) GetMusic(ctx context.Context, options *types.QueryOptions) 
 	}
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Int("tracksReturned", len(tracks)).
 		Msg("Completed GetMusic request")
 
@@ -161,8 +161,8 @@ func (c *PlexClient) GetMusicArtists(ctx context.Context, options *types.QueryOp
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Msg("Retrieving music artists from Plex server")
 
 	// Find the music library section
@@ -171,16 +171,16 @@ func (c *PlexClient) GetMusicArtists(ctx context.Context, options *types.QueryOp
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("Failed to find music library section")
 		return nil, err
 	}
 
 	if musicSectionKey == "" {
 		log.Info().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("No music library section found in Plex")
 		return nil, nil
 	}
@@ -195,8 +195,8 @@ func (c *PlexClient) GetMusicArtists(ctx context.Context, options *types.QueryOp
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Int("sectionKey", sectionKey).
 			Msg("Failed to get music artists from Plex")
 		return nil, fmt.Errorf("failed to get music artists: %w", err)
@@ -204,15 +204,15 @@ func (c *PlexClient) GetMusicArtists(ctx context.Context, options *types.QueryOp
 
 	if res.Object.MediaContainer == nil || res.Object.MediaContainer.Metadata == nil {
 		log.Info().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("No music artists found in Plex")
 		return nil, nil
 	}
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Int("totalItems", len(res.Object.MediaContainer.Metadata)).
 		Msg("Successfully retrieved music artists from Plex")
 
@@ -220,8 +220,8 @@ func (c *PlexClient) GetMusicArtists(ctx context.Context, options *types.QueryOp
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("Failed to get music artists from Plex")
 		return nil, fmt.Errorf("failed to get music artists: %w", err)
 	}
@@ -235,8 +235,8 @@ func (c *PlexClient) GetMusicAlbums(ctx context.Context, options *types.QueryOpt
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Msg("Retrieving music albums from Plex server")
 
 	// Find the music library section
@@ -245,16 +245,16 @@ func (c *PlexClient) GetMusicAlbums(ctx context.Context, options *types.QueryOpt
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("Failed to find music library section")
 		return nil, err
 	}
 
 	if musicSectionKey == "" {
 		log.Info().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("No music library section found in Plex")
 		return nil, nil
 	}
@@ -270,8 +270,8 @@ func (c *PlexClient) GetMusicAlbums(ctx context.Context, options *types.QueryOpt
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Int("sectionKey", sectionKey).
 			Msg("Failed to get music artists from Plex")
 		return nil, fmt.Errorf("failed to get music artists: %w", err)
@@ -281,15 +281,15 @@ func (c *PlexClient) GetMusicAlbums(ctx context.Context, options *types.QueryOpt
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Int("sectionKey", sectionKey).
 			Msg("Failed to get music albums from Plex")
 		return nil, fmt.Errorf("failed to get music albums: %w", err)
 	}
 
 	for _, artist := range artists {
-		artistKey, _ := strconv.Atoi(artist.SyncClients.GetClientItemID(c.ClientID))
+		artistKey, _ := strconv.Atoi(artist.SyncClients.GetClientItemID(c.GetClientID()))
 		float64ArtistKey := float64(artistKey)
 
 		log.Debug().
@@ -337,8 +337,8 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (*models.
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("trackID", id).
 		Msg("Retrieving specific music track from Plex server")
 
@@ -354,8 +354,8 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (*models.
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Str("trackID", id).
 			Msg("Failed to get music track from Plex")
 		return nil, fmt.Errorf("failed to get music track: %w", err)
@@ -363,8 +363,8 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (*models.
 
 	if res.Object.MediaContainer == nil || res.Object.MediaContainer.Metadata == nil || len(res.Object.MediaContainer.Metadata) == 0 {
 		log.Error().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Str("trackID", id).
 			Msg("Music track not found in Plex")
 		return nil, fmt.Errorf("music track not found")
@@ -373,8 +373,8 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (*models.
 	item := res.Object.MediaContainer.Metadata[0]
 	if item.Type != "track" {
 		log.Error().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Str("trackID", id).
 			Str("actualType", item.Type).
 			Msg("Item retrieved is not a music track")
@@ -435,8 +435,8 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (*models.
 	}
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("trackID", id).
 		Str("trackTitle", item.Title).
 		Str("albumName", albumName).
@@ -449,8 +449,8 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (*models.
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Str("trackID", id).
 			Msg("Error converting Plex item to track format")
 		return nil, fmt.Errorf("error converting track data: %w", err)
@@ -459,12 +459,12 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (*models.
 	track.Data.AlbumName = albumName
 	track.Data.ArtistName = artistName
 	track.Data.Number = int(*item.Index)
-	track.Data.AddSyncClient(c.ClientID, *item.ParentRatingKey, artistID)
-	track.SetClientInfo(c.ClientID, c.ClientType, item.RatingKey)
+	track.Data.AddSyncClient(c.GetClientID(), *item.ParentRatingKey, artistID)
+	track.SetClientInfo(c.GetClientID(), c.GetClientType(), item.RatingKey)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("trackID", id).
 		Str("trackTitle", track.Data.Details.Title).
 		Int("trackNumber", track.Data.Number).
@@ -479,8 +479,8 @@ func (c *PlexClient) GetMusicGenres(ctx context.Context) ([]string, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Msg("Retrieving music genres from Plex server")
 
 	// Find the music library section
@@ -489,16 +489,16 @@ func (c *PlexClient) GetMusicGenres(ctx context.Context) ([]string, error) {
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("Failed to find music library section")
 		return nil, err
 	}
 
 	if musicSectionKey == "" {
 		log.Info().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("No music library section found in Plex")
 		return []string{}, nil
 	}
@@ -519,8 +519,8 @@ func (c *PlexClient) GetMusicGenres(ctx context.Context) ([]string, error) {
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Int("sectionKey", sectionKey).
 			Msg("Failed to get music content from Plex")
 		return nil, fmt.Errorf("failed to get music content: %w", err)
@@ -552,8 +552,8 @@ func (c *PlexClient) GetMusicGenres(ctx context.Context) ([]string, error) {
 	}
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Int("genresFound", len(genres)).
 		Msg("Successfully retrieved music genres from Plex")
 

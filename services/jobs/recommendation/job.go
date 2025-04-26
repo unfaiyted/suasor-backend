@@ -67,7 +67,7 @@ func NewRecommendationJob(
 
 // getAIClient returns an AI client for the given user
 // It tries to get the default AI client from the user config, or falls back to the first active AI client
-func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.AIClient, error) {
+func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.ClientAI, error) {
 	logger := log.Logger{} // would ideally use structured logging from context
 
 	// Get user config to check for default AI client
@@ -87,7 +87,7 @@ func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.
 				client, err := j.clientFactories.GetClient(ctx, claudeClient.ID, claudeClient.Config.Data)
 				if err == nil && client != nil {
 					logger.Printf("Using default Claude AI client ID %d for user %d", claudeClient.ID, userID)
-					return client.(ai.AIClient), nil
+					return client.(ai.ClientAI), nil
 				}
 			}
 		}
@@ -101,7 +101,7 @@ func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.
 				client, err := j.clientFactories.GetClient(ctx, openAIClient.ID, openAIClient.Config.Data)
 				if err == nil && client != nil {
 					logger.Printf("Using default OpenAI client ID %d for user %d", openAIClient.ID, userID)
-					return client.(ai.AIClient), nil
+					return client.(ai.ClientAI), nil
 				}
 			}
 		}
@@ -115,7 +115,7 @@ func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.
 				client, err := j.clientFactories.GetClient(ctx, ollamaClient.ID, ollamaClient.Config.Data)
 				if err == nil && client != nil {
 					logger.Printf("Using default Ollama client ID %d for user %d", ollamaClient.ID, userID)
-					return client.(ai.AIClient), nil
+					return client.(ai.ClientAI), nil
 				}
 			}
 		}
@@ -135,7 +135,7 @@ func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.
 				client, err := j.clientFactories.GetClient(ctx, clientConfig.ID, clientConfig.Config.Data)
 				if err == nil && client != nil {
 					logger.Printf("Using first available Claude client ID %d for user %d", clientConfig.ID, userID)
-					return client.(ai.AIClient), nil
+					return client.(ai.ClientAI), nil
 				}
 			}
 		}
@@ -151,7 +151,7 @@ func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.
 				client, err := j.clientFactories.GetClient(ctx, clientConfig.ID, clientConfig.Config.Data)
 				if err == nil && client != nil {
 					logger.Printf("Using first available OpenAI client ID %d for user %d", clientConfig.ID, userID)
-					return client.(ai.AIClient), nil
+					return client.(ai.ClientAI), nil
 				}
 			}
 		}
@@ -167,7 +167,7 @@ func (j *RecommendationJob) getAIClient(ctx context.Context, userID uint64) (ai.
 				client, err := j.clientFactories.GetClient(ctx, clientConfig.ID, clientConfig.Config.Data)
 				if err == nil && client != nil {
 					logger.Printf("Using first available Ollama client ID %d for user %d", clientConfig.ID, userID)
-					return client.(ai.AIClient), nil
+					return client.(ai.ClientAI), nil
 				}
 			}
 		}
@@ -207,7 +207,7 @@ func (j *RecommendationJob) Execute(ctx context.Context) error {
 }
 
 // ExecuteWithParams runs the recommendation job with the specified parameters
-func (j *RecommendationJob) ExecuteWithParams(ctx context.Context, jobID uint64, jobRunID uint64, params map[string]interface{}) error {
+func (j *RecommendationJob) ExecuteWithParams(ctx context.Context, jobID uint64, jobRunID uint64, params map[string]any) error {
 	// Create a logger using job ID
 	logger := log.Logger{}
 	logger.Printf("Starting recommendation job (ID: %d, Run: %d)", jobID, jobRunID)

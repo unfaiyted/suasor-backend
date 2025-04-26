@@ -98,7 +98,7 @@ func registerSystemServices(ctx context.Context, c *container.Container) {
 
 	// Job service
 	log.Info().Msg("Registering job service")
-	container.RegisterFactory[services.JobService](c, func(c *container.Container) services.JobService {
+	container.RegisterFactory[jobs.JobService](c, func(c *container.Container) jobs.JobService {
 		jobRepo := container.MustGet[repository.JobRepository](c)
 		userRepo := container.MustGet[repository.UserRepository](c)
 		configRepo := container.MustGet[repository.UserConfigRepository](c)
@@ -122,7 +122,7 @@ func registerSystemServices(ctx context.Context, c *container.Container) {
 		recommendationJob := container.MustGet[*recommendation.RecommendationJob](c)
 
 		// Job implementations
-		return services.NewJobService(
+		return jobs.NewJobService(
 			jobRepo,
 			userRepo,
 			configRepo,
@@ -143,9 +143,9 @@ func registerSystemServices(ctx context.Context, c *container.Container) {
 	log.Info().Msg("Registering user config service")
 	container.RegisterFactory[services.UserConfigService](c, func(c *container.Container) services.UserConfigService {
 		userConfigRepo := container.MustGet[repository.UserConfigRepository](c)
-		jobService := container.MustGet[services.JobService](c)
+		// jobService := container.MustGet[jobs.JobService](c)
 		recommendationJob := container.MustGet[*recommendation.RecommendationJob](c)
-		return services.NewUserConfigService(userConfigRepo, jobService, recommendationJob)
+		return services.NewUserConfigService(userConfigRepo, recommendationJob)
 	})
 
 	// Recommendation service

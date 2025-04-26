@@ -17,8 +17,8 @@ func (e *EmbyClient) GetMusic(ctx context.Context, options *types.QueryOptions) 
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Msg("Retrieving music tracks from Emby server")
 
 	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
@@ -32,7 +32,7 @@ func (e *EmbyClient) GetMusic(ctx context.Context, options *types.QueryOptions) 
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.embyConfig().BaseURL).
+			Str("baseURL", e.embyConfig().GetBaseURL()).
 			Str("apiEndpoint", "/Items").
 			Msg("Failed to fetch music tracks from Emby")
 		return nil, fmt.Errorf("failed to fetch music tracks: %w", err)
@@ -69,8 +69,8 @@ func (e *EmbyClient) GetMusicArtists(ctx context.Context, options *types.QueryOp
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Msg("Retrieving music artists from Emby server")
 
 	opts := embyclient.ArtistsServiceApiGetArtistsOpts{
@@ -101,7 +101,7 @@ func (e *EmbyClient) GetMusicArtists(ctx context.Context, options *types.QueryOp
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.embyConfig().BaseURL).
+			Str("baseURL", e.embyConfig().GetBaseURL()).
 			Str("apiEndpoint", "/Artists").
 			Msg("Failed to fetch music artists from Emby")
 		return nil, fmt.Errorf("failed to fetch music artists: %w", err)
@@ -136,8 +136,8 @@ func (e *EmbyClient) GetMusicAlbums(ctx context.Context, options *types.QueryOpt
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Msg("Retrieving music albums from Emby server")
 
 	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
@@ -151,7 +151,7 @@ func (e *EmbyClient) GetMusicAlbums(ctx context.Context, options *types.QueryOpt
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.embyConfig().BaseURL).
+			Str("baseURL", e.embyConfig().GetBaseURL()).
 			Str("apiEndpoint", "/Items").
 			Msg("Failed to fetch music albums from Emby")
 		return nil, fmt.Errorf("failed to fetch music albums: %w", err)
@@ -186,8 +186,8 @@ func (e *EmbyClient) GetMusicTrackByID(ctx context.Context, id string) (*models.
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Str("trackID", id).
 		Msg("Retrieving specific music track from Emby server")
 
@@ -200,7 +200,7 @@ func (e *EmbyClient) GetMusicTrackByID(ctx context.Context, id string) (*models.
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.embyConfig().BaseURL).
+			Str("baseURL", e.embyConfig().GetBaseURL()).
 			Str("apiEndpoint", "/Items").
 			Str("trackID", id).
 			Msg("Failed to fetch music track from Emby")
@@ -235,8 +235,8 @@ func (e *EmbyClient) GetMusicGenres(ctx context.Context) ([]string, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Msg("Retrieving music genres from Emby server")
 
 	opts := embyclient.MusicGenresServiceApiGetMusicgenresOpts{}
@@ -245,7 +245,7 @@ func (e *EmbyClient) GetMusicGenres(ctx context.Context) ([]string, error) {
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.embyConfig().BaseURL).
+			Str("baseURL", e.embyConfig().GetBaseURL()).
 			Str("apiEndpoint", "/MusicGenres").
 			Msg("Failed to fetch music genres from Emby")
 		return nil, fmt.Errorf("failed to fetch music genres: %w", err)

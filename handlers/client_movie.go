@@ -632,25 +632,6 @@ func (h *clientMovieHandler[T]) GetClientMovieByExternalID(c *gin.Context) {
 
 }
 
-func createMovieMediaItem[T types.Movie](clientID uint64, clientType clienttypes.ClientMediaType, externalID string, data types.Movie) models.MediaItem[types.Movie] {
-	mediaItem := models.MediaItem[types.Movie]{
-		Type:        types.MediaTypeMovie,
-		SyncClients: []models.SyncClient{},
-		ExternalIDs: []models.ExternalID{},
-		Data:        data,
-	}
-
-	// Set client info
-	mediaItem.SetClientInfo(clientID, clientType, externalID)
-
-	// Only add external ID if provided
-	if externalID != "" {
-		mediaItem.AddExternalID("client", externalID)
-	}
-
-	return mediaItem
-}
-
 // GetClientByActor godoc
 //
 //	@Summary		Get movies by actor

@@ -1,0 +1,441 @@
+import ./common/auth.http
+
+# Import and use the admin login for all client operations
+run #adminLogin
+
+###
+# @name getAllClients
+# Get all clients without filtering
+GET {{baseUrl}}/clients
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name getMediaClients
+# Get only media clients (emby, jellyfin, plex, subsonic)
+GET {{baseUrl}}/clients?type=media
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name getAIClients
+# Get only AI clients (claude, openai, ollama)
+GET {{baseUrl}}/clients?type=ai
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name getAutomationClients
+# Get only automation clients (radarr, sonarr, lidarr)
+GET {{baseUrl}}/clients?type=automation
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+#######################
+## Media Clients Tests
+#######################
+
+###
+# @name createEmbyClient
+POST {{baseUrl}}/client/emby
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+{
+  "name": "Emby Test",
+  "clientType": "emby",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "{{EMBY_TEST_URL}}",
+    "apiKey": "{{EMBY_TEST_API_KEY}}",
+    "username": "{{EMBY_TEST_USER}}",
+    "ssl": false,
+    "validateConn": true
+  }
+}
+
+###
+# @name getEmbyClient
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+### 
+# @name updateEmbyClient
+PUT {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+{
+  "name": "Emby Test (Updated)",
+  "clientType": "emby",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "{{EMBY_TEST_URL}}",
+    "apiKey": "{{EMBY_TEST_API_KEY}}",
+    "username": "{{EMBY_TEST_USER}}",
+    "ssl": false,
+    "validateConn": true
+  }
+}
+
+###
+# @name testEmbyConnection
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/test
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name deleteEmbyClient
+DELETE {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name createJellyfinClient
+POST {{baseUrl}}/client/jellyfin
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+{
+  "name": "Jellyfin Test",
+  "clientType": "jellyfin",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "{{JELLYFIN_TEST_URL}}",
+    "apiKey": "{{JELLYFIN_TEST_API_KEY}}",
+    "username": "{{JELLYFIN_TEST_USER}}",
+    "ssl": false,
+    "validateConn": true
+  }
+}
+
+###
+# @name createPlexClient
+POST {{baseUrl}}/client/plex
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+{
+  "name": "Plex Test",
+  "clientType": "plex",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "{{PLEX_TEST_URL}}",
+    "token": "{{PLEX_TEST_TOKEN}}",
+    "ssl": false,
+    "validateConn": true
+  }
+}
+
+###
+# @name createSubsonicClient
+POST {{baseUrl}}/client/subsonic
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+{
+  "name": "Subsonic Test",
+  "clientType": "subsonic",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "http://{{SUBSONIC_TEST_HOST}}:{{SUBSONIC_TEST_PORT}}",
+    "username": "{{SUBSONIC_TEST_USERNAME}}",
+    "password": "{{SUBSONIC_TEST_PASSWORD}}",
+    "ssl": {{SUBSONIC_TEST_SSL}},
+    "validateConn": true
+  }
+}
+
+#######################
+## Automation Clients Tests
+#######################
+
+###
+# @name createRadarrClient
+POST {{baseUrl}}/client/radarr
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+{
+  "name": "Radarr Test",
+  "clientType": "radarr",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "{{RADARR_TEST_URL}}",
+    "apiKey": "{{RADARR_TEST_API_KEY}}",
+    "ssl": false,
+    "validateConn": true
+  }
+}
+
+###
+# @name createSonarrClient
+POST {{baseUrl}}/client/sonarr
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+{
+  "name": "Sonarr Test",
+  "clientType": "sonarr",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "{{SONARR_TEST_URL}}",
+    "apiKey": "{{SONARR_TEST_API_KEY}}",
+    "ssl": false,
+    "validateConn": true
+  }
+}
+
+###
+# @name createLidarrClient
+POST {{baseUrl}}/client/lidarr
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+{
+  "name": "Lidarr Test",
+  "clientType": "lidarr",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "{{LIDARR_TEST_URL}}",
+    "apiKey": "{{LIDARR_TEST_API_KEY}}",
+    "ssl": false,
+    "validateConn": true
+  }
+}
+
+#######################
+## AI Clients Tests
+#######################
+
+###
+# @name createClaudeClient
+POST {{baseUrl}}/client/claude
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+{
+  "name": "Claude Test",
+  "clientType": "claude",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "https://api.anthropic.com",
+    "apiKey": "{{CLAUDE_API_KEY}}",
+    "model": "claude-3-haiku-20240307",
+    "temperature": 0.7,
+    "maxTokens": 1000,
+    "maxContextTokens": 100000,
+    "validateConn": true
+  }
+}
+
+###
+# @name createOpenAIClient
+POST {{baseUrl}}/client/openai
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+{
+  "name": "OpenAI Test",
+  "clientType": "openai",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "https://api.openai.com",
+    "apiKey": "your-openai-apikey",
+    "model": "gpt-4",
+    "temperature": 0.7,
+    "maxTokens": 1000,
+    "maxContextTokens": 8192,
+    "validateConn": false
+  }
+}
+
+###
+# @name createOllamaClient
+POST {{baseUrl}}/client/ollama
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+{
+  "name": "Ollama Test",
+  "clientType": "ollama",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "http://localhost:11434",
+    "model": "llama2",
+    "temperature": 0.7,
+    "maxTokens": 1000,
+    "maxContextTokens": 8192,
+    "validateConn": false
+  }
+}
+
+#######################
+## Client Type Filtering
+#######################
+
+###
+# @name getJellyfinClients
+# Get only Jellyfin clients
+GET {{baseUrl}}/clients/jellyfin
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name getEmbyClients
+# Get only Emby clients
+GET {{baseUrl}}/clients/emby
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name getPlexClients
+# Get only Plex clients
+GET {{baseUrl}}/clients/plex
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name getSubsonicClients
+# Get only Subsonic clients
+GET {{baseUrl}}/clients/subsonic
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name getRadarrClients
+# Get only Radarr clients
+GET {{baseUrl}}/clients/radarr
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name getSonarrClients
+# Get only Sonarr clients
+GET {{baseUrl}}/clients/sonarr
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name getLidarrClients
+# Get only Lidarr clients
+GET {{baseUrl}}/clients/lidarr
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name getClaudeClients
+# Get only Claude clients
+GET {{baseUrl}}/clients/claude
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name getOpenAIClients
+# Get only OpenAI clients
+GET {{baseUrl}}/clients/openai
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name getOllamaClients
+# Get only Ollama clients
+GET {{baseUrl}}/clients/ollama
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name getNonExistentTypeClients
+# Get clients of a non-existent type (should return error)
+GET {{baseUrl}}/clients/nonexistent
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+#######################
+## Test New Connection
+#######################
+
+###
+# @name testNewEmbyConnection
+POST {{baseUrl}}/clients/emby/test
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+{
+  "client": {
+    "baseURL": "{{EMBY_TEST_URL}}",
+    "apiKey": "{{EMBY_TEST_API_KEY}}",
+    "username": "{{EMBY_TEST_USER}}",
+    "ssl": false
+  }
+}
+
+###
+# @name testNewJellyfinConnection
+POST {{baseUrl}}/clients/jellyfin/test
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+{
+  "client": {
+    "baseURL": "{{JELLYFIN_TEST_URL}}",
+    "apiKey": "{{JELLYFIN_TEST_API_KEY}}",
+    "username": "{{JELLYFIN_TEST_USER}}",
+    "ssl": false
+  }
+}
+
+###
+# @name testNewClaudeConnection
+POST {{baseUrl}}/clients/claude/test
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+{
+  "client": {
+    "baseURL": "https://api.anthropic.com",
+    "apiKey": "{{CLAUDE_API_KEY}}",
+    "model": "claude-3-haiku-20240307"
+  }
+}
+
+#######################
+## Error Cases
+#######################
+
+###
+# @name createClientWithInvalidType
+POST {{baseUrl}}/client/invalid
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+{
+  "name": "Invalid Client",
+  "clientType": "invalid",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "http://example.com"
+  }
+}
+
+###
+# @name createClientWithMissingFields
+POST {{baseUrl}}/client/emby
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+{
+  "name": "Missing Fields",
+  "clientType": "emby",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "http://example.com"
+  }
+}
+
+###
+# @name getClientWithInvalidID
+GET {{baseUrl}}/client/999999
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}

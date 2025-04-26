@@ -10,20 +10,20 @@ import (
 	"suasor/types/responses"
 )
 
-// MetadataClientService provides operations for metadata clients
-type MetadataClientService[T types.MetadataClientConfig] struct {
+// ClientMetadataService provides operations for metadata clients
+type ClientMetadataService[T types.ClientMetadataConfig] struct {
 	clientService *clientService[T]
 }
 
-// NewMetadataClientService creates a new MetadataClientService
-func NewMetadataClientService[T types.MetadataClientConfig](factory *clients.ClientProviderFactoryService, repo repository.ClientRepository[T]) *MetadataClientService[T] {
-	return &MetadataClientService[T]{
+// NewClientMetadataService creates a new MetadataClientService
+func NewClientMetadataService[T types.ClientMetadataConfig](factory *clients.ClientProviderFactoryService, repo repository.ClientRepository[T]) *ClientMetadataService[T] {
+	return &ClientMetadataService[T]{
 		clientService: NewClientService(factory, repo),
 	}
 }
 
-// GetMetadataClient returns a metadata client instance for the given client ID
-func (s *MetadataClientService[T]) GetMetadataClient(ctx context.Context, clientID uint64) (metadata.MetadataClient, error) {
+// GetClient returns a metadata client instance for the given client ID
+func (s *ClientMetadataService[T]) GetClient(ctx context.Context, clientID uint64) (metadata.ClientMetadata, error) {
 	// Get the client configuration
 	clientModel, err := s.clientService.GetByID(ctx, clientID, 0) // 0 for userID as metadata clients may be system-wide
 	if err != nil {
@@ -37,7 +37,7 @@ func (s *MetadataClientService[T]) GetMetadataClient(ctx context.Context, client
 	}
 
 	// Check if it's a metadata client
-	metadataClient, ok := clientInstance.(metadata.MetadataClient)
+	metadataClient, ok := clientInstance.(metadata.ClientMetadata)
 	if !ok {
 		return nil, fmt.Errorf("client with ID %d is not a metadata client", clientID)
 	}
@@ -48,8 +48,8 @@ func (s *MetadataClientService[T]) GetMetadataClient(ctx context.Context, client
 // Movies
 
 // GetMovie retrieves a movie by ID
-func (s *MetadataClientService[T]) GetMovie(ctx context.Context, clientID uint64, movieID string) (*responses.MetadataMovieResponse, error) {
-	client, err := s.GetMetadataClient(ctx, clientID)
+func (s *ClientMetadataService[T]) GetMovie(ctx context.Context, clientID uint64, movieID string) (*responses.MetadataMovieResponse, error) {
+	client, err := s.GetClient(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -70,8 +70,8 @@ func (s *MetadataClientService[T]) GetMovie(ctx context.Context, clientID uint64
 }
 
 // SearchMovies searches for movies by query
-func (s *MetadataClientService[T]) SearchMovies(ctx context.Context, clientID uint64, query string) (*responses.MetadataMovieSearchResponse, error) {
-	client, err := s.GetMetadataClient(ctx, clientID)
+func (s *ClientMetadataService[T]) SearchMovies(ctx context.Context, clientID uint64, query string) (*responses.MetadataMovieSearchResponse, error) {
+	client, err := s.GetClient(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -92,8 +92,8 @@ func (s *MetadataClientService[T]) SearchMovies(ctx context.Context, clientID ui
 }
 
 // GetMovieRecommendations gets movie recommendations based on a movie ID
-func (s *MetadataClientService[T]) GetMovieRecommendations(ctx context.Context, clientID uint64, movieID string) (*responses.MetadataMovieSearchResponse, error) {
-	client, err := s.GetMetadataClient(ctx, clientID)
+func (s *ClientMetadataService[T]) GetMovieRecommendations(ctx context.Context, clientID uint64, movieID string) (*responses.MetadataMovieSearchResponse, error) {
+	client, err := s.GetClient(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -114,8 +114,8 @@ func (s *MetadataClientService[T]) GetMovieRecommendations(ctx context.Context, 
 }
 
 // GetPopularMovies gets popular movies
-func (s *MetadataClientService[T]) GetPopularMovies(ctx context.Context, clientID uint64) (*responses.MetadataMovieSearchResponse, error) {
-	client, err := s.GetMetadataClient(ctx, clientID)
+func (s *ClientMetadataService[T]) GetPopularMovies(ctx context.Context, clientID uint64) (*responses.MetadataMovieSearchResponse, error) {
+	client, err := s.GetClient(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -136,8 +136,8 @@ func (s *MetadataClientService[T]) GetPopularMovies(ctx context.Context, clientI
 }
 
 // GetTrendingMovies gets trending movies
-func (s *MetadataClientService[T]) GetTrendingMovies(ctx context.Context, clientID uint64) (*responses.MetadataMovieSearchResponse, error) {
-	client, err := s.GetMetadataClient(ctx, clientID)
+func (s *ClientMetadataService[T]) GetTrendingMovies(ctx context.Context, clientID uint64) (*responses.MetadataMovieSearchResponse, error) {
+	client, err := s.GetClient(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -160,8 +160,8 @@ func (s *MetadataClientService[T]) GetTrendingMovies(ctx context.Context, client
 // TV Shows
 
 // GetTVShow retrieves a TV show by ID
-func (s *MetadataClientService[T]) GetTVShow(ctx context.Context, clientID uint64, tvShowID string) (*responses.MetadataTVShowResponse, error) {
-	client, err := s.GetMetadataClient(ctx, clientID)
+func (s *ClientMetadataService[T]) GetTVShow(ctx context.Context, clientID uint64, tvShowID string) (*responses.MetadataTVShowResponse, error) {
+	client, err := s.GetClient(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -182,8 +182,8 @@ func (s *MetadataClientService[T]) GetTVShow(ctx context.Context, clientID uint6
 }
 
 // SearchTVShows searches for TV shows by query
-func (s *MetadataClientService[T]) SearchTVShows(ctx context.Context, clientID uint64, query string) (*responses.MetadataTVShowSearchResponse, error) {
-	client, err := s.GetMetadataClient(ctx, clientID)
+func (s *ClientMetadataService[T]) SearchTVShows(ctx context.Context, clientID uint64, query string) (*responses.MetadataTVShowSearchResponse, error) {
+	client, err := s.GetClient(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -204,8 +204,8 @@ func (s *MetadataClientService[T]) SearchTVShows(ctx context.Context, clientID u
 }
 
 // GetTVShowRecommendations gets TV show recommendations based on a TV show ID
-func (s *MetadataClientService[T]) GetTVShowRecommendations(ctx context.Context, clientID uint64, tvShowID string) (*responses.MetadataTVShowSearchResponse, error) {
-	client, err := s.GetMetadataClient(ctx, clientID)
+func (s *ClientMetadataService[T]) GetTVShowRecommendations(ctx context.Context, clientID uint64, tvShowID string) (*responses.MetadataTVShowSearchResponse, error) {
+	client, err := s.GetClient(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -226,8 +226,8 @@ func (s *MetadataClientService[T]) GetTVShowRecommendations(ctx context.Context,
 }
 
 // GetPopularTVShows gets popular TV shows
-func (s *MetadataClientService[T]) GetPopularTVShows(ctx context.Context, clientID uint64) (*responses.MetadataTVShowSearchResponse, error) {
-	client, err := s.GetMetadataClient(ctx, clientID)
+func (s *ClientMetadataService[T]) GetPopularTVShows(ctx context.Context, clientID uint64) (*responses.MetadataTVShowSearchResponse, error) {
+	client, err := s.GetClient(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -248,8 +248,8 @@ func (s *MetadataClientService[T]) GetPopularTVShows(ctx context.Context, client
 }
 
 // GetTrendingTVShows gets trending TV shows
-func (s *MetadataClientService[T]) GetTrendingTVShows(ctx context.Context, clientID uint64) (*responses.MetadataTVShowSearchResponse, error) {
-	client, err := s.GetMetadataClient(ctx, clientID)
+func (s *ClientMetadataService[T]) GetTrendingTVShows(ctx context.Context, clientID uint64) (*responses.MetadataTVShowSearchResponse, error) {
+	client, err := s.GetClient(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -270,8 +270,8 @@ func (s *MetadataClientService[T]) GetTrendingTVShows(ctx context.Context, clien
 }
 
 // GetTVSeason retrieves a TV season by show ID and season number
-func (s *MetadataClientService[T]) GetTVSeason(ctx context.Context, clientID uint64, tvShowID string, seasonNumber int) (*responses.MetadataTVSeasonResponse, error) {
-	client, err := s.GetMetadataClient(ctx, clientID)
+func (s *ClientMetadataService[T]) GetTVSeason(ctx context.Context, clientID uint64, tvShowID string, seasonNumber int) (*responses.MetadataTVSeasonResponse, error) {
+	client, err := s.GetClient(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -292,8 +292,8 @@ func (s *MetadataClientService[T]) GetTVSeason(ctx context.Context, clientID uin
 }
 
 // GetTVEpisode retrieves a TV episode by show ID, season number, and episode number
-func (s *MetadataClientService[T]) GetTVEpisode(ctx context.Context, clientID uint64, tvShowID string, seasonNumber, episodeNumber int) (*responses.MetadataTVEpisodeResponse, error) {
-	client, err := s.GetMetadataClient(ctx, clientID)
+func (s *ClientMetadataService[T]) GetTVEpisode(ctx context.Context, clientID uint64, tvShowID string, seasonNumber, episodeNumber int) (*responses.MetadataTVEpisodeResponse, error) {
+	client, err := s.GetClient(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -316,8 +316,8 @@ func (s *MetadataClientService[T]) GetTVEpisode(ctx context.Context, clientID ui
 // People
 
 // GetPerson retrieves a person by ID
-func (s *MetadataClientService[T]) GetPerson(ctx context.Context, clientID uint64, personID string) (*responses.MetadataPersonResponse, error) {
-	client, err := s.GetMetadataClient(ctx, clientID)
+func (s *ClientMetadataService[T]) GetPerson(ctx context.Context, clientID uint64, personID string) (*responses.MetadataPersonResponse, error) {
+	client, err := s.GetClient(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -338,8 +338,8 @@ func (s *MetadataClientService[T]) GetPerson(ctx context.Context, clientID uint6
 }
 
 // SearchPeople searches for people by query
-func (s *MetadataClientService[T]) SearchPeople(ctx context.Context, clientID uint64, query string) (*responses.MetadataPersonSearchResponse, error) {
-	client, err := s.GetMetadataClient(ctx, clientID)
+func (s *ClientMetadataService[T]) SearchPeople(ctx context.Context, clientID uint64, query string) (*responses.MetadataPersonSearchResponse, error) {
+	client, err := s.GetClient(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -362,8 +362,8 @@ func (s *MetadataClientService[T]) SearchPeople(ctx context.Context, clientID ui
 // Collections
 
 // GetCollection retrieves a collection by ID
-func (s *MetadataClientService[T]) GetCollection(ctx context.Context, clientID uint64, collectionID string) (*responses.MetadataCollectionResponse, error) {
-	client, err := s.GetMetadataClient(ctx, clientID)
+func (s *ClientMetadataService[T]) GetCollection(ctx context.Context, clientID uint64, collectionID string) (*responses.MetadataCollectionResponse, error) {
+	client, err := s.GetClient(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -384,8 +384,8 @@ func (s *MetadataClientService[T]) GetCollection(ctx context.Context, clientID u
 }
 
 // SearchCollections searches for collections by query
-func (s *MetadataClientService[T]) SearchCollections(ctx context.Context, clientID uint64, query string) (*responses.MetadataCollectionSearchResponse, error) {
-	client, err := s.GetMetadataClient(ctx, clientID)
+func (s *ClientMetadataService[T]) SearchCollections(ctx context.Context, clientID uint64, query string) (*responses.MetadataCollectionSearchResponse, error) {
+	client, err := s.GetClient(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}

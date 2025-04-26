@@ -84,7 +84,7 @@ func (c Client[T]) SupportsHistory() bool {
 }
 
 func (c Client[T]) GetClientType() client.ClientType {
-	if automationConfig, ok := any(c.Config.Data).(client.AutomationClientConfig); ok {
+	if automationConfig, ok := any(c.Config.Data).(client.ClientAutomationConfig); ok {
 		return automationConfig.GetClientType().AsGenericClient()
 	} else if mediaConfig, ok := any(c.Config.Data).(client.ClientMediaConfig); ok {
 		return mediaConfig.GetClientType().AsGenericClient()

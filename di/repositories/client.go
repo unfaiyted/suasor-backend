@@ -28,10 +28,10 @@ func registerClientRepositories(ctx context.Context, c *container.Container) {
 	registerClientRepository[*clienttypes.SonarrConfig](c, db)
 	registerClientRepository[*clienttypes.RadarrConfig](c, db)
 	registerClientRepository[*clienttypes.LidarrConfig](c, db)
-	
+
 	// Generic automation client repository for common operations
-	container.RegisterFactory[repository.ClientRepository[clienttypes.AutomationClientConfig]](c, func(c *container.Container) repository.ClientRepository[clienttypes.AutomationClientConfig] {
-		return repository.NewClientRepository[clienttypes.AutomationClientConfig](db)
+	container.RegisterFactory[repository.ClientRepository[clienttypes.ClientAutomationConfig]](c, func(c *container.Container) repository.ClientRepository[clienttypes.ClientAutomationConfig] {
+		return repository.NewClientRepository[clienttypes.ClientAutomationConfig](db)
 	})
 
 	// AI client repositories

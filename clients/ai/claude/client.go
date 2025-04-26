@@ -12,29 +12,13 @@ import (
 	"suasor/clients/ai"
 	aitypes "suasor/clients/ai/types"
 	"suasor/clients/types"
+	"suasor/utils"
 	"suasor/utils/logger"
 )
 
-// Add init function to register the Claude client factory
-func init() {
-	fmt.Printf("Registering factory for client type: %s (value: %v)\n",
-		types.ClientTypeClaude.String(), types.ClientTypeClaude)
-
-	fmt.Println("Registering Claude client factory...")
-	clients.RegisterClientFactory(types.ClientTypeClaude,
-		func(ctx context.Context, clientID uint64, configData types.ClientConfig) (clients.Client, error) {
-			// Use the provided config (should be a ClaudeConfig)
-			claudeConfig, ok := configData.(*types.ClaudeConfig)
-			if !ok {
-				return nil, fmt.Errorf("expected *types.ClaudeConfig, got %T", configData)
-			}
-			return NewClaudeClient(ctx, clientID, *claudeConfig)
-		})
-}
-
 // ClaudeClient implements the AI client interface
 type ClaudeClient struct {
-	clients.BaseClient
+	clients.Client
 	llm           gollm.LLM
 	config        types.ClaudeConfig
 	memoryID      string // For conversation tracking
@@ -56,7 +40,7 @@ type ChatMessage struct {
 }
 
 // NewClaudeClient creates a new Claude client instance using gollm
-func NewClaudeClient(ctx context.Context, clientID uint64, cfg types.ClaudeConfig) (ai.AIClient, error) {
+func NewClaudeClient(ctx context.Context, clientID uint64, cfg types.ClaudeConfig) (ai.ClientAI, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("clientID", clientID).
@@ -67,7 +51,7 @@ func NewClaudeClient(ctx context.Context, clientID uint64, cfg types.ClaudeConfi
 	llm, err := gollm.NewLLM(
 		gollm.SetProvider("anthropic"),
 		gollm.SetModel(cfg.Model),
-		gollm.SetAPIKey(cfg.APIKey),
+		gollm.SetAPIKey(cfg.GetAPIKey()),
 		gollm.SetMaxTokens(cfg.MaxTokens),
 		gollm.SetTemperature(cfg.Temperature),
 		gollm.SetMaxRetries(3),
@@ -77,13 +61,10 @@ func NewClaudeClient(ctx context.Context, clientID uint64, cfg types.ClaudeConfi
 		return nil, fmt.Errorf("failed to create Claude LLM: %w", err)
 	}
 
+	client := clients.NewClient(clientID, types.ClientCategoryAI, cfg)
+
 	return &ClaudeClient{
-		BaseClient: clients.BaseClient{
-			ClientID: clientID,
-			Category: types.ClientCategoryAI,
-			Type:     types.ClientTypeClaude,
-			Config:   &cfg,
-		},
+		Client:        client,
 		llm:           llm,
 		config:        cfg,
 		conversations: make(map[string]ConversationContext),
@@ -214,7 +195,7 @@ func cleanJSONResponse(input string) string {
 // StartConversation begins a new conversation with Claude
 func (c *ClaudeClient) StartConversation(ctx context.Context, systemInstructions string) (string, error) {
 	// Generate a unique, URL-safe conversation ID
-	c.memoryID = fmt.Sprintf("conv-%d-%s", c.ClientID, utils.GenerateRandomID(12))
+	c.memoryID = fmt.Sprintf("conv-%d-%s", c.GetClientID(), utils.GenerateRandomID(12))
 
 	// Set system instructions if provided
 	if systemInstructions != "" {
@@ -409,7 +390,7 @@ func (c *ClaudeClient) StartRecommendationConversation(ctx context.Context, cont
 		Msg("Starting recommendation conversation with Claude")
 
 	// Generate a unique, URL-safe conversation ID
-	conversationID := fmt.Sprintf("rec-%d-%s", c.ClientID, utils.GenerateRandomID(12))
+	conversationID := fmt.Sprintf("rec-%d-%s", c.GetClientID(), utils.GenerateRandomID(12))
 
 	// Build system instructions if not provided
 	if systemInstructions == "" {

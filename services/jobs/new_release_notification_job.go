@@ -9,9 +9,9 @@ import (
 	"time"
 
 	mediatypes "suasor/clients/media/types"
-	"suasor/clients/metadata"
 	"suasor/clients/types"
 	"suasor/repository"
+	"suasor/services"
 	"suasor/services/scheduler"
 	"suasor/types/models"
 	"suasor/utils/logger"
@@ -28,7 +28,7 @@ type NewReleaseNotificationJob struct {
 	userMovieDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Movie]
 	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series]
 	userMusicDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Track]
-	metadataClient     interface{} // Using interface{} to avoid import cycles
+	metadataClient     *services.ClientMetadataService[types.ClientMetadataConfig]
 }
 
 // NewNewReleaseNotificationJob creates a new release notification job
@@ -42,7 +42,7 @@ func NewNewReleaseNotificationJob(
 	userMovieDataRepo repository.UserMediaItemDataRepository[*mediatypes.Movie],
 	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series],
 	userMusicDataRepo repository.UserMediaItemDataRepository[*mediatypes.Track],
-	metadataClient interface{},
+	metadataClient *services.ClientMetadataService[types.ClientMetadataConfig],
 ) *NewReleaseNotificationJob {
 	return &NewReleaseNotificationJob{
 		jobRepo:            jobRepo,
@@ -1063,10 +1063,10 @@ func (j *NewReleaseNotificationJob) fetchNewReleases(ctx context.Context) (NewRe
 	var result NewReleases
 
 	// Get metadata client
-	metadataClient, ok := j.metadataClient.(metadata.MetadataClient)
-	if !ok {
-		return result, fmt.Errorf("metadata client not properly initialized")
-	}
+	// metadataClient, ok := j.metadataClient.(metadata.ClientMetadata)
+	// if !ok {
+	// 	return result, fmt.Errorf("metadata client not properly initialized")
+	// }
 
 	// Configure how far ahead to look for upcoming movies/shows (7 days by default)
 	upcomingDays := 7
@@ -1074,10 +1074,17 @@ func (j *NewReleaseNotificationJob) fetchNewReleases(ctx context.Context) (NewRe
 	// Configure how recently released items to include (7 days by default)
 	recentReleaseDays := 7
 
+	client, err := j.metadataClient.GetClient(ctx, 0)
+	if err != nil {
+		return result, fmt.Errorf("failed to get metadata client: %w", err)
+	}
+
+	config := client.GetMetadataConfig()
+
 	// 1. Fetch upcoming and new movies
-	if metadataClient.SupportsMovieMetadata() {
+	if config.SupportsMovieMetadata() {
 		// Get upcoming movies
-		upcomingMovies, err := metadataClient.GetUpcomingMovies(ctx, upcomingDays)
+		upcomingMovies, err := client.GetUpcomingMovies(ctx, upcomingDays)
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to fetch upcoming movies")
 			// Continue with other content types
@@ -1136,7 +1143,7 @@ func (j *NewReleaseNotificationJob) fetchNewReleases(ctx context.Context) (NewRe
 		}
 
 		// Get now playing movies
-		nowPlayingMovies, err := metadataClient.GetNowPlayingMovies(ctx, recentReleaseDays)
+		nowPlayingMovies, err := client.GetNowPlayingMovies(ctx, recentReleaseDays)
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to fetch now playing movies")
 		} else {
@@ -1208,9 +1215,9 @@ func (j *NewReleaseNotificationJob) fetchNewReleases(ctx context.Context) (NewRe
 	}
 
 	// 2. Fetch new TV shows and seasons
-	if metadataClient.SupportsTVMetadata() {
+	if client.SupportsTVMetadata() {
 		// Get recent TV shows
-		recentTVShows, err := metadataClient.GetRecentTVShows(ctx, recentReleaseDays+upcomingDays)
+		recentTVShows, err := client.GetRecentTVShows(ctx, recentReleaseDays+upcomingDays)
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to fetch recent TV shows")
 		} else {
@@ -1264,7 +1271,7 @@ func (j *NewReleaseNotificationJob) fetchNewReleases(ctx context.Context) (NewRe
 		}
 
 		// Check for trending shows as well
-		trendingTVShows, err := metadataClient.GetTrendingTVShows(ctx)
+		trendingTVShows, err := client.GetTrendingTVShows(ctx)
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to fetch trending TV shows")
 		} else {
@@ -1339,22 +1346,4 @@ func (j *NewReleaseNotificationJob) fetchNewReleases(ctx context.Context) (NewRe
 		Msg("Completed fetching new releases")
 
 	return result, nil
-}
-
-// getMetadataClient gets a metadata client for a specific provider
-func (j *NewReleaseNotificationJob) getMetadataClient(ctx context.Context, providerType types.ClientType) (interface{}, error) {
-	log := logger.LoggerFromContext(ctx)
-
-	// Here we would typically:
-	// 1. Check if the requested provider type is supported
-	// 2. Get its configuration from the database
-	// 3. Instantiate a new client using the configuration
-
-	// For now, we're just returning the already-injected metadata client
-	if j.metadataClient == nil {
-		log.Error().Str("providerType", string(providerType)).Msg("No metadata client available")
-		return nil, fmt.Errorf("no metadata client available for provider type: %s", providerType)
-	}
-
-	return j.metadataClient, nil
 }

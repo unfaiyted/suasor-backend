@@ -15,7 +15,7 @@ func (l *LidarrClient) GetCalendar(ctx context.Context, start, end time.Time) ([
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", l.ClientID).
+		Uint64("clientID", l.GetClientID()).
 		Str("clientType", string(l.ClientType)).
 		Time("startDate", start).
 		Time("endDate", end).
@@ -63,7 +63,7 @@ func (l *LidarrClient) GetCalendar(ctx context.Context, start, end time.Time) ([
 		// Get base album details
 		albumInfo := models.AutomationMediaItem[types.AutomationData]{
 			ID:               uint64(item.GetId()),
-			ClientID:         l.ClientID,
+			ClientID:         l.GetClientID(),
 			ClientType:       l.ClientType,
 			Title:            item.GetTitle(), // Album title
 			Overview:         item.GetOverview(),

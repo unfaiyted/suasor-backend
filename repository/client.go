@@ -7,7 +7,6 @@ import (
 	"suasor/clients/types"
 
 	"suasor/types/models"
-	"suasor/utils"
 	"suasor/utils/logger"
 
 	"gorm.io/gorm"
@@ -126,16 +125,12 @@ func (r *clientRepository[T]) GetByUserID(ctx context.Context, userID uint64) ([
 	var clients []*models.Client[T]
 	log := logger.LoggerFromContext(ctx)
 
-	var zero T
-	typeName := utils.GetTypeName(zero)
-
 	// get clientType from typeName value
 	var clientType types.ClientType
-	clientType = types.GetClientTypeFromTypeName(typeName)
+	clientType = types.GetClientType[T]()
 
 	log.Info().
 		Uint64("userID", userID).
-		Str("typeName", typeName).
 		Str("clientType", clientType.String()).
 		Msg("Retrieving clients")
 

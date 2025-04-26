@@ -3,11 +3,13 @@ package router
 
 import (
 	"context"
+	"suasor/clients/types"
 	clienttypes "suasor/clients/types"
 	"suasor/di/container"
 	"suasor/handlers"
 	"suasor/router/middleware"
 	"suasor/types/responses"
+	"suasor/utils/logger"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -18,23 +20,34 @@ import (
 func RegisterClientRoutes(ctx context.Context, r *gin.RouterGroup, c *container.Container) {
 	db := container.MustGet[*gorm.DB](c)
 
-	clientGroup := r.Group("/client/:clientID")
-	clientGroup.Use(middleware.ClientTypeMiddleware(db))
+	registerClientRoutes[*types.EmbyConfig](ctx, r, c)
+	registerClientRoutes[*types.JellyfinConfig](ctx, r, c)
+	registerClientRoutes[*types.PlexConfig](ctx, r, c)
+	registerClientRoutes[*types.SubsonicConfig](ctx, r, c)
+	registerClientRoutes[*types.SonarrConfig](ctx, r, c)
+	registerClientRoutes[*types.RadarrConfig](ctx, r, c)
+	registerClientRoutes[*types.LidarrConfig](ctx, r, c)
+	registerClientRoutes[*types.ClaudeConfig](ctx, r, c)
+	registerClientRoutes[*types.OpenAIConfig](ctx, r, c)
+	registerClientRoutes[*types.OllamaConfig](ctx, r, c)
+
+	existingClientGroup := r.Group("/client/:clientID")
+	existingClientGroup.Use(middleware.ClientTypeMiddleware(db))
 	{
-		clientGroup.GET("", func(g *gin.Context) {
+		existingClientGroup.GET("", func(g *gin.Context) {
 			clientType := g.Param("clientType")
 			getClientHandler(g, c, clientType).GetClient(g)
 		})
-		clientGroup.PUT("", func(g *gin.Context) {
+		existingClientGroup.PUT("", func(g *gin.Context) {
 			clientType := g.Param("clientType")
 			getClientHandler(g, c, clientType).UpdateClient(g)
 		})
-		clientGroup.DELETE("", func(g *gin.Context) {
+		existingClientGroup.DELETE("", func(g *gin.Context) {
 			clientType := g.Param("clientType")
 			getClientHandler(g, c, clientType).DeleteClient(g)
 		})
 
-		clientGroup.GET("/test", func(g *gin.Context) {
+		existingClientGroup.GET("/test", func(g *gin.Context) {
 			clientType := g.Param("clientType")
 			getClientHandler(g, c, clientType).TestConnection(g)
 		})
@@ -57,6 +70,10 @@ func RegisterClientRoutes(ctx context.Context, r *gin.RouterGroup, c *container.
 }
 
 func getClientHandler(g *gin.Context, c *container.Container, clientType string) handlers.ClientHandler[clienttypes.ClientConfig] {
+	log := logger.LoggerFromContext(g.Request.Context())
+	log.Info().
+		Str("clientType", clientType).
+		Msg("Retrieving client handler")
 	handlers := map[string]handlers.ClientHandler[clienttypes.ClientConfig]{
 		"emby":     container.MustGet[handlers.ClientHandler[*clienttypes.EmbyConfig]](c),
 		"jellyfin": container.MustGet[handlers.ClientHandler[*clienttypes.JellyfinConfig]](c),
@@ -75,4 +92,28 @@ func getClientHandler(g *gin.Context, c *container.Container, clientType string)
 		return nil
 	}
 	return handler
+}
+
+func registerClientRoutes[T types.ClientConfig](ctx context.Context, r *gin.RouterGroup, c *container.Container) {
+	log := logger.LoggerFromContext(ctx)
+	clientType := types.GetClientType[T]()
+
+	log.Info().
+		Str("clientType", string(clientType)).
+		Msg("Registering client routes")
+
+	clientGroup := r.Group("/client/" + string(clientType))
+	{
+		clientGroup.GET("", func(g *gin.Context) {
+			clientType := string(clientType)
+			log.Info().
+				Str("clientType", string(clientType)).
+				Msg("Retrieving clients")
+			getClientHandler(g, c, clientType).GetAllOfType(g)
+		})
+		clientGroup.POST("", func(g *gin.Context) {
+			clientType := string(clientType)
+			getClientHandler(g, c, clientType).CreateClient(g)
+		})
+	}
 }

@@ -15,7 +15,7 @@ import (
 
 type ClientHandler[T types.ClientConfig] interface {
 	CreateClient(c *gin.Context)
-
+	GetAllOfType(c *gin.Context)
 	GetClient(c *gin.Context)
 	UpdateClient(c *gin.Context)
 	DeleteClient(c *gin.Context)
@@ -355,4 +355,38 @@ func (h *clientHandler[T]) TestConnection(c *gin.Context) {
 	}
 
 	responses.RespondOK(c, result, "Connection test completed")
+}
+
+// GetAllOfType godoc
+//
+//	@Summary		Get all clients of a specific type
+//	@Description	Retrieves all clients of a specific type for the user
+//	@Tags			clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientType	path		string														true	"Client type (e.g. 'plex', 'jellyfin', 'emby')"
+//	@Success		200			{object}	responses.APIResponse[[]models.Client[client.ClientConfig]]	"Clients retrieved"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//	@Router			/client/{clientType} [get]
+func (h *clientHandler[T]) GetAllOfType(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := logger.LoggerFromContext(ctx)
+
+	userID, _ := checkUserAccess(c)
+
+	clientType := c.Param("clientType")
+
+	log.Debug().
+		Str("clientType", clientType).
+		Msg("Getting clients of type")
+
+	clients, err := h.service.GetByType(ctx, userID)
+	if err != nil {
+		responses.RespondInternalError(c, err, "Failed to retrieve clients")
+		return
+	}
+
+	responses.RespondOK(c, clients, "clients retrieved successfully")
 }

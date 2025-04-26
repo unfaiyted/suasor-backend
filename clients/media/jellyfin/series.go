@@ -11,14 +11,16 @@ import (
 	"suasor/utils/logger"
 )
 
+func (j *JellyfinClient) SupportsSeries() bool { return true }
+
 func (j *JellyfinClient) GetSeries(ctx context.Context, options *t.QueryOptions) ([]*models.MediaItem[*t.Series], error) {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
-		Str("baseURL", j.config.BaseURL).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
+		Str("baseURL", j.config.GetBaseURL()).
 		Msg("Retrieving TV shows from Jellyfin server")
 
 	// Set up query parameters
@@ -38,7 +40,7 @@ func (j *JellyfinClient) GetSeries(ctx context.Context, options *t.QueryOptions)
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", j.config.BaseURL).
+			Str("baseURL", j.config.GetBaseURL()).
 			Str("apiEndpoint", "/Items").
 			Int("statusCode", 0).
 			Msg("Failed to fetch TV shows from Jellyfin")
@@ -82,10 +84,10 @@ func (j *JellyfinClient) GetSeriesByID(ctx context.Context, id string) (models.M
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
 		Str("showID", id).
-		Str("baseURL", j.config.BaseURL).
+		Str("baseURL", j.config.GetBaseURL()).
 		Msg("Retrieving specific TV show from Jellyfin server")
 
 	// Set up query parameters
@@ -107,7 +109,7 @@ func (j *JellyfinClient) GetSeriesByID(ctx context.Context, id string) (models.M
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", j.config.BaseURL).
+			Str("baseURL", j.config.GetBaseURL()).
 			Str("apiEndpoint", "/Items").
 			Str("showID", id).
 			Int("statusCode", 0).
@@ -166,10 +168,10 @@ func (j *JellyfinClient) GetSeriesSeasons(ctx context.Context, showID string) ([
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
 		Str("showID", showID).
-		Str("baseURL", j.config.BaseURL).
+		Str("baseURL", j.config.GetBaseURL()).
 		Msg("Retrieving seasons for TV show from Jellyfin server")
 
 	// Call the Jellyfin API
@@ -186,7 +188,7 @@ func (j *JellyfinClient) GetSeriesSeasons(ctx context.Context, showID string) ([
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", j.config.BaseURL).
+			Str("baseURL", j.config.GetBaseURL()).
 			Str("apiEndpoint", "/Shows/"+showID+"/Seasons").
 			Str("showID", showID).
 			Int("statusCode", 0).
@@ -231,11 +233,11 @@ func (j *JellyfinClient) GetSeriesEpisodes(ctx context.Context, showID string, s
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
 		Str("showID", showID).
 		Int("seasonNumber", seasonNumber).
-		Str("baseURL", j.config.BaseURL).
+		Str("baseURL", j.config.GetBaseURL()).
 		Msg("Retrieving episodes for TV show season from Jellyfin server")
 
 	seasonNum := int32(seasonNumber)
@@ -252,7 +254,7 @@ func (j *JellyfinClient) GetSeriesEpisodes(ctx context.Context, showID string, s
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", j.config.BaseURL).
+			Str("baseURL", j.config.GetBaseURL()).
 			Str("apiEndpoint", "/Shows/"+showID+"/Episodes").
 			Str("showID", showID).
 			Int("seasonNumber", seasonNumber).
@@ -301,10 +303,10 @@ func (j *JellyfinClient) GetEpisodeByID(ctx context.Context, id string) (*models
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
 		Str("episodeID", id).
-		Str("baseURL", j.config.BaseURL).
+		Str("baseURL", j.config.GetBaseURL()).
 		Msg("Retrieving specific episode from Jellyfin server")
 
 	// Set up query parameters
@@ -322,7 +324,7 @@ func (j *JellyfinClient) GetEpisodeByID(ctx context.Context, id string) (*models
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", j.config.BaseURL).
+			Str("baseURL", j.config.GetBaseURL()).
 			Str("apiEndpoint", "/Items").
 			Str("episodeID", id).
 			Int("statusCode", 0).

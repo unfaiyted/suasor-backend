@@ -1,0 +1,56 @@
+### 
+# @name adminLogin
+# @description Login as an admin user
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{TEST_ADMIN_USER}}",
+  "password": "{{TEST_ADMIN_PASSWORD}}"
+}
+
+### 
+# @name createTestUser
+# @description Create a test user account
+POST {{baseUrl}}/user/register
+Content-Type: application/json
+
+{
+  "email": "test_user_{{$timestamp}}@example.com",
+  "username": "testuser_{{$timestamp}}",
+  "password": "TestPassword123"
+}
+
+### 
+# @name regularUserLogin
+# @description Login as the created test user
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{createTestUser.response.body.$.data.email}}",
+  "password": "TestPassword123"
+}
+
+### 
+# @name getPersistentTestUser
+# @description Get or create a persistent test user for ongoing tests
+POST {{baseUrl}}/user/register
+Content-Type: application/json
+
+{
+  "email": "persistent_test_user@example.com",
+  "username": "persistent_test_user",
+  "password": "TestPassword123"
+}
+
+### 
+# @name persistentUserLogin
+# @description Login as the persistent test user
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "persistent_test_user@example.com",
+  "password": "TestPassword123"
+}

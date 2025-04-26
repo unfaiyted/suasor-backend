@@ -21,11 +21,11 @@ func registerClientServices(ctx context.Context, c *container.Container) {
 	registerClientService[*types.ClaudeConfig](c)
 	registerClientService[*types.OpenAIConfig](c)
 	registerClientService[*types.OllamaConfig](c)
-	
+
 	// Register AutomationClientService
 	container.RegisterFactory[services.AutomationClientService](c, func(c *container.Container) services.AutomationClientService {
 		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
-		repo := container.MustGet[repository.ClientRepository[types.AutomationClientConfig]](c)
+		repo := container.MustGet[repository.ClientRepository[types.ClientAutomationConfig]](c)
 		return services.NewAutomationClientService(repo, clientFactory)
 	})
 }

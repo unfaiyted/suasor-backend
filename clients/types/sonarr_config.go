@@ -2,19 +2,16 @@ package types
 
 import "encoding/json"
 
-// @Description Emby media server configuration
+// @Description Sonarr TV series automation server configuration
 type SonarrConfig struct {
-	BaseAutomationClientConfig
+	ClientAutomationConfig
+	// Add any Sonarr-specific configuration fields here
 }
 
-func NewSonarrConfig() SonarrConfig {
+func NewSonarrConfig(baseURL string, apiKey string, enabled bool, validateConn bool) SonarrConfig {
+	clientConfig := NewClientAutomationConfig(AutomationClientTypeSonarr, ClientCategoryAutomation, "Sonarr", baseURL, apiKey, enabled, validateConn)
 	return SonarrConfig{
-		BaseAutomationClientConfig: BaseAutomationClientConfig{
-			BaseClientConfig: BaseClientConfig{
-				Type: ClientTypeSonarr,
-			},
-			ClientType: AutomationClientTypeSonarr,
-		},
+		ClientAutomationConfig: clientConfig,
 	}
 }
 
@@ -43,8 +40,5 @@ func (c *SonarrConfig) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	// Ensure Type is always the correct constant
-	c.ClientType = AutomationClientTypeSonarr
-	c.Type = ClientTypeSonarr
 	return nil
 }

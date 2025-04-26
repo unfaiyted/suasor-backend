@@ -215,34 +215,34 @@ func (h *ClientsHandler) GetClientsByType(c *gin.Context) {
 
 	switch clientType {
 	case types.ClientTypeEmby:
-		clients := getClientsByType[*types.EmbyConfig](c, clientType, h.embyService)
+		clients := getClientsByType[*types.EmbyConfig](c, h.embyService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	case types.ClientTypeJellyfin:
-		clients := getClientsByType[*types.JellyfinConfig](c, clientType, h.jellyfinService)
+		clients := getClientsByType[*types.JellyfinConfig](c, h.jellyfinService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	case types.ClientTypePlex:
-		clients := getClientsByType[*types.PlexConfig](c, clientType, h.plexService)
+		clients := getClientsByType[*types.PlexConfig](c, h.plexService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	case types.ClientTypeSubsonic:
-		clients := getClientsByType[*types.SubsonicConfig](c, clientType, h.subsonicService)
+		clients := getClientsByType[*types.SubsonicConfig](c, h.subsonicService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	case types.ClientTypeSonarr:
-		clients := getClientsByType[*types.SonarrConfig](c, clientType, h.sonarrService)
+		clients := getClientsByType[*types.SonarrConfig](c, h.sonarrService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	case types.ClientTypeRadarr:
-		clients := getClientsByType[*types.RadarrConfig](c, clientType, h.radarrService)
+		clients := getClientsByType[*types.RadarrConfig](c, h.radarrService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	case types.ClientTypeLidarr:
-		clients := getClientsByType[*types.LidarrConfig](c, clientType, h.lidarrService)
+		clients := getClientsByType[*types.LidarrConfig](c, h.lidarrService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	case types.ClientTypeClaude:
-		clients := getClientsByType[*types.ClaudeConfig](c, clientType, h.claudeService)
+		clients := getClientsByType[*types.ClaudeConfig](c, h.claudeService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	case types.ClientTypeOpenAI:
-		clients := getClientsByType[*types.OpenAIConfig](c, clientType, h.openaiService)
+		clients := getClientsByType[*types.OpenAIConfig](c, h.openaiService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	case types.ClientTypeOllama:
-		clients := getClientsByType[*types.OllamaConfig](c, clientType, h.ollamaService)
+		clients := getClientsByType[*types.OllamaConfig](c, h.ollamaService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	default:
 		responses.RespondBadRequest(c, nil, "Unknown client type")
@@ -273,10 +273,11 @@ func testConnection[T types.ClientConfig](c *gin.Context, clientType types.Clien
 	responses.RespondOK(c, result, "Connection test completed")
 }
 
-func getClientsByType[T types.ClientConfig](c *gin.Context, clientType types.ClientType, service services.ClientService[T]) []*models.Client[T] {
+func getClientsByType[T types.ClientConfig](c *gin.Context, service services.ClientService[T]) []*models.Client[T] {
 	ctx := c.Request.Context()
+	userID, _ := checkUserAccess(c)
 
-	clients, err := service.GetByType(ctx, clientType, 0)
+	clients, err := service.GetByType(ctx, userID)
 	if err != nil {
 		responses.RespondInternalError(c, err, "Failed to retrieve clients")
 		return nil

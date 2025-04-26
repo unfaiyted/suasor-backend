@@ -2,20 +2,40 @@ package types
 
 import "encoding/json"
 
-// @Description Claude media server configuration
+// @Description Claude AI service configuration
 type ClaudeConfig struct {
-	BaseAIClientConfig
+	AIClientConfig
+	Model            string  `json:"model" mapstructure:"model" example:"claude-3-opus-20240229"`
+	Temperature      float64 `json:"temperature" mapstructure:"temperature" example:"0.7"`
+	MaxTokens        int     `json:"maxTokens" mapstructure:"maxTokens" example:"2000"`
+	MaxContextTokens int     `json:"maxContextTokens" mapstructure:"maxContextTokens" example:"100000"`
 }
 
-func NewClaudeConfig() ClaudeConfig {
+func NewClaudeConfig(apiKey string, baseURL string, model string, temperature float64, maxTokens int, maxContextTokens int, enabled bool, validateConn bool) ClaudeConfig {
+	clientConfig := NewClientAIConfig(AIClientTypeClaude, ClientCategoryAI, "Claude", baseURL, apiKey, enabled, validateConn)
 	return ClaudeConfig{
-		BaseAIClientConfig: BaseAIClientConfig{
-			BaseClientConfig: BaseClientConfig{
-				Type: ClientTypeClaude,
-			},
-			ClientType: AIClientTypeClaude,
-		},
+		AIClientConfig:   clientConfig,
+		Model:            model,
+		Temperature:      temperature,
+		MaxTokens:        maxTokens,
+		MaxContextTokens: maxContextTokens,
 	}
+}
+
+func (c *ClaudeConfig) GetModel() string {
+	return c.Model
+}
+
+func (c *ClaudeConfig) GetTemperature() float64 {
+	return c.Temperature
+}
+
+func (c *ClaudeConfig) GetMaxTokens() int {
+	return c.MaxTokens
+}
+
+func (c *ClaudeConfig) GetMaxContextTokens() int {
+	return c.MaxContextTokens
 }
 
 func (ClaudeConfig) GetClientType() AIClientType {
@@ -38,8 +58,5 @@ func (c *ClaudeConfig) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	// Ensure Type is always the correct constant
-	c.ClientType = AIClientTypeClaude
-	c.Type = ClientTypeClaude
 	return nil
 }

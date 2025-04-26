@@ -6,7 +6,6 @@ import (
 	"suasor/di/container"
 	"suasor/repository"
 	repobundles "suasor/repository/bundles"
-	"suasor/services"
 	"suasor/services/jobs"
 	"suasor/services/jobs/recommendation"
 	"suasor/utils/logger"
@@ -29,7 +28,7 @@ func registerJobServices(ctx context.Context, c *container.Container) {
 	c.Register(favoritesSyncJobImpl)
 
 	// Job service
-	container.RegisterFactory[services.JobService](c, func(c *container.Container) services.JobService {
+	container.RegisterFactory[jobs.JobService](c, func(c *container.Container) jobs.JobService {
 		jobRepo := container.MustGet[repository.JobRepository](c)
 		userRepo := container.MustGet[repository.UserRepository](c)
 		configRepo := container.MustGet[repository.UserConfigRepository](c)
@@ -53,7 +52,7 @@ func registerJobServices(ctx context.Context, c *container.Container) {
 		recommendationJob := container.MustGet[*recommendation.RecommendationJob](c)
 
 		// Job implementations
-		return services.NewJobService(
+		return jobs.NewJobService(
 			jobRepo,
 			userRepo,
 			configRepo,

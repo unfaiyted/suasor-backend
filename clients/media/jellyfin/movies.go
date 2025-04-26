@@ -11,14 +11,16 @@ import (
 	"suasor/utils/logger"
 )
 
+func (j *JellyfinClient) SupportsMovies() bool { return true }
+
 func (j *JellyfinClient) GetMovies(ctx context.Context, options *t.QueryOptions) ([]*models.MediaItem[*t.Movie], error) {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
-		Str("baseURL", j.config.BaseURL).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
+		Str("baseURL", j.jellyfinConfig().GetBaseURL()).
 		Msg("Retrieving movies from Jellyfin server")
 
 	// Set up query parameters
@@ -50,7 +52,7 @@ func (j *JellyfinClient) GetMovies(ctx context.Context, options *t.QueryOptions)
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", j.config.BaseURL).
+			Str("baseURL", j.jellyfinConfig().GetBaseURL()).
 			Str("apiEndpoint", "/Items").
 			Int("statusCode", 0).
 			Msg("Failed to fetch movies from Jellyfin")
@@ -97,10 +99,10 @@ func (j *JellyfinClient) GetMovieByID(ctx context.Context, id string) (*models.M
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
 		Str("movieID", id).
-		Str("baseURL", j.config.BaseURL).
+		Str("baseURL", j.jellyfinConfig().GetBaseURL()).
 		Msg("Retrieving specific movie from Jellyfin server")
 
 		// Set up query parameters
@@ -133,7 +135,7 @@ func (j *JellyfinClient) GetMovieByID(ctx context.Context, id string) (*models.M
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", j.config.BaseURL).
+			Str("baseURL", j.jellyfinConfig().GetBaseURL()).
 			Str("apiEndpoint", "/Items").
 			Str("movieID", id).
 			Int("statusCode", 0).
@@ -186,3 +188,4 @@ func (j *JellyfinClient) GetMovieByID(ctx context.Context, id string) (*models.M
 
 	return movie, nil
 }
+

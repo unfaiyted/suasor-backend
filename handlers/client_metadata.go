@@ -9,14 +9,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// MetadataClientHandler handles requests for metadata clients
-type MetadataClientHandler[T types.MetadataClientConfig] struct {
-	service *services.MetadataClientService[T]
+// ClientMetadataHandler handles requests for metadata clients
+type ClientMetadataHandler[T types.ClientMetadataConfig] struct {
+	service *services.ClientMetadataService[T]
 }
 
-// NewMetadataClientHandler creates a new MetadataClientHandler
-func NewMetadataClientHandler[T types.MetadataClientConfig](service *services.MetadataClientService[T]) *MetadataClientHandler[T] {
-	return &MetadataClientHandler[T]{
+// NewClientMetadataHandler creates a new ClientMetadataHandler
+func NewClientMetadataHandler[T types.ClientMetadataConfig](service *services.ClientMetadataService[T]) *ClientMetadataHandler[T] {
+	return &ClientMetadataHandler[T]{
 		service: service,
 	}
 }
@@ -24,7 +24,7 @@ func NewMetadataClientHandler[T types.MetadataClientConfig](service *services.Me
 // Movies
 
 // GetMovie retrieves a movie by ID
-func (h *MetadataClientHandler[T]) GetMovie(c *gin.Context) {
+func (h *ClientMetadataHandler[T]) GetMovie(c *gin.Context) {
 	var req requests.MetadataMovieRequest
 	if !checkJSONBinding(c, &req) {
 		return
@@ -40,7 +40,7 @@ func (h *MetadataClientHandler[T]) GetMovie(c *gin.Context) {
 }
 
 // SearchMovies searches for movies by query
-func (h *MetadataClientHandler[T]) SearchMovies(c *gin.Context) {
+func (h *ClientMetadataHandler[T]) SearchMovies(c *gin.Context) {
 	var req requests.MetadataMovieSearchRequest
 	if !checkJSONBinding(c, &req) {
 		return
@@ -56,7 +56,7 @@ func (h *MetadataClientHandler[T]) SearchMovies(c *gin.Context) {
 }
 
 // GetMovieRecommendations gets movie recommendations based on a movie ID
-func (h *MetadataClientHandler[T]) GetMovieRecommendations(c *gin.Context) {
+func (h *ClientMetadataHandler[T]) GetMovieRecommendations(c *gin.Context) {
 	var req requests.MetadataMovieRecommendationsRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request parameters"})
@@ -73,7 +73,7 @@ func (h *MetadataClientHandler[T]) GetMovieRecommendations(c *gin.Context) {
 }
 
 // GetPopularMovies gets popular movies
-func (h *MetadataClientHandler[T]) GetPopularMovies(c *gin.Context) {
+func (h *ClientMetadataHandler[T]) GetPopularMovies(c *gin.Context) {
 	var req requests.MetadataPopularMoviesRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request parameters"})
@@ -90,7 +90,7 @@ func (h *MetadataClientHandler[T]) GetPopularMovies(c *gin.Context) {
 }
 
 // GetTrendingMovies gets trending movies
-func (h *MetadataClientHandler[T]) GetTrendingMovies(c *gin.Context) {
+func (h *ClientMetadataHandler[T]) GetTrendingMovies(c *gin.Context) {
 	var req requests.MetadataTrendingMoviesRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request parameters"})
@@ -109,7 +109,7 @@ func (h *MetadataClientHandler[T]) GetTrendingMovies(c *gin.Context) {
 // TV Shows
 
 // GetTVShow retrieves a TV show by ID
-func (h *MetadataClientHandler[T]) GetTVShow(c *gin.Context) {
+func (h *ClientMetadataHandler[T]) GetTVShow(c *gin.Context) {
 	var req requests.MetadataTVShowRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request parameters"})
@@ -126,7 +126,7 @@ func (h *MetadataClientHandler[T]) GetTVShow(c *gin.Context) {
 }
 
 // SearchTVShows searches for TV shows by query
-func (h *MetadataClientHandler[T]) SearchTVShows(c *gin.Context) {
+func (h *ClientMetadataHandler[T]) SearchTVShows(c *gin.Context) {
 	var req requests.MetadataTVShowSearchRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request parameters"})
@@ -143,7 +143,7 @@ func (h *MetadataClientHandler[T]) SearchTVShows(c *gin.Context) {
 }
 
 // GetTVShowRecommendations gets TV show recommendations based on a TV show ID
-func (h *MetadataClientHandler[T]) GetTVShowRecommendations(c *gin.Context) {
+func (h *ClientMetadataHandler[T]) GetTVShowRecommendations(c *gin.Context) {
 	var req requests.MetadataTVShowRecommendationsRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request parameters"})
@@ -160,7 +160,7 @@ func (h *MetadataClientHandler[T]) GetTVShowRecommendations(c *gin.Context) {
 }
 
 // GetPopularTVShows gets popular TV shows
-func (h *MetadataClientHandler[T]) GetPopularTVShows(c *gin.Context) {
+func (h *ClientMetadataHandler[T]) GetPopularTVShows(c *gin.Context) {
 	var req requests.MetadataPopularTVShowsRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request parameters"})
@@ -177,7 +177,7 @@ func (h *MetadataClientHandler[T]) GetPopularTVShows(c *gin.Context) {
 }
 
 // GetTrendingTVShows gets trending TV shows
-func (h *MetadataClientHandler[T]) GetTrendingTVShows(c *gin.Context) {
+func (h *ClientMetadataHandler[T]) GetTrendingTVShows(c *gin.Context) {
 	var req requests.MetadataTrendingTVShowsRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request parameters"})
@@ -194,7 +194,7 @@ func (h *MetadataClientHandler[T]) GetTrendingTVShows(c *gin.Context) {
 }
 
 // GetTVSeason retrieves a TV season by show ID and season number
-func (h *MetadataClientHandler[T]) GetTVSeason(c *gin.Context) {
+func (h *ClientMetadataHandler[T]) GetTVSeason(c *gin.Context) {
 	var req requests.MetadataTVSeasonRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request parameters"})
@@ -211,7 +211,7 @@ func (h *MetadataClientHandler[T]) GetTVSeason(c *gin.Context) {
 }
 
 // GetTVEpisode retrieves a TV episode by show ID, season number, and episode number
-func (h *MetadataClientHandler[T]) GetTVEpisode(c *gin.Context) {
+func (h *ClientMetadataHandler[T]) GetTVEpisode(c *gin.Context) {
 	var req requests.MetadataTVEpisodeRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request parameters"})
@@ -230,7 +230,7 @@ func (h *MetadataClientHandler[T]) GetTVEpisode(c *gin.Context) {
 // People
 
 // GetPerson retrieves a person by ID
-func (h *MetadataClientHandler[T]) GetPerson(c *gin.Context) {
+func (h *ClientMetadataHandler[T]) GetPerson(c *gin.Context) {
 	var req requests.MetadataPersonRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request parameters"})
@@ -247,7 +247,7 @@ func (h *MetadataClientHandler[T]) GetPerson(c *gin.Context) {
 }
 
 // SearchPeople searches for people by query
-func (h *MetadataClientHandler[T]) SearchPeople(c *gin.Context) {
+func (h *ClientMetadataHandler[T]) SearchPeople(c *gin.Context) {
 	var req requests.MetadataPersonSearchRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request parameters"})
@@ -266,7 +266,7 @@ func (h *MetadataClientHandler[T]) SearchPeople(c *gin.Context) {
 // Collections
 
 // GetCollection retrieves a collection by ID
-func (h *MetadataClientHandler[T]) GetCollection(c *gin.Context) {
+func (h *ClientMetadataHandler[T]) GetCollection(c *gin.Context) {
 	var req requests.MetadataCollectionRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request parameters"})
@@ -283,7 +283,7 @@ func (h *MetadataClientHandler[T]) GetCollection(c *gin.Context) {
 }
 
 // SearchCollections searches for collections by query
-func (h *MetadataClientHandler[T]) SearchCollections(c *gin.Context) {
+func (h *ClientMetadataHandler[T]) SearchCollections(c *gin.Context) {
 	var req requests.MetadataCollectionSearchRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request parameters"})

@@ -6,47 +6,42 @@ import (
 	"fmt"
 	"strings"
 
-	base "suasor/clients"
-	media "suasor/clients/media"
+	"suasor/clients/media"
 	types "suasor/clients/media/types"
-	config "suasor/clients/types"
+	clienttypes "suasor/clients/types"
 	embyclient "suasor/internal/clients/embyAPI"
 
 	"suasor/utils/logger"
 )
 
 type EmbyClient struct {
-	media.BaseClientMedia
+	media.ClientMedia
 	client *embyclient.APIClient
 }
 
 // NewEmbyClient creates a new Emby client instance
-func NewEmbyClient(ctx context.Context, registry *media.ClientItemRegistry, clientID uint64, cfg *config.EmbyConfig) (media.ClientMedia, error) {
+func NewEmbyClient(ctx context.Context, registry *media.ClientItemRegistry, clientID uint64, cfg *clienttypes.EmbyConfig) (media.ClientMedia, error) {
 
 	// Create API client configuration
 	apiConfig := embyclient.NewConfiguration()
-	apiConfig.BasePath = cfg.BaseURL
+	apiConfig.BasePath = cfg.GetBaseURL()
 
 	// Set up API key in default headers
 	apiConfig.DefaultHeader = map[string]string{
-		"X-Emby-Token": cfg.APIKey,
+		"X-Emby-Token": cfg.GetAPIKey(),
 	}
 
 	client := embyclient.NewAPIClient(apiConfig)
 
-	embyClient := &EmbyClient{
-		BaseClientMedia: media.BaseClientMedia{
-			ItemRegistry: registry,
-			ClientType:   config.ClientMediaTypeEmby,
-			BaseClient: base.BaseClient{
-				ClientID: clientID,
-				Category: config.ClientTypeEmby.AsCategory(),
-				Type:     config.ClientTypeEmby,
-				Config:   cfg,
-			},
-		},
-		client: client,
+	clientMedia, err := media.NewClientMedia(ctx, clientID, clienttypes.ClientMediaTypeEmby, registry, cfg)
+	if err != nil {
+		return nil, err
 	}
+	embyClient := &EmbyClient{
+		ClientMedia: clientMedia,
+		client:      client,
+	}
+
 	// Resolve user ID if username is provided
 	if cfg.Username != "" && cfg.UserID == "" {
 		if err := embyClient.resolveUserID(ctx); err != nil {
@@ -69,8 +64,8 @@ func (e *EmbyClient) SupportsPlaylists() bool   { return true }
 func (e *EmbyClient) SupportsCollections() bool { return true }
 func (e *EmbyClient) SupportsHistory() bool     { return true }
 
-func (e *EmbyClient) embyConfig() *config.EmbyConfig {
-	cfg, _ := e.Config.(*config.EmbyConfig)
+func (e *EmbyClient) embyConfig() *clienttypes.EmbyConfig {
+	cfg := e.GetConfig().(*clienttypes.EmbyConfig)
 	return cfg
 }
 
@@ -139,7 +134,7 @@ func (e *EmbyClient) getArtworkURLs(item *embyclient.BaseItemDto) types.Artwork 
 		return imageURLs
 	}
 
-	baseURL := strings.TrimSuffix(e.embyConfig().BaseURL, "/")
+	baseURL := strings.TrimSuffix(e.embyConfig().GetBaseURL(), "/")
 
 	// Primary image (poster) - with nil check
 	if item.ImageTags != nil {

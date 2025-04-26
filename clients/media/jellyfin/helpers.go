@@ -30,7 +30,7 @@ func GetMediaItem[T types.MediaData](
 	itemID string,
 ) (*models.MediaItem[T], error) {
 	mediaItem := models.NewMediaItem[T](item.GetMediaType(), item)
-	mediaItem.SetClientInfo(client.ClientID, client.ClientType, itemID)
+	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), itemID)
 
 	return mediaItem, nil
 }
@@ -53,7 +53,7 @@ func GetMediaItemList[T types.MediaData](
 		if err != nil {
 			return nil, err
 		}
-		mediaItem.SetClientInfo(client.ClientID, client.ClientType, *item.Id)
+		mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), *item.Id)
 		mediaItems = append(mediaItems, mediaItem)
 	}
 
@@ -100,7 +100,7 @@ func GetMediaItemData[T types.MediaData](
 		mediaItemData.IsFavorite = *userData.IsFavorite
 	}
 
-	mediaItemData.Item.SetClientInfo(j.ClientID, j.ClientType, *item.Id)
+	mediaItemData.Item.SetClientInfo(j.GetClientID(), j.GetClientType(), *item.Id)
 	mediaItemData.Associate(mediaItem)
 
 	return &mediaItemData, nil
@@ -339,14 +339,13 @@ func getItemName(item *jellyfin.BaseItemDto) string {
 }
 
 func (j *JellyfinClient) getArtworkURLs(item *jellyfin.BaseItemDto) *types.Artwork {
-
 	imageURLs := types.Artwork{}
 
 	if item == nil || item.Id == nil {
 		return &imageURLs
 	}
 
-	baseURL := strings.TrimSuffix(j.config.BaseURL, "/")
+	baseURL := strings.TrimSuffix(j.jellyfinConfig().GetBaseURL(), "/")
 	itemID := *item.Id
 
 	// Primary image (poster)
@@ -377,7 +376,6 @@ func (j *JellyfinClient) getArtworkURLs(item *jellyfin.BaseItemDto) *types.Artwo
 	}
 
 	return &imageURLs
-
 }
 
 // extractProviderIDs adds external IDs from the Jellyfin provider IDs map to the metadata
@@ -402,7 +400,6 @@ func extractProviderIDs(providerIds *map[string]string, externalIDs *types.Exter
 			externalIDs.AddOrUpdate(externalKey, id)
 		}
 	}
-
 }
 
 // Helper function to get duration seconds from ticks pointer
@@ -413,3 +410,4 @@ func getDurationFromTicks(ticks *int64) int64 {
 	duration := time.Duration(*ticks/10000000) * time.Second
 	return int64(duration.Seconds())
 }
+

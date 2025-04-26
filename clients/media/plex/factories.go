@@ -217,7 +217,7 @@ func (c *PlexClient) seasonFactory(ctx context.Context, item *operations.GetMeta
 
 	// Add parent series ID for synchronization
 	if item.ParentRatingKey != nil {
-		season.SyncSeries.AddClient(c.ClientID, *item.ParentRatingKey)
+		season.SyncSeries.AddClient(c.GetClientID(), *item.ParentRatingKey)
 	}
 
 	log.Debug().
@@ -263,7 +263,7 @@ func (c *PlexClient) episodeFactory(ctx context.Context, item *operations.GetMed
 
 	// Add show ID if available (via grandparentRatingKey)
 	if item.GrandparentRatingKey != nil {
-		episode.AddSyncClient(c.ClientID, *item.GrandparentRatingKey, *item.ParentRatingKey)
+		episode.AddSyncClient(c.GetClientID(), *item.GrandparentRatingKey, *item.ParentRatingKey)
 	}
 
 	// Add studio if available
@@ -283,8 +283,8 @@ func (c *PlexClient) episodeFactory(ctx context.Context, item *operations.GetMed
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("Failed to get season info from Plex")
 		return nil, fmt.Errorf("failed to get season info: %w", err)
 	}
@@ -295,7 +295,7 @@ func (c *PlexClient) episodeFactory(ctx context.Context, item *operations.GetMed
 
 	// Add parent IDs for synchronization
 	if item.ParentRatingKey != nil && item.GrandparentRatingKey != nil {
-		episode.AddSyncClient(c.ClientID, *item.ParentRatingKey, *item.GrandparentRatingKey)
+		episode.AddSyncClient(c.GetClientID(), *item.ParentRatingKey, *item.GrandparentRatingKey)
 	}
 
 	log.Debug().
@@ -510,11 +510,11 @@ func (c *PlexClient) trackFactory(ctx context.Context, item *operations.GetLibra
 
 	// Add synchronization IDs
 	if item.ParentRatingKey != nil {
-		track.SyncAlbum.AddClient(c.ClientID, *item.ParentRatingKey)
+		track.SyncAlbum.AddClient(c.GetClientID(), *item.ParentRatingKey)
 	}
 
 	if item.ParentRatingKey != nil && item.GrandparentRatingKey != nil {
-		track.AddSyncClient(c.ClientID, *item.ParentRatingKey, *item.GrandparentRatingKey)
+		track.AddSyncClient(c.GetClientID(), *item.ParentRatingKey, *item.GrandparentRatingKey)
 	}
 
 	log.Debug().

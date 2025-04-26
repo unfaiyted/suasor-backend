@@ -1,10 +1,10 @@
-// interfaces/base_client.go
+// interfaces/base_types.go
 package clients
 
 import (
 	"context"
 	"errors"
-	client "suasor/clients/types"
+	"suasor/clients/types"
 )
 
 // Common error definitions
@@ -14,58 +14,66 @@ var (
 
 type Client interface {
 	GetClientID() uint64
-	GetCategory() client.ClientCategory
-	GetType() client.ClientType
-	GetConfig() client.ClientConfig
+	SetClientID(clientID uint64)
+	GetCategory() types.ClientCategory
+	GetClientType() types.ClientType
+	GetConfig() types.ClientConfig
 	TestConnection(ctx context.Context) (bool, error)
 }
 
 // BaseClient provides common behavior for all media clients
-type BaseClient struct {
+type client struct {
 	ClientID uint64
-	Category client.ClientCategory
-	Type     client.ClientType
-	Config   client.ClientConfig
+	Category types.ClientCategory
+	Type     types.ClientType
+	Config   types.ClientConfig
+}
+
+func NewClient(clientID uint64, category types.ClientCategory, config types.ClientConfig) Client {
+	return &client{
+		ClientID: clientID,
+		Category: category,
+		Type:     config.GetType(),
+		Config:   config,
+	}
 }
 
 // Get client information
-func (b *BaseClient) GetClientID() uint64 {
+func (b *client) GetClientID() uint64 {
 	return b.ClientID
 }
-func (b *BaseClient) GetCategory() client.ClientCategory {
+func (b *client) SetClientID(clientID uint64) {
+	b.ClientID = clientID
+}
+func (b *client) GetCategory() types.ClientCategory {
 	return b.Category
 }
-func (b *BaseClient) GetType() client.ClientType {
+func (b *client) GetClientType() types.ClientType {
 	return b.Type
 }
-func (b *BaseClient) GetConfig() client.ClientConfig {
+func (b *client) GetConfig() types.ClientConfig {
 	return b.Config
 }
 
-func (b *BaseClient) TestConnection(ctx context.Context) (bool, error) {
+func (b *client) TestConnection(ctx context.Context) (bool, error) {
 	return false, nil
 }
 
-// NewBaseClient creates a new base client
-func NewBaseClient() *BaseClient {
-	return &BaseClient{}
-}
-
 // SimpleClientFactory is a simpler factory type for direct client creation
-type SimpleClientFactory func(config client.ClientConfig) (Client, error)
+type SimpleClientFactory func(config types.ClientConfig) (Client, error)
 
 // RegisterClientType registers a client type with the existing factory system
-func RegisterClientType(clientType client.ClientType, simpleFactory SimpleClientFactory) {
+func RegisterClientType(clientType types.ClientType, simpleFactory SimpleClientFactory) {
 	// Adapt the simple factory to the expected factory signature
-	factory := func(ctx context.Context, clientID uint64, config client.ClientConfig) (Client, error) {
+	factory := func(ctx context.Context, clientID uint64, config types.ClientConfig) (Client, error) {
 		client, err := simpleFactory(config)
 		if err != nil {
 			return nil, err
 		}
 
-		// Set client ID if the client has a BaseClient
-		if baseClient, ok := client.(*BaseClient); ok {
-			baseClient.ClientID = clientID
+		// Set client ID if possible
+		if baseClient, ok := client.(Client); ok {
+			baseClient.SetClientID(clientID)
 		}
 
 		return client, nil

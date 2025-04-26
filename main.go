@@ -8,6 +8,7 @@ import (
 	"suasor/router"
 	"suasor/router/middleware"
 	"suasor/services"
+	"suasor/services/jobs"
 	"suasor/types"
 	"suasor/utils/db"
 	logger "suasor/utils/logger"
@@ -66,7 +67,7 @@ func main() {
 	deps := di.InitializeDependencies(ctx, db, configService)
 
 	log.Info().Msg("Initializing job service")
-	jobService := container.MustGet[services.JobService](deps.GetContainer())
+	jobService := container.MustGet[jobs.JobService](deps.GetContainer())
 	log.Info().Msg("Job service initialized")
 
 	// Start the job scheduler

@@ -6,8 +6,8 @@ import (
 	"suasor/clients/types"
 )
 
-// MetadataClient interface defines the operations that a metadata provider must support
-type MetadataClient interface {
+// clientMetadata interface defines the operations that a metadata provider must support
+type ClientMetadata interface {
 	clients.Client
 
 	// Movie metadata methods
@@ -42,124 +42,127 @@ type MetadataClient interface {
 	SupportsCollectionMetadata() bool
 	GetCollection(ctx context.Context, id string) (*Collection, error)
 	SearchCollections(ctx context.Context, query string) ([]*Collection, error)
+
+	GetMetadataConfig() types.ClientMetadataConfig
 }
 
-// BaseMetadataClient provides a base implementation of the MetadataClient interface
-type BaseMetadataClient struct {
-	clients.BaseClient
-	Config types.ClientConfig
+// clientMetadata provides a base implementation of the clientMetadata interface
+type clientMetadata struct {
+	clients.Client
+	config *types.ClientMetadataConfig
 }
 
-// NewBaseMetadataClient creates a new BaseMetadataClient
-func NewBaseMetadataClient(config types.ClientConfig) *BaseMetadataClient {
-	return &BaseMetadataClient{
-		BaseClient: *clients.NewBaseClient(),
-		Config:     config,
-	}
-}
-
-// GetConfig returns the client configuration
-func (c *BaseMetadataClient) GetConfig() types.ClientConfig {
-	return c.Config
+// NewclientMetadata creates a new clientMetadata
+func NewClientMetadata(ctx, clientID uint64, config types.ClientMetadataConfig) (ClientMetadata, error) {
+	// Create a new client with the provided config
+	client := clients.NewClient(clientID, config.GetCategory(), config)
+	return &clientMetadata{
+		Client: client,
+		config: &config,
+	}, nil
 }
 
 // Default implementations that return false or empty results
-func (c *BaseMetadataClient) SupportsMovieMetadata() bool {
+func (c *clientMetadata) SupportsMovieMetadata() bool {
 	return false
 }
 
-func (c *BaseMetadataClient) GetMovie(ctx context.Context, id string) (*Movie, error) {
+func (c *clientMetadata) GetMovie(ctx context.Context, id string) (*Movie, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) SearchMovies(ctx context.Context, query string) ([]*Movie, error) {
+func (c *clientMetadata) SearchMovies(ctx context.Context, query string) ([]*Movie, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) GetMovieRecommendations(ctx context.Context, movieID string) ([]*Movie, error) {
+func (c *clientMetadata) GetMovieRecommendations(ctx context.Context, movieID string) ([]*Movie, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) GetPopularMovies(ctx context.Context) ([]*Movie, error) {
+func (c *clientMetadata) GetPopularMovies(ctx context.Context) ([]*Movie, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) GetTrendingMovies(ctx context.Context) ([]*Movie, error) {
+func (c *clientMetadata) GetTrendingMovies(ctx context.Context) ([]*Movie, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) GetUpcomingMovies(ctx context.Context, daysAhead int) ([]*Movie, error) {
+func (c *clientMetadata) GetUpcomingMovies(ctx context.Context, daysAhead int) ([]*Movie, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) GetNowPlayingMovies(ctx context.Context, daysPast int) ([]*Movie, error) {
+func (c *clientMetadata) GetNowPlayingMovies(ctx context.Context, daysPast int) ([]*Movie, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) SupportsTVMetadata() bool {
+func (c *clientMetadata) SupportsTVMetadata() bool {
 	return false
 }
 
-func (c *BaseMetadataClient) GetTVShow(ctx context.Context, id string) (*TVShow, error) {
+func (c *clientMetadata) GetTVShow(ctx context.Context, id string) (*TVShow, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) SearchTVShows(ctx context.Context, query string) ([]*TVShow, error) {
+func (c *clientMetadata) SearchTVShows(ctx context.Context, query string) ([]*TVShow, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) GetTVShowRecommendations(ctx context.Context, tvShowID string) ([]*TVShow, error) {
+func (c *clientMetadata) GetTVShowRecommendations(ctx context.Context, tvShowID string) ([]*TVShow, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) GetPopularTVShows(ctx context.Context) ([]*TVShow, error) {
+func (c *clientMetadata) GetPopularTVShows(ctx context.Context) ([]*TVShow, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) GetTrendingTVShows(ctx context.Context) ([]*TVShow, error) {
+func (c *clientMetadata) GetTrendingTVShows(ctx context.Context) ([]*TVShow, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) GetRecentTVShows(ctx context.Context, daysWindow int) ([]*TVShow, error) {
+func (c *clientMetadata) GetRecentTVShows(ctx context.Context, daysWindow int) ([]*TVShow, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) GetTVSeason(ctx context.Context, tvShowID string, seasonNumber int) (*TVSeason, error) {
+func (c *clientMetadata) GetTVSeason(ctx context.Context, tvShowID string, seasonNumber int) (*TVSeason, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) GetTVEpisode(ctx context.Context, tvShowID string, seasonNumber int, episodeNumber int) (*TVEpisode, error) {
+func (c *clientMetadata) GetTVEpisode(ctx context.Context, tvShowID string, seasonNumber int, episodeNumber int) (*TVEpisode, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) SupportsPersonMetadata() bool {
+func (c *clientMetadata) SupportsPersonMetadata() bool {
 	return false
 }
 
-func (c *BaseMetadataClient) GetPerson(ctx context.Context, id string) (*Person, error) {
+func (c *clientMetadata) GetPerson(ctx context.Context, id string) (*Person, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) SearchPeople(ctx context.Context, query string) ([]*Person, error) {
+func (c *clientMetadata) SearchPeople(ctx context.Context, query string) ([]*Person, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) GetPersonMovieCredits(ctx context.Context, personID string) ([]*MovieCredit, error) {
+func (c *clientMetadata) GetPersonMovieCredits(ctx context.Context, personID string) ([]*MovieCredit, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) GetPersonTVCredits(ctx context.Context, personID string) ([]*TVCredit, error) {
+func (c *clientMetadata) GetPersonTVCredits(ctx context.Context, personID string) ([]*TVCredit, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) SupportsCollectionMetadata() bool {
+func (c *clientMetadata) SupportsCollectionMetadata() bool {
 	return false
 }
 
-func (c *BaseMetadataClient) GetCollection(ctx context.Context, id string) (*Collection, error) {
+func (c *clientMetadata) GetCollection(ctx context.Context, id string) (*Collection, error) {
 	return nil, clients.ErrNotImplemented
 }
 
-func (c *BaseMetadataClient) SearchCollections(ctx context.Context, query string) ([]*Collection, error) {
+func (c *clientMetadata) SearchCollections(ctx context.Context, query string) ([]*Collection, error) {
 	return nil, clients.ErrNotImplemented
+}
+
+func (c *clientMetadata) GetMetadataConfig() types.ClientMetadataConfig {
+	return *c.config
 }

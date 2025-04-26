@@ -6,7 +6,7 @@ import (
 	"suasor/clients/media/types"
 	clienttypes "suasor/clients/types"
 	"suasor/services"
-	"suasor/types/models"
+	_ "suasor/types/models"
 	"suasor/types/responses"
 	"suasor/utils/logger"
 
@@ -54,7 +54,7 @@ func NewClientSeriesHandler[T clienttypes.ClientMediaConfig](
 //	@Security		BearerAuth
 //	@Param			clientID	path		int																true	"Client ID"
 //	@Param			seriesID	path		string															true	"Series ID"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Series]]	"Movies retrieved"
+//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Series]]	"Series retrieved"
 //	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid client ID"
 //	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
@@ -683,23 +683,4 @@ func (h *clientSeriesHandler[T]) GetSeasonsBySeriesID(c *gin.Context) {
 		Int("seasonsCount", len(seasons)).
 		Msg("Seasons retrieved successfully")
 	responses.RespondOK(c, seasons, "Seasons retrieved successfully")
-}
-
-func createSeriesMediaItem[T types.Series](clientID uint64, clientType clienttypes.ClientMediaType, externalID string, data types.Series) models.MediaItem[types.Series] {
-	mediaItem := models.MediaItem[types.Series]{
-		Type:        types.MediaTypeSeries,
-		SyncClients: []models.SyncClient{},
-		ExternalIDs: []models.ExternalID{},
-		Data:        data,
-	}
-
-	// Set client info
-	mediaItem.SetClientInfo(clientID, clientType, externalID)
-
-	// Only add external ID if provided
-	if externalID != "" {
-		mediaItem.AddExternalID("client", externalID)
-	}
-
-	return mediaItem
 }

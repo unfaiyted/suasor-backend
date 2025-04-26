@@ -3,7 +3,8 @@ package handlers
 import (
 	"net/http"
 	"strconv"
-	"suasor/services"
+	"suasor/services/jobs"
+
 	"suasor/types/models"
 	"suasor/types/requests"
 	"suasor/types/responses"
@@ -15,11 +16,11 @@ import (
 
 // JobHandler manages job-related requests
 type JobHandler struct {
-	jobService services.JobService
+	jobService jobs.JobService
 }
 
 // NewJobHandler creates a new job handler
-func NewJobHandler(jobService services.JobService) *JobHandler {
+func NewJobHandler(jobService jobs.JobService) *JobHandler {
 	return &JobHandler{
 		jobService: jobService,
 	}

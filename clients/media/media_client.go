@@ -1,4 +1,3 @@
-// interfaces/media_clients.go
 package media
 
 import (
@@ -32,8 +31,8 @@ type ClientMedia interface {
 	AsGenericClient() clients.Client
 }
 
-type BaseClientMedia struct {
-	clients.BaseClient
+type clientMedia struct {
+	clients.Client
 	ClientType   types.ClientMediaType
 	ItemRegistry *ClientItemRegistry
 	config       *types.ClientMediaConfig
@@ -45,12 +44,12 @@ func NewClientMedia(
 	clientType types.ClientMediaType,
 	itemRegistry *ClientItemRegistry,
 	config types.ClientMediaConfig) (ClientMedia, error) {
-	return &BaseClientMedia{
-		BaseClient: clients.BaseClient{
-			ClientID: clientID,
-			Category: clientType.AsCategory(),
-		},
 
+	// Create a new client with the provided config
+	client := clients.NewClient(clientID, clientType.AsCategory(), config)
+
+	return &clientMedia{
+		Client:       client,
 		config:       &config,
 		ItemRegistry: itemRegistry,
 		ClientType:   clientType,
@@ -58,47 +57,47 @@ func NewClientMedia(
 }
 
 // Default caity implementations (all false by default)
-func (m *BaseClientMedia) SupportsMovies() bool      { return false }
-func (m *BaseClientMedia) SupportsSeries() bool      { return false }
-func (m *BaseClientMedia) SupportsMusic() bool       { return false }
-func (m *BaseClientMedia) SupportsPlaylists() bool   { return false }
-func (m *BaseClientMedia) SupportsCollections() bool { return false }
-func (m *BaseClientMedia) SupportsHistory() bool     { return false }
+func (m *clientMedia) SupportsMovies() bool      { return false }
+func (m *clientMedia) SupportsSeries() bool      { return false }
+func (m *clientMedia) SupportsMusic() bool       { return false }
+func (m *clientMedia) SupportsPlaylists() bool   { return false }
+func (m *clientMedia) SupportsCollections() bool { return false }
+func (m *clientMedia) SupportsHistory() bool     { return false }
 
-func (b *BaseClientMedia) GetRegistry() *ClientItemRegistry {
+func (b *clientMedia) GetRegistry() *ClientItemRegistry {
 	return b.ItemRegistry
 }
 
-func (b *BaseClientMedia) AsGenericClient() clients.Client {
+func (b *clientMedia) AsGenericClient() clients.Client {
 	return b
 }
 
 // Embed in your clients to provide default behavior
-func (b *BaseClientMedia) GetMovies(ctx context.Context, options *media.QueryOptions) ([]*models.MediaItem[*media.Movie], error) {
+func (b *clientMedia) GetMovies(ctx context.Context, options *media.QueryOptions) ([]*models.MediaItem[*media.Movie], error) {
 	return nil, ErrFeatureNotSupported
 }
 
-func (b *BaseClientMedia) GetSeries(ctx context.Context, options *media.QueryOptions) ([]*models.MediaItem[*media.Series], error) {
+func (b *clientMedia) GetSeries(ctx context.Context, options *media.QueryOptions) ([]*models.MediaItem[*media.Series], error) {
 	return nil, ErrFeatureNotSupported
 }
 
-func (b *BaseClientMedia) GetMusic(ctx context.Context, options *media.QueryOptions) ([]*models.MediaItem[*media.Track], error) {
+func (b *clientMedia) GetMusic(ctx context.Context, options *media.QueryOptions) ([]*models.MediaItem[*media.Track], error) {
 	return nil, ErrFeatureNotSupported
 }
 
-func (b *BaseClientMedia) GetPlaylists(ctx context.Context, options *media.QueryOptions) ([]*models.MediaItem[*media.Playlist], error) {
+func (b *clientMedia) GetPlaylists(ctx context.Context, options *media.QueryOptions) ([]*models.MediaItem[*media.Playlist], error) {
 	return nil, ErrFeatureNotSupported
 }
 
-func (b *BaseClientMedia) GetCollections(ctx context.Context, options *media.QueryOptions) ([]*models.MediaItem[*media.Collection], error) {
+func (b *clientMedia) GetCollections(ctx context.Context, options *media.QueryOptions) ([]*models.MediaItem[*media.Collection], error) {
 	return nil, ErrFeatureNotSupported
 }
 
-func (b *BaseClientMedia) GetHistory(ctx context.Context, options *media.QueryOptions) ([]*models.UserMediaItemData[media.MediaData], error) {
+func (b *clientMedia) GetHistory(ctx context.Context, options *media.QueryOptions) ([]*models.UserMediaItemData[media.MediaData], error) {
 	return nil, ErrFeatureNotSupported
 }
 
-func (b *BaseClientMedia) ToMediaItem(ctx context.Context, item media.MediaData, itemID string) (models.MediaItem[media.MediaData], error) {
+func (b *clientMedia) ToMediaItem(ctx context.Context, item media.MediaData, itemID string) (models.MediaItem[media.MediaData], error) {
 	if item == nil {
 		return models.MediaItem[media.MediaData]{}, fmt.Errorf("cannot convert nil item to media item")
 	}
@@ -107,103 +106,12 @@ func (b *BaseClientMedia) ToMediaItem(ctx context.Context, item media.MediaData,
 		Data: item,
 		Type: item.GetMediaType(),
 	}
-	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
+	mediaItem.SetClientInfo(b.GetClientID(), b.GetClientType(), itemID)
 
 	return mediaItem, nil
 }
 
-// func (b *BaseClientMedia) ToMediaItemEpisode(ctx context.Context, item media.Episode, itemID string) (models.MediaItem[media.Episode], error) {
-// 	mediaItem := models.MediaItem[media.Episode]{
-// 		Data: item,
-// 		Type: item.GetMediaType(),
-// 	}
-// 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
-//
-// 	return mediaItem, nil
-// }
-//
-// func (b *BaseClientMedia) ToMediaItemSeason(ctx context.Context, item media.Season, itemID string) (models.MediaItem[media.Season], error) {
-// 	mediaItem := models.MediaItem[media.Season]{
-// 		Data: item,
-// 		Type: item.GetMediaType(),
-// 	}
-// 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
-//
-// 	return mediaItem, nil
-// }
-//
-// func (b *BaseClientMedia) ToMediaItemPlaylist(ctx context.Context, item media.Playlist, itemID string) (models.MediaItem[media.Playlist], error) {
-// 	mediaItem := models.MediaItem[media.Playlist]{
-// 		Data: item,
-// 		Type: item.GetMediaType(),
-// 	}
-// 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
-//
-// 	return mediaItem, nil
-// }
-//
-// func (b *BaseClientMedia) ToMediaItemCollection(ctx context.Context, item media.Collection, itemID string) (models.MediaItem[media.Collection], error) {
-// 	mediaItem := models.MediaItem[media.Collection]{
-// 		Data: item,
-// 		Type: item.GetMediaType(),
-// 	}
-// 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
-//
-// 	return mediaItem, nil
-// }
-//
-// func (b *BaseClientMedia) ToMediaItemMovie(ctx context.Context, item media.Movie, itemID string) (models.MediaItem[media.Movie], error) {
-// 	mediaItem := models.MediaItem[media.Movie]{
-// 		Data: item,
-// 		Type: item.GetMediaType(),
-// 	}
-// 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
-//
-// 	return mediaItem, nil
-// }
-//
-// func (b *BaseClientMedia) ToMediaItemSeries(ctx context.Context, item media.Series, itemID string) (models.MediaItem[media.Series], error) {
-// 	mediaItem := models.MediaItem[media.Series]{
-// 		Data: item,
-// 		Type: item.GetMediaType(),
-// 	}
-//
-// 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
-//
-// 	return mediaItem, nil
-// }
-//
-// func (b *BaseClientMedia) ToMediaItemTrack(ctx context.Context, item media.Track, itemID string) (models.MediaItem[media.Track], error) {
-// 	mediaItem := models.MediaItem[media.Track]{
-// 		Data: item,
-// 		Type: item.GetMediaType(),
-// 	}
-// 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
-//
-// 	return mediaItem, nil
-// }
-//
-// func (b *BaseClientMedia) ToMediaItemAlbum(ctx context.Context, item media.Album, itemID string) (models.MediaItem[media.Album], error) {
-// 	mediaItem := models.MediaItem[media.Album]{
-// 		Data: item,
-// 		Type: item.GetMediaType(),
-// 	}
-// 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
-//
-// 	return mediaItem, nil
-// }
-//
-// func (b *BaseClientMedia) ToMediaItemArtist(ctx context.Context, item media.Artist, itemID string) (models.MediaItem[media.Artist], error) {
-// 	mediaItem := models.MediaItem[media.Artist]{
-// 		Data: item,
-// 		Type: item.GetMediaType(),
-// 	}
-// 	mediaItem.SetClientInfo(b.ClientID, b.ClientType, itemID)
-//
-// 	return mediaItem, nil
-// }
-
-func (b *BaseClientMedia) TestConnection(ctx context.Context) (bool, error) {
+func (b *clientMedia) TestConnection(ctx context.Context) (bool, error) {
 	return false, nil
 }
 
@@ -212,7 +120,7 @@ func (b *BaseClientMedia) TestConnection(ctx context.Context) (bool, error) {
 // because we might be able to reduce the number of requests to the client by doing a
 // more generic search at the client level.
 // This should work on for all clients and not need any special implemenations for them
-func (b *BaseClientMedia) Search(ctx context.Context, options *media.QueryOptions) (responses.SearchResults, error) {
+func (b *clientMedia) Search(ctx context.Context, options *media.QueryOptions) (responses.SearchResults, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().Str("query", options.Query).Msg("Searching media items")
 

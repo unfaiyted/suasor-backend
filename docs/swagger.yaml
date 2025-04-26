@@ -1700,37 +1700,6 @@ definitions:
     - content
     - contentType
     type: object
-  requests.AiRecommendationRequest:
-    description: Request for AI-powered content recommendations
-    properties:
-      clientID:
-        description: Client ID to use for the conversation
-        type: integer
-      clientType:
-        description: |-
-          Specific AI client type to use (claude, openai, ollama)
-          example: claude
-        type: string
-      contentType:
-        description: |-
-          Type of content to recommend (movie, tv, music, etc)
-          required: true
-          example: movie
-        type: string
-      count:
-        description: |-
-          Number of recommendations to return
-          example: 5
-        type: integer
-      filters:
-        additionalProperties: {}
-        description: |-
-          Optional filters to apply to recommendations
-          example: {"genre": "sci-fi", "year": "2020-2023"}
-        type: object
-    required:
-    - contentType
-    type: object
   requests.AutomationExecuteCommandRequest:
     properties:
       command:
@@ -4457,6 +4426,21 @@ definitions:
           $ref: '#/definitions/types.SyncClient'
         type: array
     type: object
+  types.GenerationOptions:
+    properties:
+      maxTokens:
+        description: Maximum response length
+        type: integer
+      responseFormat:
+        description: Optional format like "json" if supported
+        type: string
+      systemInstructions:
+        description: System instructions for the AI
+        type: string
+      temperature:
+        description: Controls randomness (0.0-1.0)
+        type: number
+    type: object
   types.ListItem:
     properties:
       changeHistory:
@@ -4593,6 +4577,36 @@ definitions:
         items:
           $ref: '#/definitions/types.SyncClientState'
         type: array
+    type: object
+  types.RecommendationRequest:
+    properties:
+      additionalContext:
+        description: Additional context or instructions
+        type: string
+      count:
+        description: Number of recommendations to generate
+        type: integer
+      excludeIDs:
+        description: IDs to exclude from recommendations
+        items:
+          type: string
+        type: array
+      generationOptions:
+        allOf:
+        - $ref: '#/definitions/types.GenerationOptions'
+        description: Options for the generation process
+      includeSimilarTo:
+        description: Include items similar to these IDs
+        items:
+          type: string
+        type: array
+      mediaType:
+        description: Type of media ("movie", "series", "music")
+        type: string
+      userPreferences:
+        additionalProperties: {}
+        description: User preferences to consider
+        type: object
     type: object
   types.Season:
     properties:
@@ -5508,617 +5522,6 @@ paths:
       summary: Test client connection
       tags:
       - clients
-  /ai/analyze:
-    post:
-      consumes:
-      - application/json
-      description: Use AI to analyze provided content
-      parameters:
-      - description: Content analysis request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/requests.AiContentAnalysisRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Analysis response
-          schema:
-            $ref: '#/definitions/responses.APIResponse-responses_AiContentAnalysisResponse'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Analyze content with AI
-      tags:
-      - ai
-  /ai/conversation/message:
-    post:
-      consumes:
-      - application/json
-      description: Continue a conversation with the AI by sending a new message
-      parameters:
-      - description: Message request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/requests.ConversationMessageRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: AI response
-          schema:
-            $ref: '#/definitions/responses.APIResponse-responses_ConversationMessageResponse'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "403":
-          description: Conversation not owned by user
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "404":
-          description: Conversation not found
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Send a message in an existing AI conversation
-      tags:
-      - ai
-  /ai/conversation/start:
-    post:
-      consumes:
-      - application/json
-      description: Initialize a new conversational session with the AI for personalized
-        recommendations
-      parameters:
-      - description: Conversation initialization request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/requests.StartConversationRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Conversation started
-          schema:
-            $ref: '#/definitions/responses.APIResponse-responses_ConversationResponse'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Start a new AI conversation for recommendations
-      tags:
-      - ai
-  /ai/recommendations:
-    post:
-      consumes:
-      - application/json
-      description: Get content recommendations from an AI service
-      parameters:
-      - description: Recommendation request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/requests.AiRecommendationRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Recommendation response
-          schema:
-            $ref: '#/definitions/responses.APIResponse-responses_AiRecommendationResponse'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get AI-powered content recommendations
-      tags:
-      - ai
-  /api/v1/client/{clientID}/media/movies/{movieID}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a specific movie from the client by ID
-      parameters:
-      - description: Client ID
-        in: path
-        name: clientID
-        required: true
-        type: integer
-      - description: Movie ID
-        in: path
-        name: movieID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Invalid client ID
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get movie by ID
-      tags:
-      - movies
-      - client
-  /api/v1/client/{clientID}/media/movies/{source}/{externalID}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a movie from all connected clients by external ID
-      parameters:
-      - description: Source
-        in: path
-        name: source
-        required: true
-        type: string
-      - description: Client ID
-        in: path
-        name: clientID
-        required: true
-        type: integer
-      - description: External ID
-        in: path
-        name: externalID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Invalid client ID
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get movie by external ID
-      tags:
-      - movies
-      - client
-  /api/v1/client/{clientID}/media/movies/actor/{actor}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves movies featuring a specific actor
-      parameters:
-      - description: Actor name
-        in: path
-        name: actor
-        required: true
-        type: string
-      - description: Maximum number of movies to return (default 20)
-        in: query
-        name: limit
-        type: integer
-      - description: Client ID
-        in: path
-        name: clientID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved successfully
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "404":
-          description: Movie not found
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-      summary: Get movies by actor
-      tags:
-      - movies
-      - client
-  /api/v1/client/{clientID}/media/movies/director/{director}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves movies from all connected clients directed by the specified
-        director
-      parameters:
-      - description: Director name
-        in: path
-        name: director
-        required: true
-        type: string
-      - description: Client ID
-        in: path
-        name: clientID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get movies by director
-      tags:
-      - movies
-      - client
-  /api/v1/client/{clientID}/media/movies/genre/{genre}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves movies from all connected clients that match the specified
-        genre
-      parameters:
-      - description: Genre name
-        in: path
-        name: genre
-        required: true
-        type: string
-      - description: Client ID
-        in: path
-        name: clientID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get movies by genre
-      tags:
-      - movies
-      - client
-  /api/v1/client/{clientID}/media/movies/latest/{count}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves the most recently added movies from all connected clients
-      parameters:
-      - description: Number of movies to retrieve
-        in: path
-        name: count
-        required: true
-        type: integer
-      - description: Client ID
-        in: path
-        name: clientID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Invalid count format
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get latest added movies
-      tags:
-      - movies
-      - client
-  /api/v1/client/{clientID}/media/movies/popular/{count}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves the most popular movies from all connected clients
-      parameters:
-      - description: Number of movies to retrieve
-        in: path
-        name: count
-        required: true
-        type: integer
-      - description: Client ID
-        in: path
-        name: clientID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Invalid count format
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get popular movies
-      tags:
-      - movies
-      - client
-  /api/v1/client/{clientID}/media/movies/rating:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves movies from all connected clients with ratings in the
-        specified range
-      parameters:
-      - description: Minimum rating (e.g. 7.5)
-        in: query
-        name: min
-        required: true
-        type: number
-      - description: Maximum rating (e.g. 10.0)
-        in: query
-        name: max
-        required: true
-        type: number
-      - description: Client ID
-        in: path
-        name: clientID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Invalid rating format
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get movies by rating range
-      tags:
-      - movies
-      - client
-  /api/v1/client/{clientID}/media/movies/search:
-    get:
-      consumes:
-      - application/json
-      description: Searches for movies across all connected clients matching the query
-      parameters:
-      - description: Search query
-        in: query
-        name: q
-        required: true
-        type: string
-      - description: Client ID
-        in: path
-        name: clientID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Missing search query
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Search for movies
-      tags:
-      - movies
-  /api/v1/client/{clientID}/media/movies/top-rated/{count}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves the highest rated movies from all connected clients
-      parameters:
-      - description: Number of movies to retrieve
-        in: path
-        name: count
-        required: true
-        type: integer
-      - description: Client ID
-        in: path
-        name: clientID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Invalid count format
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get top rated movies
-      tags:
-      - movies
-      - client
-  /api/v1/client/{clientID}/media/movies/year/{year}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves movies from all connected clients that were released
-        in the specified year
-      parameters:
-      - description: Release year
-        in: path
-        name: year
-        required: true
-        type: integer
-      - description: Client ID
-        in: path
-        name: clientID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Movies retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
-        "400":
-          description: Invalid year
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get movies by release year
-      tags:
-      - movies
-      - client
   /auth/login:
     post:
       consumes:
@@ -6655,6 +6058,169 @@ paths:
       tags:
       - lists
       - clients
+  /client/{clientID}/ai/analyze:
+    post:
+      consumes:
+      - application/json
+      description: Use AI to analyze provided content
+      parameters:
+      - description: Content analysis request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.AiContentAnalysisRequest'
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Analysis response
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_AiContentAnalysisResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Analyze content with AI
+      tags:
+      - ai
+  /client/{clientID}/ai/conversation/message:
+    post:
+      consumes:
+      - application/json
+      description: Continue a conversation with the AI by sending a new message
+      parameters:
+      - description: Message request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.ConversationMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: AI response
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_ConversationMessageResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "403":
+          description: Conversation not owned by user
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "404":
+          description: Conversation not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Send a message in an existing AI conversation
+      tags:
+      - ai
+  /client/{clientID}/ai/conversation/start:
+    post:
+      consumes:
+      - application/json
+      description: Initialize a new conversational session with the AI for personalized
+        recommendations
+      parameters:
+      - description: Conversation initialization request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.StartConversationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Conversation started
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_ConversationResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Start a new AI conversation for recommendations
+      tags:
+      - ai
+  /client/{clientID}/ai/recommendations:
+    post:
+      consumes:
+      - application/json
+      description: Get content recommendations from an AI service
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Recommendation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/types.RecommendationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Recommendation response
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_AiRecommendationResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get AI-powered content recommendations
+      tags:
+      - ai
   /client/{clientID}/automation/calendar:
     get:
       consumes:
@@ -8304,7 +7870,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Movies retrieved
+          description: Series retrieved
           schema:
             $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Series'
         "400":
@@ -9426,6 +8992,36 @@ paths:
       - user-data
       - clients
   /client/{clientType}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all clients of a specific type for the user
+      parameters:
+      - description: Client type (e.g. 'plex', 'jellyfin', 'emby')
+        in: path
+        name: clientType
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Clients retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_Client-types_ClientConfig'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get all clients of a specific type
+      tags:
+      - clients
     post:
       consumes:
       - application/json

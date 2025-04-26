@@ -17,20 +17,20 @@ type UserConfigService interface {
 }
 
 type userConfigService struct {
-	userConfigRepo    repository.UserConfigRepository
-	jobService        JobService
+	userConfigRepo repository.UserConfigRepository
+	// jobService        JobService
 	recommendationJob *recommendation.RecommendationJob
 }
 
 // NewUserConfigService creates a new configuration service
 func NewUserConfigService(
 	userConfigRepo repository.UserConfigRepository,
-	jobService JobService,
+	// jobService JobService,
 	recommendationJob *recommendation.RecommendationJob,
 ) UserConfigService {
 	return &userConfigService{
-		userConfigRepo:    userConfigRepo,
-		jobService:        jobService,
+		userConfigRepo: userConfigRepo,
+		// jobService:        jobService,
 		recommendationJob: recommendationJob,
 	}
 }
@@ -96,11 +96,12 @@ func (s *userConfigService) SaveUserConfig(ctx context.Context, config models.Us
 
 		// If recommendations are now enabled and set to run immediately, trigger a manual run
 		if config.RecommendationSyncEnabled && config.RecommendationSyncFrequency != "manual" {
-			jobName := fmt.Sprintf("%s.user.%d", s.recommendationJob.Name(), config.UserID)
-			if err := s.jobService.RunJobManually(ctx, jobName); err != nil {
-				log.Error().Err(err).Uint64("userId", config.UserID).Msg("Error triggering initial recommendation job")
-				// Don't fail the overall operation if this fails
-			}
+			// TODO: Implement this
+			// jobName := fmt.Sprintf("%s.user.%d", s.recommendationJob.Name(), config.UserID)
+			// if err := s.jobService.RunJobManually(ctx, jobName); err != nil {
+			// 	log.Error().Err(err).Uint64("userId", config.UserID).Msg("Error triggering initial recommendation job")
+			// 	// Don't fail the overall operation if this fails
+			// }
 		}
 	}
 

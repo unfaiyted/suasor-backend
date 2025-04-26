@@ -346,13 +346,12 @@ func (m *MediaItem[T]) UnmarshalJSON(data []byte) error {
 }
 
 // SetClientInfo adds or updates client ID information for this media item
-func (m *MediaItem[T]) SetClientInfo(clientID uint64, clientType client.ClientMediaType, clientItemKey string) {
+func (m *MediaItem[T]) SetClientInfo(clientID uint64, clientType client.ClientType, clientItemKey string) {
 	// Add to SyncClients
 	found := false
-	genericType := clientType.AsGenericType()
 
 	for i, id := range m.SyncClients {
-		if id.ID == clientID && id.Type == genericType {
+		if id.ID == clientID && id.Type == clientType {
 			// Update existing entry
 			m.SyncClients[i].ItemID = clientItemKey
 			found = true
@@ -364,7 +363,7 @@ func (m *MediaItem[T]) SetClientInfo(clientID uint64, clientType client.ClientMe
 		// Add new entry
 		m.SyncClients = append(m.SyncClients, SyncClient{
 			ID:     clientID,
-			Type:   genericType,
+			Type:   clientType,
 			ItemID: clientItemKey,
 		})
 	}

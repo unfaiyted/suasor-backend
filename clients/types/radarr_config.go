@@ -2,19 +2,16 @@ package types
 
 import "encoding/json"
 
-// @Description Emby media server configuration
+// @Description Radarr movie automation server configuration
 type RadarrConfig struct {
-	BaseAutomationClientConfig
+	ClientAutomationConfig
+	// Add any Radarr-specific configuration fields here
 }
 
-func NewRadarrConfig() RadarrConfig {
+func NewRadarrConfig(baseURL string, apiKey string, enabled bool, validateConn bool) RadarrConfig {
+	clientConfig := NewClientAutomationConfig(AutomationClientTypeRadarr, ClientCategoryAutomation, "Radarr", baseURL, apiKey, enabled, validateConn)
 	return RadarrConfig{
-		BaseAutomationClientConfig: BaseAutomationClientConfig{
-			BaseClientConfig: BaseClientConfig{
-				Type: ClientTypeRadarr,
-			},
-			ClientType: AutomationClientTypeRadarr,
-		},
+		ClientAutomationConfig: clientConfig,
 	}
 }
 
@@ -44,7 +41,5 @@ func (c *RadarrConfig) UnmarshalJSON(data []byte) error {
 	}
 
 	// Ensure Type is always the correct constant
-	c.ClientType = AutomationClientTypeRadarr
-	c.Type = ClientTypeRadarr
 	return nil
 }

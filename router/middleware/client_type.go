@@ -2,6 +2,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -30,6 +31,7 @@ func ClientTypeMiddleware(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
+		fmt.Printf("Client type: %s\n", clientType)
 		// Add client type to context
 		c.Set("clientType", clientType)
 		c.Set("clientID", clientID)

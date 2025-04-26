@@ -64,6 +64,8 @@ type QueryOptions struct {
 	OwnerID          uint64 `json:"ownerID,omitempty"`          // Filter by owner ID
 	ClientID         uint64 `json:"clientID,omitempty"`         // Filter by client ID
 	PersonID         uint64 `json:"personID,omitempty"`         // Filter by person ID
+	ClientArtistID   string `json:"artistID,omitempty"`         // Filter by artist ID
+	ClientAlbumID    string `json:"albumID,omitempty"`          // Filter by album ID
 	ItemIDs          string `json:"itemIDs,omitempty"`          // Filter by external ID (emby, jellyfin, plex, etc.)
 	ExternalSourceID string `json:"externalSourceID,omitempty"` // Filter by external source ID (TMDB, IMDB, etc.)
 }

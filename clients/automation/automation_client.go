@@ -9,7 +9,7 @@ import (
 
 var ErrFeatureNotSupported = errors.New("feature not supported by this automation client")
 
-type AutomationClient interface {
+type ClientAutomation interface {
 	client.Client
 	SupportsMovies() bool
 	SupportsTVShows() bool
@@ -17,18 +17,14 @@ type AutomationClient interface {
 }
 
 type BaseAutomationClient struct {
-	client.BaseClient
+	client.Client
 	ClientType types.AutomationClientType
-	Config     types.AutomationClientConfig
+	Config     types.ClientAutomationConfig
 }
 
-func NewAutomationClient(ctx context.Context, clientID uint64, clientType types.AutomationClientType, config types.AutomationClientConfig) (AutomationClient, error) {
+func NewAutomationClient(ctx context.Context, clientID uint64, clientType types.AutomationClientType, config types.ClientAutomationConfig) (ClientAutomation, error) {
 	return &BaseAutomationClient{
-		BaseClient: client.BaseClient{
-			ClientID: clientID,
-			Category: clientType.AsCategory(),
-			Config:   config,
-		},
+		Client:     client.NewClient(clientID, clientType.AsCategory(), config),
 		ClientType: clientType,
 	}, nil
 }

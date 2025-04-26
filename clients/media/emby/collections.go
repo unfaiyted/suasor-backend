@@ -17,8 +17,8 @@ func (e *EmbyClient) CreateCollection(ctx context.Context, name string, descript
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Str("name", name).
 		Msg("Creating collection in Emby")
 
@@ -66,7 +66,7 @@ func (e *EmbyClient) CreateCollection(ctx context.Context, name string, descript
 
 	// Convert to Collection model
 	collection := e.ConvertItemToCollection(collectionResponse.Items[0])
-	collection.SetClientInfo(e.ClientID, e.ClientType, newCollection.Id)
+	collection.SetClientInfo(e.GetClientID(), e.GetClientType(), newCollection.Id)
 
 	log.Info().
 		Str("collectionId", collectionID).
@@ -103,8 +103,8 @@ func (e *EmbyClient) GetCollections(ctx context.Context, options *types.QueryOpt
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Msg("Retrieving collections from Emby")
 
 	// Prepare the query options
@@ -136,7 +136,7 @@ func (e *EmbyClient) GetCollections(ctx context.Context, options *types.QueryOpt
 	for _, item := range results.Items {
 		collection := e.ConvertItemToCollection(item)
 		if collection != nil {
-			collection.SetClientInfo(e.ClientID, e.ClientType, item.Id)
+			collection.SetClientInfo(e.GetClientID(), e.GetClientType(), item.Id)
 			collections = append(collections, collection)
 		}
 	}
@@ -175,8 +175,8 @@ func (e *EmbyClient) UpdateCollection(ctx context.Context, collectionID string, 
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Str("collectionID", collectionID).
 		Str("name", name).
 		Msg("Updating collection in Emby")
@@ -230,8 +230,8 @@ func (e *EmbyClient) DeleteCollection(ctx context.Context, collectionID string) 
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Str("collectionID", collectionID).
 		Msg("Deleting collection from Emby")
 
@@ -258,8 +258,8 @@ func (e *EmbyClient) AddItemsToCollection(ctx context.Context, collectionID stri
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Str("collectionID", collectionID).
 		Int("itemCount", len(itemIDs)).
 		Msg("Adding items to collection in Emby")
@@ -291,8 +291,8 @@ func (e *EmbyClient) RemoveItemsFromCollection(ctx context.Context, collectionID
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Str("collectionID", collectionID).
 		Int("itemCount", len(itemIDs)).
 		Msg("Removing items from collection in Emby")
@@ -324,8 +324,8 @@ func (e *EmbyClient) GetCollectionItems(ctx context.Context, collectionID string
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Str("collectionID", collectionID).
 		Msg("Retrieving collection items from Emby")
 

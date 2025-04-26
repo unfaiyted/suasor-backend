@@ -4,26 +4,21 @@ import "encoding/json"
 
 // @Description Plex media server configuration
 type PlexConfig struct {
-	BaseClientMediaConfig
+	ClientMediaConfig
 	Token string `json:"token" mapstructure:"token" example:"your-plex-token" binding:"required_if=Enabled true"`
 }
 
-func NewPlexConfig(host string, token string) PlexConfig {
+func NewPlexConfig(host string, token string, enabled bool, validateConn bool) PlexConfig {
+	clientConfig := NewClientMediaConfig(ClientMediaTypePlex, ClientCategoryMedia, "Plex", host, "", enabled, validateConn)
 	return PlexConfig{
-		BaseClientMediaConfig: BaseClientMediaConfig{
-			BaseClientConfig: BaseClientConfig{
-				Type: ClientTypePlex,
-			},
-			BaseURL: host,
-
-			ClientType: ClientMediaTypePlex,
-		},
-		Token: token,
+		ClientMediaConfig: clientConfig,
+		Token:             token,
 	}
 }
 
-func (PlexConfig) isClientConfig()      {}
-func (PlexConfig) isClientMediaConfig() {}
+func (c *PlexConfig) GetToken() string {
+	return c.Token
+}
 
 func (PlexConfig) GetClientType() ClientMediaType {
 	return ClientMediaTypePlex
@@ -64,8 +59,5 @@ func (c *PlexConfig) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	// Ensure Type is always the correct constant
-	c.ClientType = ClientMediaTypePlex
-	c.Type = ClientTypePlex
 	return nil
 }

@@ -1,0 +1,239 @@
+import ./common/auth.http
+
+# First run the admin login to get an admin token
+run #adminLogin
+
+# Then run the test user creation
+run #createTestUser
+
+# And login as the test user
+run #regularUserLogin
+
+#############################
+## User Registration Tests ##
+#############################
+
+###
+# @name registerAnotherUser
+# @description Register another test user
+POST {{baseUrl}}/user/register
+Content-Type: application/json
+
+{
+  "email": "test_user_{{$timestamp}}@example.com",
+  "username": "testuser_{{$timestamp}}",
+  "password": "TestPassword123"
+}
+
+###
+# @name registerExistingEmail
+# @description Attempt to register with an email that already exists (should fail)
+POST {{baseUrl}}/user/register
+Content-Type: application/json
+
+{
+  "email": "{{TEST_ADMIN_USER}}",
+  "username": "another_testuser_{{$timestamp}}",
+  "password": "TestPassword123"
+}
+
+###
+# @name registerExistingUsername
+# @description Attempt to register with a username that already exists (should fail)
+POST {{baseUrl}}/user/register
+Content-Type: application/json
+
+{
+  "email": "another_user_{{$timestamp}}@example.com", 
+  "username": "{{createTestUser.response.body.$.data.username}}",
+  "password": "TestPassword123"
+}
+
+###
+# @name registerInvalidData
+# @description Attempt to register with invalid data (should fail)
+POST {{baseUrl}}/user/register
+Content-Type: application/json
+
+{
+  "email": "not-an-email",
+  "username": "u",
+  "password": "short"
+}
+
+################################
+## User Profile Management Tests ##
+################################
+
+###
+# @name getOwnProfile
+# @description Get the current user's profile
+GET {{baseUrl}}/user/profile
+Authorization: Bearer {{regularUserLogin.response.body.$.data.accessToken}}
+
+###
+# @name updateOwnProfile
+# @description Update the current user's profile
+PUT {{baseUrl}}/user/profile
+Content-Type: application/json
+Authorization: Bearer {{regularUserLogin.response.body.$.data.accessToken}}
+
+{
+  "email": "updated_user_{{$timestamp}}@example.com",
+  "username": "updated_user_{{$timestamp}}"
+}
+
+###
+# @name changePassword
+# @description Change the current user's password
+PUT {{baseUrl}}/user/password
+Content-Type: application/json
+Authorization: Bearer {{regularUserLogin.response.body.$.data.accessToken}}
+
+{
+  "currentPassword": "TestPassword123",
+  "newPassword": "NewTestPassword456"
+}
+
+###
+# @name loginWithNewPassword
+# @description Login with the new password to verify the change
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{updateOwnProfile.response.body.$.data.email}}",
+  "password": "NewTestPassword456"
+}
+
+###
+# @name changePasswordInvalidCurrent
+# @description Attempt to change password with invalid current password (should fail)
+PUT {{baseUrl}}/user/password
+Content-Type: application/json
+Authorization: Bearer {{loginWithNewPassword.response.body.$.data.accessToken}}
+
+{
+  "currentPassword": "WrongPassword123",
+  "newPassword": "AnotherPassword789"
+}
+
+################################
+## Avatar Upload Test ##
+################################
+
+###
+# @name uploadAvatar
+# @description Upload an avatar image for the user
+POST {{baseUrl}}/user/avatar
+Authorization: Bearer {{loginWithNewPassword.response.body.$.data.accessToken}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="avatar"; filename="test_avatar.jpg"
+Content-Type: image/jpeg
+
+< ./test_avatar.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+################################
+## Admin User Management Tests ##
+################################
+
+###
+# @name getUserById
+# @description Admin gets a user by ID
+GET {{baseUrl}}/user/{{createTestUser.response.body.$.data.id}}
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name changeUserRole
+# @description Admin changes a user's role
+PUT {{baseUrl}}/user/{{createTestUser.response.body.$.data.id}}/role
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+{
+  "role": "admin"
+}
+
+###
+# @name changeUserRoleInvalid
+# @description Attempt to change user's role to an invalid role (should fail)
+PUT {{baseUrl}}/user/{{createTestUser.response.body.$.data.id}}/role
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+{
+  "role": "superuser"
+}
+
+###
+# @name deactivateUser
+# @description Admin deactivates a user account
+POST {{baseUrl}}/user/{{createTestUser.response.body.$.data.id}}/deactivate
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name activateUser
+# @description Admin activates a user account
+POST {{baseUrl}}/user/{{createTestUser.response.body.$.data.id}}/activate
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name deleteUser
+# @description Admin deletes a user account
+DELETE {{baseUrl}}/user/{{createTestUser.response.body.$.data.id}}
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name getUserByIdAfterDelete
+# @description Attempt to get a deleted user (should return 404)
+GET {{baseUrl}}/user/{{createTestUser.response.body.$.data.id}}
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+################################
+## Error Test Cases ##
+################################
+
+###
+# @name getUserNotFound
+# @description Attempt to get a non-existent user (should return 404)
+GET {{baseUrl}}/user/99999
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name accessAdminRouteAsRegularUser
+# @description Regular user attempts to access admin route (should return 403)
+GET {{baseUrl}}/user/1
+Authorization: Bearer {{loginWithNewPassword.response.body.$.data.accessToken}}
+
+# Run the persistent user creation and login
+run #getPersistentTestUser
+run #persistentUserLogin
+
+################################
+## Password Reset Tests ##
+################################
+
+###
+# @name forgotPassword
+# @description Request password reset
+POST {{baseUrl}}/user/forgot-password
+Content-Type: application/json
+
+{
+  "email": "{{persistentUserLogin.response.body.$.data.user.email}}"
+}
+
+###
+# @name resetPassword
+# @description Reset password with token (this will likely fail in test environment without actual token)
+POST {{baseUrl}}/user/reset-password
+Content-Type: application/json
+
+{
+  "email": "{{persistentUserLogin.response.body.$.data.user.email}}",
+  "token": "test-token-placeholder",
+  "newPassword": "NewResetPassword789"
+}

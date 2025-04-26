@@ -4,73 +4,73 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"suasor/clients"
 	"suasor/clients/metadata"
-	metadataTypes "suasor/clients/metadata/types"
+	metadatatypes "suasor/clients/metadata/types"
 	"suasor/clients/types"
 	"time"
 
 	tmdbClient "github.com/cyruzin/golang-tmdb"
 )
 
-// Client implements the MetadataClient interface for TMDB
-type Client struct {
-	metadata.BaseMetadataClient
+type TMDBClient struct {
+	metadata.ClientMetadata
 	client *tmdbClient.Client
 	config *types.TMDBConfig
 }
 
 // NewClient creates a new TMDB client
-func NewClient(config types.ClientConfig) (*Client, error) {
-	tmdbConfig, ok := config.(*types.TMDBConfig)
-	if !ok {
-		return nil, fmt.Errorf("invalid config type for TMDB client: %T", config)
-	}
-
-	client, err := tmdbClient.Init(tmdbConfig.ApiKey)
+func NewTMDBClient(ctx, clientID uint64, config *types.TMDBConfig) (metadata.ClientMetadata, error) {
+	client, err := tmdbClient.Init(config.GetApiKey())
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize TMDB client: %w", err)
 	}
 
-	return &Client{
-		BaseMetadataClient: *metadata.NewBaseMetadataClient(config),
-		client:             client,
-		config:             tmdbConfig,
-	}, nil
+	clientMetadata, err := metadata.NewClientMetadata(ctx, clientID, config)
+	if err != nil {
+		return nil, err
+	}
+
+	tmdbClient := TMDBClient{
+		ClientMetadata: clientMetadata,
+		client:         client,
+		config:         config,
+	}
+
+	return &tmdbClient, nil
 }
 
 // GetType returns the client type
-func (c *Client) GetType() types.ClientType {
+func (c *TMDBClient) GetType() types.ClientType {
 	return types.ClientTypeTMDB
 }
 
 // GetConfig returns the client configuration
-func (c *Client) GetConfig() types.ClientConfig {
+func (c *TMDBClient) GetConfig() types.ClientConfig {
 	return c.config
 }
 
 // SupportsMovieMetadata returns true because TMDB supports movie metadata
-func (c *Client) SupportsMovieMetadata() bool {
+func (c *TMDBClient) SupportsMovieMetadata() bool {
 	return true
 }
 
 // SupportsTVMetadata returns true because TMDB supports TV metadata
-func (c *Client) SupportsTVMetadata() bool {
+func (c *TMDBClient) SupportsTVMetadata() bool {
 	return true
 }
 
 // SupportsPersonMetadata returns true because TMDB supports person metadata
-func (c *Client) SupportsPersonMetadata() bool {
+func (c *TMDBClient) SupportsPersonMetadata() bool {
 	return true
 }
 
 // SupportsCollectionMetadata returns true because TMDB supports collection metadata
-func (c *Client) SupportsCollectionMetadata() bool {
+func (c *TMDBClient) SupportsCollectionMetadata() bool {
 	return true
 }
 
 // GetMovie retrieves movie details by ID
-func (c *Client) GetMovie(ctx context.Context, id string) (*metadataTypes.Movie, error) {
+func (c *TMDBClient) GetMovie(ctx context.Context, id string) (*metadatatypes.Movie, error) {
 	options := map[string]string{
 		"append_to_response": "videos,images,credits",
 		"language":           "en-US",
@@ -87,7 +87,7 @@ func (c *Client) GetMovie(ctx context.Context, id string) (*metadataTypes.Movie,
 	}
 
 	// Convert to our format
-	result := &metadataTypes.Movie{
+	result := &metadatatypes.Movie{
 		ID:            fmt.Sprintf("%d", movie.ID),
 		Title:         movie.Title,
 		OriginalTitle: movie.OriginalTitle,
@@ -109,9 +109,9 @@ func (c *Client) GetMovie(ctx context.Context, id string) (*metadataTypes.Movie,
 
 	// Convert genres
 	if movie.Genres != nil {
-		genres := make([]metadataTypes.Genre, 0, len(movie.Genres))
+		genres := make([]metadatatypes.Genre, 0, len(movie.Genres))
 		for _, genre := range movie.Genres {
-			genres = append(genres, metadataTypes.Genre{
+			genres = append(genres, metadatatypes.Genre{
 				ID:   fmt.Sprintf("%d", genre.ID),
 				Name: genre.Name,
 			})
@@ -129,7 +129,7 @@ func (c *Client) GetMovie(ctx context.Context, id string) (*metadataTypes.Movie,
 }
 
 // SearchMovies searches for movies by query
-func (c *Client) SearchMovies(ctx context.Context, query string) ([]*metadataTypes.Movie, error) {
+func (c *TMDBClient) SearchMovies(ctx context.Context, query string) ([]*metadatatypes.Movie, error) {
 	options := map[string]string{
 		"language": "en-US",
 		"page":     "1",
@@ -140,10 +140,10 @@ func (c *Client) SearchMovies(ctx context.Context, query string) ([]*metadataTyp
 		return nil, fmt.Errorf("failed to search movies: %w", err)
 	}
 
-	movies := make([]*metadataTypes.Movie, 0, len(result.Results))
+	movies := make([]*metadatatypes.Movie, 0, len(result.Results))
 	for i := range result.Results {
 		// Convert the result directly
-		movie := &metadataTypes.Movie{
+		movie := &metadatatypes.Movie{
 			ID:            fmt.Sprintf("%d", result.Results[i].ID),
 			Title:         result.Results[i].Title,
 			OriginalTitle: result.Results[i].OriginalTitle,
@@ -164,7 +164,7 @@ func (c *Client) SearchMovies(ctx context.Context, query string) ([]*metadataTyp
 }
 
 // GetMovieRecommendations gets movie recommendations based on a movie ID
-func (c *Client) GetMovieRecommendations(ctx context.Context, movieID string) ([]*metadataTypes.Movie, error) {
+func (c *TMDBClient) GetMovieRecommendations(ctx context.Context, movieID string) ([]*metadatatypes.Movie, error) {
 	options := map[string]string{
 		"language": "en-US",
 		"page":     "1",
@@ -180,10 +180,10 @@ func (c *Client) GetMovieRecommendations(ctx context.Context, movieID string) ([
 		return nil, fmt.Errorf("failed to get movie recommendations: %w", err)
 	}
 
-	movies := make([]*metadataTypes.Movie, 0, len(result.Results))
+	movies := make([]*metadatatypes.Movie, 0, len(result.Results))
 	for i := range result.Results {
 		// Convert the result directly
-		movie := &metadataTypes.Movie{
+		movie := &metadatatypes.Movie{
 			ID:            fmt.Sprintf("%d", result.Results[i].ID),
 			Title:         result.Results[i].Title,
 			OriginalTitle: result.Results[i].OriginalTitle,
@@ -204,7 +204,7 @@ func (c *Client) GetMovieRecommendations(ctx context.Context, movieID string) ([
 }
 
 // GetPopularMovies gets popular movies
-func (c *Client) GetPopularMovies(ctx context.Context) ([]*metadataTypes.Movie, error) {
+func (c *TMDBClient) GetPopularMovies(ctx context.Context) ([]*metadatatypes.Movie, error) {
 	options := map[string]string{
 		"language": "en-US",
 		"page":     "1",
@@ -215,10 +215,10 @@ func (c *Client) GetPopularMovies(ctx context.Context) ([]*metadataTypes.Movie, 
 		return nil, fmt.Errorf("failed to get popular movies: %w", err)
 	}
 
-	movies := make([]*metadataTypes.Movie, 0, len(result.Results))
+	movies := make([]*metadatatypes.Movie, 0, len(result.Results))
 	for i := range result.Results {
 		// Convert the result directly
-		movie := &metadataTypes.Movie{
+		movie := &metadatatypes.Movie{
 			ID:            fmt.Sprintf("%d", result.Results[i].ID),
 			Title:         result.Results[i].Title,
 			OriginalTitle: result.Results[i].OriginalTitle,
@@ -239,7 +239,7 @@ func (c *Client) GetPopularMovies(ctx context.Context) ([]*metadataTypes.Movie, 
 }
 
 // GetTrendingMovies gets trending movies
-func (c *Client) GetTrendingMovies(ctx context.Context) ([]*metadataTypes.Movie, error) {
+func (c *TMDBClient) GetTrendingMovies(ctx context.Context) ([]*metadatatypes.Movie, error) {
 	options := map[string]string{
 		"page": "1",
 	}
@@ -250,10 +250,10 @@ func (c *Client) GetTrendingMovies(ctx context.Context) ([]*metadataTypes.Movie,
 	}
 
 	// The trending API returns movie results directly
-	movies := make([]*metadataTypes.Movie, 0, len(result.Results))
+	movies := make([]*metadatatypes.Movie, 0, len(result.Results))
 	for _, movieResult := range result.Results {
 		// Convert directly from the movie result struct
-		movie := &metadataTypes.Movie{
+		movie := &metadatatypes.Movie{
 			ID:           fmt.Sprintf("%d", movieResult.ID),
 			Title:        movieResult.Title,
 			Overview:     movieResult.Overview,
@@ -273,7 +273,7 @@ func (c *Client) GetTrendingMovies(ctx context.Context) ([]*metadataTypes.Movie,
 }
 
 // GetTVShow retrieves TV show details by ID
-func (c *Client) GetTVShow(ctx context.Context, id string) (*metadataTypes.TVShow, error) {
+func (c *TMDBClient) GetTVShow(ctx context.Context, id string) (*metadatatypes.TVShow, error) {
 	options := map[string]string{
 		"append_to_response": "videos,images,credits",
 		"language":           "en-US",
@@ -290,7 +290,7 @@ func (c *Client) GetTVShow(ctx context.Context, id string) (*metadataTypes.TVSho
 	}
 
 	// Convert to our format
-	result := &metadataTypes.TVShow{
+	result := &metadatatypes.TVShow{
 		ID:               fmt.Sprintf("%d", show.ID),
 		Name:             show.Name,
 		OriginalName:     show.OriginalName,
@@ -314,9 +314,9 @@ func (c *Client) GetTVShow(ctx context.Context, id string) (*metadataTypes.TVSho
 
 	// Convert genres
 	if show.Genres != nil {
-		genres := make([]metadataTypes.Genre, 0, len(show.Genres))
+		genres := make([]metadatatypes.Genre, 0, len(show.Genres))
 		for _, genre := range show.Genres {
-			genres = append(genres, metadataTypes.Genre{
+			genres = append(genres, metadatatypes.Genre{
 				ID:   fmt.Sprintf("%d", genre.ID),
 				Name: genre.Name,
 			})
@@ -326,9 +326,9 @@ func (c *Client) GetTVShow(ctx context.Context, id string) (*metadataTypes.TVSho
 
 	// Convert seasons
 	if show.Seasons != nil {
-		seasons := make([]metadataTypes.TVSeason, 0, len(show.Seasons))
+		seasons := make([]metadatatypes.TVSeason, 0, len(show.Seasons))
 		for _, season := range show.Seasons {
-			seasons = append(seasons, metadataTypes.TVSeason{
+			seasons = append(seasons, metadatatypes.TVSeason{
 				ID:           fmt.Sprintf("%d", season.ID),
 				TVShowID:     fmt.Sprintf("%d", show.ID),
 				Name:         season.Name,
@@ -346,7 +346,7 @@ func (c *Client) GetTVShow(ctx context.Context, id string) (*metadataTypes.TVSho
 	externalIDOptions := map[string]string{}
 	externalIDs, err := c.client.GetTVExternalIDs(tvID, externalIDOptions)
 	if err == nil && externalIDs != nil {
-		result.ExternalIDs = metadataTypes.ExternalIDs{
+		result.ExternalIDs = metadatatypes.ExternalIDs{
 			IMDBID: externalIDs.IMDbID,
 			TMDBID: fmt.Sprintf("%d", show.ID),
 			TVDBId: fmt.Sprintf("%d", externalIDs.TVDBID),
@@ -357,7 +357,7 @@ func (c *Client) GetTVShow(ctx context.Context, id string) (*metadataTypes.TVSho
 }
 
 // SearchTVShows searches for TV shows by query
-func (c *Client) SearchTVShows(ctx context.Context, query string) ([]*metadataTypes.TVShow, error) {
+func (c *TMDBClient) SearchTVShows(ctx context.Context, query string) ([]*metadatatypes.TVShow, error) {
 	options := map[string]string{
 		"language": "en-US",
 		"page":     "1",
@@ -368,10 +368,10 @@ func (c *Client) SearchTVShows(ctx context.Context, query string) ([]*metadataTy
 		return nil, fmt.Errorf("failed to search TV shows: %w", err)
 	}
 
-	shows := make([]*metadataTypes.TVShow, 0, len(result.Results))
+	shows := make([]*metadatatypes.TVShow, 0, len(result.Results))
 	for i := range result.Results {
 		// Convert to our format
-		tvShow := &metadataTypes.TVShow{
+		tvShow := &metadatatypes.TVShow{
 			ID:               fmt.Sprintf("%d", result.Results[i].ID),
 			Name:             result.Results[i].Name,
 			OriginalName:     result.Results[i].OriginalName,
@@ -392,7 +392,7 @@ func (c *Client) SearchTVShows(ctx context.Context, query string) ([]*metadataTy
 }
 
 // GetTVShowRecommendations gets TV show recommendations
-func (c *Client) GetTVShowRecommendations(ctx context.Context, tvShowID string) ([]*metadataTypes.TVShow, error) {
+func (c *TMDBClient) GetTVShowRecommendations(ctx context.Context, tvShowID string) ([]*metadatatypes.TVShow, error) {
 	options := map[string]string{
 		"language": "en-US",
 		"page":     "1",
@@ -408,10 +408,10 @@ func (c *Client) GetTVShowRecommendations(ctx context.Context, tvShowID string) 
 		return nil, fmt.Errorf("failed to get TV show recommendations: %w", err)
 	}
 
-	shows := make([]*metadataTypes.TVShow, 0, len(result.Results))
+	shows := make([]*metadatatypes.TVShow, 0, len(result.Results))
 	for i := range result.Results {
 		// Convert to our format
-		tvShow := &metadataTypes.TVShow{
+		tvShow := &metadatatypes.TVShow{
 			ID:               fmt.Sprintf("%d", result.Results[i].ID),
 			Name:             result.Results[i].Name,
 			OriginalName:     result.Results[i].OriginalName,
@@ -432,7 +432,7 @@ func (c *Client) GetTVShowRecommendations(ctx context.Context, tvShowID string) 
 }
 
 // GetPopularTVShows gets popular TV shows
-func (c *Client) GetPopularTVShows(ctx context.Context) ([]*metadataTypes.TVShow, error) {
+func (c *TMDBClient) GetPopularTVShows(ctx context.Context) ([]*metadatatypes.TVShow, error) {
 	options := map[string]string{
 		"language": "en-US",
 		"page":     "1",
@@ -443,10 +443,10 @@ func (c *Client) GetPopularTVShows(ctx context.Context) ([]*metadataTypes.TVShow
 		return nil, fmt.Errorf("failed to get popular TV shows: %w", err)
 	}
 
-	shows := make([]*metadataTypes.TVShow, 0, len(result.Results))
+	shows := make([]*metadatatypes.TVShow, 0, len(result.Results))
 	for i := range result.Results {
 		// Convert to our format
-		tvShow := &metadataTypes.TVShow{
+		tvShow := &metadatatypes.TVShow{
 			ID:               fmt.Sprintf("%d", result.Results[i].ID),
 			Name:             result.Results[i].Name,
 			OriginalName:     result.Results[i].OriginalName,
@@ -467,7 +467,7 @@ func (c *Client) GetPopularTVShows(ctx context.Context) ([]*metadataTypes.TVShow
 }
 
 // GetTrendingTVShows gets trending TV shows
-func (c *Client) GetTrendingTVShows(ctx context.Context) ([]*metadataTypes.TVShow, error) {
+func (c *TMDBClient) GetTrendingTVShows(ctx context.Context) ([]*metadatatypes.TVShow, error) {
 	options := map[string]string{
 		"page": "1",
 	}
@@ -478,10 +478,10 @@ func (c *Client) GetTrendingTVShows(ctx context.Context) ([]*metadataTypes.TVSho
 	}
 
 	// The trending API returns TV results directly
-	shows := make([]*metadataTypes.TVShow, 0, len(result.Results))
+	shows := make([]*metadatatypes.TVShow, 0, len(result.Results))
 	for _, tvResult := range result.Results {
 		// Convert directly from the TV result struct
-		tvShow := &metadataTypes.TVShow{
+		tvShow := &metadatatypes.TVShow{
 			ID:               fmt.Sprintf("%d", tvResult.ID),
 			Name:             tvResult.Name,
 			OriginalName:     tvResult.OriginalName,
@@ -502,7 +502,7 @@ func (c *Client) GetTrendingTVShows(ctx context.Context) ([]*metadataTypes.TVSho
 }
 
 // GetTVSeason retrieves a TV season
-func (c *Client) GetTVSeason(ctx context.Context, tvShowID string, seasonNumber int) (*metadataTypes.TVSeason, error) {
+func (c *TMDBClient) GetTVSeason(ctx context.Context, tvShowID string, seasonNumber int) (*metadatatypes.TVSeason, error) {
 	options := map[string]string{
 		"language": "en-US",
 	}
@@ -519,7 +519,7 @@ func (c *Client) GetTVSeason(ctx context.Context, tvShowID string, seasonNumber 
 
 	// We need to convert the season to our format
 	// For now, let's create a minimal implementation
-	result := &metadataTypes.TVSeason{
+	result := &metadatatypes.TVSeason{
 		ID:           fmt.Sprintf("%d", season.ID),
 		TVShowID:     tvShowID,
 		Name:         season.Name,
@@ -533,7 +533,7 @@ func (c *Client) GetTVSeason(ctx context.Context, tvShowID string, seasonNumber 
 }
 
 // GetTVEpisode retrieves a TV episode
-func (c *Client) GetTVEpisode(ctx context.Context, tvShowID string, seasonNumber int, episodeNumber int) (*metadataTypes.TVEpisode, error) {
+func (c *TMDBClient) GetTVEpisode(ctx context.Context, tvShowID string, seasonNumber int, episodeNumber int) (*metadatatypes.TVEpisode, error) {
 	options := map[string]string{
 		"language": "en-US",
 	}
@@ -550,7 +550,7 @@ func (c *Client) GetTVEpisode(ctx context.Context, tvShowID string, seasonNumber
 
 	// We need to convert the episode to our format
 	// For now, let's create a minimal implementation
-	result := &metadataTypes.TVEpisode{
+	result := &metadatatypes.TVEpisode{
 		ID:            fmt.Sprintf("%d", episode.ID),
 		TVShowID:      tvShowID,
 		SeasonID:      "", // We don't have this from the API directly
@@ -568,7 +568,7 @@ func (c *Client) GetTVEpisode(ctx context.Context, tvShowID string, seasonNumber
 }
 
 // GetPerson retrieves person details by ID
-func (c *Client) GetPerson(ctx context.Context, id string) (*metadataTypes.Person, error) {
+func (c *TMDBClient) GetPerson(ctx context.Context, id string) (*metadatatypes.Person, error) {
 	options := map[string]string{
 		"append_to_response": "images",
 		"language":           "en-US",
@@ -585,7 +585,7 @@ func (c *Client) GetPerson(ctx context.Context, id string) (*metadataTypes.Perso
 	}
 
 	// Convert to our format
-	result := &metadataTypes.Person{
+	result := &metadatatypes.Person{
 		ID:                 fmt.Sprintf("%d", person.ID),
 		Name:               person.Name,
 		ProfilePath:        person.ProfilePath,
@@ -600,7 +600,7 @@ func (c *Client) GetPerson(ctx context.Context, id string) (*metadataTypes.Perso
 
 	// Convert external IDs
 	if person.ExternalIDs != nil {
-		result.ExternalIDs = metadataTypes.ExternalIDs{
+		result.ExternalIDs = metadatatypes.ExternalIDs{
 			IMDBID: person.ExternalIDs.IMDbID,
 			TMDBID: fmt.Sprintf("%d", person.ID),
 		}
@@ -608,9 +608,9 @@ func (c *Client) GetPerson(ctx context.Context, id string) (*metadataTypes.Perso
 
 	// Convert images if available
 	if person.Images != nil && person.Images.Profiles != nil {
-		images := make([]metadataTypes.MediaImage, 0, len(person.Images.Profiles))
+		images := make([]metadatatypes.MediaImage, 0, len(person.Images.Profiles))
 		for _, profile := range person.Images.Profiles {
-			images = append(images, metadataTypes.MediaImage{
+			images = append(images, metadatatypes.MediaImage{
 				URL:         fmt.Sprintf("https://image.tmdb.org/t/p/original%s", profile.FilePath),
 				Type:        "profile",
 				Width:       profile.Width,
@@ -625,7 +625,7 @@ func (c *Client) GetPerson(ctx context.Context, id string) (*metadataTypes.Perso
 }
 
 // SearchPeople searches for people by query
-func (c *Client) SearchPeople(ctx context.Context, query string) ([]*metadataTypes.Person, error) {
+func (c *TMDBClient) SearchPeople(ctx context.Context, query string) ([]*metadatatypes.Person, error) {
 	options := map[string]string{
 		"language": "en-US",
 		"page":     "1",
@@ -636,10 +636,10 @@ func (c *Client) SearchPeople(ctx context.Context, query string) ([]*metadataTyp
 		return nil, fmt.Errorf("failed to search people: %w", err)
 	}
 
-	people := make([]*metadataTypes.Person, 0, len(result.Results))
+	people := make([]*metadatatypes.Person, 0, len(result.Results))
 	for i := range result.Results {
 		// Convert to our format
-		person := &metadataTypes.Person{
+		person := &metadatatypes.Person{
 			ID:                 fmt.Sprintf("%d", result.Results[i].ID),
 			Name:               result.Results[i].Name,
 			ProfilePath:        result.Results[i].ProfilePath,
@@ -654,7 +654,7 @@ func (c *Client) SearchPeople(ctx context.Context, query string) ([]*metadataTyp
 }
 
 // GetPersonMovieCredits retrieves a person's movie credits
-func (c *Client) GetPersonMovieCredits(ctx context.Context, personID string) ([]*metadataTypes.MovieCredit, error) {
+func (c *TMDBClient) GetPersonMovieCredits(ctx context.Context, personID string) ([]*metadatatypes.MovieCredit, error) {
 	options := map[string]string{
 		"language": "en-US",
 	}
@@ -670,11 +670,11 @@ func (c *Client) GetPersonMovieCredits(ctx context.Context, personID string) ([]
 	}
 
 	// Convert to our format
-	result := make([]*metadataTypes.MovieCredit, 0, len(credits.Cast)+len(credits.Crew))
+	result := make([]*metadatatypes.MovieCredit, 0, len(credits.Cast)+len(credits.Crew))
 
 	// Add cast credits
 	for _, credit := range credits.Cast {
-		result = append(result, &metadataTypes.MovieCredit{
+		result = append(result, &metadatatypes.MovieCredit{
 			ID:          fmt.Sprintf("%d", credit.ID),
 			Title:       credit.Title,
 			Character:   credit.Character,
@@ -688,7 +688,7 @@ func (c *Client) GetPersonMovieCredits(ctx context.Context, personID string) ([]
 
 	// Add crew credits
 	for _, credit := range credits.Crew {
-		result = append(result, &metadataTypes.MovieCredit{
+		result = append(result, &metadatatypes.MovieCredit{
 			ID:          fmt.Sprintf("%d", credit.ID),
 			Title:       credit.Title,
 			Department:  credit.Department,
@@ -705,7 +705,7 @@ func (c *Client) GetPersonMovieCredits(ctx context.Context, personID string) ([]
 }
 
 // GetPersonTVCredits retrieves a person's TV credits
-func (c *Client) GetPersonTVCredits(ctx context.Context, personID string) ([]*metadataTypes.TVCredit, error) {
+func (c *TMDBClient) GetPersonTVCredits(ctx context.Context, personID string) ([]*metadatatypes.TVCredit, error) {
 	options := map[string]string{
 		"language": "en-US",
 	}
@@ -721,11 +721,11 @@ func (c *Client) GetPersonTVCredits(ctx context.Context, personID string) ([]*me
 	}
 
 	// Convert to our format
-	result := make([]*metadataTypes.TVCredit, 0, len(credits.Cast)+len(credits.Crew))
+	result := make([]*metadatatypes.TVCredit, 0, len(credits.Cast)+len(credits.Crew))
 
 	// Add cast credits
 	for _, credit := range credits.Cast {
-		result = append(result, &metadataTypes.TVCredit{
+		result = append(result, &metadatatypes.TVCredit{
 			ID:           fmt.Sprintf("%d", credit.ID),
 			Name:         credit.Name,
 			Character:    credit.Character,
@@ -740,7 +740,7 @@ func (c *Client) GetPersonTVCredits(ctx context.Context, personID string) ([]*me
 
 	// Add crew credits
 	for _, credit := range credits.Crew {
-		result = append(result, &metadataTypes.TVCredit{
+		result = append(result, &metadatatypes.TVCredit{
 			ID:           fmt.Sprintf("%d", credit.ID),
 			Name:         credit.Name,
 			Department:   credit.Department,
@@ -758,7 +758,7 @@ func (c *Client) GetPersonTVCredits(ctx context.Context, personID string) ([]*me
 }
 
 // GetCollection retrieves collection details by ID
-func (c *Client) GetCollection(ctx context.Context, id string) (*metadataTypes.Collection, error) {
+func (c *TMDBClient) GetCollection(ctx context.Context, id string) (*metadatatypes.Collection, error) {
 	options := map[string]string{
 		"language": "en-US",
 	}
@@ -774,9 +774,9 @@ func (c *Client) GetCollection(ctx context.Context, id string) (*metadataTypes.C
 	}
 
 	// Convert to our format
-	parts := make([]metadataTypes.Movie, 0, len(collection.Parts))
+	parts := make([]metadatatypes.Movie, 0, len(collection.Parts))
 	for _, part := range collection.Parts {
-		parts = append(parts, metadataTypes.Movie{
+		parts = append(parts, metadatatypes.Movie{
 			ID:           fmt.Sprintf("%d", part.ID),
 			Title:        part.Title,
 			Overview:     part.Overview,
@@ -787,7 +787,7 @@ func (c *Client) GetCollection(ctx context.Context, id string) (*metadataTypes.C
 		})
 	}
 
-	return &metadataTypes.Collection{
+	return &metadatatypes.Collection{
 		ID:           fmt.Sprintf("%d", collection.ID),
 		Name:         collection.Name,
 		Overview:     collection.Overview,
@@ -798,7 +798,7 @@ func (c *Client) GetCollection(ctx context.Context, id string) (*metadataTypes.C
 }
 
 // SearchCollections searches for collections by query
-func (c *Client) SearchCollections(ctx context.Context, query string) ([]*metadataTypes.Collection, error) {
+func (c *TMDBClient) SearchCollections(ctx context.Context, query string) ([]*metadatatypes.Collection, error) {
 	options := map[string]string{
 		"language": "en-US",
 		"page":     "1",
@@ -809,10 +809,10 @@ func (c *Client) SearchCollections(ctx context.Context, query string) ([]*metada
 		return nil, fmt.Errorf("failed to search collections: %w", err)
 	}
 
-	collections := make([]*metadataTypes.Collection, 0, len(result.Results))
+	collections := make([]*metadatatypes.Collection, 0, len(result.Results))
 	for i := range result.Results {
 		// Convert to our format
-		collection := &metadataTypes.Collection{
+		collection := &metadatatypes.Collection{
 			ID:           fmt.Sprintf("%d", result.Results[i].ID),
 			Name:         result.Results[i].Name,
 			Overview:     result.Results[i].Overview,
@@ -826,7 +826,7 @@ func (c *Client) SearchCollections(ctx context.Context, query string) ([]*metada
 }
 
 // GetUpcomingMovies gets movies that are coming to theaters in the near future
-func (c *Client) GetUpcomingMovies(ctx context.Context, daysAhead int) ([]*metadataTypes.Movie, error) {
+func (c *TMDBClient) GetUpcomingMovies(ctx context.Context, daysAhead int) ([]*metadatatypes.Movie, error) {
 	options := map[string]string{
 		"language": "en-US",
 		"page":     "1",
@@ -848,10 +848,10 @@ func (c *Client) GetUpcomingMovies(ctx context.Context, daysAhead int) ([]*metad
 		return nil, fmt.Errorf("failed to get upcoming movies: %w", err)
 	}
 
-	movies := make([]*metadataTypes.Movie, 0, len(result.Results))
+	movies := make([]*metadatatypes.Movie, 0, len(result.Results))
 	for i := range result.Results {
 		// Convert to our format
-		movie := &metadataTypes.Movie{
+		movie := &metadatatypes.Movie{
 			ID:            fmt.Sprintf("%d", result.Results[i].ID),
 			Title:         result.Results[i].Title,
 			OriginalTitle: result.Results[i].OriginalTitle,
@@ -872,7 +872,7 @@ func (c *Client) GetUpcomingMovies(ctx context.Context, daysAhead int) ([]*metad
 }
 
 // GetNowPlayingMovies gets movies that are currently playing in theaters
-func (c *Client) GetNowPlayingMovies(ctx context.Context, daysPast int) ([]*metadataTypes.Movie, error) {
+func (c *TMDBClient) GetNowPlayingMovies(ctx context.Context, daysPast int) ([]*metadatatypes.Movie, error) {
 	options := map[string]string{
 		"language": "en-US",
 		"page":     "1",
@@ -894,10 +894,10 @@ func (c *Client) GetNowPlayingMovies(ctx context.Context, daysPast int) ([]*meta
 		return nil, fmt.Errorf("failed to get now playing movies: %w", err)
 	}
 
-	movies := make([]*metadataTypes.Movie, 0, len(result.Results))
+	movies := make([]*metadatatypes.Movie, 0, len(result.Results))
 	for i := range result.Results {
 		// Convert to our format
-		movie := &metadataTypes.Movie{
+		movie := &metadatatypes.Movie{
 			ID:            fmt.Sprintf("%d", result.Results[i].ID),
 			Title:         result.Results[i].Title,
 			OriginalTitle: result.Results[i].OriginalTitle,
@@ -918,7 +918,7 @@ func (c *Client) GetNowPlayingMovies(ctx context.Context, daysPast int) ([]*meta
 }
 
 // GetRecentTVShows gets TV shows that have recently premiered or returned
-func (c *Client) GetRecentTVShows(ctx context.Context, daysWindow int) ([]*metadataTypes.TVShow, error) {
+func (c *TMDBClient) GetRecentTVShows(ctx context.Context, daysWindow int) ([]*metadatatypes.TVShow, error) {
 	options := map[string]string{
 		"language": "en-US",
 		"page":     "1",
@@ -941,10 +941,10 @@ func (c *Client) GetRecentTVShows(ctx context.Context, daysWindow int) ([]*metad
 		return nil, fmt.Errorf("failed to get recent TV shows: %w", err)
 	}
 
-	shows := make([]*metadataTypes.TVShow, 0, len(result.Results))
+	shows := make([]*metadatatypes.TVShow, 0, len(result.Results))
 	for i := range result.Results {
 		// Convert to our format
-		tvShow := &metadataTypes.TVShow{
+		tvShow := &metadatatypes.TVShow{
 			ID:               fmt.Sprintf("%d", result.Results[i].ID),
 			Name:             result.Results[i].Name,
 			OriginalName:     result.Results[i].OriginalName,
@@ -963,11 +963,3 @@ func (c *Client) GetRecentTVShows(ctx context.Context, daysWindow int) ([]*metad
 
 	return shows, nil
 }
-
-// Register registers the TMDB client with the client factory
-func init() {
-	client.RegisterClientType(types.ClientTypeTMDB, func(config types.ClientConfig) (client.Client, error) {
-		return NewClient(config)
-	})
-}
-

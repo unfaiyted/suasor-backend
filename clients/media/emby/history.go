@@ -16,8 +16,8 @@ func (e *EmbyClient) GetPlayHistory(ctx context.Context, options *types.QueryOpt
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Msg("Retrieving watch history from Emby server")
 
 	if e.embyConfig().UserID == "" {
@@ -43,7 +43,7 @@ func (e *EmbyClient) GetPlayHistory(ctx context.Context, options *types.QueryOpt
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.embyConfig().BaseURL).
+			Str("baseURL", e.embyConfig().GetBaseURL()).
 			Str("apiEndpoint", "/Users/"+e.embyConfig().UserID+"/Items").
 			Msg("Failed to fetch watch history from Emby")
 		return nil, fmt.Errorf("failed to fetch watch history: %w", err)

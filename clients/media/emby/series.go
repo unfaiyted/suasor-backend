@@ -17,8 +17,8 @@ func (e *EmbyClient) GetSeries(ctx context.Context, options *types.QueryOptions)
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Msg("Retrieving TV shows from Emby server")
 
 	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
@@ -32,7 +32,7 @@ func (e *EmbyClient) GetSeries(ctx context.Context, options *types.QueryOptions)
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.embyConfig().BaseURL).
+			Str("baseURL", e.embyConfig().GetBaseURL()).
 			Str("apiEndpoint", "/Items").
 			Msg("Failed to fetch TV shows from Emby")
 		return nil, fmt.Errorf("failed to fetch TV shows: %w", err)
@@ -69,8 +69,8 @@ func (e *EmbyClient) GetSeriesByID(ctx context.Context, id string) (*models.Medi
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Str("showID", id).
 		Msg("Retrieving specific TV show from Emby server")
 
@@ -83,7 +83,7 @@ func (e *EmbyClient) GetSeriesByID(ctx context.Context, id string) (*models.Medi
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.embyConfig().BaseURL).
+			Str("baseURL", e.embyConfig().GetBaseURL()).
 			Str("apiEndpoint", "/Items").
 			Str("showID", id).
 			Msg("Failed to fetch TV show from Emby")
@@ -124,8 +124,8 @@ func (e *EmbyClient) GetSeriesSeasons(ctx context.Context, showID string) ([]*mo
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Str("showID", showID).
 		Msg("Retrieving seasons for TV show from Emby server")
 
@@ -138,7 +138,7 @@ func (e *EmbyClient) GetSeriesSeasons(ctx context.Context, showID string) ([]*mo
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.embyConfig().BaseURL).
+			Str("baseURL", e.embyConfig().GetBaseURL()).
 			Str("apiEndpoint", "/Shows/"+showID+"/Seasons").
 			Str("showID", showID).
 			Msg("Failed to fetch seasons for TV show from Emby")
@@ -176,8 +176,8 @@ func (e *EmbyClient) GetSeriesEpisodes(ctx context.Context, showID string, seaso
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Str("showID", showID).
 		Int("seasonNumber", seasonNumber).
 		Msg("Retrieving episodes for TV show season from Emby server")
@@ -191,7 +191,7 @@ func (e *EmbyClient) GetSeriesEpisodes(ctx context.Context, showID string, seaso
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.embyConfig().BaseURL).
+			Str("baseURL", e.embyConfig().GetBaseURL()).
 			Str("apiEndpoint", "/Shows/"+showID+"/Episodes").
 			Str("showID", showID).
 			Int("seasonNumber", seasonNumber).
@@ -232,8 +232,8 @@ func (e *EmbyClient) GetEpisodeByID(ctx context.Context, id string) (*models.Med
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Str("episodeID", id).
 		Msg("Retrieving specific episode from Emby server")
 
@@ -246,7 +246,7 @@ func (e *EmbyClient) GetEpisodeByID(ctx context.Context, id string) (*models.Med
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.embyConfig().BaseURL).
+			Str("baseURL", e.embyConfig().GetBaseURL()).
 			Str("apiEndpoint", "/Items").
 			Str("episodeID", id).
 			Msg("Failed to fetch episode from Emby")

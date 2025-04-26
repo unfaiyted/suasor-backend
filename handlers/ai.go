@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"suasor/clients"
+	"suasor/clients/ai"
+	aitypes "suasor/clients/ai/types"
 	"suasor/clients/types"
 	"suasor/services"
 	"suasor/types/requests"
@@ -35,62 +37,54 @@ func NewAIHandler[T types.AIClientConfig](
 
 // RequestRecommendation godoc
 //
-//	@Summary		Get AI-powered content recommendations
-//	@Description	Get content recommendations from an AI service
-//	@Tags			ai
-//	@Accept			json
-//	@Produce		json
-//	@Security		BearerAuth
-//	@Param			request	body		requests.AiRecommendationRequest							true	"Recommendation request"
-//	@Success		200		{object}	responses.APIResponse[responses.AiRecommendationResponse]	"Recommendation response"
-//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid request"
-//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
-//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
-//	@Router			/ai/recommendations [post]
+//		@Summary		Get AI-powered content recommendations
+//		@Description	Get content recommendations from an AI service
+//		@Tags			ai
+//		@Accept			json
+//		@Produce		json
+//		@Security		BearerAuth
+//	  @Param			clientID	path		int															true	"Client ID"
+//		@Param			request	body		aitypes.RecommendationRequest							true	"Recommendation request"
+//		@Success		200		{object}	responses.APIResponse[responses.AiRecommendationResponse]	"Recommendation response"
+//		@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid request"
+//		@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
+//		@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
+//		@Router			/client/{clientID}/ai/recommendations [post]
 func (h *AIHandler[T]) RequestRecommendation(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
+	userID, _ := checkUserAccess(c)
+	clientID, _ := checkItemID(c, "clientID")
 
-	var req requests.AiRecommendationRequest
+	var req aitypes.RecommendationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		responses.RespondValidationError(c, err)
 		return
 	}
 
 	log.Info().
-		Uint64("userID", userID.(uint64)).
-		Str("contentType", req.ContentType).
-		Interface("filters", req.Filters).
+		Uint64("userID", userID).
 		Msg("Requesting AI recommendations")
 
 	clientType := types.ClientType(c.Param("clientType"))
 
 	// Get available AI client based on specified type or default
-	aiClient, err := h.getAIClient(ctx, userID.(uint64), clientType, req.ClientID)
+	aiClient, err := h.getAIClient(ctx, userID, clientType, clientID)
 	if err != nil {
 		responses.RespondInternalError(c, err, "Failed to initialize AI client")
 		return
 	}
 
 	// Get recommendations
-	recommendations, err := aiClient.GetRecommendations(ctx, req.ContentType, req.Filters, req.Count)
+	aiRecommendationResponse, err := aiClient.GetRecommendations(ctx, &req)
 	if err != nil {
 		responses.RespondInternalError(c, err, "Failed to get recommendations")
 		return
 	}
 
-	response := responses.AiRecommendationResponse{
-		Items: recommendations,
-	}
-
-	responses.RespondOK(c, response, "Recommendations retrieved successfully")
+	responses.RespondOK(c, aiRecommendationResponse, "Recommendations retrieved successfully")
 }
 
 // AnalyzeContent godoc
@@ -102,11 +96,12 @@ func (h *AIHandler[T]) RequestRecommendation(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			request	body		requests.AiContentAnalysisRequest							true	"Content analysis request"
+//	@Param			clientID	path		int															true	"Client ID"
 //	@Success		200		{object}	responses.APIResponse[responses.AiContentAnalysisResponse]	"Analysis response"
 //	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid request"
 //	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
-//	@Router			/ai/analyze [post]
+//	@Router			/client/{clientID}/ai/analyze [post]
 func (h *AIHandler[T]) AnalyzeContent(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -166,7 +161,7 @@ func (h *AIHandler[T]) AnalyzeContent(c *gin.Context) {
 //	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]			"Invalid request"
 //	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]			"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]			"Server error"
-//	@Router			/ai/conversation/start [post]
+//	@Router			/client/{clientID}/ai/conversation/start [post]
 func (h *AIHandler[T]) StartConversation(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -218,7 +213,7 @@ func (h *AIHandler[T]) StartConversation(c *gin.Context) {
 	response := responses.ConversationResponse{
 		ConversationID: conversationID,
 		Welcome:        welcomeMessage,
-		Context: map[string]interface{}{
+		Context: map[string]any{
 			"contentType": req.ContentType,
 		},
 	}
@@ -226,7 +221,7 @@ func (h *AIHandler[T]) StartConversation(c *gin.Context) {
 	responses.RespondOK(c, response, "Conversation started successfully")
 }
 
-func (h *AIHandler[T]) getAIClient(ctx context.Context, userID uint64, clientType types.ClientType, clientID uint64) (types.AiClient, error) {
+func (h *AIHandler[T]) getAIClient(ctx context.Context, userID uint64, clientType types.ClientType, clientID uint64) (ai.ClientAI, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
@@ -251,7 +246,7 @@ func (h *AIHandler[T]) getAIClient(ctx context.Context, userID uint64, clientTyp
 		log.Error().Err(err).Msg("Failed to get AI client")
 		return nil, err
 	}
-	aiAiClient, ok := aiClient.(types.AiClient)
+	aiAiClient, ok := aiClient.(ai.ClientAI)
 	if !ok {
 		return nil, fmt.Errorf("client is not an AI client")
 	}
@@ -275,7 +270,7 @@ func (h *AIHandler[T]) getAIClient(ctx context.Context, userID uint64, clientTyp
 //	@Failure		403		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Conversation not owned by user"
 //	@Failure		404		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Conversation not found"
 //	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
-//	@Router			/ai/conversation/message [post]
+//	@Router			/client/{clientID}/ai/conversation/message [post]
 func (h *AIHandler[T]) SendConversationMessage(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

@@ -30,7 +30,7 @@ func GetMediaItem[T types.MediaData](
 	itemID string,
 ) (*models.MediaItem[T], error) {
 	mediaItem := models.NewMediaItem[T](item.GetMediaType(), item)
-	mediaItem.SetClientInfo(client.ClientID, client.ClientType, itemID)
+	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), itemID)
 
 	return mediaItem, nil
 }
@@ -49,7 +49,7 @@ func GetMediaItemList[T types.MediaData](
 		if err != nil {
 			return nil, err
 		}
-		mediaItem.SetClientInfo(client.ClientID, client.ClientType, item.Id)
+		mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), item.Id)
 		mediaItems = append(mediaItems, mediaItem)
 	}
 
@@ -75,7 +75,7 @@ func GetMediaItemData[T types.MediaData](
 		PlayCount:        item.UserData.PlayCount,
 		PositionSeconds:  int(item.UserData.PlaybackPositionTicks / 10000000),
 	}
-	mediaItemData.Item.SetClientInfo(e.ClientID, e.ClientType, item.Id)
+	mediaItemData.Item.SetClientInfo(e.GetClientID(), e.GetClientType(), item.Id)
 	mediaItemData.Associate(mediaItem)
 
 	return &mediaItemData, err

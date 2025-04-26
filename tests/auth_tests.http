@@ -1,0 +1,126 @@
+import ./common/auth.http
+
+###
+# @name register
+# @description Register a new user
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "test_user_{{$timestamp}}@example.com",
+  "username": "testuser_{{$timestamp}}",
+  "password": "TestPassword123"
+}
+
+### 
+# @name registerExistingEmail
+# @description Attempt to register a user with an existing email (should fail)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{TEST_ADMIN_USER}}",
+  "username": "anothertestuser_{{$timestamp}}",
+  "password": "TestPassword123"
+}
+
+###
+# @name registerInvalidData
+# @description Attempt to register a user with invalid data (should fail)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "invalid-email",
+  "username": "u",
+  "password": "short"
+}
+
+###
+# @name loginWithExistingAdmin
+# Run the admin login from common auth
+run #adminLogin
+
+###
+# @name loginInvalidCredentials
+# @description Attempt to login with invalid credentials (should fail)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{TEST_ADMIN_USER}}",
+  "password": "WrongPassword123"
+}
+
+###
+# @name loginInvalidFormat
+# @description Attempt to login with invalid format (should fail)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "not-an-email",
+  "password": "pass"
+}
+
+###
+# @name refreshToken
+# @description Refresh the access token using the refresh token
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{adminLogin.response.body.$.data.refreshToken}}"
+}
+
+###
+# @name refreshTokenInvalid
+# @description Attempt to refresh with an invalid token (should fail)
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "invalid.refresh.token"
+}
+
+###
+# @name validateSession
+# @description Validate the current session
+GET {{baseUrl}}/auth/validate
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name validateSessionInvalid
+# @description Attempt to validate with an invalid token (should fail)
+GET {{baseUrl}}/auth/validate
+Authorization: Bearer invalid.access.token
+
+###
+# @name logout
+# @description Log out the user
+POST {{baseUrl}}/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "{{adminLogin.response.body.$.data.refreshToken}}"
+}
+
+###
+# @name logoutInvalidToken
+# @description Attempt to logout with an invalid token (should fail)
+POST {{baseUrl}}/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "invalid.refresh.token"
+}
+
+###
+# @name validateAfterLogout
+# @description Validate session after logout (should fail)
+GET {{baseUrl}}/auth/validate
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+# Create a persistent test user that we can use in later tests
+run #getPersistentTestUser
+run #persistentUserLogin

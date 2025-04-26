@@ -17,8 +17,8 @@ func (e *EmbyClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Msg("Retrieving movies from Emby server")
 
 	// Get user ID
@@ -44,7 +44,7 @@ func (e *EmbyClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.embyConfig().BaseURL).
+			Str("baseURL", e.embyConfig().GetBaseURL()).
 			Str("apiEndpoint", "/Items").
 			Msg("Failed to fetch movies from Emby")
 		return nil, fmt.Errorf("failed to fetch movies: %w", err)
@@ -89,8 +89,8 @@ func (e *EmbyClient) GetMovieByID(ctx context.Context, id string) (*models.Media
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Str("movieID", id).
 		Msg("Retrieving specific movie from Emby server")
 
@@ -114,7 +114,7 @@ func (e *EmbyClient) GetMovieByID(ctx context.Context, id string) (*models.Media
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.embyConfig().BaseURL).
+			Str("baseURL", e.embyConfig().GetBaseURL()).
 			Str("apiEndpoint", "/Items").
 			Str("movieID", id).
 			Msg("Failed to fetch movie from Emby")

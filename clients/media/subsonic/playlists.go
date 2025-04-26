@@ -12,8 +12,8 @@ func (c *SubsonicClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Msg("Retrieving playlists from Subsonic")
 
 	resp, err := c.client.Get("getPlaylists", nil)
@@ -56,8 +56,8 @@ func (c *SubsonicClient) GetPlaylistItems(ctx context.Context, playlistID string
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("playlistID", playlistID).
 		Msg("Retrieving playlist items from Subsonic")
 
@@ -101,3 +101,4 @@ func (c *SubsonicClient) GetPlaylistItems(ctx context.Context, playlistID string
 
 	return tracks, nil
 }
+

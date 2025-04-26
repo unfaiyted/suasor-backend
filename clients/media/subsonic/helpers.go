@@ -7,7 +7,6 @@ import (
 	"net/url"
 	media "suasor/clients/media"
 	mediatypes "suasor/clients/media/types"
-	types "suasor/clients/types"
 	"suasor/types/models"
 	"suasor/utils/logger"
 )
@@ -18,12 +17,10 @@ func (c *SubsonicClient) GetStreamURL(ctx context.Context, trackID string) (stri
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("trackID", trackID).
 		Msg("Generating stream URL for track")
-
-	subsonicConfig := c.Config.(*types.SubsonicConfig)
 
 	// Create query parameters
 	params := url.Values{}
@@ -31,11 +28,11 @@ func (c *SubsonicClient) GetStreamURL(ctx context.Context, trackID string) (stri
 	params.Add("f", "xml")
 	params.Add("v", "1.15.0")
 	params.Add("c", "suasor")
-	params.Add("u", subsonicConfig.Username)
-	params.Add("p", subsonicConfig.Password)
+	params.Add("u", c.subsonicConfig().GetUsername())
+	params.Add("p", c.subsonicConfig().GetPassword())
 
 	streamURL := fmt.Sprintf("%s/rest/stream.view?%s",
-		subsonicConfig.BaseURL, params.Encode())
+		c.subsonicConfig().GetBaseURL(), params.Encode())
 
 	log.Debug().
 		Str("trackID", trackID).
@@ -51,19 +48,17 @@ func (c *SubsonicClient) GetCoverArtURL(coverArtID string) string {
 		return ""
 	}
 
-	subsonicConfig := c.Config.(*types.SubsonicConfig)
-
 	// Create query parameters
 	params := url.Values{}
 	params.Add("id", coverArtID)
 	params.Add("f", "xml")
 	params.Add("v", "1.15.0")
 	params.Add("c", "suasor")
-	params.Add("u", subsonicConfig.Username)
-	params.Add("p", subsonicConfig.Password)
+	params.Add("u", c.subsonicConfig().GetUsername())
+	params.Add("p", c.subsonicConfig().GetPassword())
 
 	return fmt.Sprintf("%s/rest/getCoverArt.view?%s",
-		subsonicConfig.BaseURL, params.Encode())
+		c.subsonicConfig().GetBaseURL(), params.Encode())
 }
 
 // Generic helper functions to work with the factory pattern
@@ -123,7 +118,7 @@ func GetTrackItem(
 		Data: track,
 		Type: track.GetMediaType(),
 	}
-	mediaItem.SetClientInfo(client.ClientID, client.ClientType, item.ID)
+	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), item.ID)
 
 	return &mediaItem, nil
 }
@@ -143,7 +138,7 @@ func GetAlbumItem(
 		Data: album,
 		Type: album.GetMediaType(),
 	}
-	mediaItem.SetClientInfo(client.ClientID, client.ClientType, item.ID)
+	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), item.ID)
 
 	return &mediaItem, nil
 }
@@ -163,7 +158,7 @@ func GetArtistItem(
 		Data: artist,
 		Type: artist.GetMediaType(),
 	}
-	mediaItem.SetClientInfo(client.ClientID, client.ClientType, item.ID)
+	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), item.ID)
 
 	return &mediaItem, nil
 }
@@ -183,7 +178,8 @@ func GetPlaylistItem(
 		Data: playlist,
 		Type: playlist.GetMediaType(),
 	}
-	mediaItem.SetClientInfo(client.ClientID, client.ClientType, item.ID)
+	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), item.ID)
 
 	return &mediaItem, nil
 }
+

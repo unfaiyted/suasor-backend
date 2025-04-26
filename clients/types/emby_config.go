@@ -4,19 +4,17 @@ import "encoding/json"
 
 // @Description Emby media server configuration
 type EmbyConfig struct {
-	BaseClientMediaConfig
+	ClientMediaConfig
 	UserID   string `json:"userID,omitempty" mapstructure:"userID" example:"your-internal-user-id"`
 	Username string `json:"username" mapstructure:"username" example:"admin"`
 }
 
-func NewEmbyConfig() EmbyConfig {
+func NewEmbyConfig(username string, userID string, baseURL string, APIKey string, enabled bool, validateConn bool) EmbyConfig {
+	clientConfig := NewClientMediaConfig(ClientMediaTypeEmby, ClientCategoryMedia, "Emby", baseURL, APIKey, enabled, validateConn)
 	return EmbyConfig{
-		BaseClientMediaConfig: BaseClientMediaConfig{
-			BaseClientConfig: BaseClientConfig{
-				Type: ClientTypeEmby,
-			},
-			ClientType: ClientMediaTypeEmby,
-		},
+		ClientMediaConfig: clientConfig,
+		Username:          username,
+		UserID:            userID,
 	}
 }
 
@@ -35,10 +33,10 @@ func (EmbyConfig) GetCategory() ClientCategory {
 	return ClientCategoryMedia
 }
 
-func (EmbyConfig) SupportsMovies() bool {
+func (*EmbyConfig) SupportsMovies() bool {
 	return true
 }
-func (EmbyConfig) SupportsSeries() bool {
+func (*EmbyConfig) SupportsSeries() bool {
 	return true
 }
 func (EmbyConfig) SupportsMusic() bool {
@@ -67,8 +65,5 @@ func (c *EmbyConfig) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	// Ensure Type is always the correct constant
-	c.ClientType = ClientMediaTypeEmby
-	c.Type = ClientTypeEmby
 	return nil
 }

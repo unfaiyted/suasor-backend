@@ -15,7 +15,6 @@ import (
 	subsonic "suasor/clients/media/subsonic"
 	clienttypes "suasor/clients/types"
 	"suasor/di/container"
-	"suasor/utils"
 	"suasor/utils/logger"
 )
 
@@ -47,9 +46,7 @@ func RegisterClientFactories(ctx context.Context, c *container.Container) {
 func registerClientProviders[T clienttypes.ClientMediaConfig](c *container.Container, service *clients.ClientProviderFactoryService, registry *media.ClientItemRegistry, factory func(ctx context.Context, registry *media.ClientItemRegistry, clientID uint64, config T) (clients.Client, error)) {
 	// Register the client connection provider and its associated media providers
 
-	var zero T
-	typeName := utils.GetTypeName(zero)
-	clientType := clienttypes.GetClientTypeFromTypeName(typeName)
+	clientType := clienttypes.GetClientType[T]()
 
 	service.RegisterClientProviderFactory(clientType, func(ctx context.Context, clientID uint64, config clienttypes.ClientConfig) (clients.Client, error) {
 		log := logger.LoggerFromContext(ctx)
@@ -59,9 +56,9 @@ func registerClientProviders[T clienttypes.ClientMediaConfig](c *container.Conta
 			Msg("Checking config type")
 		if !ok {
 			log.Error().
-				Err(fmt.Errorf("expected %s, got %T", typeName, config)).
-				Msg("Expected %s, got %T")
-			return nil, fmt.Errorf("expected %s, got %T", typeName, config)
+				Err(fmt.Errorf("expected got %T", config)).
+				Msg("Expected but got %T")
+			return nil, fmt.Errorf("expected but got %T", config)
 		}
 
 		fmt.Printf("Factory called for client with ID: %d\n", clientID)
@@ -78,11 +75,10 @@ func createMediaClientWrapper[T clienttypes.ClientMediaConfig](
 	}
 }
 
-func createAutomationClientWrapper[T clienttypes.AutomationClientConfig](
+func createAutomationClientWrapper[T clienttypes.ClientAutomationConfig](
 	originalFactory func(ctx context.Context, registry *media.ClientItemRegistry, clientID uint64, config T) (media.ClientMedia, error),
 ) func(ctx context.Context, registry *media.ClientItemRegistry, clientID uint64, config T) (clients.Client, error) {
 	return func(ctx context.Context, registry *media.ClientItemRegistry, clientID uint64, config T) (clients.Client, error) {
 		return originalFactory(ctx, registry, clientID, config)
 	}
 }
-

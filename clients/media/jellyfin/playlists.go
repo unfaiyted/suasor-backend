@@ -21,8 +21,8 @@ func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
 		Msg("Retrieving playlists from Jellyfin")
 
 	includeItemTypes := []jellyfin.BaseItemKind{jellyfin.BASEITEMKIND_PLAYLIST}
@@ -86,7 +86,7 @@ func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 			},
 			Type: "playlist",
 		}
-		playlist.SetClientInfo(j.ClientID, j.ClientType, *item.Id)
+		playlist.SetClientInfo(j.GetClientID(), j.GetClientType(), *item.Id)
 		playlists = append(playlists, playlist)
 	}
 
@@ -103,8 +103,8 @@ func (j *JellyfinClient) GetPlaylistItems(ctx context.Context, playlistID string
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
 		Str("playlistID", playlistID).
 		Msg("Retrieving playlist items from Jellyfin")
 
@@ -148,8 +148,8 @@ func (j *JellyfinClient) CreatePlaylist(ctx context.Context, name string, descri
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
 		Str("name", name).
 		Msg("Creating new playlist in Jellyfin")
 
@@ -192,14 +192,14 @@ func (j *JellyfinClient) CreatePlaylist(ctx context.Context, name string, descri
 				IsPublic:  true,
 				// Set creation timestamp
 				LastModified: time.Now(),
-				ModifiedBy:   j.ClientID,
+				ModifiedBy:   j.GetClientID(),
 			},
 		},
 		Type: "playlist",
 	}
 
 	// Set client info
-	playlist.SetClientInfo(j.ClientID, j.ClientType, *response.Id)
+	playlist.SetClientInfo(j.GetClientID(), j.GetClientType(), *response.Id)
 
 	log.Info().
 		Str("playlistID", *response.Id).
@@ -215,8 +215,8 @@ func (j *JellyfinClient) UpdatePlaylist(ctx context.Context, playlistID string, 
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
 		Str("playlistID", playlistID).
 		Str("name", name).
 		Msg("Updating playlist in Jellyfin")
@@ -284,7 +284,7 @@ func (j *JellyfinClient) UpdatePlaylist(ctx context.Context, playlistID string, 
 	}
 
 	syncClientState := t.SyncClientState{
-		ClientID:     j.ClientID,
+		ClientID:     j.GetClientID(),
 		Items:        syncItems,
 		ClientListID: "", // Empty for now, would be the client-specific playlist ID
 		LastSynced:   time.Now(),
@@ -303,7 +303,7 @@ func (j *JellyfinClient) UpdatePlaylist(ctx context.Context, playlistID string, 
 					// Artwork:     j.getArtworkURLs(item),
 				},
 				LastModified: time.Now(),
-				ModifiedBy:   j.ClientID,
+				ModifiedBy:   j.GetClientID(),
 				// Preserve existing items
 				ItemCount: 0,
 				IsPublic:  true,
@@ -325,7 +325,7 @@ func (j *JellyfinClient) UpdatePlaylist(ctx context.Context, playlistID string, 
 
 	playlist.Data.ItemCount = int(*playlistItems.TotalRecordCount)
 
-	playlist.SetClientInfo(j.ClientID, j.ClientType, playlistID)
+	playlist.SetClientInfo(j.GetClientID(), j.GetClientType(), playlistID)
 
 	log.Info().
 		Str("playlistID", playlistID).
@@ -341,8 +341,8 @@ func (j *JellyfinClient) DeletePlaylist(ctx context.Context, playlistID string) 
 	// log := logger.LoggerFromContext(ctx)
 	//
 	// log.Info().
-	// 	Uint64("clientID", j.ClientID).
-	// 	Str("clientType", string(j.ClientType)).
+	// 	Uint64("clientID", j.GetClientID()).
+	// 	Str("clientType", string(j.GetClientType())).
 	// 	Str("playlistID", playlistID).
 	// 	Msg("Deleting playlist from Jellyfin")
 	//
@@ -402,8 +402,8 @@ func (j *JellyfinClient) AddItemToPlaylist(ctx context.Context, playlistID strin
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
 		Str("playlistID", playlistID).
 		Str("itemID", itemID).
 		Msg("Adding item to playlist in Jellyfin")
@@ -441,8 +441,8 @@ func (j *JellyfinClient) RemoveItemFromPlaylist(ctx context.Context, playlistID 
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
 		Str("playlistID", playlistID).
 		Str("itemID", itemID).
 		Msg("Removing item from playlist in Jellyfin")
@@ -469,7 +469,7 @@ func (j *JellyfinClient) RemoveItemFromPlaylist(ctx context.Context, playlistID 
 	//
 	// 	orderItem.ItemID
 	//
-	// 	client, exists := item.SyncClients.GetByClientID(j.ClientID)
+	// 	client, exists := item.SyncClients.GetByClientID(j.GetClientID())
 	// 	if exists && client.ItemID == itemID {
 	// 		// This i the playlistID
 	// 		// Found the item, try to get its entry ID
@@ -530,8 +530,8 @@ func (j *JellyfinClient) ReorderPlaylistItems(ctx context.Context, playlistID st
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
 		Str("playlistID", playlistID).
 		Int("itemCount", len(itemIDs)).
 		Msg("Reordering playlist items in Jellyfin")
@@ -564,7 +564,7 @@ func (j *JellyfinClient) ReorderPlaylistItems(ctx context.Context, playlistID st
 //
 // // Build the mappings
 // for i, item := range currentItems {
-// 	client, exists := item.SyncClients.GetByClientID(j.ClientID)
+// 	client, exists := item.SyncClients.GetByClientID(j.GetClientID())
 // 	if !exists {
 // 		continue
 // 	}

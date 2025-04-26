@@ -18,8 +18,8 @@ func (c *PlexClient) GetSeries(ctx context.Context, options *types.QueryOptions)
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Msg("Retrieving TV shows from Plex server")
 
 	// First, find the TV show library section
@@ -28,16 +28,16 @@ func (c *PlexClient) GetSeries(ctx context.Context, options *types.QueryOptions)
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("Failed to find TV show library section")
 		return nil, err
 	}
 
 	if tvSectionKey == "" {
 		log.Info().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("No TV show library section found in Plex")
 		return nil, nil
 	}
@@ -58,8 +58,8 @@ func (c *PlexClient) GetSeries(ctx context.Context, options *types.QueryOptions)
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Int("sectionKey", sectionKey).
 			Msg("Failed to get TV shows from Plex")
 		return nil, fmt.Errorf("failed to get TV shows: %w", err)
@@ -67,15 +67,15 @@ func (c *PlexClient) GetSeries(ctx context.Context, options *types.QueryOptions)
 
 	if res.Object.MediaContainer == nil || res.Object.MediaContainer.Metadata == nil {
 		log.Info().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("No TV shows found in Plex")
 		return nil, nil
 	}
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Int("totalItems", len(res.Object.MediaContainer.Metadata)).
 		Msg("Successfully retrieved TV shows from Plex")
 
@@ -84,15 +84,15 @@ func (c *PlexClient) GetSeries(ctx context.Context, options *types.QueryOptions)
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("Failed to get TV shows from Plex")
 		return nil, fmt.Errorf("failed to get TV shows: %w", err)
 	}
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Int("showsReturned", len(series)).
 		Msg("Completed GetSeries request")
 
@@ -105,8 +105,8 @@ func (c *PlexClient) GetSeriesSeasons(ctx context.Context, showID string) ([]*mo
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("showID", showID).
 		Msg("Retrieving seasons for TV show from Plex server")
 
@@ -122,8 +122,8 @@ func (c *PlexClient) GetSeriesSeasons(ctx context.Context, showID string) ([]*mo
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Str("showID", showID).
 			Msg("Failed to get TV show seasons from Plex")
 		return nil, fmt.Errorf("failed to get TV show seasons: %w", err)
@@ -131,16 +131,16 @@ func (c *PlexClient) GetSeriesSeasons(ctx context.Context, showID string) ([]*mo
 
 	if childRes.Object.MediaContainer == nil || childRes.Object.MediaContainer.Metadata == nil {
 		log.Info().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Str("showID", showID).
 			Msg("No seasons found for TV show in Plex")
 		return nil, nil
 	}
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("showID", showID).
 		Int("totalItems", len(childRes.Object.MediaContainer.Metadata)).
 		Msg("Successfully retrieved seasons for TV show from Plex")
@@ -148,8 +148,8 @@ func (c *PlexClient) GetSeriesSeasons(ctx context.Context, showID string) ([]*mo
 	seasons, err := GetChildMediaItemsList[*types.Season](ctx, c, childRes.Object.MediaContainer.Metadata)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("showID", showID).
 		Int("seasonsReturned", len(seasons)).
 		Msg("Completed GetSeriesSeasons request")
@@ -163,8 +163,8 @@ func (c *PlexClient) GetSeriesEpisodes(ctx context.Context, showID string, seaso
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("showID", showID).
 		Int("seasonNumber", seasonNumber).
 		Msg("Retrieving episodes for TV show season from Plex server")
@@ -179,8 +179,8 @@ func (c *PlexClient) GetSeriesEpisodes(ctx context.Context, showID string, seaso
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Str("showID", showID).
 			Int("seasonNumber", seasonNumber).
 			Msg("Failed to get seasons for TV show")
@@ -202,8 +202,8 @@ func (c *PlexClient) GetSeriesEpisodes(ctx context.Context, showID string, seaso
 
 	if seasonID == "" {
 		log.Info().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Str("showID", showID).
 			Int("seasonNumber", seasonNumber).
 			Msg("Season not found for TV show in Plex")
@@ -222,8 +222,8 @@ func (c *PlexClient) GetSeriesEpisodes(ctx context.Context, showID string, seaso
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Str("showID", showID).
 			Int("seasonNumber", seasonNumber).
 			Str("seasonID", seasonID).
@@ -233,8 +233,8 @@ func (c *PlexClient) GetSeriesEpisodes(ctx context.Context, showID string, seaso
 
 	if childRes.Object.MediaContainer == nil || childRes.Object.MediaContainer.Metadata == nil {
 		log.Info().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Str("showID", showID).
 			Int("seasonNumber", seasonNumber).
 			Msg("No episodes found for TV show season in Plex")
@@ -242,8 +242,8 @@ func (c *PlexClient) GetSeriesEpisodes(ctx context.Context, showID string, seaso
 	}
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("showID", showID).
 		Int("seasonNumber", seasonNumber).
 		Int("totalItems", len(childRes.Object.MediaContainer.Metadata)).
@@ -253,8 +253,8 @@ func (c *PlexClient) GetSeriesEpisodes(ctx context.Context, showID string, seaso
 	episodes, err := GetChildMediaItemsList[*types.Episode](ctx, c, childRes.Object.MediaContainer.Metadata)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("showID", showID).
 		Int("seasonNumber", seasonNumber).
 		Int("episodesReturned", len(episodes)).
@@ -269,8 +269,8 @@ func (c *PlexClient) GetSeriesByID(ctx context.Context, id string) (*models.Medi
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("showID", id).
 		Msg("Retrieving specific TV show from Plex server")
 
@@ -289,8 +289,8 @@ func (c *PlexClient) GetSeriesByID(ctx context.Context, id string) (*models.Medi
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Str("showID", id).
 			Msg("Failed to get TV show from Plex")
 		return nil, fmt.Errorf("failed to get TV show: %w", err)
@@ -298,8 +298,8 @@ func (c *PlexClient) GetSeriesByID(ctx context.Context, id string) (*models.Medi
 
 	if res.Object.MediaContainer == nil || res.Object.MediaContainer.Metadata == nil || len(res.Object.MediaContainer.Metadata) == 0 {
 		log.Error().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Str("showID", id).
 			Msg("TV show not found in Plex")
 		return nil, fmt.Errorf("TV show not found")
@@ -308,8 +308,8 @@ func (c *PlexClient) GetSeriesByID(ctx context.Context, id string) (*models.Medi
 	item := res.Object.MediaContainer.Metadata[0]
 	if item.Type != "show" {
 		log.Error().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Str("showID", id).
 			Str("actualType", item.Type).
 			Msg("Item retrieved is not a TV show")
@@ -317,8 +317,8 @@ func (c *PlexClient) GetSeriesByID(ctx context.Context, id string) (*models.Medi
 	}
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("showID", id).
 		Str("showTitle", item.Title).
 		Msg("Successfully retrieved TV show from Plex")
@@ -327,8 +327,8 @@ func (c *PlexClient) GetSeriesByID(ctx context.Context, id string) (*models.Medi
 	series, err := GetMediaItem[*types.Series](ctx, c, itemSeries, item.RatingKey)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("showID", id).
 		Str("showTitle", series.Data.Details.Title).
 		Int("seasonCount", series.Data.SeasonCount).
@@ -343,8 +343,8 @@ func (c *PlexClient) GetEpisodeByID(ctx context.Context, id string) (*models.Med
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("episodeID", id).
 		Msg("Retrieving specific episode from Plex server")
 

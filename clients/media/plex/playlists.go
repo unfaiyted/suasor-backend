@@ -16,8 +16,8 @@ func (c *PlexClient) GetPlaylists(ctx context.Context, options *types.QueryOptio
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Msg("Retrieving playlists from Plex server")
 
 	log.Debug().Msg("Making API request to Plex server for playlists")
@@ -25,31 +25,31 @@ func (c *PlexClient) GetPlaylists(ctx context.Context, options *types.QueryOptio
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("Failed to get playlists from Plex")
 		return nil, fmt.Errorf("failed to get playlists: %w", err)
 	}
 
 	if res.Object.MediaContainer == nil || res.Object.MediaContainer.Metadata == nil {
 		log.Info().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("No playlists found in Plex")
 		return nil, nil
 	}
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Int("totalItems", len(res.Object.MediaContainer.Metadata)).
 		Msg("Successfully retrieved playlists from Plex")
 
 	playlists, err := GetMediaItemListFromPlaylist[*types.Playlist](ctx, c, res.Object.MediaContainer.Metadata)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Int("playlistsReturned", len(playlists)).
 		Msg("Completed GetPlaylists request")
 

@@ -35,13 +35,13 @@ type AutomationClientService interface {
 }
 
 type automationClientService struct {
-	clientRepo    repository.ClientRepository[types.AutomationClientConfig]
+	clientRepo    repository.ClientRepository[types.ClientAutomationConfig]
 	clientFactory *clients.ClientProviderFactoryService
 }
 
 // NewAutomationClientService creates a new automation client service
 func NewAutomationClientService(
-	clientRepo repository.ClientRepository[types.AutomationClientConfig],
+	clientRepo repository.ClientRepository[types.ClientAutomationConfig],
 	clientFactory *clients.ClientProviderFactoryService,
 ) AutomationClientService {
 	return &automationClientService{
@@ -51,7 +51,7 @@ func NewAutomationClientService(
 }
 
 // getAutomationClient gets a specific automation client for a user
-func (s *automationClientService) getAutomationClient(ctx context.Context, userID, clientID uint64) (automation.AutomationClient, error) {
+func (s *automationClientService) getAutomationClient(ctx context.Context, userID, clientID uint64) (automation.ClientAutomation, error) {
 	clientConfig, err := s.clientRepo.GetByID(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (s *automationClientService) getAutomationClient(ctx context.Context, userI
 		return nil, err
 	}
 
-	client, ok := autoClient.(automation.AutomationClient)
+	client, ok := autoClient.(automation.ClientAutomation)
 	if !ok {
 		return nil, ErrAutomationUnsupportedFeature
 	}

@@ -17,8 +17,8 @@ func (e *EmbyClient) GetPlaylists(ctx context.Context, options *types.QueryOptio
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", e.ClientID).
-		Str("clientType", string(e.ClientType)).
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
 		Msg("Retrieving playlists from Emby server")
 
 	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
@@ -32,7 +32,7 @@ func (e *EmbyClient) GetPlaylists(ctx context.Context, options *types.QueryOptio
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.embyConfig().BaseURL).
+			Str("baseURL", e.embyConfig().GetBaseURL()).
 			Str("apiEndpoint", "/Items").
 			Msg("Failed to fetch playlists from Emby")
 		return nil, fmt.Errorf("failed to fetch playlists: %w", err)

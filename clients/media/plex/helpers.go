@@ -6,7 +6,6 @@ import (
 	"strings"
 	media "suasor/clients/media"
 	mediatypes "suasor/clients/media/types"
-	"suasor/clients/types"
 	"suasor/types/models"
 	"suasor/utils/logger"
 
@@ -53,18 +52,6 @@ func GetChildItem[T mediatypes.MediaData](
 		client, ctx, item)
 }
 
-// func GetMediaItemFromPlaylist[T mediatypes.MediaData](
-// 	ctx context.Context,
-// 	client *PlexClient,
-// 	item T,
-// 	itemID string,
-// ) (*models.MediaItem[T], error) {
-// 	mediaItem := models.NewMediaItem[T](item.GetMediaType(), item)
-// 	mediaItem.SetClientInfo(client.ClientID, client.ClientType, itemID)
-//
-// 	return mediaItem, nil
-// }
-
 func GetChildItemsList[T mediatypes.MediaData](
 	ctx context.Context,
 	client *PlexClient,
@@ -92,7 +79,7 @@ func GetMediaItem[T mediatypes.MediaData](
 	itemID string,
 ) (*models.MediaItem[T], error) {
 	mediaItem := models.NewMediaItem[T](item.GetMediaType(), item)
-	mediaItem.SetClientInfo(client.ClientID, client.ClientType, itemID)
+	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), itemID)
 
 	return mediaItem, nil
 }
@@ -104,7 +91,7 @@ func GetChildMediaItem[T mediatypes.MediaData](
 	itemID string,
 ) (*models.MediaItem[T], error) {
 	mediaItem := models.NewMediaItem[T](item.GetMediaType(), item)
-	mediaItem.SetClientInfo(client.ClientID, client.ClientType, itemID)
+	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), itemID)
 
 	return mediaItem, nil
 }
@@ -124,7 +111,7 @@ func GetChildMediaItemsList[T mediatypes.MediaData](
 		if err != nil {
 			return nil, err
 		}
-		mediaItem.SetClientInfo(client.ClientID, client.ClientType, *item.RatingKey)
+		mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), *item.RatingKey)
 		mediaItems = append(mediaItems, mediaItem)
 	}
 
@@ -146,7 +133,7 @@ func GetMediaItemList[T mediatypes.MediaData](
 		if err != nil {
 			return nil, err
 		}
-		mediaItem.SetClientInfo(client.ClientID, client.ClientType, item.RatingKey)
+		mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), item.RatingKey)
 		mediaItems = append(mediaItems, mediaItem)
 	}
 
@@ -168,7 +155,7 @@ func GetMediaItemListFromPlaylist[T mediatypes.MediaData](
 		if err != nil {
 			return nil, err
 		}
-		mediaItem.SetClientInfo(client.ClientID, client.ClientType, *item.RatingKey)
+		mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), *item.RatingKey)
 		mediaItems = append(mediaItems, mediaItem)
 	}
 
@@ -180,8 +167,8 @@ func (c *PlexClient) findLibrarySectionByType(ctx context.Context, sectionType s
 	log := logger.LoggerFromContext(ctx)
 
 	log.Debug().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("sectionType", sectionType).
 		Msg("Finding library section by type")
 
@@ -189,24 +176,24 @@ func (c *PlexClient) findLibrarySectionByType(ctx context.Context, sectionType s
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Str("sectionType", sectionType).
 			Msg("Failed to get libraries from Plex")
 		return "", fmt.Errorf("failed to get libraries: %w", err)
 	}
 
 	log.Debug().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Int("libraryCount", len(libraries.Object.MediaContainer.Directory)).
 		Msg("Retrieved libraries from Plex")
 
 	for _, dir := range libraries.Object.MediaContainer.Directory {
 		if dir.Type == sectionType {
 			log.Debug().
-				Uint64("clientID", c.ClientID).
-				Str("clientType", string(c.ClientType)).
+				Uint64("clientID", c.GetClientID()).
+				Str("clientType", string(c.GetClientType())).
 				Str("sectionType", sectionType).
 				Str("sectionKey", dir.Key).
 				Str("sectionTitle", dir.Title).
@@ -216,8 +203,8 @@ func (c *PlexClient) findLibrarySectionByType(ctx context.Context, sectionType s
 	}
 
 	log.Debug().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("sectionType", sectionType).
 		Msg("No matching library section found")
 
@@ -230,11 +217,10 @@ func (c *PlexClient) makeFullURL(resourcePath string) string {
 		return ""
 	}
 
-	plexConfig := c.Config.(*types.PlexConfig)
-
 	if strings.HasPrefix(resourcePath, "http") {
 		return resourcePath
 	}
 
-	return fmt.Sprintf("%s%s", plexConfig.BaseURL, resourcePath)
+	return fmt.Sprintf("%s%s", c.plexConfig().GetBaseURL(), resourcePath)
 }
+

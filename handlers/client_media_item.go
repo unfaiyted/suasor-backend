@@ -2,7 +2,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
@@ -13,6 +12,7 @@ import (
 	clientTypes "suasor/clients/types"
 	"suasor/services"
 	"suasor/types/models"
+	"suasor/types/requests"
 	"suasor/types/responses"
 	"suasor/utils/logger"
 )
@@ -64,13 +64,7 @@ func (h *clientMediaItemHandler[T, U]) CreateClientItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	var req struct {
-		Type       string          `json:"type" binding:"required"`
-		ClientID   uint64          `json:"clientID" binding:"required"`
-		ClientType string          `json:"clientType" binding:"required"`
-		ExternalID string          `json:"externalId" binding:"required"`
-		Data       json.RawMessage `json:"data" binding:"required"`
-	}
+	var req requests.ClientMediaItemCreateRequest[U]
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Warn().Err(err).Msg("Invalid request body for CreateMediaItem")
@@ -82,21 +76,14 @@ func (h *clientMediaItemHandler[T, U]) CreateClientItem(c *gin.Context) {
 	log.Debug().
 		Str("mediaType", string(mediaType)).
 		Uint64("clientID", req.ClientID).
-		Str("clientType", req.ClientType).
+		Str("clientType", string(req.ClientType)).
 		Msg("Creating client media item")
 
 	// Create the media item
-	var mediaItemRequest U
-	if err := json.Unmarshal(req.Data, &mediaItemRequest); err != nil {
-		log.Warn().Err(err).Msg("Failed to unmarshal media data")
-		responses.RespondBadRequest(c, err, "Invalid media data format")
-		return
-	}
-
-	mediaItem := models.NewMediaItem[U](mediaType, mediaItemRequest)
+	mediaItem := models.NewMediaItem(mediaType, req.Data)
 
 	// Set client info
-	mediaItem.SetClientInfo(req.ClientID, clientTypes.ClientMediaType(req.ClientType), req.ExternalID)
+	mediaItem.SetClientInfo(req.ClientID, req.ClientType, req.ExternalID)
 
 	// Only add external ID if provided
 	if req.ExternalID != "" {
@@ -138,13 +125,7 @@ func (h *clientMediaItemHandler[T, U]) UpdateClientItem(c *gin.Context) {
 
 	id := c.Param("itemID")
 
-	var req struct {
-		Type       string          `json:"type" binding:"required"`
-		ClientID   uint64          `json:"clientID" binding:"required"`
-		ClientType string          `json:"clientType" binding:"required"`
-		ExternalID string          `json:"externalId" binding:"required"`
-		Data       json.RawMessage `json:"data" binding:"required"`
-	}
+	var req requests.ClientMediaItemUpdateRequest[U]
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Warn().Err(err).Str("id", id).Msg("Invalid request body for UpdateMediaItem")
@@ -154,21 +135,16 @@ func (h *clientMediaItemHandler[T, U]) UpdateClientItem(c *gin.Context) {
 
 	log.Debug().
 		Str("id", id).
-		Str("mediaType", req.Type).
+		Str("mediaType", string(req.Type)).
 		Uint64("clientID", req.ClientID).
-		Str("clientType", req.ClientType).
+		Str("clientType", string(req.ClientType)).
 		Msg("Updating client media item")
 
 	// Update the media item
 	mediaType := types.MediaType(req.Type)
-	var mediaData U
-	if err := json.Unmarshal(req.Data, &mediaData); err != nil {
-		log.Warn().Err(err).Str("id", id).Msg("Failed to unmarshal media data")
-		responses.RespondBadRequest(c, err, "Invalid media data format")
-		return
-	}
-	mediaItem := models.NewMediaItem[U](mediaType, mediaData)
-	mediaItem.SetClientInfo(req.ClientID, clientTypes.ClientMediaType(req.ClientType), req.ExternalID)
+
+	mediaItem := models.NewMediaItem(mediaType, req.Data)
+	mediaItem.SetClientInfo(req.ClientID, req.ClientType, req.ExternalID)
 	// Set client info
 
 	// Only add external ID if provided

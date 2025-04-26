@@ -1,6 +1,7 @@
 package requests
 
 import (
+	mediatypes "suasor/clients/media/types"
 	"suasor/clients/types"
 	client "suasor/clients/types"
 )
@@ -12,7 +13,7 @@ type ClientTestRequest[T types.ClientConfig] struct {
 }
 
 // AutomationClientRequest is used for creating/updating a download client
-type AutomationClientRequest[T types.AutomationClientConfig] struct {
+type AutomationClientRequest[T types.ClientAutomationConfig] struct {
 	Name       string                      `json:"name" binding:"required"`
 	ClientType client.AutomationClientType `json:"clientType" binding:"required,oneof=radarr sonarr lidarr"`
 	IsEnabled  bool                        `json:"isEnabled"`
@@ -33,4 +34,21 @@ type ClientMediaRequest[T types.ClientMediaConfig] struct {
 	Name       string                 `json:"name" binding:"required"`
 	ClientType client.ClientMediaType `json:"clientType" binding:"required,oneof=plex jellyfin emby subsonic"`
 	Client     T                      `json:"client" gorm:"serializer:json"`
+}
+
+type ClientMediaItemUpdateRequest[T mediatypes.MediaData] struct {
+	ID         uint64               `json:"id" binding:"required"`
+	Type       mediatypes.MediaType `json:"type" binding:"required"`
+	ClientID   uint64               `json:"clientID" binding:"required"`
+	ClientType client.ClientType    `json:"clientType" binding:"required"`
+	ExternalID string               `json:"externalId" binding:"required"`
+	Data       T                    `json:"data" binding:"required"`
+}
+
+type ClientMediaItemCreateRequest[T mediatypes.MediaData] struct {
+	Type       mediatypes.MediaType `json:"type" binding:"required"`
+	ClientID   uint64               `json:"clientID" binding:"required"`
+	ClientType client.ClientType    `json:"clientType" binding:"required"`
+	ExternalID string               `json:"externalId" binding:"required"`
+	Data       T                    `json:"data" binding:"required"`
 }

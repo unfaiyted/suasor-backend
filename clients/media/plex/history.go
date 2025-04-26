@@ -14,13 +14,13 @@ func (c *PlexClient) GetPlayHistory(ctx context.Context, options *types.QueryOpt
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Msg("Retrieving watch history from Plex server")
 
 	log.Warn().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Msg("Watch history retrieval not yet implemented for Plex")
 
 	// This would require querying Plex for watch history

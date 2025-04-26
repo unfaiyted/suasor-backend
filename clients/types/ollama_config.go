@@ -2,27 +2,36 @@ package types
 
 import "encoding/json"
 
-// @Description Claude media server configuration
+// @Description Ollama local AI service configuration
 type OllamaConfig struct {
-	BaseAIClientConfig
+	AIClientConfig
+	Model       string  `json:"model" mapstructure:"model" example:"llama2"`
+	Temperature float64 `json:"temperature" mapstructure:"temperature" example:"0.7"`
 }
 
-func NewOllamaConfig() OllamaConfig {
+func NewOllamaConfig(baseURL string, model string, temperature float64, enabled bool, validateConn bool) OllamaConfig {
+	clientConfig := NewClientAIConfig(AIClientTypeOllama, ClientCategoryAI, "Ollama", baseURL, "", enabled, validateConn)
 	return OllamaConfig{
-		BaseAIClientConfig: BaseAIClientConfig{
-			BaseClientConfig: BaseClientConfig{
-				Type: ClientTypeOllama,
-			},
-			ClientType: AIClientTypeOllama,
-		},
+		AIClientConfig: clientConfig,
+		Model:          model,
+		Temperature:    temperature,
 	}
 }
 
-func (OllamaConfig) GetClientType() AIClientType {
-	return AIClientTypeClaude
+func (c *OllamaConfig) GetModel() string {
+	return c.Model
 }
+
+func (c *OllamaConfig) GetTemperature() float64 {
+	return c.Temperature
+}
+
+func (OllamaConfig) GetClientType() AIClientType {
+	return AIClientTypeOllama
+}
+
 func (OllamaConfig) GetCategory() ClientCategory {
-	return ClientCategoryMedia
+	return ClientCategoryAI
 }
 
 func (c *OllamaConfig) UnmarshalJSON(data []byte) error {
@@ -38,8 +47,5 @@ func (c *OllamaConfig) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	// Ensure Type is always the correct constant
-	c.ClientType = AIClientTypeOllama
-	c.Type = ClientTypeOllama
 	return nil
 }

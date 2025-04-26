@@ -16,9 +16,9 @@ func (j *JellyfinClient) GetCollections(ctx context.Context, options *t.QueryOpt
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
-		Str("baseURL", j.config.BaseURL).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
+		Str("baseURL", j.config.GetBaseURL()).
 		Msg("Retrieving collections from Jellyfin server")
 
 		// Set up query parameters
@@ -37,7 +37,7 @@ func (j *JellyfinClient) GetCollections(ctx context.Context, options *t.QueryOpt
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", j.config.BaseURL).
+			Str("baseURL", j.config.GetBaseURL()).
 			Str("apiEndpoint", "/Items").
 			Int("statusCode", 0).
 			Msg("Failed to fetch collections from Jellyfin")
@@ -69,8 +69,8 @@ func (j *JellyfinClient) GetCollectionItems(ctx context.Context, collectionID st
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
 		Str("collectionID", collectionID).
 		Msg("Retrieving collection items from Jellyfin")
 
@@ -95,7 +95,7 @@ func (j *JellyfinClient) GetCollectionItems(ctx context.Context, collectionID st
 		log.Error().
 			Err(err).
 			Str("collectionID", collectionID).
-			Str("baseURL", j.config.BaseURL).
+			Str("baseURL", j.config.GetBaseURL()).
 			Str("apiEndpoint", "/Items").
 			Int("statusCode", 0).
 			Msg("Failed to fetch collection items from Jellyfin")

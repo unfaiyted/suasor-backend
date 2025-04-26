@@ -14,9 +14,9 @@ func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOpt
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
-		Str("baseURL", j.config.BaseURL).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
+		Str("baseURL", j.config.GetBaseURL()).
 		Msg("Retrieving watch history from Jellyfin server")
 
 	// Call the Jellyfin API to get resumed items
@@ -33,7 +33,7 @@ func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOpt
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", j.config.BaseURL).
+			Str("baseURL", j.config.GetBaseURL()).
 			Str("apiEndpoint", "/UserItems/Resume").
 			Int("statusCode", 0).
 			Msg("Failed to fetch watch history from Jellyfin")

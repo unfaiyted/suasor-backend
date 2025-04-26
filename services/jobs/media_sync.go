@@ -351,7 +351,7 @@ func (j *MediaSyncJob) syncMovies(ctx context.Context, clientMedia media.ClientM
 	}
 
 	// Get all movies from the client
-	clientType := clientMedia.(clients.Client).GetType().AsClientMediaType()
+	clientType := clientMedia.(clients.Client).GetClientType().AsClientMediaType()
 	movies, err := movieProvider.GetMovies(ctx, &mediatypes.QueryOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to get movies: %w", err)
@@ -400,7 +400,7 @@ func (j *MediaSyncJob) syncSeries(ctx context.Context, clientMedia media.ClientM
 	}
 
 	// Get all series from the client
-	clientType := clientMedia.(clients.Client).GetType().AsClientMediaType()
+	clientType := clientMedia.(clients.Client).GetClientType().AsClientMediaType()
 	series, err := seriesProvider.GetSeries(ctx, &mediatypes.QueryOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to get series: %w", err)
@@ -449,7 +449,7 @@ func (j *MediaSyncJob) syncEpisodes(ctx context.Context, clientMedia media.Clien
 	}
 
 	// Get all episodes from the client
-	clientType := clientMedia.(clients.Client).GetType().AsClientMediaType()
+	clientType := clientMedia.(clients.Client).GetClientType().AsClientMediaType()
 
 	// Initialize a slice to hold all episodes
 	var allEpisodes []*models.MediaItem[*mediatypes.Episode]
@@ -569,7 +569,7 @@ func (j *MediaSyncJob) syncMusic(ctx context.Context, clientMedia media.ClientMe
 	}
 
 	// Get all tracks from the client
-	clientType := clientMedia.(clients.Client).GetType().AsClientMediaType()
+	clientType := clientMedia.(clients.Client).GetClientType().AsClientMediaType()
 	tracks, err := musicProvider.GetMusic(ctx, &mediatypes.QueryOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to get tracks: %w", err)
@@ -618,7 +618,7 @@ func (j *MediaSyncJob) syncAlbums(ctx context.Context, clientMedia media.ClientM
 	}
 
 	// Get all albums from the client
-	clientType := clientMedia.(clients.Client).GetType().AsClientMediaType()
+	clientType := clientMedia.(clients.Client).GetClientType().AsClientMediaType()
 	albums, err := musicProvider.GetMusicAlbums(ctx, &mediatypes.QueryOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to get albums: %w", err)
@@ -667,7 +667,7 @@ func (j *MediaSyncJob) syncArtists(ctx context.Context, clientMedia media.Client
 	}
 
 	// Get all artists from the client
-	clientType := clientMedia.(clients.Client).GetType().AsClientMediaType()
+	clientType := clientMedia.(clients.Client).GetClientType().AsClientMediaType()
 	artists, err := musicProvider.GetMusicArtists(ctx, &mediatypes.QueryOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to get artists: %w", err)

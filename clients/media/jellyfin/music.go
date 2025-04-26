@@ -16,9 +16,9 @@ func (j *JellyfinClient) GetMusic(ctx context.Context, options *t.QueryOptions) 
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
-		Str("baseURL", j.config.BaseURL).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
+		Str("baseURL", j.config.GetBaseURL()).
 		Msg("Retrieving music tracks from Jellyfin server")
 
 	// Set up query parameters
@@ -39,7 +39,7 @@ func (j *JellyfinClient) GetMusic(ctx context.Context, options *t.QueryOptions) 
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", j.config.BaseURL).
+			Str("baseURL", j.config.GetBaseURL()).
 			Str("apiEndpoint", "/Items").
 			Int("statusCode", 0).
 			Msg("Failed to fetch music tracks from Jellyfin")
@@ -69,11 +69,11 @@ func (j *JellyfinClient) GetMusic(ctx context.Context, options *t.QueryOptions) 
 				Type: "track",
 			}
 
-			track.SetClientInfo(j.ClientID, j.ClientType, *item.Id)
+			track.SetClientInfo(j.GetClientID(), j.GetClientType(), *item.Id)
 			track.Data.AlbumName = *item.Album.Get()
 			// Set album info if available
 			if item.AlbumId.IsSet() && item.ArtistItems != nil && len(item.ArtistItems) > 0 {
-				track.Data.AddSyncClient(j.ClientID, *item.AlbumId.Get(), *item.ArtistItems[0].Id)
+				track.Data.AddSyncClient(j.GetClientID(), *item.AlbumId.Get(), *item.ArtistItems[0].Id)
 			}
 
 			// Add artist information if available
@@ -100,9 +100,9 @@ func (j *JellyfinClient) GetMusicArtists(ctx context.Context, options *t.QueryOp
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
-		Str("baseURL", j.config.BaseURL).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
+		Str("baseURL", j.config.GetBaseURL()).
 		Msg("Retrieving music artists from Jellyfin server")
 
 	// Call the Jellyfin API
@@ -118,7 +118,7 @@ func (j *JellyfinClient) GetMusicArtists(ctx context.Context, options *t.QueryOp
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", j.config.BaseURL).
+			Str("baseURL", j.config.GetBaseURL()).
 			Str("apiEndpoint", "/Artists").
 			Int("statusCode", 0).
 			Msg("Failed to fetch music artists from Jellyfin")
@@ -147,7 +147,7 @@ func (j *JellyfinClient) GetMusicArtists(ctx context.Context, options *t.QueryOp
 
 			Type: "artist",
 		}
-		artist.SetClientInfo(j.ClientID, j.ClientType, *item.Id)
+		artist.SetClientInfo(j.GetClientID(), j.GetClientType(), *item.Id)
 
 		extractProviderIDs(&item.ProviderIds, &artist.Data.Details.ExternalIDs)
 
@@ -166,9 +166,9 @@ func (j *JellyfinClient) GetMusicAlbums(ctx context.Context, options *t.QueryOpt
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
-		Str("baseURL", j.config.BaseURL).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
+		Str("baseURL", j.config.GetBaseURL()).
 		Msg("Retrieving music albums from Jellyfin server")
 
 	// Set up query parameters
@@ -189,7 +189,7 @@ func (j *JellyfinClient) GetMusicAlbums(ctx context.Context, options *t.QueryOpt
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", j.config.BaseURL).
+			Str("baseURL", j.config.GetBaseURL()).
 			Str("apiEndpoint", "/Items").
 			Int("statusCode", 0).
 			Msg("Failed to fetch music albums from Jellyfin")
@@ -219,7 +219,7 @@ func (j *JellyfinClient) GetMusicAlbums(ctx context.Context, options *t.QueryOpt
 			Type: "album",
 		}
 
-		album.SetClientInfo(j.ClientID, j.ClientType, *item.Id)
+		album.SetClientInfo(j.GetClientID(), j.GetClientType(), *item.Id)
 
 		// Set album artist if available
 		if item.AlbumArtist.IsSet() {
@@ -243,10 +243,10 @@ func (j *JellyfinClient) GetMusicTrackByID(ctx context.Context, id string) (mode
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
 		Str("trackID", id).
-		Str("baseURL", j.config.BaseURL).
+		Str("baseURL", j.config.GetBaseURL()).
 		Msg("Retrieving specific music track from Jellyfin server")
 
 	// Set up query parameters
@@ -265,7 +265,7 @@ func (j *JellyfinClient) GetMusicTrackByID(ctx context.Context, id string) (mode
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", j.config.BaseURL).
+			Str("baseURL", j.config.GetBaseURL()).
 			Str("apiEndpoint", "/Items").
 			Str("trackID", id).
 			Int("statusCode", 0).
@@ -314,7 +314,7 @@ func (j *JellyfinClient) GetMusicTrackByID(ctx context.Context, id string) (mode
 
 	// Set album info if available
 	if item.AlbumId.IsSet() && item.ArtistItems != nil && len(item.ArtistItems) > 0 {
-		track.Data.AddSyncClient(j.ClientID, *item.AlbumId.Get(), *item.ArtistItems[0].Id)
+		track.Data.AddSyncClient(j.GetClientID(), *item.AlbumId.Get(), *item.ArtistItems[0].Id)
 	}
 
 	if item.Album.IsSet() {
@@ -343,9 +343,9 @@ func (j *JellyfinClient) GetMusicGenres(ctx context.Context) ([]string, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
-		Str("baseURL", j.config.BaseURL).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
+		Str("baseURL", j.config.GetBaseURL()).
 		Msg("Retrieving music genres from Jellyfin server")
 
 	// Call the Jellyfin API
@@ -356,7 +356,7 @@ func (j *JellyfinClient) GetMusicGenres(ctx context.Context) ([]string, error) {
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", j.config.BaseURL).
+			Str("baseURL", j.config.GetBaseURL()).
 			Str("apiEndpoint", "/MusicGenres").
 			Int("statusCode", 0).
 			Msg("Failed to fetch music genres from Jellyfin")
@@ -389,9 +389,9 @@ func (j *JellyfinClient) GetMovieGenres(ctx context.Context) ([]string, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", j.ClientID).
-		Str("clientType", string(j.ClientType)).
-		Str("baseURL", j.config.BaseURL).
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
+		Str("baseURL", j.config.GetBaseURL()).
 		Msg("Retrieving movie genres from Jellyfin server")
 
 	// Set up query parameters to get only movie genres
@@ -405,7 +405,7 @@ func (j *JellyfinClient) GetMovieGenres(ctx context.Context) ([]string, error) {
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", j.config.BaseURL).
+			Str("baseURL", j.config.GetBaseURL()).
 			Str("apiEndpoint", "/Genres").
 			Int("statusCode", 0).
 			Msg("Failed to fetch movie genres from Jellyfin")

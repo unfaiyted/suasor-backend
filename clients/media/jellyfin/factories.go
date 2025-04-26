@@ -243,14 +243,14 @@ func (j *JellyfinClient) trackFactory(ctx context.Context, item *jellyfin.BaseIt
 
 	// Set album ID if available
 	if item.AlbumId.IsSet() {
-		track.SyncAlbum.AddClient(j.ClientID, *item.AlbumId.Get())
+		track.SyncAlbum.AddClient(j.GetClientID(), *item.AlbumId.Get())
 	}
 
 	// Add artist information if available
 	if item.AlbumArtists != nil && len(item.AlbumArtists) > 0 {
 		artistID := *item.AlbumArtists[0].Id
 		name := *item.AlbumArtists[0].Name.Get()
-		track.AddSyncClient(j.ClientID, *item.AlbumId.Get(), artistID)
+		track.AddSyncClient(j.GetClientID(), *item.AlbumId.Get(), artistID)
 		track.ArtistName = name
 	}
 
@@ -578,7 +578,7 @@ func (j *JellyfinClient) seasonFactory(ctx context.Context, item *jellyfin.BaseI
 
 	// Safely handle series ID
 	if item.SeriesId.IsSet() {
-		season.SyncSeries.AddClient(j.ClientID, *item.SeriesId.Get())
+		season.SyncSeries.AddClient(j.GetClientID(), *item.SeriesId.Get())
 	}
 
 	// Add release year if available
@@ -666,7 +666,7 @@ func (j *JellyfinClient) episodeFactory(ctx context.Context, item *jellyfin.Base
 
 	// Safely set IDs if available
 	if item.SeriesId.IsSet() && item.SeasonId.IsSet() {
-		episode.AddSyncClient(j.ClientID, *item.SeasonId.Get(), *item.SeriesId.Get())
+		episode.AddSyncClient(j.GetClientID(), *item.SeasonId.Get(), *item.SeriesId.Get())
 	}
 
 	// Add air date if available

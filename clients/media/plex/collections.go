@@ -16,8 +16,8 @@ func (c *PlexClient) GetCollections(ctx context.Context, options *mediatypes.Que
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Msg("Retrieving collections from Plex server")
 
 	request := operations.GetLibraryItemsRequest{
@@ -30,16 +30,16 @@ func (c *PlexClient) GetCollections(ctx context.Context, options *mediatypes.Que
 	if err != nil {
 		log.Error().
 			Err(err).
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("Failed to get collections from Plex")
 		return nil, fmt.Errorf("failed to get collections: %w", err)
 	}
 
 	if res.Object.MediaContainer == nil || res.Object.MediaContainer.Metadata == nil {
 		log.Info().
-			Uint64("clientID", c.ClientID).
-			Str("clientType", string(c.ClientType)).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
 			Msg("No collections found in Plex")
 		return nil, nil
 	}
@@ -47,8 +47,8 @@ func (c *PlexClient) GetCollections(ctx context.Context, options *mediatypes.Que
 	collections, err := GetMediaItemList[*mediatypes.Collection](ctx, c, res.Object.MediaContainer.Metadata)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Int("collectionsReturned", len(collections)).
 		Msg("Completed GetCollections request")
 
@@ -61,8 +61,8 @@ func (c *PlexClient) GetCollectionByID(ctx context.Context, collectionID string)
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
-		Uint64("clientID", c.ClientID).
-		Str("clientType", string(c.ClientType)).
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
 		Str("collectionID", collectionID).
 		Msg("Retrieving collection from Plex server")
 

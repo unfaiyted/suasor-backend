@@ -6,26 +6,10 @@ import (
 
 	lidarr "github.com/devopsarr/lidarr-go/lidarr"
 
-	base "suasor/clients"
-	c "suasor/clients"
+	"suasor/clients"
 	auto "suasor/clients/automation"
 	config "suasor/clients/types"
 )
-
-// Add this init function to register the liadarr client factory
-func init() {
-	c.GetClientFactoryService().RegisterClientFactory(config.ClientTypeLidarr,
-		func(ctx context.Context, clientID uint64, cfg config.ClientConfig) (base.Client, error) {
-			// Type assert to liadarrConfig
-			liadarrConfig, ok := cfg.(*config.LidarrConfig)
-			if !ok {
-				return nil, fmt.Errorf("invalid config type for liadarr client, expected *EmbyConfig, got %T", cfg)
-			}
-
-			// Use your existing constructor
-			return NewLidarrClient(ctx, clientID, *liadarrConfig)
-		})
-}
 
 // Capability methods
 func (l *LidarrClient) SupportsMusic() bool { return true }
