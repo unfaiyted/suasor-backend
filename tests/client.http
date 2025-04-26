@@ -72,7 +72,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   "isEnabled": true,
   "config": {
     "details": {
-      "base": {
+      "core": {
         "type": "jellyfin",
         "category": "media",
         "name": "Jellyfin",
@@ -99,11 +99,22 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 {
   "name": "Lidarr",
   "clientType": "lidarr",
-  "client": {
-    "baseURL": "http://192.168.1.102:8686",
-    "apiKey": "your-lidarr-apikey",
-    "username": "admin",
-    "ssl": false
+  "isEnabled": true,
+  "config": {
+    "details": {
+      "core": {
+        "type": "lidarr",
+        "category": "automation",
+        "name": "Lidarr",
+        "baseURL": "http://192.168.1.102:8686",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "lidarr",
+      "baseURL": "http://192.168.1.102:8686",
+      "apiKey": "your-lidarr-apikey",
+      "ssl": false
+    }
   }
 }
 
@@ -117,11 +128,22 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 {
   "name": "Radarr",
   "clientType": "radarr",
-  "client": {
-    "baseURL": "http://192.168.1.103:7878",
-    "apiKey": "your-radarr-apikey",
-    "username": "admin",
-    "ssl": false
+  "isEnabled": true,
+  "config": {
+    "details": {
+      "core": {
+        "type": "radarr",
+        "category": "automation",
+        "name": "Radarr",
+        "baseURL": "http://192.168.1.103:7878",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "radarr",
+      "baseURL": "http://192.168.1.103:7878",
+      "apiKey": "your-radarr-apikey",
+      "ssl": false
+    }
   }
 }
 
@@ -135,11 +157,22 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 {
   "name": "Sonarr",
   "clientType": "sonarr",
-  "client": {
-    "baseURL": "http://192.168.1.104:8989",
-    "apiKey": "your-sonarr-apikey",
-    "username": "admin",
-    "ssl": false
+  "isEnabled": true,
+  "config": {
+    "details": {
+      "core": {
+        "type": "sonarr",
+        "category": "automation",
+        "name": "Sonarr",
+        "baseURL": "http://192.168.1.104:8989",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "sonarr",
+      "baseURL": "http://192.168.1.104:8989",
+      "apiKey": "your-sonarr-apikey",
+      "ssl": false
+    }
   }
 }
 
@@ -153,37 +186,154 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 {
   "name": "Subsonic",
   "clientType": "subsonic",
-  "client": {
-    "host": "192.168.1.105",
-    "port": 4533,
-    "username": "admin",
-    "password": "your-password",
-    "ssl": false
+  "isEnabled": true,
+  "config": {
+    "details": {
+      "core": {
+        "type": "subsonic",
+        "category": "media",
+        "name": "Subsonic",
+        "baseURL": "http://192.168.1.105:4533",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "subsonic",
+      "baseURL": "http://192.168.1.105:4533",
+      "username": "admin",
+      "password": "your-password",
+      "ssl": false
+    }
   }
 }
 
 ###
 
-# @name createEmbyClient
-POST http://localhost:8080/api/v1/client/emby HTTP/1.1
+# @name createPlexClient
+POST http://localhost:8080/api/v1/client/plex HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "name": "Emby",
-  "clientType": "emby",
-  "client": {
-    "baseURL": "http://192.168.1.100:8096",
-    "apiKey": "your-emby-apikey",
-    "username": "admin",
-    "ssl": false
+  "name": "Plex",
+  "clientType": "plex",
+  "isEnabled": true,
+  "config": {
+    "details": {
+      "core": {
+        "type": "plex",
+        "category": "media",
+        "name": "Plex",
+        "baseURL": "http://192.168.1.106:32400",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "plex",
+      "baseURL": "http://192.168.1.106:32400",
+      "token": "your-plex-token",
+      "ssl": false
+    }
+  }
+}
+
+###
+
+# @name createClaudeClient
+POST http://localhost:8080/api/v1/client/claude HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Claude",
+  "clientType": "claude",
+  "isEnabled": true,
+  "config": {
+    "details": {
+      "core": {
+        "type": "claude",
+        "category": "ai",
+        "name": "Claude",
+        "baseURL": "https://api.anthropic.com",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "claude",
+      "baseURL": "https://api.anthropic.com",
+      "apiKey": "your-claude-api-key",
+      "model": "claude-3-haiku-20240307",
+      "temperature": 0.7,
+      "maxTokens": 1000,
+      "maxContextTokens": 100000
+    }
+  }
+}
+
+###
+
+# @name createOpenAIClient
+POST http://localhost:8080/api/v1/client/openai HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "OpenAI",
+  "clientType": "openai",
+  "isEnabled": true,
+  "config": {
+    "details": {
+      "core": {
+        "type": "openai",
+        "category": "ai",
+        "name": "OpenAI",
+        "baseURL": "https://api.openai.com",
+        "enabled": true,
+        "validateConn": false
+      },
+      "clientType": "openai",
+      "baseURL": "https://api.openai.com",
+      "apiKey": "your-openai-api-key",
+      "model": "gpt-4",
+      "temperature": 0.7,
+      "maxTokens": 1000,
+      "maxContextTokens": 8192
+    }
+  }
+}
+
+###
+
+# @name createOllamaClient
+POST http://localhost:8080/api/v1/client/ollama HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Ollama",
+  "clientType": "ollama",
+  "isEnabled": true,
+  "config": {
+    "details": {
+      "core": {
+        "type": "ollama",
+        "category": "ai",
+        "name": "Ollama",
+        "baseURL": "http://localhost:11434",
+        "enabled": true,
+        "validateConn": false
+      },
+      "clientType": "ollama",
+      "baseURL": "http://localhost:11434",
+      "model": "llama2",
+      "temperature": 0.7,
+      "maxTokens": 1000,
+      "maxContextTokens": 8192
+    }
   }
 }
 
 ###
 
 # @name updateEmbyClient
-PUT http://localhost:8080/api/v1/admin/client/emby/{{createEmbyClient.response.body.$.data.id}} HTTP/1.1
+PUT http://localhost:8080/api/v1/admin/client/{{createEmbyClient.response.body.$.data.id}} HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -191,11 +341,22 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   "name": "Emby (Updated)",
   "clientType": "emby",
   "isEnabled": false,
-  "client": {
-    "baseURL": "http://192.168.1.100:8096",
-    "apiKey": "your-emby-apikey",
-    "username": "admin",
-    "ssl": false
+  "config": {
+    "details": {
+      "core": {
+        "type": "emby",
+        "category": "media",
+        "name": "Emby (Updated)",
+        "baseURL": "http://192.168.1.100:8096",
+        "enabled": false,
+        "validateConn": true
+      },
+      "clientType": "emby",
+      "baseURL": "http://192.168.1.100:8096",
+      "apiKey": "your-emby-apikey",
+      "ssl": false
+    },
+    "username": "admin"
   }
 }
 

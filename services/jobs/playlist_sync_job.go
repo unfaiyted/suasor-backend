@@ -201,7 +201,7 @@ func (j *PlaylistSyncJob) findMatchingTargetItem(
 	}
 
 	// First, find the media item using the source client's information
-	sourceItem, err := j.mediaItemRepo.GetByClientItemID(ctx, sourceItemID, sourceClientID)
+	sourceItem, err := j.mediaItemRepo.GetByClientItemID(ctx, sourceClientID, sourceItemID)
 	if err != nil {
 		return "", fmt.Errorf("source item not found: %w", err)
 	}

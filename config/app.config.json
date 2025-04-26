@@ -2,19 +2,26 @@
   "app": {
     "apiBaseURL": "http://localhost:8080",
     "appURL": "http://localhost:3000",
-    "environment": "development",
-    "logLevel": "debug",
-    "maxPageSize": 100,
-    "name": "suasor",
     "avatarPath": "./uploads/avatars",
-    "maxAvatarSize": 5242880
+    "environment": "development",
+    "logLevel": "info",
+    "maxAvatarSize": 5242880,
+    "maxPageSize": 100,
+    "name": "suasor"
   },
   "auth": {
-    "allowedOrigins": ["http://localhost:5173"],
+    "accessExpiryMinutes": 15,
+    "allowedOrigins": [
+      "http://localhost:3000"
+    ],
     "enable2FA": false,
     "enableLocal": true,
+    "jwtSecret": "your-default-jwt-secret-change-me-in-production",
+    "refreshExpiryDays": 7,
     "sessionTimeout": 60,
-    "tokenExpiration": 24
+    "tokenAudience": "suasor-client",
+    "tokenExpiration": 24,
+    "tokenIssuer": "suasor-api"
   },
   "db": {
     "host": "localhost",
@@ -26,13 +33,17 @@
     "user": "postgres"
   },
   "http": {
+    "baseURL": "",
     "enableSSL": false,
     "idleTimeout": 60,
     "port": "8080",
+    "proxyEnabled": false,
+    "proxyURL": "",
     "rateLimitEnabled": true,
     "readTimeout": 30,
     "requestsPerMin": 100,
-    "writeTimeout": 30,
-    "baseURL": "http://localhost:8080"
+    "sslCert": "",
+    "sslKey": "",
+    "writeTimeout": 30
   }
 }

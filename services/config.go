@@ -11,6 +11,7 @@ import (
 	"suasor/types/constants"
 	"suasor/utils/logger"
 	"sync"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/knadh/koanf/parsers/dotenv"
@@ -20,6 +21,28 @@ import (
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
 )
+
+// tryLock attempts to acquire a lock with a timeout
+func tryLock(lock *sync.RWMutex) bool {
+	// Create a channel to signal when the lock is acquired
+	done := make(chan bool, 1)
+	
+	// Try to acquire the lock in a goroutine
+	go func() {
+		lock.Lock()
+		done <- true
+	}()
+	
+	// Wait for the lock with timeout
+	select {
+	case <-done:
+		// Lock acquired
+		return true
+	case <-time.After(500 * time.Millisecond):
+		// Timeout - couldn't acquire lock
+		return false
+	}
+}
 
 // ConfigService provides methods to interact with configuration
 type ConfigService interface {
@@ -102,42 +125,56 @@ func (s *configService) InitConfig(ctx context.Context) error {
 	// Set up file watcher
 	log.Debug().Msg("Setting up config file watcher")
 	s.configRepo.WatchConfigFile(func() {
-		logFromWatcher := log.With().Str("source", "file_watcher").Logger()
-		logFromWatcher.Info().Msg("Config file change detected")
+		// Use a separate goroutine to prevent blocking
+		go func() {
+			logFromWatcher := log.With().Str("source", "file_watcher").Logger()
+			logFromWatcher.Info().Msg("Config file change detected")
 
-		s.configLock.Lock()
-		defer s.configLock.Unlock()
+			// Try to acquire the lock, but don't block indefinitely
+			// if we can't get the lock, skip this reload
+			if !tryLock(&s.configLock) {
+				logFromWatcher.Warn().Msg("Config is being modified elsewhere, skipping reload")
+				return
+			}
+			defer s.configLock.Unlock()
 
-		// Create a new instance and reload
-		s.k = koanf.New(".")
+			// Create a new koanf instance to avoid concurrent map issues
+			newK := koanf.New(".")
 
-		// Reload in the correct order
-		logFromWatcher.Debug().Msg("Reloading default configuration")
-		s.k.Load(confmap.Provider(constants.DefaultConfig, "."), nil)
+			// Reload in the correct order
+			logFromWatcher.Debug().Msg("Reloading default configuration")
+			if err := newK.Load(confmap.Provider(constants.DefaultConfig, "."), nil); err != nil {
+				logFromWatcher.Error().Err(err).Msg("Failed to reload default configuration")
+				return
+			}
 
-		logFromWatcher.Debug().Msg("Reloading configuration from file")
-		s.k.Load(file.Provider(s.configPath), kjson.Parser())
+			logFromWatcher.Debug().Msg("Reloading configuration from file")
+			if err := newK.Load(file.Provider(s.configPath), kjson.Parser()); err != nil {
+				logFromWatcher.Error().Err(err).Msg("Failed to reload configuration from file")
+				return
+			}
 
-		logFromWatcher.Debug().Msg("Reloading configuration from .env file")
-		s.k.Load(file.Provider(".env"), dotenv.Parser())
+			logFromWatcher.Debug().Msg("Reloading configuration from .env file")
+			newK.Load(file.Provider(".env"), dotenv.Parser())
 
-		logFromWatcher.Debug().Msg("Reloading configuration from environment variables")
-		s.k.Load(env.Provider("suasor_", ".", s.envKeyReplacer), nil)
+			logFromWatcher.Debug().Msg("Reloading configuration from environment variables")
+			newK.Load(env.Provider("suasor_", ".", s.envKeyReplacer), nil)
 
-		logFromWatcher.Info().Msg("All config providers reloaded")
+			logFromWatcher.Info().Msg("All config providers reloaded")
 
-		// Log merged configuration for testing
-		var rawConfig map[string]interface{}
-		s.k.Unmarshal("", &rawConfig)
-		logFromWatcher.Debug().Interface("merged_config", rawConfig).Msg("Merged configuration")
+			// Create a new config struct to avoid modifying the existing one during unmarshaling
+			newConfig := &types.Configuration{}
+			if err := newK.Unmarshal("", newConfig); err != nil {
+				logFromWatcher.Error().Err(err).Msg("Error unmarshaling configuration")
+				return
+			}
 
-		// Update the config struct
-		if err := s.k.Unmarshal("", s.config); err != nil {
-			logFromWatcher.Error().Err(err).Msg("Error unmarshaling configuration")
-			return
-		}
+			// Now update the service's config and koanf instance
+			s.k = newK
+			s.config = newConfig
 
-		logFromWatcher.Info().Msg("Configuration reloaded successfully due to file change")
+			logFromWatcher.Info().Msg("Configuration reloaded successfully due to file change")
+		}()
 	})
 
 	// 3. Load environment variables
@@ -314,6 +351,10 @@ func (s *configService) ResetFileConfig(ctx context.Context) error {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Resetting configuration file to defaults")
 
+	// Acquire lock to prevent concurrent access with file watcher
+	s.configLock.Lock()
+	defer s.configLock.Unlock()
+
 	// Create default config
 	k := koanf.New(".")
 	log.Debug().Msg("Loading default configuration")
@@ -339,9 +380,19 @@ func (s *configService) ResetFileConfig(ctx context.Context) error {
 
 	log.Info().Msg("Default configuration saved to file")
 
-	// Reload the main configuration
-	log.Info().Msg("Reloading main configuration")
-	return s.InitConfig(ctx)
+	// Update the in-memory configuration directly instead of calling InitConfig
+	// to avoid race conditions with the file watcher
+	s.config = defaultConfig
+	
+	// Recreate the koanf instance with default values
+	s.k = koanf.New(".")
+	if err := s.k.Load(confmap.Provider(constants.DefaultConfig, "."), nil); err != nil {
+		log.Error().Err(err).Msg("Error reloading defaults")
+		return fmt.Errorf("error reloading defaults: %w", err)
+	}
+
+	log.Info().Msg("Configuration reset to defaults successfully")
+	return nil
 }
 
 func (s *configService) GetRepo() repository.ConfigRepository {

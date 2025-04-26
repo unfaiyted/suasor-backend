@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"suasor/clients/media/types"
 )
 
 // @Description Emby media server configuration
@@ -75,4 +76,8 @@ func (m *EmbyConfig) Scan(value any) error {
 
 	// Use the same custom unmarshaling logic we defined in UnmarshalJSON
 	return m.UnmarshalJSON(bytes)
+}
+
+func (c *EmbyConfig) SupportsMediaType(mediaType types.MediaType) bool {
+	return DoesClientSupportMediaType(c, mediaType)
 }

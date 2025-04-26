@@ -20,14 +20,14 @@ Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
 ###
 # @name getAIClients
 # Get only AI clients (claude, openai, ollama)
-GET {{baseUrl}}/clients?clientCategory=ai
+GET {{baseUrl}}/clients?clientCategory=media
 Content-Type: application/json
 Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
 
 ###
 # @name getAutomationClients
 # Get only automation clients (radarr, sonarr, lidarr)
-GET {{baseUrl}}/clients?type=automation
+GET {{baseUrl}}/clients?clientCategory=automation
 Content-Type: application/json
 Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
 
@@ -64,8 +64,6 @@ Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
   }
 }
 
-}
-
 ###
 # @name getEmbyClient
 GET {{baseUrl}}/admin/client/{{createEmbyClient.response.body.$.data.id}}
@@ -74,22 +72,34 @@ Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
 
 ### 
 # @name updateEmbyClient
-PUT {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}
+PUT {{baseUrl}}/admin/client/{{createEmbyClient.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
 
 {
-  "name": "Emby Test (Updated)",
+  "name": "Emby",
   "clientType": "emby",
   "isEnabled": true,
-  "client": {
-    "baseURL": "{{EMBY_TEST_URL}}",
-    "apiKey": "{{EMBY_TEST_API_KEY}}",
-    "username": "{{EMBY_TEST_USER}}",
-    "ssl": false,
-    "validateConn": true
+  "config": {
+    "details": {
+      "core": {
+        "type": "emby",
+        "category": "media",
+        "name": "Emby",
+        "baseURL": "{{EMBY_TEST_URL}}",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "emby",
+      "apiKey": "{{EMBY_TEST_API_KEY}}", 
+      "ssl": false
+    },
+    "username": "{{EMBY_TEST_USER}}"
   }
 }
+
+
+
 
 ###
 # @name testEmbyConnection
@@ -113,12 +123,22 @@ Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
   "name": "Jellyfin Test",
   "clientType": "jellyfin",
   "isEnabled": true,
-  "client": {
-    "baseURL": "{{JELLYFIN_TEST_URL}}",
-    "apiKey": "{{JELLYFIN_TEST_API_KEY}}",
-    "username": "{{JELLYFIN_TEST_USER}}",
-    "ssl": false,
-    "validateConn": true
+  "config": {
+    "details": {
+      "core": {
+        "type": "jellyfin",
+        "category": "media",
+        "name": "Jellyfin",
+        "baseURL": "{{JELLYFIN_TEST_URL}}",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "jellyfin",
+      "baseURL": "{{JELLYFIN_TEST_URL}}",
+      "apiKey": "{{JELLYFIN_TEST_API_KEY}}",
+      "ssl": false
+    },
+    "username": "{{JELLYFIN_TEST_USER}}"
   }
 }
 
@@ -132,11 +152,21 @@ Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
   "name": "Plex Test",
   "clientType": "plex",
   "isEnabled": true,
-  "client": {
-    "baseURL": "{{PLEX_TEST_URL}}",
-    "token": "{{PLEX_TEST_TOKEN}}",
-    "ssl": false,
-    "validateConn": true
+  "config": {
+    "details": {
+      "core": {
+        "type": "plex",
+        "category": "media",
+        "name": "Plex",
+        "baseURL": "{{PLEX_TEST_URL}}",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "plex",
+      "baseURL": "{{PLEX_TEST_URL}}",
+      "token": "{{PLEX_TEST_TOKEN}}",
+      "ssl": false
+    }
   }
 }
 
@@ -150,12 +180,22 @@ Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
   "name": "Subsonic Test",
   "clientType": "subsonic",
   "isEnabled": true,
-  "client": {
-    "baseURL": "http://{{SUBSONIC_TEST_HOST}}:{{SUBSONIC_TEST_PORT}}",
-    "username": "{{SUBSONIC_TEST_USERNAME}}",
-    "password": "{{SUBSONIC_TEST_PASSWORD}}",
-    "ssl": {{SUBSONIC_TEST_SSL}},
-    "validateConn": true
+  "config": {
+    "details": {
+      "core": {
+        "type": "subsonic",
+        "category": "media",
+        "name": "Subsonic",
+        "baseURL": "http://{{SUBSONIC_TEST_HOST}}:{{SUBSONIC_TEST_PORT}}",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "subsonic",
+      "baseURL": "http://{{SUBSONIC_TEST_HOST}}:{{SUBSONIC_TEST_PORT}}",
+      "username": "{{SUBSONIC_TEST_USERNAME}}",
+      "password": "{{SUBSONIC_TEST_PASSWORD}}",
+      "ssl": {{SUBSONIC_TEST_SSL}}
+    }
   }
 }
 
@@ -173,11 +213,21 @@ Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
   "name": "Radarr Test",
   "clientType": "radarr",
   "isEnabled": true,
-  "client": {
-    "baseURL": "{{RADARR_TEST_URL}}",
-    "apiKey": "{{RADARR_TEST_API_KEY}}",
-    "ssl": false,
-    "validateConn": true
+  "config": {
+    "details": {
+      "core": {
+        "type": "radarr",
+        "category": "automation",
+        "name": "Radarr",
+        "baseURL": "{{RADARR_TEST_URL}}",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "radarr",
+      "baseURL": "{{RADARR_TEST_URL}}",
+      "apiKey": "{{RADARR_TEST_API_KEY}}",
+      "ssl": false
+    }
   }
 }
 
@@ -191,11 +241,21 @@ Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
   "name": "Sonarr Test",
   "clientType": "sonarr",
   "isEnabled": true,
-  "client": {
-    "baseURL": "{{SONARR_TEST_URL}}",
-    "apiKey": "{{SONARR_TEST_API_KEY}}",
-    "ssl": false,
-    "validateConn": true
+  "config": {
+    "details": {
+      "core": {
+        "type": "sonarr",
+        "category": "automation",
+        "name": "Sonarr",
+        "baseURL": "{{SONARR_TEST_URL}}",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "sonarr",
+      "baseURL": "{{SONARR_TEST_URL}}",
+      "apiKey": "{{SONARR_TEST_API_KEY}}",
+      "ssl": false
+    }
   }
 }
 
@@ -209,11 +269,21 @@ Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
   "name": "Lidarr Test",
   "clientType": "lidarr",
   "isEnabled": true,
-  "client": {
-    "baseURL": "{{LIDARR_TEST_URL}}",
-    "apiKey": "{{LIDARR_TEST_API_KEY}}",
-    "ssl": false,
-    "validateConn": true
+  "config": {
+    "details": {
+      "core": {
+        "type": "lidarr",
+        "category": "automation",
+        "name": "Lidarr",
+        "baseURL": "{{LIDARR_TEST_URL}}",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "lidarr",
+      "baseURL": "{{LIDARR_TEST_URL}}",
+      "apiKey": "{{LIDARR_TEST_API_KEY}}",
+      "ssl": false
+    }
   }
 }
 
@@ -231,14 +301,24 @@ Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
   "name": "Claude Test",
   "clientType": "claude",
   "isEnabled": true,
-  "client": {
-    "baseURL": "https://api.anthropic.com",
-    "apiKey": "{{CLAUDE_API_KEY}}",
-    "model": "claude-3-haiku-20240307",
-    "temperature": 0.7,
-    "maxTokens": 1000,
-    "maxContextTokens": 100000,
-    "validateConn": true
+  "config": {
+    "details": {
+      "core": {
+        "type": "claude",
+        "category": "ai",
+        "name": "Claude",
+        "baseURL": "https://api.anthropic.com",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "claude",
+      "baseURL": "https://api.anthropic.com",
+      "apiKey": "{{CLAUDE_API_KEY}}",
+      "model": "claude-3-haiku-20240307",
+      "temperature": 0.7,
+      "maxTokens": 1000,
+      "maxContextTokens": 100000
+    }
   }
 }
 
@@ -252,14 +332,24 @@ Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
   "name": "OpenAI Test",
   "clientType": "openai",
   "isEnabled": true,
-  "client": {
-    "baseURL": "https://api.openai.com",
-    "apiKey": "your-openai-apikey",
-    "model": "gpt-4",
-    "temperature": 0.7,
-    "maxTokens": 1000,
-    "maxContextTokens": 8192,
-    "validateConn": false
+  "config": {
+    "details": {
+      "core": {
+        "type": "openai",
+        "category": "ai",
+        "name": "OpenAI",
+        "baseURL": "https://api.openai.com",
+        "enabled": true,
+        "validateConn": false
+      },
+      "clientType": "openai",
+      "baseURL": "https://api.openai.com",
+      "apiKey": "your-openai-apikey",
+      "model": "gpt-4",
+      "temperature": 0.7,
+      "maxTokens": 1000,
+      "maxContextTokens": 8192
+    }
   }
 }
 
@@ -273,13 +363,23 @@ Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
   "name": "Ollama Test",
   "clientType": "ollama",
   "isEnabled": true,
-  "client": {
-    "baseURL": "http://localhost:11434",
-    "model": "llama2",
-    "temperature": 0.7,
-    "maxTokens": 1000,
-    "maxContextTokens": 8192,
-    "validateConn": false
+  "config": {
+    "details": {
+      "core": {
+        "type": "ollama",
+        "category": "ai",
+        "name": "Ollama",
+        "baseURL": "http://localhost:11434",
+        "enabled": true,
+        "validateConn": false
+      },
+      "clientType": "ollama",
+      "baseURL": "http://localhost:11434",
+      "model": "llama2",
+      "temperature": 0.7,
+      "maxTokens": 1000,
+      "maxContextTokens": 8192
+    }
   }
 }
 
@@ -375,11 +475,22 @@ Content-Type: application/json
 Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
 
 {
-  "client": {
-    "baseURL": "{{EMBY_TEST_URL}}",
-    "apiKey": "{{EMBY_TEST_API_KEY}}",
-    "username": "{{EMBY_TEST_USER}}",
-    "ssl": false
+  "config": {
+    "details": {
+      "core": {
+        "type": "emby",
+        "category": "media",
+        "name": "Emby",
+        "baseURL": "{{EMBY_TEST_URL}}",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "emby",
+      "baseURL": "{{EMBY_TEST_URL}}",
+      "apiKey": "{{EMBY_TEST_API_KEY}}",
+      "ssl": false
+    },
+    "username": "{{EMBY_TEST_USER}}"
   }
 }
 
@@ -390,11 +501,22 @@ Content-Type: application/json
 Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
 
 {
-  "client": {
-    "baseURL": "{{JELLYFIN_TEST_URL}}",
-    "apiKey": "{{JELLYFIN_TEST_API_KEY}}",
-    "username": "{{JELLYFIN_TEST_USER}}",
-    "ssl": false
+  "config": {
+    "details": {
+      "core": {
+        "type": "jellyfin",
+        "category": "media",
+        "name": "Jellyfin",
+        "baseURL": "{{JELLYFIN_TEST_URL}}",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "jellyfin",
+      "baseURL": "{{JELLYFIN_TEST_URL}}",
+      "apiKey": "{{JELLYFIN_TEST_API_KEY}}",
+      "ssl": false
+    },
+    "username": "{{JELLYFIN_TEST_USER}}"
   }
 }
 
@@ -405,10 +527,21 @@ Content-Type: application/json
 Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
 
 {
-  "client": {
-    "baseURL": "https://api.anthropic.com",
-    "apiKey": "{{CLAUDE_API_KEY}}",
-    "model": "claude-3-haiku-20240307"
+  "config": {
+    "details": {
+      "core": {
+        "type": "claude",
+        "category": "ai",
+        "name": "Claude",
+        "baseURL": "https://api.anthropic.com",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "claude",
+      "baseURL": "https://api.anthropic.com",
+      "apiKey": "{{CLAUDE_API_KEY}}",
+      "model": "claude-3-haiku-20240307"
+    }
   }
 }
 
@@ -426,8 +559,19 @@ Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
   "name": "Invalid Client",
   "clientType": "invalid",
   "isEnabled": true,
-  "client": {
-    "baseURL": "http://example.com"
+  "config": {
+    "details": {
+      "core": {
+        "type": "invalid",
+        "category": "unknown",
+        "name": "Invalid",
+        "baseURL": "http://example.com",
+        "enabled": true,
+        "validateConn": false
+      },
+      "clientType": "invalid",
+      "baseURL": "http://example.com"
+    }
   }
 }
 
@@ -441,8 +585,19 @@ Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
   "name": "Missing Fields",
   "clientType": "emby",
   "isEnabled": true,
-  "client": {
-    "baseURL": "http://example.com"
+  "config": {
+    "details": {
+      "core": {
+        "type": "emby",
+        "category": "media",
+        "name": "Missing Fields",
+        "baseURL": "http://example.com",
+        "enabled": true,
+        "validateConn": false
+      },
+      "clientType": "emby",
+      "baseURL": "http://example.com"
+    }
   }
 }
 

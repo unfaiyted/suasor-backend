@@ -12,6 +12,8 @@ import (
 	"suasor/utils/logger"
 )
 
+func (e *EmbyClient) SupportsTVShows() bool { return true }
+
 // GetSeriess retrieves TV shows from the Emby server
 func (e *EmbyClient) GetSeries(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Series], error) {
 	log := logger.LoggerFromContext(ctx)

@@ -1,0 +1,149 @@
+### login
+
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{TEST_ADMIN_USER}}",
+  "password": "{{TEST_ADMIN_PASSWORD}}"
+}
+
+### createEmbyClient
+# @name createEmbyClient
+POST {{baseUrl}}/admin/client/emby
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Emby Test",
+  "clientType": "emby",
+  "isEnabled": true,
+  "config": {
+    "details": {
+      "core": {
+        "type": "emby",
+        "category": "media",
+        "name": "Emby",
+        "baseURL": "{{EMBY_TEST_URL}}",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "emby",
+      "baseURL": "{{EMBY_TEST_URL}}",
+      "apiKey": "{{EMBY_TEST_API_KEY}}",
+      "ssl": false
+    },
+    "username": "{{EMBY_TEST_USER}}"
+  }
+}
+
+### createJellyfinClient
+# @name createJellyfinClient
+POST {{baseUrl}}/admin/client/jellyfin
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Jellyfin Test",
+  "clientType": "jellyfin",
+  "isEnabled": true,
+  "config": {
+    "details": {
+      "core": {
+        "type": "jellyfin",
+        "category": "media",
+        "name": "Jellyfin",
+        "baseURL": "{{JELLYFIN_TEST_URL}}",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "jellyfin",
+      "baseURL": "{{JELLYFIN_TEST_URL}}",
+      "apiKey": "{{JELLYFIN_TEST_API_KEY}}",
+      "ssl": false
+    },
+    "username": "{{JELLYFIN_TEST_USER}}"
+  }
+}
+
+### createPlexClient
+# @name createPlexClient
+POST {{baseUrl}}/admin/client/plex
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Plex Test",
+  "clientType": "plex",
+  "isEnabled": true,
+  "config": {
+    "details": {
+      "core": {
+        "type": "plex",
+        "category": "media",
+        "name": "Plex",
+        "baseURL": "{{PLEX_TEST_URL}}",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "plex",
+      "baseURL": "{{PLEX_TEST_URL}}",
+      "token": "{{PLEX_TEST_TOKEN}}",
+      "ssl": false
+    }
+  }
+}
+
+### createSubsonicClient
+# @name createSubsonicClient
+POST {{baseUrl}}/admin/client/subsonic
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Subsonic Test",
+  "clientType": "subsonic",
+  "isEnabled": true,
+  "config": {
+    "details": {
+      "core": {
+        "type": "subsonic",
+        "category": "media",
+        "name": "Subsonic",
+        "baseURL": "http://{{SUBSONIC_TEST_HOST}}:{{SUBSONIC_TEST_PORT}}",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "subsonic",
+      "baseURL": "http://{{SUBSONIC_TEST_HOST}}:{{SUBSONIC_TEST_PORT}}",
+      "username": "{{SUBSONIC_TEST_USERNAME}}",
+      "password": "{{SUBSONIC_TEST_PASSWORD}}",
+      "ssl": {{SUBSONIC_TEST_SSL}}
+    }
+  }
+}
+
+### testEmbyConnection
+# @name testEmbyConnection
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/test
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### testJellyfinConnection
+# @name testJellyfinConnection
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/test
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### testPlexConnection
+# @name testPlexConnection
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/test
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### testSubsonicConnection
+# @name testSubsonicConnection
+GET {{baseUrl}}/client/{{createSubsonicClient.response.body.$.data.id}}/test
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

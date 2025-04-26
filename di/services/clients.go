@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"suasor/clients"
+	mediatypes "suasor/clients/media/types"
 	types "suasor/clients/types"
 	"suasor/di/container"
 	"suasor/repository"
@@ -28,6 +29,7 @@ func registerClientServices(ctx context.Context, c *container.Container) {
 		repo := container.MustGet[repository.ClientRepository[types.ClientAutomationConfig]](c)
 		return services.NewAutomationClientService(repo, clientFactory)
 	})
+
 }
 
 func registerClientService[T types.ClientConfig](c *container.Container) {
@@ -35,5 +37,22 @@ func registerClientService[T types.ClientConfig](c *container.Container) {
 		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
 		repo := container.MustGet[repository.ClientRepository[T]](c)
 		return services.NewClientService[T](clientFactory, repo)
+	})
+}
+
+func registerMediaTypeService[T types.ClientMediaConfig, U mediatypes.MediaData](c *container.Container) {
+	container.RegisterFactory[services.ClientMediaItemService[T, U]](c, func(c *container.Container) services.ClientMediaItemService[T, U] {
+		// Dependencies
+		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
+		clientRepo := container.MustGet[repository.ClientRepository[T]](c)
+		itemRepo := container.MustGet[repository.ClientMediaItemRepository[U]](c)
+		coreService := container.MustGet[services.CoreMediaItemService[U]](c)
+
+		return services.NewClientMediaItemService[T, U](
+			coreService,
+			clientRepo,
+			itemRepo,
+			clientFactory,
+		)
 	})
 }

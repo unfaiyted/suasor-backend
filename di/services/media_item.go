@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"gorm.io/gorm"
+	"suasor/clients"
 	mediatypes "suasor/clients/media/types"
 	clienttypes "suasor/clients/types"
 
@@ -102,7 +103,7 @@ func registerMediaItemServices(ctx context.Context, c *container.Container) {
 			playlistCoreService:   container.MustGet[services.CoreMediaItemService[*mediatypes.Playlist]](c),
 		}
 	})
-	
+
 	// Register MusicRepository
 	container.RegisterFactory[repository.MusicRepository](c, func(c *container.Container) repository.MusicRepository {
 		db := container.MustGet[*gorm.DB](c)
@@ -111,7 +112,7 @@ func registerMediaItemServices(ctx context.Context, c *container.Container) {
 		artistRepo := container.MustGet[repository.MediaItemRepository[*mediatypes.Artist]](c)
 		return repository.NewMusicRepository(db, trackRepo, albumRepo, artistRepo)
 	})
-	
+
 	// Register CoreMusicService
 	container.RegisterFactory[services.CoreMusicService](c, func(c *container.Container) services.CoreMusicService {
 		musicRepo := container.MustGet[repository.MusicRepository](c)
@@ -137,7 +138,8 @@ func registerClientMediaItemService[T clienttypes.ClientMediaConfig, U mediatype
 		coreService := container.MustGet[services.CoreMediaItemService[U]](c)
 		clientRepo := container.MustGet[repository.ClientRepository[T]](c)
 		itemRepo := container.MustGet[repository.ClientMediaItemRepository[U]](c)
-		return services.NewClientMediaItemService[T, U](coreService, clientRepo, itemRepo)
+		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
+		return services.NewClientMediaItemService[T, U](coreService, clientRepo, itemRepo, clientFactory)
 	})
 }
 

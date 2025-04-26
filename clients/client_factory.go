@@ -189,6 +189,22 @@ func (s *ClientProviderFactoryService) GetMusicProvider(ctx context.Context, cli
 	return client.(providers.MusicProvider), nil
 }
 
+func (s *ClientProviderFactoryService) GetPlaylistProvider(ctx context.Context, clientID uint64, config types.ClientConfig) (providers.PlaylistProvider, error) {
+	client, err := s.GetClient(ctx, clientID, config)
+	if err != nil {
+		return nil, err
+	}
+	return client.(providers.PlaylistProvider), nil
+}
+
+func (s *ClientProviderFactoryService) GetCollectionProvider(ctx context.Context, clientID uint64, config types.ClientConfig) (providers.CollectionProvider, error) {
+	client, err := s.GetClient(ctx, clientID, config)
+	if err != nil {
+		return nil, err
+	}
+	return client.(providers.CollectionProvider), nil
+}
+
 // Convenience package-level functions for working with the singleton
 
 // RegisterClientProviderFactory registers a factory at the package level

@@ -6,7 +6,9 @@ import (
 
 // MusicArtist represents a music artist
 type Artist struct {
-	Details        MediaDetails
+	MediaData `json:"-"`
+
+	Details        MediaDetails      `json:"details"`
 	Albums         []*Album          `json:"albums,omitempty"`
 	AlbumIDs       []uint64          `json:"albumIDs,omitempty"`
 	AlbumCount     int               `json:"albumCount"`
@@ -59,49 +61,40 @@ func (s SyncClients) GetClientItemID(clientID uint64) string {
 
 // Season represents a TV season
 type Season struct {
-	Details      MediaDetails
-	Number       int         `json:"seasonNumber"`
-	Title        string      `json:"title,omitempty"`
-	Overview     string      `json:"overview,omitempty"`
-	EpisodeCount int         `json:"episodeCount"`
-	Episodes     []*Episode  `json:"episodes,omitempty"`
-	EpisodeIDs   []uint64    `json:"episodeIDs,omitempty"`
-	Artwork      Artwork     `json:"artwork,omitempty"`
-	ReleaseDate  time.Time   `json:"releaseDate,omitempty"`
-	SeriesName   string      `json:"seriesName,omitempty"`
-	SeriesID     uint64      `json:"seriesID"`
-	SyncSeries   SyncClients `json:"syncSeries,omitempty"`
-	Credits      Credits     `json:"credits,omitempty"`
+	MediaData    `json:"-"`
+	Details      MediaDetails `json:"details"`
+	Number       int          `json:"seasonNumber"`
+	Title        string       `json:"title,omitempty"`
+	Overview     string       `json:"overview,omitempty"`
+	EpisodeCount int          `json:"episodeCount"`
+	Episodes     []*Episode   `json:"episodes,omitempty"`
+	EpisodeIDs   []uint64     `json:"episodeIDs,omitempty"`
+	Artwork      Artwork      `json:"artwork,omitempty"`
+	ReleaseDate  time.Time    `json:"releaseDate,omitempty"`
+	SeriesName   string       `json:"seriesName,omitempty"`
+	SeriesID     uint64       `json:"seriesID"`
+	SyncSeries   SyncClients  `json:"syncSeries,omitempty"`
+	Credits      Credits      `json:"credits,omitempty"`
 }
 
 // Series represents a TV series
 type Series struct {
-	Details       MediaDetails
-	Seasons       []*Season `json:"seasons,omitempty"`
-	EpisodeCount  int       `json:"episodeCount"`
-	SeasonCount   int       `json:"seasonCount"`
-	ReleaseYear   int       `json:"releaseYear"`
-	ContentRating string    `json:"contentRating"`
-	Rating        float64   `json:"rating"`
-	Network       string    `json:"network,omitempty"`
-	Status        string    `json:"status,omitempty"` // e.g., "Ended", "Continuing"
-	Genres        []string  `json:"genres,omitempty"`
-	Credits       Credits   `json:"credits,omitempty"`
+	MediaData     `json:"-"`
+	Details       MediaDetails `json:"details"`
+	Seasons       []*Season    `json:"seasons,omitempty"`
+	EpisodeCount  int          `json:"episodeCount"`
+	SeasonCount   int          `json:"seasonCount"`
+	ReleaseYear   int          `json:"releaseYear"`
+	ContentRating string       `json:"contentRating"`
+	Rating        float64      `json:"rating"`
+	Network       string       `json:"network,omitempty"`
+	Status        string       `json:"status,omitempty"` // e.g., "Ended", "Continuing"
+	Genres        []string     `json:"genres,omitempty"`
+	Credits       Credits      `json:"credits,omitempty"`
 }
 
 func (m *Series) SetDetails(details MediaDetails) {
 	m.Details = details
-}
-
-// Movie represents a movie item
-type Movie struct {
-	Details      MediaDetails
-	Credits      Credits  `json:"credits,omitempty"`
-	TrailerURL   string   `json:"trailerUrl,omitempty"`
-	Resolution   string   `json:"resolution,omitempty"` // e.g., "4K", "1080p"
-	VideoCodec   string   `json:"videoCodec,omitempty"`
-	AudioCodec   string   `json:"audioCodec,omitempty"`
-	SubtitleURLs []string `json:"subtitleUrls,omitempty"`
 }
 
 // Artwork holds different types of artwork
@@ -115,6 +108,7 @@ type Artwork struct {
 
 // Person represents someone involved with the media
 type Person struct {
+	MediaData `json:"-"`
 	Name      string `json:"name"`
 	Role      string `json:"role,omitempty"`      // e.g., "Director", "Actor"
 	Character string `json:"character,omitempty"` // For actors
@@ -173,6 +167,7 @@ type MediaData interface {
 	isMediaData()
 	GetDetails() MediaDetails
 	GetMediaType() MediaType
+	SetDetails(MediaDetails)
 }
 
 func NewItem[T MediaData]() T {
@@ -180,7 +175,6 @@ func NewItem[T MediaData]() T {
 	return zero
 }
 
-func (Movie) isMediaData()      {}
 func (Series) isMediaData()     {}
 func (Episode) isMediaData()    {}
 func (Track) isMediaData()      {}
@@ -194,21 +188,23 @@ func (t Track) GetDetails() MediaDetails { return t.Details }
 func (t Track) GetMediaType() MediaType  { return MediaTypeTrack }
 func (t Track) GetTitle() string         { return t.Details.Title }
 
+func (t *Track) SetDetails(details MediaDetails) {
+	t.Details = details
+}
+
 func (a Album) GetDetails() MediaDetails { return a.Details }
 func (a Album) GetMediaType() MediaType  { return MediaTypeAlbum }
 
 func (a Album) GetTitle() string { return a.Details.Title }
 
+func (a *Album) SetDetails(details MediaDetails) {
+	a.Details = details
+}
+
 func (a Artist) GetDetails() MediaDetails { return a.Details }
 func (a Artist) GetMediaType() MediaType  { return MediaTypeArtist }
 
 func (a Artist) GetTitle() string { return a.Details.Title }
-
-// Then in each media type
-func (m Movie) GetDetails() MediaDetails { return m.Details }
-func (m Movie) GetMediaType() MediaType  { return MediaTypeMovie }
-
-func (m Movie) GetTitle() string { return m.Details.Title }
 
 func (t Series) GetDetails() MediaDetails { return t.Details }
 func (t Series) GetMediaType() MediaType  { return MediaTypeSeries }
@@ -224,3 +220,7 @@ func (e Episode) GetDetails() MediaDetails { return e.Details }
 func (e Episode) GetMediaType() MediaType  { return MediaTypeEpisode }
 
 func (e Episode) GetTitle() string { return e.Details.Title }
+
+func (e *Episode) SetDetails(details MediaDetails) {
+	e.Details = details
+}

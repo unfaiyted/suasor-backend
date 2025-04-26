@@ -32,7 +32,7 @@ type MediaItemRepository[T types.MediaData] interface {
 	Update(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error)
 	GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error)
 	GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error)
-	GetByClientItemID(ctx context.Context, clientItemID string, clientID uint64) (*models.MediaItem[T], error)
+	GetByClientItemID(ctx context.Context, clientID uint64, clientItemID string) (*models.MediaItem[T], error)
 	GetAll(ctx context.Context, limit int, offset int, publicOnly bool) ([]*models.MediaItem[T], error)
 	Delete(ctx context.Context, id uint64) error
 
@@ -527,25 +527,32 @@ func (r *mediaItemRepository[T]) GetAll(ctx context.Context, limit int, offset i
 	return items, nil
 }
 
-func (r *mediaItemRepository[T]) GetByClientItemID(ctx context.Context, clientItemID string, clientID uint64) (*models.MediaItem[T], error) {
+func (r *mediaItemRepository[T]) GetByClientItemID(ctx context.Context, clientID uint64, clientItemID string) (*models.MediaItem[T], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("clientItemID", clientItemID).
 		Uint64("clientID", clientID).
 		Msg("Getting media item by client item ID")
 
-	var item *models.MediaItem[T]
+	var items []*models.MediaItem[T]
+
+	// Use JSON containment operator to find the media item where SyncClients contains
+	// the specified client ID and item ID
+	queryArray := fmt.Sprintf(`[{"clientID":%d,"itemID":"%s"}]`, clientID, clientItemID)
+	query := fmt.Sprintf(`{"clientID":%d,"itemID":"%s"}`, clientID, clientItemID)
+
 	if err := r.db.WithContext(ctx).
-		Where("client_id = ?", clientID).
-		Where("client_item_id = ?", clientItemID).
-		First(&item).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("media item not found")
-		}
+		Where("sync_clients @> ?::jsonb OR sync_clients @> ?::jsonb", queryArray, query).
+		Find(&items).Error; err != nil {
 		return nil, fmt.Errorf("failed to get media item by client item ID: %w", err)
 	}
 
-	return item, nil
+	if len(items) == 0 {
+		return nil, fmt.Errorf("media item not found")
+	}
+
+	// Return the first match (should be unique, but we're being defensive)
+	return items[0], nil
 }
 
 func (r *mediaItemRepository[T]) GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error) {

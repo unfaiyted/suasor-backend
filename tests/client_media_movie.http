@@ -1,0 +1,119 @@
+import ./client_media_common.http
+
+run #login
+run #createEmbyClient
+
+###
+# @name getEmbyMovieByID
+# Get a specific movie from Emby by ID
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/movie/{{TEST_EMBY_MOVIE_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getAllEmbyMovies
+# Get all movies from Emby
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/movie
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name searchEmbyMovies
+# Search for movies in Emby
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/movie/search?q={{TEST_MOVIE_SEARCH_QUERY}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getEmbyMoviesByGenre
+# Get movies from Emby by genre
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/movie/genre/{{TEST_GENRE}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getEmbyMoviesByYear
+# Get movies from Emby by year
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/movie/year/{{TEST_YEAR}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name recordEmbyMoviePlay
+# Record a play event for an Emby movie
+POST {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/movie/{{TEST_EMBY_MOVIE_ID}}/play
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "positionTicks": 0,
+  "isMuted": false,
+  "isPaused": false
+}
+
+###
+# @name getEmbyMoviePlaybackState
+# Get the playback state for an Emby movie
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/movie/{{TEST_EMBY_MOVIE_ID}}/state
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name updateEmbyMoviePlaybackState
+# Update the playback state for an Emby movie
+PUT {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/movie/{{TEST_EMBY_MOVIE_ID}}/state
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "positionTicks": 5000000,
+  "isMuted": false,
+  "isPaused": true
+}
+
+###
+# @name syncEmbyMovie
+# Sync an Emby movie
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/movie/sync?movieId={{TEST_EMBY_MOVIE_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name createEmbyMovieItem
+# Create a new movie item from Emby
+POST {{baseUrl}}/client/media
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{createEmbyClient.response.body.$.data.id}},
+  "clientType": "emby",
+  "externalID": "{{TEST_EMBY_MOVIE_ID}}",
+  "type": "movie",
+  "data": {
+    "title": "Test Movie",
+    "originalTitle": "Test Movie Original",
+    "overview": "This is a test movie created via API",
+    "releaseDate": "2023-01-01",
+    "runtime": 120,
+    "genres": ["Action", "Drama"],
+    "directors": ["Test Director"],
+    "writers": ["Test Writer"],
+    "cast": ["Actor 1", "Actor 2"],
+    "posterURL": "https://example.com/poster.jpg",
+    "backdropURL": "https://example.com/backdrop.jpg",
+    "rating": 8.5,
+    "details": {
+      "mpaaRating": "PG-13",
+      "imdbId": "tt00000000",
+      "tmdbId": 123456
+    }
+  }
+}
+
+###
+# @name deleteEmbyMovie
+# Delete an Emby movie
+DELETE {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/movie/{{TEST_EMBY_MOVIE_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

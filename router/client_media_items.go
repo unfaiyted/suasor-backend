@@ -84,24 +84,29 @@ func registerClientItemRoutes[T mediatypes.MediaData](rg *gin.RouterGroup, c *co
 			// handler.SyncClientItemData(g)
 		}
 	})
+	itemGroup.GET("/search", func(g *gin.Context) {
+		if handler := getItemHandler[T](g, c); handler != nil {
+			handler.SearchClient(g)
+		}
+	})
 
 }
 
-func getItemHandlerMap[T mediatypes.MediaData](c *container.Container, clientType clienttypes.ClientType) (
+func getItemHandlerMap[T mediatypes.MediaData](ctx context.Context, c *container.Container, clientType clienttypes.ClientType) (
 	handlers.ClientMediaItemHandler[clienttypes.ClientMediaConfig, T], bool) {
 
 	handlerMap := map[clienttypes.ClientType]handlers.ClientMediaItemHandler[clienttypes.ClientMediaConfig, T]{}
 
-	if CheckClientSupportsMediaType[*clienttypes.EmbyConfig, T]() {
+	if CheckClientSupportsMediaType[*clienttypes.EmbyConfig, T](ctx) {
 		handlerMap[clienttypes.ClientTypeEmby] = container.MustGet[handlers.ClientMediaItemHandler[*clienttypes.EmbyConfig, T]](c)
 	}
-	if CheckClientSupportsMediaType[*clienttypes.JellyfinConfig, T]() {
+	if CheckClientSupportsMediaType[*clienttypes.JellyfinConfig, T](ctx) {
 		handlerMap[clienttypes.ClientTypeJellyfin] = container.MustGet[handlers.ClientMediaItemHandler[*clienttypes.JellyfinConfig, T]](c)
 	}
-	if CheckClientSupportsMediaType[*clienttypes.PlexConfig, T]() {
+	if CheckClientSupportsMediaType[*clienttypes.PlexConfig, T](ctx) {
 		handlerMap[clienttypes.ClientTypePlex] = container.MustGet[handlers.ClientMediaItemHandler[*clienttypes.PlexConfig, T]](c)
 	}
-	if CheckClientSupportsMediaType[*clienttypes.SubsonicConfig, T]() {
+	if CheckClientSupportsMediaType[*clienttypes.SubsonicConfig, T](ctx) {
 		handlerMap[clienttypes.ClientTypeSubsonic] = container.MustGet[handlers.ClientMediaItemHandler[*clienttypes.SubsonicConfig, T]](c)
 	}
 
@@ -121,7 +126,7 @@ func getItemHandler[T mediatypes.MediaData](g *gin.Context, c *container.Contain
 	}
 	clientType := clientTypeStr.(clienttypes.ClientType)
 	log.Debug().Str("clientType", string(clientType)).Msg("Getting client media item handler")
-	handler, exists := getItemHandlerMap[T](c, clientType)
+	handler, exists := getItemHandlerMap[T](g.Request.Context(), c, clientType)
 	if !exists {
 		err := fmt.Errorf("unsupported client type: %s", clientType)
 		responses.RespondBadRequest(g, err, "Unsupported client type")
@@ -132,26 +137,29 @@ func getItemHandler[T mediatypes.MediaData](g *gin.Context, c *container.Contain
 
 // CheckSupportsMediaType
 
-func CheckClientSupportsMediaType[T clienttypes.ClientMediaConfig, U mediatypes.MediaData]() bool {
-	var clientConfig T
+func CheckClientSupportsMediaType[T clienttypes.ClientMediaConfig, U mediatypes.MediaData](ctx context.Context) bool {
 	var zero U
 	mediaType := mediatypes.GetMediaTypeFromTypeName(zero)
-	fmt.Printf("MediaType: %v\n", mediaType)
-	fmt.Printf("ClientConfig: %v\n", clientConfig)
-	switch any(clientConfig).(type) {
-	case *clienttypes.EmbyConfig:
-		fmt.Printf("EmbyConfig!!!! ")
-		return (&clienttypes.EmbyConfig{}).SupportsMediaType(mediaType)
-	case *clienttypes.JellyfinConfig:
-		return (&clienttypes.JellyfinConfig{}).SupportsMediaType(mediaType)
-	case *clienttypes.PlexConfig:
-		return (&clienttypes.PlexConfig{}).SupportsMediaType(mediaType)
-	case *clienttypes.SubsonicConfig:
-		return (&clienttypes.SubsonicConfig{}).SupportsMediaType(mediaType)
-	default:
-		// This case shouldn't be reached with your current design
-		// But providing a default to satisfy the compiler
-		panic("Unsupported client config type")
-	}
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().Str("mediaType", string(mediaType)).Msg("Checking client support for media type")
 
+	// Create an instance of the client config
+	var instance T
+	switch any(instance).(type) {
+	case *clienttypes.EmbyConfig:
+		config := clienttypes.NewEmbyConfig("", "", "", "", true, true)
+		return config.SupportsMediaType(mediaType)
+	case *clienttypes.JellyfinConfig:
+		config := clienttypes.NewJellyfinConfig("", "", "", "", true, true)
+		return config.SupportsMediaType(mediaType)
+	case *clienttypes.PlexConfig:
+		config := clienttypes.NewPlexConfig("", "", true, true)
+		return config.SupportsMediaType(mediaType)
+	case *clienttypes.SubsonicConfig:
+		config := clienttypes.NewSubsonicConfig("", "", "", true, true)
+		return config.SupportsMediaType(mediaType)
+	default:
+		log.Warn().Msgf("Unsupported client config type: %T", instance)
+		return false
+	}
 }

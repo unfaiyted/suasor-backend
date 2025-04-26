@@ -1,0 +1,124 @@
+import ./common/auth.http
+
+# Import and use the admin login for all configuration operations
+run #adminLogin
+run #persistentUserLogin
+
+###
+# @name getConfig
+# Get the current application configuration (admin only)
+GET {{baseUrl}}/admin/config
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name updateConfig
+# Update the application configuration (admin only)
+PUT {{baseUrl}}/admin/config
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+{
+  "app": {
+    "name": "Suasor",
+    "environment": "development",
+    "appURL": "http://localhost:3000",
+    "apiBaseURL": "http://localhost:8080",
+    "logLevel": "info",
+    "maxPageSize": 100,
+    "avatarPath": "./uploads/avatars",
+    "maxAvatarSize": 5242880
+  },
+  "http": {
+    "port": "8080",
+    "readTimeout": 30,
+    "writeTimeout": 30,
+    "idleTimeout": 60,
+    "enableSSL": false,
+    "rateLimitEnabled": true,
+    "requestsPerMin": 100,
+    "baseURL": "http://localhost:8080"
+  },
+  "auth": {
+    "enableLocal": true,
+    "sessionTimeout": 60,
+    "enable2FA": false,
+    "jwtSecret": "your-jwt-secret",
+    "tokenExpiration": 24,
+    "allowedOrigins": [
+      "http://localhost:3000",
+      "http://localhost:5173"
+    ],
+    "accessExpiryMinutes": 15,
+    "refreshExpiryDays": 7,
+    "tokenIssuer": "suasor-api",
+    "tokenAudience": "suasor-client"
+  },
+  "db": {
+    "host": "localhost",
+    "port": "5432",
+    "name": "suasor",
+    "user": "postgres",
+    "password": "postgres",
+    "maxConns": 25,
+    "timeout": 30
+  }
+}
+
+###
+# @name resetConfig
+# Reset the application configuration to default values (admin only)
+POST {{baseUrl}}/admin/config/reset
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+###
+# @name getConfigNonAdmin
+# Try to get the configuration as a non-admin user (should fail)
+GET {{baseUrl}}/admin/config
+Content-Type: application/json
+Authorization: Bearer {{persistentUserLogin.response.body.$.data.accessToken}}
+
+###
+# @name updateConfigNonAdmin
+# Try to update the configuration as a non-admin user (should fail)
+PUT {{baseUrl}}/admin/config
+Content-Type: application/json
+Authorization: Bearer {{regularUserLogin.response.body.$.data.accessToken}}
+
+{
+  "app": {
+    "name": "Suasor - Unauthorized Update"
+  }
+}
+
+###
+# @name resetConfigNonAdmin
+# Try to reset the configuration as a non-admin user (should fail)
+POST {{baseUrl}}/admin/config/reset
+Content-Type: application/json
+Authorization: Bearer {{regularUserLogin.response.body.$.data.accessToken}}
+
+###
+# @name getConfigNoAuth
+# Try to get the configuration without authentication (should fail)
+GET {{baseUrl}}/admin/config
+Content-Type: application/json
+
+###
+# @name updateConfigNoAuth
+# Try to update the configuration without authentication (should fail)
+PUT {{baseUrl}}/admin/config
+Content-Type: application/json
+
+{
+  "app": {
+    "name": "Suasor - No Auth Update"
+  }
+}
+
+###
+# @name resetConfigNoAuth
+# Try to reset the configuration without authentication (should fail)
+POST {{baseUrl}}/admin/config/reset
+Content-Type: application/json

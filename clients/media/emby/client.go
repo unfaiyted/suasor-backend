@@ -56,14 +56,6 @@ func NewEmbyClient(ctx context.Context, registry *media.ClientItemRegistry, clie
 	return embyClient, nil
 }
 
-// Capability methods
-func (e *EmbyClient) SupportsMovies() bool      { return true }
-func (e *EmbyClient) SupportsTVShows() bool     { return true }
-func (e *EmbyClient) SupportsMusic() bool       { return true }
-func (e *EmbyClient) SupportsPlaylists() bool   { return true }
-func (e *EmbyClient) SupportsCollections() bool { return true }
-func (e *EmbyClient) SupportsHistory() bool     { return true }
-
 func (e *EmbyClient) embyConfig() *clienttypes.EmbyConfig {
 	cfg := e.GetConfig().(*clienttypes.EmbyConfig)
 	return cfg

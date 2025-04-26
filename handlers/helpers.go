@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"strconv"
 	"strings"
+	"suasor/clients/media/types"
 	clienttypes "suasor/clients/types"
 	"suasor/types/responses"
 	"suasor/utils/logger"
@@ -401,6 +402,30 @@ func checkOptionalClientCategory(c *gin.Context) (clienttypes.ClientCategory, bo
 	default:
 		log.Warn().Msg("Invalid client group")
 		responses.RespondBadRequest(c, nil, "Invalid client group")
+		return "", false
+	}
+
+}
+
+func checkMediaType(c *gin.Context) (types.MediaType, bool) {
+	ctx := c.Request.Context()
+	log := logger.LoggerFromContext(ctx)
+
+	mediaTypeStr := c.Param("mediaType")
+	mediaType := types.MediaType(mediaTypeStr)
+
+	if mediaType == "" {
+		log.Debug().Msg("Media type not provided")
+		return "", false
+	}
+	switch mediaType {
+	case types.MediaTypeMovie, types.MediaTypeSeries, types.MediaTypeSeason, types.MediaTypeEpisode,
+		types.MediaTypeArtist, types.MediaTypeAlbum, types.MediaTypeTrack, types.MediaTypePlaylist,
+		types.MediaTypeCollection:
+		return mediaType, true
+	default:
+		log.Warn().Msg("Invalid media type")
+		responses.RespondBadRequest(c, nil, "Invalid media type")
 		return "", false
 	}
 

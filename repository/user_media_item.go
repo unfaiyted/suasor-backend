@@ -73,26 +73,6 @@ func (r *userMediaItemRepository[T]) GetPopularItems(ctx context.Context, limit 
 	return r.Search(ctx, options)
 }
 
-func (r *userMediaItemRepository[T]) GetMediaItemsByIDs(ctx context.Context, ids []uint64) ([]*models.MediaItem[T], error) {
-	return r.GetMediaItemsByIDs(ctx, ids)
-}
-
-func (r *userMediaItemRepository[T]) GetByClientItemID(ctx context.Context, clientItemID string, clientID uint64) (*models.MediaItem[T], error) {
-	return r.GetByClientItemID(ctx, clientItemID, clientID)
-}
-
-func (r *userMediaItemRepository[T]) GetByIDs(ctx context.Context, ids []uint64) ([]*models.MediaItem[T], error) {
-	return r.GetByIDs(ctx, ids)
-}
-
-func (r *userMediaItemRepository[T]) BatchCreate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error) {
-	return r.BatchCreate(ctx, items)
-}
-
-func (r *userMediaItemRepository[T]) BatchUpdate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error) {
-	return r.BatchUpdate(ctx, items)
-}
-
 // Create adds a new user-owned media item to the database
 func (r *userMediaItemRepository[T]) Create(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error) {
 	if err := r.db.WithContext(ctx).Create(&item).Error; err != nil {

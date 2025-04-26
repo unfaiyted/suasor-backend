@@ -422,7 +422,7 @@ func (j *FavoritesSyncJob) syncMovieFavorites(ctx context.Context, userID, clien
 		}
 
 		// Get the movie from database
-		existingMovie, err := j.itemRepos.MovieRepo().GetByClientItemID(ctx, clientItemID, clientID)
+		existingMovie, err := j.itemRepos.MovieRepo().GetByClientItemID(ctx, clientID, clientItemID)
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -573,7 +573,7 @@ func (j *FavoritesSyncJob) syncSeriesFavorites(ctx context.Context, userID, clie
 		}
 
 		// Get the series from database
-		existingSeries, err := j.itemRepos.SeriesRepo().GetByClientItemID(ctx, clientItemID, clientID)
+		existingSeries, err := j.itemRepos.SeriesRepo().GetByClientItemID(ctx, clientID, clientItemID)
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -733,7 +733,7 @@ func (j *FavoritesSyncJob) syncMusicFavorites(ctx context.Context, userID, clien
 		}
 
 		// Get the track from database
-		existingTrack, err := j.itemRepos.TrackRepo().GetByClientItemID(ctx, clientItemID, clientID)
+		existingTrack, err := j.itemRepos.TrackRepo().GetByClientItemID(ctx, clientID, clientItemID)
 		if err != nil {
 			log.Warn().
 				Err(err).

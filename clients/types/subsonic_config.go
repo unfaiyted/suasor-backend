@@ -1,5 +1,9 @@
 package types
 
+import (
+	"suasor/clients/media/types"
+)
+
 // @Description Supersonic music server configuration
 type SubsonicConfig struct {
 	ClientMediaConfig
@@ -51,4 +55,8 @@ func (SubsonicConfig) SupportsHistory() bool {
 
 func (c *SubsonicConfig) UnmarshalJSON(data []byte) error {
 	return UnmarshalConfigJSON(data, c)
+}
+
+func (c *SubsonicConfig) SupportsMediaType(mediaType types.MediaType) bool {
+	return DoesClientSupportMediaType(c, mediaType)
 }

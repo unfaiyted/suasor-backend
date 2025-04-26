@@ -1,0 +1,48 @@
+### Master file to run all client media tests
+
+# Import test files
+import ./client_media_common.http
+import ./client_media_movie.http
+import ./client_media_series.http
+import ./client_media_music.http
+import ./client_media_multi.http
+
+# Run authentication
+run #login
+
+# Run client creation tests
+run #createEmbyClient
+run #createJellyfinClient
+run #createPlexClient
+run #createSubsonicClient
+
+# Run connection tests
+run #testEmbyConnection
+run #testJellyfinConnection
+run #testPlexConnection
+run #testSubsonicConnection
+
+# Run movie tests
+run #getEmbyMovieByID
+run #getAllEmbyMovies
+run #searchEmbyMovies
+run #getEmbyMoviesByGenre
+run #getEmbyMoviesByYear
+
+# Run series tests
+run #getEmbySeriesByID
+run #getAllEmbySeries
+run #getEmbyEpisodesBySeriesID
+run #getJellyfinSeriesByID
+run #getPlexSeriesByID
+
+# Run music tests
+run #getEmbyArtistByID
+run #getAllEmbyArtists
+run #getEmbyAlbumByID
+run #getEmbyTrackByID
+run #getSubsonicArtistByID
+
+# Run multi-client tests
+run #getMediaItemsByMultipleClients
+run #searchAcrossClients

@@ -1956,7 +1956,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/client/{clientID}/media/item/{itemID}": {
+        "/client/{clientID}/media/item/{clientItemID}": {
             "delete": {
                 "security": [
                     {
@@ -1986,7 +1986,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Item ID",
-                        "name": "itemID",
+                        "name": "clientItemID",
                         "in": "path",
                         "required": true
                     }
@@ -3904,7 +3904,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/client/{clientID}/media/{itemID}": {
+        "/client/{clientID}/media/{clientItemID}": {
             "put": {
                 "description": "Updates a client media item in the database by ID",
                 "consumes": [
@@ -3922,7 +3922,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Media item ID",
-                        "name": "itemID",
+                        "name": "clientItemID",
                         "in": "path",
                         "required": true
                     },
@@ -4044,71 +4044,6 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Media type",
                         "name": "mediaType",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Media item retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_MediaData"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "Media item not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/{clientID}/media/{mediaType}/{itemID}": {
-            "get": {
-                "description": "Retrieves a media item using its client-specific ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "media",
-                    "clients"
-                ],
-                "summary": "Get media item by client-specific ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Media type",
-                        "name": "mediaType",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Client-specific item ID",
-                        "name": "itemID",
                         "in": "path",
                         "required": true
                     }
@@ -21793,6 +21728,7 @@ const docTemplate = `{
         "suasor_clients_media_types.Movie": {
             "type": "object",
             "properties": {
+                "MediaData": {},
                 "audioCodec": {
                     "type": "string"
                 },
@@ -21826,6 +21762,7 @@ const docTemplate = `{
         "suasor_clients_media_types.Person": {
             "type": "object",
             "properties": {
+                "MediaData": {},
                 "character": {
                     "description": "For actors",
                     "type": "string"
@@ -21918,6 +21855,7 @@ const docTemplate = `{
         "types.Artist": {
             "type": "object",
             "properties": {
+                "MediaData": {},
                 "albumCount": {
                     "type": "integer"
                 },
@@ -22707,6 +22645,7 @@ const docTemplate = `{
         "types.Season": {
             "type": "object",
             "properties": {
+                "MediaData": {},
                 "artwork": {
                     "$ref": "#/definitions/types.Artwork"
                 },
@@ -22763,6 +22702,7 @@ const docTemplate = `{
         "types.Series": {
             "type": "object",
             "properties": {
+                "MediaData": {},
                 "contentRating": {
                     "type": "string"
                 },

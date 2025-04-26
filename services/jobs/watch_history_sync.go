@@ -263,7 +263,7 @@ func syncClientHistory[T clienttypes.ClientConfig](j *WatchHistorySyncJob, ctx c
 	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 20, "Fetching play history from client")
 
 	// Check if client supports play history
-	historyProvider, ok := clientMedia.(providers.HistoryProvider[mediatypes.Movie])
+	historyProvider, ok := clientMedia.(providers.HistoryProvider[*mediatypes.Movie])
 	if !ok {
 		return fmt.Errorf("client doesn't support play history")
 	}
@@ -345,7 +345,7 @@ func syncClientHistory[T clienttypes.ClientConfig](j *WatchHistorySyncJob, ctx c
 }
 
 // processMovieHistory processes a movie history item and updates the database
-func (j *WatchHistorySyncJob) processMovieHistory(ctx context.Context, userID, clientID uint64, historyItem models.UserMediaItemData[mediatypes.Movie]) error {
+func (j *WatchHistorySyncJob) processMovieHistory(ctx context.Context, userID, clientID uint64, historyItem models.UserMediaItemData[*mediatypes.Movie]) error {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get client item ID from the media item
@@ -362,7 +362,7 @@ func (j *WatchHistorySyncJob) processMovieHistory(ctx context.Context, userID, c
 	}
 
 	// Look up the movie in our database
-	movieItem, err := j.itemRepos.MovieRepo().GetByClientItemID(ctx, clientItemID, clientID)
+	movieItem, err := j.itemRepos.MovieRepo().GetByClientItemID(ctx, clientID, clientItemID)
 	if err != nil {
 		// If we can't find the movie, it might not be synced yet
 		log.Warn().
@@ -404,7 +404,7 @@ func (j *WatchHistorySyncJob) processMovieHistory(ctx context.Context, userID, c
 }
 
 // processSeriesHistory processes a series history item and updates the database
-func (j *WatchHistorySyncJob) processSeriesHistory(ctx context.Context, userID, clientID uint64, historyItem models.UserMediaItemData[mediatypes.Series]) error {
+func (j *WatchHistorySyncJob) processSeriesHistory(ctx context.Context, userID, clientID uint64, historyItem models.UserMediaItemData[*mediatypes.Series]) error {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get client item ID from the media item
@@ -421,7 +421,7 @@ func (j *WatchHistorySyncJob) processSeriesHistory(ctx context.Context, userID, 
 	}
 
 	// Look up the series in our database
-	seriesItem, err := j.itemRepos.SeriesRepo().GetByClientItemID(ctx, clientItemID, clientID)
+	seriesItem, err := j.itemRepos.SeriesRepo().GetByClientItemID(ctx, clientID, clientItemID)
 	if err != nil {
 		// If we can't find the series, it might not be synced yet
 		log.Warn().
@@ -481,7 +481,7 @@ func (j *WatchHistorySyncJob) processEpisodeHistory(ctx context.Context, userID,
 	}
 
 	// Look up the episode in our database
-	episodeItem, err := j.itemRepos.EpisodeRepo().GetByClientItemID(ctx, clientItemID, clientID)
+	episodeItem, err := j.itemRepos.EpisodeRepo().GetByClientItemID(ctx, clientID, clientItemID)
 	if err != nil {
 		// If we can't find the episode, it might not be synced yet
 		log.Warn().
@@ -541,7 +541,7 @@ func (j *WatchHistorySyncJob) processMusicHistory(ctx context.Context, userID, c
 	}
 
 	// Look up the track in our database
-	trackItem, err := j.itemRepos.TrackRepo().GetByClientItemID(ctx, clientItemID, clientID)
+	trackItem, err := j.itemRepos.TrackRepo().GetByClientItemID(ctx, clientID, clientItemID)
 	if err != nil {
 		// If we can't find the track, it might not be synced yet
 		log.Warn().

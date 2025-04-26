@@ -584,7 +584,7 @@ func (h *coreMovieHandler) GetByClientItemID(c *gin.Context) {
 		Msg("Getting movies by client ID")
 
 	// Get movies by client ID
-	movie, err := h.itemService.GetByClientItemID(ctx, clientItemID, clientID)
+	movie, err := h.itemService.GetByClientItemID(ctx, clientID, clientItemID)
 	if handleServiceError(c, err, "Failed to retrieve movies by client ID", "", "Failed to retrieve movies") {
 		return
 	}

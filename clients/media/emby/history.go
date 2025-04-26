@@ -11,6 +11,8 @@ import (
 	"suasor/utils/logger"
 )
 
+func (e *EmbyClient) SupportsHistory() bool { return true }
+
 // GetWatchHistory retrieves watch history from the Emby server
 func (e *EmbyClient) GetPlayHistory(ctx context.Context, options *types.QueryOptions) (*models.MediaItemDataList, error) {
 	log := logger.LoggerFromContext(ctx)

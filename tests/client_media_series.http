@@ -1,0 +1,176 @@
+import ./client_media_common.http
+
+# Test series media items for clients
+# This file tests series-specific functionality
+
+# Run the common setup to get valid clients and authentication token
+run #login
+run #createEmbyClient
+run #createJellyfinClient
+run #createPlexClient
+
+## Emby Series Tests
+
+###
+# @name getEmbySeriesByID
+# Get a specific series from Emby by ID
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/series/{{TEST_EMBY_SERIES_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getAllEmbySeries
+# Get all series from Emby
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/series
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getEmbyEpisodesBySeriesID
+# Get episodes for a specific series from Emby
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/series/{{TEST_EMBY_SERIES_ID}}/episodes
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getEmbyEpisodeByID
+# Get a specific episode from Emby
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/episode/{{TEST_EMBY_EPISODE_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getEmbySeasonByID
+# Get a specific season from Emby
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/season/{{TEST_EMBY_SEASON_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getEmbyEpisodesBySeasonID
+# Get episodes for a specific season from Emby
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/season/{{TEST_EMBY_SEASON_ID}}/episodes
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name searchEmbySeries
+# Search for series in Emby
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/series/search?q={{TEST_SEARCH_QUERY}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getEmbySeriesByGenre
+# Get series from Emby by genre
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/series/genre/{{TEST_GENRE}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name recordEmbyEpisodePlay
+# Record a play event for an Emby episode
+POST {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/episode/{{TEST_EMBY_EPISODE_ID}}/play
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "positionTicks": 0,
+  "isMuted": false,
+  "isPaused": false
+}
+
+###
+# @name getEmbyEpisodePlaybackState
+# Get the playback state for an Emby episode
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/episode/{{TEST_EMBY_EPISODE_ID}}/state
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name updateEmbyEpisodePlaybackState
+# Update the playback state for an Emby episode
+PUT {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/episode/{{TEST_EMBY_EPISODE_ID}}/state
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "positionTicks": 5000000,
+  "isMuted": false,
+  "isPaused": true
+}
+
+###
+# @name createEmbySeriesItem
+# Create a new series item from Emby
+POST {{baseUrl}}/client/media
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{createEmbyClient.response.body.$.data.id}},
+  "clientType": "emby",
+  "externalID": "{{TEST_EMBY_SERIES_ID}}",
+  "type": "series",
+  "data": {
+    "title": "Test Series",
+    "originalTitle": "Test Series Original",
+    "overview": "This is a test series created via API",
+    "firstAirDate": "2023-01-01",
+    "lastAirDate": "2023-12-31",
+    "seasonCount": 3,
+    "episodeCount": 30,
+    "status": "Ended",
+    "genres": ["Drama", "Sci-Fi"],
+    "creators": ["Test Creator"],
+    "cast": ["Actor 1", "Actor 2"],
+    "posterURL": "https://example.com/series-poster.jpg",
+    "backdropURL": "https://example.com/series-backdrop.jpg",
+    "rating": 8.5,
+    "details": {
+      "contentRating": "TV-MA",
+      "imdbId": "tt00000001",
+      "tmdbId": 654321,
+      "network": "TestNetwork"
+    }
+  }
+}
+
+###
+# @name deleteEmbySeries
+# Delete an Emby series
+DELETE {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/series/{{TEST_EMBY_SERIES_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+## Jellyfin Series Tests (abbreviated for brevity)
+
+###
+# @name getJellyfinSeriesByID
+# Get a specific series from Jellyfin by ID
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/series/{{TEST_JELLYFIN_SERIES_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getAllJellyfinSeries
+# Get all series from Jellyfin
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/series
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+## Plex Series Tests (abbreviated for brevity)
+
+###
+# @name getPlexSeriesByID
+# Get a specific series from Plex by ID
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/series/{{TEST_PLEX_SERIES_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getAllPlexSeries
+# Get all series from Plex
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/series
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

@@ -1,0 +1,53 @@
+import ./client_media_common.http
+
+# Test multi-client media operations
+# This file tests operations that work across multiple clients
+
+# Run the common setup to get valid clients and authentication token
+run #login
+run #createEmbyClient
+run #createJellyfinClient
+run #createPlexClient
+run #createSubsonicClient
+
+###
+# @name getMediaItemsByMultipleClients
+# Get media items from multiple clients
+GET {{baseUrl}}/client/media/multi?clientIDs={{createEmbyClient.response.body.$.data.id}},{{createJellyfinClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name searchAcrossClients
+# Search for media items across multiple clients
+GET {{baseUrl}}/client/media/search?q={{TEST_SEARCH_QUERY}}&clientIDs={{createEmbyClient.response.body.$.data.id}},{{createJellyfinClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name searchAcrossClientsWithTypeFilter
+# Search for media items across multiple clients with type filter
+GET {{baseUrl}}/client/media/search?q={{TEST_SEARCH_QUERY}}&clientIDs={{createEmbyClient.response.body.$.data.id}},{{createJellyfinClient.response.body.$.data.id}}&type=movie
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name syncItemBetweenClients
+# Sync a media item between clients
+POST {{baseUrl}}/client/media/sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "itemID": {{TEST_ITEM_ID}},
+  "sourceClientID": {{createEmbyClient.response.body.$.data.id}},
+  "targetClientID": {{createJellyfinClient.response.body.$.data.id}},
+  "targetItemID": "{{TEST_TARGET_ITEM_ID}}"
+}
+
+###
+# @name getMediaItemWithMultipleExternalIDs
+# Get a media item that has been synced across multiple clients
+GET {{baseUrl}}/item/{{TEST_ITEM_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

@@ -104,21 +104,9 @@ func (h *ClientMediaItemHelper) GetOrCreateMediaItemMapping(
 		return mediaItemID, nil
 	}
 
-	// No mapping found, create a new media item
-	syncClient := models.SyncClient{
-		ID:     clientID,
-		Type:   clientType,
-		ItemID: clientItemID,
-	}
-
 	// Create a new media item with this sync client
-	mediaItem := models.MediaItem[types.MediaData]{
-		Type:        mediaType,
-		Title:       title,
-		SyncClients: []models.SyncClient{syncClient},
-		ExternalIDs: []models.ExternalID{},
-		Data:        data,
-	}
+	mediaItem := models.NewMediaItem(mediaType, data)
+	mediaItem.SetClientInfo(clientID, clientType, clientItemID)
 
 	// Insert the new media item
 	result := h.db.WithContext(ctx).

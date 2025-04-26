@@ -728,7 +728,7 @@ func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []*models.M
 		}
 
 		// Check if the movie already exists in the database
-		existingMovie, err := j.itemRepos.MovieRepo().GetByClientItemID(ctx, clientItemID, clientID)
+		existingMovie, err := j.itemRepos.MovieRepo().GetByClientItemID(ctx, clientID, clientItemID)
 		if err == nil {
 			// Movie exists, update it
 			// Merge client IDs
@@ -834,7 +834,7 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []*models.
 		}
 
 		// Check if the series already exists in the database
-		existingSeries, err := j.itemRepos.SeriesRepo().GetByClientItemID(ctx, clientItemID, clientID)
+		existingSeries, err := j.itemRepos.SeriesRepo().GetByClientItemID(ctx, clientID, clientItemID)
 		if err == nil {
 			// Series exists, update it
 			// Merge client IDs
@@ -989,7 +989,7 @@ func (j *MediaSyncJob) processEpisodeBatch(ctx context.Context, episodes []*mode
 		}
 
 		// Check if the episode already exists in the database
-		existingEpisode, err := j.itemRepos.EpisodeRepo().GetByClientItemID(ctx, clientItemID, clientID)
+		existingEpisode, err := j.itemRepos.EpisodeRepo().GetByClientItemID(ctx, clientID, clientItemID)
 		if err == nil {
 			// Episode exists, update it
 			// Merge client IDs
@@ -1081,7 +1081,7 @@ func (j *MediaSyncJob) processTrackBatch(ctx context.Context, tracks []*models.M
 		}
 
 		// Check if the track already exists in the database
-		existingTrack, err := j.itemRepos.TrackRepo().GetByClientItemID(ctx, clientItemID, clientID)
+		existingTrack, err := j.itemRepos.TrackRepo().GetByClientItemID(ctx, clientID, clientItemID)
 		if err == nil {
 			// Track exists, update it
 			// Merge client IDs
@@ -1173,7 +1173,7 @@ func (j *MediaSyncJob) processAlbumBatch(ctx context.Context, albums []*models.M
 		}
 
 		// Check if the album already exists in the database
-		existingAlbum, err := j.itemRepos.AlbumRepo().GetByClientItemID(ctx, clientItemID, clientID)
+		existingAlbum, err := j.itemRepos.AlbumRepo().GetByClientItemID(ctx, clientID, clientItemID)
 		if err == nil {
 			// Album exists, update it
 			// Merge client IDs
@@ -1265,7 +1265,7 @@ func (j *MediaSyncJob) processArtistBatch(ctx context.Context, artists []*models
 		}
 
 		// Check if the artist already exists in the database
-		existingArtist, err := j.itemRepos.ArtistRepo().GetByClientItemID(ctx, clientItemID, clientID)
+		existingArtist, err := j.itemRepos.ArtistRepo().GetByClientItemID(ctx, clientID, clientItemID)
 		if err == nil {
 			// Artist exists, update it
 			// Merge client IDs

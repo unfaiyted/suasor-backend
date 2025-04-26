@@ -1,0 +1,166 @@
+import ./client_media_common.http
+
+# Test music media items for clients
+# This file tests music-specific functionality (artist, album, track)
+
+# Run the common setup to get valid clients and authentication token
+run #login
+run #createEmbyClient
+run #createSubsonicClient
+
+## Emby Music Tests
+
+###
+# @name getEmbyArtistByID
+# Get a specific artist from Emby by ID
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/artist/{{TEST_EMBY_ARTIST_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getAllEmbyArtists
+# Get all artists from Emby
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/artist
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getEmbyAlbumByID
+# Get a specific album from Emby by ID
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/album/{{TEST_EMBY_ALBUM_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getEmbyAlbumsByArtistID
+# Get albums for a specific artist from Emby
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/artist/{{TEST_EMBY_ARTIST_ID}}/albums
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getEmbyTrackByID
+# Get a specific track from Emby
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/track/{{TEST_EMBY_TRACK_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getEmbyTracksByAlbumID
+# Get tracks for a specific album from Emby
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/album/{{TEST_EMBY_ALBUM_ID}}/tracks
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name searchEmbyMusic
+# Search for music in Emby
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/music/search?q={{TEST_SEARCH_QUERY}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getEmbyMusicByGenre
+# Get music from Emby by genre
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/music/genre/{{TEST_MUSIC_GENRE}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name recordEmbyTrackPlay
+# Record a play event for an Emby track
+POST {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/track/{{TEST_EMBY_TRACK_ID}}/play
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "positionTicks": 0,
+  "isMuted": false,
+  "isPaused": false
+}
+
+###
+# @name createEmbyArtistItem
+# Create a new artist item from Emby
+POST {{baseUrl}}/client/media
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{createEmbyClient.response.body.$.data.id}},
+  "clientType": "emby",
+  "externalID": "{{TEST_EMBY_ARTIST_ID}}",
+  "type": "artist",
+  "data": {
+    "name": "Test Artist",
+    "overview": "This is a test artist created via API",
+    "genres": ["Rock", "Alternative"],
+    "imageURL": "https://example.com/artist.jpg",
+    "details": {
+      "mbid": "00000000-0000-0000-0000-000000000000"
+    }
+  }
+}
+
+###
+# @name createEmbyAlbumItem
+# Create a new album item from Emby
+POST {{baseUrl}}/client/media
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{createEmbyClient.response.body.$.data.id}},
+  "clientType": "emby",
+  "externalID": "{{TEST_EMBY_ALBUM_ID}}",
+  "type": "album",
+  "data": {
+    "title": "Test Album",
+    "artistName": "Test Artist",
+    "artistID": "{{TEST_EMBY_ARTIST_ID}}",
+    "releaseYear": 2023,
+    "genres": ["Rock", "Alternative"],
+    "trackCount": 12,
+    "imageURL": "https://example.com/album.jpg",
+    "details": {
+      "mbid": "00000000-0000-0000-0000-000000000001"
+    }
+  }
+}
+
+###
+# @name deleteEmbyMusicItem
+# Delete an Emby music item
+DELETE {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/track/{{TEST_EMBY_TRACK_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+## Subsonic Music Tests (abbreviated for brevity)
+
+###
+# @name getSubsonicArtistByID
+# Get a specific artist from Subsonic by ID
+GET {{baseUrl}}/client/{{createSubsonicClient.response.body.$.data.id}}/media/artist/{{TEST_SUBSONIC_ARTIST_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getAllSubsonicArtists
+# Get all artists from Subsonic
+GET {{baseUrl}}/client/{{createSubsonicClient.response.body.$.data.id}}/media/artist
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getSubsonicAlbumByID
+# Get a specific album from Subsonic by ID
+GET {{baseUrl}}/client/{{createSubsonicClient.response.body.$.data.id}}/media/album/{{TEST_SUBSONIC_ALBUM_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getSubsonicTrackByID
+# Get a specific track from Subsonic
+GET {{baseUrl}}/client/{{createSubsonicClient.response.body.$.data.id}}/media/track/{{TEST_SUBSONIC_TRACK_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

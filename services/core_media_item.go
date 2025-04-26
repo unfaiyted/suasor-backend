@@ -20,7 +20,7 @@ type CoreMediaItemService[T types.MediaData] interface {
 	GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error)
 	Delete(ctx context.Context, id uint64) error
 	GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error)
-	GetByClientItemID(ctx context.Context, clientItemID string, clientID uint64) (*models.MediaItem[T], error)
+	GetByClientItemID(ctx context.Context, clientID uint64, clientItemID string) (*models.MediaItem[T], error)
 
 	// Basic query operations
 	GetByExternalID(ctx context.Context, source string, externalID string) (*models.MediaItem[T], error)
@@ -293,7 +293,7 @@ func (s *coreMediaItemService[T]) GetAll(ctx context.Context, limit int, offset 
 	return results, nil
 }
 
-func (s *coreMediaItemService[T]) GetByClientItemID(ctx context.Context, clientItemID string, clientID uint64) (*models.MediaItem[T], error) {
+func (s *coreMediaItemService[T]) GetByClientItemID(ctx context.Context, clientID uint64, clientItemID string) (*models.MediaItem[T], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("clientItemID", clientItemID).
@@ -301,7 +301,7 @@ func (s *coreMediaItemService[T]) GetByClientItemID(ctx context.Context, clientI
 		Msg("Getting media item by client item ID")
 
 	// Delegate to repository
-	result, err := s.repo.GetByClientItemID(ctx, clientItemID, clientID)
+	result, err := s.repo.GetByClientItemID(ctx, clientID, clientItemID)
 	if err != nil {
 		log.Error().Err(err).
 			Str("clientItemID", clientItemID).

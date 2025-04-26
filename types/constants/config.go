@@ -15,10 +15,10 @@ var DefaultConfig = map[string]interface{}{
 
 	// Database defaults
 	"db.host":     "localhost",
-	"db.port":     "5432",
+	"db.port":     "5433",
 	"db.name":     "suasor",
-	"db.user":     "postgres_user",
-	"db.password": "yourpassword",
+	"db.user":     "postgres",
+	"db.password": "password",
 	"db.maxConns": 20,
 	"db.timeout":  30,
 

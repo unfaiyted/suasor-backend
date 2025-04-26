@@ -28,8 +28,8 @@ type UserMediaItemService[T types.MediaData] interface {
 
 // userMediaItemService implements UserMediaItemService
 type userMediaItemService[T types.MediaData] struct {
-	coreService CoreMediaItemService[T] // Embed the core service
-	userRepo    repository.UserMediaItemRepository[T]
+	CoreMediaItemService[T] // Embed the core service
+	userRepo                repository.UserMediaItemRepository[T]
 }
 
 // NewUserMediaItemService creates a new user-owned media item service
@@ -38,55 +38,9 @@ func NewUserMediaItemService[T types.MediaData](
 	userRepo repository.UserMediaItemRepository[T],
 ) UserMediaItemService[T] {
 	return &userMediaItemService[T]{
-		coreService: coreService,
-		userRepo:    userRepo,
+		CoreMediaItemService: coreService,
+		userRepo:             userRepo,
 	}
-}
-
-// Core service methods - delegate to embedded core service
-
-func (s *userMediaItemService[T]) Create(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error) {
-	return s.coreService.Create(ctx, item)
-}
-
-func (s *userMediaItemService[T]) Update(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error) {
-	return s.coreService.Update(ctx, item)
-}
-
-func (s *userMediaItemService[T]) GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error) {
-	return s.coreService.GetByID(ctx, id)
-}
-
-func (s *userMediaItemService[T]) GetMostPlayed(ctx context.Context, limit int) ([]*models.MediaItem[T], error) {
-	return s.coreService.GetMostPlayed(ctx, limit)
-}
-
-func (s *userMediaItemService[T]) GetByClientItemID(ctx context.Context, clientItemID string, clientID uint64) (*models.MediaItem[T], error) {
-	return s.coreService.GetByClientItemID(ctx, clientItemID, clientID)
-}
-
-func (s *userMediaItemService[T]) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error) {
-	return s.coreService.GetAll(ctx, limit, offset)
-}
-
-func (s *userMediaItemService[T]) Delete(ctx context.Context, id uint64) error {
-	return s.coreService.Delete(ctx, id)
-}
-
-func (s *userMediaItemService[T]) GetByExternalID(ctx context.Context, source string, externalID string) (*models.MediaItem[T], error) {
-	return s.coreService.GetByExternalID(ctx, source, externalID)
-}
-
-func (s *userMediaItemService[T]) GetByType(ctx context.Context, mediaType types.MediaType) ([]*models.MediaItem[T], error) {
-	return s.coreService.GetByType(ctx, mediaType)
-}
-
-func (s *userMediaItemService[T]) Search(ctx context.Context, query types.QueryOptions) ([]*models.MediaItem[T], error) {
-	return s.coreService.Search(ctx, query)
-}
-
-func (s *userMediaItemService[T]) GetRecentItems(ctx context.Context, days int, limit int) ([]*models.MediaItem[T], error) {
-	return s.coreService.GetRecentItems(ctx, days, limit)
 }
 
 // User-specific methods

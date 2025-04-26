@@ -10,6 +10,7 @@ import (
 type SearchResults struct {
 	Movies      []*models.MediaItem[*types.Movie]      `json:"movies"`
 	Series      []*models.MediaItem[*types.Series]     `json:"series"`
+	Seasons     []*models.MediaItem[*types.Season]     `json:"seasons,omitempty"`
 	Episodes    []*models.MediaItem[*types.Episode]    `json:"episodes,omitempty"`
 	Tracks      []*models.MediaItem[*types.Track]      `json:"tracks,omitempty"`
 	Albums      []*models.MediaItem[*types.Album]      `json:"albums,omitempty"`

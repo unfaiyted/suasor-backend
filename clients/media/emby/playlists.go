@@ -12,6 +12,8 @@ import (
 	"suasor/utils/logger"
 )
 
+func (e *EmbyClient) SupportsPlaylists() bool { return true }
+
 // GetPlaylists retrieves playlists from the Emby server
 func (e *EmbyClient) GetPlaylists(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Playlist], error) {
 	log := logger.LoggerFromContext(ctx)

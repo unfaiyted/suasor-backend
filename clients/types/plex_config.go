@@ -1,5 +1,9 @@
 package types
 
+import (
+	"suasor/clients/media/types"
+)
+
 // @Description Plex media server configuration
 type PlexConfig struct {
 	ClientMediaConfig
@@ -46,4 +50,7 @@ func (PlexConfig) SupportsHistory() bool {
 
 func (c *PlexConfig) UnmarshalJSON(data []byte) error {
 	return UnmarshalConfigJSON(data, c)
+}
+func (c *PlexConfig) SupportsMediaType(mediaType types.MediaType) bool {
+	return DoesClientSupportMediaType(c, mediaType)
 }

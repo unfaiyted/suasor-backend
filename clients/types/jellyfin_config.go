@@ -1,5 +1,9 @@
 package types
 
+import (
+	"suasor/clients/media/types"
+)
+
 // @Description Jellyfin media server configuration
 type JellyfinConfig struct {
 	ClientMediaConfig
@@ -53,4 +57,7 @@ func (JellyfinConfig) SupportsCollections() bool {
 }
 func (JellyfinConfig) SupportsHistory() bool {
 	return true
+}
+func (c *JellyfinConfig) SupportsMediaType(mediaType types.MediaType) bool {
+	return DoesClientSupportMediaType(c, mediaType)
 }

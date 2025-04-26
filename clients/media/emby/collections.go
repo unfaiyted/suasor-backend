@@ -12,6 +12,8 @@ import (
 	"suasor/utils/logger"
 )
 
+func (e *EmbyClient) SupportsCollections() bool { return true }
+
 func (e *EmbyClient) CreateCollection(ctx context.Context, name string, description string, itemIDs []string) (*models.MediaItem[*types.Collection], error) {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)

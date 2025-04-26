@@ -32,7 +32,6 @@ type ClientMediaItemRepository[T types.MediaData] interface {
 
 	// Client-specific operations
 	GetByExternalID(ctx context.Context, source string, externalID string) (*models.MediaItem[T], error)
-	GetByClientItemID(ctx context.Context, externalID string, clientID uint64) (*models.MediaItem[T], error)
 	GetByClientID(ctx context.Context, clientID uint64) ([]*models.MediaItem[T], error)
 
 	// Advanced operations
@@ -209,7 +208,7 @@ func (r *clientMediaItemRepository[T]) SyncItemBetweenClients(ctx context.Contex
 	targetSyncClient := r.getSyncClientByClientID(ctx, targetClientID, targetItemID)
 
 	// If we get here, the target client isn't in the array yet, so add it
-	item.SyncClients = append(item.SyncClients, *targetSyncClient)
+	item.SyncClients = append(item.SyncClients, targetSyncClient)
 
 	// Update the item
 	if err := r.db.WithContext(ctx).Save(&item).Error; err != nil {

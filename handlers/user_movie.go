@@ -275,7 +275,7 @@ func (h *UserMovieHandler) UpdateMovie(c *gin.Context) {
 	movieID, _ := checkItemID(c, "itemID")
 
 	// Parse request body
-	var userData models.UserMediaItemData[mediatypes.Movie]
+	var userData models.UserMediaItemData[*mediatypes.Movie]
 	if err := c.ShouldBindJSON(&userData); err != nil {
 		log.Warn().Err(err).Msg("Invalid request body")
 		responses.RespondBadRequest(c, err, "Invalid request body")

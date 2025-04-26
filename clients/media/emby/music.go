@@ -12,6 +12,8 @@ import (
 	"suasor/utils/logger"
 )
 
+func (e *EmbyClient) SupportsMusic() bool { return true }
+
 // GetMusic retrieves music tracks from the Emby server
 func (e *EmbyClient) GetMusic(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Track], error) {
 	log := logger.LoggerFromContext(ctx)

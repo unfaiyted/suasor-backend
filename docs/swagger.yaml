@@ -4760,6 +4760,7 @@ definitions:
     type: object
   suasor_clients_media_types.Movie:
     properties:
+      MediaData: {}
       audioCodec:
         type: string
       credits:
@@ -4782,6 +4783,7 @@ definitions:
     type: object
   suasor_clients_media_types.Person:
     properties:
+      MediaData: {}
       character:
         description: For actors
         type: string
@@ -4844,6 +4846,7 @@ definitions:
     type: object
   types.Artist:
     properties:
+      MediaData: {}
       albumCount:
         type: integer
       albumIDs:
@@ -5423,6 +5426,7 @@ definitions:
     type: object
   types.Season:
     properties:
+      MediaData: {}
       artwork:
         $ref: '#/definitions/types.Artwork'
       credits:
@@ -5460,6 +5464,7 @@ definitions:
     type: object
   types.Series:
     properties:
+      MediaData: {}
       contentRating:
         type: string
       credits:
@@ -7623,7 +7628,7 @@ paths:
       tags:
       - media
       - clients
-  /client/{clientID}/media/{itemID}:
+  /client/{clientID}/media/{clientItemID}:
     put:
       consumes:
       - application/json
@@ -7631,7 +7636,7 @@ paths:
       parameters:
       - description: Media item ID
         in: path
-        name: itemID
+        name: clientItemID
         required: true
         type: string
       - description: Media item data to update
@@ -7713,50 +7718,6 @@ paths:
       - description: Media type
         in: path
         name: mediaType
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Media item retrieved successfully
-          schema:
-            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_MediaData'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "404":
-          description: Media item not found
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-      summary: Get media item by client-specific ID
-      tags:
-      - media
-      - clients
-  /client/{clientID}/media/{mediaType}/{itemID}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a media item using its client-specific ID
-      parameters:
-      - description: Client ID
-        in: path
-        name: clientID
-        required: true
-        type: integer
-      - description: Media type
-        in: path
-        name: mediaType
-        required: true
-        type: string
-      - description: Client-specific item ID
-        in: path
-        name: itemID
         required: true
         type: string
       produces:
@@ -7864,7 +7825,7 @@ paths:
       tags:
       - music
       - clients
-  /client/{clientID}/media/item/{itemID}:
+  /client/{clientID}/media/item/{clientItemID}:
     delete:
       consumes:
       - application/json
@@ -7877,7 +7838,7 @@ paths:
         type: integer
       - description: Item ID
         in: path
-        name: itemID
+        name: clientItemID
         required: true
         type: string
       produces:
