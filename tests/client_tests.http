@@ -20,7 +20,7 @@ Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
 ###
 # @name getAIClients
 # Get only AI clients (claude, openai, ollama)
-GET {{baseUrl}}/clients?type=ai
+GET {{baseUrl}}/clients?clientCategory=ai
 Content-Type: application/json
 Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
 
@@ -37,26 +37,38 @@ Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
 
 ###
 # @name createEmbyClient
-POST {{baseUrl}}/client/emby
+POST {{baseUrl}}/admin/client/emby
 Content-Type: application/json
 Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
 
 {
-  "name": "Emby Test",
+  "name": "Emby",
   "clientType": "emby",
   "isEnabled": true,
-  "client": {
-    "baseURL": "{{EMBY_TEST_URL}}",
-    "apiKey": "{{EMBY_TEST_API_KEY}}",
-    "username": "{{EMBY_TEST_USER}}",
-    "ssl": false,
-    "validateConn": true
+  "config": {
+    "details": {
+      "core": {
+        "type": "emby",
+        "category": "media",
+        "name": "Emby",
+        "baseURL": "http://192.168.1.100:8096",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "emby",
+      "baseURL": "http://192.168.1.100:8096",
+      "apiKey": "your-emby-apikey",
+      "ssl": false
+    },
+    "username": "admin"
   }
+}
+
 }
 
 ###
 # @name getEmbyClient
-GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}
+GET {{baseUrl}}/admin/client/{{createEmbyClient.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
 

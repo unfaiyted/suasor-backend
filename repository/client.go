@@ -135,7 +135,7 @@ func (r *clientRepository[T]) GetByUserID(ctx context.Context, userID uint64) ([
 		Msg("Retrieving clients")
 
 	if err := r.db.WithContext(ctx).
-		Where("user_id = ? AND config -> 'data' ->> 'type' = ?", userID, clientType).
+		Where("user_id = ? AND type = ?", userID, clientType).
 		Find(&clients).Error; err != nil {
 		return nil, fmt.Errorf("failed to get clients: %w", err)
 	}

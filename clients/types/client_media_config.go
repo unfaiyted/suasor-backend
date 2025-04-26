@@ -153,7 +153,6 @@ func (m *clientMediaConfig) UnmarshalJSON(data []byte) error {
 			Type:     m.ClientType.AsGenericClient(),
 			Category: ClientCategoryMedia,
 			Name:     "Default Client",
-			BaseURL:  m.GetBaseURL(),
 			Enabled:  true,
 		}
 	}

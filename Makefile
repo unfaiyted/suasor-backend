@@ -15,6 +15,15 @@ build: swag
 run: swag
 	go run main.go
 
+run-info: swag
+	go run main.go -loglevel info
+
+run-warn: swag
+	go run main.go -loglevel warn
+
+run-error: swag
+	go run main.go -loglevel error
+
 test:
 	go test ./... -v
 

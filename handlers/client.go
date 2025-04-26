@@ -117,13 +117,13 @@ func (h *clientHandler[T]) CreateClient(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			id	path		int															true	"Client ID"
+//	@Param			clientID	path		int															true	"Client ID"
 //	@Success		200	{object}	responses.APIResponse[models.Client[client.ClientConfig]]	"Client retrieved"
 //	@Failure		400	{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid client ID"
 //	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
 //	@Failure		404	{object}	responses.ErrorResponse[responses.ErrorDetails]				"Client not found"
 //	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
-//	@Router			/client/:clientType/{id} [get]
+//	@Router			/client/:clientType/{clientID} [get]
 //	@Example		response
 // {
 //   "data": {
@@ -152,8 +152,8 @@ func (h *clientHandler[T]) GetClient(c *gin.Context) {
 	uid, _ := checkUserAccess(c)
 
 	// Parse client ID from URL
-	clientID, err := checkItemID(c, "id")
-	if err != nil {
+	clientID, exists := checkClientID(c)
+	if !exists {
 		return
 	}
 

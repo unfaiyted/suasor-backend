@@ -58,83 +58,87 @@ func NewClientsHandler(
 
 // GetAllClients godoc
 //
-//	@Summary		Get all clients
-//	@Description	Retrieves all client configurations for the user
-//	@Tags			clients
-//	@Accept			json
-//	@Produce		json
-//	@Security		BearerAuth
-//	@Success		200	{object}	responses.APIResponse[[]models.ClientList]		"Clients retrieved"
-//	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized"
-//	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
-//	@Router			/admin/clients [get]
+//		@Summary		Get all clients
+//		@Description	Retrieves all client configurations for the user
+//		@Tags			clients
+//		@Accept			json
+//		@Produce		json
+//	 @Param			clientCategory query		string														true	"Client category (e.g. 'ai', 'media', 'automation')"
+//		@Security		BearerAuth
+//		@Success		200	{object}	responses.APIResponse[[]models.ClientList]		"Clients retrieved"
+//		@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Unauthorized"
+//		@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]	"Server error"
+//		@Router			/admin/clients [get]
 func (h *ClientsHandler) GetAllClients(c *gin.Context) {
 	ctx := c.Request.Context()
 	// log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
 	uid, _ := checkUserAccess(c)
+	clientCategory, _ := checkOptionalClientCategory(c)
 
 	var clientList models.ClientList
 
-	emby, err := h.embyService.GetByUserID(ctx, uid)
-	if err != nil {
-		responses.RespondInternalError(c, err, "Failed to retrieve clients")
-		return
+	if clientCategory == "media" || clientCategory == "" {
+		emby, err := h.embyService.GetByUserID(ctx, uid)
+		if err != nil {
+			responses.RespondInternalError(c, err, "Failed to retrieve clients")
+			return
+		}
+		clientList.AddEmbyArray(emby)
+		plex, err := h.plexService.GetByUserID(ctx, uid)
+		if err != nil {
+			responses.RespondInternalError(c, err, "Failed to retrieve clients")
+			return
+		}
+		clientList.AddPlexArray(plex)
+		subsonic, err := h.subsonicService.GetByUserID(ctx, uid)
+		if err != nil {
+			responses.RespondInternalError(c, err, "Failed to retrieve clients")
+			return
+		}
+		clientList.AddSubsonicArray(subsonic)
 	}
-	clientList.AddEmbyArray(emby)
-	plex, err := h.plexService.GetByUserID(ctx, uid)
-	if err != nil {
-		responses.RespondInternalError(c, err, "Failed to retrieve clients")
-		return
-	}
-	clientList.AddPlexArray(plex)
-	subsonic, err := h.subsonicService.GetByUserID(ctx, uid)
-	if err != nil {
-		responses.RespondInternalError(c, err, "Failed to retrieve clients")
-		return
-	}
-	clientList.AddSubsonicArray(subsonic)
-	sonarr, err := h.sonarrService.GetByUserID(ctx, uid)
-	if err != nil {
-		responses.RespondInternalError(c, err, "Failed to retrieve clients")
-		return
-	}
-	clientList.AddSonarrArray(sonarr)
-	radarr, err := h.radarrService.GetByUserID(ctx, uid)
-	if err != nil {
-		responses.RespondInternalError(c, err, "Failed to retrieve clients")
-		return
-	}
-	clientList.AddRadarrArray(radarr)
-	lidarr, err := h.lidarrService.GetByUserID(ctx, uid)
-	if err != nil {
-		responses.RespondInternalError(c, err, "Failed to retrieve clients")
-		return
-	}
-	clientList.AddLidarrArray(lidarr)
-	claude, err := h.claudeService.GetByUserID(ctx, uid)
-	if err != nil {
-		responses.RespondInternalError(c, err, "Failed to retrieve clients")
-		return
-	}
-	clientList.AddClaudeArray(claude)
-	openai, err := h.openaiService.GetByUserID(ctx, uid)
-	if err != nil {
-		responses.RespondInternalError(c, err, "Failed to retrieve clients")
-		return
-	}
-	clientList.AddOpenAIArray(openai)
-	ollama, err := h.ollamaService.GetByUserID(ctx, uid)
-	if err != nil {
-		responses.RespondInternalError(c, err, "Failed to retrieve clients")
-		return
-	}
-	clientList.AddOllamaArray(ollama)
 
-	if err != nil {
-		responses.RespondInternalError(c, err, "Failed to retrieve clients")
-		return
+	if clientCategory == "automation" || clientCategory == "" {
+		radarr, err := h.radarrService.GetByUserID(ctx, uid)
+		if err != nil {
+			responses.RespondInternalError(c, err, "Failed to retrieve clients")
+			return
+		}
+		clientList.AddRadarrArray(radarr)
+		lidarr, err := h.lidarrService.GetByUserID(ctx, uid)
+		if err != nil {
+			responses.RespondInternalError(c, err, "Failed to retrieve clients")
+			return
+		}
+		clientList.AddLidarrArray(lidarr)
+		sonarr, err := h.sonarrService.GetByUserID(ctx, uid)
+		if err != nil {
+			responses.RespondInternalError(c, err, "Failed to retrieve clients")
+			return
+		}
+		clientList.AddSonarrArray(sonarr)
+	}
+	if clientCategory == "ai" || clientCategory == "" {
+		claude, err := h.claudeService.GetByUserID(ctx, uid)
+		if err != nil {
+			responses.RespondInternalError(c, err, "Failed to retrieve clients")
+			return
+		}
+		clientList.AddClaudeArray(claude)
+		openai, err := h.openaiService.GetByUserID(ctx, uid)
+		if err != nil {
+			responses.RespondInternalError(c, err, "Failed to retrieve clients")
+			return
+		}
+		clientList.AddOpenAIArray(openai)
+		ollama, err := h.ollamaService.GetByUserID(ctx, uid)
+		if err != nil {
+			responses.RespondInternalError(c, err, "Failed to retrieve clients")
+			return
+		}
+		clientList.AddOllamaArray(ollama)
 	}
 
 	responses.RespondOK(c, clientList, "clients retrieved successfully")

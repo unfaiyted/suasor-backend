@@ -93,29 +93,45 @@ func checkClientType(c *gin.Context) (clienttypes.ClientType, bool) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	// Check if clientType is a valid string
-	clientTypeStr, exists := c.Get("clientType")
-	log.Debug().
-		Str("clientType", clientTypeStr.(string)).
-		Bool("exists", exists).
-		Msg("Checking client type")
+	// Check if clientType exists in context
+	clientTypeVal, exists := c.Get("clientType")
 	if !exists {
 		log.Warn().Msg("Client type not found in context")
 		responses.RespondBadRequest(c, nil, "Client type not found in context")
 		return "", false
 	}
-	clientType := clienttypes.ClientType(clientTypeStr.(string))
+
+	// Handle different types that might be in the context
+	var clientType clienttypes.ClientType
+
+	switch ct := clientTypeVal.(type) {
+	case clienttypes.ClientType:
+		// Direct ClientType object
+		clientType = ct
+		log.Debug().Str("clientType", string(clientType)).Msg("Got ClientType directly")
+	case string:
+		// String that needs conversion
+		clientType = clienttypes.ClientType(ct)
+		log.Debug().Str("clientType", ct).Msg("Got string client type")
+	default:
+		// Unknown type
+		log.Warn().
+			Str("type", fmt.Sprintf("%T", clientTypeVal)).
+			Msg("Invalid client type format in context")
+		responses.RespondBadRequest(c, nil, "Invalid client type format")
+		return "", false
+	}
+
+	// Validate the client type
 	switch clientType {
 	case clienttypes.ClientTypeEmby, clienttypes.ClientTypeJellyfin, clienttypes.ClientTypePlex,
 		clienttypes.ClientTypeSubsonic, clienttypes.ClientTypeSonarr, clienttypes.ClientTypeLidarr,
 		clienttypes.ClientTypeRadarr, clienttypes.ClientTypeClaude, clienttypes.ClientTypeOpenAI,
 		clienttypes.ClientTypeOllama:
-		log.Debug().
-			Str("clientType", clientTypeStr.(string)).
-			Msg("Client type valid")
+		log.Debug().Str("clientType", string(clientType)).Msg("Client type valid")
 		return clientType, true
 	default:
-		log.Warn().Str("clientType", clientTypeStr.(string)).Msg("Invalid client type")
+		log.Warn().Str("clientType", string(clientType)).Msg("Invalid client type")
 		responses.RespondBadRequest(c, nil, "Invalid client type")
 		return "", false
 	}
@@ -158,7 +174,7 @@ func checkClientItemID(c *gin.Context, paramName string) (string, error) {
 }
 
 // checkJSONBinding binds JSON request and handles validation errors consistently
-func checkJSONBinding(c *gin.Context, req interface{}) bool {
+func checkJSONBinding(c *gin.Context, req any) bool {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
@@ -354,4 +370,38 @@ func checkSeasonNumber(c *gin.Context, paramName string) (int, bool) {
 	}
 
 	return seasonNum, true
+}
+
+func checkClientCategory(c *gin.Context) (clienttypes.ClientCategory, bool) {
+
+	clientCategory, valid := checkOptionalClientCategory(c)
+	if !valid {
+		err := fmt.Errorf("invalid client category")
+		responses.RespondBadRequest(c, err, "Invalid client category")
+		return "", false
+	}
+
+	return clientCategory, true
+}
+
+func checkOptionalClientCategory(c *gin.Context) (clienttypes.ClientCategory, bool) {
+	ctx := c.Request.Context()
+	log := logger.LoggerFromContext(ctx)
+
+	clientGroupStr := c.Query("clientCategory")
+	clientGroup := clienttypes.ClientCategory(clientGroupStr)
+
+	if clientGroup == "" {
+		log.Debug().Msg("Client group not provided")
+		return "", false
+	}
+	switch clientGroup {
+	case clienttypes.ClientCategoryMedia, clienttypes.ClientCategoryAutomation, clienttypes.ClientCategoryAI, clienttypes.ClientCategoryMetadata:
+		return clientGroup, true
+	default:
+		log.Warn().Msg("Invalid client group")
+		responses.RespondBadRequest(c, nil, "Invalid client group")
+		return "", false
+	}
+
 }

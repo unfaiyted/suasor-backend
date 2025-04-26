@@ -12,10 +12,21 @@ type ctxKey struct{}
 
 var loggerKey = ctxKey{}
 
-// Initialize sets up the global logger
+// Initialize sets up the global logger with default level (Debug)
 func Initialize() {
+	InitializeWithLevel(zerolog.DebugLevel)
+}
+
+// InitializeWithLevel sets up the global logger with specified level
+func InitializeWithLevel(level zerolog.Level) {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	zerolog.SetGlobalLevel(level)
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+}
+
+// SetLogLevel changes the global log level
+func SetLogLevel(level zerolog.Level) {
+	zerolog.SetGlobalLevel(level)
 }
 
 // FromContext extracts logger from context

@@ -6,160 +6,160 @@ import (
 )
 
 type ClientList struct {
-	emby     []*Client[*client.EmbyConfig]
-	jellyfin []*Client[*client.JellyfinConfig]
-	plex     []*Client[*client.PlexConfig]
-	subsonic []*Client[*client.SubsonicConfig]
-	sonarr   []*Client[*client.SonarrConfig]
-	radarr   []*Client[*client.RadarrConfig]
-	lidarr   []*Client[*client.LidarrConfig]
-	claude   []*Client[*client.ClaudeConfig]
-	openAI   []*Client[*client.OpenAIConfig]
-	ollama   []*Client[*client.OllamaConfig]
+	Emby     []*Client[*client.EmbyConfig]     `json:"emby"`
+	Jellyfin []*Client[*client.JellyfinConfig] `json:"jellyfin"`
+	Plex     []*Client[*client.PlexConfig]     `json:"plex"`
+	Subsonic []*Client[*client.SubsonicConfig] `json:"subsonic"`
+	Sonarr   []*Client[*client.SonarrConfig]   `json:"sonarr"`
+	Radarr   []*Client[*client.RadarrConfig]   `json:"radarr"`
+	Lidarr   []*Client[*client.LidarrConfig]   `json:"lidarr"`
+	Claude   []*Client[*client.ClaudeConfig]   `json:"claude"`
+	OpenAI   []*Client[*client.OpenAIConfig]   `json:"openai"`
+	Ollama   []*Client[*client.OllamaConfig]   `json:"ollama"`
 
-	total int
+	Total int `json:"total"`
 }
 
 func (c *ClientList) AddEmby(client *Client[*client.EmbyConfig]) {
-	c.emby = append(c.emby, client)
-	c.total++
+	c.Emby = append(c.Emby, client)
+	c.Total++
 }
 
 func (c *ClientList) AddEmbyArray(clients []*Client[*client.EmbyConfig]) {
-	c.emby = append(c.emby, clients...)
-	c.total += len(clients)
+	c.Emby = append(c.Emby, clients...)
+	c.Total += len(clients)
 }
 
 func (c *ClientList) AddJellyfin(client *Client[*client.JellyfinConfig]) {
-	c.jellyfin = append(c.jellyfin, client)
-	c.total++
+	c.Jellyfin = append(c.Jellyfin, client)
+	c.Total++
 }
 
 func (c *ClientList) AddJellyfinArray(clients []*Client[*client.JellyfinConfig]) {
-	c.jellyfin = append(c.jellyfin, clients...)
-	c.total += len(clients)
+	c.Jellyfin = append(c.Jellyfin, clients...)
+	c.Total += len(clients)
 }
 
 func (c *ClientList) AddPlex(client *Client[*client.PlexConfig]) {
-	c.plex = append(c.plex, client)
-	c.total++
+	c.Plex = append(c.Plex, client)
+	c.Total++
 }
 
 func (c *ClientList) AddPlexArray(clients []*Client[*client.PlexConfig]) {
-	c.plex = append(c.plex, clients...)
-	c.total += len(clients)
+	c.Plex = append(c.Plex, clients...)
+	c.Total += len(clients)
 }
 
 func (c *ClientList) AddSubsonic(client *Client[*client.SubsonicConfig]) {
-	c.subsonic = append(c.subsonic, client)
-	c.total++
+	c.Subsonic = append(c.Subsonic, client)
+	c.Total++
 }
 
 func (c *ClientList) AddSubsonicArray(clients []*Client[*client.SubsonicConfig]) {
-	c.subsonic = append(c.subsonic, clients...)
-	c.total += len(clients)
+	c.Subsonic = append(c.Subsonic, clients...)
+	c.Total += len(clients)
 }
 
 func (c *ClientList) AddSonarr(client *Client[*client.SonarrConfig]) {
-	c.sonarr = append(c.sonarr, client)
-	c.total++
+	c.Sonarr = append(c.Sonarr, client)
+	c.Total++
 }
 
 func (c *ClientList) AddSonarrArray(clients []*Client[*client.SonarrConfig]) {
-	c.sonarr = append(c.sonarr, clients...)
-	c.total += len(clients)
+	c.Sonarr = append(c.Sonarr, clients...)
+	c.Total += len(clients)
 }
 
 func (c *ClientList) AddRadarr(client *Client[*client.RadarrConfig]) {
-	c.radarr = append(c.radarr, client)
-	c.total++
+	c.Radarr = append(c.Radarr, client)
+	c.Total++
 }
 
 func (c *ClientList) AddRadarrArray(clients []*Client[*client.RadarrConfig]) {
-	c.radarr = append(c.radarr, clients...)
-	c.total += len(clients)
+	c.Radarr = append(c.Radarr, clients...)
+	c.Total += len(clients)
 }
 
 func (c *ClientList) AddLidarr(client *Client[*client.LidarrConfig]) {
-	c.lidarr = append(c.lidarr, client)
-	c.total++
+	c.Lidarr = append(c.Lidarr, client)
+	c.Total++
 }
 
 func (c *ClientList) AddLidarrArray(clients []*Client[*client.LidarrConfig]) {
-	c.lidarr = append(c.lidarr, clients...)
-	c.total += len(clients)
+	c.Lidarr = append(c.Lidarr, clients...)
+	c.Total += len(clients)
 }
 
 func (c *ClientList) AddClaude(client *Client[*client.ClaudeConfig]) {
-	c.claude = append(c.claude, client)
-	c.total++
+	c.Claude = append(c.Claude, client)
+	c.Total++
 }
 
 func (c *ClientList) AddClaudeArray(clients []*Client[*client.ClaudeConfig]) {
-	c.claude = append(c.claude, clients...)
-	c.total += len(clients)
+	c.Claude = append(c.Claude, clients...)
+	c.Total += len(clients)
 }
 
 func (c *ClientList) AddOpenAI(client *Client[*client.OpenAIConfig]) {
-	c.openAI = append(c.openAI, client)
-	c.total++
+	c.OpenAI = append(c.OpenAI, client)
+	c.Total++
 }
 
 func (c *ClientList) AddOpenAIArray(clients []*Client[*client.OpenAIConfig]) {
-	c.openAI = append(c.openAI, clients...)
-	c.total += len(clients)
+	c.OpenAI = append(c.OpenAI, clients...)
+	c.Total += len(clients)
 }
 
 func (c *ClientList) AddOllama(client *Client[*client.OllamaConfig]) {
-	c.ollama = append(c.ollama, client)
-	c.total++
+	c.Ollama = append(c.Ollama, client)
+	c.Total++
 }
 
 func (c *ClientList) AddOllamaArray(clients []*Client[*client.OllamaConfig]) {
-	c.ollama = append(c.ollama, clients...)
-	c.total += len(clients)
+	c.Ollama = append(c.Ollama, clients...)
+	c.Total += len(clients)
 }
 
 func (c *ClientList) GetTotal() int {
-	return c.total
+	return c.Total
 }
 
 func (c *ClientList) GetEmby() []*Client[*client.EmbyConfig] {
-	return c.emby
+	return c.Emby
 }
 
 func (c *ClientList) GetJellyfin() []*Client[*client.JellyfinConfig] {
-	return c.jellyfin
+	return c.Jellyfin
 }
 
 func (c *ClientList) GetPlex() []*Client[*client.PlexConfig] {
-	return c.plex
+	return c.Plex
 }
 
 func (c *ClientList) GetSubsonic() []*Client[*client.SubsonicConfig] {
-	return c.subsonic
+	return c.Subsonic
 }
 
 func (c *ClientList) GetSonarr() []*Client[*client.SonarrConfig] {
-	return c.sonarr
+	return c.Sonarr
 }
 
 func (c *ClientList) GetRadarr() []*Client[*client.RadarrConfig] {
-	return c.radarr
+	return c.Radarr
 }
 
 func (c *ClientList) GetLidarr() []*Client[*client.LidarrConfig] {
-	return c.lidarr
+	return c.Lidarr
 }
 
 func (c *ClientList) GetClaude() []*Client[*client.ClaudeConfig] {
-	return c.claude
+	return c.Claude
 }
 
 func (c *ClientList) GetOpenAI() []*Client[*client.OpenAIConfig] {
-	return c.openAI
+	return c.OpenAI
 }
 
 func (c *ClientList) GetOllama() []*Client[*client.OllamaConfig] {
-	return c.ollama
+	return c.Ollama
 }

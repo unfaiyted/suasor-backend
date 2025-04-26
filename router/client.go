@@ -3,6 +3,7 @@ package router
 
 import (
 	"context"
+	"fmt"
 	"suasor/clients/types"
 	clienttypes "suasor/clients/types"
 	"suasor/di/container"
@@ -19,7 +20,9 @@ import (
 // These endpoints are specific to a single client instance.
 func RegisterClientRoutes(ctx context.Context, r *gin.RouterGroup, c *container.Container) {
 	db := container.MustGet[*gorm.DB](c)
+	log := logger.LoggerFromContext(ctx)
 
+	log.Info().Msg("Registering client routes")
 	registerClientRoutes[*types.EmbyConfig](ctx, r, c)
 	registerClientRoutes[*types.JellyfinConfig](ctx, r, c)
 	registerClientRoutes[*types.PlexConfig](ctx, r, c)
@@ -35,20 +38,21 @@ func RegisterClientRoutes(ctx context.Context, r *gin.RouterGroup, c *container.
 	existingClientGroup.Use(middleware.ClientTypeMiddleware(db))
 	{
 		existingClientGroup.GET("", func(g *gin.Context) {
-			clientType := g.Param("clientType")
+			clientType := getClientType(g)
 			getClientHandler(g, c, clientType).GetClient(g)
 		})
 		existingClientGroup.PUT("", func(g *gin.Context) {
-			clientType := g.Param("clientType")
+			clientType := getClientType(g)
 			getClientHandler(g, c, clientType).UpdateClient(g)
 		})
 		existingClientGroup.DELETE("", func(g *gin.Context) {
-			clientType := g.Param("clientType")
+			clientType := getClientType(g)
+
 			getClientHandler(g, c, clientType).DeleteClient(g)
 		})
 
 		existingClientGroup.GET("/test", func(g *gin.Context) {
-			clientType := g.Param("clientType")
+			clientType := getClientType(g)
 			getClientHandler(g, c, clientType).TestConnection(g)
 		})
 	}
@@ -69,22 +73,22 @@ func RegisterClientRoutes(ctx context.Context, r *gin.RouterGroup, c *container.
 	}
 }
 
-func getClientHandler(g *gin.Context, c *container.Container, clientType string) handlers.ClientHandler[clienttypes.ClientConfig] {
+func getClientHandler(g *gin.Context, c *container.Container, clientType clienttypes.ClientType) handlers.ClientHandler[clienttypes.ClientConfig] {
 	log := logger.LoggerFromContext(g.Request.Context())
 	log.Info().
-		Str("clientType", clientType).
+		Str("clientType", string(clientType)).
 		Msg("Retrieving client handler")
-	handlers := map[string]handlers.ClientHandler[clienttypes.ClientConfig]{
-		"emby":     container.MustGet[handlers.ClientHandler[*clienttypes.EmbyConfig]](c),
-		"jellyfin": container.MustGet[handlers.ClientHandler[*clienttypes.JellyfinConfig]](c),
-		"plex":     container.MustGet[handlers.ClientHandler[*clienttypes.PlexConfig]](c),
-		"subsonic": container.MustGet[handlers.ClientHandler[*clienttypes.SubsonicConfig]](c),
-		"sonarr":   container.MustGet[handlers.ClientHandler[*clienttypes.SonarrConfig]](c),
-		"radarr":   container.MustGet[handlers.ClientHandler[*clienttypes.RadarrConfig]](c),
-		"lidarr":   container.MustGet[handlers.ClientHandler[*clienttypes.LidarrConfig]](c),
-		"claude":   container.MustGet[handlers.ClientHandler[*clienttypes.ClaudeConfig]](c),
-		"openai":   container.MustGet[handlers.ClientHandler[*clienttypes.OpenAIConfig]](c),
-		"ollama":   container.MustGet[handlers.ClientHandler[*clienttypes.OllamaConfig]](c),
+	handlers := map[clienttypes.ClientType]handlers.ClientHandler[clienttypes.ClientConfig]{
+		clienttypes.ClientTypeEmby:     container.MustGet[handlers.ClientHandler[*clienttypes.EmbyConfig]](c),
+		clienttypes.ClientTypeJellyfin: container.MustGet[handlers.ClientHandler[*clienttypes.JellyfinConfig]](c),
+		clienttypes.ClientTypePlex:     container.MustGet[handlers.ClientHandler[*clienttypes.PlexConfig]](c),
+		clienttypes.ClientTypeSubsonic: container.MustGet[handlers.ClientHandler[*clienttypes.SubsonicConfig]](c),
+		clienttypes.ClientTypeSonarr:   container.MustGet[handlers.ClientHandler[*clienttypes.SonarrConfig]](c),
+		clienttypes.ClientTypeRadarr:   container.MustGet[handlers.ClientHandler[*clienttypes.RadarrConfig]](c),
+		clienttypes.ClientTypeLidarr:   container.MustGet[handlers.ClientHandler[*clienttypes.LidarrConfig]](c),
+		clienttypes.ClientTypeClaude:   container.MustGet[handlers.ClientHandler[*clienttypes.ClaudeConfig]](c),
+		clienttypes.ClientTypeOpenAI:   container.MustGet[handlers.ClientHandler[*clienttypes.OpenAIConfig]](c),
+		clienttypes.ClientTypeOllama:   container.MustGet[handlers.ClientHandler[*clienttypes.OllamaConfig]](c),
 	}
 	handler, exists := handlers[clientType]
 	if !exists {
@@ -105,15 +109,33 @@ func registerClientRoutes[T types.ClientConfig](ctx context.Context, r *gin.Rout
 	clientGroup := r.Group("/client/" + string(clientType))
 	{
 		clientGroup.GET("", func(g *gin.Context) {
-			clientType := string(clientType)
 			log.Info().
 				Str("clientType", string(clientType)).
 				Msg("Retrieving clients")
 			getClientHandler(g, c, clientType).GetAllOfType(g)
 		})
 		clientGroup.POST("", func(g *gin.Context) {
-			clientType := string(clientType)
 			getClientHandler(g, c, clientType).CreateClient(g)
 		})
 	}
+}
+
+func getClientType(g *gin.Context) clienttypes.ClientType {
+	log := logger.LoggerFromContext(g.Request.Context())
+	clientTypeVal, exists := g.Get("clientType")
+	if !exists {
+		responses.RespondBadRequest(g, nil, "Client type not found in context")
+		return ""
+	}
+
+	// Cast to ClientType
+	clientType, ok := clientTypeVal.(clienttypes.ClientType)
+	if !ok {
+		log.Error().Str("actual_type", fmt.Sprintf("%T", clientTypeVal)).Msg("Invalid client type in context")
+		responses.RespondInternalError(g, nil, "Invalid client type in context")
+		return ""
+	}
+
+	log.Debug().Str("clientType", string(clientType)).Msg("Got client type")
+	return clientType
 }

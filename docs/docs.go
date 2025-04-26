@@ -158,6 +158,15 @@ const docTemplate = `{
                     "clients"
                 ],
                 "summary": "Get all clients",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Client category (e.g. 'ai', 'media', 'automation')",
+                        "name": "clientCategory",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Clients retrieved",
@@ -15120,9 +15129,7 @@ const docTemplate = `{
                 "category": {
                     "$ref": "#/definitions/types.ClientCategory"
                 },
-                "config": {
-                    "$ref": "#/definitions/models.ClientConfigWrapper-types_ClientConfig"
-                },
+                "config": {},
                 "createdAt": {
                     "type": "string"
                 },
@@ -15150,14 +15157,403 @@ const docTemplate = `{
                 }
             }
         },
-        "models.ClientConfigWrapper-types_ClientConfig": {
+        "models.ClientList": {
             "type": "object",
             "properties": {
-                "data": {}
+                "claude": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.ClaudeConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "emby": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.EmbyConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "jellyfin": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.JellyfinConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "lidarr": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.LidarrConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "ollama": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.OllamaConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "openai": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.OpenAIConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "plex": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.PlexConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "radarr": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.RadarrConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "sonarr": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.SonarrConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "subsonic": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.SubsonicConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
             }
-        },
-        "models.ClientList": {
-            "type": "object"
         },
         "models.Credit": {
             "type": "object",
@@ -16412,8 +16808,320 @@ const docTemplate = `{
         "models.MediaItemList": {
             "type": "object",
             "properties": {
+                "albums": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Type-specific media data",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.Album"
+                                    }
+                                ]
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "downloadUrl": {
+                                "type": "string"
+                            },
+                            "externalIds": {
+                                "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ExternalID"
+                                }
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isPublic": {
+                                "description": "Whether this item is public or not",
+                                "type": "boolean"
+                            },
+                            "ownerId": {
+                                "description": "ID of the user that owns this item, 0 for system owned items",
+                                "type": "integer"
+                            },
+                            "releaseDate": {
+                                "type": "string"
+                            },
+                            "releaseYear": {
+                                "type": "integer"
+                            },
+                            "streamUrl": {
+                                "type": "string"
+                            },
+                            "syncClients": {
+                                "description": "Client IDs for this item (mapping client to their IDs)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.SyncClient"
+                                }
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "description": "Type of media (movie, show, episode, etc.)",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.MediaType"
+                                    }
+                                ]
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "uuid": {
+                                "description": "Stable UUID for syncing",
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "artists": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Type-specific media data",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.Artist"
+                                    }
+                                ]
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "downloadUrl": {
+                                "type": "string"
+                            },
+                            "externalIds": {
+                                "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ExternalID"
+                                }
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isPublic": {
+                                "description": "Whether this item is public or not",
+                                "type": "boolean"
+                            },
+                            "ownerId": {
+                                "description": "ID of the user that owns this item, 0 for system owned items",
+                                "type": "integer"
+                            },
+                            "releaseDate": {
+                                "type": "string"
+                            },
+                            "releaseYear": {
+                                "type": "integer"
+                            },
+                            "streamUrl": {
+                                "type": "string"
+                            },
+                            "syncClients": {
+                                "description": "Client IDs for this item (mapping client to their IDs)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.SyncClient"
+                                }
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "description": "Type of media (movie, show, episode, etc.)",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.MediaType"
+                                    }
+                                ]
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "uuid": {
+                                "description": "Stable UUID for syncing",
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "collections": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Type-specific media data",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/suasor_clients_media_types.Collection"
+                                    }
+                                ]
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "downloadUrl": {
+                                "type": "string"
+                            },
+                            "externalIds": {
+                                "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ExternalID"
+                                }
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isPublic": {
+                                "description": "Whether this item is public or not",
+                                "type": "boolean"
+                            },
+                            "ownerId": {
+                                "description": "ID of the user that owns this item, 0 for system owned items",
+                                "type": "integer"
+                            },
+                            "releaseDate": {
+                                "type": "string"
+                            },
+                            "releaseYear": {
+                                "type": "integer"
+                            },
+                            "streamUrl": {
+                                "type": "string"
+                            },
+                            "syncClients": {
+                                "description": "Client IDs for this item (mapping client to their IDs)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.SyncClient"
+                                }
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "description": "Type of media (movie, show, episode, etc.)",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.MediaType"
+                                    }
+                                ]
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "uuid": {
+                                "description": "Stable UUID for syncing",
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
                 "details": {
                     "$ref": "#/definitions/models.MediaItem-types_ListData"
+                },
+                "episodes": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Type-specific media data",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.Episode"
+                                    }
+                                ]
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "downloadUrl": {
+                                "type": "string"
+                            },
+                            "externalIds": {
+                                "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ExternalID"
+                                }
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isPublic": {
+                                "description": "Whether this item is public or not",
+                                "type": "boolean"
+                            },
+                            "ownerId": {
+                                "description": "ID of the user that owns this item, 0 for system owned items",
+                                "type": "integer"
+                            },
+                            "releaseDate": {
+                                "type": "string"
+                            },
+                            "releaseYear": {
+                                "type": "integer"
+                            },
+                            "streamUrl": {
+                                "type": "string"
+                            },
+                            "syncClients": {
+                                "description": "Client IDs for this item (mapping client to their IDs)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.SyncClient"
+                                }
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "description": "Type of media (movie, show, episode, etc.)",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.MediaType"
+                                    }
+                                ]
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "uuid": {
+                                "description": "Stable UUID for syncing",
+                                "type": "string"
+                            }
+                        }
+                    }
                 },
                 "listOriginID": {
                     "description": "0 for internal db, otherwise external client/ProviderID",
@@ -16421,6 +17129,84 @@ const docTemplate = `{
                 },
                 "listType": {
                     "$ref": "#/definitions/types.ListType"
+                },
+                "movies": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Type-specific media data",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/suasor_clients_media_types.Movie"
+                                    }
+                                ]
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "downloadUrl": {
+                                "type": "string"
+                            },
+                            "externalIds": {
+                                "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ExternalID"
+                                }
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isPublic": {
+                                "description": "Whether this item is public or not",
+                                "type": "boolean"
+                            },
+                            "ownerId": {
+                                "description": "ID of the user that owns this item, 0 for system owned items",
+                                "type": "integer"
+                            },
+                            "releaseDate": {
+                                "type": "string"
+                            },
+                            "releaseYear": {
+                                "type": "integer"
+                            },
+                            "streamUrl": {
+                                "type": "string"
+                            },
+                            "syncClients": {
+                                "description": "Client IDs for this item (mapping client to their IDs)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.SyncClient"
+                                }
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "description": "Type of media (movie, show, episode, etc.)",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.MediaType"
+                                    }
+                                ]
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "uuid": {
+                                "description": "Stable UUID for syncing",
+                                "type": "string"
+                            }
+                        }
+                    }
                 },
                 "order": {
                     "type": "array",
@@ -16430,6 +17216,321 @@ const docTemplate = `{
                 },
                 "ownerID": {
                     "type": "integer"
+                },
+                "playlists": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Type-specific media data",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.Playlist"
+                                    }
+                                ]
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "downloadUrl": {
+                                "type": "string"
+                            },
+                            "externalIds": {
+                                "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ExternalID"
+                                }
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isPublic": {
+                                "description": "Whether this item is public or not",
+                                "type": "boolean"
+                            },
+                            "ownerId": {
+                                "description": "ID of the user that owns this item, 0 for system owned items",
+                                "type": "integer"
+                            },
+                            "releaseDate": {
+                                "type": "string"
+                            },
+                            "releaseYear": {
+                                "type": "integer"
+                            },
+                            "streamUrl": {
+                                "type": "string"
+                            },
+                            "syncClients": {
+                                "description": "Client IDs for this item (mapping client to their IDs)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.SyncClient"
+                                }
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "description": "Type of media (movie, show, episode, etc.)",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.MediaType"
+                                    }
+                                ]
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "uuid": {
+                                "description": "Stable UUID for syncing",
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "seasons": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Type-specific media data",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.Season"
+                                    }
+                                ]
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "downloadUrl": {
+                                "type": "string"
+                            },
+                            "externalIds": {
+                                "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ExternalID"
+                                }
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isPublic": {
+                                "description": "Whether this item is public or not",
+                                "type": "boolean"
+                            },
+                            "ownerId": {
+                                "description": "ID of the user that owns this item, 0 for system owned items",
+                                "type": "integer"
+                            },
+                            "releaseDate": {
+                                "type": "string"
+                            },
+                            "releaseYear": {
+                                "type": "integer"
+                            },
+                            "streamUrl": {
+                                "type": "string"
+                            },
+                            "syncClients": {
+                                "description": "Client IDs for this item (mapping client to their IDs)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.SyncClient"
+                                }
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "description": "Type of media (movie, show, episode, etc.)",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.MediaType"
+                                    }
+                                ]
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "uuid": {
+                                "description": "Stable UUID for syncing",
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "series": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Type-specific media data",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.Series"
+                                    }
+                                ]
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "downloadUrl": {
+                                "type": "string"
+                            },
+                            "externalIds": {
+                                "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ExternalID"
+                                }
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isPublic": {
+                                "description": "Whether this item is public or not",
+                                "type": "boolean"
+                            },
+                            "ownerId": {
+                                "description": "ID of the user that owns this item, 0 for system owned items",
+                                "type": "integer"
+                            },
+                            "releaseDate": {
+                                "type": "string"
+                            },
+                            "releaseYear": {
+                                "type": "integer"
+                            },
+                            "streamUrl": {
+                                "type": "string"
+                            },
+                            "syncClients": {
+                                "description": "Client IDs for this item (mapping client to their IDs)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.SyncClient"
+                                }
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "description": "Type of media (movie, show, episode, etc.)",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.MediaType"
+                                    }
+                                ]
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "uuid": {
+                                "description": "Stable UUID for syncing",
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "totalItems": {
+                    "type": "integer"
+                },
+                "tracks": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Type-specific media data",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.Track"
+                                    }
+                                ]
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "downloadUrl": {
+                                "type": "string"
+                            },
+                            "externalIds": {
+                                "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ExternalID"
+                                }
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isPublic": {
+                                "description": "Whether this item is public or not",
+                                "type": "boolean"
+                            },
+                            "ownerId": {
+                                "description": "ID of the user that owns this item, 0 for system owned items",
+                                "type": "integer"
+                            },
+                            "releaseDate": {
+                                "type": "string"
+                            },
+                            "releaseYear": {
+                                "type": "integer"
+                            },
+                            "streamUrl": {
+                                "type": "string"
+                            },
+                            "syncClients": {
+                                "description": "Client IDs for this item (mapping client to their IDs)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.SyncClient"
+                                }
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "description": "Type of media (movie, show, episode, etc.)",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.MediaType"
+                                    }
+                                ]
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "uuid": {
+                                "description": "Stable UUID for syncing",
+                                "type": "string"
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -17526,13 +18627,13 @@ const docTemplate = `{
                 "name"
             ],
             "properties": {
-                "client": {},
                 "clientID": {
                     "type": "integer"
                 },
                 "clientType": {
                     "$ref": "#/definitions/types.ClientType"
                 },
+                "config": {},
                 "isEnabled": {
                     "type": "boolean"
                 },
@@ -20896,6 +21997,29 @@ const docTemplate = `{
                 }
             }
         },
+        "types.ClaudeConfig": {
+            "description": "Claude AI service configuration",
+            "type": "object",
+            "properties": {
+                "AIClientConfig": {},
+                "maxContextTokens": {
+                    "type": "integer",
+                    "example": 100000
+                },
+                "maxTokens": {
+                    "type": "integer",
+                    "example": 2000
+                },
+                "model": {
+                    "type": "string",
+                    "example": "claude-3-opus-20240229"
+                },
+                "temperature": {
+                    "type": "number",
+                    "example": 0.7
+                }
+            }
+        },
         "types.ClientCategory": {
             "type": "string",
             "enum": [
@@ -21188,6 +22312,21 @@ const docTemplate = `{
                 }
             }
         },
+        "types.EmbyConfig": {
+            "description": "Emby media server configuration",
+            "type": "object",
+            "properties": {
+                "details": {},
+                "userID": {
+                    "type": "string",
+                    "example": "your-internal-user-id"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "admin"
+                }
+            }
+        },
         "types.Episode": {
             "type": "object",
             "properties": {
@@ -21248,6 +22387,28 @@ const docTemplate = `{
                     "description": "Controls randomness (0.0-1.0)",
                     "type": "number"
                 }
+            }
+        },
+        "types.JellyfinConfig": {
+            "description": "Jellyfin media server configuration",
+            "type": "object",
+            "properties": {
+                "ClientMediaConfig": {},
+                "userID": {
+                    "type": "string",
+                    "example": "your-internal-user-id"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "admin"
+                }
+            }
+        },
+        "types.LidarrConfig": {
+            "description": "Lidarr automation server configuration",
+            "type": "object",
+            "properties": {
+                "ClientAutomationConfig": {}
             }
         },
         "types.ListItem": {
@@ -21385,6 +22546,44 @@ const docTemplate = `{
                 "MediaTypeUnknown"
             ]
         },
+        "types.OllamaConfig": {
+            "description": "Ollama local AI service configuration",
+            "type": "object",
+            "properties": {
+                "AIClientConfig": {},
+                "model": {
+                    "type": "string",
+                    "example": "llama2"
+                },
+                "temperature": {
+                    "type": "number",
+                    "example": 0.7
+                }
+            }
+        },
+        "types.OpenAIConfig": {
+            "description": "OpenAI service configuration",
+            "type": "object",
+            "properties": {
+                "AIClientConfig": {},
+                "maxContextTokens": {
+                    "type": "integer",
+                    "example": 8192
+                },
+                "maxTokens": {
+                    "type": "integer",
+                    "example": 1000
+                },
+                "model": {
+                    "type": "string",
+                    "example": "gpt-4-turbo"
+                },
+                "temperature": {
+                    "type": "number",
+                    "example": 0.7
+                }
+            }
+        },
         "types.Playlist": {
             "type": "object",
             "properties": {
@@ -21441,6 +22640,24 @@ const docTemplate = `{
                         "$ref": "#/definitions/types.SyncClientState"
                     }
                 }
+            }
+        },
+        "types.PlexConfig": {
+            "description": "Plex media server configuration",
+            "type": "object",
+            "properties": {
+                "ClientMediaConfig": {},
+                "token": {
+                    "type": "string",
+                    "example": "your-plex-token"
+                }
+            }
+        },
+        "types.RadarrConfig": {
+            "description": "Radarr movie automation server configuration",
+            "type": "object",
+            "properties": {
+                "ClientAutomationConfig": {}
             }
         },
         "types.RecommendationRequest": {
@@ -21588,6 +22805,28 @@ const docTemplate = `{
                 "status": {
                     "description": "e.g., \"Ended\", \"Continuing\"",
                     "type": "string"
+                }
+            }
+        },
+        "types.SonarrConfig": {
+            "description": "Sonarr TV series automation server configuration",
+            "type": "object",
+            "properties": {
+                "ClientAutomationConfig": {}
+            }
+        },
+        "types.SubsonicConfig": {
+            "description": "Supersonic music server configuration",
+            "type": "object",
+            "properties": {
+                "ClientMediaConfig": {},
+                "password": {
+                    "type": "string",
+                    "example": "your-password"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "admin"
                 }
             }
         },

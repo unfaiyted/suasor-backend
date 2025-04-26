@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"suasor/di"
 	"suasor/di/container"
 	"suasor/repository"
@@ -15,10 +16,10 @@ import (
 
 	_ "suasor/docs"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-
-	"github.com/rs/zerolog/log"
 )
 
 //	@title			Suasor API
@@ -36,7 +37,28 @@ import (
 // @schemes	http
 // @openapi	3.0.0
 func main() {
-	logger.Initialize()
+	// Parse log level from command line
+	logLevelPtr := flag.String("loglevel", "debug", "Log level (debug, info, warn, error)")
+	flag.Parse()
+
+	// Set log level
+	var level zerolog.Level
+	switch *logLevelPtr {
+	case "debug":
+		level = zerolog.DebugLevel
+	case "info":
+		level = zerolog.InfoLevel
+	case "warn":
+		level = zerolog.WarnLevel
+	case "error":
+		level = zerolog.ErrorLevel
+	default:
+		level = zerolog.InfoLevel
+	}
+
+	// Initialize logger with specified level
+	logger.InitializeWithLevel(level)
+	log.Info().Str("log_level", level.String()).Msg("Logger initialized")
 
 	ctx := context.Background()
 

@@ -71,8 +71,7 @@ definitions:
     properties:
       category:
         $ref: '#/definitions/types.ClientCategory'
-      config:
-        $ref: '#/definitions/models.ClientConfigWrapper-types_ClientConfig'
+      config: {}
       createdAt:
         type: string
       deletedAt:
@@ -91,11 +90,270 @@ definitions:
       userID:
         type: integer
     type: object
-  models.ClientConfigWrapper-types_ClientConfig:
-    properties:
-      data: {}
-    type: object
   models.ClientList:
+    properties:
+      claude:
+        items:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.ClaudeConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: array
+      emby:
+        items:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.EmbyConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: array
+      jellyfin:
+        items:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.JellyfinConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: array
+      lidarr:
+        items:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.LidarrConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: array
+      ollama:
+        items:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.OllamaConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: array
+      openai:
+        items:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.OpenAIConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: array
+      plex:
+        items:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.PlexConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: array
+      radarr:
+        items:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.RadarrConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: array
+      sonarr:
+        items:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.SonarrConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: array
+      subsonic:
+        items:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.SubsonicConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: array
+      total:
+        type: integer
     type: object
   models.Credit:
     properties:
@@ -950,19 +1208,489 @@ definitions:
     type: object
   models.MediaItemList:
     properties:
+      albums:
+        additionalProperties:
+          properties:
+            createdAt:
+              type: string
+            data:
+              allOf:
+              - $ref: '#/definitions/types.Album'
+              description: Type-specific media data
+            deletedAt:
+              type: string
+            downloadUrl:
+              type: string
+            externalIds:
+              description: External IDs for this item (TMDB, IMDB, etc.)
+              items:
+                $ref: '#/definitions/models.ExternalID'
+              type: array
+            id:
+              description: Internal ID
+              type: integer
+            isPublic:
+              description: Whether this item is public or not
+              type: boolean
+            ownerId:
+              description: ID of the user that owns this item, 0 for system owned
+                items
+              type: integer
+            releaseDate:
+              type: string
+            releaseYear:
+              type: integer
+            streamUrl:
+              type: string
+            syncClients:
+              description: Client IDs for this item (mapping client to their IDs)
+              items:
+                $ref: '#/definitions/models.SyncClient'
+              type: array
+            title:
+              type: string
+            type:
+              allOf:
+              - $ref: '#/definitions/types.MediaType'
+              description: Type of media (movie, show, episode, etc.)
+            updatedAt:
+              type: string
+            uuid:
+              description: Stable UUID for syncing
+              type: string
+          type: object
+        type: object
+      artists:
+        additionalProperties:
+          properties:
+            createdAt:
+              type: string
+            data:
+              allOf:
+              - $ref: '#/definitions/types.Artist'
+              description: Type-specific media data
+            deletedAt:
+              type: string
+            downloadUrl:
+              type: string
+            externalIds:
+              description: External IDs for this item (TMDB, IMDB, etc.)
+              items:
+                $ref: '#/definitions/models.ExternalID'
+              type: array
+            id:
+              description: Internal ID
+              type: integer
+            isPublic:
+              description: Whether this item is public or not
+              type: boolean
+            ownerId:
+              description: ID of the user that owns this item, 0 for system owned
+                items
+              type: integer
+            releaseDate:
+              type: string
+            releaseYear:
+              type: integer
+            streamUrl:
+              type: string
+            syncClients:
+              description: Client IDs for this item (mapping client to their IDs)
+              items:
+                $ref: '#/definitions/models.SyncClient'
+              type: array
+            title:
+              type: string
+            type:
+              allOf:
+              - $ref: '#/definitions/types.MediaType'
+              description: Type of media (movie, show, episode, etc.)
+            updatedAt:
+              type: string
+            uuid:
+              description: Stable UUID for syncing
+              type: string
+          type: object
+        type: object
+      collections:
+        additionalProperties:
+          properties:
+            createdAt:
+              type: string
+            data:
+              allOf:
+              - $ref: '#/definitions/suasor_clients_media_types.Collection'
+              description: Type-specific media data
+            deletedAt:
+              type: string
+            downloadUrl:
+              type: string
+            externalIds:
+              description: External IDs for this item (TMDB, IMDB, etc.)
+              items:
+                $ref: '#/definitions/models.ExternalID'
+              type: array
+            id:
+              description: Internal ID
+              type: integer
+            isPublic:
+              description: Whether this item is public or not
+              type: boolean
+            ownerId:
+              description: ID of the user that owns this item, 0 for system owned
+                items
+              type: integer
+            releaseDate:
+              type: string
+            releaseYear:
+              type: integer
+            streamUrl:
+              type: string
+            syncClients:
+              description: Client IDs for this item (mapping client to their IDs)
+              items:
+                $ref: '#/definitions/models.SyncClient'
+              type: array
+            title:
+              type: string
+            type:
+              allOf:
+              - $ref: '#/definitions/types.MediaType'
+              description: Type of media (movie, show, episode, etc.)
+            updatedAt:
+              type: string
+            uuid:
+              description: Stable UUID for syncing
+              type: string
+          type: object
+        type: object
       details:
         $ref: '#/definitions/models.MediaItem-types_ListData'
+      episodes:
+        additionalProperties:
+          properties:
+            createdAt:
+              type: string
+            data:
+              allOf:
+              - $ref: '#/definitions/types.Episode'
+              description: Type-specific media data
+            deletedAt:
+              type: string
+            downloadUrl:
+              type: string
+            externalIds:
+              description: External IDs for this item (TMDB, IMDB, etc.)
+              items:
+                $ref: '#/definitions/models.ExternalID'
+              type: array
+            id:
+              description: Internal ID
+              type: integer
+            isPublic:
+              description: Whether this item is public or not
+              type: boolean
+            ownerId:
+              description: ID of the user that owns this item, 0 for system owned
+                items
+              type: integer
+            releaseDate:
+              type: string
+            releaseYear:
+              type: integer
+            streamUrl:
+              type: string
+            syncClients:
+              description: Client IDs for this item (mapping client to their IDs)
+              items:
+                $ref: '#/definitions/models.SyncClient'
+              type: array
+            title:
+              type: string
+            type:
+              allOf:
+              - $ref: '#/definitions/types.MediaType'
+              description: Type of media (movie, show, episode, etc.)
+            updatedAt:
+              type: string
+            uuid:
+              description: Stable UUID for syncing
+              type: string
+          type: object
+        type: object
       listOriginID:
         description: 0 for internal db, otherwise external client/ProviderID
         type: integer
       listType:
         $ref: '#/definitions/types.ListType'
+      movies:
+        additionalProperties:
+          properties:
+            createdAt:
+              type: string
+            data:
+              allOf:
+              - $ref: '#/definitions/suasor_clients_media_types.Movie'
+              description: Type-specific media data
+            deletedAt:
+              type: string
+            downloadUrl:
+              type: string
+            externalIds:
+              description: External IDs for this item (TMDB, IMDB, etc.)
+              items:
+                $ref: '#/definitions/models.ExternalID'
+              type: array
+            id:
+              description: Internal ID
+              type: integer
+            isPublic:
+              description: Whether this item is public or not
+              type: boolean
+            ownerId:
+              description: ID of the user that owns this item, 0 for system owned
+                items
+              type: integer
+            releaseDate:
+              type: string
+            releaseYear:
+              type: integer
+            streamUrl:
+              type: string
+            syncClients:
+              description: Client IDs for this item (mapping client to their IDs)
+              items:
+                $ref: '#/definitions/models.SyncClient'
+              type: array
+            title:
+              type: string
+            type:
+              allOf:
+              - $ref: '#/definitions/types.MediaType'
+              description: Type of media (movie, show, episode, etc.)
+            updatedAt:
+              type: string
+            uuid:
+              description: Stable UUID for syncing
+              type: string
+          type: object
+        type: object
       order:
         items:
           $ref: '#/definitions/models.ListItem'
         type: array
       ownerID:
         type: integer
+      playlists:
+        additionalProperties:
+          properties:
+            createdAt:
+              type: string
+            data:
+              allOf:
+              - $ref: '#/definitions/types.Playlist'
+              description: Type-specific media data
+            deletedAt:
+              type: string
+            downloadUrl:
+              type: string
+            externalIds:
+              description: External IDs for this item (TMDB, IMDB, etc.)
+              items:
+                $ref: '#/definitions/models.ExternalID'
+              type: array
+            id:
+              description: Internal ID
+              type: integer
+            isPublic:
+              description: Whether this item is public or not
+              type: boolean
+            ownerId:
+              description: ID of the user that owns this item, 0 for system owned
+                items
+              type: integer
+            releaseDate:
+              type: string
+            releaseYear:
+              type: integer
+            streamUrl:
+              type: string
+            syncClients:
+              description: Client IDs for this item (mapping client to their IDs)
+              items:
+                $ref: '#/definitions/models.SyncClient'
+              type: array
+            title:
+              type: string
+            type:
+              allOf:
+              - $ref: '#/definitions/types.MediaType'
+              description: Type of media (movie, show, episode, etc.)
+            updatedAt:
+              type: string
+            uuid:
+              description: Stable UUID for syncing
+              type: string
+          type: object
+        type: object
+      seasons:
+        additionalProperties:
+          properties:
+            createdAt:
+              type: string
+            data:
+              allOf:
+              - $ref: '#/definitions/types.Season'
+              description: Type-specific media data
+            deletedAt:
+              type: string
+            downloadUrl:
+              type: string
+            externalIds:
+              description: External IDs for this item (TMDB, IMDB, etc.)
+              items:
+                $ref: '#/definitions/models.ExternalID'
+              type: array
+            id:
+              description: Internal ID
+              type: integer
+            isPublic:
+              description: Whether this item is public or not
+              type: boolean
+            ownerId:
+              description: ID of the user that owns this item, 0 for system owned
+                items
+              type: integer
+            releaseDate:
+              type: string
+            releaseYear:
+              type: integer
+            streamUrl:
+              type: string
+            syncClients:
+              description: Client IDs for this item (mapping client to their IDs)
+              items:
+                $ref: '#/definitions/models.SyncClient'
+              type: array
+            title:
+              type: string
+            type:
+              allOf:
+              - $ref: '#/definitions/types.MediaType'
+              description: Type of media (movie, show, episode, etc.)
+            updatedAt:
+              type: string
+            uuid:
+              description: Stable UUID for syncing
+              type: string
+          type: object
+        type: object
+      series:
+        additionalProperties:
+          properties:
+            createdAt:
+              type: string
+            data:
+              allOf:
+              - $ref: '#/definitions/types.Series'
+              description: Type-specific media data
+            deletedAt:
+              type: string
+            downloadUrl:
+              type: string
+            externalIds:
+              description: External IDs for this item (TMDB, IMDB, etc.)
+              items:
+                $ref: '#/definitions/models.ExternalID'
+              type: array
+            id:
+              description: Internal ID
+              type: integer
+            isPublic:
+              description: Whether this item is public or not
+              type: boolean
+            ownerId:
+              description: ID of the user that owns this item, 0 for system owned
+                items
+              type: integer
+            releaseDate:
+              type: string
+            releaseYear:
+              type: integer
+            streamUrl:
+              type: string
+            syncClients:
+              description: Client IDs for this item (mapping client to their IDs)
+              items:
+                $ref: '#/definitions/models.SyncClient'
+              type: array
+            title:
+              type: string
+            type:
+              allOf:
+              - $ref: '#/definitions/types.MediaType'
+              description: Type of media (movie, show, episode, etc.)
+            updatedAt:
+              type: string
+            uuid:
+              description: Stable UUID for syncing
+              type: string
+          type: object
+        type: object
+      totalItems:
+        type: integer
+      tracks:
+        additionalProperties:
+          properties:
+            createdAt:
+              type: string
+            data:
+              allOf:
+              - $ref: '#/definitions/types.Track'
+              description: Type-specific media data
+            deletedAt:
+              type: string
+            downloadUrl:
+              type: string
+            externalIds:
+              description: External IDs for this item (TMDB, IMDB, etc.)
+              items:
+                $ref: '#/definitions/models.ExternalID'
+              type: array
+            id:
+              description: Internal ID
+              type: integer
+            isPublic:
+              description: Whether this item is public or not
+              type: boolean
+            ownerId:
+              description: ID of the user that owns this item, 0 for system owned
+                items
+              type: integer
+            releaseDate:
+              type: string
+            releaseYear:
+              type: integer
+            streamUrl:
+              type: string
+            syncClients:
+              description: Client IDs for this item (mapping client to their IDs)
+              items:
+                $ref: '#/definitions/models.SyncClient'
+              type: array
+            title:
+              type: string
+            type:
+              allOf:
+              - $ref: '#/definitions/types.MediaType'
+              description: Type of media (movie, show, episode, etc.)
+            updatedAt:
+              type: string
+            uuid:
+              description: Stable UUID for syncing
+              type: string
+          type: object
+        type: object
     type: object
   models.MediaRole:
     enum:
@@ -1752,11 +2480,11 @@ definitions:
     type: object
   requests.ClientRequest-types_ClientConfig:
     properties:
-      client: {}
       clientID:
         type: integer
       clientType:
         $ref: '#/definitions/types.ClientType'
+      config: {}
       isEnabled:
         type: boolean
       name:
@@ -4168,6 +4896,23 @@ definitions:
       timestamp:
         type: string
     type: object
+  types.ClaudeConfig:
+    description: Claude AI service configuration
+    properties:
+      AIClientConfig: {}
+      maxContextTokens:
+        example: 100000
+        type: integer
+      maxTokens:
+        example: 2000
+        type: integer
+      model:
+        example: claude-3-opus-20240229
+        type: string
+      temperature:
+        example: 0.7
+        type: number
+    type: object
   types.ClientCategory:
     enum:
     - automation
@@ -4399,6 +5144,17 @@ definitions:
         - writeTimeout
         type: object
     type: object
+  types.EmbyConfig:
+    description: Emby media server configuration
+    properties:
+      details: {}
+      userID:
+        example: your-internal-user-id
+        type: string
+      username:
+        example: admin
+        type: string
+    type: object
   types.Episode:
     properties:
       credits:
@@ -4440,6 +5196,22 @@ definitions:
       temperature:
         description: Controls randomness (0.0-1.0)
         type: number
+    type: object
+  types.JellyfinConfig:
+    description: Jellyfin media server configuration
+    properties:
+      ClientMediaConfig: {}
+      userID:
+        example: your-internal-user-id
+        type: string
+      username:
+        example: admin
+        type: string
+    type: object
+  types.LidarrConfig:
+    description: Lidarr automation server configuration
+    properties:
+      ClientAutomationConfig: {}
     type: object
   types.ListItem:
     properties:
@@ -4538,6 +5310,34 @@ definitions:
     - MediaTypeCollection
     - MediaTypeAll
     - MediaTypeUnknown
+  types.OllamaConfig:
+    description: Ollama local AI service configuration
+    properties:
+      AIClientConfig: {}
+      model:
+        example: llama2
+        type: string
+      temperature:
+        example: 0.7
+        type: number
+    type: object
+  types.OpenAIConfig:
+    description: OpenAI service configuration
+    properties:
+      AIClientConfig: {}
+      maxContextTokens:
+        example: 8192
+        type: integer
+      maxTokens:
+        example: 1000
+        type: integer
+      model:
+        example: gpt-4-turbo
+        type: string
+      temperature:
+        example: 0.7
+        type: number
+    type: object
   types.Playlist:
     properties:
       autoUpdateTime:
@@ -4577,6 +5377,19 @@ definitions:
         items:
           $ref: '#/definitions/types.SyncClientState'
         type: array
+    type: object
+  types.PlexConfig:
+    description: Plex media server configuration
+    properties:
+      ClientMediaConfig: {}
+      token:
+        example: your-plex-token
+        type: string
+    type: object
+  types.RadarrConfig:
+    description: Radarr movie automation server configuration
+    properties:
+      ClientAutomationConfig: {}
     type: object
   types.RecommendationRequest:
     properties:
@@ -4675,6 +5488,22 @@ definitions:
         type: array
       status:
         description: e.g., "Ended", "Continuing"
+        type: string
+    type: object
+  types.SonarrConfig:
+    description: Sonarr TV series automation server configuration
+    properties:
+      ClientAutomationConfig: {}
+    type: object
+  types.SubsonicConfig:
+    description: Supersonic music server configuration
+    properties:
+      ClientMediaConfig: {}
+      password:
+        example: your-password
+        type: string
+      username:
+        example: admin
         type: string
     type: object
   types.SyncClient:
@@ -5430,6 +6259,12 @@ paths:
       consumes:
       - application/json
       description: Retrieves all client configurations for the user
+      parameters:
+      - description: Client category (e.g. 'ai', 'media', 'automation')
+        in: query
+        name: clientCategory
+        required: true
+        type: string
       produces:
       - application/json
       responses:
