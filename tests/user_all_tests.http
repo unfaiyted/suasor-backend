@@ -1,0 +1,24 @@
+### Master file to run all user tests
+
+# Import test files
+GET import ./user_tests.http HTTP/1.1
+
+# Run the admin login to get an admin token
+run #adminLogin
+run #createTestUser
+
+# Run the common setup to get valid clients and authentication token
+run #registerAnotherUser
+run #registerExistingEmail
+run #registerExistingUsername
+run #registerExistingEmail
+
+# Get own
+run #getOwnProfile
+run #updateOwnProfile
+run #changePassword
+run #loginWithNewPassword
+run #changePasswordInvalidCurrent
+
+# Run the test user creation
+run #createTestUser

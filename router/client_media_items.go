@@ -69,6 +69,16 @@ func registerClientItemRoutes[T mediatypes.MediaData](rg *gin.RouterGroup, c *co
 			// handler.GetPlaybackState(g)
 		}
 	})
+	itemGroup.GET("/genre/:genre", func(g *gin.Context) {
+		if handler := getItemHandler[T](g, c); handler != nil {
+			handler.GetByGenre(g)
+		}
+	})
+	itemGroup.GET("/year/:year", func(g *gin.Context) {
+		if handler := getItemHandler[T](g, c); handler != nil {
+			handler.GetByYear(g)
+		}
+	})
 	itemGroup.PUT("/:clientItemID/state", func(g *gin.Context) {
 		if handler := getItemHandler[T](g, c); handler != nil {
 			// handler.UpdatePlaybackState(g)

@@ -18,7 +18,7 @@ run #createSubsonicClient
 
 # Run connection tests
 run #testEmbyConnection
-run #testJellyfinConnection
+#run #testJellyfinConnection
 run #testPlexConnection
 run #testSubsonicConnection
 

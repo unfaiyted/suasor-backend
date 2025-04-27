@@ -5237,7 +5237,7 @@ definitions:
   types.JellyfinConfig:
     description: Jellyfin media server configuration
     properties:
-      ClientMediaConfig: {}
+      details: {}
       userID:
         example: your-internal-user-id
         type: string
@@ -5248,7 +5248,7 @@ definitions:
   types.LidarrConfig:
     description: Lidarr automation server configuration
     properties:
-      ClientAutomationConfig: {}
+      details: {}
     type: object
   types.ListItem:
     properties:
@@ -5365,7 +5365,7 @@ definitions:
   types.OllamaConfig:
     description: Ollama local AI service configuration
     properties:
-      AIClientConfig: {}
+      details: {}
       model:
         example: llama2
         type: string
@@ -5376,7 +5376,7 @@ definitions:
   types.OpenAIConfig:
     description: OpenAI service configuration
     properties:
-      AIClientConfig: {}
+      details: {}
       maxContextTokens:
         example: 8192
         type: integer
@@ -5398,7 +5398,7 @@ definitions:
   types.PlexConfig:
     description: Plex media server configuration
     properties:
-      ClientMediaConfig: {}
+      details: {}
       token:
         example: your-plex-token
         type: string
@@ -5522,7 +5522,7 @@ definitions:
   types.RadarrConfig:
     description: Radarr movie automation server configuration
     properties:
-      ClientAutomationConfig: {}
+      details: {}
     type: object
   types.RecommendationRequest:
     properties:
@@ -5626,7 +5626,7 @@ definitions:
   types.SonarrConfig:
     description: Sonarr TV series automation server configuration
     properties:
-      ClientAutomationConfig: {}
+      details: {}
     type: object
   types.SortOrder:
     enum:
@@ -5651,7 +5651,7 @@ definitions:
   types.SubsonicConfig:
     description: Supersonic music server configuration
     properties:
-      ClientMediaConfig: {}
+      details: {}
       password:
         example: your-password
         type: string

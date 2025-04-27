@@ -22392,7 +22392,7 @@ const docTemplate = `{
             "description": "Jellyfin media server configuration",
             "type": "object",
             "properties": {
-                "ClientMediaConfig": {},
+                "details": {},
                 "userID": {
                     "type": "string",
                     "example": "your-internal-user-id"
@@ -22407,7 +22407,7 @@ const docTemplate = `{
             "description": "Lidarr automation server configuration",
             "type": "object",
             "properties": {
-                "ClientAutomationConfig": {}
+                "details": {}
             }
         },
         "types.ListItem": {
@@ -22571,7 +22571,7 @@ const docTemplate = `{
             "description": "Ollama local AI service configuration",
             "type": "object",
             "properties": {
-                "AIClientConfig": {},
+                "details": {},
                 "model": {
                     "type": "string",
                     "example": "llama2"
@@ -22586,7 +22586,7 @@ const docTemplate = `{
             "description": "OpenAI service configuration",
             "type": "object",
             "properties": {
-                "AIClientConfig": {},
+                "details": {},
                 "maxContextTokens": {
                     "type": "integer",
                     "example": 8192
@@ -22617,7 +22617,7 @@ const docTemplate = `{
             "description": "Plex media server configuration",
             "type": "object",
             "properties": {
-                "ClientMediaConfig": {},
+                "details": {},
                 "token": {
                     "type": "string",
                     "example": "your-plex-token"
@@ -22787,7 +22787,7 @@ const docTemplate = `{
             "description": "Radarr movie automation server configuration",
             "type": "object",
             "properties": {
-                "ClientAutomationConfig": {}
+                "details": {}
             }
         },
         "types.RecommendationRequest": {
@@ -22942,7 +22942,7 @@ const docTemplate = `{
             "description": "Sonarr TV series automation server configuration",
             "type": "object",
             "properties": {
-                "ClientAutomationConfig": {}
+                "details": {}
             }
         },
         "types.SortOrder": {
@@ -22975,7 +22975,7 @@ const docTemplate = `{
             "description": "Supersonic music server configuration",
             "type": "object",
             "properties": {
-                "ClientMediaConfig": {},
+                "details": {},
                 "password": {
                     "type": "string",
                     "example": "your-password"

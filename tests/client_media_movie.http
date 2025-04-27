@@ -27,14 +27,14 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 ###
 # @name getEmbyMoviesByGenre
 # Get movies from Emby by genre
-GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/movie/genre/{{TEST_GENRE}}
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/movie/genre/{{TEST_MOVIE_GENRE}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ###
 # @name getEmbyMoviesByYear
 # Get movies from Emby by year
-GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/movie/year/{{TEST_YEAR}}
+GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/movie/year/{{TEST_MOVIE_YEAR}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
