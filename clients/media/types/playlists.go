@@ -9,7 +9,8 @@ import (
 
 // Playlist represents an ordered collection that can contain duplicates
 type Playlist struct {
-	ItemList
+	ItemList `json:"list"`
+	// TODO: Add Ways to perserver order of playlists
 }
 
 // DetectItemOrderConflicts finds conflicts in item ordering
@@ -89,7 +90,7 @@ func (p *Playlist) GetDetails() MediaDetails { return p.ItemList.Details }
 func (p *Playlist) SetDetails(details MediaDetails) {
 	p.ItemList.Details = details
 }
-func (p *Playlist) GetItemList() ItemList         { return p.ItemList }
+func (p *Playlist) GetItemList() *ItemList        { return &p.ItemList }
 func (p *Playlist) SetItemList(itemList ItemList) { p.ItemList = itemList }
 func (p *Playlist) GetMediaType() MediaType       { return MediaTypePlaylist }
 

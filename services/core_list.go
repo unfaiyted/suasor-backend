@@ -14,7 +14,7 @@ import (
 type CoreListService[T mediatypes.ListData] interface {
 	// Base operations (leveraging UserMediaItemService)
 	GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error)
-	GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error)
+	GetByID(ctx context.Context, listID uint64) (*models.MediaItem[T], error)
 	GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error)
 
 	// list-specific operations
@@ -38,17 +38,17 @@ func NewCoreListService[T mediatypes.ListData](
 }
 
 // Base operations (delegating to UserMediaItemService where appropriate)
-func (s coreListService[T]) GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error) {
+func (s coreListService[T]) GetByID(ctx context.Context, listID uint64) (*models.MediaItem[T], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
-		Uint64("id", id).
+		Uint64("id", listID).
 		Msg("Getting list by ID")
 
 	// Use the user service
-	result, err := s.itemRepo.GetByID(ctx, id)
+	result, err := s.itemRepo.GetByID(ctx, listID)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("id", id).
+			Uint64("id", listID).
 			Msg("Failed to get list")
 		return nil, fmt.Errorf("failed to get list: %w", err)
 	}
@@ -56,10 +56,10 @@ func (s coreListService[T]) GetByID(ctx context.Context, id uint64) (*models.Med
 	// Verify this is actually a list
 	if !result.IsList() {
 		log.Error().
-			Uint64("id", id).
+			Uint64("id", listID).
 			Str("actualType", string(result.Type)).
 			Msg("Item is not a list")
-		return nil, fmt.Errorf("item with ID %d is not a list", id)
+		return nil, fmt.Errorf("item with ID %d is not a list", listID)
 	}
 
 	return result, nil

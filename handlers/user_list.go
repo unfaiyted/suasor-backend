@@ -2,9 +2,9 @@
 package handlers
 
 import (
+	"github.com/google/uuid"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"suasor/utils"
@@ -112,7 +112,7 @@ func (h *userListHandler[T]) GetUserLists(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			list	body		requests.ListCreateRequest										true	"List details"
+//	@Param			list	body		models.MediaItem[types.ListData]										true	"List details"
 //	@Success		201		{object}	responses.APIResponse[models.MediaItem[types.Playlist]]	"List created successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[any]									"Invalid request"
 //	@Failure		401		{object}	responses.ErrorResponse[any]									"Unauthorized"
@@ -129,7 +129,7 @@ func (h *userListHandler[T]) Create(c *gin.Context) {
 	}
 
 	// Parse request body
-	var req requests.ListCreateRequest
+	var req models.MediaItem[T]
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Warn().Err(err).Msg("Invalid request body")
 		responses.RespondBadRequest(c, err, "Invalid request body")
@@ -138,46 +138,43 @@ func (h *userListHandler[T]) Create(c *gin.Context) {
 
 	log.Debug().
 		Uint64("userID", userID).
-		Str("name", req.Name).
+		Str("name", req.Title).
+		Interface("data", req.Data).
 		Msg("Creating new list")
 
-	details := types.MediaDetails{
-		Title:       req.Name,
-		Description: req.Description,
-	}
+	// itemList := types.ItemList{
+	// 	ItemCount: 0,
+	// 	OwnerID:   userID,
+	// 	Details:   details,
+	// 	IsPublic:  req.IsPublic,
+	// 	IsSmart:   req.IsSmart,
+	// 	SmartCriteria: map[string]any{
+	// 		"genre":    req.Genre,
+	// 		"year":     req.Year,
+	// 		"rating":   req.Rating,
+	// 		"duration": req.Duration,
+	// 	},
+	// }
+	req.UUID = uuid.New().String()
 
-	itemList := types.ItemList{
-		ItemCount: 0,
-		OwnerID:   userID,
-		Details:   details,
-		IsPublic:  req.IsPublic,
-		IsSmart:   req.IsSmart,
-		SmartCriteria: map[string]any{
-			"genre":    req.Genre,
-			"year":     req.Year,
-			"rating":   req.Rating,
-			"duration": req.Duration,
-		},
-	}
+	// list := types.NewList[T](details, itemList)
 
-	list := types.NewList[T](details, itemList)
-
-	list.AddListItem(types.ListItem{
-		ItemID:        0,
-		Position:      0,
-		LastChanged:   time.Now(),
-		ChangeHistory: []types.ChangeRecord{},
-	})
-	var zero T
-	mediaType := types.GetMediaTypeFromTypeName(zero)
-
-	// Create media item
-	mediaItem := models.NewMediaItem[T](mediaType, list)
-	mediaItem.Title = list.GetTitle()
-	mediaItem.Type = mediaType
-
+	// list.AddListItem(types.ListItem{
+	// 	ItemID:        0,
+	// 	Position:      0,
+	// 	LastChanged:   time.Now(),
+	// 	ChangeHistory: []types.ChangeRecord{},
+	// })
+	// var zero T
+	// mediaType := types.GetMediaTypeFromTypeName(zero)
+	//
+	// // Create media item
+	// mediaItem := models.NewMediaItem[T](mediaType, list)
+	// mediaItem.Title = list.GetTitle()
+	// mediaItem.Type = mediaType
+	//
 	// Create list
-	createdList, err := h.listService.Create(ctx, userID, mediaItem)
+	createdList, err := h.listService.Create(ctx, userID, &req)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -201,7 +198,7 @@ func (h *userListHandler[T]) Create(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			listId		path		int																true	"List ID"
+//	@Param			listID		path		int																true	"List ID"
 //	@Param			listType	path		string															true	"List type (e.g. 'playlist', 'collection')"
 //	@Param			list		body		requests.ListUpdateRequest										true	"Updated list details"
 //	@Success		200			{object}	responses.APIResponse[models.MediaItem[types.Playlist]]	"List updated successfully"
@@ -210,7 +207,7 @@ func (h *userListHandler[T]) Create(c *gin.Context) {
 //	@Failure		403			{object}	responses.ErrorResponse[any]									"Forbidden"
 //	@Failure		404			{object}	responses.ErrorResponse[any]									"List not found"
 //	@Failure		500			{object}	responses.ErrorResponse[any]									"Server error"
-//	@Router			/{listType}/{listId} [put]
+//	@Router			/{listType}/{listID} [put]
 func (h *userListHandler[T]) Update(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -219,7 +216,7 @@ func (h *userListHandler[T]) Update(c *gin.Context) {
 	userID, isAdmin := checkAdminAccess(c)
 
 	// Parse list ID
-	listID, _ := checkItemID(c, "listId")
+	listID, _ := checkItemID(c, "listID")
 
 	// Parse request body
 	var req requests.ListUpdateRequest
@@ -249,7 +246,7 @@ func (h *userListHandler[T]) Update(c *gin.Context) {
 	itemList.Details.Title = req.Name
 	itemList.Details.Description = req.Description
 	itemList.IsPublic = req.IsPublic
-	existingList.GetData().SetItemList(itemList)
+	existingList.GetData().SetItemList(*itemList)
 
 	// Update list
 	existingList.Title = req.Name
@@ -279,14 +276,14 @@ func (h *userListHandler[T]) Update(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			id	path		int								true	"List ID"
+//	@Param			listID	path		int								true	"List ID"
 //	@Success		200	{object}	responses.APIResponse[any]		"List deleted successfully"
 //	@Failure		400	{object}	responses.ErrorResponse[any]	"Invalid request"
 //	@Failure		401	{object}	responses.ErrorResponse[any]	"Unauthorized"
 //	@Failure		403	{object}	responses.ErrorResponse[any]	"Forbidden"
 //	@Failure		404	{object}	responses.ErrorResponse[any]	"List not found"
 //	@Failure		500	{object}	responses.ErrorResponse[any]	"Server error"
-//	@Router			/{listType}/{id} [delete]
+//	@Router			/{listType}/{listID} [delete]
 func (h *userListHandler[T]) Delete(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -295,23 +292,18 @@ func (h *userListHandler[T]) Delete(c *gin.Context) {
 	userID, _ := checkUserAccess(c)
 
 	// Parse list ID
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid list ID")
-		responses.RespondBadRequest(c, err, "Invalid list ID")
-		return
-	}
+	listID, _ := checkItemID(c, "listID")
 
 	log.Debug().
 		Uint64("userID", userID).
-		Uint64("listID", id).
+		Uint64("listID", listID).
 		Msg("Deleting list")
 
 	// Get existing list
-	existingList, err := h.listService.GetByID(ctx, id)
+	existingList, err := h.listService.GetByID(ctx, listID)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("listID", id).
+			Uint64("listID", listID).
 			Msg("Failed to retrieve list")
 		responses.RespondNotFound(c, err, "List not found")
 		return
@@ -322,17 +314,17 @@ func (h *userListHandler[T]) Delete(c *gin.Context) {
 		log.Warn().
 			Uint64("userID", userID).
 			Uint64("ownerID", existingList.OwnerID).
-			Uint64("listID", id).
+			Uint64("listID", listID).
 			Msg("User does not own the list")
 		responses.RespondForbidden(c, nil, "You do not have permission to delete this list")
 		return
 	}
 
 	// Delete list
-	err = h.listService.Delete(ctx, userID, id)
+	err = h.listService.Delete(ctx, userID, listID)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("listID", id).
+			Uint64("listID", listID).
 			Msg("Failed to delete list")
 		responses.RespondInternalError(c, err, "Failed to delete list")
 		return
@@ -340,7 +332,7 @@ func (h *userListHandler[T]) Delete(c *gin.Context) {
 
 	log.Info().
 		Uint64("userID", userID).
-		Uint64("listID", id).
+		Uint64("listID", listID).
 		Msg("List deleted successfully")
 	responses.RespondOK(c, http.StatusOK, "List deleted successfully")
 }
@@ -416,15 +408,15 @@ func (h *userListHandler[T]) AddItem(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			id		path		int																true	"List ID"
-//	@Param			trackId	path		int																true	"Track ID"
+//	@Param			listID		path		int																true	"List ID"
+//	@Param			itemID	path		int																true	"Track ID"
 //	@Success		200		{object}	responses.APIResponse[models.MediaItem[types.Playlist]]	"Track removed successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[any]									"Invalid request"
 //	@Failure		401		{object}	responses.ErrorResponse[any]									"Unauthorized"
 //	@Failure		403		{object}	responses.ErrorResponse[any]									"Forbidden"
 //	@Failure		404		{object}	responses.ErrorResponse[any]									"List not found"
 //	@Failure		500		{object}	responses.ErrorResponse[any]									"Server error"
-//	@Router			/{listType}/{id}/tracks/{trackId} [delete]
+//	@Router			/{listType}/{listID}/add/{itemID} [delete]
 func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -433,32 +425,20 @@ func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 	userID, _ := checkUserAccess(c)
 
 	// Parse list ID
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid list ID")
-		responses.RespondBadRequest(c, err, "Invalid list ID")
-		return
-	}
-
-	// Parse track ID
-	trackID, err := strconv.ParseUint(c.Param("trackId"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("trackId", c.Param("trackId")).Msg("Invalid track ID")
-		responses.RespondBadRequest(c, err, "Invalid track ID")
-		return
-	}
+	listID, _ := checkItemID(c, "listID")
+	itemID, _ := checkItemID(c, "itemID")
 
 	log.Debug().
 		Uint64("userID", userID).
-		Uint64("listID", id).
-		Uint64("trackID", trackID).
+		Uint64("listID", listID).
+		Uint64("trackID", itemID).
 		Msg("Removing track from list")
 
 	// Get existing list
-	existingList, err := h.listService.GetByID(ctx, id)
+	existingList, err := h.listService.GetByID(ctx, listID)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("listID", id).
+			Uint64("listID", listID).
 			Msg("Failed to retrieve list")
 		responses.RespondNotFound(c, err, "List not found")
 		return
@@ -469,28 +449,28 @@ func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 		log.Warn().
 			Uint64("userID", userID).
 			Uint64("ownerID", existingList.OwnerID).
-			Uint64("listID", id).
+			Uint64("listID", listID).
 			Msg("User does not own the list")
 		responses.RespondForbidden(c, nil, "You do not have permission to modify this list")
 		return
 	}
 
 	// Remove track from list
-	err = h.listService.RemoveItem(ctx, userID, id, trackID)
+	err = h.listService.RemoveItem(ctx, userID, listID, itemID)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("listID", id).
-			Uint64("trackID", trackID).
+			Uint64("listID", listID).
+			Uint64("itemID", itemID).
 			Msg("Failed to remove track from list")
 		responses.RespondInternalError(c, err, "Failed to remove track from list")
 		return
 	}
 
 	// Get updated list
-	updatedList, err := h.listService.GetByID(ctx, id)
+	updatedList, err := h.listService.GetByID(ctx, listID)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("listID", id).
+			Uint64("listID", listID).
 			Msg("Failed to retrieve updated list")
 		responses.RespondInternalError(c, err, "Failed to retrieve updated list")
 		return
@@ -498,8 +478,8 @@ func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 
 	log.Info().
 		Uint64("userID", userID).
-		Uint64("listID", id).
-		Uint64("trackID", trackID).
+		Uint64("listID", listID).
+		Uint64("trackID", itemID).
 		Msg("Track removed from list successfully")
 	responses.RespondOK(c, updatedList, "Track removed from list successfully")
 }

@@ -2724,27 +2724,6 @@ definitions:
     - personData
     - source
     type: object
-  requests.ListCreateRequest:
-    properties:
-      description:
-        type: string
-      duration:
-        type: integer
-      genre:
-        type: string
-      isPublic:
-        type: boolean
-      isSmart:
-        type: boolean
-      name:
-        type: string
-      rating:
-        type: number
-      type:
-        $ref: '#/definitions/requests.ListType'
-      year:
-        type: integer
-    type: object
   requests.ListReorderRequest:
     properties:
       itemIDs:
@@ -2752,14 +2731,6 @@ definitions:
           type: integer
         type: array
     type: object
-  requests.ListType:
-    enum:
-    - playlist
-    - collection
-    type: string
-    x-enum-varnames:
-    - ListTypePlaylist
-    - ListTypeCollection
   requests.ListUpdateRequest:
     properties:
       description:
@@ -4758,44 +4729,8 @@ definitions:
     type: object
   suasor_clients_media_types.Collection:
     properties:
-      autoUpdateTime:
-        type: string
-      details:
-        $ref: '#/definitions/types.MediaDetails'
-      isPublic:
-        type: boolean
-      isSmart:
-        description: Smart lists
-        type: boolean
-      itemCount:
-        type: integer
-      items:
-        items:
-          $ref: '#/definitions/types.ListItem'
-        type: array
-      lastModified:
-        description: Track when and which client last modified this playlist
-        type: string
-      lastSynced:
-        type: string
-      modifiedBy:
-        description: client ID
-        type: integer
-      owner:
-        type: integer
-      sharedWith:
-        description: ListCollaboratorIDs
-        items:
-          type: integer
-        type: array
-      smartCriteria:
-        additionalProperties: {}
-        type: object
-      syncStates:
-        description: List states for this item (mapping client to their IDs
-        items:
-          $ref: '#/definitions/types.ListSyncState'
-        type: array
+      list:
+        $ref: '#/definitions/types.ItemList'
     type: object
   suasor_clients_media_types.ExternalID:
     properties:
@@ -5258,6 +5193,47 @@ definitions:
         description: Controls randomness (0.0-1.0)
         type: number
     type: object
+  types.ItemList:
+    properties:
+      autoUpdateTime:
+        type: string
+      details:
+        $ref: '#/definitions/types.MediaDetails'
+      isPublic:
+        type: boolean
+      isSmart:
+        description: Smart lists
+        type: boolean
+      itemCount:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/types.ListItem'
+        type: array
+      lastModified:
+        description: Track when and which client last modified this playlist
+        type: string
+      lastSynced:
+        type: string
+      modifiedBy:
+        description: client ID
+        type: integer
+      ownerId:
+        type: integer
+      sharedWith:
+        description: ListCollaboratorIDs
+        items:
+          type: integer
+        type: array
+      smartCriteria:
+        additionalProperties: {}
+        type: object
+      syncStates:
+        description: List states for this item (mapping client to their IDs
+        items:
+          $ref: '#/definitions/types.ListSyncState'
+        type: array
+    type: object
   types.JellyfinConfig:
     description: Jellyfin media server configuration
     properties:
@@ -5416,44 +5392,8 @@ definitions:
     type: object
   types.Playlist:
     properties:
-      autoUpdateTime:
-        type: string
-      details:
-        $ref: '#/definitions/types.MediaDetails'
-      isPublic:
-        type: boolean
-      isSmart:
-        description: Smart lists
-        type: boolean
-      itemCount:
-        type: integer
-      items:
-        items:
-          $ref: '#/definitions/types.ListItem'
-        type: array
-      lastModified:
-        description: Track when and which client last modified this playlist
-        type: string
-      lastSynced:
-        type: string
-      modifiedBy:
-        description: client ID
-        type: integer
-      owner:
-        type: integer
-      sharedWith:
-        description: ListCollaboratorIDs
-        items:
-          type: integer
-        type: array
-      smartCriteria:
-        additionalProperties: {}
-        type: object
-      syncStates:
-        description: List states for this item (mapping client to their IDs
-        items:
-          $ref: '#/definitions/types.ListSyncState'
-        type: array
+      list:
+        $ref: '#/definitions/types.ItemList'
     type: object
   types.PlexConfig:
     description: Plex media server configuration
@@ -5824,7 +5764,7 @@ paths:
         name: list
         required: true
         schema:
-          $ref: '#/definitions/requests.ListCreateRequest'
+          $ref: '#/definitions/models.MediaItem-types_ListData'
       produces:
       - application/json
       responses:
@@ -5847,49 +5787,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Create a new list
-      tags:
-      - lists
-  /{listType}/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Deletes a list owned by the authenticated user
-      parameters:
-      - description: List ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List deleted successfully
-          schema:
-            $ref: '#/definitions/responses.APIResponse-any'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "404":
-          description: List not found
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Delete a list
       tags:
       - lists
   /{listType}/{id}/reorder:
@@ -5946,29 +5843,24 @@ paths:
       summary: Reorder list items
       tags:
       - lists
-  /{listType}/{id}/tracks/{trackId}:
+  /{listType}/{listID}:
     delete:
       consumes:
       - application/json
-      description: Removes a track from a list owned by the authenticated user
+      description: Deletes a list owned by the authenticated user
       parameters:
       - description: List ID
         in: path
-        name: id
-        required: true
-        type: integer
-      - description: Track ID
-        in: path
-        name: trackId
+        name: listID
         required: true
         type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: Track removed successfully
+          description: List deleted successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_Playlist'
+            $ref: '#/definitions/responses.APIResponse-any'
         "400":
           description: Invalid request
           schema:
@@ -5991,10 +5883,9 @@ paths:
             $ref: '#/definitions/responses.ErrorResponse-any'
       security:
       - BearerAuth: []
-      summary: Remove a track from a list
+      summary: Delete a list
       tags:
       - lists
-  /{listType}/{listID}:
     get:
       consumes:
       - application/json
@@ -6032,7 +5923,107 @@ paths:
       summary: Get playlist by ID
       tags:
       - lists
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing list owned by the authenticated user
+      parameters:
+      - description: List ID
+        in: path
+        name: listID
+        required: true
+        type: integer
+      - description: List type (e.g. 'playlist', 'collection')
+        in: path
+        name: listType
+        required: true
+        type: string
+      - description: Updated list details
+        in: body
+        name: list
+        required: true
+        schema:
+          $ref: '#/definitions/requests.ListUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List updated successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_Playlist'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "404":
+          description: List not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Update a list
+      tags:
+      - lists
   /{listType}/{listID}/add/{itemID}:
+    delete:
+      consumes:
+      - application/json
+      description: Removes a track from a list owned by the authenticated user
+      parameters:
+      - description: List ID
+        in: path
+        name: listID
+        required: true
+        type: integer
+      - description: Track ID
+        in: path
+        name: itemID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Track removed successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_Playlist'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "404":
+          description: List not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Remove a track from a list
+      tags:
+      - lists
     post:
       consumes:
       - application/json
@@ -6116,60 +6107,6 @@ paths:
           schema:
             $ref: '#/definitions/responses.ErrorResponse-any'
       summary: Get tracks in a playlist
-      tags:
-      - lists
-  /{listType}/{listId}:
-    put:
-      consumes:
-      - application/json
-      description: Updates an existing list owned by the authenticated user
-      parameters:
-      - description: List ID
-        in: path
-        name: listId
-        required: true
-        type: integer
-      - description: List type (e.g. 'playlist', 'collection')
-        in: path
-        name: listType
-        required: true
-        type: string
-      - description: Updated list details
-        in: body
-        name: list
-        required: true
-        schema:
-          $ref: '#/definitions/requests.ListUpdateRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List updated successfully
-          schema:
-            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_Playlist'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "404":
-          description: List not found
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Update a list
       tags:
       - lists
   /{listType}/favorites:

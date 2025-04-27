@@ -90,22 +90,22 @@ func (h *coreListHandler[T]) GetByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	id, err := checkItemID(c, "id")
+	listID, err := checkItemID(c, "listID")
 	if err != nil {
 		return
 	}
 
 	log.Debug().
-		Uint64("id", id).
+		Uint64("listID", listID).
 		Msg("Getting playlist by ID")
 
-	playlist, err := h.listService.GetByID(ctx, id)
+	playlist, err := h.listService.GetByID(ctx, listID)
 	if handleServiceError(c, err, "Failed to retrieve playlist", "List not found", "List not found") {
 		return
 	}
 
 	log.Info().
-		Uint64("id", id).
+		Uint64("id", listID).
 		Msg("List retrieved successfully")
 	responses.RespondOK(c, playlist, "List retrieved successfully")
 }
@@ -128,16 +128,13 @@ func (h *coreListHandler[T]) GetItemsByListID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	id, err := checkItemID(c, "id")
-	if err != nil {
-		return
-	}
+	listID, err := checkItemID(c, "listID")
 
 	log.Debug().
-		Uint64("id", id).
+		Uint64("id", listID).
 		Msg("Getting tracks for playlist")
 
-	playlist, err := h.listService.GetByID(ctx, id)
+	playlist, err := h.listService.GetByID(ctx, listID)
 	if handleServiceError(c, err, "Failed to retrieve playlist", "List not found", "List not found") {
 		return
 	}
@@ -145,7 +142,7 @@ func (h *coreListHandler[T]) GetItemsByListID(c *gin.Context) {
 	itemList := playlist.GetData().GetItemList()
 
 	log.Info().
-		Uint64("id", id).
+		Uint64("listID", listID).
 		Int("itemCount", len(itemList.Items)).
 		Msg("List tracks retrieved successfully")
 	responses.RespondOK(c, itemList, "Items retrieved successfully")

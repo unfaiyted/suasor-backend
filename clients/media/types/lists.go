@@ -23,7 +23,7 @@ type ListData interface {
 
 	GetTitle() string
 	GetDetails() MediaDetails
-	GetItemList() ItemList
+	GetItemList() *ItemList
 
 	SetItemList(ItemList)
 	SetDetails(MediaDetails)
@@ -37,7 +37,7 @@ type ItemList struct {
 	Items     []ListItem   `json:"items"`
 	ItemCount int          `json:"itemCount"`
 
-	OwnerID  uint64 `json:"owner"`
+	OwnerID  uint64 `json:"ownerId"`
 	IsPublic bool   `json:"isPublic"`
 	// ListCollaboratorIDs
 	SharedWith []uint64 `json:"sharedWith"`

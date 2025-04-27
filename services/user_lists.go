@@ -66,6 +66,7 @@ func NewUserListService[T mediatypes.ListData](
 ) UserListService[T] {
 	return &userListService[T]{
 		CoreListService: coreListService,
+		userRepo:        userRepo,
 		listRepo:        listRepo,
 		userItemRepo:    userItemRepo,
 		userDataRepo:    userDataRepo,
@@ -104,9 +105,9 @@ func (s *userListService[T]) Create(ctx context.Context, userID uint64, list *mo
 	}
 
 	// Set creation time for LastModified
-	if itemList.LastModified.IsZero() {
-		itemList.LastModified = time.Now()
-	}
+	itemList.Details.AddedAt = time.Now()
+	itemList.Details.UpdatedAt = time.Now()
+	itemList.LastModified = time.Now()
 
 	// Initialize ItemCount
 	itemList.ItemCount = len(itemList.Items)
@@ -168,7 +169,7 @@ func (s *userListService[T]) Update(ctx context.Context, userID uint64, list *mo
 	itemList.ModifiedBy = userID
 	itemList.LastModified = time.Now()
 
-	list.GetData().SetItemList(itemList)
+	list.GetData().SetItemList(*itemList)
 
 	// Ensure the list exists
 	existingItemList := existing.GetData().GetItemList()

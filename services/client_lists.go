@@ -49,6 +49,8 @@ type ClientListService[T types.ClientMediaConfig, U mediatypes.ListData] interfa
 	// list sync
 	GetSyncStatus(ctx context.Context, clientListID string) (*models.ListSyncStatus, error)
 	// SyncToClients(ctx context.Context, clientListID string, clientIDs []uint64) error
+	// SyncToClients(ctx context.Context, userID uint64, listID uint64, clientIDs []uint64) error
+
 	// SyncClientList(ctx context.Context, clientID uint64, clientListID string) error
 
 }
@@ -179,7 +181,7 @@ func (s *clientListService[T, U]) CreateClientList(ctx context.Context, clientID
 	itemList.LastModified = now
 	itemList.ModifiedBy = clientID
 
-	playlist.Data.SetItemList(itemList)
+	playlist.Data.SetItemList(*itemList)
 
 	// Get the client's ID for this playlist - ModifiedBy is just a uint64 client ID
 	clientItemID, found := playlist.GetClientItemID(clientID) // Default to Plex as a placeholder
@@ -219,7 +221,7 @@ func (s *clientListService[T, U]) UpdateClientList(ctx context.Context, clientID
 	now := time.Now()
 	itemList.LastModified = now
 	itemList.ModifiedBy = clientID
-	playlist.Data.SetItemList(itemList)
+	playlist.Data.SetItemList(*itemList)
 
 	log.Info().
 		Uint64("clientID", clientID).

@@ -14228,7 +14228,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.ListCreateRequest"
+                            "$ref": "#/definitions/models.MediaItem-types_ListData"
                         }
                     }
                 ],
@@ -14489,73 +14489,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/{listType}/{id}": {
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Deletes a list owned by the authenticated user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "lists"
-                ],
-                "summary": "Delete a list",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "List ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List deleted successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-any"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "List not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
         "/{listType}/{id}/reorder": {
             "post": {
                 "security": [
@@ -14639,80 +14572,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/{listType}/{id}/tracks/{trackId}": {
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Removes a track from a list owned by the authenticated user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "lists"
-                ],
-                "summary": "Remove a track from a list",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "List ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Track ID",
-                        "name": "trackId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Track removed successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Playlist"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "List not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
         "/{listType}/{listID}": {
             "get": {
                 "description": "Retrieves a specific playlist by ID",
@@ -14751,6 +14610,152 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "List not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates an existing list owned by the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lists"
+                ],
+                "summary": "Update a list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "List ID",
+                        "name": "listID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "List type (e.g. 'playlist', 'collection')",
+                        "name": "listType",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated list details",
+                        "name": "list",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.ListUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Playlist"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "List not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes a list owned by the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lists"
+                ],
+                "summary": "Delete a list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "List ID",
+                        "name": "listID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List deleted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-any"
                         }
@@ -14842,6 +14847,78 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Removes a track from a list owned by the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lists"
+                ],
+                "summary": "Remove a track from a list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "List ID",
+                        "name": "listID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Track ID",
+                        "name": "itemID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Track removed successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Playlist"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "List not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
             }
         },
         "/{listType}/{listID}/items": {
@@ -14882,89 +14959,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "List not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/{listType}/{listId}": {
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Updates an existing list owned by the authenticated user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "lists"
-                ],
-                "summary": "Update a list",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "List ID",
-                        "name": "listId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "List type (e.g. 'playlist', 'collection')",
-                        "name": "listType",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Updated list details",
-                        "name": "list",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/requests.ListUpdateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List updated successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Playlist"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-any"
                         }
@@ -18859,38 +18853,6 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.ListCreateRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "duration": {
-                    "type": "integer"
-                },
-                "genre": {
-                    "type": "string"
-                },
-                "isPublic": {
-                    "type": "boolean"
-                },
-                "isSmart": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "rating": {
-                    "type": "number"
-                },
-                "type": {
-                    "$ref": "#/definitions/requests.ListType"
-                },
-                "year": {
-                    "type": "integer"
-                }
-            }
-        },
         "requests.ListReorderRequest": {
             "type": "object",
             "properties": {
@@ -18901,17 +18863,6 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "requests.ListType": {
-            "type": "string",
-            "enum": [
-                "playlist",
-                "collection"
-            ],
-            "x-enum-varnames": [
-                "ListTypePlaylist",
-                "ListTypeCollection"
-            ]
         },
         "requests.ListUpdateRequest": {
             "type": "object",
@@ -21741,59 +21692,8 @@ const docTemplate = `{
         "suasor_clients_media_types.Collection": {
             "type": "object",
             "properties": {
-                "autoUpdateTime": {
-                    "type": "string"
-                },
-                "details": {
-                    "$ref": "#/definitions/types.MediaDetails"
-                },
-                "isPublic": {
-                    "type": "boolean"
-                },
-                "isSmart": {
-                    "description": "Smart lists",
-                    "type": "boolean"
-                },
-                "itemCount": {
-                    "type": "integer"
-                },
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.ListItem"
-                    }
-                },
-                "lastModified": {
-                    "description": "Track when and which client last modified this playlist",
-                    "type": "string"
-                },
-                "lastSynced": {
-                    "type": "string"
-                },
-                "modifiedBy": {
-                    "description": "client ID",
-                    "type": "integer"
-                },
-                "owner": {
-                    "type": "integer"
-                },
-                "sharedWith": {
-                    "description": "ListCollaboratorIDs",
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "smartCriteria": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
-                "syncStates": {
-                    "description": "List states for this item (mapping client to their IDs",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.ListSyncState"
-                    }
+                "list": {
+                    "$ref": "#/definitions/types.ItemList"
                 }
             }
         },
@@ -22429,6 +22329,65 @@ const docTemplate = `{
                 }
             }
         },
+        "types.ItemList": {
+            "type": "object",
+            "properties": {
+                "autoUpdateTime": {
+                    "type": "string"
+                },
+                "details": {
+                    "$ref": "#/definitions/types.MediaDetails"
+                },
+                "isPublic": {
+                    "type": "boolean"
+                },
+                "isSmart": {
+                    "description": "Smart lists",
+                    "type": "boolean"
+                },
+                "itemCount": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.ListItem"
+                    }
+                },
+                "lastModified": {
+                    "description": "Track when and which client last modified this playlist",
+                    "type": "string"
+                },
+                "lastSynced": {
+                    "type": "string"
+                },
+                "modifiedBy": {
+                    "description": "client ID",
+                    "type": "integer"
+                },
+                "ownerId": {
+                    "type": "integer"
+                },
+                "sharedWith": {
+                    "description": "ListCollaboratorIDs",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "smartCriteria": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "syncStates": {
+                    "description": "List states for this item (mapping client to their IDs",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.ListSyncState"
+                    }
+                }
+            }
+        },
         "types.JellyfinConfig": {
             "description": "Jellyfin media server configuration",
             "type": "object",
@@ -22649,59 +22608,8 @@ const docTemplate = `{
         "types.Playlist": {
             "type": "object",
             "properties": {
-                "autoUpdateTime": {
-                    "type": "string"
-                },
-                "details": {
-                    "$ref": "#/definitions/types.MediaDetails"
-                },
-                "isPublic": {
-                    "type": "boolean"
-                },
-                "isSmart": {
-                    "description": "Smart lists",
-                    "type": "boolean"
-                },
-                "itemCount": {
-                    "type": "integer"
-                },
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.ListItem"
-                    }
-                },
-                "lastModified": {
-                    "description": "Track when and which client last modified this playlist",
-                    "type": "string"
-                },
-                "lastSynced": {
-                    "type": "string"
-                },
-                "modifiedBy": {
-                    "description": "client ID",
-                    "type": "integer"
-                },
-                "owner": {
-                    "type": "integer"
-                },
-                "sharedWith": {
-                    "description": "ListCollaboratorIDs",
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "smartCriteria": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
-                "syncStates": {
-                    "description": "List states for this item (mapping client to their IDs",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.ListSyncState"
-                    }
+                "list": {
+                    "$ref": "#/definitions/types.ItemList"
                 }
             }
         },

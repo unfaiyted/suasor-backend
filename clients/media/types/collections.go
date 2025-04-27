@@ -8,8 +8,8 @@ import (
 
 // Collection represents an unordered set of unique media items
 type Collection struct {
-	ItemList
-	itemMap map[uint64]int // Maps IDs to indices for fast lookup
+	ItemList `json:"list"`
+	itemMap  map[uint64]int // Maps IDs to indices for fast lookup
 }
 
 // Initialize the collection's item map
@@ -50,7 +50,7 @@ func (c *Collection) AddItem(item ListItem, clientID uint64) {
 
 func (c *Collection) isListData() {}
 
-func (c *Collection) GetItemList() ItemList    { return c.ItemList }
+func (c *Collection) GetItemList() *ItemList   { return &c.ItemList }
 func (c *Collection) GetDetails() MediaDetails { return c.ItemList.Details }
 func (c *Collection) SetDetails(details MediaDetails) {
 	c.ItemList.Details = details

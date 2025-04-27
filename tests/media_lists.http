@@ -83,63 +83,66 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "type": "collection",
-  "title": "Test Movie Collection",
+  "type": "playlist",
+  "title": "Test Movie Playlist",
+  "ownerId": {{login.response.body.$.data.user.id}},
+  "isPublic": true,
   "data": {
-    "details": {
-      "title": "Test Movie Collection",
-      "overview": "A collection of test movies"
-    },
-    "items": [],
-    "itemCount": 0,
-    "isPublic": true,
-    "ownerID": {{login.response.body.$.data.user.id}},
-    "lastModified": "{{$timestamp}}"
+    "list": {
+      "details": {
+        "title": "Test Movie Playlist",
+        "overview": "A collection of test movies"
+      },
+      "items": [],
+      "itemCount": 0,
+      "isPublic": true,
+      "ownerId": {{login.response.body.$.data.user.id}}
+    }
   }
 }
 
 ### Add movie to list
 # @name addMovieToList
-POST {{baseUrl}}/lists/{{createMovieList.response.body.$.data.id}}/items/{{createTestMovie.response.body.$.data.id}}
+POST {{baseUrl}}/playlist/{{createMovieList.response.body.$.data.id}}/add/{{createTestMovie.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ### Add second movie to list
 # @name addSecondMovieToList
-POST {{baseUrl}}/lists/{{createMovieList.response.body.$.data.id}}/items/{{createSecondTestMovie.response.body.$.data.id}}
+POST {{baseUrl}}/playlist/{{createMovieList.response.body.$.data.id}}/add/{{createSecondTestMovie.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ### Get list items
 # @name getListItems
-GET {{baseUrl}}/lists/{{createMovieList.response.body.$.data.id}}/items
+GET {{baseUrl}}/playlist/{{createMovieList.response.body.$.data.id}}/items
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ### Get all lists
 # @name getAllLists
-GET {{baseUrl}}/lists
+GET {{baseUrl}}/playlist
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ### Get list by ID
 # @name getListById
-GET {{baseUrl}}/lists/{{createMovieList.response.body.$.data.id}}
+GET {{baseUrl}}/playlist/{{createMovieList.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ### Update list
 # @name updateList
-PUT {{baseUrl}}/lists/{{createMovieList.response.body.$.data.id}}
+PUT {{baseUrl}}/playlist/{{createMovieList.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "type": "collection",
-  "title": "Updated Test Movie Collection",
+  "type": "playlist",
+  "title": "Updated Test Movie Playlist",
   "data": {
     "details": {
-      "title": "Updated Test Movie Collection",
+      "title": "Updated Test Movie Playlist",
       "overview": "An updated collection of test movies"
     },
     "isPublic": true,
@@ -147,49 +150,48 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   }
 }
 
+
+
 ### Get lists by user
 # @name getUserLists
-GET {{baseUrl}}/user/{{TEST_USER_ID}}/lists
+GET {{baseUrl}}/playlist/user/{{login.response.body.$.data.user.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-### Get lists by type
-# @name getListsByType
-GET {{baseUrl}}/lists?type=collection
-Content-Type: application/json
-Authorization: Bearer {{login.response.body.$.data.accessToken}}
-
-### Create a music playlist
+### Create music playlist 
 # @name createMusicPlaylist
-POST {{baseUrl}}/playlists
+POST {{baseUrl}}/playlist
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
   "type": "playlist",
   "title": "Test Music Playlist",
+  "ownerId": {{login.response.body.$.data.user.id}},
+  "isPublic": true,
   "data": {
-    "details": {
-      "title": "Test Music Playlist",
-      "overview": "A playlist of test music tracks"
+    "list": {
+     "details": {
+       "title": "Test Music Playlist",
+       "overview": "A playlist of test music tracks"
     },
     "items": [],
     "itemCount": 0,
     "isPublic": true,
-    "owner": {{TEST_USER_ID}},
-    "lastModified": "{{$timestamp}}"
+    "ownerId": {{login.response.body.$.data.user.id}}
+    }
   }
 }
 
 ### Remove item from list
 # @name removeItemFromList
-DELETE {{baseUrl}}/lists/{{createMovieList.response.body.$.data.id}}/items/{{createSecondTestMovie.response.body.$.data.id}}
+DELETE {{baseUrl}}/playlist/{{createMovieList.response.body.$.data.id}}/items/{{createSecondTestMovie.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ### Delete list
 # @name deleteList
-DELETE {{baseUrl}}/lists/{{createMovieList.response.body.$.data.id}}
+DELETE {{baseUrl}}/playlist/{{createMovieList.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -199,6 +201,8 @@ DELETE {{baseUrl}}/media/movie/{{createTestMovie.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
+### Cleanup test Movie tracks
+# @name cleanupTestMovieTracks
 DELETE {{baseUrl}}/media/movie/{{createSecondTestMovie.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
