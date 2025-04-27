@@ -124,6 +124,8 @@ func Initialize(ctx context.Context, dbConfig types.DatabaseConfig) (*gorm.DB, e
 		&models.MediaItem[*media.Collection]{},
 		&models.MediaItem[*media.Playlist]{},
 
+		&models.ListCollaborator{},
+
 		&models.Session{},
 		&models.JobSchedule{},
 		&models.JobRun{},

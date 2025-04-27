@@ -73,9 +73,9 @@ type jobService struct {
 	jobRepo             repository.JobRepository
 	userRepo            repository.UserRepository
 	configRepo          repository.UserConfigRepository
-	movieRepo           repository.MediaItemRepository[*mediatypes.Movie]
-	seriesRepo          repository.MediaItemRepository[*mediatypes.Series]
-	trackRepo           repository.MediaItemRepository[*mediatypes.Track]
+	movieRepo           repository.CoreMediaItemRepository[*mediatypes.Movie]
+	seriesRepo          repository.CoreMediaItemRepository[*mediatypes.Series]
+	trackRepo           repository.CoreMediaItemRepository[*mediatypes.Track]
 	userMovieDataRepo   repository.UserMediaItemDataRepository[*mediatypes.Movie]
 	userSeriesDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Series]
 	userTrackDataRepo   repository.UserMediaItemDataRepository[*mediatypes.Track]
@@ -92,9 +92,9 @@ func NewJobService(
 	jobRepo repository.JobRepository,
 	userRepo repository.UserRepository,
 	configRepo repository.UserConfigRepository,
-	movieRepo repository.MediaItemRepository[*mediatypes.Movie],
-	seriesRepo repository.MediaItemRepository[*mediatypes.Series],
-	trackRepo repository.MediaItemRepository[*mediatypes.Track],
+	movieRepo repository.CoreMediaItemRepository[*mediatypes.Movie],
+	seriesRepo repository.CoreMediaItemRepository[*mediatypes.Series],
+	trackRepo repository.CoreMediaItemRepository[*mediatypes.Track],
 	userMovieDataRepo repository.UserMediaItemDataRepository[*mediatypes.Movie],
 	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series],
 	userTrackDataRepo repository.UserMediaItemDataRepository[*mediatypes.Track],

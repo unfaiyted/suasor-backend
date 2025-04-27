@@ -14,12 +14,14 @@ import (
 // MediaItem is the base type for all media items
 type MediaItem[T types.MediaData] struct {
 	BaseModel
-	ID          uint64      `json:"id" gorm:"primaryKey;autoIncrement"` // Internal ID
-	UUID        string      `json:"uuid" gorm:"type:uuid;uniqueIndex"`  // Stable UUID for syncing
-	SyncClients SyncClients `json:"syncClients" gorm:"type:jsonb"`      // Client IDs for this item (mapping client to their IDs)
-	ExternalIDs ExternalIDs `json:"externalIds" gorm:"type:jsonb"`      // External IDs for this item (TMDB, IMDB, etc.)
-	OwnerID     uint64      `json:"ownerId"`                            // ID of the user that owns this item, 0 for system owned items
-	IsPublic    bool        `json:"isPublic"`                           // Whether this item is public or not
+	ID      uint64 `json:"id" gorm:"primaryKey;autoIncrement"` // Internal ID
+	UUID    string `json:"uuid" gorm:"type:uuid;uniqueIndex"`  // Stable UUID for syncing
+	OwnerID uint64 `json:"ownerId"`                            // ID of the user that owns this item, 0 for system owned items
+
+	SyncClients SyncClients `json:"syncClients" gorm:"type:jsonb"` // Client IDs for this item (mapping client to their IDs)
+
+	ExternalIDs ExternalIDs `json:"externalIds" gorm:"type:jsonb"` // External IDs for this item (TMDB, IMDB, etc.)
+	IsPublic    bool        `json:"isPublic"`                      // Whether this item is public or not
 
 	Type types.MediaType `json:"type" gorm:"type:varchar(50)"` // Type of media (movie, show, episode, etc.)
 
@@ -30,6 +32,10 @@ type MediaItem[T types.MediaData] struct {
 	StreamURL   string `json:"streamUrl,omitempty" gorm:"size:1024"`
 	DownloadURL string `json:"downloadUrl,omitempty" gorm:"size:1024"`
 	Data        T      `json:"data" gorm:"type:jsonb"` // Type-specific media data
+}
+
+func (MediaItem[T]) TableName() string {
+	return "media_items"
 }
 
 func NewMediaItem[T types.MediaData](itemType types.MediaType, data T) *MediaItem[T] {
@@ -75,6 +81,10 @@ func NewMediaItemCopy[T types.MediaData, U types.MediaData](item *MediaItem[T]) 
 	return NewItem
 }
 
+func (m *MediaItem[T]) GetData() T {
+	return m.Data
+}
+
 func (m *MediaItem[T]) SetData(data T) {
 	m.Data = data
 }
@@ -82,51 +92,6 @@ func (m *MediaItem[T]) SetData(data T) {
 func (m *MediaItem[T]) SetIsPublic(isPublic bool) {
 	m.IsPublic = isPublic
 }
-
-type ExternalID struct {
-	Source string `json:"source"` // e.g., "tmdb", "imdb", "trakt", "tvdb"
-	ID     string `json:"id"`     // The actual ID
-}
-
-type ExternalIDs []ExternalID
-
-func (ids ExternalIDs) GetID(source string) string {
-	for _, id := range ids {
-		if id.Source == source {
-			return id.ID
-		}
-	}
-	return ""
-}
-
-// Value implements driver.Valuer for database storage
-func (ids ExternalIDs) Value() (driver.Value, error) {
-	if ids == nil {
-		return nil, nil
-	}
-	return json.Marshal(ids)
-}
-
-// Scan implements sql.Scanner for database retrieval
-func (ids *ExternalIDs) Scan(value any) error {
-	if value == nil {
-		*ids = make(ExternalIDs, 0)
-		return nil
-	}
-
-	bytes, ok := value.([]byte)
-	if !ok {
-		return errors.New("type assertion to []byte failed")
-	}
-
-	return json.Unmarshal(bytes, ids)
-}
-
-func (MediaItem[T]) TableName() string {
-	return "media_items"
-}
-
-// Custom serialization for GORM and JSON
 
 // Value implements driver.Valuer for database storage
 func (m MediaItem[T]) Value() (driver.Value, error) {
@@ -300,97 +265,10 @@ func (m *MediaItem[T]) AddSyncClient(clientID uint64, clientType client.ClientTy
 	}
 }
 
-func (m *MediaItem[T]) GetData() T {
-	return m.Data
-}
-
-func (m *MediaItem[T]) AsEpisode() (MediaItem[*types.Episode], bool) {
-	if m.Type != types.MediaTypeEpisode {
-		return MediaItem[*types.Episode]{}, false
-	}
-	episode, ok := any(m).(MediaItem[*types.Episode])
-
-	return episode, ok
-}
-
-func (m *MediaItem[T]) AsMovie() (MediaItem[*types.Movie], bool) {
-	if m.Type != types.MediaTypeMovie {
-		return MediaItem[*types.Movie]{}, false
-	}
-	movie, ok := any(m).(MediaItem[*types.Movie])
-
-	return movie, ok
-}
-
-func (m *MediaItem[T]) AsSeries() (MediaItem[*types.Series], bool) {
-	if m.Type != types.MediaTypeSeries {
-		return MediaItem[*types.Series]{}, false
-	}
-	show, ok := any(m).(MediaItem[*types.Series])
-
-	return show, ok
-}
-
-func (m *MediaItem[T]) AsSeason() (MediaItem[*types.Season], bool) {
-	if m.Type != types.MediaTypeSeason {
-		return MediaItem[*types.Season]{}, false
-	}
-	season, ok := any(m).(MediaItem[*types.Season])
-
-	return season, ok
-}
-
-func (m *MediaItem[T]) AsTrack() (MediaItem[*types.Track], bool) {
-	if m.Type != types.MediaTypeTrack {
-		return MediaItem[*types.Track]{}, false
-	}
-	track, ok := any(m).(MediaItem[*types.Track])
-
-	return track, ok
-}
-
-func (m *MediaItem[T]) AsAlbum() (MediaItem[*types.Album], bool) {
-	if m.Type != types.MediaTypeAlbum {
-		return MediaItem[*types.Album]{}, false
-	}
-	album, ok := any(m).(MediaItem[*types.Album])
-
-	return album, ok
-}
-
-func (m *MediaItem[T]) AsArtist() (MediaItem[*types.Artist], bool) {
-	if m.Type != types.MediaTypeArtist {
-		return MediaItem[*types.Artist]{}, false
-	}
-	artist, ok := any(m).(MediaItem[*types.Artist])
-
-	return artist, ok
-}
-
-func (m *MediaItem[T]) AsCollection() (MediaItem[*types.Collection], bool) {
-	if m.Type != types.MediaTypeCollection {
-		return MediaItem[*types.Collection]{}, false
-	}
-	collection, ok := any(m).(MediaItem[*types.Collection])
-
-	return collection, ok
-}
-
-func (m *MediaItem[T]) AsPlaylist() (MediaItem[*types.Playlist], bool) {
-	if m.Type != types.MediaTypePlaylist {
-		return MediaItem[*types.Playlist]{}, false
-	}
-	playlist, ok := any(m).(MediaItem[*types.Playlist])
-
-	return playlist, ok
-}
-
 // IsList returns true if the media item is a list
 func (m *MediaItem[T]) IsList() bool {
 	return m.Type == types.MediaTypePlaylist || m.Type == types.MediaTypeCollection
 }
-
-// IsPlaylist returns true if the media item is a playlist
 func (m *MediaItem[T]) IsPlaylist() bool {
 	return m.Type == types.MediaTypePlaylist
 }

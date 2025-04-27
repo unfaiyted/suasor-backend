@@ -90,7 +90,7 @@ func registerJobServices(ctx context.Context, c *container.Container) {
 		clientRepos := container.MustGet[repobundles.ClientRepositories](c)
 		dataRepos := container.MustGet[repobundles.UserMediaDataRepositories](c)
 		clientItemRepos := container.MustGet[repobundles.ClientMediaItemRepositories](c)
-		itemRepos := container.MustGet[repobundles.CoreMediaItemRepositories](c)
+		itemRepos := container.MustGet[repobundles.UserMediaItemRepositories](c)
 		clientFactories := container.MustGet[*clients.ClientProviderFactoryService](c)
 		return jobs.NewFavoritesSyncJob(jobRepo, userRepo, userConfigRepo, clientRepos, dataRepos, clientItemRepos, itemRepos, clientFactories)
 
@@ -106,7 +106,7 @@ func registerJobServices(ctx context.Context, c *container.Container) {
 		clientRepos := container.MustGet[repobundles.ClientRepositories](c)
 		dataRepos := container.MustGet[repobundles.UserMediaDataRepositories](c)
 		clientItemRepos := container.MustGet[repobundles.ClientMediaItemRepositories](c)
-		itemRepos := container.MustGet[repobundles.CoreMediaItemRepositories](c)
+		itemRepos := container.MustGet[repobundles.UserMediaItemRepositories](c)
 		clientFactories := container.MustGet[*clients.ClientProviderFactoryService](c)
 		return jobs.NewMediaSyncJob(jobRepo, userRepo, userConfigRepo, clientRepos, dataRepos, clientItemRepos, itemRepos, clientFactories)
 	})

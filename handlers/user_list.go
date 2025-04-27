@@ -75,7 +75,7 @@ func (h *userListHandler[T]) GetUserLists(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	uid, ok := checkUserAccess(c)
+	userID, ok := checkUserAccess(c)
 	if !ok {
 		return
 	}
@@ -84,21 +84,21 @@ func (h *userListHandler[T]) GetUserLists(c *gin.Context) {
 	offset := utils.GetOffset(c, 0)
 
 	log.Debug().
-		Uint64("userID", uid).
+		Uint64("userID", userID).
 		Msg("Getting user lists")
 
 	// Get user lists
-	lists, err := h.listService.GetByUserID(ctx, uid, limit, offset)
+	lists, err := h.listService.GetByUserID(ctx, userID, limit, offset)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("userID", uid).
+			Uint64("userID", userID).
 			Msg("Failed to retrieve user lists")
 		responses.RespondInternalError(c, err, "Failed to retrieve lists")
 		return
 	}
 
 	log.Info().
-		Uint64("userID", uid).
+		Uint64("userID", userID).
 		Int("count", len(lists)).
 		Msg("User lists retrieved successfully")
 	responses.RespondOK(c, lists, "Lists retrieved successfully")
@@ -123,14 +123,10 @@ func (h *userListHandler[T]) Create(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
+	userID, exists := checkUserAccess(c)
 	if !exists {
-		log.Warn().Msg("Attempt to create list without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
-
-	uid := userID.(uint64)
 
 	// Parse request body
 	var req requests.ListCreateRequest
@@ -141,7 +137,7 @@ func (h *userListHandler[T]) Create(c *gin.Context) {
 	}
 
 	log.Debug().
-		Uint64("userID", uid).
+		Uint64("userID", userID).
 		Str("name", req.Name).
 		Msg("Creating new list")
 
@@ -152,7 +148,7 @@ func (h *userListHandler[T]) Create(c *gin.Context) {
 
 	itemList := types.ItemList{
 		ItemCount: 0,
-		OwnerID:   uid,
+		OwnerID:   userID,
 		Details:   details,
 		IsPublic:  req.IsPublic,
 		IsSmart:   req.IsSmart,
@@ -181,17 +177,17 @@ func (h *userListHandler[T]) Create(c *gin.Context) {
 	mediaItem.Type = mediaType
 
 	// Create list
-	createdList, err := h.listService.Create(ctx, mediaItem)
+	createdList, err := h.listService.Create(ctx, userID, mediaItem)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("userID", uid).
+			Uint64("userID", userID).
 			Msg("Failed to create list")
 		responses.RespondInternalError(c, err, "Failed to create list")
 		return
 	}
 
 	log.Info().
-		Uint64("userID", uid).
+		Uint64("userID", userID).
 		Uint64("listID", createdList.ID).
 		Msg("List created successfully")
 	responses.RespondCreated(c, createdList, "List created successfully")
@@ -220,22 +216,10 @@ func (h *userListHandler[T]) Update(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to update list without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
-
-	uid := userID.(uint64)
+	userID, isAdmin := checkAdminAccess(c)
 
 	// Parse list ID
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("listId")).Msg("Invalid list ID")
-		responses.RespondBadRequest(c, err, "Invalid list ID")
-		return
-	}
+	listID, _ := checkItemID(c, "listId")
 
 	// Parse request body
 	var req requests.ListUpdateRequest
@@ -246,28 +230,18 @@ func (h *userListHandler[T]) Update(c *gin.Context) {
 	}
 
 	log.Debug().
-		Uint64("userID", uid).
-		Uint64("listID", id).
+		Uint64("userID", userID).
+		Bool("isAdmin", isAdmin).
+		Uint64("listID", listID).
 		Msg("Updating list")
 
 	// Get existing list
-	existingList, err := h.listService.GetByID(ctx, id)
+	existingList, err := h.listService.GetByID(ctx, listID)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("listID", id).
+			Uint64("listID", listID).
 			Msg("Failed to retrieve list")
 		responses.RespondNotFound(c, err, "List not found")
-		return
-	}
-
-	// Check if user owns the list
-	if existingList.OwnerID != uid {
-		log.Warn().
-			Uint64("userID", uid).
-			Uint64("ownerID", existingList.OwnerID).
-			Uint64("listID", id).
-			Msg("User does not own the list")
-		responses.RespondForbidden(c, nil, "You do not have permission to update this list")
 		return
 	}
 
@@ -281,18 +255,18 @@ func (h *userListHandler[T]) Update(c *gin.Context) {
 	existingList.Title = req.Name
 
 	// Save updated list
-	updatedList, err := h.listService.Update(ctx, existingList)
+	updatedList, err := h.listService.Update(ctx, userID, existingList)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("listID", id).
+			Uint64("listID", listID).
 			Msg("Failed to update list")
 		responses.RespondInternalError(c, err, "Failed to update list")
 		return
 	}
 
 	log.Info().
-		Uint64("userID", uid).
-		Uint64("listID", id).
+		Uint64("userID", userID).
+		Uint64("listID", listID).
 		Msg("List updated successfully")
 	responses.RespondOK(c, updatedList, "List updated successfully")
 }
@@ -318,14 +292,7 @@ func (h *userListHandler[T]) Delete(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to delete list without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
-
-	uid := userID.(uint64)
+	userID, _ := checkUserAccess(c)
 
 	// Parse list ID
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -336,7 +303,7 @@ func (h *userListHandler[T]) Delete(c *gin.Context) {
 	}
 
 	log.Debug().
-		Uint64("userID", uid).
+		Uint64("userID", userID).
 		Uint64("listID", id).
 		Msg("Deleting list")
 
@@ -351,9 +318,9 @@ func (h *userListHandler[T]) Delete(c *gin.Context) {
 	}
 
 	// Check if user owns the list
-	if existingList.OwnerID != uid {
+	if existingList.OwnerID != userID {
 		log.Warn().
-			Uint64("userID", uid).
+			Uint64("userID", userID).
 			Uint64("ownerID", existingList.OwnerID).
 			Uint64("listID", id).
 			Msg("User does not own the list")
@@ -362,7 +329,7 @@ func (h *userListHandler[T]) Delete(c *gin.Context) {
 	}
 
 	// Delete list
-	err = h.listService.Delete(ctx, id)
+	err = h.listService.Delete(ctx, userID, id)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("listID", id).
@@ -372,13 +339,13 @@ func (h *userListHandler[T]) Delete(c *gin.Context) {
 	}
 
 	log.Info().
-		Uint64("userID", uid).
+		Uint64("userID", userID).
 		Uint64("listID", id).
 		Msg("List deleted successfully")
 	responses.RespondOK(c, http.StatusOK, "List deleted successfully")
 }
 
-// AddTrackToList godoc
+// AddItemToList godoc
 //
 //	@Summary		Add a track to a list
 //	@Description	Adds a track to a list owned by the authenticated user
@@ -386,97 +353,57 @@ func (h *userListHandler[T]) Delete(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			id		path		int																true	"List ID"
-//	@Param			track	body		requests.ListAddTrackRequest									true	"Track details"
+//	@Param			listID	 path		int																true	"List ID"
+//	@Param			itemID	 path		int																true	"Item ID"
 //	@Success		200		{object}	responses.APIResponse[models.MediaItem[types.Playlist]]	"Track added successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[any]									"Invalid request"
 //	@Failure		401		{object}	responses.ErrorResponse[any]									"Unauthorized"
 //	@Failure		403		{object}	responses.ErrorResponse[any]									"Forbidden"
 //	@Failure		404		{object}	responses.ErrorResponse[any]									"List not found"
 //	@Failure		500		{object}	responses.ErrorResponse[any]									"Server error"
-//	@Router			/{listType}/{id}/tracks [post]
+//	@Router			/{listType}/{listID}/add/{itemID} [post]
 func (h *userListHandler[T]) AddItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to add track to list without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
-
-	uid := userID.(uint64)
+	userID, _ := checkUserAccess(c)
 
 	// Parse list ID
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid list ID")
-		responses.RespondBadRequest(c, err, "Invalid list ID")
-		return
-	}
-
-	// Parse request body
-	var req requests.ListAddTrackRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Warn().Err(err).Msg("Invalid request body")
-		responses.RespondBadRequest(c, err, "Invalid request body")
-		return
-	}
+	listID, _ := checkItemID(c, "listID")
+	itemID, _ := checkItemID(c, "itemID")
 
 	log.Debug().
-		Uint64("userID", uid).
-		Uint64("listID", id).
-		Uint64("trackID", req.TrackID).
-		Msg("Adding track to list")
-
-	// Get existing list
-	existingList, err := h.listService.GetByID(ctx, id)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("listID", id).
-			Msg("Failed to retrieve list")
-		responses.RespondNotFound(c, err, "List not found")
-		return
-	}
-
-	// Check if user owns the list
-	if existingList.OwnerID != uid {
-		log.Warn().
-			Uint64("userID", uid).
-			Uint64("ownerID", existingList.OwnerID).
-			Uint64("listID", id).
-			Msg("User does not own the list")
-		responses.RespondForbidden(c, nil, "You do not have permission to modify this list")
-		return
-	}
+		Uint64("userID", userID).
+		Uint64("listID", listID).
+		Uint64("itemID", itemID).
+		Msg("Adding item to list")
 
 	// Add track to list
-	err = h.listService.AddItem(ctx, id, req.TrackID)
+	err := h.listService.AddItem(ctx, userID, listID, itemID)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("listID", id).
-			Uint64("trackID", req.TrackID).
+			Uint64("listID", listID).
+			Uint64("itemID", itemID).
 			Msg("Failed to add track to list")
 		responses.RespondInternalError(c, err, "Failed to add track to list")
 		return
 	}
 
 	// Get updated list
-	updatedList, err := h.listService.GetByID(ctx, id)
+	updatedList, err := h.listService.GetByID(ctx, listID)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("listID", id).
+			Uint64("listID", listID).
 			Msg("Failed to retrieve updated list")
 		responses.RespondInternalError(c, err, "Failed to retrieve updated list")
 		return
 	}
 
 	log.Info().
-		Uint64("userID", uid).
-		Uint64("listID", id).
-		Uint64("trackID", req.TrackID).
+		Uint64("userID", userID).
+		Uint64("listID", listID).
+		Uint64("itemID", itemID).
 		Msg("Track added to list successfully")
 	responses.RespondOK(c, updatedList, "Track added to list successfully")
 }
@@ -503,14 +430,7 @@ func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to remove track from list without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
-
-	uid := userID.(uint64)
+	userID, _ := checkUserAccess(c)
 
 	// Parse list ID
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -529,7 +449,7 @@ func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 	}
 
 	log.Debug().
-		Uint64("userID", uid).
+		Uint64("userID", userID).
 		Uint64("listID", id).
 		Uint64("trackID", trackID).
 		Msg("Removing track from list")
@@ -545,9 +465,9 @@ func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 	}
 
 	// Check if user owns the list
-	if existingList.OwnerID != uid {
+	if existingList.OwnerID != userID {
 		log.Warn().
-			Uint64("userID", uid).
+			Uint64("userID", userID).
 			Uint64("ownerID", existingList.OwnerID).
 			Uint64("listID", id).
 			Msg("User does not own the list")
@@ -556,7 +476,7 @@ func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 	}
 
 	// Remove track from list
-	err = h.listService.RemoveItem(ctx, id, trackID)
+	err = h.listService.RemoveItem(ctx, userID, id, trackID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("listID", id).
@@ -577,7 +497,7 @@ func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 	}
 
 	log.Info().
-		Uint64("userID", uid).
+		Uint64("userID", userID).
 		Uint64("listID", id).
 		Uint64("trackID", trackID).
 		Msg("Track removed from list successfully")
@@ -607,14 +527,7 @@ func (h *userListHandler[T]) ReorderItems(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to reorder list without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
-
-	uid := userID.(uint64)
+	userID, _ := checkUserAccess(c)
 
 	// Parse list ID
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -633,7 +546,7 @@ func (h *userListHandler[T]) ReorderItems(c *gin.Context) {
 	}
 
 	log.Debug().
-		Uint64("userID", uid).
+		Uint64("userID", userID).
 		Uint64("listID", id).
 		Msg("Reordering list items")
 
@@ -648,9 +561,9 @@ func (h *userListHandler[T]) ReorderItems(c *gin.Context) {
 	}
 
 	// Check if user owns the list
-	if existingList.OwnerID != uid {
+	if existingList.OwnerID != userID {
 		log.Warn().
-			Uint64("userID", uid).
+			Uint64("userID", userID).
 			Uint64("ownerID", existingList.OwnerID).
 			Uint64("listID", id).
 			Msg("User does not own the list")
@@ -659,7 +572,7 @@ func (h *userListHandler[T]) ReorderItems(c *gin.Context) {
 	}
 
 	// Reorder list items
-	err = h.listService.ReorderItems(ctx, id, req.ItemIDs)
+	err = h.listService.ReorderItems(ctx, userID, id, req.ItemIDs)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("listID", id).
@@ -679,7 +592,7 @@ func (h *userListHandler[T]) ReorderItems(c *gin.Context) {
 	}
 
 	log.Info().
-		Uint64("userID", uid).
+		Uint64("userID", userID).
 		Uint64("listID", id).
 		Msg("List reordered successfully")
 	responses.RespondOK(c, updatedList, "List reordered successfully")
@@ -706,41 +619,26 @@ func (h *userListHandler[T]) GetFavorite(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to retrieve favorites without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
-	limitStr := c.DefaultQuery("limit", "20")
-	offsetStr := c.DefaultQuery("offset", "0")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		limit = 20
-	}
-	offset, err := strconv.Atoi(offsetStr)
-	if err != nil {
-		offset = 0
-	}
-
-	uid := userID.(uint64)
+	userID, _ := checkUserAccess(c)
+	limit := utils.GetLimit(c, 20, 100, true)
+	offset := utils.GetOffset(c, 0)
 
 	log.Debug().
-		Uint64("userID", uid).
+		Uint64("userID", userID).
 		Msg("Retrieving favorites")
 
 	// Get favorites
-	favorites, err := h.listService.GetFavorite(ctx, uid, limit, offset)
+	favorites, err := h.listService.GetFavorite(ctx, userID, limit, offset)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("userID", uid).
+			Uint64("userID", userID).
 			Msg("Failed to retrieve favorites")
 		responses.RespondInternalError(c, err, "Failed to retrieve favorites")
 		return
 	}
 
 	log.Info().
-		Uint64("userID", uid).
+		Uint64("userID", userID).
 		Int("count", len(favorites)).
 		Msg("Favorites retrieved successfully")
 	responses.RespondOK(c, favorites, "Favorites retrieved successfully")

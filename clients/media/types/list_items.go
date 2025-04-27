@@ -14,15 +14,23 @@ type ListItem struct {
 	ChangeHistory []ChangeRecord `json:"changeHistory,omitempty"`
 }
 
-// For external sync
-type SyncListItem struct {
+// For external sync id references
+type ClientListItem struct {
 	ItemID        string         `json:"itemID"`
 	Position      int            `json:"position"`
 	LastChanged   time.Time      `json:"lastChanged"`
 	ChangeHistory []ChangeRecord `json:"changeHistory,omitempty"`
 }
 
-type SyncListItems []SyncListItem
+// ChangeRecord tracks when and where an item was changed
+type ChangeRecord struct {
+	ClientID   uint64    `json:"clientID"` // 0 = internal client
+	ItemID     string    `json:"itemID,omitempty"`
+	ChangeType string    `json:"changeType"` // "add", "remove", "update", "reorder", "sync"
+	Timestamp  time.Time `json:"timestamp"`
+}
+
+type ClientListItems []ClientListItem
 type ListItems []ListItem
 
 func (item *ListItem) AddChangeRecord(clientID uint64, changeType string) {
@@ -34,10 +42,10 @@ func (item *ListItem) AddChangeRecord(clientID uint64, changeType string) {
 	})
 	item.LastChanged = time.Now()
 }
-func (items ListItems) ToSyncItems(idMapper func(uint64) string) SyncListItems {
-	result := make(SyncListItems, len(items))
+func (items ListItems) ToSyncItems(idMapper func(uint64) string) ClientListItems {
+	result := make(ClientListItems, len(items))
 	for i, item := range items {
-		result[i] = SyncListItem{
+		result[i] = ClientListItem{
 			ItemID:        idMapper(item.ItemID),
 			Position:      item.Position,
 			LastChanged:   item.LastChanged,
@@ -47,9 +55,9 @@ func (items ListItems) ToSyncItems(idMapper func(uint64) string) SyncListItems {
 	return result
 }
 
-func (item *SyncListItem) ToSyncItems(idMapper func(string) string) SyncListItems {
-	return SyncListItems{
-		SyncListItem{
+func (item *ClientListItem) ToSyncItems(idMapper func(string) string) ClientListItems {
+	return ClientListItems{
+		ClientListItem{
 			ItemID:        idMapper(item.ItemID),
 			Position:      item.Position,
 			LastChanged:   item.LastChanged,
@@ -57,10 +65,10 @@ func (item *SyncListItem) ToSyncItems(idMapper func(string) string) SyncListItem
 		},
 	}
 }
-func (items SyncListItems) ToListItems(idMapper func(string) string) SyncListItems {
-	result := make(SyncListItems, len(items))
+func (items ClientListItems) ToListItems(idMapper func(string) string) ClientListItems {
+	result := make(ClientListItems, len(items))
 	for i, item := range items {
-		result[i] = SyncListItem{
+		result[i] = ClientListItem{
 			ItemID:        idMapper(item.ItemID),
 			Position:      item.Position,
 			LastChanged:   item.LastChanged,
@@ -68,12 +76,4 @@ func (items SyncListItems) ToListItems(idMapper func(string) string) SyncListIte
 		}
 	}
 	return result
-}
-
-// ChangeRecord tracks when and where an item was changed
-type ChangeRecord struct {
-	ClientID   uint64    `json:"clientID"` // 0 = internal client
-	ItemID     string    `json:"itemID,omitempty"`
-	ChangeType string    `json:"changeType"` // "add", "remove", "update", "reorder", "sync"
-	Timestamp  time.Time `json:"timestamp"`
 }

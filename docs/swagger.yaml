@@ -2724,11 +2724,6 @@ definitions:
     - personData
     - source
     type: object
-  requests.ListAddTrackRequest:
-    properties:
-      trackID:
-        type: integer
-    type: object
   requests.ListCreateRequest:
     properties:
       description:
@@ -4527,6 +4522,58 @@ definitions:
               type: string
           type: object
         type: array
+      seasons:
+        items:
+          properties:
+            createdAt:
+              type: string
+            data:
+              allOf:
+              - $ref: '#/definitions/types.Season'
+              description: Type-specific media data
+            deletedAt:
+              type: string
+            downloadUrl:
+              type: string
+            externalIds:
+              description: External IDs for this item (TMDB, IMDB, etc.)
+              items:
+                $ref: '#/definitions/models.ExternalID'
+              type: array
+            id:
+              description: Internal ID
+              type: integer
+            isPublic:
+              description: Whether this item is public or not
+              type: boolean
+            ownerId:
+              description: ID of the user that owns this item, 0 for system owned
+                items
+              type: integer
+            releaseDate:
+              type: string
+            releaseYear:
+              type: integer
+            streamUrl:
+              type: string
+            syncClients:
+              description: Client IDs for this item (mapping client to their IDs)
+              items:
+                $ref: '#/definitions/models.SyncClient'
+              type: array
+            title:
+              type: string
+            type:
+              allOf:
+              - $ref: '#/definitions/types.MediaType'
+              description: Type of media (movie, show, episode, etc.)
+            updatedAt:
+              type: string
+            uuid:
+              description: Stable UUID for syncing
+              type: string
+          type: object
+        type: array
       series:
         items:
           properties:
@@ -4744,9 +4791,10 @@ definitions:
       smartCriteria:
         additionalProperties: {}
         type: object
-      syncClientStates:
+      syncStates:
+        description: List states for this item (mapping client to their IDs
         items:
-          $ref: '#/definitions/types.SyncClientState'
+          $ref: '#/definitions/types.ListSyncState'
         type: array
     type: object
   suasor_clients_media_types.ExternalID:
@@ -4760,7 +4808,6 @@ definitions:
     type: object
   suasor_clients_media_types.Movie:
     properties:
-      MediaData: {}
       audioCodec:
         type: string
       credits:
@@ -4783,7 +4830,6 @@ definitions:
     type: object
   suasor_clients_media_types.Person:
     properties:
-      MediaData: {}
       character:
         description: For actors
         type: string
@@ -4846,7 +4892,6 @@ definitions:
     type: object
   types.Artist:
     properties:
-      MediaData: {}
       albumCount:
         type: integer
       albumIDs:
@@ -4930,6 +4975,19 @@ definitions:
     - ClientCategoryAI
     - ClientCategoryMetadata
     - ClientCategoryUnknown
+  types.ClientListItem:
+    properties:
+      changeHistory:
+        items:
+          $ref: '#/definitions/types.ChangeRecord'
+        type: array
+      itemID:
+        type: string
+      lastChanged:
+        type: string
+      position:
+        type: integer
+    type: object
   types.ClientType:
     enum:
     - emby
@@ -5231,6 +5289,21 @@ definitions:
       type:
         $ref: '#/definitions/types.MediaType'
     type: object
+  types.ListSyncState:
+    properties:
+      clientID:
+        type: integer
+      clientListID:
+        type: string
+      items:
+        description: Integration Client's Internal IDs for the items
+        items:
+          $ref: '#/definitions/types.ClientListItem'
+        type: array
+      lastSynced:
+        description: Time last synced to this client
+        type: string
+    type: object
   types.ListType:
     enum:
     - playlist
@@ -5376,9 +5449,10 @@ definitions:
       smartCriteria:
         additionalProperties: {}
         type: object
-      syncClientStates:
+      syncStates:
+        description: List states for this item (mapping client to their IDs
         items:
-          $ref: '#/definitions/types.SyncClientState'
+          $ref: '#/definitions/types.ListSyncState'
         type: array
     type: object
   types.PlexConfig:
@@ -5388,6 +5462,122 @@ definitions:
       token:
         example: your-plex-token
         type: string
+    type: object
+  types.QueryOptions:
+    properties:
+      actor:
+        description: Filter by actor name/ID
+        type: string
+      albumID:
+        description: Filter by album ID
+        type: string
+      artistID:
+        description: Filter by artist ID
+        type: string
+      clientID:
+        description: Filter by client ID
+        type: integer
+      contentRating:
+        description: Filter by content rating (PG, PG-13, etc.)
+        type: string
+      creator:
+        description: Filter by content creator
+        type: string
+      dateAddedAfter:
+        description: Filter by date added after
+        type: string
+      dateAddedBefore:
+        description: Filter by date added before
+        type: string
+      director:
+        description: Filter by director name/ID
+        type: string
+      externalSourceID:
+        description: Filter by external source ID (TMDB, IMDB, etc.)
+        type: string
+      favorites:
+        description: Common, typed query filters
+        type: boolean
+      genre:
+        description: Filter by genre
+        type: string
+      includeWatchProgress:
+        type: boolean
+      isPublic:
+        description: |-
+          TODO: Add normalized rating logic . Get ratings from all clients and external sources (tmdb,imdb)
+          going to scale all of them to a range of 0-100 and then take the average of these ratings.
+          MinimumNormalizedRating float32 `json:"minimumNormalizedRating,omitempty"` // Filter by minimum normalized rating
+        type: boolean
+      itemIDs:
+        description: Filter by external ID (emby, jellyfin, plex, etc.)
+        type: string
+      limit:
+        type: integer
+      maximumRating:
+        description: Filter by maximum rating (10 is the highest)
+        type: number
+      mediaType:
+        allOf:
+        - $ref: '#/definitions/types.MediaType'
+        description: Filter by media type (movie, show, music, etc.)
+      minimumRating:
+        description: Filter by minimum rating
+        type: number
+      offset:
+        type: integer
+      ownerID:
+        description: Filter by owner ID
+        type: integer
+      personID:
+        description: Filter by person ID
+        type: integer
+      playedAfter:
+        description: Filter by played date after
+        type: string
+      playedBefore:
+        description: Filter by played date before
+        type: string
+      query:
+        type: string
+      recentlyAdded:
+        description: Filter to recently added items
+        type: boolean
+      recentlyPlayed:
+        description: Filter to recently played items
+        type: boolean
+      releasedAfter:
+        description: Filter by release date after
+        type: string
+      releasedBefore:
+        description: Filter by release date before
+        type: string
+      role:
+        description: Filter by role (actor, director, etc.)
+        type: string
+      sort:
+        $ref: '#/definitions/types.SortType'
+      sortOrder:
+        allOf:
+        - $ref: '#/definitions/types.SortOrder'
+        description: '"asc" or "desc"'
+      studio:
+        description: Filter by studio
+        type: string
+      tags:
+        description: Filter by tags
+        items:
+          type: string
+        type: array
+      watched:
+        description: Filter to watched items
+        type: boolean
+      watchlist:
+        description: Filter to watchlist items
+        type: boolean
+      year:
+        description: Filter by release year
+        type: integer
     type: object
   types.RadarrConfig:
     description: Radarr movie automation server configuration
@@ -5426,7 +5616,6 @@ definitions:
     type: object
   types.Season:
     properties:
-      MediaData: {}
       artwork:
         $ref: '#/definitions/types.Artwork'
       credits:
@@ -5464,7 +5653,6 @@ definitions:
     type: object
   types.Series:
     properties:
-      MediaData: {}
       contentRating:
         type: string
       credits:
@@ -5500,6 +5688,26 @@ definitions:
     properties:
       ClientAutomationConfig: {}
     type: object
+  types.SortOrder:
+    enum:
+    - asc
+    - desc
+    - ""
+    type: string
+    x-enum-varnames:
+    - SortOrderAsc
+    - SortOrderDesc
+    - SortOrderNone
+  types.SortType:
+    enum:
+    - created_at
+    - updated_at
+    - added_at
+    type: string
+    x-enum-varnames:
+    - SortTypeCreatedAt
+    - SortTypeUpdatedAt
+    - SortTypeAddedAt
   types.SubsonicConfig:
     description: Supersonic music server configuration
     properties:
@@ -5520,34 +5728,6 @@ definitions:
       itemID:
         description: The actual ID value in the external system
         type: string
-    type: object
-  types.SyncClientState:
-    properties:
-      clientID:
-        type: integer
-      clientListID:
-        type: string
-      items:
-        description: Integration Client's Internal IDs for the items
-        items:
-          $ref: '#/definitions/types.SyncListItem'
-        type: array
-      lastSynced:
-        description: Time last synced to this client
-        type: string
-    type: object
-  types.SyncListItem:
-    properties:
-      changeHistory:
-        items:
-          $ref: '#/definitions/types.ChangeRecord'
-        type: array
-      itemID:
-        type: string
-      lastChanged:
-        type: string
-      position:
-        type: integer
     type: object
   types.Track:
     properties:
@@ -5766,55 +5946,6 @@ paths:
       summary: Reorder list items
       tags:
       - lists
-  /{listType}/{id}/tracks:
-    post:
-      consumes:
-      - application/json
-      description: Adds a track to a list owned by the authenticated user
-      parameters:
-      - description: List ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Track details
-        in: body
-        name: track
-        required: true
-        schema:
-          $ref: '#/definitions/requests.ListAddTrackRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Track added successfully
-          schema:
-            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_Playlist'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "404":
-          description: List not found
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Add a track to a list
-      tags:
-      - lists
   /{listType}/{id}/tracks/{trackId}:
     delete:
       consumes:
@@ -5901,6 +6032,54 @@ paths:
       summary: Get playlist by ID
       tags:
       - lists
+  /{listType}/{listID}/add/{itemID}:
+    post:
+      consumes:
+      - application/json
+      description: Adds a track to a list owned by the authenticated user
+      parameters:
+      - description: List ID
+        in: path
+        name: listID
+        required: true
+        type: integer
+      - description: Item ID
+        in: path
+        name: itemID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Track added successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_Playlist'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "404":
+          description: List not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Add a track to a list
+      tags:
+      - lists
   /{listType}/{listID}/items:
     get:
       consumes:
@@ -5937,49 +6116,6 @@ paths:
           schema:
             $ref: '#/definitions/responses.ErrorResponse-any'
       summary: Get tracks in a playlist
-      tags:
-      - lists
-  /{listType}/{listID}/items/{itemID}:
-    post:
-      consumes:
-      - application/json
-      description: Adds a media item to an existing playlist
-      parameters:
-      - description: List ID
-        in: path
-        name: listID
-        required: true
-        type: integer
-      - description: Item ID to add
-        in: path
-        name: itemID
-        required: true
-        type: string
-      - description: List type (e.g. 'playlist', 'collection')
-        in: path
-        name: listType
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Item added to playlist
-          schema:
-            $ref: '#/definitions/responses.SuccessResponse'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "404":
-          description: List not found
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-      summary: Add an item to a playlist
       tags:
       - lists
   /{listType}/{listId}:
@@ -7594,40 +7730,6 @@ paths:
       tags:
       - automation
       - clients
-  /client/{clientID}/media:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves all media items for a specific client
-      parameters:
-      - description: Client ID
-        in: path
-        name: clientID
-        required: true
-        type: integer
-      - description: Media type filter
-        in: query
-        name: type
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Media items retrieved successfully
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData'
-        "400":
-          description: Invalid client ID
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-      summary: Get media items by client
-      tags:
-      - media
-      - clients
   /client/{clientID}/media/{clientItemID}:
     put:
       consumes:
@@ -7669,6 +7771,47 @@ paths:
       - media
       - clients
   /client/{clientID}/media/{mediaType}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all media items for a specific client
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      - description: Media type filter
+        in: path
+        name: mediaType
+        type: string
+      - description: Maximum number of items to return (default 20)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset for pagination (default 0)
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Media items retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData'
+        "400":
+          description: Invalid client ID
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Get media items by client
+      tags:
+      - media
+      - clients
     post:
       consumes:
       - application/json
@@ -7740,6 +7883,49 @@ paths:
           schema:
             $ref: '#/definitions/responses.ErrorResponse-any'
       summary: Get media item by client-specific ID
+      tags:
+      - media
+      - clients
+  /client/{clientID}/media/{mediaType}/search:
+    get:
+      consumes:
+      - application/json
+      description: Searches for media items in a specific client based on query parameters
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        type: string
+      - description: Search options
+        in: body
+        name: options
+        schema:
+          $ref: '#/definitions/types.QueryOptions'
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: string
+      - description: Media type filter
+        in: query
+        name: mediaType
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Media items retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Search for media items in a specific client
       tags:
       - media
       - clients
@@ -10602,45 +10788,6 @@ paths:
       summary: Create a new user-owned media item
       tags:
       - media
-  /media/{mediaType}/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a specific media item by ID
-      parameters:
-      - description: Media Item ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Media type
-        in: path
-        name: mediaType
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Media item retrieved successfully
-          schema:
-            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_MediaData'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "404":
-          description: Media item not found
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-      summary: Get media item by ID
-      tags:
-      - media
-      - core
   /media/{mediaType}/{itemID}:
     delete:
       consumes:
@@ -10674,6 +10821,44 @@ paths:
       summary: Delete a user-owned media item
       tags:
       - media
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific media item by ID
+      parameters:
+      - description: Media Item ID
+        in: path
+        name: itemId
+        required: true
+        type: integer
+      - description: Media type
+        in: path
+        name: mediaType
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Media item retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-models_MediaItem-types_MediaData'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "404":
+          description: Media item not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Get media item by ID
+      tags:
+      - media
+      - core
     put:
       consumes:
       - application/json
@@ -11103,8 +11288,12 @@ paths:
       - description: Search query
         in: query
         name: q
-        required: true
         type: string
+      - description: Search options
+        in: body
+        name: options
+        schema:
+          $ref: '#/definitions/types.QueryOptions'
       - description: Maximum number of items to return (default 20)
         in: query
         name: limit

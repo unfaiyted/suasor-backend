@@ -26,7 +26,7 @@ type MediaSyncJob struct {
 	clientRepos     repobundles.ClientRepositories
 	dataRepos       repobundles.UserMediaDataRepositories
 	clientItemRepos repobundles.ClientMediaItemRepositories
-	itemRepos       repobundles.CoreMediaItemRepositories
+	itemRepos       repobundles.UserMediaItemRepositories
 	clientFactories *clients.ClientProviderFactoryService
 }
 
@@ -38,7 +38,7 @@ func NewMediaSyncJob(
 	clientRepos repobundles.ClientRepositories,
 	dataRepos repobundles.UserMediaDataRepositories,
 	clientItemRepos repobundles.ClientMediaItemRepositories,
-	itemRepos repobundles.CoreMediaItemRepositories,
+	itemRepos repobundles.UserMediaItemRepositories,
 	clientFactories *clients.ClientProviderFactoryService,
 ) *MediaSyncJob {
 	return &MediaSyncJob{
@@ -728,7 +728,7 @@ func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []*models.M
 		}
 
 		// Check if the movie already exists in the database
-		existingMovie, err := j.itemRepos.MovieRepo().GetByClientItemID(ctx, clientID, clientItemID)
+		existingMovie, err := j.itemRepos.MovieUserRepo().GetByClientItemID(ctx, clientID, clientItemID)
 		if err == nil {
 			// Movie exists, update it
 			// Merge client IDs
@@ -772,7 +772,7 @@ func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []*models.M
 			existingMovie.ReleaseYear = movie.Data.Details.ReleaseYear
 
 			// Save the updated movie
-			_, err = j.itemRepos.MovieRepo().Update(ctx, existingMovie)
+			_, err = j.itemRepos.MovieUserRepo().Update(ctx, existingMovie)
 			if err != nil {
 				log.Printf("Error updating movie: %v", err)
 				continue
@@ -785,7 +785,7 @@ func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []*models.M
 			movie.ReleaseYear = movie.Data.Details.ReleaseYear
 
 			// Create the movie
-			_, err = j.itemRepos.MovieRepo().Create(ctx, movie)
+			_, err = j.itemRepos.MovieUserRepo().Create(ctx, movie)
 			if err != nil {
 				log.Printf("Error creating movie: %v", err)
 				continue
@@ -834,7 +834,7 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []*models.
 		}
 
 		// Check if the series already exists in the database
-		existingSeries, err := j.itemRepos.SeriesRepo().GetByClientItemID(ctx, clientID, clientItemID)
+		existingSeries, err := j.itemRepos.SeriesUserRepo().GetByClientItemID(ctx, clientID, clientItemID)
 		if err == nil {
 			// Series exists, update it
 			// Merge client IDs
@@ -932,7 +932,7 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []*models.
 			}
 
 			// Save the updated series
-			_, err = j.itemRepos.SeriesRepo().Update(ctx, existingSeries)
+			_, err = j.itemRepos.SeriesUserRepo().Update(ctx, existingSeries)
 			if err != nil {
 				log.Printf("Error updating series: %v", err)
 				continue
@@ -954,7 +954,7 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []*models.
 			}
 
 			// Create the series
-			_, err = j.itemRepos.SeriesRepo().Create(ctx, s)
+			_, err = j.itemRepos.SeriesUserRepo().Create(ctx, s)
 			if err != nil {
 				log.Printf("Error creating series: %v", err)
 				continue
@@ -989,7 +989,7 @@ func (j *MediaSyncJob) processEpisodeBatch(ctx context.Context, episodes []*mode
 		}
 
 		// Check if the episode already exists in the database
-		existingEpisode, err := j.itemRepos.EpisodeRepo().GetByClientItemID(ctx, clientID, clientItemID)
+		existingEpisode, err := j.itemRepos.EpisodeUserRepo().GetByClientItemID(ctx, clientID, clientItemID)
 		if err == nil {
 			// Episode exists, update it
 			// Merge client IDs
@@ -1033,7 +1033,7 @@ func (j *MediaSyncJob) processEpisodeBatch(ctx context.Context, episodes []*mode
 			existingEpisode.ReleaseYear = episode.Data.Details.ReleaseYear
 
 			// Save the updated episode
-			_, err = j.itemRepos.EpisodeRepo().Update(ctx, existingEpisode)
+			_, err = j.itemRepos.EpisodeUserRepo().Update(ctx, existingEpisode)
 			if err != nil {
 				log.Printf("Error updating episode: %v", err)
 				continue
@@ -1046,7 +1046,7 @@ func (j *MediaSyncJob) processEpisodeBatch(ctx context.Context, episodes []*mode
 			episode.ReleaseYear = episode.Data.Details.ReleaseYear
 
 			// Create the episode
-			_, err = j.itemRepos.EpisodeRepo().Create(ctx, episode)
+			_, err = j.itemRepos.EpisodeUserRepo().Create(ctx, episode)
 			if err != nil {
 				log.Printf("Error creating episode: %v", err)
 				continue
@@ -1081,7 +1081,7 @@ func (j *MediaSyncJob) processTrackBatch(ctx context.Context, tracks []*models.M
 		}
 
 		// Check if the track already exists in the database
-		existingTrack, err := j.itemRepos.TrackRepo().GetByClientItemID(ctx, clientID, clientItemID)
+		existingTrack, err := j.itemRepos.TrackUserRepo().GetByClientItemID(ctx, clientID, clientItemID)
 		if err == nil {
 			// Track exists, update it
 			// Merge client IDs
@@ -1125,7 +1125,7 @@ func (j *MediaSyncJob) processTrackBatch(ctx context.Context, tracks []*models.M
 			existingTrack.ReleaseYear = track.Data.Details.ReleaseYear
 
 			// Save the updated track
-			_, err = j.itemRepos.TrackRepo().Update(ctx, existingTrack)
+			_, err = j.itemRepos.TrackUserRepo().Update(ctx, existingTrack)
 			if err != nil {
 				log.Printf("Error updating track: %v", err)
 				continue
@@ -1138,7 +1138,7 @@ func (j *MediaSyncJob) processTrackBatch(ctx context.Context, tracks []*models.M
 			track.ReleaseYear = track.Data.Details.ReleaseYear
 
 			// Create the track
-			_, err = j.itemRepos.TrackRepo().Create(ctx, track)
+			_, err = j.itemRepos.TrackUserRepo().Create(ctx, track)
 			if err != nil {
 				log.Printf("Error creating track: %v", err)
 				continue
@@ -1173,7 +1173,7 @@ func (j *MediaSyncJob) processAlbumBatch(ctx context.Context, albums []*models.M
 		}
 
 		// Check if the album already exists in the database
-		existingAlbum, err := j.itemRepos.AlbumRepo().GetByClientItemID(ctx, clientID, clientItemID)
+		existingAlbum, err := j.itemRepos.AlbumUserRepo().GetByClientItemID(ctx, clientID, clientItemID)
 		if err == nil {
 			// Album exists, update it
 			// Merge client IDs
@@ -1217,7 +1217,7 @@ func (j *MediaSyncJob) processAlbumBatch(ctx context.Context, albums []*models.M
 			existingAlbum.ReleaseYear = album.Data.Details.ReleaseYear
 
 			// Save the updated album
-			_, err = j.itemRepos.AlbumRepo().Update(ctx, existingAlbum)
+			_, err = j.itemRepos.AlbumUserRepo().Update(ctx, existingAlbum)
 			if err != nil {
 				log.Printf("Error updating album: %v", err)
 				continue
@@ -1230,7 +1230,7 @@ func (j *MediaSyncJob) processAlbumBatch(ctx context.Context, albums []*models.M
 			album.ReleaseYear = album.Data.Details.ReleaseYear
 
 			// Create the album
-			_, err = j.itemRepos.AlbumRepo().Create(ctx, album)
+			_, err = j.itemRepos.AlbumUserRepo().Create(ctx, album)
 			if err != nil {
 				log.Printf("Error creating album: %v", err)
 				continue
@@ -1265,7 +1265,7 @@ func (j *MediaSyncJob) processArtistBatch(ctx context.Context, artists []*models
 		}
 
 		// Check if the artist already exists in the database
-		existingArtist, err := j.itemRepos.ArtistRepo().GetByClientItemID(ctx, clientID, clientItemID)
+		existingArtist, err := j.itemRepos.ArtistUserRepo().GetByClientItemID(ctx, clientID, clientItemID)
 		if err == nil {
 			// Artist exists, update it
 			// Merge client IDs
@@ -1307,7 +1307,7 @@ func (j *MediaSyncJob) processArtistBatch(ctx context.Context, artists []*models
 			existingArtist.Title = artist.Data.Details.Title
 
 			// Save the updated artist
-			_, err = j.itemRepos.ArtistRepo().Update(ctx, existingArtist)
+			_, err = j.itemRepos.ArtistUserRepo().Update(ctx, existingArtist)
 			if err != nil {
 				log.Printf("Error updating artist: %v", err)
 				continue
@@ -1318,7 +1318,7 @@ func (j *MediaSyncJob) processArtistBatch(ctx context.Context, artists []*models
 			artist.Title = artist.Data.Details.Title
 
 			// Create the artist
-			_, err = j.itemRepos.ArtistRepo().Create(ctx, artist)
+			_, err = j.itemRepos.ArtistUserRepo().Create(ctx, artist)
 			if err != nil {
 				log.Printf("Error creating artist: %v", err)
 				continue

@@ -1779,57 +1779,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/client/{clientID}/media": {
-            "get": {
-                "description": "Retrieves all media items for a specific client",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "media",
-                    "clients"
-                ],
-                "summary": "Get media items by client",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Media type filter",
-                        "name": "type",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Media items retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid client ID",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
         "/client/{clientID}/media/album/item/{clientItemID}": {
             "get": {
                 "security": [
@@ -3965,6 +3914,67 @@ const docTemplate = `{
             }
         },
         "/client/{clientID}/media/{mediaType}": {
+            "get": {
+                "description": "Retrieves all media items for a specific client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "media",
+                    "clients"
+                ],
+                "summary": "Get media items by client",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Media type filter",
+                        "name": "mediaType",
+                        "in": "path"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of items to return (default 20)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset for pagination (default 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Media items retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Creates a new media item in the database with client association",
                 "consumes": [
@@ -3994,6 +4004,71 @@ const docTemplate = `{
                         "description": "Media item created successfully",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_MediaData"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/client/{clientID}/media/{mediaType}/search": {
+            "get": {
+                "description": "Searches for media items in a specific client based on query parameters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "media",
+                    "clients"
+                ],
+                "summary": "Search for media items in a specific client",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Search options",
+                        "name": "options",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/types.QueryOptions"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Media type filter",
+                        "name": "mediaType",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Media items retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData"
                         }
                     },
                     "400": {
@@ -10598,8 +10673,15 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Search query",
                         "name": "q",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "description": "Search options",
+                        "name": "options",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/types.QueryOptions"
+                        }
                     },
                     {
                         "type": "integer",
@@ -10808,7 +10890,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/media/{mediaType}/{id}": {
+        "/media/{mediaType}/{itemID}": {
             "get": {
                 "description": "Retrieves a specific media item by ID",
                 "consumes": [
@@ -10826,7 +10908,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Media Item ID",
-                        "name": "id",
+                        "name": "itemId",
                         "in": "path",
                         "required": true
                     },
@@ -10864,9 +10946,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/media/{mediaType}/{itemID}": {
+            },
             "put": {
                 "description": "Updates an existing media item owned by a user",
                 "consumes": [
@@ -14559,82 +14639,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/{listType}/{id}/tracks": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Adds a track to a list owned by the authenticated user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "lists"
-                ],
-                "summary": "Add a track to a list",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "List ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Track details",
-                        "name": "track",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/requests.ListAddTrackRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Track added successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Playlist"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "List not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
         "/{listType}/{id}/tracks/{trackId}": {
             "delete": {
                 "security": [
@@ -14766,6 +14770,80 @@ const docTemplate = `{
                 }
             }
         },
+        "/{listType}/{listID}/add/{itemID}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Adds a track to a list owned by the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lists"
+                ],
+                "summary": "Add a track to a list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "List ID",
+                        "name": "listID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Item ID",
+                        "name": "itemID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Track added successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Playlist"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "List not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/{listType}/{listID}/items": {
             "get": {
                 "description": "Retrieves all tracks in a specific playlist",
@@ -14800,70 +14878,6 @@ const docTemplate = `{
                         "description": "Tracks retrieved successfully",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse-models_MediaItemList"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "List not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/{listType}/{listID}/items/{itemID}": {
-            "post": {
-                "description": "Adds a media item to an existing playlist",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "lists"
-                ],
-                "summary": "Add an item to a playlist",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "List ID",
-                        "name": "listID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Item ID to add",
-                        "name": "itemID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "List type (e.g. 'playlist', 'collection')",
-                        "name": "listType",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Item added to playlist",
-                        "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse"
                         }
                     },
                     "400": {
@@ -18845,14 +18859,6 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.ListAddTrackRequest": {
-            "type": "object",
-            "properties": {
-                "trackID": {
-                    "type": "integer"
-                }
-            }
-        },
         "requests.ListCreateRequest": {
             "type": "object",
             "properties": {
@@ -21389,6 +21395,84 @@ const docTemplate = `{
                         }
                     }
                 },
+                "seasons": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Type-specific media data",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.Season"
+                                    }
+                                ]
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "downloadUrl": {
+                                "type": "string"
+                            },
+                            "externalIds": {
+                                "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.ExternalID"
+                                }
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isPublic": {
+                                "description": "Whether this item is public or not",
+                                "type": "boolean"
+                            },
+                            "ownerId": {
+                                "description": "ID of the user that owns this item, 0 for system owned items",
+                                "type": "integer"
+                            },
+                            "releaseDate": {
+                                "type": "string"
+                            },
+                            "releaseYear": {
+                                "type": "integer"
+                            },
+                            "streamUrl": {
+                                "type": "string"
+                            },
+                            "syncClients": {
+                                "description": "Client IDs for this item (mapping client to their IDs)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.SyncClient"
+                                }
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "description": "Type of media (movie, show, episode, etc.)",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/types.MediaType"
+                                    }
+                                ]
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "uuid": {
+                                "description": "Stable UUID for syncing",
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
                 "series": {
                     "type": "array",
                     "items": {
@@ -21704,10 +21788,11 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": {}
                 },
-                "syncClientStates": {
+                "syncStates": {
+                    "description": "List states for this item (mapping client to their IDs",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/types.SyncClientState"
+                        "$ref": "#/definitions/types.ListSyncState"
                     }
                 }
             }
@@ -21728,7 +21813,6 @@ const docTemplate = `{
         "suasor_clients_media_types.Movie": {
             "type": "object",
             "properties": {
-                "MediaData": {},
                 "audioCodec": {
                     "type": "string"
                 },
@@ -21762,7 +21846,6 @@ const docTemplate = `{
         "suasor_clients_media_types.Person": {
             "type": "object",
             "properties": {
-                "MediaData": {},
                 "character": {
                     "description": "For actors",
                     "type": "string"
@@ -21855,7 +21938,6 @@ const docTemplate = `{
         "types.Artist": {
             "type": "object",
             "properties": {
-                "MediaData": {},
                 "albumCount": {
                     "type": "integer"
                 },
@@ -21974,6 +22056,26 @@ const docTemplate = `{
                 "ClientCategoryMetadata",
                 "ClientCategoryUnknown"
             ]
+        },
+        "types.ClientListItem": {
+            "type": "object",
+            "properties": {
+                "changeHistory": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.ChangeRecord"
+                    }
+                },
+                "itemID": {
+                    "type": "string"
+                },
+                "lastChanged": {
+                    "type": "string"
+                },
+                "position": {
+                    "type": "integer"
+                }
+            }
         },
         "types.ClientType": {
             "type": "string",
@@ -22372,6 +22474,28 @@ const docTemplate = `{
                 }
             }
         },
+        "types.ListSyncState": {
+            "type": "object",
+            "properties": {
+                "clientID": {
+                    "type": "integer"
+                },
+                "clientListID": {
+                    "type": "string"
+                },
+                "items": {
+                    "description": "Integration Client's Internal IDs for the items",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.ClientListItem"
+                    }
+                },
+                "lastSynced": {
+                    "description": "Time last synced to this client",
+                    "type": "string"
+                }
+            }
+        },
         "types.ListType": {
             "type": "string",
             "enum": [
@@ -22572,10 +22696,11 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": {}
                 },
-                "syncClientStates": {
+                "syncStates": {
+                    "description": "List states for this item (mapping client to their IDs",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/types.SyncClientState"
+                        "$ref": "#/definitions/types.ListSyncState"
                     }
                 }
             }
@@ -22588,6 +22713,165 @@ const docTemplate = `{
                 "token": {
                     "type": "string",
                     "example": "your-plex-token"
+                }
+            }
+        },
+        "types.QueryOptions": {
+            "type": "object",
+            "properties": {
+                "actor": {
+                    "description": "Filter by actor name/ID",
+                    "type": "string"
+                },
+                "albumID": {
+                    "description": "Filter by album ID",
+                    "type": "string"
+                },
+                "artistID": {
+                    "description": "Filter by artist ID",
+                    "type": "string"
+                },
+                "clientID": {
+                    "description": "Filter by client ID",
+                    "type": "integer"
+                },
+                "contentRating": {
+                    "description": "Filter by content rating (PG, PG-13, etc.)",
+                    "type": "string"
+                },
+                "creator": {
+                    "description": "Filter by content creator",
+                    "type": "string"
+                },
+                "dateAddedAfter": {
+                    "description": "Filter by date added after",
+                    "type": "string"
+                },
+                "dateAddedBefore": {
+                    "description": "Filter by date added before",
+                    "type": "string"
+                },
+                "director": {
+                    "description": "Filter by director name/ID",
+                    "type": "string"
+                },
+                "externalSourceID": {
+                    "description": "Filter by external source ID (TMDB, IMDB, etc.)",
+                    "type": "string"
+                },
+                "favorites": {
+                    "description": "Common, typed query filters",
+                    "type": "boolean"
+                },
+                "genre": {
+                    "description": "Filter by genre",
+                    "type": "string"
+                },
+                "includeWatchProgress": {
+                    "type": "boolean"
+                },
+                "isPublic": {
+                    "description": "TODO: Add normalized rating logic . Get ratings from all clients and external sources (tmdb,imdb)\ngoing to scale all of them to a range of 0-100 and then take the average of these ratings.\nMinimumNormalizedRating float32 ` + "`" + `json:\"minimumNormalizedRating,omitempty\"` + "`" + ` // Filter by minimum normalized rating",
+                    "type": "boolean"
+                },
+                "itemIDs": {
+                    "description": "Filter by external ID (emby, jellyfin, plex, etc.)",
+                    "type": "string"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "maximumRating": {
+                    "description": "Filter by maximum rating (10 is the highest)",
+                    "type": "number"
+                },
+                "mediaType": {
+                    "description": "Filter by media type (movie, show, music, etc.)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.MediaType"
+                        }
+                    ]
+                },
+                "minimumRating": {
+                    "description": "Filter by minimum rating",
+                    "type": "number"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "ownerID": {
+                    "description": "Filter by owner ID",
+                    "type": "integer"
+                },
+                "personID": {
+                    "description": "Filter by person ID",
+                    "type": "integer"
+                },
+                "playedAfter": {
+                    "description": "Filter by played date after",
+                    "type": "string"
+                },
+                "playedBefore": {
+                    "description": "Filter by played date before",
+                    "type": "string"
+                },
+                "query": {
+                    "type": "string"
+                },
+                "recentlyAdded": {
+                    "description": "Filter to recently added items",
+                    "type": "boolean"
+                },
+                "recentlyPlayed": {
+                    "description": "Filter to recently played items",
+                    "type": "boolean"
+                },
+                "releasedAfter": {
+                    "description": "Filter by release date after",
+                    "type": "string"
+                },
+                "releasedBefore": {
+                    "description": "Filter by release date before",
+                    "type": "string"
+                },
+                "role": {
+                    "description": "Filter by role (actor, director, etc.)",
+                    "type": "string"
+                },
+                "sort": {
+                    "$ref": "#/definitions/types.SortType"
+                },
+                "sortOrder": {
+                    "description": "\"asc\" or \"desc\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.SortOrder"
+                        }
+                    ]
+                },
+                "studio": {
+                    "description": "Filter by studio",
+                    "type": "string"
+                },
+                "tags": {
+                    "description": "Filter by tags",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "watched": {
+                    "description": "Filter to watched items",
+                    "type": "boolean"
+                },
+                "watchlist": {
+                    "description": "Filter to watchlist items",
+                    "type": "boolean"
+                },
+                "year": {
+                    "description": "Filter by release year",
+                    "type": "integer"
                 }
             }
         },
@@ -22645,7 +22929,6 @@ const docTemplate = `{
         "types.Season": {
             "type": "object",
             "properties": {
-                "MediaData": {},
                 "artwork": {
                     "$ref": "#/definitions/types.Artwork"
                 },
@@ -22702,7 +22985,6 @@ const docTemplate = `{
         "types.Series": {
             "type": "object",
             "properties": {
-                "MediaData": {},
                 "contentRating": {
                     "type": "string"
                 },
@@ -22755,6 +23037,32 @@ const docTemplate = `{
                 "ClientAutomationConfig": {}
             }
         },
+        "types.SortOrder": {
+            "type": "string",
+            "enum": [
+                "asc",
+                "desc",
+                ""
+            ],
+            "x-enum-varnames": [
+                "SortOrderAsc",
+                "SortOrderDesc",
+                "SortOrderNone"
+            ]
+        },
+        "types.SortType": {
+            "type": "string",
+            "enum": [
+                "created_at",
+                "updated_at",
+                "added_at"
+            ],
+            "x-enum-varnames": [
+                "SortTypeCreatedAt",
+                "SortTypeUpdatedAt",
+                "SortTypeAddedAt"
+            ]
+        },
         "types.SubsonicConfig": {
             "description": "Supersonic music server configuration",
             "type": "object",
@@ -22780,48 +23088,6 @@ const docTemplate = `{
                 "itemID": {
                     "description": "The actual ID value in the external system",
                     "type": "string"
-                }
-            }
-        },
-        "types.SyncClientState": {
-            "type": "object",
-            "properties": {
-                "clientID": {
-                    "type": "integer"
-                },
-                "clientListID": {
-                    "type": "string"
-                },
-                "items": {
-                    "description": "Integration Client's Internal IDs for the items",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.SyncListItem"
-                    }
-                },
-                "lastSynced": {
-                    "description": "Time last synced to this client",
-                    "type": "string"
-                }
-            }
-        },
-        "types.SyncListItem": {
-            "type": "object",
-            "properties": {
-                "changeHistory": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.ChangeRecord"
-                    }
-                },
-                "itemID": {
-                    "type": "string"
-                },
-                "lastChanged": {
-                    "type": "string"
-                },
-                "position": {
-                    "type": "integer"
                 }
             }
         },

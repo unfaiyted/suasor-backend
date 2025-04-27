@@ -20,7 +20,7 @@ import (
 // that are linked to external clients like Plex, Emby, etc.
 type ClientMediaItemService[T clienttypes.ClientMediaConfig, U types.MediaData] interface {
 	// Include all core service methods
-	CoreMediaItemService[U]
+	UserMediaItemService[U]
 
 	// Client-specific operations
 	GetByClientID(ctx context.Context, clientID uint64, mediaType types.MediaType, limit int, offset int) ([]*models.MediaItem[U], error)
@@ -38,7 +38,7 @@ type ClientMediaItemService[T clienttypes.ClientMediaConfig, U types.MediaData] 
 
 // clientMediaItemService implements ClientMediaItemService
 type clientMediaItemService[T clienttypes.ClientMediaConfig, U types.MediaData] struct {
-	CoreMediaItemService[U] // Embed the core service
+	UserMediaItemService[U] // Embed the user service
 	clientRepo              repository.ClientRepository[T]
 	itemRepo                repository.ClientMediaItemRepository[U]
 	clientFactory           *clients.ClientProviderFactoryService
@@ -46,13 +46,13 @@ type clientMediaItemService[T clienttypes.ClientMediaConfig, U types.MediaData] 
 
 // NewClientMediaItemService creates a new client-associated media item service
 func NewClientMediaItemService[T clienttypes.ClientMediaConfig, U types.MediaData](
-	coreService CoreMediaItemService[U],
+	userService UserMediaItemService[U],
 	clientRepo repository.ClientRepository[T],
 	itemRepo repository.ClientMediaItemRepository[U],
 	clientFactory *clients.ClientProviderFactoryService,
 ) ClientMediaItemService[T, U] {
 	return &clientMediaItemService[T, U]{
-		CoreMediaItemService: coreService,
+		UserMediaItemService: userService,
 		clientRepo:           clientRepo,
 		itemRepo:             itemRepo,
 		clientFactory:        clientFactory,

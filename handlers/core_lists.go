@@ -3,7 +3,6 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"net/http"
 	"suasor/utils"
 
 	"suasor/clients/media/types"
@@ -249,45 +248,4 @@ func (h *coreListHandler[T]) Search(c *gin.Context) {
 		Int("count", len(lists)).
 		Msg("Lists search completed successfully")
 	responses.RespondOK(c, lists, "Lists retrieved successfully")
-}
-
-// AddItem godoc
-//
-//	@Summary		Add an item to a playlist
-//	@Description	Adds a media item to an existing playlist
-//	@Tags			lists
-//	@Accept			json
-//	@Produce		json
-//	@Param			listID		path		int								true	"List ID"
-//	@Param			itemID		path		string							true	"Item ID to add"
-//	@Param			listType	path		string							true	"List type (e.g. 'playlist', 'collection')"
-//	@Success		200			{object}	responses.SuccessResponse									"Item added to playlist"
-//	@Failure		400			{object}	responses.ErrorResponse[any]	"Invalid request"
-//	@Failure		404			{object}	responses.ErrorResponse[any]	"List not found"
-//	@Failure		500			{object}	responses.ErrorResponse[any]	"Server error"
-//	@Router			/{listType}/{listID}/items/{itemID} [post]
-func (h *coreListHandler[T]) AddItem(c *gin.Context) {
-	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
-
-	listID, err := checkItemID(c, "id")
-	if err != nil {
-		return
-	}
-
-	itemID, err := checkItemID(c, "itemID")
-	if err != nil {
-		return
-	}
-
-	err = h.listService.AddItem(ctx, listID, itemID)
-	if handleServiceError(c, err, "Failed to add item to playlist", "", "Failed to add item to playlist") {
-		return
-	}
-
-	log.Info().
-		Uint64("id", listID).
-		Uint64("itemID", itemID).
-		Msg("Item added to playlist successfully")
-	responses.RespondSuccess(c, http.StatusOK, responses.EmptyResponse{Success: true}, "Item added to playlist successfully")
 }

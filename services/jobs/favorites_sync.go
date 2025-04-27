@@ -26,7 +26,7 @@ type FavoritesSyncJob struct {
 	clientRepos     repobundles.ClientRepositories
 	dataRepos       repobundles.UserMediaDataRepositories
 	clientItemRepos repobundles.ClientMediaItemRepositories
-	itemRepos       repobundles.CoreMediaItemRepositories
+	itemRepos       repobundles.UserMediaItemRepositories
 	clientFactories *clients.ClientProviderFactoryService
 }
 
@@ -38,7 +38,7 @@ func NewFavoritesSyncJob(
 	clientRepos repobundles.ClientRepositories,
 	dataRepos repobundles.UserMediaDataRepositories,
 	clientItemRepos repobundles.ClientMediaItemRepositories,
-	itemRepos repobundles.CoreMediaItemRepositories,
+	itemRepos repobundles.UserMediaItemRepositories,
 	clientFactories *clients.ClientProviderFactoryService,
 ) *FavoritesSyncJob {
 	return &FavoritesSyncJob{
@@ -422,7 +422,7 @@ func (j *FavoritesSyncJob) syncMovieFavorites(ctx context.Context, userID, clien
 		}
 
 		// Get the movie from database
-		existingMovie, err := j.itemRepos.MovieRepo().GetByClientItemID(ctx, clientID, clientItemID)
+		existingMovie, err := j.itemRepos.MovieUserRepo().GetByClientItemID(ctx, clientID, clientItemID)
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -504,7 +504,7 @@ func (j *FavoritesSyncJob) syncMovieFavorites(ctx context.Context, userID, clien
 
 		// Also update the movie's favorite status in the MediaItem
 		existingMovie.Data.Details.IsFavorite = true
-		_, err = j.itemRepos.MovieRepo().Update(ctx, existingMovie)
+		_, err = j.itemRepos.MovieUserRepo().Update(ctx, existingMovie)
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -573,7 +573,7 @@ func (j *FavoritesSyncJob) syncSeriesFavorites(ctx context.Context, userID, clie
 		}
 
 		// Get the series from database
-		existingSeries, err := j.itemRepos.SeriesRepo().GetByClientItemID(ctx, clientID, clientItemID)
+		existingSeries, err := j.itemRepos.SeriesUserRepo().GetByClientItemID(ctx, clientID, clientItemID)
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -656,7 +656,7 @@ func (j *FavoritesSyncJob) syncSeriesFavorites(ctx context.Context, userID, clie
 
 		// Also update the series's favorite status in the MediaItem
 		existingSeries.Data.Details.IsFavorite = true
-		_, err = j.itemRepos.SeriesRepo().Update(ctx, existingSeries)
+		_, err = j.itemRepos.SeriesUserRepo().Update(ctx, existingSeries)
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -733,7 +733,7 @@ func (j *FavoritesSyncJob) syncMusicFavorites(ctx context.Context, userID, clien
 		}
 
 		// Get the track from database
-		existingTrack, err := j.itemRepos.TrackRepo().GetByClientItemID(ctx, clientID, clientItemID)
+		existingTrack, err := j.itemRepos.TrackUserRepo().GetByClientItemID(ctx, clientID, clientItemID)
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -815,7 +815,7 @@ func (j *FavoritesSyncJob) syncMusicFavorites(ctx context.Context, userID, clien
 
 		// Also update the track's favorite status in the MediaItem
 		existingTrack.Data.Details.IsFavorite = true
-		_, err = j.itemRepos.TrackRepo().Update(ctx, existingTrack)
+		_, err = j.itemRepos.TrackUserRepo().Update(ctx, existingTrack)
 		if err != nil {
 			log.Warn().
 				Err(err).

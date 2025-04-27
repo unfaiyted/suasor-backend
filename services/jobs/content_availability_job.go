@@ -17,8 +17,8 @@ type ContentAvailabilityJob struct {
 	jobRepo        repository.JobRepository
 	userRepo       repository.UserRepository
 	configRepo     repository.UserConfigRepository
-	movieRepo      repository.MediaItemRepository[*mediatypes.Movie]
-	seriesRepo     repository.MediaItemRepository[*mediatypes.Series]
+	movieRepo      repository.CoreMediaItemRepository[*mediatypes.Movie]
+	seriesRepo     repository.CoreMediaItemRepository[*mediatypes.Series]
 	metadataClient interface{} // Using interface{} to avoid import cycles
 }
 
@@ -27,8 +27,8 @@ func NewContentAvailabilityJob(
 	jobRepo repository.JobRepository,
 	userRepo repository.UserRepository,
 	configRepo repository.UserConfigRepository,
-	movieRepo repository.MediaItemRepository[*mediatypes.Movie],
-	seriesRepo repository.MediaItemRepository[*mediatypes.Series],
+	movieRepo repository.CoreMediaItemRepository[*mediatypes.Movie],
+	seriesRepo repository.CoreMediaItemRepository[*mediatypes.Series],
 	metadataClient interface{},
 ) *ContentAvailabilityJob {
 	return &ContentAvailabilityJob{

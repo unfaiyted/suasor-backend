@@ -13,7 +13,7 @@ type Playlist struct {
 }
 
 // DetectItemOrderConflicts finds conflicts in item ordering
-func (p *Playlist) DetectItemOrderConflicts(clientState SyncClientState,
+func (p *Playlist) DetectItemOrderConflicts(clientState ListSyncState,
 	mappingService IDMappingService,
 	serviceType string) []string {
 	conflicts := []string{}

@@ -48,35 +48,46 @@ func registerMediaListServices(ctx context.Context, c *container.Container) {
 
 	// Register UserListService for Playlists
 	container.RegisterFactory[services.UserListService[*mediatypes.Playlist]](c, func(c *container.Container) services.UserListService[*mediatypes.Playlist] {
-		coreService := container.MustGet[services.CoreListService[*mediatypes.Playlist]](c)
-		userRepos := container.MustGet[repobundles.UserMediaItemRepositories](c)
+		coreListService := container.MustGet[services.CoreListService[*mediatypes.Playlist]](c)
+		userRepo := container.MustGet[repository.UserRepository](c)
+		userItemRepos := container.MustGet[repobundles.UserMediaItemRepositories](c)
 		userDataRepos := container.MustGet[repobundles.UserMediaDataRepositories](c)
+		listRepo := container.MustGet[repository.CoreListRepository[*mediatypes.Playlist]](c)
 
 		// Get the specific repositories
-		userItemRepo := userRepos.PlaylistUserRepo()
+		userItemRepo := userItemRepos.PlaylistUserRepo()
 		userDataRepo := userDataRepos.PlaylistDataRepo()
 
-		return services.NewUserListService[*mediatypes.Playlist](coreService, userItemRepo, userDataRepo)
+		// coreListService CoreListService[T],
+		// userRepo repository.UserRepository,
+		// listRepo repository.CoreListRepository[T],
+		// userItemRepo repository.UserMediaItemRepository[T],
+		// userDataRepo repository.UserMediaItemDataRepository[T],
+
+		return services.NewUserListService[*mediatypes.Playlist](coreListService, userRepo, listRepo, userItemRepo, userDataRepo)
 	})
 
 	// Register UserListService for Collections
 	container.RegisterFactory[services.UserListService[*mediatypes.Collection]](c, func(c *container.Container) services.UserListService[*mediatypes.Collection] {
-		coreService := container.MustGet[services.CoreListService[*mediatypes.Collection]](c)
-		userRepos := container.MustGet[repobundles.UserMediaItemRepositories](c)
+		coreListService := container.MustGet[services.CoreListService[*mediatypes.Collection]](c)
+		userRepo := container.MustGet[repository.UserRepository](c)
+		userItemRepos := container.MustGet[repobundles.UserMediaItemRepositories](c)
 		userDataRepos := container.MustGet[repobundles.UserMediaDataRepositories](c)
+		listRepo := container.MustGet[repository.CoreListRepository[*mediatypes.Collection]](c)
 
 		// Get the specific repositories
-		userItemRepo := userRepos.CollectionUserRepo()
+		userItemRepo := userItemRepos.CollectionUserRepo()
 		userDataRepo := userDataRepos.CollectionDataRepo()
-		return services.NewUserListService[*mediatypes.Collection](coreService, userItemRepo, userDataRepo)
+		return services.NewUserListService[*mediatypes.Collection](coreListService, userRepo, listRepo, userItemRepo, userDataRepo)
 	})
 }
 
 func registerClientListService[T types.ClientMediaConfig, U mediatypes.ListData](c *container.Container) {
 	container.RegisterFactory[services.ClientListService[T, U]](c, func(c *container.Container) services.ClientListService[T, U] {
-		coreListService := container.MustGet[services.CoreListService[U]](c)
+		userListService := container.MustGet[services.UserListService[U]](c)
+		userItemRepo := container.MustGet[repository.ClientMediaItemRepository[U]](c)
 		clientRepo := container.MustGet[repository.ClientRepository[T]](c)
 		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
-		return services.NewClientListService[T, U](coreListService, clientRepo, clientFactory)
+		return services.NewClientListService[T, U](userListService, userItemRepo, clientRepo, clientFactory)
 	})
 }

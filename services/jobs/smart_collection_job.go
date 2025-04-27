@@ -19,9 +19,9 @@ type SmartCollectionJob struct {
 	jobRepo       repository.JobRepository
 	userRepo      repository.UserRepository
 	configRepo    repository.UserConfigRepository
-	movieRepo     repository.MediaItemRepository[*mediatypes.Movie]
-	seriesRepo    repository.MediaItemRepository[*mediatypes.Series]
-	musicRepo     repository.MediaItemRepository[*mediatypes.Track]
+	movieRepo     repository.CoreMediaItemRepository[*mediatypes.Movie]
+	seriesRepo    repository.CoreMediaItemRepository[*mediatypes.Series]
+	musicRepo     repository.CoreMediaItemRepository[*mediatypes.Track]
 	clientRepos   map[clienttypes.ClientMediaType]interface{}
 	clientFactory *clients.ClientProviderFactoryService
 	aiService     interface{} // Using interface{} to avoid import cycles
@@ -32,9 +32,9 @@ func NewSmartCollectionJob(
 	jobRepo repository.JobRepository,
 	userRepo repository.UserRepository,
 	configRepo repository.UserConfigRepository,
-	movieRepo repository.MediaItemRepository[*mediatypes.Movie],
-	seriesRepo repository.MediaItemRepository[*mediatypes.Series],
-	musicRepo repository.MediaItemRepository[*mediatypes.Track],
+	movieRepo repository.CoreMediaItemRepository[*mediatypes.Movie],
+	seriesRepo repository.CoreMediaItemRepository[*mediatypes.Series],
+	musicRepo repository.CoreMediaItemRepository[*mediatypes.Track],
 	embyRepo interface{},
 	jellyfinRepo interface{},
 	plexRepo interface{},

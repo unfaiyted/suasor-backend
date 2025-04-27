@@ -7,15 +7,15 @@ import (
 
 // CoreMediaItemRepositories provides access to all core media item repositories
 type CoreMediaItemRepositories interface {
-	MovieRepo() repository.MediaItemRepository[*mediatypes.Movie]
-	SeriesRepo() repository.MediaItemRepository[*mediatypes.Series]
-	SeasonRepo() repository.MediaItemRepository[*mediatypes.Season]
-	EpisodeRepo() repository.MediaItemRepository[*mediatypes.Episode]
-	TrackRepo() repository.MediaItemRepository[*mediatypes.Track]
-	AlbumRepo() repository.MediaItemRepository[*mediatypes.Album]
-	ArtistRepo() repository.MediaItemRepository[*mediatypes.Artist]
-	CollectionRepo() repository.MediaItemRepository[*mediatypes.Collection]
-	PlaylistRepo() repository.MediaItemRepository[*mediatypes.Playlist]
+	MovieRepo() repository.CoreMediaItemRepository[*mediatypes.Movie]
+	SeriesRepo() repository.CoreMediaItemRepository[*mediatypes.Series]
+	SeasonRepo() repository.CoreMediaItemRepository[*mediatypes.Season]
+	EpisodeRepo() repository.CoreMediaItemRepository[*mediatypes.Episode]
+	TrackRepo() repository.CoreMediaItemRepository[*mediatypes.Track]
+	AlbumRepo() repository.CoreMediaItemRepository[*mediatypes.Album]
+	ArtistRepo() repository.CoreMediaItemRepository[*mediatypes.Artist]
+	CollectionRepo() repository.CoreMediaItemRepository[*mediatypes.Collection]
+	PlaylistRepo() repository.CoreMediaItemRepository[*mediatypes.Playlist]
 }
 
 // UserMediaItemRepositories provides access to all user media item repositories
@@ -46,27 +46,27 @@ type ClientMediaItemRepositories interface {
 
 // CoreMediaItemRepositories implementation
 type coreMediaItemRepositoriesImpl struct {
-	movieRepo      repository.MediaItemRepository[*mediatypes.Movie]
-	seriesRepo     repository.MediaItemRepository[*mediatypes.Series]
-	seasonRepo     repository.MediaItemRepository[*mediatypes.Season]
-	episodeRepo    repository.MediaItemRepository[*mediatypes.Episode]
-	trackRepo      repository.MediaItemRepository[*mediatypes.Track]
-	albumRepo      repository.MediaItemRepository[*mediatypes.Album]
-	artistRepo     repository.MediaItemRepository[*mediatypes.Artist]
-	collectionRepo repository.MediaItemRepository[*mediatypes.Collection]
-	playlistRepo   repository.MediaItemRepository[*mediatypes.Playlist]
+	movieRepo      repository.CoreMediaItemRepository[*mediatypes.Movie]
+	seriesRepo     repository.CoreMediaItemRepository[*mediatypes.Series]
+	seasonRepo     repository.CoreMediaItemRepository[*mediatypes.Season]
+	episodeRepo    repository.CoreMediaItemRepository[*mediatypes.Episode]
+	trackRepo      repository.CoreMediaItemRepository[*mediatypes.Track]
+	albumRepo      repository.CoreMediaItemRepository[*mediatypes.Album]
+	artistRepo     repository.CoreMediaItemRepository[*mediatypes.Artist]
+	collectionRepo repository.CoreMediaItemRepository[*mediatypes.Collection]
+	playlistRepo   repository.CoreMediaItemRepository[*mediatypes.Playlist]
 }
 
 func NewCoreMediaItemRepositories(
-	movieRepo repository.MediaItemRepository[*mediatypes.Movie],
-	seriesRepo repository.MediaItemRepository[*mediatypes.Series],
-	seasonRepo repository.MediaItemRepository[*mediatypes.Season],
-	episodeRepo repository.MediaItemRepository[*mediatypes.Episode],
-	trackRepo repository.MediaItemRepository[*mediatypes.Track],
-	albumRepo repository.MediaItemRepository[*mediatypes.Album],
-	artistRepo repository.MediaItemRepository[*mediatypes.Artist],
-	collectionRepo repository.MediaItemRepository[*mediatypes.Collection],
-	playlistRepo repository.MediaItemRepository[*mediatypes.Playlist],
+	movieRepo repository.CoreMediaItemRepository[*mediatypes.Movie],
+	seriesRepo repository.CoreMediaItemRepository[*mediatypes.Series],
+	seasonRepo repository.CoreMediaItemRepository[*mediatypes.Season],
+	episodeRepo repository.CoreMediaItemRepository[*mediatypes.Episode],
+	trackRepo repository.CoreMediaItemRepository[*mediatypes.Track],
+	albumRepo repository.CoreMediaItemRepository[*mediatypes.Album],
+	artistRepo repository.CoreMediaItemRepository[*mediatypes.Artist],
+	collectionRepo repository.CoreMediaItemRepository[*mediatypes.Collection],
+	playlistRepo repository.CoreMediaItemRepository[*mediatypes.Playlist],
 ) CoreMediaItemRepositories {
 	return &coreMediaItemRepositoriesImpl{
 		movieRepo:      movieRepo,
@@ -81,39 +81,39 @@ func NewCoreMediaItemRepositories(
 	}
 }
 
-func (r *coreMediaItemRepositoriesImpl) MovieRepo() repository.MediaItemRepository[*mediatypes.Movie] {
+func (r *coreMediaItemRepositoriesImpl) MovieRepo() repository.CoreMediaItemRepository[*mediatypes.Movie] {
 	return r.movieRepo
 }
 
-func (r *coreMediaItemRepositoriesImpl) SeriesRepo() repository.MediaItemRepository[*mediatypes.Series] {
+func (r *coreMediaItemRepositoriesImpl) SeriesRepo() repository.CoreMediaItemRepository[*mediatypes.Series] {
 	return r.seriesRepo
 }
 
-func (r *coreMediaItemRepositoriesImpl) SeasonRepo() repository.MediaItemRepository[*mediatypes.Season] {
+func (r *coreMediaItemRepositoriesImpl) SeasonRepo() repository.CoreMediaItemRepository[*mediatypes.Season] {
 	return r.seasonRepo
 }
 
-func (r *coreMediaItemRepositoriesImpl) EpisodeRepo() repository.MediaItemRepository[*mediatypes.Episode] {
+func (r *coreMediaItemRepositoriesImpl) EpisodeRepo() repository.CoreMediaItemRepository[*mediatypes.Episode] {
 	return r.episodeRepo
 }
 
-func (r *coreMediaItemRepositoriesImpl) TrackRepo() repository.MediaItemRepository[*mediatypes.Track] {
+func (r *coreMediaItemRepositoriesImpl) TrackRepo() repository.CoreMediaItemRepository[*mediatypes.Track] {
 	return r.trackRepo
 }
 
-func (r *coreMediaItemRepositoriesImpl) AlbumRepo() repository.MediaItemRepository[*mediatypes.Album] {
+func (r *coreMediaItemRepositoriesImpl) AlbumRepo() repository.CoreMediaItemRepository[*mediatypes.Album] {
 	return r.albumRepo
 }
 
-func (r *coreMediaItemRepositoriesImpl) ArtistRepo() repository.MediaItemRepository[*mediatypes.Artist] {
+func (r *coreMediaItemRepositoriesImpl) ArtistRepo() repository.CoreMediaItemRepository[*mediatypes.Artist] {
 	return r.artistRepo
 }
 
-func (r *coreMediaItemRepositoriesImpl) CollectionRepo() repository.MediaItemRepository[*mediatypes.Collection] {
+func (r *coreMediaItemRepositoriesImpl) CollectionRepo() repository.CoreMediaItemRepository[*mediatypes.Collection] {
 	return r.collectionRepo
 }
 
-func (r *coreMediaItemRepositoriesImpl) PlaylistRepo() repository.MediaItemRepository[*mediatypes.Playlist] {
+func (r *coreMediaItemRepositoriesImpl) PlaylistRepo() repository.CoreMediaItemRepository[*mediatypes.Playlist] {
 	return r.playlistRepo
 }
 

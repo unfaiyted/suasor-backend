@@ -53,17 +53,17 @@ type SeriesRepository interface {
 // seriesRepository implements the SeriesRepository interface
 type seriesRepository struct {
 	db          *gorm.DB
-	episodeRepo MediaItemRepository[*types.Episode]
-	seasonRepo  MediaItemRepository[*types.Season]
-	seriesRepo  MediaItemRepository[*types.Series]
+	episodeRepo CoreMediaItemRepository[*types.Episode]
+	seasonRepo  CoreMediaItemRepository[*types.Season]
+	seriesRepo  CoreMediaItemRepository[*types.Series]
 }
 
 // NewSeriesRepository creates a new series repository
 func NewSeriesRepository(
 	db *gorm.DB,
-	episodeRepo MediaItemRepository[*types.Episode],
-	seasonRepo MediaItemRepository[*types.Season],
-	seriesRepo MediaItemRepository[*types.Series],
+	episodeRepo CoreMediaItemRepository[*types.Episode],
+	seasonRepo CoreMediaItemRepository[*types.Season],
+	seriesRepo CoreMediaItemRepository[*types.Series],
 ) SeriesRepository {
 	return &seriesRepository{
 		db:          db,

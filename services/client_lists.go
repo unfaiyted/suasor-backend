@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sort"
 	"strconv"
 	"time"
@@ -22,7 +23,7 @@ import (
 // Every Get Operations should also save a copy of the MediaItem when it syncs or updates. If the item already exists.
 // It will update the existing item, ensuring that the item is has the appropraite IDs and other metadata to sync and keep updated.
 type ClientListService[T types.ClientMediaConfig, U mediatypes.ListData] interface {
-	CoreListService[U]
+	UserListService[U]
 	// Client-specific operations
 	GetClientList(ctx context.Context, clientID uint64, clientListID string) (*models.MediaItem[U], error)
 	GetClientLists(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[U], error)
@@ -38,13 +39,14 @@ type ClientListService[T types.ClientMediaConfig, U mediatypes.ListData] interfa
 	RemoveClientItem(ctx context.Context, clientID uint64, clientListID string, itemID string) error
 	ReorderClientItems(ctx context.Context, clientID uint64, clientListID string, itemIDs []string) error
 
-	Sync(ctx context.Context, listID uint64, targetClientIDs []uint64) error
+	Sync(ctx context.Context, clientID uint64, listID uint64, targetClientIDs []uint64) error
 	// Search and sync operations
 	SyncClientList(ctx context.Context, clientID uint64, clientListID string) error
 	SearchClientLists(ctx context.Context, clientID uint64, query mediatypes.QueryOptions) ([]*models.MediaItem[U], error)
 	SearchUsersClientsLists(ctx context.Context, userID uint64, query mediatypes.QueryOptions) ([]*models.MediaItem[U], error)
 	ImportClientList(ctx context.Context, clientID uint64, clientPlaylistID string) (*models.MediaItem[U], error)
 
+	// list sync
 	GetSyncStatus(ctx context.Context, clientListID string) (*models.ListSyncStatus, error)
 	// SyncToClients(ctx context.Context, clientListID string, clientIDs []uint64) error
 	// SyncClientList(ctx context.Context, clientID uint64, clientListID string) error
@@ -52,92 +54,27 @@ type ClientListService[T types.ClientMediaConfig, U mediatypes.ListData] interfa
 }
 
 type clientListService[T types.ClientMediaConfig, U mediatypes.ListData] struct {
-	listService   CoreListService[U]
+	UserListService[U]
+	userItemRepo  repository.UserMediaItemRepository[U]
 	clientRepo    repository.ClientRepository[T]
 	clientFactory *clients.ClientProviderFactoryService
 }
 
 // NewClientPlaylistService creates a new media playlist service
 func NewClientListService[T types.ClientMediaConfig, U mediatypes.ListData](
-	listService CoreListService[U],
+	userListService UserListService[U],
+	userItemRepo repository.UserMediaItemRepository[U],
 	clientRepo repository.ClientRepository[T],
 	clientFactory *clients.ClientProviderFactoryService,
 ) ClientListService[T, U] {
 	return &clientListService[T, U]{
-		listService:   listService,
-		clientRepo:    clientRepo,
-		clientFactory: clientFactory,
+		UserListService: userListService,
+		userItemRepo:    userItemRepo,
+		clientRepo:      clientRepo,
+		clientFactory:   clientFactory,
 	}
 }
 
-func (s *clientListService[T, U]) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[U], error) {
-	return s.listService.GetAll(ctx, limit, offset)
-}
-
-// UpdateItems
-func (s *clientListService[T, U]) UpdateItems(ctx context.Context, listID uint64, items []*models.MediaItem[U]) error {
-	return s.listService.UpdateItems(ctx, listID, items)
-}
-
-// GetRecent
-func (s *clientListService[T, U]) GetRecent(ctx context.Context, days int, limit int) ([]*models.MediaItem[U], error) {
-	return s.listService.GetRecent(ctx, days, limit)
-}
-
-// Sync
-func (s *clientListService[T, U]) Sync(ctx context.Context, listID uint64, targetClientIDs []uint64) error {
-	return s.listService.Sync(ctx, listID, targetClientIDs)
-}
-
-// Search
-func (s *clientListService[T, U]) Search(ctx context.Context, query mediatypes.QueryOptions) ([]*models.MediaItem[U], error) {
-	return s.listService.Search(ctx, query)
-}
-
-// RemoveItem
-func (s *clientListService[T, U]) RemoveItem(ctx context.Context, listID uint64, itemID uint64) error {
-	return s.listService.RemoveItem(ctx, listID, itemID)
-}
-
-// ReorderItems
-func (s *clientListService[T, U]) ReorderItems(ctx context.Context, listID uint64, itemIDs []uint64) error {
-	return s.listService.ReorderItems(ctx, listID, itemIDs)
-}
-
-// GetItems
-func (s *clientListService[T, U]) GetItems(ctx context.Context, listID uint64) (*models.MediaItemList, error) {
-	return s.listService.GetItems(ctx, listID)
-}
-
-// Create
-func (s *clientListService[T, U]) Create(ctx context.Context, list *models.MediaItem[U]) (*models.MediaItem[U], error) {
-	return s.listService.Create(ctx, list)
-}
-
-// Update
-func (s *clientListService[T, U]) Update(ctx context.Context, list *models.MediaItem[U]) (*models.MediaItem[U], error) {
-	return s.listService.Update(ctx, list)
-}
-
-// GetByID
-func (s *clientListService[T, U]) GetByID(ctx context.Context, id uint64) (*models.MediaItem[U], error) {
-	return s.listService.GetByID(ctx, id)
-}
-
-// GetByUserID
-func (s *clientListService[T, U]) GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[U], error) {
-	return s.listService.GetByUserID(ctx, userID, limit, offset)
-}
-
-// Delete
-func (s *clientListService[T, U]) Delete(ctx context.Context, id uint64) error {
-	return s.listService.Delete(ctx, id)
-}
-
-// AddItem
-func (s *clientListService[T, U]) AddItem(ctx context.Context, listID uint64, itemID uint64) error {
-	return s.listService.AddItem(ctx, listID, itemID)
-}
 func (s *clientListService[T, U]) GetClientList(ctx context.Context, clientID uint64, clientListID string) (*models.MediaItem[U], error) {
 	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getListProvider(ctx, clientID)
@@ -689,5 +626,65 @@ func (s *clientListService[T, U]) getUserListProviders(ctx context.Context, user
 		Int("count", len(providers)).
 		Msg("Retrieved playlist providers for user")
 	return providers, nil
+
+}
+func (s *clientListService[T, U]) Sync(ctx context.Context, clientID uint64, listID uint64, targetClientIDs []uint64) error {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("listID", listID).
+		Interface("targetClientIDs", targetClientIDs).
+		Msg("Syncing list")
+
+	// Get the list
+	list, err := s.GetByID(ctx, listID)
+	if err != nil {
+		return fmt.Errorf("failed to sync list: %w", err)
+	}
+
+	// In a real implementation, this would use the list sync job to:
+	// 1. For each target client ID, create or update a list with the same name
+	// 2. Map the item IDs in itemList.Items to client-specific IDs using the mediaItemRepo
+	// 3. Add these items to the client-specific list
+	// 4. Store the client-specific list IDs and item IDs in the SyncStates
+	// 5. Update the LastSynced timestamp
+	itemList := list.GetData().GetItemList()
+	// For now, just create a placeholder in the SyncStates to show intent
+	now := time.Now()
+	for _, clientID := range targetClientIDs {
+
+		// Create a placeholder sync client state
+		syncState := itemList.SyncStates.GetListSyncState(clientID)
+		if syncState == nil {
+			// Create empty sync list items
+			syncItems := mediatypes.ClientListItems{}
+
+			// Add a new state for this client
+			newState := mediatypes.ListSyncState{
+				ClientID:     clientID,
+				Items:        syncItems,
+				ClientListID: "", // Empty for now, would be the client-specific list ID
+				LastSynced:   now,
+			}
+
+			itemList.SyncStates = append(itemList.SyncStates, newState)
+		}
+	}
+
+	// Update the LastSynced timestamp
+	itemList.LastSynced = now
+
+	// Save the updated list
+	_, err = s.userItemRepo.Update(ctx, list)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("listID", listID).
+			Msg("Failed to update list sync state")
+		return fmt.Errorf("failed to update list sync state: %w", err)
+	}
+
+	log.Warn().Msg("list sync partially implemented - requires job implementation")
+
+	// This would be implemented in a job that handles the actual sync
+	return errors.New("list sync requires implementation in the list sync job")
 
 }

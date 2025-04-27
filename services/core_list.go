@@ -2,9 +2,7 @@ package services
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"time"
 
 	mediatypes "suasor/clients/media/types"
 	"suasor/repository"
@@ -27,12 +25,12 @@ type CoreListService[T mediatypes.ListData] interface {
 }
 
 type coreListService[T mediatypes.ListData] struct {
-	itemRepo repository.MediaItemRepository[T] // For fetching list items
+	itemRepo repository.CoreMediaItemRepository[T] // For fetching list items
 }
 
 // NewlistService creates a new list service
 func NewCoreListService[T mediatypes.ListData](
-	itemRepo repository.MediaItemRepository[T],
+	itemRepo repository.CoreMediaItemRepository[T],
 ) CoreListService[T] {
 	return &coreListService[T]{
 		itemRepo: itemRepo,

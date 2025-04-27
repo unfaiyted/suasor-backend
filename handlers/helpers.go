@@ -30,7 +30,7 @@ func checkAdminAccess(c *gin.Context) (uint64, bool) {
 			Interface("userID", userID).
 			Msg("Forbidden access attempt - admin required")
 		responses.RespondForbidden(c, nil, "Admin privileges required")
-		return 0, false
+		return userID.(uint64), false
 	}
 
 	return userID.(uint64), true

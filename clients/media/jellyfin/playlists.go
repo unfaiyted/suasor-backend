@@ -273,9 +273,9 @@ func (j *JellyfinClient) UpdatePlaylist(ctx context.Context, playlistID string, 
 		// Continue anyway since we know it was updated
 	}
 
-	var syncItems = t.SyncListItems{}
+	var syncItems = t.ClientListItems{}
 	for index, item := range item.ItemIds {
-		syncItems = append(syncItems, t.SyncListItem{
+		syncItems = append(syncItems, t.ClientListItem{
 			ItemID:        item,
 			Position:      index + 1,
 			LastChanged:   time.Now(),
@@ -283,7 +283,7 @@ func (j *JellyfinClient) UpdatePlaylist(ctx context.Context, playlistID string, 
 		})
 	}
 
-	syncClientState := t.SyncClientState{
+	syncClientState := t.ListSyncState{
 		ClientID:     j.GetClientID(),
 		Items:        syncItems,
 		ClientListID: "", // Empty for now, would be the client-specific playlist ID
@@ -291,26 +291,23 @@ func (j *JellyfinClient) UpdatePlaylist(ctx context.Context, playlistID string, 
 	}
 
 	// Create our internal model with updated info
-	playlist := &models.MediaItem[*t.Playlist]{
-		Data: &t.Playlist{
-			ItemList: t.ItemList{
-				SyncClientStates: t.SyncClientStates{syncClientState},
-				Details: t.MediaDetails{
-					Title:       name,
-					Description: description,
-					// TODO: need to look into playlist artwork handling
-					// May need to use the main items api if the playlists have cover at all.
-					// Artwork:     j.getArtworkURLs(item),
-				},
-				LastModified: time.Now(),
-				ModifiedBy:   j.GetClientID(),
-				// Preserve existing items
-				ItemCount: 0,
-				IsPublic:  true,
+	playlist := models.NewMediaItem[*t.Playlist](t.MediaTypePlaylist, &t.Playlist{
+		ItemList: t.ItemList{
+			SyncStates: t.ListSyncStates{syncClientState},
+			Details: t.MediaDetails{
+				Title:       name,
+				Description: description,
+				// TODO: need to look into playlist artwork handling
+				// May need to use the main items api if the playlists have cover at all.
+				// Artwork:     j.getArtworkURLs(item),
 			},
+			LastModified: time.Now(),
+			ModifiedBy:   j.GetClientID(),
+			// Preserve existing items
+			ItemCount: 0,
+			IsPublic:  true,
 		},
-		Type: "playlist",
-	}
+	})
 
 	// get items from the playlist
 	itemReq := j.client.PlaylistsAPI.GetPlaylistItems(ctx, playlistID)

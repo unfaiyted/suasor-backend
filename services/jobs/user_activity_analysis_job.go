@@ -22,9 +22,9 @@ type UserActivityAnalysisJob struct {
 	userSeriesDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Series]
 	userEpisodeDataRepo repository.UserMediaItemDataRepository[*mediatypes.Episode]
 	userMusicDataRepo   repository.UserMediaItemDataRepository[*mediatypes.Track]
-	movieRepo           repository.MediaItemRepository[*mediatypes.Movie]
-	seriesRepo          repository.MediaItemRepository[*mediatypes.Series]
-	musicRepo           repository.MediaItemRepository[*mediatypes.Track]
+	movieRepo           repository.CoreMediaItemRepository[*mediatypes.Movie]
+	seriesRepo          repository.CoreMediaItemRepository[*mediatypes.Series]
+	musicRepo           repository.CoreMediaItemRepository[*mediatypes.Track]
 }
 
 // NewUserActivityAnalysisJob creates a new user activity analysis job
@@ -36,9 +36,9 @@ func NewUserActivityAnalysisJob(
 	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series],
 	userEpisodeDataRepo repository.UserMediaItemDataRepository[*mediatypes.Episode],
 	userMusicDataRepo repository.UserMediaItemDataRepository[*mediatypes.Track],
-	movieRepo repository.MediaItemRepository[*mediatypes.Movie],
-	seriesRepo repository.MediaItemRepository[*mediatypes.Series],
-	musicRepo repository.MediaItemRepository[*mediatypes.Track],
+	movieRepo repository.CoreMediaItemRepository[*mediatypes.Movie],
+	seriesRepo repository.CoreMediaItemRepository[*mediatypes.Series],
+	musicRepo repository.CoreMediaItemRepository[*mediatypes.Track],
 ) *UserActivityAnalysisJob {
 	return &UserActivityAnalysisJob{
 		jobRepo:             jobRepo,

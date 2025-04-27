@@ -23,6 +23,10 @@ func RegisterRepositories(ctx context.Context, c *container.Container) {
 	log.Info().Msg("Registering media repositories")
 	RegisterMediaRepositories(ctx, c)
 
+	// Register list repositories
+	log.Info().Msg("Registering list repositories")
+	registerMediaListRepositories(ctx, c)
+
 	// Job repository
 	log.Info().Msg("Registering job repository")
 	registerJobRepositories(ctx, c)

@@ -28,7 +28,7 @@ import (
 // ClientMediaItemRepository defines the interface for client-associated media item operations
 // This focuses specifically on media items that are linked to external clients like Plex, Emby, etc.
 type ClientMediaItemRepository[T types.MediaData] interface {
-	MediaItemRepository[T]
+	UserMediaItemRepository[T]
 
 	// Client-specific operations
 	GetByExternalID(ctx context.Context, source string, externalID string) (*models.MediaItem[T], error)
@@ -42,18 +42,18 @@ type ClientMediaItemRepository[T types.MediaData] interface {
 }
 
 type clientMediaItemRepository[T types.MediaData] struct {
-	MediaItemRepository[T]
+	UserMediaItemRepository[T]
 	db *gorm.DB
 }
 
 // NewClientMediaItemRepository creates a new repository for client-associated media items
 func NewClientMediaItemRepository[T types.MediaData](
 	db *gorm.DB,
-	mediaItemRepository MediaItemRepository[T],
+	mediaItemRepository UserMediaItemRepository[T],
 ) ClientMediaItemRepository[T] {
 	return &clientMediaItemRepository[T]{
-		MediaItemRepository: mediaItemRepository,
-		db:                  db}
+		UserMediaItemRepository: mediaItemRepository,
+		db:                      db}
 }
 
 func (r *clientMediaItemRepository[T]) GetByClientID(ctx context.Context, clientID uint64) ([]*models.MediaItem[T], error) {

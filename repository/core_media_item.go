@@ -24,23 +24,16 @@ import (
 	"suasor/utils/logger"
 )
 
-// MediaItemRepository defines the interface for generic media item operations
+// CoreMediaItemRepository defines the interface for generic media item operations
 // This focuses solely on the media items themselves without user or client associations
-type MediaItemRepository[T types.MediaData] interface {
-	// Core CRUD operations
-	Create(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error)
-	Update(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error)
+type CoreMediaItemRepository[T types.MediaData] interface {
+	GetAll(ctx context.Context, limit int, offset int, publicOnly bool) ([]*models.MediaItem[T], error)
 	GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error)
+	GetByIDs(ctx context.Context, ids []uint64) ([]*models.MediaItem[T], error)
 	GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error)
 	GetByClientItemID(ctx context.Context, clientID uint64, clientItemID string) (*models.MediaItem[T], error)
-	GetAll(ctx context.Context, limit int, offset int, publicOnly bool) ([]*models.MediaItem[T], error)
-	Delete(ctx context.Context, id uint64) error
 
-	// Batch operations
-	GetByIDs(ctx context.Context, ids []uint64) ([]*models.MediaItem[T], error)
 	GetMixedMediaItemsByIDs(ctx context.Context, ids []uint64) (*models.MediaItemList, error)
-	BatchCreate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error)
-	BatchUpdate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error)
 
 	// Query operations
 	GetByType(ctx context.Context, mediaType types.MediaType) ([]*models.MediaItem[T], error)
@@ -58,48 +51,8 @@ type mediaItemRepository[T types.MediaData] struct {
 }
 
 // NewMediaItemRepository creates a new media item repository
-func NewMediaItemRepository[T types.MediaData](db *gorm.DB) MediaItemRepository[T] {
+func NewMediaItemRepository[T types.MediaData](db *gorm.DB) CoreMediaItemRepository[T] {
 	return &mediaItemRepository[T]{db: db}
-}
-
-// Create adds a new media item to the database
-func (r *mediaItemRepository[T]) Create(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error) {
-	log := logger.LoggerFromContext(ctx)
-	log.Debug().
-		Str("type", string(item.Type)).
-		Msg("Creating media item")
-
-	if err := r.db.WithContext(ctx).Create(&item).Error; err != nil {
-		return nil, fmt.Errorf("failed to create media item: %w", err)
-	}
-	return item, nil
-}
-
-// Update modifies an existing media item
-func (r *mediaItemRepository[T]) Update(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error) {
-	log := logger.LoggerFromContext(ctx)
-	log.Debug().
-		Uint64("id", item.ID).
-		Str("type", string(item.Type)).
-		Msg("Updating media item")
-
-	// Get existing record first to check if it exists and preserve createdAt
-	var existing models.MediaItem[T]
-	if err := r.db.WithContext(ctx).Where("id = ?", item.ID).First(&existing).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("media item not found")
-		}
-		return nil, fmt.Errorf("failed to find media item: %w", err)
-	}
-
-	// Preserve createdAt timestamp
-	item.CreatedAt = existing.CreatedAt
-
-	// Update the record
-	if err := r.db.WithContext(ctx).Save(&item).Error; err != nil {
-		return nil, fmt.Errorf("failed to update media item: %w", err)
-	}
-	return item, nil
 }
 
 // GetByID retrieves a media item by its ID
@@ -119,28 +72,6 @@ func (r *mediaItemRepository[T]) GetByID(ctx context.Context, id uint64) (*model
 	return &item, nil
 }
 
-// Delete removes a media item
-func (r *mediaItemRepository[T]) Delete(ctx context.Context, id uint64) error {
-	log := logger.LoggerFromContext(ctx)
-	log.Debug().
-		Uint64("id", id).
-		Msg("Deleting media item")
-
-	result := r.db.WithContext(ctx).
-		Where("id = ?", id).
-		Delete(&models.MediaItem[T]{})
-
-	if err := result.Error; err != nil {
-		return fmt.Errorf("failed to delete media item: %w", err)
-	}
-
-	if result.RowsAffected == 0 {
-		return fmt.Errorf("media item not found")
-	}
-
-	return nil
-}
-
 // GetMediaItemsByIDs retrieves multiple media items by their IDs
 func (r *mediaItemRepository[T]) GetByIDs(ctx context.Context, ids []uint64) ([]*models.MediaItem[T], error) {
 	log := logger.LoggerFromContext(ctx)
@@ -156,85 +87,6 @@ func (r *mediaItemRepository[T]) GetByIDs(ctx context.Context, ids []uint64) ([]
 	}
 
 	return items, nil
-}
-
-// BatchCreate adds multiple media items to the database
-func (r *mediaItemRepository[T]) BatchCreate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error) {
-	log := logger.LoggerFromContext(ctx)
-	log.Debug().
-		Int("count", len(items)).
-		Msg("Batch creating media items")
-
-	// Start a transaction
-	tx := r.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, fmt.Errorf("failed to begin transaction: %w", tx.Error)
-	}
-
-	// Create a slice to hold the created items with pointers
-	createdItems := make([]*models.MediaItem[T], 0, len(items))
-
-	// Insert each item within the transaction
-	for i := range items {
-		if err := tx.Create(&items[i]).Error; err != nil {
-			tx.Rollback()
-			return nil, fmt.Errorf("failed to create media item: %w", err)
-		}
-		createdItems = append(createdItems, items[i])
-	}
-
-	// Commit the transaction
-	if err := tx.Commit().Error; err != nil {
-		return nil, fmt.Errorf("failed to commit transaction: %w", err)
-	}
-
-	return createdItems, nil
-}
-
-// BatchUpdate modifies multiple media items
-func (r *mediaItemRepository[T]) BatchUpdate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error) {
-	log := logger.LoggerFromContext(ctx)
-	log.Debug().
-		Int("count", len(items)).
-		Msg("Batch updating media items")
-
-	// Start a transaction
-	tx := r.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, fmt.Errorf("failed to begin transaction: %w", tx.Error)
-	}
-
-	// Update each item within the transaction
-	updatedItems := make([]*models.MediaItem[T], 0, len(items))
-	for i := range items {
-		// Get the existing item to preserve createdAt
-		var existing models.MediaItem[T]
-		if err := tx.Where("id = ?", items[i].ID).First(&existing).Error; err != nil {
-			tx.Rollback()
-			if err == gorm.ErrRecordNotFound {
-				return nil, fmt.Errorf("media item with ID %d not found", items[i].ID)
-			}
-			return nil, fmt.Errorf("failed to find media item: %w", err)
-		}
-
-		// Preserve createdAt
-		items[i].CreatedAt = existing.CreatedAt
-
-		// Update the item
-		if err := tx.Save(&items[i]).Error; err != nil {
-			tx.Rollback()
-			return nil, fmt.Errorf("failed to update media item: %w", err)
-		}
-
-		updatedItems = append(updatedItems, items[i])
-	}
-
-	// Commit the transaction
-	if err := tx.Commit().Error; err != nil {
-		return nil, fmt.Errorf("failed to commit transaction: %w", err)
-	}
-
-	return updatedItems, nil
 }
 
 // GetByType retrieves all media items of a specific type

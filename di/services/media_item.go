@@ -107,9 +107,9 @@ func registerMediaItemServices(ctx context.Context, c *container.Container) {
 	// Register MusicRepository
 	container.RegisterFactory[repository.MusicRepository](c, func(c *container.Container) repository.MusicRepository {
 		db := container.MustGet[*gorm.DB](c)
-		trackRepo := container.MustGet[repository.MediaItemRepository[*mediatypes.Track]](c)
-		albumRepo := container.MustGet[repository.MediaItemRepository[*mediatypes.Album]](c)
-		artistRepo := container.MustGet[repository.MediaItemRepository[*mediatypes.Artist]](c)
+		trackRepo := container.MustGet[repository.CoreMediaItemRepository[*mediatypes.Track]](c)
+		albumRepo := container.MustGet[repository.CoreMediaItemRepository[*mediatypes.Album]](c)
+		artistRepo := container.MustGet[repository.CoreMediaItemRepository[*mediatypes.Artist]](c)
 		return repository.NewMusicRepository(db, trackRepo, albumRepo, artistRepo)
 	})
 
@@ -123,7 +123,7 @@ func registerMediaItemServices(ctx context.Context, c *container.Container) {
 
 func registerMediaItemService[T mediatypes.MediaData](c *container.Container) {
 	container.RegisterFactory[services.CoreMediaItemService[T]](c, func(c *container.Container) services.CoreMediaItemService[T] {
-		repo := container.MustGet[repository.MediaItemRepository[T]](c)
+		repo := container.MustGet[repository.CoreMediaItemRepository[T]](c)
 		return services.NewCoreMediaItemService[T](repo)
 	})
 	container.RegisterFactory[services.UserMediaItemService[T]](c, func(c *container.Container) services.UserMediaItemService[T] {
@@ -135,11 +135,11 @@ func registerMediaItemService[T mediatypes.MediaData](c *container.Container) {
 
 func registerClientMediaItemService[T clienttypes.ClientMediaConfig, U mediatypes.MediaData](c *container.Container) {
 	container.RegisterFactory[services.ClientMediaItemService[T, U]](c, func(c *container.Container) services.ClientMediaItemService[T, U] {
-		coreService := container.MustGet[services.CoreMediaItemService[U]](c)
+		userService := container.MustGet[services.UserMediaItemService[U]](c)
 		clientRepo := container.MustGet[repository.ClientRepository[T]](c)
 		itemRepo := container.MustGet[repository.ClientMediaItemRepository[U]](c)
 		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
-		return services.NewClientMediaItemService[T, U](coreService, clientRepo, itemRepo, clientFactory)
+		return services.NewClientMediaItemService[T, U](userService, clientRepo, itemRepo, clientFactory)
 	})
 }
 

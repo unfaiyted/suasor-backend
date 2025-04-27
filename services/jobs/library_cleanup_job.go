@@ -17,10 +17,10 @@ type LibraryCleanupJob struct {
 	jobRepo     repository.JobRepository
 	userRepo    repository.UserRepository
 	configRepo  repository.UserConfigRepository
-	movieRepo   repository.MediaItemRepository[*mediatypes.Movie]
-	seriesRepo  repository.MediaItemRepository[*mediatypes.Series]
-	episodeRepo repository.MediaItemRepository[*mediatypes.Episode]
-	musicRepo   repository.MediaItemRepository[*mediatypes.Track]
+	movieRepo   repository.CoreMediaItemRepository[*mediatypes.Movie]
+	seriesRepo  repository.CoreMediaItemRepository[*mediatypes.Series]
+	episodeRepo repository.CoreMediaItemRepository[*mediatypes.Episode]
+	musicRepo   repository.CoreMediaItemRepository[*mediatypes.Track]
 }
 
 // NewLibraryCleanupJob creates a new library cleanup job
@@ -28,10 +28,10 @@ func NewLibraryCleanupJob(
 	jobRepo repository.JobRepository,
 	userRepo repository.UserRepository,
 	configRepo repository.UserConfigRepository,
-	movieRepo repository.MediaItemRepository[*mediatypes.Movie],
-	seriesRepo repository.MediaItemRepository[*mediatypes.Series],
-	episodeRepo repository.MediaItemRepository[*mediatypes.Episode],
-	musicRepo repository.MediaItemRepository[*mediatypes.Track],
+	movieRepo repository.CoreMediaItemRepository[*mediatypes.Movie],
+	seriesRepo repository.CoreMediaItemRepository[*mediatypes.Series],
+	episodeRepo repository.CoreMediaItemRepository[*mediatypes.Episode],
+	musicRepo repository.CoreMediaItemRepository[*mediatypes.Track],
 ) *LibraryCleanupJob {
 	return &LibraryCleanupJob{
 		jobRepo:     jobRepo,

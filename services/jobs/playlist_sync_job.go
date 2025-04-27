@@ -624,8 +624,8 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 	var sourceItems []string
 
 	// First, check if we have a SyncClientState for the source client
-	if sourcePlaylist.Data.ItemList.SyncClientStates != nil {
-		sourceState := sourcePlaylist.Data.ItemList.SyncClientStates.GetSyncClientState(sourceClientID)
+	if sourcePlaylist.Data.ItemList.SyncStates != nil {
+		sourceState := sourcePlaylist.Data.ItemList.SyncStates.GetListSyncState(sourceClientID)
 		if sourceState != nil && len(sourceState.Items) > 0 {
 			// Use client-specific item IDs from the sync state
 			for _, item := range sourceState.Items {
@@ -714,17 +714,17 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 		}
 	}
 
-	// Update the SyncClientStates to store the latest client-specific IDs
+	// Update the SyncStates to store the latest client-specific IDs
 	// This ensures we have a record of which items are on each client
-	if targetPlaylist.Data.ItemList.SyncClientStates == nil {
-		targetPlaylist.Data.ItemList.SyncClientStates = mediatypes.SyncClientStates{}
+	if targetPlaylist.Data.ItemList.SyncStates == nil {
+		targetPlaylist.Data.ItemList.SyncStates = mediatypes.ListSyncStates{}
 	}
 
 	// Create the SyncListItems from strings
 	syncItems := transformToSyncListItems(targetItems)
 
 	// Check if state exists, then update or create
-	existingState := targetPlaylist.Data.ItemList.SyncClientStates.GetSyncClientState(targetClientID)
+	existingState := targetPlaylist.Data.ItemList.SyncStates.GetListSyncState(targetClientID)
 	if existingState != nil {
 		// Update existing state
 		existingState.Items = syncItems
@@ -732,9 +732,9 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 		existingState.LastSynced = time.Now()
 	} else {
 		// Add a new state
-		targetPlaylist.Data.ItemList.SyncClientStates = append(
-			targetPlaylist.Data.ItemList.SyncClientStates,
-			mediatypes.SyncClientState{
+		targetPlaylist.Data.ItemList.SyncStates = append(
+			targetPlaylist.Data.ItemList.SyncStates,
+			mediatypes.ListSyncState{
 				ClientID:     targetClientID,
 				Items:        syncItems,
 				ClientListID: targetPlaylistID,
@@ -857,8 +857,8 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 	sourcePlaylist := sourcePlaylists[0]
 
 	// Update the SyncClientState for this playlist if needed
-	if sourcePlaylist.Data.ItemList.SyncClientStates == nil {
-		sourcePlaylist.Data.ItemList.SyncClientStates = mediatypes.SyncClientStates{}
+	if sourcePlaylist.Data.ItemList.SyncStates == nil {
+		sourcePlaylist.Data.ItemList.SyncStates = mediatypes.ListSyncStates{}
 	}
 
 	// Get the playlist items for this source playlist
@@ -881,7 +881,7 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 		syncItems := transformToSyncListItems(sourceItemIDs)
 
 		// Check if state exists, then update or create
-		existingState := sourcePlaylist.Data.ItemList.SyncClientStates.GetSyncClientState(sourceClientID)
+		existingState := sourcePlaylist.Data.ItemList.SyncStates.GetListSyncState(sourceClientID)
 		if existingState != nil {
 			// Update existing state
 			existingState.Items = syncItems
@@ -889,9 +889,9 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 			existingState.LastSynced = time.Now()
 		} else {
 			// Add a new state
-			sourcePlaylist.Data.ItemList.SyncClientStates = append(
-				sourcePlaylist.Data.ItemList.SyncClientStates,
-				mediatypes.SyncClientState{
+			sourcePlaylist.Data.ItemList.SyncStates = append(
+				sourcePlaylist.Data.ItemList.SyncStates,
+				mediatypes.ListSyncState{
 					ClientID:     sourceClientID,
 					Items:        syncItems,
 					ClientListID: playlistID,
@@ -1066,10 +1066,10 @@ func (j *PlaylistSyncJob) UpdatePlaylistSyncPreferences(ctx context.Context, use
 }
 
 // Helper function to transform string IDs to SyncListItems
-func transformToSyncListItems(ids []string) mediatypes.SyncListItems {
-	items := make(mediatypes.SyncListItems, len(ids))
+func transformToSyncListItems(ids []string) mediatypes.ClientListItems {
+	items := make(mediatypes.ClientListItems, len(ids))
 	for i, id := range ids {
-		items[i] = mediatypes.SyncListItem{
+		items[i] = mediatypes.ClientListItem{
 			ItemID:      id,
 			Position:    i,
 			LastChanged: time.Now(),

@@ -12,14 +12,21 @@ type ListItems []ListItem
 
 type ListCollaborator struct {
 	BaseModel
-	ListID        uint64 `json:"listID"`
-	UserID        uint64 `json:"userID"`
-	Permission    string `json:"permission"`
-	SharedAt      string `json:"sharedAt"`
-	SharedBy      uint64 `json:"sharedBy"`
-	LastSynced    string `json:"lastSynced"`
-	SyncDirection string `json:"syncDirection"`
+	ListID        uint64                 `json:"listID"`
+	UserID        uint64                 `json:"userID"`
+	Permission    CollaboratorPermission `json:"permission"`
+	SharedAt      string                 `json:"sharedAt"`
+	SharedBy      uint64                 `json:"sharedBy"`
+	LastSynced    string                 `json:"lastSynced"`
+	SyncDirection string                 `json:"syncDirection"`
 }
+
+type CollaboratorPermission string
+
+const (
+	CollaboratorPermissionRead  CollaboratorPermission = "read"
+	CollaboratorPermissionWrite CollaboratorPermission = "write"
+)
 
 type ListSyncStatus struct {
 	ListID       uint64                     `json:"playlistID"`
@@ -39,13 +46,13 @@ type SyncListItems []SyncListItem
 type SyncListItem struct {
 	ItemID        string         `json:"itemID"`
 	Position      int            `json:"position"`
-	LastChanged   string         `json:"lastChanged"`
+	LastChanged   time.Time      `json:"lastChanged"`
 	ChangeHistory []ChangeRecord `json:"changeHistory"`
 }
 
 type ChangeRecord struct {
-	ClientID   uint64 `json:"clientID"` // 0 = internal client
-	ItemID     string `json:"itemID,omitempty"`
-	ChangeType string `json:"changeType"` // "add", "remove", "update", "reorder", "sync"
-	Timestamp  string `json:"timestamp"`
+	ClientID   uint64    `json:"clientID"` // 0 = internal client
+	ItemID     string    `json:"itemID,omitempty"`
+	ChangeType string    `json:"changeType"` // "add", "remove", "update", "reorder", "sync"
+	Timestamp  time.Time `json:"timestamp"`
 }

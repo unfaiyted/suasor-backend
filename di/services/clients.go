@@ -46,10 +46,10 @@ func registerMediaTypeService[T types.ClientMediaConfig, U mediatypes.MediaData]
 		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
 		clientRepo := container.MustGet[repository.ClientRepository[T]](c)
 		itemRepo := container.MustGet[repository.ClientMediaItemRepository[U]](c)
-		coreService := container.MustGet[services.CoreMediaItemService[U]](c)
+		userService := container.MustGet[services.UserMediaItemService[U]](c)
 
 		return services.NewClientMediaItemService[T, U](
-			coreService,
+			userService,
 			clientRepo,
 			itemRepo,
 			clientFactory,

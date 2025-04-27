@@ -43,17 +43,17 @@ type MusicRepository interface {
 // musicRepository implements the MusicRepository interface
 type musicRepository struct {
 	db         *gorm.DB
-	trackRepo  MediaItemRepository[*types.Track]
-	albumRepo  MediaItemRepository[*types.Album]
-	artistRepo MediaItemRepository[*types.Artist]
+	trackRepo  CoreMediaItemRepository[*types.Track]
+	albumRepo  CoreMediaItemRepository[*types.Album]
+	artistRepo CoreMediaItemRepository[*types.Artist]
 }
 
 // NewMusicRepository creates a new music repository
 func NewMusicRepository(
 	db *gorm.DB,
-	trackRepo MediaItemRepository[*types.Track],
-	albumRepo MediaItemRepository[*types.Album],
-	artistRepo MediaItemRepository[*types.Artist],
+	trackRepo CoreMediaItemRepository[*types.Track],
+	albumRepo CoreMediaItemRepository[*types.Album],
+	artistRepo CoreMediaItemRepository[*types.Artist],
 ) MusicRepository {
 	return &musicRepository{
 		db:         db,

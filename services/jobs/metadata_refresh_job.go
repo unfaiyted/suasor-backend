@@ -18,10 +18,10 @@ type MetadataRefreshJob struct {
 	jobRepo           repository.JobRepository
 	userRepo          repository.UserRepository
 	configRepo        repository.UserConfigRepository
-	movieRepo         repository.MediaItemRepository[*mediatypes.Movie]
-	seriesRepo        repository.MediaItemRepository[*mediatypes.Series]
-	episodeRepo       repository.MediaItemRepository[*mediatypes.Episode]
-	musicRepo         repository.MediaItemRepository[*mediatypes.Track]
+	movieRepo         repository.CoreMediaItemRepository[*mediatypes.Movie]
+	seriesRepo        repository.CoreMediaItemRepository[*mediatypes.Series]
+	episodeRepo       repository.CoreMediaItemRepository[*mediatypes.Episode]
+	musicRepo         repository.CoreMediaItemRepository[*mediatypes.Track]
 	metadataClientSvc interface{} // Using interface{} to avoid import cycles
 }
 
@@ -30,10 +30,10 @@ func NewMetadataRefreshJob(
 	jobRepo repository.JobRepository,
 	userRepo repository.UserRepository,
 	configRepo repository.UserConfigRepository,
-	movieRepo repository.MediaItemRepository[*mediatypes.Movie],
-	seriesRepo repository.MediaItemRepository[*mediatypes.Series],
-	episodeRepo repository.MediaItemRepository[*mediatypes.Episode],
-	musicRepo repository.MediaItemRepository[*mediatypes.Track],
+	movieRepo repository.CoreMediaItemRepository[*mediatypes.Movie],
+	seriesRepo repository.CoreMediaItemRepository[*mediatypes.Series],
+	episodeRepo repository.CoreMediaItemRepository[*mediatypes.Episode],
+	musicRepo repository.CoreMediaItemRepository[*mediatypes.Track],
 	metadataClientSvc interface{},
 ) *MetadataRefreshJob {
 	return &MetadataRefreshJob{

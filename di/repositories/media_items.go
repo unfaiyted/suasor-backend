@@ -25,15 +25,15 @@ func registerMediaItemRepositories(c *container.Container) {
 
 	// Register CoreMediaItemRepositories container
 	container.RegisterFactory[repobundle.CoreMediaItemRepositories](c, func(c *container.Container) repobundle.CoreMediaItemRepositories {
-		movieRepo := container.MustGet[repository.MediaItemRepository[*mediatypes.Movie]](c)
-		seriesRepo := container.MustGet[repository.MediaItemRepository[*mediatypes.Series]](c)
-		seasonRepo := container.MustGet[repository.MediaItemRepository[*mediatypes.Season]](c)
-		episodeRepo := container.MustGet[repository.MediaItemRepository[*mediatypes.Episode]](c)
-		trackRepo := container.MustGet[repository.MediaItemRepository[*mediatypes.Track]](c)
-		albumRepo := container.MustGet[repository.MediaItemRepository[*mediatypes.Album]](c)
-		artistRepo := container.MustGet[repository.MediaItemRepository[*mediatypes.Artist]](c)
-		collectionRepo := container.MustGet[repository.MediaItemRepository[*mediatypes.Collection]](c)
-		playlistRepo := container.MustGet[repository.MediaItemRepository[*mediatypes.Playlist]](c)
+		movieRepo := container.MustGet[repository.CoreMediaItemRepository[*mediatypes.Movie]](c)
+		seriesRepo := container.MustGet[repository.CoreMediaItemRepository[*mediatypes.Series]](c)
+		seasonRepo := container.MustGet[repository.CoreMediaItemRepository[*mediatypes.Season]](c)
+		episodeRepo := container.MustGet[repository.CoreMediaItemRepository[*mediatypes.Episode]](c)
+		trackRepo := container.MustGet[repository.CoreMediaItemRepository[*mediatypes.Track]](c)
+		albumRepo := container.MustGet[repository.CoreMediaItemRepository[*mediatypes.Album]](c)
+		artistRepo := container.MustGet[repository.CoreMediaItemRepository[*mediatypes.Artist]](c)
+		collectionRepo := container.MustGet[repository.CoreMediaItemRepository[*mediatypes.Collection]](c)
+		playlistRepo := container.MustGet[repository.CoreMediaItemRepository[*mediatypes.Playlist]](c)
 
 		return repobundle.NewCoreMediaItemRepositories(
 			movieRepo, seriesRepo, seasonRepo, episodeRepo,
@@ -81,21 +81,21 @@ func registerMediaItemRepositories(c *container.Container) {
 	})
 }
 
-// Reigisters all 3 types of media item repositories
+// Registers all 3 types of media item repositories
 func registerMediaItemRepository[T mediatypes.MediaData](c *container.Container, db *gorm.DB) {
 
-	container.RegisterFactory[repository.MediaItemRepository[T]](c, func(c *container.Container) repository.MediaItemRepository[T] {
+	container.RegisterFactory[repository.CoreMediaItemRepository[T]](c, func(c *container.Container) repository.CoreMediaItemRepository[T] {
 		return repository.NewMediaItemRepository[T](db)
 	})
 
 	container.RegisterFactory[repository.UserMediaItemRepository[T]](c, func(c *container.Container) repository.UserMediaItemRepository[T] {
-		itemRepo := container.MustGet[repository.MediaItemRepository[T]](c)
+		itemRepo := container.MustGet[repository.CoreMediaItemRepository[T]](c)
 		return repository.NewUserMediaItemRepository[T](db, itemRepo)
 	})
 
 	container.RegisterFactory[repository.ClientMediaItemRepository[T]](c, func(c *container.Container) repository.ClientMediaItemRepository[T] {
-		coreRepo := container.MustGet[repository.MediaItemRepository[T]](c)
-		return repository.NewClientMediaItemRepository[T](db, coreRepo)
+		userRepo := container.MustGet[repository.UserMediaItemRepository[T]](c)
+		return repository.NewClientMediaItemRepository[T](db, userRepo)
 	})
 
 }

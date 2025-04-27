@@ -37,22 +37,21 @@ type UserListService[T mediatypes.ListData] interface {
 		description string,
 		criteria map[string]interface{},
 	) (*models.MediaItem[T], error)
-	UpdateSmartCriteria(ctx context.Context, listID uint64, criteria map[string]interface{}) (*models.MediaItem[T], error)
-	RefreshSmartList(ctx context.Context, listID uint64) (*models.MediaItem[T], error)
+	UpdateSmartCriteria(ctx context.Context, userID uint64, listID uint64, criteria map[string]interface{}) (*models.MediaItem[T], error)
+	RefreshSmartList(ctx context.Context, userID uint64, listID uint64) (*models.MediaItem[T], error)
 
 	// list sharing and collaboration
-	ShareWithUser(ctx context.Context, listID uint64, targetUserID uint64, permissionLevel string) error
+	ShareWithUser(ctx context.Context, userID uint64, listID uint64, targetUserID uint64, permissionLevel string) error
 	GetShared(ctx context.Context, userID uint64) ([]*models.MediaItem[T], error)
-	// GetCollaborators(ctx context.Context, listID uint64) ([]models.ListCollaborator, error)
-	// RemoveCollaborator(ctx context.Context, listID uint64, userID uint64) error
-
-	// list sync
-	SyncToClients(ctx context.Context, listID uint64, clientIDs []uint64) error
-	GetSyncStatus(ctx context.Context, listID uint64) (*models.ListSyncStatus, error)
+	GetCollaborators(ctx context.Context, userID uint64, listID uint64) ([]*models.ListCollaborator, error)
+	RemoveCollaborator(ctx context.Context, userID uint64, listID uint64, targetUserID uint64) error
 }
 
 type userListService[T mediatypes.ListData] struct {
 	CoreListService[T]
+
+	userRepo     repository.UserRepository
+	listRepo     repository.CoreListRepository[T]
 	userItemRepo repository.UserMediaItemRepository[T]
 	userDataRepo repository.UserMediaItemDataRepository[T]
 }
@@ -60,11 +59,14 @@ type userListService[T mediatypes.ListData] struct {
 // NewUserlistService creates a new user list service
 func NewUserListService[T mediatypes.ListData](
 	coreListService CoreListService[T],
+	userRepo repository.UserRepository,
+	listRepo repository.CoreListRepository[T],
 	userItemRepo repository.UserMediaItemRepository[T],
 	userDataRepo repository.UserMediaItemDataRepository[T],
 ) UserListService[T] {
 	return &userListService[T]{
 		CoreListService: coreListService,
+		listRepo:        listRepo,
 		userItemRepo:    userItemRepo,
 		userDataRepo:    userDataRepo,
 	}
@@ -77,10 +79,6 @@ func (s *userListService[T]) Create(ctx context.Context, userID uint64, list *mo
 		Msg("Creating user list")
 
 	// Set ownership info if not already set
-	if list.OwnerID == 0 {
-		list.OwnerID = userID
-	}
-
 	itemList := list.GetData().GetItemList()
 
 	if itemList.OwnerID == 0 {
@@ -101,8 +99,8 @@ func (s *userListService[T]) Create(ctx context.Context, userID uint64, list *mo
 	}
 
 	// Initialize sync client states if nil
-	if itemList.SyncClientStates == nil {
-		itemList.SyncClientStates = mediatypes.SyncClientStates{}
+	if itemList.SyncStates == nil {
+		itemList.SyncStates = mediatypes.ListSyncStates{}
 	}
 
 	// Set creation time for LastModified
@@ -137,7 +135,6 @@ func (s *userListService[T]) Create(ctx context.Context, userID uint64, list *mo
 
 	return result, nil
 }
-
 func (s *userListService[T]) Update(ctx context.Context, userID uint64, list *models.MediaItem[T]) (*models.MediaItem[T], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
@@ -150,9 +147,13 @@ func (s *userListService[T]) Update(ctx context.Context, userID uint64, list *mo
 	if err != nil {
 		return nil, fmt.Errorf("failed to update user list: %w", err)
 	}
+	user, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update user list: %w", err)
+	}
 
 	// Check ownership or collaboration permission
-	if !s.hasWritePermission(ctx, userID, existing) {
+	if !s.hasListWritePermission(ctx, user, existing) {
 		log.Warn().
 			Uint64("listID", list.ID).
 			Uint64("ownerID", existing.OwnerID).
@@ -178,8 +179,8 @@ func (s *userListService[T]) Update(ctx context.Context, userID uint64, list *mo
 	}
 
 	// Preserve sync client states if not provided
-	if itemList.SyncClientStates == nil || len(itemList.SyncClientStates) == 0 {
-		itemList.SyncClientStates = existingItemList.SyncClientStates
+	if itemList.SyncStates == nil || len(itemList.SyncStates) == 0 {
+		itemList.SyncStates = existingItemList.SyncStates
 	}
 
 	// Update last modified time
@@ -227,6 +228,12 @@ func (s *userListService[T]) Delete(ctx context.Context, userID uint64, listID u
 		Uint64("id", listID).
 		Msg("Deleting user list")
 
+	user, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("failed to delete user list: %w", err)
+	}
+	isAdmin := user.Role == "admin"
+
 	// Verify user has permission to delete this list
 	list, err := s.GetByID(ctx, listID)
 	if err != nil {
@@ -234,7 +241,7 @@ func (s *userListService[T]) Delete(ctx context.Context, userID uint64, listID u
 	}
 
 	// Only the owner can delete a list
-	if list.OwnerID != userID {
+	if list.OwnerID != userID && !isAdmin {
 		log.Warn().
 			Uint64("listID", listID).
 			Uint64("ownerID", list.OwnerID).
@@ -243,27 +250,21 @@ func (s *userListService[T]) Delete(ctx context.Context, userID uint64, listID u
 		return errors.New("only the owner can delete a list")
 	}
 
-}
-func (s coreListService[T]) Delete(ctx context.Context, id uint64) error {
-	log := logger.LoggerFromContext(ctx)
-	log.Debug().
-		Uint64("id", id).
-		Msg("Deleting list")
-
-	err := s.itemRepo.Delete(ctx, id)
+	err = s.userItemRepo.Delete(ctx, listID)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("id", id).
+			Uint64("listID", listID).
 			Msg("Failed to delete list")
 		return fmt.Errorf("failed to delete list: %w", err)
 	}
 
 	log.Info().
-		Uint64("id", id).
+		Uint64("id", listID).
 		Msg("List deleted successfully")
 
 	return nil
 }
+
 func (s *userListService[T]) AddItem(ctx context.Context, userID uint64, listID uint64, itemID uint64) error {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
@@ -277,30 +278,19 @@ func (s *userListService[T]) AddItem(ctx context.Context, userID uint64, listID 
 		return fmt.Errorf("failed to add item to user list: %w", err)
 	}
 
+	user, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("failed to add item to user list: %w", err)
+	}
+
 	// Check if user has write permission
-	if !s.hasWritePermission(ctx, userID, list) {
+	if !s.hasListWritePermission(ctx, user, list) {
 		log.Warn().
 			Uint64("listID", listID).
 			Uint64("ownerID", list.OwnerID).
 			Uint64("requestingUserID", userID).
 			Msg("User attempting to modify a list without permission")
 		return errors.New("you don't have permission to modify this list")
-	}
-
-	// Delegate to core service
-	return s.AddItem(ctx, userID, listID, itemID)
-}
-func (s coreListService[T]) AddItem(ctx context.Context, listID uint64, itemID uint64) error {
-	log := logger.LoggerFromContext(ctx)
-	log.Debug().
-		Uint64("listID", listID).
-		Uint64("itemID", itemID).
-		Msg("Adding item to list")
-
-	// Get the list
-	list, err := s.GetByID(ctx, listID)
-	if err != nil {
-		return fmt.Errorf("failed to add item to list: %w", err)
 	}
 
 	itemList := list.GetData().GetItemList()
@@ -318,7 +308,7 @@ func (s coreListService[T]) AddItem(ctx context.Context, listID uint64, itemID u
 	itemList.AddItem(newItem)
 
 	// Store the update
-	_, err = s.Update(ctx, list)
+	_, err = s.Update(ctx, userID, list)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("listID", listID).
@@ -334,112 +324,11 @@ func (s coreListService[T]) AddItem(ctx context.Context, listID uint64, itemID u
 
 	return nil
 }
-func (s *userListService[T]) RemoveItem(ctx context.Context, userID uint64, listID uint64, itemID uint64) error {
-	log := logger.LoggerFromContext(ctx)
-	log.Debug().
-		Uint64("listID", listID).
-		Uint64("itemID", itemID).
-		Msg("Removing item from user list")
-
-	// Verify user has permission to modify this list
-	list, err := s.GetByID(ctx, listID)
-	if err != nil {
-		return fmt.Errorf("failed to remove item from user list: %w", err)
-	}
-
-	// Check if user has write permission
-	if !s.hasWritePermission(ctx, userID, list) {
-		log.Warn().
-			Uint64("listID", listID).
-			Uint64("ownerID", list.OwnerID).
-			Uint64("requestingUserID", userID).
-			Msg("User attempting to modify a list without permission")
-		return errors.New("you don't have permission to modify this list")
-	}
-
-	// Delegate to core service
-}
-
-// func (s *userListService[T]) ReorderItems(ctx context.Context, listID uint64, itemIDs []uint64) error {
-// 	log := logger.LoggerFromContext(ctx)
-// 	log.Debug().
-// 		Uint64("listID", listID).
-// 		Interface("itemIDs", itemIDs).
-// 		Msg("Reordering user list items")
-//
-// 	// Verify user has permission to modify this list
-// 	userID := ctx.Value("userID").(uint64)
-// 	list, err := s.GetByID(ctx, listID)
-// 	if err != nil {
-// 		return fmt.Errorf("failed to reorder user list items: %w", err)
-// 	}
-//
-// 	// Check if user has write permission
-// 	if !s.hasWritePermission(ctx, userID, list) {
-// 		log.Warn().
-// 			Uint64("listID", listID).
-// 			Uint64("ownerID", list.OwnerID).
-// 			Uint64("requestingUserID", userID).
-// 			Msg("User attempting to modify a list without permission")
-// 		return errors.New("you don't have permission to modify this list")
-// 	}
-//
-// 	// Delegate to core service
-// 	return s.coreListService.ReorderItems(ctx, listID, itemIDs)
-// }
-
-func (s *userListService[T]) UpdateItems(ctx context.Context, userID uint64, listID uint64, items []*models.MediaItem[T]) error {
-	log := logger.LoggerFromContext(ctx)
-	log.Debug().
-		Uint64("listID", listID).
-		Int("itemCount", len(items)).
-		Msg("Updating user list items")
-
-	// Verify user has permission to modify this list
-	list, err := s.GetByID(ctx, listID)
-	if err != nil {
-		return fmt.Errorf("failed to update user list items: %w", err)
-	}
-
-	// Check if user has write permission
-	if !s.hasWritePermission(ctx, userID, list) {
-		log.Warn().
-			Uint64("listID", listID).
-			Uint64("ownerID", list.OwnerID).
-			Uint64("requestingUserID", userID).
-			Msg("User attempting to modify a list without permission")
-		return errors.New("you don't have permission to modify this list")
-	}
-
-	// Delegate to core service
-}
-
 func (s *userListService[T]) Search(ctx context.Context, query mediatypes.QueryOptions) ([]*models.MediaItem[T], error) {
 	return s.Search(ctx, query)
 }
 
-func (s *userListService[T]) GetRecent(ctx context.Context, days int, limit int) ([]*models.MediaItem[T], error) {
-	return s.GetRecent(ctx, days, limit)
-}
-
-func (s *userListService[T]) Sync(ctx context.Context, listID uint64, targetClientIDs []uint64) error {
-	// Verify user has permission to synchronize this list
-	userID := ctx.Value("userID").(uint64)
-	list, err := s.GetByID(ctx, listID)
-	if err != nil {
-		return fmt.Errorf("failed to sync user list: %w", err)
-	}
-
-	// Check if user has read permission (sync is a read operation followed by creation elsewhere)
-	if !s.haslistReadPermission(ctx, userID, list) {
-		return errors.New("you don't have permission to sync this list")
-	}
-
-	// Delegate to core service
-	return s.Sync(ctx, listID, targetClientIDs)
-}
-
-func (s *userListService[T]) UpdateSmartCriteria(ctx context.Context, listID uint64, criteria map[string]interface{}) (*models.MediaItem[T], error) {
+func (s *userListService[T]) UpdateSmartCriteria(ctx context.Context, userID uint64, listID uint64, criteria map[string]interface{}) (*models.MediaItem[T], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
@@ -452,7 +341,7 @@ func (s *userListService[T]) UpdateSmartCriteria(ctx context.Context, listID uin
 
 // User-specific operations
 
-// GetUserlists retrieves lists owned by a specific user with pagination
+// GetUser lists retrieves lists owned by a specific user with pagination
 func (s *userListService[T]) GetUser(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
@@ -560,8 +449,6 @@ func (s *userListService[T]) GetFavorite(ctx context.Context, userID uint64, lim
 	return lists, nil
 }
 
-// Smart list operations
-
 // CreateSmartlist creates a list that updates automatically based on criteria
 func (s *userListService[T]) CreateSmartList(ctx context.Context, userID uint64, name string, description string, criteria map[string]interface{}) (*models.MediaItem[T], error) {
 	log := logger.LoggerFromContext(ctx)
@@ -590,7 +477,7 @@ func (s *userListService[T]) CreateSmartList(ctx context.Context, userID uint64,
 	}
 
 	// Refresh the smart list to populate it based on criteria
-	refreshed, err := s.RefreshSmartList(ctx, result.ID)
+	refreshed, err := s.RefreshSmartList(ctx, userID, result.ID)
 	if err != nil {
 		log.Warn().Err(err).
 			Uint64("listID", result.ID).
@@ -612,74 +499,8 @@ func (s *userListService[T]) CreateSmartList(ctx context.Context, userID uint64,
 	return result, nil
 }
 
-// UpdateSmartlistCriteria updates the criteria for a smart list
-func (s *userListService[T]) UpdateSmartlistCriteria(ctx context.Context, listID uint64, criteria map[string]interface{}) (*models.MediaItem[T], error) {
-	log := logger.LoggerFromContext(ctx)
-	log.Debug().
-		Uint64("listID", listID).
-		Interface("criteria", criteria).
-		Msg("Updating smart list criteria")
-
-	// Get the list
-	list, err := s.GetByID(ctx, listID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to update smart list criteria: %w", err)
-	}
-
-	// Verify this is a smart list
-	// if !list.Data.IsSmart {
-	// 	log.Error().
-	// 		Uint64("listID", listID).
-	// 		Msg("Cannot update criteria of non-smart list")
-	// 	return nil, errors.New("cannot update criteria of non-smart list")
-	// }
-
-	// Verify user has permission to modify this list
-	userID := ctx.Value("userID").(uint64)
-	if !s.hasWritePermission(ctx, userID, list) {
-		log.Warn().
-			Uint64("listID", listID).
-			Uint64("ownerID", list.OwnerID).
-			Uint64("requestingUserID", userID).
-			Msg("User attempting to modify a list without permission")
-		return nil, errors.New("you don't have permission to modify this list")
-	}
-
-	// Update the criteria
-	// list.SmartCriteria = criteria
-	// list.AutoUpdateTime = time.Now()
-	// list.LastModified = time.Now()
-	// list.ModifiedBy = userID
-
-	// Update the list
-	updated, err := s.Update(ctx, userID, list)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("listID", listID).
-			Msg("Failed to update smart list criteria")
-		return nil, fmt.Errorf("failed to update smart list criteria: %w", err)
-	}
-
-	// Refresh the list to apply the new criteria
-	refreshed, err := s.RefreshSmartList(ctx, listID)
-	if err != nil {
-		log.Warn().Err(err).
-			Uint64("listID", listID).
-			Msg("Failed to refresh smart list after criteria update")
-		// Return the updated list anyway
-		return updated, nil
-	}
-
-	log.Info().
-		Uint64("listID", listID).
-		// Int("itemCount", refreshed.Data.ItemCount).
-		Msg("Smart list criteria updated and refreshed successfully")
-
-	return refreshed, nil
-}
-
 // RefreshSmartlist updates a smart list based on its criteria
-func (s *userListService[T]) RefreshSmartList(ctx context.Context, listID uint64) (*models.MediaItem[T], error) {
+func (s *userListService[T]) RefreshSmartList(ctx context.Context, userID uint64, listID uint64) (*models.MediaItem[T], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
@@ -699,10 +520,13 @@ func (s *userListService[T]) RefreshSmartList(ctx context.Context, listID uint64
 			Msg("Cannot refresh non-smart list")
 		return nil, errors.New("cannot refresh non-smart list")
 	}
+	user, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to refresh smart list: %w", err)
+	}
 
 	// Verify user has permission to read this list (refresh is a read operation)
-	userID := ctx.Value("userID").(uint64)
-	if !s.haslistReadPermission(ctx, userID, list) {
+	if !s.hasListReadPermission(ctx, user, list) {
 		log.Warn().
 			Uint64("listID", listID).
 			Uint64("ownerID", list.OwnerID).
@@ -744,10 +568,10 @@ func (s *userListService[T]) RefreshSmartList(ctx context.Context, listID uint64
 	return updated, nil
 }
 
-// list sharing and collaboration
+// List sharing and collaboration
 
 // SharelistWithUser shares a list with another user
-func (s *userListService[T]) ShareWithUser(ctx context.Context, listID uint64, targetUserID uint64, permissionLevel string) error {
+func (s *userListService[T]) ShareWithUser(ctx context.Context, userID uint64, listID uint64, targetUserID uint64, permissionLevel string) error {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
@@ -762,7 +586,6 @@ func (s *userListService[T]) ShareWithUser(ctx context.Context, listID uint64, t
 	}
 
 	// Verify user has permission to share this list (only owner can share)
-	userID := ctx.Value("userID").(uint64)
 	if list.OwnerID != userID {
 		log.Warn().
 			Uint64("listID", listID).
@@ -872,8 +695,7 @@ func (s *userListService[T]) GetShared(ctx context.Context, userID uint64) ([]*m
 	return nil, nil
 }
 
-// GetlistCollaborators retrieves the list of users a list is shared with
-func (s *userListService[T]) GetCollaborators(ctx context.Context, listID uint64) ([]models.ListCollaborator, error) {
+func (s *userListService[T]) GetCollaborators(ctx context.Context, userID uint64, listID uint64) ([]*models.ListCollaborator, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
@@ -885,9 +707,12 @@ func (s *userListService[T]) GetCollaborators(ctx context.Context, listID uint64
 		return nil, fmt.Errorf("failed to get list collaborators: %w", err)
 	}
 
-	// Verify user has permission to view this list
-	userID := ctx.Value("userID").(uint64)
-	if !s.haslistReadPermission(ctx, userID, list) {
+	user, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get list collaborators: %w", err)
+	}
+
+	if !s.hasListReadPermission(ctx, user, list) {
 		log.Warn().
 			Uint64("listID", listID).
 			Uint64("ownerID", list.OwnerID).
@@ -899,16 +724,17 @@ func (s *userListService[T]) GetCollaborators(ctx context.Context, listID uint64
 
 	// Return the shared with array (may be nil)
 	if itemList.SharedWith == nil {
-		return []models.ListCollaborator{}, nil
+		return []*models.ListCollaborator{}, nil
 	}
 
-	// return list.Data.SharedWith, nil
-	// TODO: implement all of the collaborator stuff
-	return nil, nil
-}
+	collaborators, err := s.listRepo.GetCollaborators(ctx, listID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get list collaborators: %w", err)
+	}
 
-// RemovelistCollaborator removes a user from the list's collaborators
-func (s *userListService[T]) RemoveCollaborator(ctx context.Context, listID uint64, collaboratorID uint64) error {
+	return collaborators, nil
+}
+func (s *userListService[T]) RemoveCollaborator(ctx context.Context, userID uint64, listID uint64, collaboratorID uint64) error {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
@@ -920,9 +746,11 @@ func (s *userListService[T]) RemoveCollaborator(ctx context.Context, listID uint
 	if err != nil {
 		return fmt.Errorf("failed to remove list collaborator: %w", err)
 	}
+	if err != nil {
+		return fmt.Errorf("failed to remove list collaborator: %w", err)
+	}
 
 	// Verify user has permission to modify sharing (only owner can do this)
-	userID := ctx.Value("userID").(uint64)
 	if list.OwnerID != userID {
 		log.Warn().
 			Uint64("listID", listID).
@@ -979,142 +807,7 @@ func (s *userListService[T]) RemoveCollaborator(ctx context.Context, listID uint
 	return nil
 }
 
-// Sync with media clients
-
-func (s *userListService[T]) Sync(ctx context.Context, listID uint64, targetClientIDs []uint64) error {
-	log := logger.LoggerFromContext(ctx)
-	log.Debug().
-		Uint64("listID", listID).
-		Interface("targetClientIDs", targetClientIDs).
-		Msg("Syncing list")
-
-	// Get the list
-	list, err := s.GetByID(ctx, listID)
-	if err != nil {
-		return fmt.Errorf("failed to sync list: %w", err)
-	}
-
-	// In a real implementation, this would use the list sync job to:
-	// 1. For each target client ID, create or update a list with the same name
-	// 2. Map the item IDs in itemList.Items to client-specific IDs using the mediaItemRepo
-	// 3. Add these items to the client-specific list
-	// 4. Store the client-specific list IDs and item IDs in the SyncClientStates
-	// 5. Update the LastSynced timestamp
-	itemList := list.GetData().GetItemList()
-	// For now, just create a placeholder in the SyncClientStates to show intent
-	now := time.Now()
-	for _, clientID := range targetClientIDs {
-
-		// Create a placeholder sync client state
-		syncState := itemList.SyncClientStates.GetSyncClientState(clientID)
-		if syncState == nil {
-			// Create empty sync list items
-			syncItems := mediatypes.SyncListItems{}
-
-			// Add a new state for this client
-			newState := mediatypes.SyncClientState{
-				ClientID:     clientID,
-				Items:        syncItems,
-				ClientListID: "", // Empty for now, would be the client-specific list ID
-				LastSynced:   now,
-			}
-
-			itemList.SyncClientStates = append(itemList.SyncClientStates, newState)
-		}
-	}
-
-	// Update the LastSynced timestamp
-	itemList.LastSynced = now
-
-	// Save the updated list
-	_, err = s.userItemRepo.Update(ctx, list)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("listID", listID).
-			Msg("Failed to update list sync state")
-		return fmt.Errorf("failed to update list sync state: %w", err)
-	}
-
-	log.Warn().Msg("list sync partially implemented - requires job implementation")
-
-	// This would be implemented in a job that handles the actual sync
-	return errors.New("list sync requires implementation in the list sync job")
-}
-
-// SynclistToClients synchronizes a list to specified media clients
-func (s *userListService[T]) SyncToClients(ctx context.Context, listID uint64, clientIDs []uint64) error {
-	log := logger.LoggerFromContext(ctx)
-	log.Debug().
-		Uint64("listID", listID).
-		Interface("clientIDs", clientIDs).
-		Msg("Syncing list to clients")
-
-	// This uses the same approach as the base service's Synclist method
-	// But could be extended with user-specific validation and tracking
-	// return s.Synclist(ctx, listID, clientIDs)
-	return nil
-}
-
-// GetlistSyncStatus retrieves the sync status of a list across clients
-func (s *userListService[T]) GetSyncStatus(ctx context.Context, listID uint64) (*models.ListSyncStatus, error) {
-	log := logger.LoggerFromContext(ctx)
-	log.Debug().
-		Uint64("listID", listID).
-		Msg("Getting list sync status")
-
-	// Get the list
-	list, err := s.GetByID(ctx, listID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get list sync status: %w", err)
-	}
-
-	// Verify user has permission to view this list
-	userID := ctx.Value("userID").(uint64)
-	if !s.haslistReadPermission(ctx, userID, list) {
-		log.Warn().
-			Uint64("listID", listID).
-			Uint64("ownerID", list.OwnerID).
-			Uint64("requestingUserID", userID).
-			Msg("User attempting to view list sync status without permission")
-		return nil, errors.New("you don't have permission to view this list's sync status")
-	}
-
-	// Create a sync status object
-	// status := &models.listSyncStatus{
-	// 	listID:   listID,
-	// 	LastSynced:   list.Data.LastSynced,
-	// 	ClientStates: make(map[uint64]models.ClientSyncState),
-	// }
-	//
-	// // Add state information for each client
-	// for _, state := range list.Data.SyncClientStates {
-	// 	clientState := models.ClientSyncState{
-	// 		ClientID:     state.ClientID,
-	// 		ClientListID: state.ClientListID,
-	// 		LastSynced:   state.LastSynced,
-	// 		SyncStatus:   "unknown",
-	// 		ItemCount:    len(state.Items),
-	// 	}
-	//
-	// 	// Determine sync status
-	// 	if state.LastSynced.IsZero() {
-	// 		clientState.SyncStatus = "never_synced"
-	// 	} else if state.LastSynced.Before(list.Data.LastModified) {
-	// 		clientState.SyncStatus = "out_of_sync"
-	// 	} else {
-	// 		clientState.SyncStatus = "in_sync"
-	// 	}
-	//
-	// 	status.ClientStates[state.ClientID] = clientState
-	// }
-
-	// return status, nil
-	// TODO: Implement and test list sync status
-	return nil, nil
-
-}
-
-func (s coreListService[T]) RemoveItem(ctx context.Context, listID uint64, itemID uint64) error {
+func (s userListService[T]) RemoveItem(ctx context.Context, userID uint64, listID uint64, itemID uint64) error {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
@@ -1140,7 +833,7 @@ func (s coreListService[T]) RemoveItem(ctx context.Context, listID uint64, itemI
 	}
 
 	// Store the update
-	_, err = s.Update(ctx, list)
+	_, err = s.Update(ctx, userID, list)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("listID", listID).
@@ -1156,49 +849,6 @@ func (s coreListService[T]) RemoveItem(ctx context.Context, listID uint64, itemI
 
 	return nil
 }
-func (s coreListService[T]) RemoveItem(ctx context.Context, listID uint64, itemID uint64) error {
-	log := logger.LoggerFromContext(ctx)
-	log.Debug().
-		Uint64("listID", listID).
-		Uint64("itemID", itemID).
-		Msg("Removing item from list")
-
-	// Get the list
-	list, err := s.GetByID(ctx, listID)
-	if err != nil {
-		return fmt.Errorf("failed to remove item from list: %w", err)
-	}
-	itemList := list.GetData().GetItemList()
-
-	// Use the RemoveItem method provided by ItemList
-	// 0 indicates application level modification
-	err = itemList.RemoveItem(itemID, 0)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("listID", listID).
-			Uint64("itemID", itemID).
-			Msg("Failed to remove item from list")
-		return err
-	}
-
-	// Store the update
-	_, err = s.Update(ctx, list)
-	if err != nil {
-		log.Error().Err(err).
-			Uint64("listID", listID).
-			Uint64("itemID", itemID).
-			Msg("Failed to update list after removing item")
-		return fmt.Errorf("failed to update list after removing item: %w", err)
-	}
-
-	log.Info().
-		Uint64("listID", listID).
-		Uint64("itemID", itemID).
-		Msg("Item removed from list successfully")
-
-	return nil
-}
-
 func (s *userListService[T]) ReorderItems(ctx context.Context, userID uint64, listID uint64, itemIDs []uint64) error {
 	log := logger.LoggerFromContext(ctx)
 
@@ -1291,7 +941,7 @@ func (s *userListService[T]) ReorderItems(ctx context.Context, userID uint64, li
 
 	return nil
 }
-func (s coreListService[T]) UpdateItems(ctx context.Context, listID uint64, items []*models.MediaItem[T]) error {
+func (s *userListService[T]) UpdateItems(ctx context.Context, userID uint64, listID uint64, items []*models.MediaItem[T]) error {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
@@ -1335,7 +985,7 @@ func (s coreListService[T]) UpdateItems(ctx context.Context, listID uint64, item
 	itemList.NormalizePositions()
 
 	// Update the list
-	_, err = s.Update(ctx, list)
+	_, err = s.userItemRepo.Update(ctx, list)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("listID", listID).
@@ -1353,25 +1003,25 @@ func (s coreListService[T]) UpdateItems(ctx context.Context, listID uint64, item
 
 // Helper functions
 // haslistReadPermission checks if the user has read permission for a list
-func (s *userListService[T]) haslistReadPermission(ctx context.Context, userID uint64, list *models.MediaItem[T]) bool {
+func (s *userListService[T]) hasListReadPermission(ctx context.Context, user *models.User, list *models.MediaItem[T]) bool {
+	log := logger.LoggerFromContext(ctx)
 	// The owner always has read permission
-	if list.OwnerID == userID {
+	if list.OwnerID == user.ID || user.Role == "admin" {
 		return true
 	}
-	log := logger.LoggerFromContext(ctx)
 
 	itemList := list.GetData().GetItemList()
 	// Check if the list is shared with this user
-	for _, collab := range itemList.SharedWith {
+	for _, collabID := range itemList.SharedWith {
 		log.Info().
 			Uint64("ownerID", list.OwnerID).
-			Uint64("requestingUserID", userID).
-			Int64("sharedWith", collab).
-			Msg("User attempting to view collaborators without permission")
-		// if collab.UserID == userID {
-		// Any permission level (read or write) allows reading
-		// return true
-		// }
+			Uint64("requestingUserID", user.ID).
+			Uint64("sharedWith", collabID).
+			Msg("User attempting to read list without permission")
+		if collabID == user.ID {
+			// Any permission level allows reading
+			return true
+		}
 	}
 
 	// No permission found
@@ -1379,31 +1029,32 @@ func (s *userListService[T]) haslistReadPermission(ctx context.Context, userID u
 }
 
 // haslistWritePermission checks if the user has write permission for a list
-func (s *userListService[T]) hasWritePermission(ctx context.Context, userID uint64, list *models.MediaItem[T]) bool {
-	// The owner always has write permission
-	if list.OwnerID == userID {
+func (s *userListService[T]) hasListWritePermission(ctx context.Context, user *models.User, list *models.MediaItem[T]) bool {
+	log := logger.LoggerFromContext(ctx)
+
+	// The owner and admin always has write permission
+	if list.OwnerID == user.ID || user.Role == "admin" {
 		return true
 	}
 
-	// itemList := list.GetData().GetItemList()
+	itemList := list.GetData().GetItemList()
 	// Check if the list is shared with this user with write permission
-	// for _, collab := range itemList.SharedWith {
-	// if collab.UserID == userID && collab.PermissionLevel == "write" {
-	// 	return true
-	// }
-	// }
+	for _, collabID := range itemList.SharedWith {
+		if collabID == user.ID {
+			// Check if the user has write permission
+			collab, err := s.listRepo.GetCollaborator(ctx, list.ID, user.ID)
+			if err != nil {
+				log.Error().Err(err).Msg("Failed to get list collaborator")
+				return false
+			}
+			if collab.Permission == models.CollaboratorPermissionWrite {
+				return true
+			}
+		}
+	}
 
-	// No write permission found
 	return false
 }
-
-// func (s *userListService[T]) GetCollaborators(userID string, listID string) ([]UserCollaboration, error) {
-// 	var collabs []UserCollaboration
-// 	// note yet implemented
-//
-// 	return collabs, nil
-//
-// }
 
 func createList[T mediatypes.ListData](name string, description string, criteria map[string]interface{}, userID uint64) T {
 	var list T

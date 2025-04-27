@@ -17,6 +17,11 @@ type UserMediaItemService[T types.MediaData] interface {
 	// Include all core service methods
 	CoreMediaItemService[T]
 
+	// User-specific operations (not implemented in CoreMediaItemService)
+	Update(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error)
+	Delete(ctx context.Context, id uint64) error
+	Create(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error)
+
 	// User-specific operations
 	GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error)
 	GetUserContent(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[T], error)
@@ -41,6 +46,86 @@ func NewUserMediaItemService[T types.MediaData](
 		CoreMediaItemService: coreService,
 		userRepo:             userRepo,
 	}
+}
+
+// Create adds a new media item
+func (s *userMediaItemService[T]) Create(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Str("type", string(item.Type)).
+		Msg("Creating media item")
+
+	// Validate the media item
+	if err := s.validateMediaItem(item); err != nil {
+		return nil, fmt.Errorf("invalid media item: %w", err)
+	}
+
+	// Delegate to repository
+	result, err := s.userRepo.Create(ctx, item)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to create media item")
+		return nil, err
+	}
+
+	log.Info().
+		Uint64("id", result.ID).
+		Str("type", string(result.Type)).
+		Msg("Media item created successfully")
+
+	return result, nil
+}
+
+// Update modifies an existing media item
+func (s *userMediaItemService[T]) Update(ctx context.Context, item *models.MediaItem[T]) (*models.MediaItem[T], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("id", item.ID).
+		Str("type", string(item.Type)).
+		Msg("Updating media item")
+
+	// Validate the media item
+	if err := s.validateMediaItem(item); err != nil {
+		return nil, fmt.Errorf("invalid media item: %w", err)
+	}
+
+	// Delegate to repository
+	result, err := s.userRepo.Update(ctx, item)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("id", item.ID).
+			Msg("Failed to update media item")
+		return nil, err
+	}
+
+	log.Info().
+		Uint64("id", result.ID).
+		Str("type", string(result.Type)).
+		Msg("Media item updated successfully")
+
+	return result, nil
+}
+
+// Delete removes a media item
+func (s *userMediaItemService[T]) Delete(ctx context.Context, id uint64) error {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("id", id).
+		Msg("Deleting media item")
+
+	// Delegate to repository
+	err := s.userRepo.Delete(ctx, id)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("id", id).
+			Msg("Failed to delete media item")
+		return err
+	}
+
+	log.Info().
+		Uint64("id", id).
+		Msg("Media item deleted successfully")
+
+	return nil
 }
 
 // User-specific methods
@@ -162,4 +247,16 @@ func (s *userMediaItemService[T]) GetRecentUserContent(ctx context.Context, user
 		Msg("Recent user-owned content retrieved")
 
 	return results, nil
+}
+
+func (s *userMediaItemService[T]) validateMediaItem(item *models.MediaItem[T]) error {
+	// Validate the media item
+	// if err := item.Validate(); err != nil {
+	// 	return fmt.Errorf("invalid media item: %w", err)
+	// }
+	// TODO: Add validation for media item
+
+	// Delegate to repository
+	// return s.repo.ValidateMediaItem(item)
+	return nil
 }
