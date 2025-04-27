@@ -145,15 +145,17 @@ func (h *userListHandler[T]) Create(c *gin.Context) {
 		Str("name", req.Name).
 		Msg("Creating new list")
 
+	details := types.MediaDetails{
+		Title:       req.Name,
+		Description: req.Description,
+	}
+
 	itemList := types.ItemList{
 		ItemCount: 0,
 		OwnerID:   uid,
-		Details: types.MediaDetails{
-			Title:       req.Name,
-			Description: req.Description,
-		},
-		IsPublic: req.IsPublic,
-		IsSmart:  req.IsSmart,
+		Details:   details,
+		IsPublic:  req.IsPublic,
+		IsSmart:   req.IsSmart,
 		SmartCriteria: map[string]any{
 			"genre":    req.Genre,
 			"year":     req.Year,
@@ -162,7 +164,7 @@ func (h *userListHandler[T]) Create(c *gin.Context) {
 		},
 	}
 
-	list := types.NewList[T](types.MediaDetails{}, itemList)
+	list := types.NewList[T](details, itemList)
 
 	list.AddListItem(types.ListItem{
 		ItemID:        0,

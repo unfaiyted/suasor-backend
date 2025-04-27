@@ -46,10 +46,10 @@ func NewCoreListHandler[T types.ListData](
 //	@Description	Retrieves all lists in the database
 //	@Tags			lists
 //	@Accept			json
-//	@Produce		json
-//	@Param			limit		query		int																false	"Maximum number of lists to return (default 10)"
-//	@Param			offset		query		int																false	"Offset for pagination (default 0)"
-//	@Param			listType	path		string															true	"List type (e.g. 'playlist', 'collection')"
+//	@Produce    json
+//	@Param      limit		  query		int							false	"Maximum number of lists to return (default 10)"
+//	@Param			offset		query		int						false	"Offset for pagination (default 0)"
+//	@Param			listType	path		string				true	"List type (e.g. 'playlist', 'collection')"
 //	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.ListData]]	"Lists retrieved successfully"
 //	@Failure		500			{object}	responses.ErrorResponse[any]									"Server error"
 //	@Router			/{listType} [get]

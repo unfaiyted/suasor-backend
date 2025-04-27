@@ -18,14 +18,16 @@ type UserListService[T mediatypes.ListData] interface {
 	// Include all core list service methods
 	CoreListService[T]
 
-	// Create(c *gin.Context)
-	// Update(c *gin.Context)
-	// Delete(c *gin.Context)
-	// AddItem(c *gin.Context)
-	// RemoveItem(c *gin.Context)
-	// ReorderItems(c *gin.Context)
+	Create(ctx context.Context, userID uint64, list *models.MediaItem[T]) (*models.MediaItem[T], error)
+	Update(ctx context.Context, userID uint64, list *models.MediaItem[T]) (*models.MediaItem[T], error)
 
-	// User-specific operations
+	AddItem(ctx context.Context, userID uint64, listID uint64, itemID uint64) error
+	RemoveItem(ctx context.Context, userID uint64, listID uint64, itemID uint64) error
+	ReorderItems(ctx context.Context, userID uint64, listID uint64, itemIDs []uint64) error
+	UpdateItems(ctx context.Context, userID uint64, listID uint64, items []*models.MediaItem[T]) error
+
+	Delete(ctx context.Context, userID uint64, id uint64) error
+
 	GetFavorite(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error)
 	GetRecentByUser(ctx context.Context, userID uint64, days int, limit int) ([]*models.MediaItem[T], error)
 
@@ -50,9 +52,9 @@ type UserListService[T mediatypes.ListData] interface {
 }
 
 type userListService[T mediatypes.ListData] struct {
-	userItemRepo    repository.UserMediaItemRepository[T]
-	userDataRepo    repository.UserMediaItemDataRepository[T]
-	coreListService CoreListService[T]
+	CoreListService[T]
+	userItemRepo repository.UserMediaItemRepository[T]
+	userDataRepo repository.UserMediaItemDataRepository[T]
 }
 
 // NewUserlistService creates a new user list service
@@ -62,25 +64,17 @@ func NewUserListService[T mediatypes.ListData](
 	userDataRepo repository.UserMediaItemDataRepository[T],
 ) UserListService[T] {
 	return &userListService[T]{
-		coreListService: coreListService,
+		CoreListService: coreListService,
 		userItemRepo:    userItemRepo,
 		userDataRepo:    userDataRepo,
 	}
 }
 
-// Core methods delegated to the base listService
-func (s *userListService[T]) GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error) {
-	return s.coreListService.GetAll(ctx, limit, offset)
-}
-
-func (s *userListService[T]) Create(ctx context.Context, list *models.MediaItem[T]) (*models.MediaItem[T], error) {
+func (s *userListService[T]) Create(ctx context.Context, userID uint64, list *models.MediaItem[T]) (*models.MediaItem[T], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("title", list.Title).
 		Msg("Creating user list")
-
-	// Get user ID from context
-	userID := ctx.Value("userID").(uint64)
 
 	// Set ownership info if not already set
 	if list.OwnerID == 0 {
@@ -96,10 +90,55 @@ func (s *userListService[T]) Create(ctx context.Context, list *models.MediaItem[
 		itemList.ModifiedBy = userID
 	}
 
-	return s.coreListService.Create(ctx, list)
+	// Ensure list has a valid name
+	if list.Title == "" || itemList.Details.Title == "" {
+		return nil, errors.New("list must have a title")
+	}
+
+	// Initialize items array if nil
+	if itemList.Items == nil {
+		itemList.Items = []mediatypes.ListItem{}
+	}
+
+	// Initialize sync client states if nil
+	if itemList.SyncClientStates == nil {
+		itemList.SyncClientStates = mediatypes.SyncClientStates{}
+	}
+
+	// Set creation time for LastModified
+	if itemList.LastModified.IsZero() {
+		itemList.LastModified = time.Now()
+	}
+
+	// Initialize ItemCount
+	itemList.ItemCount = len(itemList.Items)
+
+	// Set owner if not set
+	if itemList.OwnerID == 0 && list.OwnerID != 0 {
+		itemList.OwnerID = list.OwnerID
+	}
+
+	// Set title at MediaItem level to match the Data.ItemList.Details.Title
+	if list.Title == "" && itemList.Details.Title != "" {
+		list.Title = itemList.Details.Title
+	}
+
+	// Use the underlying repository directly for better control over validation
+	result, err := s.userItemRepo.Create(ctx, list)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to create list")
+		return nil, fmt.Errorf("failed to create list: %w", err)
+	}
+
+	log.Info().
+		Uint64("id", result.ID).
+		Str("title", result.Title).
+		Msg("list created successfully")
+
+	return result, nil
 }
 
-func (s *userListService[T]) Update(ctx context.Context, list *models.MediaItem[T]) (*models.MediaItem[T], error) {
+func (s *userListService[T]) Update(ctx context.Context, userID uint64, list *models.MediaItem[T]) (*models.MediaItem[T], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("id", list.ID).
@@ -107,7 +146,6 @@ func (s *userListService[T]) Update(ctx context.Context, list *models.MediaItem[
 		Msg("Updating user list")
 
 	// Verify user has permission to update this list
-	userID := ctx.Value("userID").(uint64)
 	existing, err := s.GetByID(ctx, list.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update user list: %w", err)
@@ -131,27 +169,66 @@ func (s *userListService[T]) Update(ctx context.Context, list *models.MediaItem[
 
 	list.GetData().SetItemList(itemList)
 
-	// Delegate to core service
-	return s.Update(ctx, list)
-}
+	// Ensure the list exists
+	existingItemList := existing.GetData().GetItemList()
 
-func (s *userListService[T]) GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error) {
-	return s.GetByID(ctx, id)
-}
+	// Preserve items if not provided in the update
+	if itemList.Items == nil || len(itemList.Items) == 0 {
+		itemList.Items = existingItemList.Items
+	}
 
-func (s *userListService[T]) GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error) {
-	return s.coreListService.GetByUserID(ctx, userID, limit, offset)
-}
+	// Preserve sync client states if not provided
+	if itemList.SyncClientStates == nil || len(itemList.SyncClientStates) == 0 {
+		itemList.SyncClientStates = existingItemList.SyncClientStates
+	}
 
-func (s *userListService[T]) Delete(ctx context.Context, id uint64) error {
+	// Update last modified time
+	itemList.LastModified = time.Now()
+
+	// Update ItemCount
+	itemList.ItemCount = len(itemList.Items)
+
+	// Ensure positions are normalized
+	itemList.NormalizePositions()
+
+	// Set title at MediaItem level to match the Data.ItemList.Details.Title
+	if list.Title != itemList.Details.Title {
+		list.Title = itemList.Details.Title
+	}
+
+	// Run validation to check for issues
+	issues := itemList.ValidateItems()
+	if len(issues) > 0 {
+		// Log the issues but continue with the update
+		for _, issue := range issues {
+			log.Warn().Str("issue", issue).Msg("list validation issue")
+		}
+	}
+
+	// Update using the user service for consistent behavior
+	result, err := s.userItemRepo.Update(ctx, list)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("id", list.ID).
+			Msg("Failed to update list")
+		return nil, fmt.Errorf("failed to update list: %w", err)
+	}
+
+	log.Info().
+		Uint64("id", result.ID).
+		Str("title", result.Title).
+		Msg("list updated successfully")
+
+	return result, nil
+}
+func (s *userListService[T]) Delete(ctx context.Context, userID uint64, listID uint64) error {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
-		Uint64("id", id).
+		Uint64("id", listID).
 		Msg("Deleting user list")
 
 	// Verify user has permission to delete this list
-	userID := ctx.Value("userID").(uint64)
-	list, err := s.GetByID(ctx, id)
+	list, err := s.GetByID(ctx, listID)
 	if err != nil {
 		return fmt.Errorf("failed to delete user list: %w", err)
 	}
@@ -159,22 +236,35 @@ func (s *userListService[T]) Delete(ctx context.Context, id uint64) error {
 	// Only the owner can delete a list
 	if list.OwnerID != userID {
 		log.Warn().
-			Uint64("listID", id).
+			Uint64("listID", listID).
 			Uint64("ownerID", list.OwnerID).
 			Uint64("requestingUserID", userID).
 			Msg("User attempting to delete a list they don't own")
 		return errors.New("only the owner can delete a list")
 	}
 
-	// Delegate to core service for deletion
-	return s.Delete(ctx, id)
 }
+func (s coreListService[T]) Delete(ctx context.Context, id uint64) error {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("id", id).
+		Msg("Deleting list")
 
-func (s *userListService[T]) GetItems(ctx context.Context, listID uint64) (*models.MediaItemList, error) {
-	return s.coreListService.GetItems(ctx, listID)
+	err := s.itemRepo.Delete(ctx, id)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("id", id).
+			Msg("Failed to delete list")
+		return fmt.Errorf("failed to delete list: %w", err)
+	}
+
+	log.Info().
+		Uint64("id", id).
+		Msg("List deleted successfully")
+
+	return nil
 }
-
-func (s *userListService[T]) AddItem(ctx context.Context, listID uint64, itemID uint64) error {
+func (s *userListService[T]) AddItem(ctx context.Context, userID uint64, listID uint64, itemID uint64) error {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
@@ -182,7 +272,6 @@ func (s *userListService[T]) AddItem(ctx context.Context, listID uint64, itemID 
 		Msg("Adding item to user list")
 
 	// Verify user has permission to modify this list
-	userID := ctx.Value("userID").(uint64)
 	list, err := s.GetByID(ctx, listID)
 	if err != nil {
 		return fmt.Errorf("failed to add item to user list: %w", err)
@@ -199,10 +288,53 @@ func (s *userListService[T]) AddItem(ctx context.Context, listID uint64, itemID 
 	}
 
 	// Delegate to core service
-	return s.AddItem(ctx, listID, itemID)
+	return s.AddItem(ctx, userID, listID, itemID)
 }
+func (s coreListService[T]) AddItem(ctx context.Context, listID uint64, itemID uint64) error {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("listID", listID).
+		Uint64("itemID", itemID).
+		Msg("Adding item to list")
 
-func (s *userListService[T]) RemoveItem(ctx context.Context, listID uint64, itemID uint64) error {
+	// Get the list
+	list, err := s.GetByID(ctx, listID)
+	if err != nil {
+		return fmt.Errorf("failed to add item to list: %w", err)
+	}
+
+	itemList := list.GetData().GetItemList()
+
+	// Create a ListItem from the media item
+	newItem := mediatypes.ListItem{
+		ItemID:        itemID,
+		Position:      len(itemList.Items),
+		LastChanged:   time.Now(),
+		ChangeHistory: []mediatypes.ChangeRecord{},
+	}
+
+	// Add the item using the built-in AddItem method
+	// 0 indicates application level modification
+	itemList.AddItem(newItem)
+
+	// Store the update
+	_, err = s.Update(ctx, list)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("listID", listID).
+			Uint64("itemID", itemID).
+			Msg("Failed to add item to list")
+		return fmt.Errorf("failed to update list after adding item: %w", err)
+	}
+
+	log.Info().
+		Uint64("listID", listID).
+		Uint64("itemID", itemID).
+		Msg("Item added to list successfully")
+
+	return nil
+}
+func (s *userListService[T]) RemoveItem(ctx context.Context, userID uint64, listID uint64, itemID uint64) error {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
@@ -210,7 +342,6 @@ func (s *userListService[T]) RemoveItem(ctx context.Context, listID uint64, item
 		Msg("Removing item from user list")
 
 	// Verify user has permission to modify this list
-	userID := ctx.Value("userID").(uint64)
 	list, err := s.GetByID(ctx, listID)
 	if err != nil {
 		return fmt.Errorf("failed to remove item from user list: %w", err)
@@ -227,7 +358,6 @@ func (s *userListService[T]) RemoveItem(ctx context.Context, listID uint64, item
 	}
 
 	// Delegate to core service
-	return s.coreListService.RemoveItem(ctx, listID, itemID)
 }
 
 // func (s *userListService[T]) ReorderItems(ctx context.Context, listID uint64, itemIDs []uint64) error {
@@ -258,7 +388,7 @@ func (s *userListService[T]) RemoveItem(ctx context.Context, listID uint64, item
 // 	return s.coreListService.ReorderItems(ctx, listID, itemIDs)
 // }
 
-func (s *userListService[T]) UpdateItems(ctx context.Context, listID uint64, items []*models.MediaItem[T]) error {
+func (s *userListService[T]) UpdateItems(ctx context.Context, userID uint64, listID uint64, items []*models.MediaItem[T]) error {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
@@ -266,7 +396,6 @@ func (s *userListService[T]) UpdateItems(ctx context.Context, listID uint64, ite
 		Msg("Updating user list items")
 
 	// Verify user has permission to modify this list
-	userID := ctx.Value("userID").(uint64)
 	list, err := s.GetByID(ctx, listID)
 	if err != nil {
 		return fmt.Errorf("failed to update user list items: %w", err)
@@ -283,7 +412,6 @@ func (s *userListService[T]) UpdateItems(ctx context.Context, listID uint64, ite
 	}
 
 	// Delegate to core service
-	return s.UpdateItems(ctx, listID, items)
 }
 
 func (s *userListService[T]) Search(ctx context.Context, query mediatypes.QueryOptions) ([]*models.MediaItem[T], error) {
@@ -452,7 +580,7 @@ func (s *userListService[T]) CreateSmartList(ctx context.Context, userID uint64,
 	list := models.NewMediaItem[T](mediaType, data)
 
 	// Create the list
-	result, err := s.Create(ctx, list)
+	result, err := s.Create(ctx, userID, list)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -524,7 +652,7 @@ func (s *userListService[T]) UpdateSmartlistCriteria(ctx context.Context, listID
 	// list.ModifiedBy = userID
 
 	// Update the list
-	updated, err := s.Update(ctx, list)
+	updated, err := s.Update(ctx, userID, list)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("listID", listID).
@@ -601,7 +729,7 @@ func (s *userListService[T]) RefreshSmartList(ctx context.Context, listID uint64
 	// list.Data.ModifiedBy = userID
 
 	// Update the list
-	updated, err := s.Update(ctx, list)
+	updated, err := s.Update(ctx, userID, list)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("listID", listID).
@@ -682,7 +810,7 @@ func (s *userListService[T]) ShareWithUser(ctx context.Context, listID uint64, t
 	// }
 
 	// Update the list
-	_, err = s.Update(ctx, list)
+	_, err = s.Update(ctx, userID, list)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("listID", listID).
@@ -834,7 +962,7 @@ func (s *userListService[T]) RemoveCollaborator(ctx context.Context, listID uint
 
 	// Update the list with the new collaborators list
 	// list.Data.SharedWith = newCollaborators
-	_, err = s.Update(ctx, list)
+	_, err = s.Update(ctx, userID, list)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("listID", listID).
@@ -852,6 +980,66 @@ func (s *userListService[T]) RemoveCollaborator(ctx context.Context, listID uint
 }
 
 // Sync with media clients
+
+func (s *userListService[T]) Sync(ctx context.Context, listID uint64, targetClientIDs []uint64) error {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("listID", listID).
+		Interface("targetClientIDs", targetClientIDs).
+		Msg("Syncing list")
+
+	// Get the list
+	list, err := s.GetByID(ctx, listID)
+	if err != nil {
+		return fmt.Errorf("failed to sync list: %w", err)
+	}
+
+	// In a real implementation, this would use the list sync job to:
+	// 1. For each target client ID, create or update a list with the same name
+	// 2. Map the item IDs in itemList.Items to client-specific IDs using the mediaItemRepo
+	// 3. Add these items to the client-specific list
+	// 4. Store the client-specific list IDs and item IDs in the SyncClientStates
+	// 5. Update the LastSynced timestamp
+	itemList := list.GetData().GetItemList()
+	// For now, just create a placeholder in the SyncClientStates to show intent
+	now := time.Now()
+	for _, clientID := range targetClientIDs {
+
+		// Create a placeholder sync client state
+		syncState := itemList.SyncClientStates.GetSyncClientState(clientID)
+		if syncState == nil {
+			// Create empty sync list items
+			syncItems := mediatypes.SyncListItems{}
+
+			// Add a new state for this client
+			newState := mediatypes.SyncClientState{
+				ClientID:     clientID,
+				Items:        syncItems,
+				ClientListID: "", // Empty for now, would be the client-specific list ID
+				LastSynced:   now,
+			}
+
+			itemList.SyncClientStates = append(itemList.SyncClientStates, newState)
+		}
+	}
+
+	// Update the LastSynced timestamp
+	itemList.LastSynced = now
+
+	// Save the updated list
+	_, err = s.userItemRepo.Update(ctx, list)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("listID", listID).
+			Msg("Failed to update list sync state")
+		return fmt.Errorf("failed to update list sync state: %w", err)
+	}
+
+	log.Warn().Msg("list sync partially implemented - requires job implementation")
+
+	// This would be implemented in a job that handles the actual sync
+	return errors.New("list sync requires implementation in the list sync job")
+}
 
 // SynclistToClients synchronizes a list to specified media clients
 func (s *userListService[T]) SyncToClients(ctx context.Context, listID uint64, clientIDs []uint64) error {
@@ -926,44 +1114,244 @@ func (s *userListService[T]) GetSyncStatus(ctx context.Context, listID uint64) (
 
 }
 
-// func (s *userListService[T]) Delete(ctx context.Context, id uint64) error {
-// 	log := logger.LoggerFromContext(ctx)
-// 	log.Debug().
-// 		Uint64("id", id).
-// 		Msg("Deleting list")
-//
-// 	// First verify this is a list and the user has permission
-// 	list, err := s.GetByID(ctx, id)
-// 	if err != nil {
-// 		return fmt.Errorf("failed to delete list: %w", err)
-// 	}
-//
-// 	// TODO: Verify the current user has permission to delete this list
-// 	// This would check if the current user ID matches list.Data.ItemList.OwnerID
-//
-// 	// Use the user service
-// 	err = s.userItemRepo.Delete(ctx, id)
-// 	if err != nil {
-// 		log.Error().Err(err).
-// 			Uint64("id", id).
-// 			Msg("Failed to delete list")
-// 		return fmt.Errorf("failed to delete list: %w", err)
-// 	}
-//
-// 	log.Info().
-// 		Uint64("id", id).
-// 		Str("title", list.Title).
-// 		Msg("list deleted successfully")
-//
-// 	return nil
-// }
+func (s coreListService[T]) RemoveItem(ctx context.Context, listID uint64, itemID uint64) error {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("listID", listID).
+		Uint64("itemID", itemID).
+		Msg("Removing item from list")
 
-func (s *userListService[T]) ReorderItems(ctx context.Context, listID uint64, itemIDs []uint64) error {
-	return s.coreListService.ReorderItems(ctx, listID, itemIDs)
+	// Get the list
+	list, err := s.GetByID(ctx, listID)
+	if err != nil {
+		return fmt.Errorf("failed to remove item from list: %w", err)
+	}
+	itemList := list.GetData().GetItemList()
+
+	// Use the RemoveItem method provided by ItemList
+	// 0 indicates application level modification
+	err = itemList.RemoveItem(itemID, 0)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("listID", listID).
+			Uint64("itemID", itemID).
+			Msg("Failed to remove item from list")
+		return err
+	}
+
+	// Store the update
+	_, err = s.Update(ctx, list)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("listID", listID).
+			Uint64("itemID", itemID).
+			Msg("Failed to update list after removing item")
+		return fmt.Errorf("failed to update list after removing item: %w", err)
+	}
+
+	log.Info().
+		Uint64("listID", listID).
+		Uint64("itemID", itemID).
+		Msg("Item removed from list successfully")
+
+	return nil
+}
+func (s coreListService[T]) RemoveItem(ctx context.Context, listID uint64, itemID uint64) error {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("listID", listID).
+		Uint64("itemID", itemID).
+		Msg("Removing item from list")
+
+	// Get the list
+	list, err := s.GetByID(ctx, listID)
+	if err != nil {
+		return fmt.Errorf("failed to remove item from list: %w", err)
+	}
+	itemList := list.GetData().GetItemList()
+
+	// Use the RemoveItem method provided by ItemList
+	// 0 indicates application level modification
+	err = itemList.RemoveItem(itemID, 0)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("listID", listID).
+			Uint64("itemID", itemID).
+			Msg("Failed to remove item from list")
+		return err
+	}
+
+	// Store the update
+	_, err = s.Update(ctx, list)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("listID", listID).
+			Uint64("itemID", itemID).
+			Msg("Failed to update list after removing item")
+		return fmt.Errorf("failed to update list after removing item: %w", err)
+	}
+
+	log.Info().
+		Uint64("listID", listID).
+		Uint64("itemID", itemID).
+		Msg("Item removed from list successfully")
+
+	return nil
+}
+
+func (s *userListService[T]) ReorderItems(ctx context.Context, userID uint64, listID uint64, itemIDs []uint64) error {
+	log := logger.LoggerFromContext(ctx)
+
+	log.Debug().
+		Uint64("listID", listID).
+		Interface("itemIDs", itemIDs).
+		Msg("Reordering list items")
+
+	// Get the list
+	list, err := s.GetByID(ctx, listID)
+	if err != nil {
+		return fmt.Errorf("failed to reorder list items: %w", err)
+	}
+	itemList := list.GetData().GetItemList()
+
+	// Verify that the number of items matches
+	if len(itemIDs) != len(itemList.Items) {
+		log.Error().
+			Int("providedCount", len(itemIDs)).
+			Int("actualCount", len(itemList.Items)).
+			Msg("Reorder operation must include all list items")
+		return errors.New("reorder operation must include all list items")
+	}
+
+	// Create a new ordered list of items
+	newOrder := make([]mediatypes.ListItem, len(itemIDs))
+	tempItems := make(map[uint64]mediatypes.ListItem)
+
+	// Create a map of existing items for quick lookup
+	for _, item := range itemList.Items {
+		tempItems[item.ItemID] = item
+	}
+
+	// First verify all items exist
+	missingItems := []uint64{}
+	for _, id := range itemIDs {
+		// id, err := strconv.ParseUint(idStr, 10, 64)
+		// if err != nil {
+		// 	log.Error().
+		// 		Str("itemID", idStr).
+		// 		Msg("Invalid item ID format")
+		// 	return fmt.Errorf("invalid item ID format: %s", idStr)
+		// }
+
+		if _, exists := tempItems[id]; !exists {
+			missingItems = append(missingItems, id)
+		}
+	}
+
+	if len(missingItems) > 0 {
+		log.Error().
+			Interface("missingItems", missingItems).
+			Msg("Items not found in list")
+		return fmt.Errorf("items not found in list: %v", missingItems)
+	}
+
+	// Now build the new order
+	for i, id := range itemIDs {
+		// id, _ := strconv.ParseUint(id, 10, 64)
+		item := tempItems[id]
+
+		// Update position
+		item.Position = i
+
+		// Add change record
+		item.AddChangeRecord(0, "reorder") // 0 indicates application level change
+
+		newOrder[i] = item
+	}
+
+	// Update the list with the new item order
+	itemList.Items = newOrder
+	itemList.LastModified = time.Now()
+	itemList.ModifiedBy = 0 // 0 indicates application level modification
+
+	// Normalize positions to ensure they're sequential
+	itemList.NormalizePositions()
+
+	_, err = s.Update(ctx, userID, list)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("listID", listID).
+			Msg("Failed to update list after reordering items")
+		return fmt.Errorf("failed to update list after reordering: %w", err)
+	}
+
+	log.Info().
+		Uint64("listID", listID).
+		Msg("list items reordered successfully")
+
+	return nil
+}
+func (s coreListService[T]) UpdateItems(ctx context.Context, listID uint64, items []*models.MediaItem[T]) error {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("listID", listID).
+		Int("itemCount", len(items)).
+		Msg("Updating list items")
+
+	// Get the list
+	list, err := s.GetByID(ctx, listID)
+	if err != nil {
+		return fmt.Errorf("failed to update list items: %w", err)
+	}
+
+	// Convert MediaItems to ListItems
+	listItems := make([]mediatypes.ListItem, len(items))
+	now := time.Now()
+
+	for i, item := range items {
+		listItems[i] = mediatypes.ListItem{
+			ItemID:      item.ID,
+			Position:    i,
+			LastChanged: now,
+			ChangeHistory: []mediatypes.ChangeRecord{
+				{
+					ClientID:   0, // 0 indicates application level change
+					ItemID:     fmt.Sprintf("%d", item.ID),
+					ChangeType: "update",
+					Timestamp:  now,
+				},
+			},
+		}
+	}
+
+	itemList := list.GetData().GetItemList()
+	// Replace all items
+	itemList.Items = listItems
+	itemList.LastModified = now
+	itemList.ModifiedBy = 0 // 0 indicates application level modification
+	itemList.ItemCount = len(listItems)
+
+	// Ensure positions are normalized
+	itemList.NormalizePositions()
+
+	// Update the list
+	_, err = s.Update(ctx, list)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("listID", listID).
+			Msg("Failed to update list items")
+		return fmt.Errorf("failed to update list items: %w", err)
+	}
+
+	log.Info().
+		Uint64("listID", listID).
+		Int("itemCount", len(items)).
+		Msg("list items updated successfully")
+
+	return nil
 }
 
 // Helper functions
-
 // haslistReadPermission checks if the user has read permission for a list
 func (s *userListService[T]) haslistReadPermission(ctx context.Context, userID uint64, list *models.MediaItem[T]) bool {
 	// The owner always has read permission

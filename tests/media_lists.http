@@ -19,18 +19,29 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
+  "type": "movie",
   "title": "List Test Movie",
-  "originalTitle": "List Test Movie Original",
-  "overview": "This is a test movie for list operations",
-  "releaseDate": "2023-01-01",
-  "runtime": 120,
-  "genres": ["Action", "Drama"],
-  "directors": ["Test Director"],
-  "writers": ["Test Writer"],
-  "cast": ["Actor 1", "Actor 2"],
-  "posterURL": "https://example.com/poster.jpg",
-  "backdropURL": "https://example.com/backdrop.jpg",
-  "rating": 8.5
+  "data": {
+    "details": {
+      "title": "List Test Movie",
+      "originalTitle": "List Test Movie Original",
+      "overview": "This is a test movie for list operations",
+      "releaseDate": "2023-01-01T00:00:00Z",
+      "runtime": 120,
+      "genres": ["Action", "Drama"]
+    },
+    "credits": [
+      {"name": "Test Director", "role": "Director", "isCrew": true},
+      {"name": "Test Writer", "role": "Writer", "isCrew": true},
+      {"name": "Actor 1", "character": "Character 1", "isCast": true},
+      {"name": "Actor 2", "character": "Character 2", "isCast": true}
+    ],
+    "trailerURL": "https://example.com/trailer.mp4",
+    "resolution": "1080p",
+    "videoCodec": "H.264",
+    "audioCodec": "AAC"
+  },
+  "externalIds": []
 }
 
 ### Create a second test movie
@@ -40,55 +51,64 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
+  "type": "movie",
   "title": "List Test Movie 2",
-  "originalTitle": "List Test Movie 2 Original",
-  "overview": "This is a second test movie for list operations",
-  "releaseDate": "2023-02-01",
-  "runtime": 110,
-  "genres": ["Comedy", "Romance"],
-  "directors": ["Test Director 2"],
-  "writers": ["Test Writer 2"],
-  "cast": ["Actor 3", "Actor 4"],
-  "posterURL": "https://example.com/poster2.jpg",
-  "backdropURL": "https://example.com/backdrop2.jpg",
-  "rating": 7.5
+  "data": {
+    "details": {
+      "title": "List Test Movie 2",
+      "originalTitle": "List Test Movie 2 Original",
+      "overview": "This is a second test movie for list operations",
+      "releaseDate": "2023-02-01T00:00:00Z",
+      "runtime": 110,
+      "genres": ["Comedy", "Romance"]
+    },
+    "credits": [
+      {"name": "Test Director 2", "role": "Director", "isCrew": true},
+      {"name": "Test Writer 2", "role": "Writer", "isCrew": true},
+      {"name": "Actor 3", "character": "Character 3", "isCast": true},
+      {"name": "Actor 4", "character": "Character 4", "isCast": true}
+    ],
+    "trailerURL": "https://example.com/trailer2.mp4",
+    "resolution": "1080p",
+    "videoCodec": "H.264",
+    "audioCodec": "AAC"
+  },
+  "externalIds": []
 }
 
 ### Create a movie collection/list
 # @name createMovieList
-POST {{baseUrl}}/lists
+POST {{baseUrl}}/playlist
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "name": "Test Movie Collection",
-  "description": "A collection of test movies",
-  "itemType": "movie",
-  "isPublic": true,
-  "tags": ["test", "movies"]
+  "type": "collection",
+  "title": "Test Movie Collection",
+  "data": {
+    "details": {
+      "title": "Test Movie Collection",
+      "overview": "A collection of test movies"
+    },
+    "items": [],
+    "itemCount": 0,
+    "isPublic": true,
+    "ownerID": {{login.response.body.$.data.user.id}},
+    "lastModified": "{{$timestamp}}"
+  }
 }
 
 ### Add movie to list
 # @name addMovieToList
-POST {{baseUrl}}/lists/{{createMovieList.response.body.$.data.id}}/items
+POST {{baseUrl}}/lists/{{createMovieList.response.body.$.data.id}}/items/{{createTestMovie.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
-
-{
-  "mediaItemId": {{createTestMovie.response.body.$.data.id}},
-  "sortOrder": 1
-}
 
 ### Add second movie to list
 # @name addSecondMovieToList
-POST {{baseUrl}}/lists/{{createMovieList.response.body.$.data.id}}/items
+POST {{baseUrl}}/lists/{{createMovieList.response.body.$.data.id}}/items/{{createSecondTestMovie.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
-
-{
-  "mediaItemId": {{createSecondTestMovie.response.body.$.data.id}},
-  "sortOrder": 2
-}
 
 ### Get list items
 # @name getListItems
@@ -115,10 +135,16 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "name": "Updated Test Movie Collection",
-  "description": "An updated collection of test movies",
-  "isPublic": true,
-  "tags": ["test", "movies", "updated"]
+  "type": "collection",
+  "title": "Updated Test Movie Collection",
+  "data": {
+    "details": {
+      "title": "Updated Test Movie Collection",
+      "overview": "An updated collection of test movies"
+    },
+    "isPublic": true,
+    "lastModified": "{{$timestamp}}"
+  }
 }
 
 ### Get lists by user
@@ -129,9 +155,31 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ### Get lists by type
 # @name getListsByType
-GET {{baseUrl}}/lists?type=movie
+GET {{baseUrl}}/lists?type=collection
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Create a music playlist
+# @name createMusicPlaylist
+POST {{baseUrl}}/playlists
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "type": "playlist",
+  "title": "Test Music Playlist",
+  "data": {
+    "details": {
+      "title": "Test Music Playlist",
+      "overview": "A playlist of test music tracks"
+    },
+    "items": [],
+    "itemCount": 0,
+    "isPublic": true,
+    "owner": {{TEST_USER_ID}},
+    "lastModified": "{{$timestamp}}"
+  }
+}
 
 ### Remove item from list
 # @name removeItemFromList

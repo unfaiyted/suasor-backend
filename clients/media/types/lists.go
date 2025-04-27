@@ -56,10 +56,24 @@ type ItemList struct {
 }
 
 func NewList[T ListData](details MediaDetails, itemList ItemList) T {
-	var zero T
-	zero.SetDetails(details)
-	zero.SetItemList(itemList)
-	return zero
+	var result T
+	
+	// Create a concrete type based on T
+	switch any(result).(type) {
+	case *Playlist:
+		playlist := &Playlist{ItemList: itemList}
+		playlist.SetDetails(details)
+		return any(playlist).(T)
+	case *Collection:
+		collection := &Collection{ItemList: itemList}
+		collection.SetDetails(details)
+		return any(collection).(T)
+	default:
+		// Fallback (should not reach here in practice)
+		result.SetDetails(details)
+		result.SetItemList(itemList)
+		return result
+	}
 }
 
 // Find an item by ID

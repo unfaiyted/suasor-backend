@@ -38,6 +38,7 @@ type ClientListService[T types.ClientMediaConfig, U mediatypes.ListData] interfa
 	RemoveClientItem(ctx context.Context, clientID uint64, clientListID string, itemID string) error
 	ReorderClientItems(ctx context.Context, clientID uint64, clientListID string, itemIDs []string) error
 
+	Sync(ctx context.Context, listID uint64, targetClientIDs []uint64) error
 	// Search and sync operations
 	SyncClientList(ctx context.Context, clientID uint64, clientListID string) error
 	SearchClientLists(ctx context.Context, clientID uint64, query mediatypes.QueryOptions) ([]*models.MediaItem[U], error)
