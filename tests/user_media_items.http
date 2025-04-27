@@ -1,0 +1,216 @@
+### User Media Items Tests
+# This file contains HTTP tests for user media item operations
+# These tests focus on user-related operations with media items in the database
+
+### Login to get access token
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{TEST_ADMIN_USER}}",
+  "password": "{{TEST_ADMIN_PASSWORD}}"
+}
+
+### Create a test movie for user operations
+# @name createTestMovie
+POST {{baseUrl}}/media/movie
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "type": "movie",
+  "title": "User Test Movie",
+  "data": {
+    "details": {
+      "title": "User Test Movie",
+      "originalTitle": "User Test Movie Original",
+      "overview": "This is a test movie for user operations",
+      "releaseDate": "2023-01-01T00:00:00Z",
+      "runtime": 120,
+      "genres": ["Action", "Drama"]
+    },
+    "credits": [
+      {"name": "Test Director", "role": "Director", "isCrew": true},
+      {"name": "Test Writer", "role": "Writer", "isCrew": true},
+      {"name": "Actor 1", "character": "Character 1", "isCast": true},
+      {"name": "Actor 2", "character": "Character 2", "isCast": true}
+    ],
+    "trailerURL": "https://example.com/trailer.mp4",
+    "resolution": "1080p",
+    "videoCodec": "H.264",
+    "audioCodec": "AAC"
+  },
+  "externalIds": []
+}
+
+### Get user's movies
+# @name getUserMovies
+GET {{baseUrl}}/media/movie/user/{{TEST_USER_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Mark movie as favorite
+# @name markMovieAsFavorite
+POST {{baseUrl}}/user/{{TEST_USER_ID}}/media/movie/{{createTestMovie.response.body.$.data.id}}/favorite
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get user's favorite movies
+# @name getUserFavoriteMovies
+GET {{baseUrl}}/user/{{TEST_USER_ID}}/media/movie/favorites
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Mark movie as watched
+# @name markMovieAsWatched
+POST {{baseUrl}}/user/{{TEST_USER_ID}}/media/movie/{{createTestMovie.response.body.$.data.id}}/watched
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "watched": true,
+  "watchedAt": "{{$timestamp}}"
+}
+
+### Get user's watched movies
+# @name getUserWatchedMovies
+GET {{baseUrl}}/user/{{TEST_USER_ID}}/media/movie/watched
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Add movie rating
+# @name addMovieRating
+POST {{baseUrl}}/user/{{TEST_USER_ID}}/media/movie/{{createTestMovie.response.body.$.data.id}}/rating
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "rating": 9.5
+}
+
+### Get movie user data
+# @name getMovieUserData
+GET {{baseUrl}}/user/{{TEST_USER_ID}}/media/movie/{{createTestMovie.response.body.$.data.id}}/data
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Add movie to watchlist
+# @name addMovieToWatchlist
+POST {{baseUrl}}/user/{{TEST_USER_ID}}/media/movie/{{createTestMovie.response.body.$.data.id}}/watchlist
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "inWatchlist": true
+}
+
+### Get user's watchlist
+# @name getUserWatchlist
+GET {{baseUrl}}/user/{{TEST_USER_ID}}/media/movie/watchlist
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get user's activity
+# @name getUserActivity
+GET {{baseUrl}}/user/{{TEST_USER_ID}}/activity
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### ------ Series Tests ------
+
+### Create a test series for user operations
+# @name createTestSeries
+POST {{baseUrl}}/media/series
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "type": "series",
+  "title": "User Test Series",
+  "data": {
+    "details": {
+      "title": "User Test Series",
+      "originalTitle": "User Test Series Original",
+      "overview": "This is a test series for user operations",
+      "releaseDate": "2023-01-01T00:00:00Z"
+    },
+    "seasonCount": 2,
+    "episodeCount": 20,
+    "status": "Continuing",
+    "network": "Test Network",
+    "genres": ["Drama", "Sci-Fi"],
+    "credits": [
+      {"name": "Test Creator", "role": "Creator", "isCreator": true},
+      {"name": "Test Writer", "role": "Writer", "isCrew": true},
+      {"name": "Actor 1", "character": "Character 1", "isCast": true},
+      {"name": "Actor 2", "character": "Character 2", "isCast": true}
+    ]
+  },
+  "externalIds": []
+}
+
+### Mark series as favorite
+# @name markSeriesAsFavorite
+POST {{baseUrl}}/user/{{TEST_USER_ID}}/media/series/{{createTestSeries.response.body.$.data.id}}/favorite
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get user's favorite series
+# @name getUserFavoriteSeries
+GET {{baseUrl}}/user/{{TEST_USER_ID}}/media/series/favorites
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### ------ Music Tests ------
+
+### Create a test album for user operations
+# @name createTestAlbum
+POST {{baseUrl}}/media/album
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "type": "album",
+  "title": "User Test Album",
+  "data": {
+    "details": {
+      "title": "User Test Album",
+      "releaseDate": "2023-01-01T00:00:00Z"
+    },
+    "artist": "Test Artist",
+    "trackCount": 12,
+    "genres": ["Rock", "Alternative"],
+    "posterURL": "https://example.com/album.jpg",
+    "duration": 3600
+  },
+  "externalIds": []
+}
+
+### Mark album as favorite
+# @name markAlbumAsFavorite
+POST {{baseUrl}}/user/{{TEST_USER_ID}}/media/album/{{createTestAlbum.response.body.$.data.id}}/favorite
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get user's favorite albums
+# @name getUserFavoriteAlbums
+GET {{baseUrl}}/user/{{TEST_USER_ID}}/media/album/favorites
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Delete test data
+# @name cleanupTestData
+DELETE {{baseUrl}}/media/movie/{{createTestMovie.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Delete test series
+DELETE {{baseUrl}}/media/series/{{createTestSeries.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Delete test album
+DELETE {{baseUrl}}/media/album/{{createTestAlbum.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

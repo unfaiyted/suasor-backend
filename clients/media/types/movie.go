@@ -30,7 +30,7 @@ func (m *Movie) GetMediaType() MediaType {
 }
 func (m *Movie) isMediaData() {}
 
-func (m Movie) GetTitle() string { return m.Details.Title }
+func (m *Movie) GetTitle() string { return m.Details.Title }
 
 // Scan
 func (m *Movie) Scan(value any) error {
@@ -51,4 +51,3 @@ func (m *Movie) Value() (driver.Value, error) {
 	}
 	return json.Marshal(m)
 }
-

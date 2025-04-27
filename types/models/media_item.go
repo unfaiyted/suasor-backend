@@ -99,6 +99,29 @@ func (ids ExternalIDs) GetID(source string) string {
 	return ""
 }
 
+// Value implements driver.Valuer for database storage
+func (ids ExternalIDs) Value() (driver.Value, error) {
+	if ids == nil {
+		return nil, nil
+	}
+	return json.Marshal(ids)
+}
+
+// Scan implements sql.Scanner for database retrieval
+func (ids *ExternalIDs) Scan(value any) error {
+	if value == nil {
+		*ids = make(ExternalIDs, 0)
+		return nil
+	}
+
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+
+	return json.Unmarshal(bytes, ids)
+}
+
 func (MediaItem[T]) TableName() string {
 	return "media_items"
 }
@@ -308,11 +331,11 @@ func (m *MediaItem[T]) AsSeries() (MediaItem[*types.Series], bool) {
 	return show, ok
 }
 
-func (m *MediaItem[T]) AsSeason() (MediaItem[types.Season], bool) {
+func (m *MediaItem[T]) AsSeason() (MediaItem[*types.Season], bool) {
 	if m.Type != types.MediaTypeSeason {
-		return MediaItem[types.Season]{}, false
+		return MediaItem[*types.Season]{}, false
 	}
-	season, ok := any(m).(MediaItem[types.Season])
+	season, ok := any(m).(MediaItem[*types.Season])
 
 	return season, ok
 }
@@ -335,11 +358,11 @@ func (m *MediaItem[T]) AsAlbum() (MediaItem[*types.Album], bool) {
 	return album, ok
 }
 
-func (m *MediaItem[T]) AsArtist() (MediaItem[types.Artist], bool) {
+func (m *MediaItem[T]) AsArtist() (MediaItem[*types.Artist], bool) {
 	if m.Type != types.MediaTypeArtist {
-		return MediaItem[types.Artist]{}, false
+		return MediaItem[*types.Artist]{}, false
 	}
-	artist, ok := any(m).(MediaItem[types.Artist])
+	artist, ok := any(m).(MediaItem[*types.Artist])
 
 	return artist, ok
 }
@@ -401,7 +424,7 @@ func CreateMediaItem(mediaType types.MediaType) (any, error) {
 			ExternalIDs: externalIDs,
 		}, nil
 	case types.MediaTypeSeason:
-		return &MediaItem[types.Season]{
+		return &MediaItem[*types.Season]{
 			Type:        mediaType,
 			SyncClients: clientIDs,
 			ExternalIDs: externalIDs,
@@ -419,7 +442,7 @@ func CreateMediaItem(mediaType types.MediaType) (any, error) {
 			ExternalIDs: externalIDs,
 		}, nil
 	case types.MediaTypeArtist:
-		return &MediaItem[types.Artist]{
+		return &MediaItem[*types.Artist]{
 			Type:        mediaType,
 			SyncClients: clientIDs,
 			ExternalIDs: externalIDs,

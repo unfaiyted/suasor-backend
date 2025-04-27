@@ -495,9 +495,14 @@ func (r *mediaItemRepository[T]) GetMixedMediaItemsByIDs(ctx context.Context, id
 
 func (r *mediaItemRepository[T]) GetAll(ctx context.Context, limit int, offset int, publicOnly bool) ([]*models.MediaItem[T], error) {
 	log := logger.LoggerFromContext(ctx)
+
+	var zero T
+	mediaType := types.GetMediaTypeFromTypeName(zero)
+
 	log.Debug().
 		Int("limit", limit).
 		Int("offset", offset).
+		Str("mediaType", string(mediaType)).
 		Bool("publicOnly", publicOnly).
 		Msg("Getting all media items")
 
@@ -518,6 +523,9 @@ func (r *mediaItemRepository[T]) GetAll(ctx context.Context, limit int, offset i
 	if publicOnly {
 		//TODO: validate this is correct path to this public indicator
 		dbQuery = dbQuery.Where("is_public = ?", true)
+	}
+	if mediaType != types.MediaTypeUnknown || mediaType != types.MediaTypeAll {
+		dbQuery = dbQuery.Where("type = ?", mediaType)
 	}
 
 	if err := dbQuery.Find(&items).Error; err != nil {

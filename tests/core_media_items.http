@@ -1,0 +1,223 @@
+### Core Media Items Tests
+# This file contains HTTP tests for core media item operations
+# These tests are focused on database operations without specific media clients
+
+### Login to get access token
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{TEST_ADMIN_USER}}",
+  "password": "{{TEST_ADMIN_PASSWORD}}"
+}
+
+### Get all movies
+# @name getAllMovies
+GET {{baseUrl}}/media/movie
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get movie by ID
+# @name getMovieByID
+GET {{baseUrl}}/media/movie/{{getAllMovies.response.body.$.data.items[0].id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Search movies
+# @name searchMovies
+GET {{baseUrl}}/media/movie/search?q={{TEST_MOVIE_SEARCH}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get movies by genre
+# @name getMoviesByGenre
+GET {{baseUrl}}/media/movie/genre/{{TEST_MOVIE_GENRE}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get movies by year
+# @name getMoviesByYear
+GET {{baseUrl}}/media/movie/year/{{TEST_MOVIE_YEAR}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get popular movies
+# @name getPopularMovies
+GET {{baseUrl}}/media/movie/popular
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get top rated movies
+# @name getTopRatedMovies
+GET {{baseUrl}}/media/movie/top-rated
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get latest added movies
+# @name getLatestMovies
+GET {{baseUrl}}/media/movie/latest
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get movie by external ID
+# @name getMovieByExternalID
+GET {{baseUrl}}/media/movie/external/tmdb/{{TEST_TMDB_MOVIE_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Create a new movie
+# @name createMovie
+POST {{baseUrl}}/media/movie
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "type": "movie",
+  "title": "Test Core Movie",
+  "data": {
+    "details": {
+      "title": "Test Core Movie",
+      "originalTitle": "Test Core Movie Original",
+      "overview": "This is a test movie created via core API",
+      "releaseDate": "2023-01-01T00:00:00Z",
+      "runtime": 120,
+      "genres": ["Action", "Drama"]
+    },
+    "credits": [
+      {"name": "Test Director", "role": "Director", "isCrew": true},
+      {"name": "Test Writer", "role": "Writer", "isCrew": true},
+      {"name": "Actor 1", "character": "Character 1", "isCast": true},
+      {"name": "Actor 2", "character": "Character 2", "isCast": true}
+    ],
+    "trailerURL": "https://example.com/trailer.mp4",
+    "resolution": "1080p",
+    "videoCodec": "H.264",
+    "audioCodec": "AAC"
+  },
+  "externalIds": [
+    {"source": "imdb", "id": "tt0000001"},
+    {"source": "tmdb", "id": "123457"}
+  ]
+}
+
+### Update a movie
+# @name updateMovie
+PUT {{baseUrl}}/media/movie/{{createMovie.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "type": "movie",
+  "title": "Updated Test Core Movie",
+  "data": {
+    "details": {
+      "title": "Updated Test Core Movie",
+      "overview": "This is an updated test movie via core API"
+    },
+    "credits": [
+      {"name": "Updated Director", "role": "Director", "isCrew": true},
+      {"name": "Updated Actor", "character": "Character 1", "isCast": true}
+    ]
+  }
+}
+
+### Delete a movie
+# @name deleteMovie
+DELETE {{baseUrl}}/media/movie/{{createMovie.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### ------ Series Tests ------
+
+### Get all series
+# @name getAllSeries
+GET {{baseUrl}}/media/series
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get series by ID
+# @name getSeriesByID
+GET {{baseUrl}}/media/series/{{getAllSeries.response.body.$.data[0].id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get seasons for a series
+# @name getSeriesSeasons
+GET {{baseUrl}}/media/series/{{getAllSeries.response.body.$.data[0].id}}/seasons
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get episodes for a season
+# @name getSeasonEpisodes
+GET {{baseUrl}}/media/series/{{TEST_SERIES_ID}}/seasons/{{TEST_SEASON_NUMBER}}/episodes
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get all episodes for a series
+# @name getAllSeriesEpisodes
+GET {{baseUrl}}/media/series/{{TEST_SERIES_ID}}/episodes
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get recently aired episodes
+# @name getRecentlyAiredEpisodes
+GET {{baseUrl}}/media/series/recently-aired
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### ------ Music Tests ------
+
+### Get all albums
+# @name getAllAlbums
+GET {{baseUrl}}/media/album
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get album by ID
+# @name getAlbumByID
+GET {{baseUrl}}/media/album/{{TEST_ALBUM_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get all artists
+# @name getAllArtists
+GET {{baseUrl}}/media/artist
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get artist by ID
+# @name getArtistByID
+GET {{baseUrl}}/media/artist/{{TEST_ARTIST_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get albums by artist
+# @name getAlbumsByArtist
+GET {{baseUrl}}/media/music/artists/{{TEST_ARTIST_ID}}/albums
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get all tracks
+# @name getAllTracks
+GET {{baseUrl}}/media/track
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get tracks by album
+# @name getTracksByAlbum
+GET {{baseUrl}}/media/music/albums/{{TEST_ALBUM_ID}}/tracks
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get most played tracks
+# @name getMostPlayedTracks
+GET {{baseUrl}}/media/music/tracks/most-played
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Get recently added music
+# @name getRecentlyAddedMusic
+GET {{baseUrl}}/media/music/recent
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

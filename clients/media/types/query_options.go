@@ -70,6 +70,19 @@ type QueryOptions struct {
 	ExternalSourceID string `json:"externalSourceID,omitempty"` // Filter by external source ID (TMDB, IMDB, etc.)
 }
 
+func (opts *QueryOptions) WithQuery(query string) *QueryOptions {
+	opts.Query = query
+	return opts
+}
+func (opts *QueryOptions) WithLimit(limit int) *QueryOptions {
+	opts.Limit = limit
+	return opts
+}
+func (opts *QueryOptions) WithOffset(offset int) *QueryOptions {
+	opts.Offset = offset
+	return opts
+}
+
 func (opts *QueryOptions) WithOwnerID(ownerID uint64) *QueryOptions {
 	opts.OwnerID = ownerID
 	return opts

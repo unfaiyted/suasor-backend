@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 
 	"suasor/clients/media/types"
 	"suasor/services"
@@ -118,23 +119,44 @@ func (h *userMediaItemHandler[T]) Create(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	var zero T
-	mediaType := types.GetMediaTypeFromTypeName(zero)
-	// Bind the request body to a media item struct
+	// Create a media item structure first to parse the JSON
+	var mediaItem models.MediaItem[T]
 
-	mediaData := types.NewItem[T]()
-	mediaItem := models.NewMediaItem(mediaType, mediaData)
+	// Initialize empty collections to prevent nil pointers
+	mediaItem.SyncClients = models.SyncClients{}
+	mediaItem.ExternalIDs = models.ExternalIDs{}
+
 	if err := c.ShouldBindJSON(&mediaItem); err != nil {
 		log.Warn().Err(err).Msg("Invalid media item data")
 		responses.RespondBadRequest(c, err, "Invalid media item data")
 		return
 	}
 
-	userIDStr, exists := c.Get("userID")
-	userID, err := strconv.ParseUint(userIDStr.(string), 10, 64)
+	// Generate a UUID for the new item if not provided
+	if mediaItem.UUID == "" {
+		mediaItem.UUID = uuid.New().String()
+	}
+
+	// Get the media type from the type field, or derive it from the generic type
+	var zero T
+	mediaType := mediaItem.Type
+	if mediaType == "" {
+		mediaType = types.GetMediaTypeFromTypeName(zero)
+		mediaItem.Type = mediaType
+	}
+
+	userIDValue, exists := c.Get("userID")
 	if !exists {
 		log.Warn().Msg("Attempt to create media item without authentication")
 		responses.RespondUnauthorized(c, nil, "Authentication required")
+		return
+	}
+
+	// UserID is already a uint64 from JWT claims
+	userID, ok := userIDValue.(uint64)
+	if !ok {
+		log.Error().Interface("userIDValue", userIDValue).Msg("Failed to convert userID to uint64")
+		responses.RespondInternalError(c, nil, "Internal server error")
 		return
 	}
 
@@ -158,7 +180,7 @@ func (h *userMediaItemHandler[T]) Create(c *gin.Context) {
 		Msg("Creating user-owned media item")
 
 	// Create the media item
-	createdItem, err := h.userService.Create(ctx, mediaItem)
+	createdItem, err := h.userService.Create(ctx, &mediaItem)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
@@ -195,39 +217,49 @@ func (h *userMediaItemHandler[T]) Update(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid media item ID")
-		responses.RespondBadRequest(c, err, "Invalid media item ID")
-		return
-	}
+	itemID, err := checkItemID(c, "itemID")
 
 	// var zero T
 	// mediaType := types.GetMediaTypeFromTypeName(zero)
 	// Bind the request body to a media item struct
 	var mediaItem models.MediaItem[T]
+
+	// Initialize empty collections to prevent nil pointers
+	mediaItem.SyncClients = models.SyncClients{}
+	mediaItem.ExternalIDs = models.ExternalIDs{}
+
+	// For updates, we'll keep the existing UUID and not generate a new one
+
 	if err := c.ShouldBindJSON(&mediaItem); err != nil {
 		log.Warn().Err(err).Msg("Invalid media item data")
 		responses.RespondBadRequest(c, err, "Invalid media item data")
 		return
 	}
-	userIDStr, exists := c.Get("userID")
-	userID, err := strconv.ParseUint(userIDStr.(string), 10, 64)
+
+	userIDValue, exists := c.Get("userID")
 	if !exists {
-		log.Warn().Msg("Attempt to create media item without authentication")
+		log.Warn().Msg("Attempt to update media item without authentication")
 		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
 
+	// UserID is already a uint64 from JWT claims
+	userID, ok := userIDValue.(uint64)
+	if !ok {
+		log.Error().Interface("userIDValue", userIDValue).Msg("Failed to convert userID to uint64")
+		responses.RespondInternalError(c, nil, "Internal server error")
+		return
+	}
+
 	// Ensure the ID in the path matches the ID in the body
-	mediaItem.ID = id
+	mediaItem.ID = itemID
 
 	// First, get the existing item to verify ownership
-	existingItem, err := h.userService.GetByID(ctx, id)
+	existingItem, err := h.userService.GetByID(ctx, itemID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
-			Uint64("id", id).
+			Uint64("id", itemID).
 			Msg("Failed to get existing media item")
 		responses.RespondNotFound(c, err, "Media item not found")
 		return
@@ -238,7 +270,7 @@ func (h *userMediaItemHandler[T]) Update(c *gin.Context) {
 	if !h.isUserOwned(existingItem.Data, userID) {
 		log.Warn().
 			Uint64("userID", userID).
-			Uint64("id", id).
+			Uint64("itemID", itemID).
 			Msg("User not authorized to update this media item")
 		responses.RespondForbidden(c, nil, "Not authorized to update this media item")
 		return
@@ -257,7 +289,7 @@ func (h *userMediaItemHandler[T]) Update(c *gin.Context) {
 
 	log.Debug().
 		Uint64("userID", userID).
-		Uint64("id", id).
+		Uint64("itemID", itemID).
 		Str("type", string(mediaItem.Type)).
 		Msg("Updating user-owned media item")
 
@@ -266,7 +298,7 @@ func (h *userMediaItemHandler[T]) Update(c *gin.Context) {
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", userID).
-			Uint64("id", id).
+			Uint64("itemID", itemID).
 			Msg("Failed to update user-owned media item")
 		responses.RespondInternalError(c, err, "Failed to update media item")
 		return

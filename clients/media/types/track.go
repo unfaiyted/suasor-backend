@@ -1,5 +1,11 @@
 package types
 
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
+)
+
 type Track struct {
 	Details    MediaDetails
 	AlbumID    uint64      `json:"albumID"`
@@ -26,4 +32,33 @@ func (t *Track) AddSyncClient(clientID uint64, albumID string, artistID string) 
 	if itemID == "" {
 		t.SyncArtist.AddClient(clientID, artistID)
 	}
+}
+
+func (Track) isMediaData()               {}
+func (t Track) GetDetails() MediaDetails { return t.Details }
+func (t Track) GetMediaType() MediaType  { return MediaTypeTrack }
+func (t Track) GetTitle() string         { return t.Details.Title }
+
+func (t *Track) SetDetails(details MediaDetails) {
+	t.Details = details
+}
+
+// Scan
+func (m *Track) Scan(value any) error {
+	if value == nil {
+		return nil
+	}
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+
+	return json.Unmarshal(bytes, m)
+}
+
+func (m *Track) Value() (driver.Value, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return json.Marshal(m)
 }

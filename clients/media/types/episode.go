@@ -1,5 +1,11 @@
 package types
 
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
+)
+
 // Episode represents a TV episode
 type Episode struct {
 	Details      MediaDetails
@@ -24,6 +30,17 @@ func (e *Episode) AddSyncClient(clientID uint64, seriesID string, seasonID strin
 	}
 }
 
+func (e *Episode) isMediaData() {}
+
+func (e *Episode) GetDetails() MediaDetails { return e.Details }
+func (e *Episode) GetMediaType() MediaType  { return MediaTypeEpisode }
+
+func (e *Episode) GetTitle() string { return e.Details.Title }
+
+func (e *Episode) SetDetails(details MediaDetails) {
+	e.Details = details
+}
+
 // the clients id stored in the sync clients
 func (e *Episode) GetClientSeriesID(clientID uint64) string {
 	return e.SyncSeries.GetClientItemID(clientID)
@@ -31,4 +48,24 @@ func (e *Episode) GetClientSeriesID(clientID uint64) string {
 
 func (e *Episode) GetClientSeasonID(clientID uint64) string {
 	return e.SyncSeason.GetClientItemID(clientID)
+}
+
+// Scan
+func (m *Episode) Scan(value any) error {
+	if value == nil {
+		return nil
+	}
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+
+	return json.Unmarshal(bytes, m)
+}
+
+func (m *Episode) Value() (driver.Value, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return json.Marshal(m)
 }

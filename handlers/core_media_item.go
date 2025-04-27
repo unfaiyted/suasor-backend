@@ -4,6 +4,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"strconv"
+	"suasor/utils"
 	"time"
 
 	"suasor/clients/media/types"
@@ -68,14 +69,8 @@ func (h *coreMediaItemHandler[T]) GetAll(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	log.Debug().Msg("Getting all media items")
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if err != nil {
-		limit = 20
-	}
-	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
-	if err != nil {
-		offset = 0
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
+	offset := utils.GetOffset(c, 0)
 
 	// Get all media items
 	items, err := h.mediaService.GetAll(ctx, limit, offset)
@@ -98,39 +93,37 @@ func (h *coreMediaItemHandler[T]) GetAll(c *gin.Context) {
 //	@Tags			media, core
 //	@Accept			json
 //	@Produce		json
-//	@Param			id			path		int												true	"Media Item ID"
+//	@Param			itemId			path		int												true	"Media Item ID"
 //	@Param			mediaType	path		string											true	"Media type"
 //	@Success		200			{object}	responses.APIResponse[models.MediaItem[types.MediaData]]	"Media item retrieved successfully"
 //	@Failure		400			{object}	responses.ErrorResponse[any]					"Invalid request"
 //	@Failure		404			{object}	responses.ErrorResponse[any]					"Media item not found"
 //	@Failure		500			{object}	responses.ErrorResponse[any]					"Server error"
-//	@Router			/media/{mediaType}/{id} [get]
+//	@Router			/media/{mediaType}/{itemID} [get]
 func (h *coreMediaItemHandler[T]) GetByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	itemID, err := checkItemID(c, "itemID")
 	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid media item ID")
-		responses.RespondBadRequest(c, err, "Invalid media item ID")
 		return
 	}
 
 	log.Debug().
-		Uint64("id", id).
+		Uint64("id", itemID).
 		Msg("Getting media item by ID")
 
-	item, err := h.mediaService.GetByID(ctx, id)
+	item, err := h.mediaService.GetByID(ctx, itemID)
 	if err != nil {
 		log.Error().Err(err).
-			Uint64("id", id).
+			Uint64("id", itemID).
 			Msg("Failed to retrieve media item")
 		responses.RespondNotFound(c, err, "Media item not found")
 		return
 	}
 
 	log.Info().
-		Uint64("id", id).
+		Uint64("id", itemID).
 		Msg("Media item retrieved successfully")
 	responses.RespondOK(c, item, "Media item retrieved successfully")
 }
@@ -192,19 +185,20 @@ func (h *coreMediaItemHandler[T]) GetByExternalID(c *gin.Context) {
 
 // Search godoc
 //
-//	@Summary		Search media items
-//	@Description	Searches for media items based on query parameters
-//	@Tags			media, core
-//	@Accept			json
-//	@Produce		json
-//	@Param			q			query		string													true	"Search query"
-//	@Param			limit		query		int														false	"Maximum number of items to return (default 20)"
-//	@Param			offset		query		int														false	"Offset for pagination (default 0)"
-//	@Param			mediaType	path		string													true	"Media type"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
-//	@Failure		400			{object}	responses.ErrorResponse[any]							"Invalid request"
-//	@Failure		500			{object}	responses.ErrorResponse[any]							"Server error"
-//	@Router			/media/{mediaType}/search [get]
+//		@Summary		Search media items
+//		@Description	Searches for media items based on query parameters
+//		@Tags			media, core
+//		@Accept			json
+//		@Produce		json
+//		@Param			q			   query		  string										false	"Search query"
+//	  @Param		  options  body		    types.QueryOptions				false	"Search options"
+//		@Param			limit		 query		  int												false	"Maximum number of items to return (default 20)"
+//		@Param			offset		query		int													false	"Offset for pagination (default 0)"
+//		@Param			mediaType	path		string											true	"Media type"
+//		@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+//		@Failure		400			{object}	responses.ErrorResponse[any]							"Invalid request"
+//		@Failure		500			{object}	responses.ErrorResponse[any]							"Server error"
+//		@Router			/media/{mediaType}/search [get]
 func (h *coreMediaItemHandler[T]) Search(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -215,34 +209,29 @@ func (h *coreMediaItemHandler[T]) Search(c *gin.Context) {
 		responses.RespondBadRequest(c, nil, "Search query is required")
 		return
 	}
-
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if err != nil {
-		limit = 20
+	var options types.QueryOptions
+	if err := c.ShouldBindJSON(&options); err != nil {
+		// JSON binding failed, try to get parameters from query string
+		log.Debug().Err(err).Msg("JSON binding failed, using query parameters instead")
 	}
 
-	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
-	if err != nil {
-		offset = 0
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
+	offset := utils.GetOffset(c, 0)
 
 	var zero T
 	mediaType := types.GetMediaTypeFromTypeName(zero)
 
+	options.WithQuery(query)
+	options.WithLimit(limit)
+	options.WithOffset(offset)
+	options.WithMediaType(mediaType)
+
 	log.Debug().
-		Str("query", query).
+		Interface("query", options).
 		Str("type", string(mediaType)).
 		Int("limit", limit).
 		Int("offset", offset).
 		Msg("Searching media items")
-
-	// Create query options
-	options := types.QueryOptions{
-		Query:     query,
-		MediaType: mediaType,
-		Limit:     limit,
-		Offset:    offset,
-	}
 
 	// Search media items
 	items, err := h.mediaService.Search(ctx, options)

@@ -1,26 +1,5 @@
 package types
 
-import (
-	"time"
-)
-
-// MusicArtist represents a music artist
-type Artist struct {
-	MediaData `json:"-"`
-
-	Details        MediaDetails      `json:"details"`
-	Albums         []*Album          `json:"albums,omitempty"`
-	AlbumIDs       []uint64          `json:"albumIDs,omitempty"`
-	AlbumCount     int               `json:"albumCount"`
-	Biography      string            `json:"biography,omitempty"`
-	SimilarArtists []ArtistReference `json:"similarArtists,omitempty"`
-}
-
-type ArtistReference struct {
-	Name string `json:"name"`
-	ID   uint64 `json:"id"`
-}
-
 type SyncClient struct {
 	// ID of the client that this external ID belongs to (optional for service IDs like TMDB)
 	ID uint64 `json:"clientID,omitempty"`
@@ -59,44 +38,6 @@ func (s SyncClients) GetClientItemID(clientID uint64) string {
 	return ""
 }
 
-// Season represents a TV season
-type Season struct {
-	MediaData    `json:"-"`
-	Details      MediaDetails `json:"details"`
-	Number       int          `json:"seasonNumber"`
-	Title        string       `json:"title,omitempty"`
-	Overview     string       `json:"overview,omitempty"`
-	EpisodeCount int          `json:"episodeCount"`
-	Episodes     []*Episode   `json:"episodes,omitempty"`
-	EpisodeIDs   []uint64     `json:"episodeIDs,omitempty"`
-	Artwork      Artwork      `json:"artwork,omitempty"`
-	ReleaseDate  time.Time    `json:"releaseDate,omitempty"`
-	SeriesName   string       `json:"seriesName,omitempty"`
-	SeriesID     uint64       `json:"seriesID"`
-	SyncSeries   SyncClients  `json:"syncSeries,omitempty"`
-	Credits      Credits      `json:"credits,omitempty"`
-}
-
-// Series represents a TV series
-type Series struct {
-	MediaData     `json:"-"`
-	Details       MediaDetails `json:"details"`
-	Seasons       []*Season    `json:"seasons,omitempty"`
-	EpisodeCount  int          `json:"episodeCount"`
-	SeasonCount   int          `json:"seasonCount"`
-	ReleaseYear   int          `json:"releaseYear"`
-	ContentRating string       `json:"contentRating"`
-	Rating        float64      `json:"rating"`
-	Network       string       `json:"network,omitempty"`
-	Status        string       `json:"status,omitempty"` // e.g., "Ended", "Continuing"
-	Genres        []string     `json:"genres,omitempty"`
-	Credits       Credits      `json:"credits,omitempty"`
-}
-
-func (m *Series) SetDetails(details MediaDetails) {
-	m.Details = details
-}
-
 // Artwork holds different types of artwork
 type Artwork struct {
 	Poster     string `json:"poster,omitempty"`
@@ -107,61 +48,6 @@ type Artwork struct {
 }
 
 // Person represents someone involved with the media
-type Person struct {
-	MediaData `json:"-"`
-	Name      string `json:"name"`
-	Role      string `json:"role,omitempty"`      // e.g., "Director", "Actor"
-	Character string `json:"character,omitempty"` // For actors
-	Photo     string `json:"photo,omitempty"`
-
-	IsCast    bool `json:"isCast,omitempty"`
-	IsCrew    bool `json:"isCrew,omitempty"`
-	IsGuest   bool `json:"isGuest,omitempty"`
-	IsCreator bool `json:"isCreator,omitempty"`
-	IsArtist  bool `json:"isArtist,omitempty"`
-}
-
-type Credits []Person
-
-func (c Credits) GetCast() []Person {
-	var cast []Person
-	for _, person := range c {
-		if person.IsCast {
-			cast = append(cast, person)
-		}
-	}
-	return cast
-}
-
-func (c Credits) GetCrew() []Person {
-	var crew []Person
-	for _, person := range c {
-		if person.IsCrew {
-			crew = append(crew, person)
-		}
-	}
-	return crew
-}
-
-func (c Credits) GetGuests() []Person {
-	var guests []Person
-	for _, person := range c {
-		if person.IsGuest {
-			guests = append(guests, person)
-		}
-	}
-	return guests
-}
-
-func (c Credits) GetCreators() []Person {
-	var creators []Person
-	for _, person := range c {
-		if person.IsCreator {
-			creators = append(creators, person)
-		}
-	}
-	return creators
-}
 
 type MediaData interface {
 	isMediaData()
@@ -173,54 +59,4 @@ type MediaData interface {
 func NewItem[T MediaData]() T {
 	var zero T
 	return zero
-}
-
-func (Series) isMediaData()     {}
-func (Episode) isMediaData()    {}
-func (Track) isMediaData()      {}
-func (Artist) isMediaData()     {}
-func (Album) isMediaData()      {}
-func (Season) isMediaData()     {}
-func (Collection) isMediaData() {}
-func (Playlist) isMediaData()   {}
-
-func (t Track) GetDetails() MediaDetails { return t.Details }
-func (t Track) GetMediaType() MediaType  { return MediaTypeTrack }
-func (t Track) GetTitle() string         { return t.Details.Title }
-
-func (t *Track) SetDetails(details MediaDetails) {
-	t.Details = details
-}
-
-func (a Album) GetDetails() MediaDetails { return a.Details }
-func (a Album) GetMediaType() MediaType  { return MediaTypeAlbum }
-
-func (a Album) GetTitle() string { return a.Details.Title }
-
-func (a *Album) SetDetails(details MediaDetails) {
-	a.Details = details
-}
-
-func (a Artist) GetDetails() MediaDetails { return a.Details }
-func (a Artist) GetMediaType() MediaType  { return MediaTypeArtist }
-
-func (a Artist) GetTitle() string { return a.Details.Title }
-
-func (t Series) GetDetails() MediaDetails { return t.Details }
-func (t Series) GetMediaType() MediaType  { return MediaTypeSeries }
-
-func (t Series) GetTitle() string { return t.Details.Title }
-
-func (s Season) GetDetails() MediaDetails { return s.Details }
-func (s Season) GetMediaType() MediaType  { return MediaTypeSeason }
-
-func (s Season) GetTitle() string { return s.Details.Title }
-
-func (e Episode) GetDetails() MediaDetails { return e.Details }
-func (e Episode) GetMediaType() MediaType  { return MediaTypeEpisode }
-
-func (e Episode) GetTitle() string { return e.Details.Title }
-
-func (e *Episode) SetDetails(details MediaDetails) {
-	e.Details = details
 }
