@@ -369,25 +369,27 @@ func (h *UserHandler) GetByID(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Verify admin role
-	userID, ok := checkAdminAccess(c)
+	_, ok := checkAdminAccess(c)
 	if !ok {
 		return
 	}
 
-	user, err := h.service.GetByID(ctx, userID)
+	targetUserID, _ := checkItemID(c, "userID")
+
+	user, err := h.service.GetByID(ctx, targetUserID)
 	if err != nil {
 		if err.Error() == "user not found" {
-			log.Warn().Uint64("id", userID).Msg("User not found")
+			log.Warn().Uint64("id", targetUserID).Msg("User not found")
 			responses.RespondNotFound(c, err, "User not found")
 			return
 		}
-		log.Error().Err(err).Uint64("id", userID).Msg("Failed to retrieve user")
+		log.Error().Err(err).Uint64("id", targetUserID).Msg("Failed to retrieve user")
 		responses.RespondInternalError(c, err, "Failed to retrieve user")
 		return
 	}
 
 	userResponse := responses.NewUserResponse(user)
-	log.Info().Uint64("id", userID).Msg("Successfully retrieved user")
+	log.Info().Uint64("id", targetUserID).Msg("Successfully retrieved user")
 	responses.RespondOK(c, userResponse, "User retrieved successfully")
 }
 

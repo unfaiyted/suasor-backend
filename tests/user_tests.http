@@ -1,17 +1,10 @@
 import ./common/auth.http
 
-# First run the admin login to get an admin token
+### Core
 run #adminLogin
-
-# Then run the test user creation
 run #createTestUser
-
-# And login as the test user
 run #regularUserLogin
 
-#############################
-## User Registration Tests ##
-#############################
 
 ###
 # @name registerAnotherUser

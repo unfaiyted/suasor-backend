@@ -58,16 +58,43 @@ func UnmarshalConfigJSON(data []byte, config any) error {
 func unmarshalMediaClientConfig[T interface {
 	*EmbyConfig | *JellyfinConfig | *PlexConfig | *SubsonicConfig
 }](data []byte, details json.RawMessage, config T) error {
-	// Create a temporary struct to handle basic fields
+	// First structure for root-level fields
 	baseStruct := struct {
 		UserID   string `json:"userID,omitempty"`
-		Username string `json:"username"`
+		Username string `json:"username,omitempty"`
 		Password string `json:"password,omitempty"`
 		Token    string `json:"token,omitempty"`
 	}{}
-
+	
 	if err := json.Unmarshal(data, &baseStruct); err != nil {
 		return fmt.Errorf("error unmarshaling base fields: %w", err)
+	}
+	
+	// Second structure for API payload format where fields are in the config object
+	configStruct := struct {
+		Config struct {
+			Username string `json:"username,omitempty"`
+			UserID   string `json:"userID,omitempty"`
+			Password string `json:"password,omitempty"`
+			Token    string `json:"token,omitempty"`
+		} `json:"config,omitempty"`
+	}{}
+	
+	// Try to unmarshal for API format where fields are inside config
+	_ = json.Unmarshal(data, &configStruct)
+	
+	// Use config fields if root fields are empty
+	if baseStruct.Username == "" && configStruct.Config.Username != "" {
+		baseStruct.Username = configStruct.Config.Username
+	}
+	if baseStruct.UserID == "" && configStruct.Config.UserID != "" {
+		baseStruct.UserID = configStruct.Config.UserID
+	}
+	if baseStruct.Password == "" && configStruct.Config.Password != "" {
+		baseStruct.Password = configStruct.Config.Password
+	}
+	if baseStruct.Token == "" && configStruct.Config.Token != "" {
+		baseStruct.Token = configStruct.Config.Token
 	}
 
 	// Now handle the details which contains the ClientMediaConfig
@@ -202,4 +229,3 @@ func unmarshalMetadataConfig[T interface {
 
 	return nil
 }
-

@@ -60,8 +60,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
       },
       "clientType": "jellyfin",
       "baseURL": "{{JELLYFIN_TEST_URL}}",
-      "apiKey": "{{JELLYFIN_TEST_API_KEY}}",
-      "ssl": false
+      "apiKey": "{{JELLYFIN_TEST_API_KEY}}"
     },
     "username": "{{JELLYFIN_TEST_USER}}"
   }
@@ -87,11 +86,9 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
         "enabled": true,
         "validateConn": true
       },
-      "clientType": "plex",
-      "baseURL": "{{PLEX_TEST_URL}}",
-      "token": "{{PLEX_TEST_TOKEN}}",
-      "ssl": false
-    }
+      "clientType": "plex"
+    },
+  "token": "{{PLEX_TEST_TOKEN}}"
   }
 }
 
@@ -115,35 +112,35 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
         "enabled": true,
         "validateConn": true
       },
-      "clientType": "subsonic",
-      "baseURL": "http://{{SUBSONIC_TEST_HOST}}:{{SUBSONIC_TEST_PORT}}",
-      "username": "{{SUBSONIC_TEST_USERNAME}}",
-      "password": "{{SUBSONIC_TEST_PASSWORD}}",
-      "ssl": {{SUBSONIC_TEST_SSL}}
-    }
+      "clientType": "subsonic"
+    },
+    "username": "{{SUBSONIC_TEST_USERNAME}}",
+    "password": "{{SUBSONIC_TEST_PASSWORD}}"
   }
 }
 
 ### testEmbyConnection
 # @name testEmbyConnection
-GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/test
+GET {{baseUrl}}/admin/client/{{createEmbyClient.response.body.$.data.id}}/test
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ### testJellyfinConnection
 # @name testJellyfinConnection
-GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/test
+GET {{baseUrl}}/admin/client/{{createJellyfinClient.response.body.$.data.id}}/test
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ### testPlexConnection
 # @name testPlexConnection
-GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/test
+GET {{baseUrl}}/admin/client/{{createPlexClient.response.body.$.data.id}}/test
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ### testSubsonicConnection
 # @name testSubsonicConnection
-GET {{baseUrl}}/client/{{createSubsonicClient.response.body.$.data.id}}/test
+GET {{baseUrl}}/admin/client/{{createSubsonicClient.response.body.$.data.id}}/test
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+

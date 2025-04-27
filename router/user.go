@@ -6,13 +6,23 @@ import (
 	"suasor/handlers"
 )
 
-func RegisterUserRoutes(rg *gin.RouterGroup, c *container.Container) {
+func RegisterUserRoutes(unauth *gin.RouterGroup, auth *gin.RouterGroup, c *container.Container) {
 	userHandlers := container.MustGet[*handlers.UserHandler](c)
-	users := rg.Group("/user")
+
+	unauthUser := unauth.Group("/user")
+
 	{
 		// Public routes
-		users.POST("/register", userHandlers.Register)
+		unauthUser.POST("/register", userHandlers.Register)
 
+		// Password reset - public routes
+		unauthUser.POST("/forgot-password", userHandlers.ForgotPassword)
+		unauthUser.POST("/reset-password", userHandlers.ResetPassword)
+
+	}
+
+	users := auth.Group("/user")
+	{
 		// Authenticated user routes
 		users.GET("/profile", userHandlers.GetProfile)
 		users.PUT("/profile", userHandlers.UpdateProfile)

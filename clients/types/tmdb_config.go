@@ -1,11 +1,16 @@
 package types
 
-import "fmt"
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
+	"fmt"
+)
 
 // TMDBConfig represents the configuration for a TMDB client
 type TMDBConfig struct {
-	ClientMetadataConfig
-	ApiKey string `json:"apiKey" mapstructure:"apiKey" example:"your-tmdb-api-key" binding:"required_if=Enabled true"`
+	ClientMetadataConfig `json:"details"`
+	ApiKey               string `json:"apiKey" mapstructure:"apiKey" example:"your-tmdb-api-key" binding:"required_if=Enabled true"`
 }
 
 // Validate checks if the provided config is valid
@@ -76,4 +81,21 @@ func NewTMDBConfig(apiKey string, baseURL string, enabled bool, validateConn boo
 
 func (c *TMDBConfig) UnmarshalJSON(data []byte) error {
 	return UnmarshalConfigJSON(data, c)
+}
+
+// Value implements driver.Valuer for database storage
+func (c *TMDBConfig) Value() (driver.Value, error) {
+	// Serialize the entire item to JSON for storage
+	return json.Marshal(c)
+}
+
+// Scan implements sql.Scanner for database retrieval
+func (m *TMDBConfig) Scan(value any) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+
+	// Use the same custom unmarshaling logic we defined in UnmarshalJSON
+	return m.UnmarshalJSON(bytes)
 }

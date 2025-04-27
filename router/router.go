@@ -54,7 +54,7 @@ func Setup(ctx context.Context, c *container.Container) *gin.Engine {
 	{
 		// User Centric Data
 		// {base}/user/
-		RegisterUserRoutes(authenticated, c)
+		RegisterUserRoutes(v1, authenticated, c)
 
 		// {base}/user-config/
 		RegisterUserConfigRoutes(authenticated, c)

@@ -1,6 +1,10 @@
 package types
 
-import "encoding/json"
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
+)
 
 // @Description Claude AI service configuration
 type ClaudeConfig struct {
@@ -59,4 +63,21 @@ func (c *ClaudeConfig) UnmarshalJSON(data []byte) error {
 	}
 
 	return nil
+}
+
+// Value implements driver.Valuer for database storage
+func (c *ClaudeConfig) Value() (driver.Value, error) {
+	// Serialize the entire item to JSON for storage
+	return json.Marshal(c)
+}
+
+// Scan implements sql.Scanner for database retrieval
+func (m *ClaudeConfig) Scan(value any) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+
+	// Use the same custom unmarshaling logic we defined in UnmarshalJSON
+	return m.UnmarshalJSON(bytes)
 }

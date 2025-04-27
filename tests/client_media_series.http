@@ -1,9 +1,6 @@
 import ./client_media_common.http
+### Series Tests
 
-# Test series media items for clients
-# This file tests series-specific functionality
-
-# Run the common setup to get valid clients and authentication token
 run #login
 run #createEmbyClient
 run #createJellyfinClient

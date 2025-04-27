@@ -30,7 +30,7 @@ type ClientMediaConfig interface {
 type clientMediaConfig struct {
 	ClientConfig `json:"core"`
 	ClientType   ClientMediaType `json:"clientType"`
-	APIKey       string          `json:"apiKey" mapstructure:"apiKey" example:"your-api-key" binding:"required_if=Enabled true"`
+	APIKey       string          `json:"apiKey,omitempty" mapstructure:"apiKey" example:"your-api-key" `
 	SSL          bool            `json:"ssl" mapstructure:"ssl" example:"false"`
 }
 

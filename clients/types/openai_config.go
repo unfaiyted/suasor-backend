@@ -1,8 +1,14 @@
 package types
 
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
+)
+
 // @Description OpenAI service configuration
 type OpenAIConfig struct {
-	AIClientConfig
+	AIClientConfig   `json:"details"`
 	Model            string  `json:"model" mapstructure:"model" example:"gpt-4-turbo"`
 	Temperature      float64 `json:"temperature" mapstructure:"temperature" example:"0.7"`
 	MaxTokens        int     `json:"maxTokens" mapstructure:"maxTokens" example:"1000"`
@@ -46,4 +52,21 @@ func (OpenAIConfig) GetCategory() ClientCategory {
 
 func (c *OpenAIConfig) UnmarshalJSON(data []byte) error {
 	return UnmarshalConfigJSON(data, c)
+}
+
+// Value implements driver.Valuer for database storage
+func (c *OpenAIConfig) Value() (driver.Value, error) {
+	// Serialize the entire item to JSON for storage
+	return json.Marshal(c)
+}
+
+// Scan implements sql.Scanner for database retrieval
+func (m *OpenAIConfig) Scan(value any) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+
+	// Use the same custom unmarshaling logic we defined in UnmarshalJSON
+	return m.UnmarshalJSON(bytes)
 }
