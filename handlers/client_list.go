@@ -113,16 +113,16 @@ func (h *clientListHandler[T, U]) GetListByID(c *gin.Context) {
 
 // GetLists godoc
 //
-//	@Summary		Get all playlists
-//	@Description	Retrieves all playlists from the client
+//	@Summary		Get all lists
+//	@Description	Retrieves all lists from the client
 //	@Tags			lists, clients
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			clientID	path		int																true	"Client ID"
 //	@Param			listType	path		string															true	"List type (e.g. 'playlist', 'collection')"
-//	@Param			limit		query		int																false	"Maximum number of playlists to return"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.ListData]]	"Lists retrieved"
+//	@Param			limit		query		int																false	"Maximum number of lists to return"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.ListData]]	"Lists retrieved"
 //	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid client ID"
 //	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
@@ -130,7 +130,7 @@ func (h *clientListHandler[T, U]) GetListByID(c *gin.Context) {
 func (h *clientListHandler[T, U]) GetLists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
-	log.Info().Msg("Getting all playlists")
+	log.Info().Msg("Getting all lists")
 
 	// Get authenticated user ID
 	uid, _ := checkUserAccess(c)
@@ -139,24 +139,24 @@ func (h *clientListHandler[T, U]) GetLists(c *gin.Context) {
 	log.Info().
 		Uint64("userID", uid).
 		Int("count", limit).
-		Msg("Retrieving playlists")
+		Msg("Retrieving lists")
 
-	playlists, err := h.listService.GetClientLists(ctx, uid, limit)
+	lists, err := h.listService.GetClientLists(ctx, uid, limit)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
 			Int("count", limit).
-			Msg("Failed to retrieve playlists")
-		responses.RespondInternalError(c, err, "Failed to retrieve playlists")
+			Msg("Failed to retrieve lists")
+		responses.RespondInternalError(c, err, "Failed to retrieve lists")
 		return
 	}
 
 	log.Info().
 		Uint64("userID", uid).
 		Int("count", limit).
-		Int("playlistsReturned", len(playlists)).
+		Int("listsReturned", len(lists)).
 		Msg("Lists retrieved successfully")
-	responses.RespondOK(c, playlists, "Lists retrieved successfully")
+	responses.RespondMediaItemListOK(c, lists, "Lists retrieved successfully")
 }
 
 // CreateList godoc
@@ -494,8 +494,8 @@ func (h *clientListHandler[T, U]) RemoveItemFromList(c *gin.Context) {
 
 // SearchLists godoc
 //
-//	@Summary		Search playlists
-//	@Description	Searches for playlists matching the given query
+//	@Summary		Search lists
+//	@Description	Searches for lists matching the given query
 //	@Tags			lists, clients
 //	@Accept			json
 //	@Produce		json
@@ -503,7 +503,7 @@ func (h *clientListHandler[T, U]) RemoveItemFromList(c *gin.Context) {
 //	@Param			clientID	path		int																true	"Client ID"
 //	@Param			listType	path		string															true	"List type (e.g. 'playlist', 'collection')"
 //	@Param			q			query		string															true	"Search query"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.ListData]]	"Lists found"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.ListData]]	"Lists found"
 //	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid request"
 //	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
@@ -511,12 +511,12 @@ func (h *clientListHandler[T, U]) RemoveItemFromList(c *gin.Context) {
 func (h *clientListHandler[T, U]) SearchLists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
-	log.Info().Msg("Searching playlists")
+	log.Info().Msg("Searching lists")
 
 	// Get authenticated user ID
 	userID, exists := c.Get("userID")
 	if !exists {
-		log.Warn().Msg("Attempt to search playlists without authentication")
+		log.Warn().Msg("Attempt to search lists without authentication")
 		responses.RespondUnauthorized(c, nil, "Authentication required")
 		return
 	}
@@ -532,7 +532,7 @@ func (h *clientListHandler[T, U]) SearchLists(c *gin.Context) {
 	log.Info().
 		Uint64("userID", uid).
 		Str("query", query).
-		Msg("Searching playlists")
+		Msg("Searching lists")
 
 		// Parse client ID from URL
 	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
@@ -545,20 +545,20 @@ func (h *clientListHandler[T, U]) SearchLists(c *gin.Context) {
 		Query: query,
 	}
 
-	playlists, err := h.listService.SearchClientLists(ctx, clientID, options)
+	lists, err := h.listService.SearchClientLists(ctx, clientID, options)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
 			Str("query", query).
-			Msg("Failed to search playlists")
-		responses.RespondInternalError(c, err, "Failed to search playlists")
+			Msg("Failed to search lists")
+		responses.RespondInternalError(c, err, "Failed to search lists")
 		return
 	}
 
 	log.Info().
 		Uint64("userID", uid).
 		Str("query", query).
-		Int("resultsCount", len(playlists)).
+		Int("resultsCount", len(lists)).
 		Msg("List search completed successfully")
-	responses.RespondOK(c, playlists, "Lists retrieved successfully")
+	responses.RespondMediaItemListOK(c, lists, "Lists retrieved successfully")
 }

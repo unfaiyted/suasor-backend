@@ -574,7 +574,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Media items retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData"
                         }
                     },
                     "400": {
@@ -632,7 +632,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Media items retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-map_string_array_models_MediaItem-types_MediaData"
+                            "$ref": "#/definitions/responses.APIResponse-map_string_models_MediaItem-types_MediaData"
                         }
                     },
                     "400": {
@@ -2006,7 +2006,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Favorite albums retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Album"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Album"
                         }
                     },
                     "400": {
@@ -2062,7 +2062,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Albums retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Album"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Album"
                         }
                     },
                     "401": {
@@ -2112,7 +2112,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Albums retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Album"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Album"
                         }
                     },
                     "400": {
@@ -2175,7 +2175,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Albums retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Album"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Album"
                         }
                     },
                     "400": {
@@ -2244,7 +2244,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Albums retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Album"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Album"
                         }
                     },
                     "400": {
@@ -2300,7 +2300,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Albums retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Album"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Album"
                         }
                     },
                     "400": {
@@ -2369,7 +2369,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Artists retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Artist"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Artist"
                         }
                     },
                     "400": {
@@ -2438,7 +2438,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Artists retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Artist"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Artist"
                         }
                     },
                     "401": {
@@ -2495,7 +2495,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Artists retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Artist"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Artist"
                         }
                     },
                     "400": {
@@ -2564,7 +2564,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Artists retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Artist"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Artist"
                         }
                     },
                     "400": {
@@ -2627,7 +2627,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Albums retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Album"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Album"
                         }
                     },
                     "400": {
@@ -2696,7 +2696,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Similar artists retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Artist"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Artist"
                         }
                     },
                     "400": {
@@ -2821,7 +2821,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Favorite tracks retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Track"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Track"
                         }
                     },
                     "400": {
@@ -2877,7 +2877,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Tracks retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Track"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Track"
                         }
                     },
                     "401": {
@@ -2940,7 +2940,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Tracks retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Track"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Track"
                         }
                     },
                     "400": {
@@ -3002,7 +3002,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Recently played tracks retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Track"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Track"
                         }
                     },
                     "400": {
@@ -3071,7 +3071,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Tracks retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Track"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Track"
                         }
                     },
                     "400": {
@@ -3140,7 +3140,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Similar tracks retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Track"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Track"
                         }
                     },
                     "400": {
@@ -3929,7 +3929,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Media items retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData"
                         }
                     },
                     "400": {
@@ -4039,7 +4039,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Media items retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData"
                         }
                     },
                     "400": {
@@ -4154,7 +4154,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "401": {
@@ -4204,7 +4204,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "401": {
@@ -4324,7 +4324,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "401": {
@@ -4437,7 +4437,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "400": {
@@ -4493,7 +4493,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "400": {
@@ -4556,7 +4556,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "400": {
@@ -4619,7 +4619,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "400": {
@@ -4682,7 +4682,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "400": {
@@ -4738,7 +4738,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "400": {
@@ -5178,7 +5178,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieves all playlists from the client",
+                "description": "Retrieves all lists from the client",
                 "consumes": [
                     "application/json"
                 ],
@@ -5189,7 +5189,7 @@ const docTemplate = `{
                     "lists",
                     "clients"
                 ],
-                "summary": "Get all playlists",
+                "summary": "Get all lists",
                 "parameters": [
                     {
                         "type": "integer",
@@ -5207,7 +5207,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "Maximum number of playlists to return",
+                        "description": "Maximum number of lists to return",
                         "name": "limit",
                         "in": "query"
                     }
@@ -5216,7 +5216,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Lists retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_ListData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_ListData"
                         }
                     },
                     "400": {
@@ -5317,7 +5317,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Searches for playlists matching the given query",
+                "description": "Searches for lists matching the given query",
                 "consumes": [
                     "application/json"
                 ],
@@ -5328,7 +5328,7 @@ const docTemplate = `{
                     "lists",
                     "clients"
                 ],
-                "summary": "Search playlists",
+                "summary": "Search lists",
                 "parameters": [
                     {
                         "type": "integer",
@@ -5356,7 +5356,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Lists found",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_ListData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_ListData"
                         }
                     },
                     "400": {
@@ -9990,7 +9990,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Media items retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData"
                         }
                     },
                     "400": {
@@ -10105,7 +10105,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Media items retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData"
                         }
                     },
                     "400": {
@@ -10293,7 +10293,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Media items retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData"
                         }
                     },
                     "400": {
@@ -10344,7 +10344,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Media items retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData"
                         }
                     },
                     "500": {
@@ -10395,7 +10395,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Media items retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData"
                         }
                     },
                     "500": {
@@ -10453,7 +10453,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Media items retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData"
                         }
                     },
                     "400": {
@@ -10504,7 +10504,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Media items retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData"
                         }
                     },
                     "500": {
@@ -10556,7 +10556,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Media items retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData"
                         }
                     },
                     "400": {
@@ -10613,7 +10613,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Media items retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData"
                         }
                     },
                     "500": {
@@ -10678,7 +10678,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Media items retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData"
                         }
                     },
                     "400": {
@@ -10729,7 +10729,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Media items retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData"
                         }
                     },
                     "500": {
@@ -10843,7 +10843,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Media items retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData"
                         }
                     },
                     "400": {
@@ -14162,7 +14162,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Lists retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_ListData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_ListData"
                         }
                     },
                     "500": {
@@ -14331,7 +14331,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Lists retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_ListData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_ListData"
                         }
                     },
                     "400": {
@@ -14382,7 +14382,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Lists retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_ListData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_ListData"
                         }
                     },
                     "400": {
@@ -14545,7 +14545,7 @@ const docTemplate = `{
         },
         "/{listType}/{listID}": {
             "get": {
-                "description": "Retrieves a specific playlist by ID",
+                "description": "Retrieves a specific list by ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -14555,7 +14555,7 @@ const docTemplate = `{
                 "tags": [
                     "lists"
                 ],
-                "summary": "Get playlist by ID",
+                "summary": "Get list by ID",
                 "parameters": [
                     {
                         "type": "integer",
@@ -14894,7 +14894,7 @@ const docTemplate = `{
         },
         "/{listType}/{listID}/items": {
             "get": {
-                "description": "Retrieves all tracks in a specific playlist",
+                "description": "Retrieves all tracks in a specific list",
                 "consumes": [
                     "application/json"
                 ],
@@ -14904,7 +14904,7 @@ const docTemplate = `{
                 "tags": [
                     "lists"
                 ],
-                "summary": "Get tracks in a playlist",
+                "summary": "Get tracks in a list",
                 "parameters": [
                     {
                         "type": "integer",
@@ -14982,13 +14982,10 @@ const docTemplate = `{
                 "ErrorTypeUnprocessableEntity"
             ]
         },
-        "map_string_array_models.MediaItem-types_MediaData": {
+        "map_string_models.MediaItem-types_MediaData": {
             "type": "object",
             "additionalProperties": {
-                "type": "array",
-                "items": {
-                    "$ref": "#/definitions/models.MediaItem-types_MediaData"
-                }
+                "$ref": "#/definitions/models.MediaItem-types_MediaData"
             }
         },
         "models.AIModelPreferences": {
@@ -19629,25 +19626,6 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.MediaItem-suasor_clients_media_types_Movie"
-                    }
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Operation successful"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
         "responses.APIResponse-array_models_MediaItem-types_Album": {
             "type": "object",
             "properties": {
@@ -19693,25 +19671,6 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.MediaItem-types_ListData"
-                    }
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Operation successful"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
-        "responses.APIResponse-array_models_MediaItem-types_MediaData": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.MediaItem-types_MediaData"
                     }
                 },
                 "message": {
@@ -19835,11 +19794,11 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.APIResponse-map_string_array_models_MediaItem-types_MediaData": {
+        "responses.APIResponse-map_string_models_MediaItem-types_MediaData": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/map_string_array_models.MediaItem-types_MediaData"
+                    "$ref": "#/definitions/map_string_models.MediaItem-types_MediaData"
                 },
                 "message": {
                     "type": "string",
@@ -20320,6 +20279,22 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/responses.MediaItemList-types_Episode"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.APIResponse-responses_MediaItemList-types_ListData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.MediaItemList-types_ListData"
                 },
                 "message": {
                     "type": "string",
@@ -20812,6 +20787,20 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.MediaItem-types_Episode"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "responses.MediaItemList-types_ListData": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MediaItem-types_ListData"
                     }
                 },
                 "total": {

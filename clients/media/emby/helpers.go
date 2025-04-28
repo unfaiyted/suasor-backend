@@ -385,19 +385,19 @@ func ApplyClientQueryOptions(queryParams *embyclient.ItemsServiceApiGetItemsOpts
 	}
 
 	// Date filters
-	if !options.DateAddedAfter.IsZero() {
+	if options.DateAddedAfter != nil {
 		queryParams.MinDateLastSaved = optional.NewString(options.DateAddedAfter.Format(time.RFC3339))
 	}
 
-	if !options.DateAddedBefore.IsZero() {
+	if options.DateAddedBefore != nil {
 		queryParams.MaxPremiereDate = optional.NewString(options.DateAddedBefore.Format(time.RFC3339))
 	}
 
-	if !options.ReleasedAfter.IsZero() {
+	if options.ReleasedAfter != nil {
 		queryParams.MinPremiereDate = optional.NewString(options.ReleasedAfter.Format(time.RFC3339))
 	}
 
-	if !options.ReleasedBefore.IsZero() {
+	if options.ReleasedBefore != nil {
 		queryParams.MaxPremiereDate = optional.NewString(options.ReleasedBefore.Format(time.RFC3339))
 	}
 

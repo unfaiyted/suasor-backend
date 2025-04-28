@@ -28,7 +28,7 @@ type coreListHandler[T types.ListData] struct {
 	listService services.CoreListService[T]
 }
 
-// NewCoreListHandler[T] creates a new core playlist handler
+// NewCoreListHandler[T] creates a new core list handler
 func NewCoreListHandler[T types.ListData](
 	CoreMediaItemHandler CoreMediaItemHandler[T],
 	listService services.CoreListService[T],
@@ -49,7 +49,7 @@ func NewCoreListHandler[T types.ListData](
 //	@Param      limit		  query		int							false	"Maximum number of lists to return (default 10)"
 //	@Param			offset		query		int						false	"Offset for pagination (default 0)"
 //	@Param			listType	path		string				true	"List type (e.g. 'playlist', 'collection')"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.ListData]]	"Lists retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.ListData]]	"Lists retrieved successfully"
 //	@Failure		500			{object}	responses.ErrorResponse[any]									"Server error"
 //	@Router			/{listType} [get]
 func (h *coreListHandler[T]) GetAll(c *gin.Context) {
@@ -69,13 +69,13 @@ func (h *coreListHandler[T]) GetAll(c *gin.Context) {
 	log.Info().
 		Int("count", len(lists)).
 		Msg("Lists retrieved successfully")
-	responses.RespondOK(c, lists, "Lists retrieved successfully")
+	responses.RespondMediaItemListOK(c, lists, "Lists retrieved successfully")
 }
 
 // GetByID godoc
 //
-//	@Summary		Get playlist by ID
-//	@Description	Retrieves a specific playlist by ID
+//	@Summary		Get list by ID
+//	@Description	Retrieves a specific list by ID
 //	@Tags			lists
 //	@Accept			json
 //	@Produce		json
@@ -97,23 +97,23 @@ func (h *coreListHandler[T]) GetByID(c *gin.Context) {
 
 	log.Debug().
 		Uint64("listID", listID).
-		Msg("Getting playlist by ID")
+		Msg("Getting list by ID")
 
-	playlist, err := h.listService.GetByID(ctx, listID)
-	if handleServiceError(c, err, "Failed to retrieve playlist", "List not found", "List not found") {
+	list, err := h.listService.GetByID(ctx, listID)
+	if handleServiceError(c, err, "Failed to retrieve list", "List not found", "List not found") {
 		return
 	}
 
 	log.Info().
 		Uint64("id", listID).
 		Msg("List retrieved successfully")
-	responses.RespondOK(c, playlist, "List retrieved successfully")
+	responses.RespondOK(c, list, "List retrieved successfully")
 }
 
 // GetListItems godoc
 //
-//	@Summary		Get tracks in a playlist
-//	@Description	Retrieves all tracks in a specific playlist
+//	@Summary		Get tracks in a list
+//	@Description	Retrieves all tracks in a specific list
 //	@Tags			lists
 //	@Accept			json
 //	@Produce		json
@@ -132,14 +132,14 @@ func (h *coreListHandler[T]) GetItemsByListID(c *gin.Context) {
 
 	log.Debug().
 		Uint64("id", listID).
-		Msg("Getting tracks for playlist")
+		Msg("Getting tracks for list")
 
-	playlist, err := h.listService.GetByID(ctx, listID)
-	if handleServiceError(c, err, "Failed to retrieve playlist", "List not found", "List not found") {
+	list, err := h.listService.GetByID(ctx, listID)
+	if handleServiceError(c, err, "Failed to retrieve list", "List not found", "List not found") {
 		return
 	}
 
-	itemList := playlist.GetData().GetItemList()
+	itemList := list.GetData().GetItemList()
 
 	log.Info().
 		Uint64("listID", listID).
@@ -157,7 +157,7 @@ func (h *coreListHandler[T]) GetItemsByListID(c *gin.Context) {
 //	@Produce		json
 //	@Param			genre		path		string															true	"Genre name"
 //	@Param			listType	path		string															true	"List type (e.g. 'playlist', 'collection')"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.ListData]]	"Lists retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.ListData]]	"Lists retrieved successfully"
 //	@Failure		400			{object}	responses.ErrorResponse[any]									"Invalid request"
 //	@Failure		500			{object}	responses.ErrorResponse[any]									"Server error"
 //	@Router			/{listType}/genre/{genre} [get]
@@ -194,7 +194,7 @@ func (h *coreListHandler[T]) GetByGenre(c *gin.Context) {
 		Str("genre", genre).
 		Int("count", len(lists)).
 		Msg("Lists by genre retrieved successfully")
-	responses.RespondOK(c, lists, "Lists retrieved successfully")
+	responses.RespondMediaItemListOK(c, lists, "Lists retrieved successfully")
 }
 
 // Search godoc
@@ -206,7 +206,7 @@ func (h *coreListHandler[T]) GetByGenre(c *gin.Context) {
 //	@Produce		json
 //	@Param			listType	path		string															true	"List type (e.g. 'playlist', 'collection')"
 //	@Param			q			query		string															true	"Search query"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.ListData]]	"Lists retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.ListData]]	"Lists retrieved successfully"
 //	@Failure		400			{object}	responses.ErrorResponse[any]									"Invalid request"
 //	@Failure		500			{object}	responses.ErrorResponse[any]									"Server error"
 //	@Router			/{listType}/search [get]
@@ -244,5 +244,5 @@ func (h *coreListHandler[T]) Search(c *gin.Context) {
 		Str("query", query).
 		Int("count", len(lists)).
 		Msg("Lists search completed successfully")
-	responses.RespondOK(c, lists, "Lists retrieved successfully")
+	responses.RespondMediaItemListOK(c, lists, "Lists retrieved successfully")
 }

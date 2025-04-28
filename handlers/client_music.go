@@ -235,7 +235,7 @@ func (h *clientMusicHandler[T]) GetClientTracksByAlbum(c *gin.Context) {
 		Str("albumID", albumID).
 		Int("trackCount", len(tracks)).
 		Msg("Tracks retrieved successfully")
-	responses.RespondOK(c, tracks, "Tracks retrieved successfully")
+	responses.RespondMediaItemListOK(c, tracks, "Tracks retrieved successfully")
 }
 
 // GetAlbumsByArtist godoc
@@ -248,7 +248,7 @@ func (h *clientMusicHandler[T]) GetClientTracksByAlbum(c *gin.Context) {
 //	@Security		BearerAuth
 //	@Param			clientID	path		int															true	"Client ID"
 //	@Param			artistID	path		string														true	"Artist ID"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Album]]	"Albums retrieved"
 //	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid client ID"
 //	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
@@ -289,7 +289,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByArtist(c *gin.Context) {
 		Str("artistID", artistID).
 		Int("albumCount", len(albums)).
 		Msg("Albums retrieved successfully")
-	responses.RespondOK(c, albums, "Albums retrieved successfully")
+	responses.RespondMediaItemListOK(c, albums, "Albums retrieved successfully")
 }
 
 // GetArtistsByGenre godoc
@@ -303,7 +303,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByArtist(c *gin.Context) {
 //	@Param			genre		path		string															true	"Genre name"
 //	@Param			limit		query		int																false	"Maximum number of artists to return (default 10)"
 //	@Param			clientID	path		int																true	"Client ID"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Artist]]	"Artists retrieved"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Artist]]	"Artists retrieved"
 //	@Failure		401			{object}	responses.ErrorResponse[error]									"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[error]									"Server error"
 //	@Router			/client/{clientID}/media/music/artists/genre/{genre} [get]
@@ -335,7 +335,7 @@ func (h *clientMusicHandler[T]) GetClientArtistsByGenre(c *gin.Context) {
 		Str("genre", genre).
 		Int("count", len(artists)).
 		Msg("Artists retrieved successfully")
-	responses.RespondOK(c, artists, "Artists retrieved successfully")
+	responses.RespondMediaItemListOK(c, artists, "Artists retrieved successfully")
 }
 
 // GetAlbumsByGenre godoc
@@ -347,7 +347,7 @@ func (h *clientMusicHandler[T]) GetClientArtistsByGenre(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			genre	path		string														true	"Genre name"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Album]]	"Albums retrieved"
 //	@Failure		401		{object}	responses.ErrorResponse[error]								"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[error]								"Server error"
 //	@Router			/client/{clientID}/media/music/albums/genre/{genre} [get]
@@ -385,7 +385,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByGenre(c *gin.Context) {
 		Str("genre", genre).
 		Int("count", len(albums)).
 		Msg("Albums retrieved successfully")
-	responses.RespondOK(c, albums, "Albums retrieved successfully")
+	responses.RespondMediaItemListOK(c, albums, "Albums retrieved successfully")
 }
 
 // GetTracksByGenre godoc
@@ -397,7 +397,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByGenre(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			genre	path		string														true	"Genre name"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Tracks retrieved"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Track]]	"Tracks retrieved"
 //	@Failure		401		{object}	responses.ErrorResponse[error]								"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[error]								"Server error"
 //	@Router			/client/{clientID}/media/music/tracks/genre/{genre} [get]
@@ -435,7 +435,7 @@ func (h *clientMusicHandler[T]) GetClientTracksByGenre(c *gin.Context) {
 		Str("genre", genre).
 		Int("count", len(tracks)).
 		Msg("Tracks retrieved successfully")
-	responses.RespondOK(c, tracks, "Tracks retrieved successfully")
+	responses.RespondMediaItemListOK(c, tracks, "Tracks retrieved successfully")
 }
 
 // GetAlbumsByYear godoc
@@ -447,7 +447,7 @@ func (h *clientMusicHandler[T]) GetClientTracksByGenre(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			year	path		int															true	"Release year"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Album]]	"Albums retrieved"
 //	@Failure		400		{object}	responses.ErrorResponse[error]								"Invalid year"
 //	@Failure		401		{object}	responses.ErrorResponse[error]								"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[error]								"Server error"
@@ -491,7 +491,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByYear(c *gin.Context) {
 		Int("year", year).
 		Int("count", len(albums)).
 		Msg("Albums retrieved successfully")
-	responses.RespondOK(c, albums, "Albums retrieved successfully")
+	responses.RespondMediaItemListOK(c, albums, "Albums retrieved successfully")
 }
 
 // GetLatestAlbumsByAdded godoc
@@ -503,7 +503,7 @@ func (h *clientMusicHandler[T]) GetClientAlbumsByYear(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			count	path		int															true	"Number of albums to retrieve"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Album]]	"Albums retrieved"
 //	@Failure		400		{object}	responses.ErrorResponse[error]								"Invalid count"
 //	@Failure		401		{object}	responses.ErrorResponse[error]								"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[error]								"Server error"
@@ -547,7 +547,7 @@ func (h *clientMusicHandler[T]) GetClientLatestAlbumsByAdded(c *gin.Context) {
 		Int("count", count).
 		Int("albumsReturned", len(albums)).
 		Msg("Latest albums retrieved successfully")
-	responses.RespondOK(c, albums, "Albums retrieved successfully")
+	responses.RespondMediaItemListOK(c, albums, "Albums retrieved successfully")
 }
 
 // GetPopularAlbums godoc
@@ -560,7 +560,7 @@ func (h *clientMusicHandler[T]) GetClientLatestAlbumsByAdded(c *gin.Context) {
 //	@Security		BearerAuth
 //	@Param			count		path		int															true	"Number of albums to retrieve"
 //	@Param			clientID	path		int															true	"Client ID"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Album]]	"Albums retrieved"
 //	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid count"
 //	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
@@ -598,7 +598,7 @@ func (h *clientMusicHandler[T]) GetClientPopularAlbums(c *gin.Context) {
 		Int("count", count).
 		Int("albumsReturned", len(albums)).
 		Msg("Popular albums retrieved successfully")
-	responses.RespondOK(c, albums, "Albums retrieved successfully")
+	responses.RespondMediaItemListOK(c, albums, "Albums retrieved successfully")
 }
 
 // GetPopularArtists godoc
@@ -611,7 +611,7 @@ func (h *clientMusicHandler[T]) GetClientPopularAlbums(c *gin.Context) {
 //	@Security		BearerAuth
 //	@Param			clientID	path		int																true	"Client ID"
 //	@Param			count		path		int																true	"Number of artists to retrieve"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Artist]]	"Artists retrieved"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Artist]]	"Artists retrieved"
 //	@Failure		400			{object}	responses.ErrorResponse[error]									"Invalid count"
 //	@Failure		401			{object}	responses.ErrorResponse[error]									"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[error]									"Server error"
@@ -649,7 +649,7 @@ func (h *clientMusicHandler[T]) GetClientPopularArtists(c *gin.Context) {
 		Int("count", count).
 		Int("artistsReturned", len(artists)).
 		Msg("Popular artists retrieved successfully")
-	responses.RespondOK(c, artists, "Artists retrieved successfully")
+	responses.RespondMediaItemListOK(c, artists, "Artists retrieved successfully")
 }
 
 // SearchMusic godoc
@@ -734,7 +734,7 @@ func (h *clientMusicHandler[T]) SearchClientMusic(c *gin.Context) {
 //	@Param			clientType	path		string														true	"Client Type"
 //	@Param			clientID	path		int															true	"Client ID"
 //	@Param			limit		query		int															false	"Number of tracks to retrieve (default 10)"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Tracks retrieved"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Track]]	"Tracks retrieved"
 //	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid client ID"
 //	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
@@ -775,7 +775,7 @@ func (h *clientMusicHandler[T]) GetClientTopTracks(c *gin.Context) {
 		Uint64("clientID", clientID).
 		Int("trackCount", len(tracks)).
 		Msg("Top tracks retrieved successfully")
-	responses.RespondOK(c, tracks, "Top tracks retrieved successfully")
+	responses.RespondMediaItemListOK(c, tracks, "Top tracks retrieved successfully")
 }
 
 // GetRecentlyAddedTracks godoc
@@ -789,7 +789,7 @@ func (h *clientMusicHandler[T]) GetClientTopTracks(c *gin.Context) {
 //	@Param			clientType	path		string														true	"Client Type"
 //	@Param			clientID	path		int															true	"Client ID"
 //	@Param			limit		query		int															false	"Number of tracks to retrieve (default 10)"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Tracks retrieved"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Track]]	"Tracks retrieved"
 //	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid client ID"
 //	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
@@ -830,7 +830,7 @@ func (h *clientMusicHandler[T]) GetClientRecentlyAddedTracks(c *gin.Context) {
 		Uint64("clientID", clientID).
 		Int("trackCount", len(tracks)).
 		Msg("Recently added tracks retrieved successfully")
-	responses.RespondOK(c, tracks, "Recently added tracks retrieved successfully")
+	responses.RespondMediaItemListOK(c, tracks, "Recently added tracks retrieved successfully")
 }
 
 // GetTopAlbums godoc
@@ -844,7 +844,7 @@ func (h *clientMusicHandler[T]) GetClientRecentlyAddedTracks(c *gin.Context) {
 //	@Param			clientType	path		string														true	"Client Type"
 //	@Param			clientID	path		int															true	"Client ID"
 //	@Param			limit		query		int															false	"Number of albums to retrieve (default 10)"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Albums retrieved"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Album]]	"Albums retrieved"
 //	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid client ID"
 //	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
@@ -885,7 +885,7 @@ func (h *clientMusicHandler[T]) GetClientTopAlbums(c *gin.Context) {
 		Uint64("clientID", clientID).
 		Int("albumCount", len(albums)).
 		Msg("Top albums retrieved successfully")
-	responses.RespondOK(c, albums, "Top albums retrieved successfully")
+	responses.RespondMediaItemListOK(c, albums, "Top albums retrieved successfully")
 }
 
 // GetTopArtists godoc
@@ -899,7 +899,7 @@ func (h *clientMusicHandler[T]) GetClientTopAlbums(c *gin.Context) {
 //	@Param			clientType	path		string															true	"Client Type"
 //	@Param			clientID	path		int																true	"Client ID"
 //	@Param			limit		query		int																false	"Number of artists to retrieve (default 10)"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Artist]]	"Artists retrieved"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Artist]]	"Artists retrieved"
 //	@Failure		400			{object}	responses.ErrorResponse[error]									"Invalid client ID"
 //	@Failure		401			{object}	responses.ErrorResponse[error]									"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[error]									"Server error"
@@ -940,7 +940,7 @@ func (h *clientMusicHandler[T]) GetClientTopArtists(c *gin.Context) {
 		Uint64("clientID", clientID).
 		Int("artistCount", len(artists)).
 		Msg("Top artists retrieved successfully")
-	responses.RespondOK(c, artists, "Top artists retrieved successfully")
+	responses.RespondMediaItemListOK(c, artists, "Top artists retrieved successfully")
 }
 
 // GetFavoriteArtists godoc
@@ -954,7 +954,7 @@ func (h *clientMusicHandler[T]) GetClientTopArtists(c *gin.Context) {
 //	@Param			clientType	path		string															true	"Client Type"
 //	@Param			clientID	path		int																true	"Client ID"
 //	@Param			limit		query		int																false	"Number of artists to retrieve (default 10)"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Artist]]	"Artists retrieved"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Artist]]	"Artists retrieved"
 //	@Failure		400			{object}	responses.ErrorResponse[error]									"Invalid client ID"
 //	@Failure		401			{object}	responses.ErrorResponse[error]									"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[error]									"Server error"
@@ -995,7 +995,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteArtists(c *gin.Context) {
 		Uint64("clientID", clientID).
 		Int("artistCount", len(artists)).
 		Msg("Favorite artists retrieved successfully")
-	responses.RespondOK(c, artists, "Favorite artists retrieved successfully")
+	responses.RespondMediaItemListOK(c, artists, "Favorite artists retrieved successfully")
 }
 
 // GetSimilarTracks godoc
@@ -1009,7 +1009,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteArtists(c *gin.Context) {
 //	@Param			clientID	path		int															true	"Client ID"
 //	@Param			trackID		path		string														true	"Track ID"
 //	@Param			limit		query		int															false	"Maximum number of tracks to return (default 10)"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Similar tracks retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Track]]	"Similar tracks retrieved successfully"
 //	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid request"
 //	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
@@ -1054,7 +1054,7 @@ func (h *clientMusicHandler[T]) GetClientSimilarTracks(c *gin.Context) {
 		Str("trackID", trackID).
 		Int("trackCount", len(tracks)).
 		Msg("Similar tracks retrieved successfully")
-	responses.RespondOK(c, tracks, "Similar tracks retrieved successfully")
+	responses.RespondMediaItemListOK(c, tracks, "Similar tracks retrieved successfully")
 }
 
 // GetRecentlyPlayedTracks godoc
@@ -1067,7 +1067,7 @@ func (h *clientMusicHandler[T]) GetClientSimilarTracks(c *gin.Context) {
 //	@Security		BearerAuth
 //	@Param			clientID	path		int															true	"Client ID"
 //	@Param			limit		query		int															false	"Maximum number of tracks to return (default 10)"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Recently played tracks retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Track]]	"Recently played tracks retrieved successfully"
 //	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid request"
 //	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
@@ -1108,7 +1108,7 @@ func (h *clientMusicHandler[T]) GetClientRecentlyPlayedTracks(c *gin.Context) {
 		Uint64("clientID", clientID).
 		Int("trackCount", len(tracks)).
 		Msg("Recently played tracks retrieved successfully")
-	responses.RespondOK(c, tracks, "Recently played tracks retrieved successfully")
+	responses.RespondMediaItemListOK(c, tracks, "Recently played tracks retrieved successfully")
 }
 
 // GetFavoriteTracks godoc
@@ -1121,7 +1121,7 @@ func (h *clientMusicHandler[T]) GetClientRecentlyPlayedTracks(c *gin.Context) {
 //	@Security		BearerAuth
 //	@Param			clientID	path		int															true	"Client ID"
 //	@Param			limit		query		int															false	"Maximum number of tracks to return (default 10)"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Favorite tracks retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Track]]	"Favorite tracks retrieved successfully"
 //	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid request"
 //	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
@@ -1162,7 +1162,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteTracks(c *gin.Context) {
 		Uint64("clientID", clientID).
 		Int("trackCount", len(tracks)).
 		Msg("Favorite tracks retrieved successfully")
-	responses.RespondOK(c, tracks, "Favorite tracks retrieved successfully")
+	responses.RespondMediaItemListOK(c, tracks, "Favorite tracks retrieved successfully")
 }
 
 // GetFavoriteAlbums godoc
@@ -1175,7 +1175,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteTracks(c *gin.Context) {
 //	@Security		BearerAuth
 //	@Param			clientID	path		int															true	"Client ID"
 //	@Param			limit		query		int															false	"Maximum number of albums to return (default 10)"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Album]]	"Favorite albums retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Album]]	"Favorite albums retrieved successfully"
 //	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid request"
 //	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
@@ -1216,7 +1216,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 		Uint64("clientID", clientID).
 		Int("albumCount", len(albums)).
 		Msg("Favorite albums retrieved successfully")
-	responses.RespondOK(c, albums, "Favorite albums retrieved successfully")
+	responses.RespondMediaItemListOK(c, albums, "Favorite albums retrieved successfully")
 }
 
 // StartTrackPlayback godoc
@@ -1407,7 +1407,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			clientID	path		int																true	"Client ID"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Playlist]]	"User playlists retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Playlist]]	"User playlists retrieved successfully"
 //	@Failure		400			{object}	responses.ErrorResponse[error]									"Invalid request"
 //	@Failure		401			{object}	responses.ErrorResponse[error]									"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[error]									"Server error"
@@ -1422,7 +1422,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 //	@Security		BearerAuth
 //	@Param			clientID	path		int															true	"Client ID"
 //	@Param			playlistID	path		string														true	"Playlist ID"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Track]]	"Playlist tracks retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Track]]	"Playlist tracks retrieved successfully"
 //	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid request"
 //	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
@@ -1489,7 +1489,7 @@ func (h *clientMusicHandler[T]) GetClientFavoriteAlbums(c *gin.Context) {
 //	@Param			clientID	path		int																true	"Client ID"
 //	@Param			artistID	path		string															true	"Artist ID"
 //	@Param			limit		query		int																false	"Maximum number of artists to return (default 10)"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Artist]]	"Similar artists retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Artist]]	"Similar artists retrieved successfully"
 //	@Failure		400			{object}	responses.ErrorResponse[error]									"Invalid request"
 //	@Failure		401			{object}	responses.ErrorResponse[error]									"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[error]									"Server error"
@@ -1534,7 +1534,7 @@ func (h *clientMusicHandler[T]) GetClientSimilarArtists(c *gin.Context) {
 		Str("artistID", artistID).
 		Int("artistCount", len(artists)).
 		Msg("Similar artists retrieved successfully")
-	responses.RespondOK(c, artists, "Similar artists retrieved successfully")
+	responses.RespondMediaItemListOK(c, artists, "Similar artists retrieved successfully")
 }
 
 // GetClientArtistByID gets a specific artist by ID

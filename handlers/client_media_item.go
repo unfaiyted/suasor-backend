@@ -182,7 +182,7 @@ func (h *clientMediaItemHandler[T, U]) UpdateClientItem(c *gin.Context) {
 //		@Param			mediaType path		string											false	"Media type filter"
 //	 @Param			limit     query		int												false	"Maximum number of items to return (default 20)"
 //	 @Param			offset    query		int												false	"Offset for pagination (default 0)"
-//		@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+//		@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.MediaData]]	"Media items retrieved successfully"
 //		@Failure		400			{object}	responses.ErrorResponse[any]					"Invalid client ID"
 //		@Failure		500			{object}	responses.ErrorResponse[any]					"Server error"
 //		@Router			/client/{clientID}/media/{mediaType} [get]
@@ -288,7 +288,7 @@ func (h *clientMediaItemHandler[T, U]) GetClientItemByItemID(c *gin.Context) {
 // @Accept			json
 // @Produce		json
 // @Param			clientIDs	query		string											true	"Comma-separated list of client IDs"
-// @Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+// @Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.MediaData]]	"Media items retrieved successfully"
 // @Failure		400			{object}	responses.ErrorResponse[any]					"Invalid request"
 // @Failure		500			{object}	responses.ErrorResponse[any]					"Server error"
 // @Router			/client/media/multi [get]
@@ -335,7 +335,7 @@ func (h *clientMediaItemHandler[T, U]) GetItemsByMultipleClients(c *gin.Context)
 		Int("count", len(items)).
 		Msg("Media items retrieved by multiple clients successfully")
 
-	responses.RespondOK(c, items, "Media items retrieved successfully")
+	responses.RespondMediaItemListOK(c, items, "Media items retrieved successfully")
 }
 
 // SearchAcrossClients godoc
@@ -348,7 +348,7 @@ func (h *clientMediaItemHandler[T, U]) GetItemsByMultipleClients(c *gin.Context)
 // @Param			q			query		string														true	"Search query"
 // @Param			clientIDs	query		string														true	"Comma-separated list of client IDs"
 // @Param			type		query		string														false	"Media type filter"
-// @Success		200			{object}	responses.APIResponse[map[string][]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+// @Success		200			{object}	responses.APIResponse[map[string]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
 // @Failure		400			{object}	responses.ErrorResponse[any]								"Invalid request"
 // @Failure		500			{object}	responses.ErrorResponse[any]								"Server error"
 // @Router			/client/media/search [get]
@@ -703,7 +703,7 @@ func (h *clientMediaItemHandler[T, U]) GetByClientItemID(c *gin.Context) {
 // @Param 		options  body		  types.QueryOptions											false	"Search options"
 // @Param			clientID path					string														true	"Client ID"
 // @Param			mediaType		 query		string														false	"Media type filter"
-// @Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+// @Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.MediaData]]	"Media items retrieved successfully"
 // @Failure		400			{object}	responses.ErrorResponse[any]								"Invalid request"
 // @Failure		500			{object}	responses.ErrorResponse[any]								"Server error"
 // @Router			/client/{clientID}/media/{mediaType}/search [get]
@@ -757,5 +757,5 @@ func (h *clientMediaItemHandler[T, U]) SearchClient(c *gin.Context) {
 		Int("resultCount", len(results)).
 		Msg("Media items search in client completed successfully")
 
-	responses.RespondOK(c, results, "Media items retrieved successfully")
+	responses.RespondMediaItemListOK(c, results, "Media items retrieved successfully")
 }

@@ -28,11 +28,9 @@ definitions:
     - ErrorTypeTimeout
     - ErrorTypeServiceUnavailable
     - ErrorTypeUnprocessableEntity
-  map_string_array_models.MediaItem-types_MediaData:
+  map_string_models.MediaItem-types_MediaData:
     additionalProperties:
-      items:
-        $ref: '#/definitions/models.MediaItem-types_MediaData'
-      type: array
+      $ref: '#/definitions/models.MediaItem-types_MediaData'
     type: object
   models.AIModelPreferences:
     properties:
@@ -3331,19 +3329,6 @@ definitions:
         example: true
         type: boolean
     type: object
-  responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/models.MediaItem-suasor_clients_media_types_Movie'
-        type: array
-      message:
-        example: Operation successful
-        type: string
-      success:
-        example: true
-        type: boolean
-    type: object
   responses.APIResponse-array_models_MediaItem-types_Album:
     properties:
       data:
@@ -3375,19 +3360,6 @@ definitions:
       data:
         items:
           $ref: '#/definitions/models.MediaItem-types_ListData'
-        type: array
-      message:
-        example: Operation successful
-        type: string
-      success:
-        example: true
-        type: boolean
-    type: object
-  responses.APIResponse-array_models_MediaItem-types_MediaData:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/models.MediaItem-types_MediaData'
         type: array
       message:
         example: Operation successful
@@ -3472,10 +3444,10 @@ definitions:
         example: true
         type: boolean
     type: object
-  responses.APIResponse-map_string_array_models_MediaItem-types_MediaData:
+  responses.APIResponse-map_string_models_MediaItem-types_MediaData:
     properties:
       data:
-        $ref: '#/definitions/map_string_array_models.MediaItem-types_MediaData'
+        $ref: '#/definitions/map_string_models.MediaItem-types_MediaData'
       message:
         example: Operation successful
         type: string
@@ -3806,6 +3778,17 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/responses.MediaItemList-types_Episode'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.APIResponse-responses_MediaItemList-types_ListData:
+    properties:
+      data:
+        $ref: '#/definitions/responses.MediaItemList-types_ListData'
       message:
         example: Operation successful
         type: string
@@ -4157,6 +4140,15 @@ definitions:
       items:
         items:
           $ref: '#/definitions/models.MediaItem-types_Episode'
+        type: array
+      total:
+        type: integer
+    type: object
+  responses.MediaItemList-types_ListData:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.MediaItem-types_ListData'
         type: array
       total:
         type: integer
@@ -5879,7 +5871,7 @@ paths:
         "200":
           description: Lists retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_ListData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_ListData'
         "500":
           description: Server error
           schema:
@@ -6023,7 +6015,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieves a specific playlist by ID
+      description: Retrieves a specific list by ID
       parameters:
       - description: List ID
         in: path
@@ -6054,7 +6046,7 @@ paths:
           description: Server error
           schema:
             $ref: '#/definitions/responses.ErrorResponse-any'
-      summary: Get playlist by ID
+      summary: Get list by ID
       tags:
       - lists
     put:
@@ -6209,7 +6201,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieves all tracks in a specific playlist
+      description: Retrieves all tracks in a specific list
       parameters:
       - description: List ID
         in: path
@@ -6240,7 +6232,7 @@ paths:
           description: Server error
           schema:
             $ref: '#/definitions/responses.ErrorResponse-any'
-      summary: Get tracks in a playlist
+      summary: Get tracks in a list
       tags:
       - lists
   /{listType}/favorites:
@@ -6308,7 +6300,7 @@ paths:
         "200":
           description: Lists retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_ListData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_ListData'
         "400":
           description: Invalid request
           schema:
@@ -6342,7 +6334,7 @@ paths:
         "200":
           description: Lists retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_ListData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_ListData'
         "400":
           description: Invalid request
           schema:
@@ -6732,7 +6724,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieves all playlists from the client
+      description: Retrieves all lists from the client
       parameters:
       - description: Client ID
         in: path
@@ -6744,7 +6736,7 @@ paths:
         name: listType
         required: true
         type: string
-      - description: Maximum number of playlists to return
+      - description: Maximum number of lists to return
         in: query
         name: limit
         type: integer
@@ -6754,7 +6746,7 @@ paths:
         "200":
           description: Lists retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_ListData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_ListData'
         "400":
           description: Invalid client ID
           schema:
@@ -6769,7 +6761,7 @@ paths:
             $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
-      summary: Get all playlists
+      summary: Get all lists
       tags:
       - lists
       - clients
@@ -7063,7 +7055,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Searches for playlists matching the given query
+      description: Searches for lists matching the given query
       parameters:
       - description: Client ID
         in: path
@@ -7086,7 +7078,7 @@ paths:
         "200":
           description: Lists found
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_ListData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_ListData'
         "400":
           description: Invalid request
           schema:
@@ -7101,7 +7093,7 @@ paths:
             $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
       security:
       - BearerAuth: []
-      summary: Search playlists
+      summary: Search lists
       tags:
       - lists
       - clients
@@ -7870,7 +7862,7 @@ paths:
         "200":
           description: Media items retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData'
         "400":
           description: Invalid client ID
           schema:
@@ -7987,7 +7979,7 @@ paths:
         "200":
           description: Media items retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData'
         "400":
           description: Invalid request
           schema:
@@ -8144,7 +8136,7 @@ paths:
         "200":
           description: Favorite albums retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Album'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Album'
         "400":
           description: Invalid request
           schema:
@@ -8181,7 +8173,7 @@ paths:
         "200":
           description: Albums retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Album'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Album'
         "401":
           description: Unauthorized
           schema:
@@ -8213,7 +8205,7 @@ paths:
         "200":
           description: Albums retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Album'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Album'
         "400":
           description: Invalid count
           schema:
@@ -8254,7 +8246,7 @@ paths:
         "200":
           description: Albums retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Album'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Album'
         "400":
           description: Invalid count
           schema:
@@ -8299,7 +8291,7 @@ paths:
         "200":
           description: Albums retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Album'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Album'
         "400":
           description: Invalid client ID
           schema:
@@ -8336,7 +8328,7 @@ paths:
         "200":
           description: Albums retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Album'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Album'
         "400":
           description: Invalid year
           schema:
@@ -8377,7 +8369,7 @@ paths:
         "200":
           description: Albums retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Album'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Album'
         "400":
           description: Invalid client ID
           schema:
@@ -8422,7 +8414,7 @@ paths:
         "200":
           description: Similar artists retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Artist'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Artist'
         "400":
           description: Invalid request
           schema:
@@ -8467,7 +8459,7 @@ paths:
         "200":
           description: Artists retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Artist'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Artist'
         "400":
           description: Invalid client ID
           schema:
@@ -8513,7 +8505,7 @@ paths:
         "200":
           description: Artists retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Artist'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Artist'
         "401":
           description: Unauthorized
           schema:
@@ -8550,7 +8542,7 @@ paths:
         "200":
           description: Artists retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Artist'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Artist'
         "400":
           description: Invalid count
           schema:
@@ -8595,7 +8587,7 @@ paths:
         "200":
           description: Artists retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Artist'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Artist'
         "400":
           description: Invalid client ID
           schema:
@@ -8681,7 +8673,7 @@ paths:
         "200":
           description: Similar tracks retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Track'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Track'
         "400":
           description: Invalid request
           schema:
@@ -8721,7 +8713,7 @@ paths:
         "200":
           description: Favorite tracks retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Track'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Track'
         "400":
           description: Invalid request
           schema:
@@ -8758,7 +8750,7 @@ paths:
         "200":
           description: Tracks retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Track'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Track'
         "401":
           description: Unauthorized
           schema:
@@ -8799,7 +8791,7 @@ paths:
         "200":
           description: Tracks retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Track'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Track'
         "400":
           description: Invalid client ID
           schema:
@@ -8839,7 +8831,7 @@ paths:
         "200":
           description: Recently played tracks retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Track'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Track'
         "400":
           description: Invalid request
           schema:
@@ -8884,7 +8876,7 @@ paths:
         "200":
           description: Tracks retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_Track'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Track'
         "400":
           description: Invalid client ID
           schema:
@@ -9349,7 +9341,7 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie'
         "401":
           description: Unauthorized
           schema:
@@ -9382,7 +9374,7 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie'
         "401":
           description: Unauthorized
           schema:
@@ -9461,7 +9453,7 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie'
         "401":
           description: Unauthorized
           schema:
@@ -9534,7 +9526,7 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie'
         "400":
           description: Invalid count format
           schema:
@@ -9570,7 +9562,7 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie'
         "400":
           description: Invalid count format
           schema:
@@ -9612,7 +9604,7 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie'
         "400":
           description: Invalid rating format
           schema:
@@ -9653,7 +9645,7 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie'
         "400":
           description: Missing search query
           schema:
@@ -9694,7 +9686,7 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie'
         "400":
           description: Invalid count format
           schema:
@@ -9731,7 +9723,7 @@ paths:
         "200":
           description: Movies retrieved
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie'
         "400":
           description: Invalid year
           schema:
@@ -10113,7 +10105,7 @@ paths:
         "200":
           description: Media items retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData'
         "400":
           description: Invalid request
           schema:
@@ -10153,7 +10145,7 @@ paths:
         "200":
           description: Media items retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-map_string_array_models_MediaItem-types_MediaData'
+            $ref: '#/definitions/responses.APIResponse-map_string_models_MediaItem-types_MediaData'
         "400":
           description: Invalid request
           schema:
@@ -10789,7 +10781,7 @@ paths:
         "200":
           description: Media items retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData'
         "400":
           description: Invalid request
           schema:
@@ -10979,7 +10971,7 @@ paths:
         "200":
           description: Media items retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData'
         "400":
           description: Invalid request
           schema:
@@ -11107,7 +11099,7 @@ paths:
         "200":
           description: Media items retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData'
         "400":
           description: Invalid request
           schema:
@@ -11141,7 +11133,7 @@ paths:
         "200":
           description: Media items retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData'
         "500":
           description: Server error
           schema:
@@ -11175,7 +11167,7 @@ paths:
         "200":
           description: Media items retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData'
         "500":
           description: Server error
           schema:
@@ -11215,7 +11207,7 @@ paths:
         "200":
           description: Media items retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData'
         "400":
           description: Invalid request
           schema:
@@ -11249,7 +11241,7 @@ paths:
         "200":
           description: Media items retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData'
         "500":
           description: Server error
           schema:
@@ -11284,7 +11276,7 @@ paths:
         "200":
           description: Media items retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData'
         "400":
           description: Invalid request
           schema:
@@ -11322,7 +11314,7 @@ paths:
         "200":
           description: Media items retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData'
         "500":
           description: Server error
           schema:
@@ -11365,7 +11357,7 @@ paths:
         "200":
           description: Media items retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData'
         "400":
           description: Invalid request
           schema:
@@ -11399,7 +11391,7 @@ paths:
         "200":
           description: Media items retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData'
         "500":
           description: Server error
           schema:
@@ -11475,7 +11467,7 @@ paths:
         "200":
           description: Media items retrieved successfully
           schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData'
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData'
         "400":
           description: Invalid request
           schema:

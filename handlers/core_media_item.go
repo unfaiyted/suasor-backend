@@ -61,7 +61,7 @@ func NewCoreMediaItemHandler[T types.MediaData](
 //	@Param			limit		query		int														false	"Maximum number of items to return (default 20)"
 //	@Param			offset		query		int														false	"Offset for pagination (default 0)"
 //	@Param			mediaType	path		string													true	"Media type"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.MediaData]]	"Media items retrieved successfully"
 //	@Failure		500			{object}	responses.ErrorResponse[any]							"Server error"
 //	@Router			/media/{mediaType} [get]
 func (h *coreMediaItemHandler[T]) GetAll(c *gin.Context) {
@@ -83,7 +83,7 @@ func (h *coreMediaItemHandler[T]) GetAll(c *gin.Context) {
 	log.Info().
 		Int("count", len(items)).
 		Msg("Media items retrieved successfully")
-	responses.RespondOK(c, items, "Media items retrieved successfully")
+	responses.RespondMediaItemListOK(c, items, "Media items retrieved successfully")
 }
 
 // GetByID godoc
@@ -195,7 +195,7 @@ func (h *coreMediaItemHandler[T]) GetByExternalID(c *gin.Context) {
 //		@Param			limit		 query		  int												false	"Maximum number of items to return (default 20)"
 //		@Param			offset		query		int													false	"Offset for pagination (default 0)"
 //		@Param			mediaType	path		string											true	"Media type"
-//		@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+//		@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.MediaData]]	"Media items retrieved successfully"
 //		@Failure		400			{object}	responses.ErrorResponse[any]							"Invalid request"
 //		@Failure		500			{object}	responses.ErrorResponse[any]							"Server error"
 //		@Router			/media/{mediaType}/search [get]
@@ -247,7 +247,7 @@ func (h *coreMediaItemHandler[T]) Search(c *gin.Context) {
 		Str("query", query).
 		Int("count", len(items)).
 		Msg("Media items search completed successfully")
-	responses.RespondOK(c, items, "Media items retrieved successfully")
+	responses.RespondMediaItemListOK(c, items, "Media items retrieved successfully")
 }
 
 // GetRecentlyAdded godoc
@@ -260,7 +260,7 @@ func (h *coreMediaItemHandler[T]) Search(c *gin.Context) {
 //	@Param			limit		query		int														false	"Maximum number of items to return (default 20)"
 //	@Param			days		query		int														false	"Number of days to look back (default 30)"
 //	@Param			mediaType	path		string													true	"Media type"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.MediaData]]	"Media items retrieved successfully"
 //	@Failure		500			{object}	responses.ErrorResponse[any]							"Server error"
 //	@Router			/media/{mediaType}/recently-added [get]
 func (h *coreMediaItemHandler[T]) GetRecentlyAdded(c *gin.Context) {
@@ -298,7 +298,7 @@ func (h *coreMediaItemHandler[T]) GetRecentlyAdded(c *gin.Context) {
 	log.Info().
 		Int("count", len(items)).
 		Msg("Recently added media items retrieved successfully")
-	responses.RespondOK(c, items, "Media items retrieved successfully")
+	responses.RespondMediaItemListOK(c, items, "Media items retrieved successfully")
 }
 
 // GetByType godoc
@@ -311,7 +311,7 @@ func (h *coreMediaItemHandler[T]) GetRecentlyAdded(c *gin.Context) {
 //	@Param			limit		query		int														false	"Maximum number of items to return (default 20)"
 //	@Param			offset		query		int														false	"Offset for pagination (default 0)"
 //	@Param			mediaType	path		string													true	"Media type"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.MediaData]]	"Media items retrieved successfully"
 //	@Failure		400			{object}	responses.ErrorResponse[any]							"Invalid request"
 //	@Failure		500			{object}	responses.ErrorResponse[any]							"Server error"
 //	@Router			/media/{mediaType} [get]
@@ -358,7 +358,7 @@ func (h *coreMediaItemHandler[T]) GetByType(c *gin.Context) {
 		Str("type", string(mediaType)).
 		Int("count", len(items)).
 		Msg("Media items by type retrieved successfully")
-	responses.RespondOK(c, items, "Media items retrieved successfully")
+	responses.RespondMediaItemListOK(c, items, "Media items retrieved successfully")
 }
 
 // GetByPerson godoc
@@ -372,7 +372,7 @@ func (h *coreMediaItemHandler[T]) GetByType(c *gin.Context) {
 //	@Param			mediaType	path		string													true	"Media type"
 //	@Param			role		query		string													false	"Role filter (actor, director, etc.)"
 //	@Param			limit		query		int														false	"Maximum number of items to return (default 20)"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.MediaData]]	"Media items retrieved successfully"
 //	@Failure		400			{object}	responses.ErrorResponse[any]							"Invalid request"
 //	@Failure		500			{object}	responses.ErrorResponse[any]							"Server error"
 //	@Router			/media/{mediaType}/person/{personID} [get]
@@ -427,7 +427,7 @@ func (h *coreMediaItemHandler[T]) GetByPerson(c *gin.Context) {
 		Str("role", role).
 		Int("count", len(items)).
 		Msg("Media items by person retrieved successfully")
-	responses.RespondOK(c, items, "Media items retrieved successfully")
+	responses.RespondMediaItemListOK(c, items, "Media items retrieved successfully")
 }
 
 // GetByYear godoc
@@ -440,7 +440,7 @@ func (h *coreMediaItemHandler[T]) GetByPerson(c *gin.Context) {
 //	@Param			year		path		int														true	"Release year"
 //	@Param			mediaType	path		string													true	"Media type"
 //	@Param			limit		query		int														false	"Maximum number of items to return (default 20)"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.MediaData]]	"Media items retrieved successfully"
 //	@Failure		400			{object}	responses.ErrorResponse[any]							"Invalid request"
 //	@Failure		500			{object}	responses.ErrorResponse[any]							"Server error"
 //	@Router			/media/{mediaType}/year/{year} [get]
@@ -496,7 +496,7 @@ func (h *coreMediaItemHandler[T]) GetByYear(c *gin.Context) {
 		Int("year", year).
 		Int("count", len(items)).
 		Msg("Media items by year retrieved successfully")
-	responses.RespondOK(c, items, "Media items retrieved successfully")
+	responses.RespondMediaItemListOK(c, items, "Media items retrieved successfully")
 }
 
 // GetLatestByAdded godoc
@@ -508,7 +508,7 @@ func (h *coreMediaItemHandler[T]) GetByYear(c *gin.Context) {
 //	@Produce		json
 //	@Param			limit		query		int														false	"Maximum number of items to return (default 20)"
 //	@Param			mediaType	path		string													true	"Media type"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.MediaData]]	"Media items retrieved successfully"
 //	@Failure		500			{object}	responses.ErrorResponse[any]							"Server error"
 //	@Router			/media/{mediaType}/latest [get]
 func (h *coreMediaItemHandler[T]) GetLatestByAdded(c *gin.Context) {
@@ -558,7 +558,7 @@ func (h *coreMediaItemHandler[T]) GetLatestByAdded(c *gin.Context) {
 	log.Info().
 		Int("count", len(items)).
 		Msg("Latest media items retrieved successfully")
-	responses.RespondOK(c, items, "Media items retrieved successfully")
+	responses.RespondMediaItemListOK(c, items, "Media items retrieved successfully")
 }
 
 // GetByClient godoc
@@ -571,7 +571,7 @@ func (h *coreMediaItemHandler[T]) GetLatestByAdded(c *gin.Context) {
 //	@Param			clientID	path		int														true	"Client ID"
 //	@Param			mediaType	path		string													true	"Media type"
 //	@Param			limit		query		int														false	"Maximum number of items to return (default 20)"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.MediaData]]	"Media items retrieved successfully"
 //	@Failure		400			{object}	responses.ErrorResponse[any]							"Invalid request"
 //	@Failure		500			{object}	responses.ErrorResponse[any]							"Server error"
 //	@Router			/media/{mediaType}/client/{clientID} [get]
@@ -620,7 +620,7 @@ func (h *coreMediaItemHandler[T]) GetByClient(c *gin.Context) {
 		Uint64("clientID", clientID).
 		Int("count", len(items)).
 		Msg("Media items by client retrieved successfully")
-	responses.RespondOK(c, items, "Media items retrieved successfully")
+	responses.RespondMediaItemListOK(c, items, "Media items retrieved successfully")
 }
 
 // GetByGenre godoc
@@ -633,7 +633,7 @@ func (h *coreMediaItemHandler[T]) GetByClient(c *gin.Context) {
 //	@Param			genre		path		string													true	"Genre name"
 //	@Param			mediaType	path		string													true	"Media type"
 //	@Param			limit		query		int														false	"Maximum number of items to return (default 20)"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.MediaData]]	"Media items retrieved successfully"
 //	@Failure		400			{object}	responses.ErrorResponse[any]							"Invalid request"
 //	@Failure		500			{object}	responses.ErrorResponse[any]							"Server error"
 //	@Router			/media/{mediaType}/genre/{genre} [get]
@@ -682,7 +682,7 @@ func (h *coreMediaItemHandler[T]) GetByGenre(c *gin.Context) {
 		Str("genre", genre).
 		Int("count", len(items)).
 		Msg("Media items by genre retrieved successfully")
-	responses.RespondOK(c, items, "Media items retrieved successfully")
+	responses.RespondMediaItemListOK(c, items, "Media items retrieved successfully")
 }
 
 // GetByExternalSourceID godoc
@@ -714,7 +714,7 @@ func (h *coreMediaItemHandler[T]) GetByExternalSourceID(c *gin.Context) {
 //	@Produce		json
 //	@Param			limit		query		int														false	"Maximum number of items to return (default 20)"
 //	@Param			mediaType	path		string													true	"Media type"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.MediaData]]	"Media items retrieved successfully"
 //	@Failure		500			{object}	responses.ErrorResponse[any]							"Server error"
 //	@Router			/media/{mediaType}/popular [get]
 func (h *coreMediaItemHandler[T]) GetPopular(c *gin.Context) {
@@ -753,7 +753,7 @@ func (h *coreMediaItemHandler[T]) GetPopular(c *gin.Context) {
 	log.Info().
 		Int("count", len(items)).
 		Msg("Popular media items retrieved successfully")
-	responses.RespondOK(c, items, "Media items retrieved successfully")
+	responses.RespondMediaItemListOK(c, items, "Media items retrieved successfully")
 }
 
 // GetTopRated godoc
@@ -765,7 +765,7 @@ func (h *coreMediaItemHandler[T]) GetPopular(c *gin.Context) {
 //	@Produce		json
 //	@Param			limit		query		int														false	"Maximum number of items to return (default 20)"
 //	@Param			mediaType	path		string													true	"Media type"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.MediaData]]	"Media items retrieved successfully"
 //	@Failure		500			{object}	responses.ErrorResponse[any]							"Server error"
 //	@Router			/media/{mediaType}/top-rated [get]
 func (h *coreMediaItemHandler[T]) GetTopRated(c *gin.Context) {
@@ -804,7 +804,7 @@ func (h *coreMediaItemHandler[T]) GetTopRated(c *gin.Context) {
 	log.Info().
 		Int("count", len(items)).
 		Msg("Top rated media items retrieved successfully")
-	responses.RespondOK(c, items, "Media items retrieved successfully")
+	responses.RespondMediaItemListOK(c, items, "Media items retrieved successfully")
 }
 
 // GetMostPlayed godoc
@@ -817,7 +817,7 @@ func (h *coreMediaItemHandler[T]) GetTopRated(c *gin.Context) {
 //	@Param			userID		query		int														false	"User ID"
 //	@Param			mediaType	path		string													true	"Media type"
 //	@Param			limit		query		int														false	"Maximum quantity items to return (default 20)"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.MediaData]]	"Media items retrieved successfully"
 //	@Failure		500			{object}	responses.ErrorResponse[any]							"Server error"
 //	@Router			/media/{mediaType}/most-played [get]
 func (h *coreMediaItemHandler[T]) GetMostPlayed(c *gin.Context) {
@@ -855,7 +855,7 @@ func (h *coreMediaItemHandler[T]) GetMostPlayed(c *gin.Context) {
 		Uint64("userID", userID).
 		Int("count", len(items)).
 		Msg("Most played media items retrieved successfully")
-	responses.RespondOK(c, items, "Most played media items retrieved successfully")
+	responses.RespondMediaItemListOK(c, items, "Most played media items retrieved successfully")
 }
 
 // GetByRating godoc
@@ -868,7 +868,7 @@ func (h *coreMediaItemHandler[T]) GetMostPlayed(c *gin.Context) {
 //	@Param			rating		path	  number													true	"Rating"
 //	@Param			mediaType	path	  string													true	"Media type"
 //	@Param			limit		  query	  int														false	"Maximum number of media items to return (default 20)"
-//	@Success		200			{object}  responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+//	@Success		200			{object}  responses.APIResponse[responses.MediaItemList[types.MediaData]]	"Media items retrieved successfully"
 //	@Failure		400			{object}  responses.ErrorResponse[any]							"Invalid request"
 //	@Failure		500			{object}  responses.ErrorResponse[any]							"Server error"
 //	@Router			/media/{mediaType}/rating/{rating} [get]
@@ -911,7 +911,7 @@ func (h *coreMediaItemHandler[T]) GetByRating(c *gin.Context) {
 		Int("count", len(items)).
 		Msg("Media items by rating retrieved successfully")
 
-	responses.RespondOK(c, items, "Media items retrieved successfully")
+	responses.RespondMediaItemListOK(c, items, "Media items retrieved successfully")
 }
 
 func (h *coreMediaItemHandler[T]) GetType() string {

@@ -529,7 +529,7 @@ func (h *coreMusicHandler) GetRecentlyAddedMusic(c *gin.Context) {
 		Uint64("userID", userID).
 		Int("count", len(items)).
 		Msg("Recently added music retrieved successfully")
-	responses.RespondOK(c, items, "Recently added music retrieved successfully")
+	responses.RespondMediaItemListOK(c, items, "Recently added music retrieved successfully")
 }
 
 // GetGenreRecommendations godoc
