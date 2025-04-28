@@ -2,151 +2,109 @@
 package router
 
 import (
+	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+	clienttypes "suasor/clients/types"
 	"suasor/di/container"
 	"suasor/handlers"
-	apphandlers "suasor/handlers/bundles"
+	"suasor/router/middleware"
 	"suasor/types/responses"
+	"suasor/utils/logger"
 )
 
-type ClientSeriesHandlerInterface interface {
-	GetSeriesByID(c *gin.Context)
-	GetSeriesByGenre(c *gin.Context)
-	GetSeriesByYear(c *gin.Context)
-	GetSeriesByActor(c *gin.Context)
-	GetSeriesByCreator(c *gin.Context)
-	GetSeriesByRating(c *gin.Context)
-	GetLatestSeriesByAdded(c *gin.Context)
-	GetPopularSeries(c *gin.Context)
-	GetTopRatedSeries(c *gin.Context)
-	SearchSeries(c *gin.Context)
-	GetSeasonsBySeriesID(c *gin.Context)
-}
-
 // RegisterSeriesRoutes sets up the routes for series-related operations
-func RegisterSeriesRoutes(rg *gin.RouterGroup, c *container.Container) {
-	// Initialize handlers
-	coreSeriesHandler := container.MustGet[handlers.CoreSeriesHandler](c)
-	userSeriesHandler := container.MustGet[handlers.UserSeriesHandler](c)
-	clientSeriesHandler := container.MustGet[apphandlers.ClientSeriesHandlers](c)
+func registerClientSeriesRoutes(ctx context.Context, rg *gin.RouterGroup, c *container.Container) {
+	log := logger.LoggerFromContext(ctx)
+	log.Info().Msg("Registering series routes")
 
-	// Core series routes (database-focused)
-	series := rg.Group("/series")
+	db := container.MustGet[*gorm.DB](c)
+
+	// Client series routes
+	clientGroup := rg.Group("")
+	clientGroup.Use(middleware.ClientTypeMiddleware(db))
 	{
-		// Basic CRUD operations
-		series.GET("/:itemID", coreSeriesHandler.GetByID)
-		series.GET("", coreSeriesHandler.GetAll)
 
-		// Core metadata operations
-		series.GET("/:itemID/seasons", coreSeriesHandler.GetSeasonsBySeriesID)
-		series.GET("/:itemID/seasons/:seasonNumber/episodes", coreSeriesHandler.GetEpisodesBySeriesIDAndSeasonNumber)
-		series.GET("/:itemID/episodes", coreSeriesHandler.GetAllEpisodes)
-
-		// Specialized metadata filters
-		series.GET("/network/:network", coreSeriesHandler.GetSeriesByNetwork)
-		series.GET("/genre/:genre", coreSeriesHandler.GetByGenre)
-		series.GET("/year/:year", coreSeriesHandler.GetByYear)
-
-		// Discovery endpoints
-		series.GET("/recently-aired", coreSeriesHandler.GetRecentlyAiredEpisodes)
-		series.GET("/popular", coreSeriesHandler.GetPopular)
-		series.GET("/top-rated", coreSeriesHandler.GetTopRated)
-
-		// Search
-		series.GET("/search", func(c *gin.Context) {
-			// This is a universal search route that might redirect to client-specific search
-			// Later we might want to add a centralized search service that combines results
-			clientSeriesHandler.PlexSeriesHandler().SearchSeries(c)
-		})
-	}
-
-	// User-specific series routes
-	userSeries := rg.Group("/user/series")
-	{
-		// User's series collections
-		userSeries.GET("/favorites", userSeriesHandler.GetFavoriteSeries)
-		userSeries.GET("/watched", userSeriesHandler.GetWatchedSeries)
-		userSeries.GET("/watchlist", userSeriesHandler.GetWatchlistSeries)
-
-		// User interactions with series
-		userSeries.PATCH("/:itemID", userSeriesHandler.UpdateSeriesUserData)
-
-		// Personalized recommendations
-		// userSeries.GET("/continue-watching", userSeriesHandler.GetContinueWatching)
-		// userSeries.GET("/next-up", userSeriesHandler.GetNextUpEpisodes)
-	}
-
-	// Set up client-specific handler map for dynamic routing
-	clientHandlerMap := map[string]ClientSeriesHandlerInterface{
-		"emby":     clientSeriesHandler.EmbySeriesHandler(),
-		"jellyfin": clientSeriesHandler.JellyfinSeriesHandler(),
-		"plex":     clientSeriesHandler.PlexSeriesHandler(),
-	}
-
-	getClientHandler := func(c *gin.Context) ClientSeriesHandlerInterface {
-		clientType := c.Param("clientType")
-		handler, exists := clientHandlerMap[clientType]
-		if !exists {
-			err := fmt.Errorf("unsupported client type: %s", clientType)
-			responses.RespondBadRequest(c, err, "Unsupported client type")
-			return nil
-		}
-		return handler
-	}
-
-	// Client-specific series routes
-	// These routes follow the pattern /clients/:clientType/:clientID/series/...
-	clientSeries := rg.Group("/clients/:clientType/:clientID/series")
-	{
-		// Basic operations
-		clientSeries.GET("/:seriesID", func(c *gin.Context) {
-			getClientHandler(c).GetSeriesByID(c)
+		// Get seasons by series ID
+		clientGroup.GET("/:clientItemID/seasons", func(g *gin.Context) {
+			if handler := getSeriesHandler(g, c); handler != nil {
+				handler.GetSeasonsBySeriesID(g)
+			}
 		})
 
-		// Seasons and episodes
-		clientSeries.GET("/:seriesID/seasons", func(c *gin.Context) {
-			getClientHandler(c).GetSeasonsBySeriesID(c)
+		// Get episodes by series ID
+		clientGroup.GET("/:clientItemID/episodes", func(g *gin.Context) {
+			if handler := getSeriesHandler(g, c); handler != nil {
+				handler.GetEpisodesBySeriesID(g)
+			}
 		})
 
 		// Discovery endpoints
-		clientSeries.GET("/popular/:count", func(c *gin.Context) {
-			getClientHandler(c).GetPopularSeries(c)
+		clientGroup.GET("/popular/:count", func(g *gin.Context) {
+			if handler := getSeriesHandler(g, c); handler != nil {
+				handler.GetPopularSeries(g)
+			}
 		})
 
-		clientSeries.GET("/top-rated/:count", func(c *gin.Context) {
-			getClientHandler(c).GetTopRatedSeries(c)
+		clientGroup.GET("/top-rated/:count", func(g *gin.Context) {
+			if handler := getSeriesHandler(g, c); handler != nil {
+				handler.GetTopRatedSeries(g)
+			}
 		})
 
-		clientSeries.GET("/latest/:count", func(c *gin.Context) {
-			getClientHandler(c).GetLatestSeriesByAdded(c)
+		clientGroup.GET("/latest/:count", func(g *gin.Context) {
+			if handler := getSeriesHandler(g, c); handler != nil {
+				handler.GetLatestSeriesByAdded(g)
+			}
 		})
 
-		// Filters
-		clientSeries.GET("/genre/:genre", func(c *gin.Context) {
-			getClientHandler(c).GetSeriesByGenre(c)
+		clientGroup.GET("/actor/:actor", func(g *gin.Context) {
+			if handler := getSeriesHandler(g, c); handler != nil {
+				handler.GetSeriesByActor(g)
+			}
 		})
 
-		clientSeries.GET("/year/:year", func(c *gin.Context) {
-			getClientHandler(c).GetSeriesByYear(c)
+		clientGroup.GET("/creator/:creator", func(g *gin.Context) {
+			if handler := getSeriesHandler(g, c); handler != nil {
+				handler.GetSeriesByCreator(g)
+			}
 		})
 
-		clientSeries.GET("/actor/:actor", func(c *gin.Context) {
-			getClientHandler(c).GetSeriesByActor(c)
-		})
-
-		clientSeries.GET("/creator/:creator", func(c *gin.Context) {
-			getClientHandler(c).GetSeriesByCreator(c)
-		})
-
-		// Search endpoint
-		clientSeries.GET("/search", func(c *gin.Context) {
-			getClientHandler(c).SearchSeries(c)
-		})
-
-		// Rating-based filtering
-		clientSeries.GET("/rating", func(c *gin.Context) {
-			getClientHandler(c).GetSeriesByRating(c)
-		})
 	}
 }
+
+func getSeriesHandlerMap(c *container.Container, clientType clienttypes.ClientType) (handlers.ClientSeriesHandler[clienttypes.ClientMediaConfig], bool) {
+	handlerMap := map[clienttypes.ClientType]handlers.ClientSeriesHandler[clienttypes.ClientMediaConfig]{
+		clienttypes.ClientTypeEmby:     container.MustGet[handlers.ClientSeriesHandler[*clienttypes.EmbyConfig]](c),
+		clienttypes.ClientTypeJellyfin: container.MustGet[handlers.ClientSeriesHandler[*clienttypes.JellyfinConfig]](c),
+		clienttypes.ClientTypePlex:     container.MustGet[handlers.ClientSeriesHandler[*clienttypes.PlexConfig]](c),
+	}
+
+	handler, exists := handlerMap[clientType]
+	return handler, exists
+}
+
+func getSeriesHandler(g *gin.Context, c *container.Container) handlers.ClientSeriesHandler[clienttypes.ClientMediaConfig] {
+	log := logger.LoggerFromContext(g.Request.Context())
+
+	clientTypeVal, exists := g.Get("clientType")
+	if !exists {
+		log.Warn().Msg("Client type not found in request context")
+		responses.RespondBadRequest(g, nil, "Client type not found")
+		return nil
+	}
+
+	clientType := clientTypeVal.(clienttypes.ClientType)
+	log.Debug().Str("clientType", string(clientType)).Msg("Getting client series handler")
+
+	handler, exists := getSeriesHandlerMap(c, clientType)
+	if !exists {
+		err := fmt.Errorf("unsupported client type: %s", clientType)
+		responses.RespondBadRequest(g, err, "Unsupported client type")
+		return nil
+	}
+
+	return handler
+}
+

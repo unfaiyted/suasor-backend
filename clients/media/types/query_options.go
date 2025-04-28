@@ -33,29 +33,30 @@ type QueryOptions struct {
 	IncludeWatchProgress bool      `json:"includeWatchProgress,omitempty"`
 
 	// Common, typed query filters
-	Favorites       bool      `json:"favorites,omitempty"`       // Filter to favorites only
-	Genre           string    `json:"genre,omitempty"`           // Filter by genre
-	Year            int       `json:"year,omitempty"`            // Filter by release year
-	Actor           string    `json:"actor,omitempty"`           // Filter by actor name/ID
-	Director        string    `json:"director,omitempty"`        // Filter by director name/ID
-	Studio          string    `json:"studio,omitempty"`          // Filter by studio
-	Creator         string    `json:"creator,omitempty"`         // Filter by content creator
-	Role            string    `json:"role,omitempty"`            // Filter by role (actor, director, etc.)
-	MediaType       MediaType `json:"mediaType,omitempty"`       // Filter by media type (movie, show, music, etc.)
-	ContentRating   string    `json:"contentRating,omitempty"`   // Filter by content rating (PG, PG-13, etc.)
-	Tags            []string  `json:"tags,omitempty"`            // Filter by tags
-	RecentlyAdded   bool      `json:"recentlyAdded,omitempty"`   // Filter to recently added items
-	RecentlyPlayed  bool      `json:"recentlyPlayed,omitempty"`  // Filter to recently played items
-	Watched         bool      `json:"watched,omitempty"`         // Filter to watched items
-	Watchlist       bool      `json:"watchlist,omitempty"`       // Filter to watchlist items
-	DateAddedAfter  time.Time `json:"dateAddedAfter,omitempty"`  // Filter by date added after
-	DateAddedBefore time.Time `json:"dateAddedBefore,omitempty"` // Filter by date added before
-	ReleasedAfter   time.Time `json:"releasedAfter,omitempty"`   // Filter by release date after
-	ReleasedBefore  time.Time `json:"releasedBefore,omitempty"`  // Filter by release date before
-	PlayedAfter     time.Time `json:"playedAfter,omitempty"`     // Filter by played date after
-	PlayedBefore    time.Time `json:"playedBefore,omitempty"`    // Filter by played date before
-	MinimumRating   float32   `json:"minimumRating,omitempty"`   // Filter by minimum rating
-	MaximumRating   float32   `json:"maximumRating,omitempty"`   // Filter by maximum rating (10 is the highest)
+	Favorites       bool       `json:"favorites,omitempty"`       // Filter to favorites only
+	Genre           string     `json:"genre,omitempty"`           // Filter by genre
+	Year            int        `json:"year,omitempty"`            // Filter by release year
+	Actor           string     `json:"actor,omitempty"`           // Filter by actor name/ID
+	Director        string     `json:"director,omitempty"`        // Filter by director name/ID
+	Network         string     `json:"network,omitempty"`         // Filter by network
+	Studio          string     `json:"studio,omitempty"`          // Filter by studio
+	Creator         string     `json:"creator,omitempty"`         // Filter by content creator
+	Role            string     `json:"role,omitempty"`            // Filter by role (actor, director, etc.)
+	MediaType       MediaType  `json:"mediaType,omitempty"`       // Filter by media type (movie, show, music, etc.)
+	ContentRating   string     `json:"contentRating,omitempty"`   // Filter by content rating (PG, PG-13, etc.)
+	Tags            []string   `json:"tags,omitempty"`            // Filter by tags
+	RecentlyAdded   bool       `json:"recentlyAdded,omitempty"`   // Filter to recently added items
+	RecentlyPlayed  bool       `json:"recentlyPlayed,omitempty"`  // Filter to recently played items
+	Watched         bool       `json:"watched,omitempty"`         // Filter to watched items
+	Watchlist       bool       `json:"watchlist,omitempty"`       // Filter to watchlist items
+	DateAddedAfter  *time.Time `json:"dateAddedAfter,omitempty"`  // Filter by date added after
+	DateAddedBefore *time.Time `json:"dateAddedBefore,omitempty"` // Filter by date added before
+	ReleasedAfter   *time.Time `json:"releasedAfter,omitempty"`   // Filter by release date after
+	ReleasedBefore  *time.Time `json:"releasedBefore,omitempty"`  // Filter by release date before
+	PlayedAfter     *time.Time `json:"playedAfter,omitempty"`     // Filter by played date after
+	PlayedBefore    *time.Time `json:"playedBefore,omitempty"`    // Filter by played date before
+	MinimumRating   float32    `json:"minimumRating,omitempty"`   // Filter by minimum rating
+	MaximumRating   float32    `json:"maximumRating,omitempty"`   // Filter by maximum rating (10 is the highest)
 
 	// TODO: Add normalized rating logic . Get ratings from all clients and external sources (tmdb,imdb)
 	// going to scale all of them to a range of 0-100 and then take the average of these ratings.

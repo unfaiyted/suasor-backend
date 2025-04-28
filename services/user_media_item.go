@@ -28,7 +28,7 @@ type UserMediaItemService[T types.MediaData] interface {
 
 	// Specific to user-owned collections/playlists
 	SearchUserContent(ctx context.Context, query types.QueryOptions) ([]*models.MediaItem[T], error)
-	GetRecentUserContent(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[T], error)
+	GetRecentUserContent(ctx context.Context, userID uint64, days int, limit int) ([]*models.MediaItem[T], error)
 }
 
 // userMediaItemService implements UserMediaItemService
@@ -210,7 +210,7 @@ func (s *userMediaItemService[T]) SearchUserContent(ctx context.Context, query t
 }
 
 // GetRecentUserContent retrieves recently created or updated user-owned content
-func (s *userMediaItemService[T]) GetRecentUserContent(ctx context.Context, userID uint64, limit int) ([]*models.MediaItem[T], error) {
+func (s *userMediaItemService[T]) GetRecentUserContent(ctx context.Context, userID uint64, days int, limit int) ([]*models.MediaItem[T], error) {
 	log := logger.LoggerFromContext(ctx)
 
 	var zero T

@@ -4,7 +4,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 
-	mediatypes "suasor/clients/media/types"
+	"suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/responses"
@@ -28,13 +28,13 @@ type UserSeriesHandler interface {
 type userSeriesHandler struct {
 	CoreSeriesHandler
 
-	seriesItemService  services.UserMediaItemService[*mediatypes.Series]
-	seasonItemService  services.UserMediaItemService[*mediatypes.Season]
-	episodeItemService services.UserMediaItemService[*mediatypes.Episode]
+	seriesItemService  services.UserMediaItemService[*types.Series]
+	seasonItemService  services.UserMediaItemService[*types.Season]
+	episodeItemService services.UserMediaItemService[*types.Episode]
 
-	seriesDataService  services.UserMediaItemDataService[*mediatypes.Series]
-	seasonDataService  services.UserMediaItemDataService[*mediatypes.Season]
-	episodeDataService services.UserMediaItemDataService[*mediatypes.Episode]
+	seriesDataService  services.UserMediaItemDataService[*types.Series]
+	seasonDataService  services.UserMediaItemDataService[*types.Season]
+	episodeDataService services.UserMediaItemDataService[*types.Episode]
 }
 
 // NewuserSeriesHandler creates a new user series handler
@@ -42,14 +42,14 @@ func NewUserSeriesHandler(
 	coreHandler CoreSeriesHandler,
 
 	// Items
-	seriesService services.UserMediaItemService[*mediatypes.Series],
-	seasonService services.UserMediaItemService[*mediatypes.Season],
-	episodeService services.UserMediaItemService[*mediatypes.Episode],
+	seriesService services.UserMediaItemService[*types.Series],
+	seasonService services.UserMediaItemService[*types.Season],
+	episodeService services.UserMediaItemService[*types.Episode],
 
 	// Item Data
-	seriesDataService services.UserMediaItemDataService[*mediatypes.Series],
-	seasonDataService services.UserMediaItemDataService[*mediatypes.Season],
-	episodeDataService services.UserMediaItemDataService[*mediatypes.Episode],
+	seriesDataService services.UserMediaItemDataService[*types.Series],
+	seasonDataService services.UserMediaItemDataService[*types.Season],
+	episodeDataService services.UserMediaItemDataService[*types.Episode],
 
 ) UserSeriesHandler {
 	return &userSeriesHandler{
@@ -73,7 +73,7 @@ func NewUserSeriesHandler(
 //	@Security		BearerAuth
 //	@Param			limit	query		int																false	"Maximum number of series to return (default 10)"
 //	@Param			offset	query		int																false	"Offset for pagination (default 0)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Series]]	"Series retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Series]]	"Series retrieved successfully"
 //	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/series/user/favorites [get]
@@ -117,7 +117,7 @@ func (h *userSeriesHandler) GetFavoriteSeries(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			limit	query		int																false	"Maximum number of series to return (default 10)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Series]]	"Series retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Series]]	"Series retrieved successfully"
 //	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/series/user/watched [get]
@@ -141,8 +141,8 @@ func (h *userSeriesHandler) GetWatchedSeries(c *gin.Context) {
 	// This is a placeholder for a real implementation
 	// In a real implementation, you would query play history to find watched series
 	// For now, we'll use SearchUserContent with a watched filter
-	options := mediatypes.QueryOptions{
-		MediaType: mediatypes.MediaTypeSeries,
+	options := types.QueryOptions{
+		MediaType: types.MediaTypeSeries,
 		OwnerID:   uid,
 		Watched:   true,
 		Limit:     limit,
@@ -175,7 +175,7 @@ func (h *userSeriesHandler) GetWatchedSeries(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			limit	query		int																false	"Maximum number of series to return (default 10)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Series]]	"Series retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Series]]	"Series retrieved successfully"
 //	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/series/user/watchlist [get]
@@ -199,14 +199,14 @@ func (h *userSeriesHandler) GetWatchlistSeries(c *gin.Context) {
 	// This is a placeholder for a real implementation
 	// In a real implementation, you would query for series specifically marked for watchlist
 	// For now, we'll use SearchUserContent with a watchlist filter
-	options := mediatypes.QueryOptions{
-		MediaType: mediatypes.MediaTypeSeries,
+	options := types.QueryOptions{
+		MediaType: types.MediaTypeSeries,
 		OwnerID:   uid,
 		Watchlist: true,
 		Limit:     limit,
 	}
 
-	series, err := h.seriesDataService.Search(ctx, &options)
+	series, err := h.seriesItemService.Search(ctx, options)
 	if err != nil {
 		handleServiceError(c, err,
 			"Failed to retrieve watchlist series",
@@ -219,7 +219,7 @@ func (h *userSeriesHandler) GetWatchlistSeries(c *gin.Context) {
 		Uint64("userID", uid).
 		Int("count", len(series)).
 		Msg("Watchlist series retrieved successfully")
-	responses.RespondOK(c, series, "Watchlist series retrieved successfully")
+	responses.RespondMediaItemListOK(c, series, "Watchlist series retrieved successfully")
 }
 
 // UpdateSeriesUserData godoc
@@ -231,8 +231,8 @@ func (h *userSeriesHandler) GetWatchlistSeries(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			id		path		int															true	"Series ID"
-//	@Param			data	body		models.UserMediaItemData[mediatypes.Series]					true	"Updated user data"
-//	@Success		200		{object}	responses.APIResponse[models.MediaItem[mediatypes.Series]]	"Series updated successfully"
+//	@Param			data	body		models.UserMediaItemData[types.Series]					true	"Updated user data"
+//	@Success		200		{object}	responses.APIResponse[models.MediaItem[types.Series]]	"Series updated successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid request"
 //	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
 //	@Failure		404		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Series not found"
@@ -255,7 +255,7 @@ func (h *userSeriesHandler) UpdateSeriesUserData(c *gin.Context) {
 	}
 
 	// Parse request body
-	var userData models.UserMediaItemData[*mediatypes.Series]
+	var userData models.UserMediaItemData[*types.Series]
 	if !checkJSONBinding(c, &userData) {
 		return
 	}
@@ -309,7 +309,7 @@ func (h *userSeriesHandler) UpdateSeriesUserData(c *gin.Context) {
 //	@Security		BearerAuth
 //	@Param			userId	query		int																true	"User ID"
 //	@Param			limit	query		int																false	"Maximum number of series to return (default 10)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Series]]	"Series retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Series]]	"Series retrieved successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid request"
 //	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/series/user/continue-watching [get]
@@ -351,7 +351,7 @@ func (h *userSeriesHandler) GetContinueWatchingSeries(c *gin.Context) {
 //	@Security		BearerAuth
 //	@Param			userId	query		int																true	"User ID"
 //	@Param			limit	query		int																false	"Maximum number of episodes to return (default 10)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Episode]]	"Episodes retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Episode]]	"Episodes retrieved successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid request"
 //	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/series/user/next-up [get]
@@ -394,7 +394,7 @@ func (h *userSeriesHandler) GetNextUpEpisodes(c *gin.Context) {
 //	@Param			userId	query		int																true	"User ID"
 //	@Param			days	query		int																false	"Number of days to look back (default 7)"
 //	@Param			limit	query		int																false	"Maximum number of episodes to return (default 10)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Episode]]	"Episodes retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Episode]]	"Episodes retrieved successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid request"
 //	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/series/user/recently-watched [get]
@@ -419,7 +419,7 @@ func (h *userSeriesHandler) GetRecentlyWatchedEpisodes(c *gin.Context) {
 		Msg("Getting recently watched series")
 
 	// Get recently watched series
-	series, err := h.episodeDataService.GetRecentHistory(ctx, userID, days, limit)
+	series, err := h.episodeItemService.GetRecentUserContent(ctx, userID, days, limit)
 	if err != nil {
 		handleServiceError(c, err,
 			"Failed to retrieve recently watched series",
@@ -433,5 +433,5 @@ func (h *userSeriesHandler) GetRecentlyWatchedEpisodes(c *gin.Context) {
 		Int("count", len(series)).
 		Msg("Recently watched series retrieved successfully")
 
-	responses.RespondOK(c, series, "Recently watched series retrieved successfully")
+	responses.RespondMediaItemListOK(c, series, "Recently watched series retrieved successfully")
 }

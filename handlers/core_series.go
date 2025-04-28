@@ -6,15 +6,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	mediatypes "suasor/clients/media/types"
+	"suasor/clients/media/types"
 	"suasor/services"
+	"suasor/types/models"
 	"suasor/types/responses"
 	"suasor/utils"
 	"suasor/utils/logger"
 )
 
 type CoreSeriesHandler interface {
-	CoreMediaItemHandler[*mediatypes.Series]
+	CoreMediaItemHandler[*types.Series]
 
 	GetAllEpisodes(c *gin.Context)
 	GetByCreator(c *gin.Context)
@@ -31,18 +32,18 @@ type CoreSeriesHandler interface {
 
 // coreSeriesHandler handles operations for series items in the database
 type coreSeriesHandler struct {
-	CoreMediaItemHandler[*mediatypes.Series]
-	seriesService  services.CoreMediaItemService[*mediatypes.Series]
-	seasonService  services.CoreMediaItemService[*mediatypes.Season]
-	episodeService services.CoreMediaItemService[*mediatypes.Episode]
+	CoreMediaItemHandler[*types.Series]
+	seriesService  services.CoreMediaItemService[*types.Series]
+	seasonService  services.CoreMediaItemService[*types.Season]
+	episodeService services.CoreMediaItemService[*types.Episode]
 }
 
 // NewcoreSeriesHandler creates a new series handler
 func NewCoreSeriesHandler(
-	coreHandler CoreMediaItemHandler[*mediatypes.Series],
-	seriesService services.CoreMediaItemService[*mediatypes.Series],
-	seasonService services.CoreMediaItemService[*mediatypes.Season],
-	episodeService services.CoreMediaItemService[*mediatypes.Episode],
+	coreHandler CoreMediaItemHandler[*types.Series],
+	seriesService services.CoreMediaItemService[*types.Series],
+	seasonService services.CoreMediaItemService[*types.Season],
+	episodeService services.CoreMediaItemService[*types.Episode],
 ) CoreSeriesHandler {
 	return &coreSeriesHandler{
 		CoreMediaItemHandler: coreHandler,
@@ -61,7 +62,7 @@ func NewCoreSeriesHandler(
 //	@Produce		json
 //	@Param			seriesID	path		int											true	"Series ID"
 //	@Param			userId		query		int											true	"User ID"
-//	@Success		200			{object}	responses.APIResponse[[]mediatypes.Season]	"Seasons retrieved successfully"
+//	@Success		200				{object}	responses.APIResponse[responses.MediaItemList[types.Season]]	"Episodes retrieved successfully"
 //	@Failure		400			{object}	responses.ErrorResponse[any]				"Invalid request"
 //	@Failure		404			{object}	responses.ErrorResponse[any]				"Series not found"
 //	@Failure		500			{object}	responses.ErrorResponse[any]				"Server error"
@@ -87,14 +88,20 @@ func (h *coreSeriesHandler) GetSeasonsBySeriesID(c *gin.Context) {
 	// Get seasons from the series data
 	seasons := series.Data.Seasons
 	if seasons == nil {
-		seasons = []*mediatypes.Season{}
+		seasons = []*types.Season{}
+	}
+
+	// wrap all in media item list
+	var seasonList []*models.MediaItem[*types.Season]
+	for _, season := range seasons {
+		seasonList = append(seasonList, models.NewMediaItem[*types.Season](types.MediaTypeSeason, season))
 	}
 
 	log.Info().
 		Uint64("seriesID", seriesID).
 		Int("seasonCount", len(seasons)).
 		Msg("Seasons retrieved successfully")
-	responses.RespondOK(c, seasons, "Seasons retrieved successfully")
+	responses.RespondMediaItemListOK(c, seasonList, "Seasons retrieved successfully")
 }
 
 // GetEpisodesBySeriesIDAndSeasonNumber godoc
@@ -107,7 +114,7 @@ func (h *coreSeriesHandler) GetSeasonsBySeriesID(c *gin.Context) {
 //	@Param			seriesID		path		int											true	"Series ID"
 //	@Param			seasonNumber	path		int											true	"Season number"
 //	@Param			userId			query		int											true	"User ID"
-//	@Success		200				{object}	responses.APIResponse[[]mediatypes.Episode]	"Episodes retrieved successfully"
+//	@Success		200				{object}	responses.APIResponse[responses.MediaItemList[types.Episode]]	"Episodes retrieved successfully"
 //	@Failure		400				{object}	responses.ErrorResponse[any]				"Invalid request"
 //	@Failure		404				{object}	responses.ErrorResponse[any]				"Series or season not found"
 //	@Failure		500				{object}	responses.ErrorResponse[any]				"Server error"
@@ -137,7 +144,7 @@ func (h *coreSeriesHandler) GetEpisodesBySeriesIDAndSeasonNumber(c *gin.Context)
 	}
 
 	// Find the correct season and get its episodes
-	var episodes []*mediatypes.Episode
+	var episodes []*types.Episode
 	seasonFound := false
 
 	for _, season := range series.Data.Seasons {
@@ -158,7 +165,12 @@ func (h *coreSeriesHandler) GetEpisodesBySeriesIDAndSeasonNumber(c *gin.Context)
 	}
 
 	if episodes == nil {
-		episodes = []*mediatypes.Episode{}
+		episodes = []*types.Episode{}
+	}
+	// wrap all in media item list
+	var episodeList []*models.MediaItem[*types.Episode]
+	for _, episode := range episodes {
+		episodeList = append(episodeList, models.NewMediaItem[*types.Episode](types.MediaTypeEpisode, episode))
 	}
 
 	log.Info().
@@ -166,7 +178,7 @@ func (h *coreSeriesHandler) GetEpisodesBySeriesIDAndSeasonNumber(c *gin.Context)
 		Int("seasonNumber", seasonNumber).
 		Int("episodeCount", len(episodes)).
 		Msg("Episodes retrieved successfully")
-	responses.RespondOK(c, episodes, "Episodes retrieved successfully")
+	responses.RespondMediaItemListOK(c, episodeList, "Episodes retrieved successfully")
 }
 
 // GetContinueWatchingSeries godoc
@@ -178,7 +190,7 @@ func (h *coreSeriesHandler) GetEpisodesBySeriesIDAndSeasonNumber(c *gin.Context)
 //	@Produce		json
 //	@Param			userId	query		int											true	"User ID"
 //	@Param			limit	query		int											false	"Maximum number of series to return (default 10)"
-//	@Success		200		{object}	responses.APIResponse[[]mediatypes.Series]	"Series retrieved successfully"
+//	@Success		200				{object}	responses.APIResponse[responses.MediaItemList[types.Series]]	"Episodes retrieved successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[any]				"Invalid request"
 //	@Failure		500		{object}	responses.ErrorResponse[any]				"Server error"
 //	@Router			/media/series/continue-watching [get]
@@ -220,7 +232,7 @@ func (h *coreSeriesHandler) GetContinueWatchingSeries(c *gin.Context) {
 //	@Produce		json
 //	@Param			id		path		int											true	"Series ID"
 //	@Param			userId	query		int											true	"User ID"
-//	@Success		200		{object}	responses.APIResponse[[]mediatypes.Episode]	"Episodes retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Episode]]	"Episodes retrieved successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[any]				"Invalid request"
 //	@Failure		404		{object}	responses.ErrorResponse[any]				"Series not found"
 //	@Failure		500		{object}	responses.ErrorResponse[any]				"Server error"
@@ -248,19 +260,24 @@ func (h *coreSeriesHandler) GetAllEpisodes(c *gin.Context) {
 	}
 
 	// Collect all episodes from all seasons
-	var allEpisodes []*mediatypes.Episode
+	var allEpisodes []*types.Episode
 
 	for _, season := range series.Data.Seasons {
 		if season.Episodes != nil {
 			allEpisodes = append(allEpisodes, season.Episodes...)
 		}
 	}
+	// wrap all in media item list
+	var episodeList []*models.MediaItem[*types.Episode]
+	for _, episode := range allEpisodes {
+		episodeList = append(episodeList, models.NewMediaItem[*types.Episode](types.MediaTypeEpisode, episode))
+	}
 
 	log.Info().
 		Uint64("seriesID", seriesID).
 		Int("totalEpisodes", len(allEpisodes)).
 		Msg("All episodes retrieved successfully")
-	responses.RespondOK(c, allEpisodes, "Episodes retrieved successfully")
+	responses.RespondMediaItemListOK(c, episodeList, "Episodes retrieved successfully")
 }
 
 // GetNextUpEpisodes godoc
@@ -272,7 +289,7 @@ func (h *coreSeriesHandler) GetAllEpisodes(c *gin.Context) {
 //	@Produce		json
 //	@Param			userId	query		int											true	"User ID"
 //	@Param			limit	query		int											false	"Maximum number of episodes to return (default 10)"
-//	@Success		200		{object}	responses.APIResponse[[]mediatypes.Episode]	"Episodes retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Episode]]	"Episodes retrieved successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[any]				"Invalid request"
 //	@Failure		500		{object}	responses.ErrorResponse[any]				"Server error"
 //	@Router			/media/series/next-up [get]
@@ -308,7 +325,7 @@ func (h *coreSeriesHandler) GetNextUpEpisodes(c *gin.Context) {
 //	@Param			userId	query		int											true	"User ID"
 //	@Param			limit	query		int											false	"Maximum number of episodes to return (default 10)"
 //	@Param			days	query		int											false	"Number of days to look back (default 7)"
-//	@Success		200		{object}	responses.APIResponse[[]mediatypes.Episode]	"Episodes retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Episode]]	"Episodes retrieved successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[any]				"Invalid request"
 //	@Failure		500		{object}	responses.ErrorResponse[any]				"Server error"
 //	@Router			/media/series/recently-aired [get]
@@ -344,7 +361,7 @@ func (h *coreSeriesHandler) GetRecentlyAiredEpisodes(c *gin.Context) {
 //	@Param			network	path		string										true	"Network name"
 //	@Param			limit	query		int											false	"Maximum number of series to return (default 10)"
 //	@Param			offset	query		int											false	"Offset for pagination (default 0)"
-//	@Success		200		{object}	responses.APIResponse[[]mediatypes.Series]	"Series retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Series]]	"Series retrieved successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[any]				"Invalid request"
 //	@Failure		500		{object}	responses.ErrorResponse[any]				"Server error"
 //	@Router			/media/series/network/{network} [get]
@@ -365,38 +382,23 @@ func (h *coreSeriesHandler) GetSeriesByNetwork(c *gin.Context) {
 		Int("limit", limit).
 		Msg("Getting series by network")
 
+	options := types.QueryOptions{
+		Network: network,
+		Limit:   limit,
+		Offset:  offset,
+	}
+
 	// Get all series for the user
-	allSeries, err := h.seriesService.GetAll(ctx, limit, offset)
+	allSeries, err := h.seriesService.Search(ctx, options)
 	if handleServiceError(c, err, "Failed to retrieve series", "", "Failed to retrieve series") {
 		return
 	}
 
-	// Filter series by network
-	// This assumes the Series struct has a Network field or similar
-	var filteredSeries []*mediatypes.Series
-
-	for _, seriesItem := range allSeries {
-		if seriesItem.Data.Network == network {
-			filteredSeries = append(filteredSeries, seriesItem.Data)
-			if len(filteredSeries) >= limit {
-				break
-			}
-		}
-	}
-
 	log.Info().
 		Str("network", network).
-		Int("count", len(filteredSeries)).
 		Msg("Series by network retrieved successfully")
 
-	// If Series type doesn't have a Network field, respond with empty result
-	if len(filteredSeries) == 0 {
-		log.Info().Msg("Network-based filtering not fully implemented")
-		responses.RespondOK(c, []*mediatypes.Series{}, "Series retrieved successfully (network field may not be available)")
-		return
-	}
-
-	responses.RespondOK(c, filteredSeries, "Series retrieved successfully")
+	responses.RespondMediaItemListOK(c, allSeries, "Series retrieved successfully")
 }
 
 // GetSeasonWithEpisodes godoc
@@ -409,7 +411,7 @@ func (h *coreSeriesHandler) GetSeriesByNetwork(c *gin.Context) {
 //	@Param			id				path		int											true	"Series ID"
 //	@Param			seasonNumber	path		int											true	"Season number"
 //	@Param			userId			query		int											true	"User ID"
-//	@Success		200				{object}	responses.APIResponse[[]mediatypes.Episode]	"Episodes retrieved successfully"
+//	@Success		200				{object}	responses.APIResponse[responses.MediaItemList[types.Episode]]	"Episodes retrieved successfully"
 //	@Failure		400				{object}	responses.ErrorResponse[any]				"Invalid request"
 //	@Failure		404				{object}	responses.ErrorResponse[any]				"Series or season not found"
 //	@Failure		500				{object}	responses.ErrorResponse[any]				"Server error"
@@ -444,7 +446,7 @@ func (h *coreSeriesHandler) GetSeasonWithEpisodes(c *gin.Context) {
 	}
 
 	// Find the correct season and get its episodes
-	var episodes []*mediatypes.Episode
+	var episodes []*types.Episode
 	seasonFound := false
 
 	for _, season := range series.Data.Seasons {
@@ -465,7 +467,12 @@ func (h *coreSeriesHandler) GetSeasonWithEpisodes(c *gin.Context) {
 	}
 
 	if episodes == nil {
-		episodes = []*mediatypes.Episode{}
+		episodes = []*types.Episode{}
+	}
+	// wrap all in media item list
+	var episodeList []*models.MediaItem[*types.Episode]
+	for _, episode := range episodes {
+		episodeList = append(episodeList, models.NewMediaItem[*types.Episode](types.MediaTypeEpisode, episode))
 	}
 
 	log.Info().
@@ -473,7 +480,7 @@ func (h *coreSeriesHandler) GetSeasonWithEpisodes(c *gin.Context) {
 		Int("seasonNumber", seasonNumber).
 		Int("episodeCount", len(episodes)).
 		Msg("Episodes retrieved successfully")
-	responses.RespondOK(c, episodes, "Episodes retrieved successfully")
+	responses.RespondMediaItemListOK(c, episodeList, "Episodes retrieved successfully")
 }
 
 // GetByCreator godoc
@@ -486,7 +493,7 @@ func (h *coreSeriesHandler) GetSeasonWithEpisodes(c *gin.Context) {
 //	@Param			creatorId	path		int											true	"Creator ID"
 //	@Param			limit		query		int											false	"Maximum number of series to return (default 10)"
 //	@Param			offset		query		int											false	"Offset for pagination (default 0)"
-//	@Success		200			{object}	responses.APIResponse[[]mediatypes.Series]	"Series retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Series]]	"Series retrieved successfully"
 //	@Failure		400			{object}	responses.ErrorResponse[any]				"Invalid request"
 //	@Failure		500			{object}	responses.ErrorResponse[any]				"Server error"
 //	@Router			/media/series/creator/{creatorId} [get]
@@ -515,7 +522,7 @@ func (h *coreSeriesHandler) GetByCreator(c *gin.Context) {
 
 	// Filter series by creator
 	// This assumes the Series struct has a Creator field or similar
-	var filteredSeries []*mediatypes.Series
+	var filteredSeries []*types.Series
 
 	// for _, seriesItem := range allSeries {
 	// if seriesItem.Data.Creator == creatorID {
@@ -534,11 +541,12 @@ func (h *coreSeriesHandler) GetByCreator(c *gin.Context) {
 	// If Series type doesn't have a Creator field, respond with empty result
 	if len(filteredSeries) == 0 {
 		log.Info().Msg("Creator-based filtering not fully implemented")
-		responses.RespondOK(c, []*mediatypes.Series{}, "Series retrieved successfully (creator field may not be available)")
+		var emptyList []*models.MediaItem[*types.Series]
+		responses.RespondMediaItemListOK(c, emptyList, "Series retrieved successfully (creator field may not be available)")
 		return
 	}
 
-	responses.RespondOK(c, allSeries, "Series retrieved successfully")
+	responses.RespondMediaItemListOK(c, allSeries, "Series retrieved successfully")
 }
 
 // GetEpisodesBySeasonID godoc
@@ -551,7 +559,7 @@ func (h *coreSeriesHandler) GetByCreator(c *gin.Context) {
 //	@Param			id				path		int											true	"Series ID"
 //	@Param			seasonNumber	path		int											true	"Season number"
 //	@Param			userId			query		int											true	"User ID"
-//	@Success		200				{object}	responses.APIResponse[[]mediatypes.Episode]	"Episodes retrieved successfully"
+//	@Success		200				{object}	responses.APIResponse[responses.MediaItemList[types.Episode]]	"Episodes retrieved successfully"
 //	@Failure		400				{object}	responses.ErrorResponse[any]				"Invalid request"
 //	@Failure		404				{object}	responses.ErrorResponse[any]				"Series or season not found"
 //	@Failure		500				{object}	responses.ErrorResponse[any]				"Server error"
@@ -586,7 +594,7 @@ func (h *coreSeriesHandler) GetEpisodesBySeasonID(c *gin.Context) {
 	}
 
 	// Find the correct season and get its episodes
-	var episodes []*mediatypes.Episode
+	var episodes []*types.Episode
 	seasonFound := false
 
 	for _, season := range series.Data.Seasons {
@@ -607,7 +615,12 @@ func (h *coreSeriesHandler) GetEpisodesBySeasonID(c *gin.Context) {
 	}
 
 	if episodes == nil {
-		episodes = []*mediatypes.Episode{}
+		episodes = []*types.Episode{}
+	}
+	// wrap all in media item list
+	var episodeList []*models.MediaItem[*types.Episode]
+	for _, episode := range episodes {
+		episodeList = append(episodeList, models.NewMediaItem[*types.Episode](types.MediaTypeEpisode, episode))
 	}
 
 	log.Info().
@@ -615,5 +628,5 @@ func (h *coreSeriesHandler) GetEpisodesBySeasonID(c *gin.Context) {
 		Int("seasonNumber", seasonNumber).
 		Int("episodeCount", len(episodes)).
 		Msg("Episodes retrieved successfully")
-	responses.RespondOK(c, episodes, "Episodes retrieved successfully")
+	responses.RespondMediaItemListOK(c, episodeList, "Episodes retrieved successfully")
 }

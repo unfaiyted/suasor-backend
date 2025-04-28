@@ -328,7 +328,7 @@ func (s *mediaMusicService[T]) GetClientRecentlyPlayedTracks(ctx context.Context
 	// Configure for recently played
 	options := &mediatypes.QueryOptions{
 		RecentlyPlayed: true,
-		PlayedAfter:    cutoffDate,
+		PlayedAfter:    &cutoffDate,
 		Sort:           "datePlayed",
 		SortOrder:      mediatypes.SortOrderDesc,
 		Limit:          limit,

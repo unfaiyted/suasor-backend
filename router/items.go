@@ -23,7 +23,6 @@ func RegisterMediaItemRoutes(ctx context.Context, rg *gin.RouterGroup, c *contai
 		RegisterClientMediaItemRoutes(ctx, clientMediaItems, c)
 		// {base}/client/:id/playlist/ example: /client/11/playlist
 		RegisterClientListRoutes(ctx, clientMediaItems, c)
-
 	}
 
 }

@@ -14,9 +14,6 @@ import (
 )
 
 type ClientSeriesHandler[T clienttypes.ClientMediaConfig] interface {
-	GetSeriesByID(c *gin.Context)
-	GetSeriesByGenre(c *gin.Context)
-	GetSeriesByYear(c *gin.Context)
 	GetSeriesByActor(c *gin.Context)
 	GetSeriesByCreator(c *gin.Context)
 	GetSeriesByRating(c *gin.Context)
@@ -25,6 +22,7 @@ type ClientSeriesHandler[T clienttypes.ClientMediaConfig] interface {
 	GetTopRatedSeries(c *gin.Context)
 	SearchSeries(c *gin.Context)
 	GetSeasonsBySeriesID(c *gin.Context)
+	GetEpisodesBySeriesID(c *gin.Context)
 }
 
 // clientSeriesHandler handles series-related operations for media clients
@@ -44,162 +42,6 @@ func NewClientSeriesHandler[T clienttypes.ClientMediaConfig](
 	}
 }
 
-// GetSeriesByID godoc
-//
-//	@Summary		Get series by ID
-//	@Description	Retrieves a specific TV series from the client by ID
-//	@Tags			series, clients
-//	@Accept			json
-//	@Produce		json
-//	@Security		BearerAuth
-//	@Param			clientID	path		int																true	"Client ID"
-//	@Param			seriesID	path		string															true	"Series ID"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Series]]	"Series retrieved"
-//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid client ID"
-//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
-//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
-//	@Router			/client/{clientID}/media/series/{seriesID} [get]
-func (h *clientSeriesHandler[T]) GetSeriesByID(c *gin.Context) {
-	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
-	log.Info().Msg("Getting series by ID")
-
-	// Get authenticated user ID
-	uid, ok := checkUserAccess(c)
-	if !ok {
-		return
-	}
-
-	// Parse client ID from URL
-	clientID, err := checkItemID(c, "clientID")
-	if err != nil {
-		return
-	}
-
-	seriesID := c.Param("seriesID")
-
-	log.Info().
-		Uint64("userID", uid).
-		Uint64("clientID", clientID).
-		Str("seriesID", seriesID).
-		Msg("Retrieving series by ID")
-
-	series, err := h.seriesService.GetSeriesByID(ctx, clientID, seriesID)
-	if err != nil {
-		handleServiceError(c, err, "Retrieving series", "Series not found", "Failed to retrieve series")
-		return
-	}
-
-	log.Info().
-		Uint64("userID", uid).
-		Uint64("clientID", clientID).
-		Str("seriesID", seriesID).
-		Msg("Series retrieved successfully")
-	responses.RespondOK(c, series, "Series retrieved successfully")
-}
-
-// GetSeriesByGenre godoc
-//
-//	@Summary		Get series by genre
-//	@Description	Retrieves TV series from all connected clients that match the specified genre
-//	@Tags			series, clients
-//	@Accept			json
-//	@Produce		json
-//	@Security		BearerAuth
-//	@Param			genre		path		string													true	"Genre name"
-//	@Param			clientID	path		int														true	"Client ID"
-//	@Success		200			{object}	responses.APIResponse[[]responses.MediaItemResponse]	"Series retrieved"
-//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]			"Unauthorized"
-//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]			"Server error"
-//	@Router			/client/{clientID}/media/series/genre/{genre} [get]
-func (h *clientSeriesHandler[T]) GetSeriesByGenre(c *gin.Context) {
-	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
-	log.Info().Msg("Getting series by genre")
-
-	// Get authenticated user ID
-	uid, ok := checkUserAccess(c)
-	if !ok {
-		return
-	}
-
-	genre, ok := checkRequiredStringParam(c, "genre", "Genre name is required")
-	if !ok {
-		return
-	}
-
-	log.Info().
-		Uint64("userID", uid).
-		Str("genre", genre).
-		Msg("Retrieving series by genre")
-
-	series, err := h.seriesService.GetSeriesByGenre(ctx, uid, genre)
-	if handleServiceError(c, err,
-		"Failed to retrieve series by genre",
-		"No series found for this genre",
-		"Failed to retrieve series") {
-		return
-	}
-
-	log.Info().
-		Uint64("userID", uid).
-		Str("genre", genre).
-		Int("count", len(series)).
-		Msg("Series retrieved successfully")
-	responses.RespondOK(c, series, "Series retrieved successfully")
-}
-
-// GetSeriesByYear godoc
-//
-//	@Summary		Get series by release year
-//	@Description	Retrieves TV series from all connected clients that were released in the specified year
-//	@Tags			series, clients
-//	@Accept			json
-//	@Produce		json
-//	@Security		BearerAuth
-//	@Param			year	path		int																true	"Release year"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Series]]	"Series retrieved"
-//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid year"
-//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
-//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
-//	@Router			/client/{clientID}/media/series/year/{year} [get]
-func (h *clientSeriesHandler[T]) GetSeriesByYear(c *gin.Context) {
-	ctx := c.Request.Context()
-	log := logger.LoggerFromContext(ctx)
-	log.Info().Msg("Getting series by year")
-
-	// Get authenticated user ID
-	uid, ok := checkUserAccess(c)
-	if !ok {
-		return
-	}
-
-	year, ok := checkYear(c, "year")
-	if !ok {
-		return
-	}
-
-	log.Info().
-		Uint64("userID", uid).
-		Int("year", year).
-		Msg("Retrieving series by year")
-
-	series, err := h.seriesService.GetSeriesByYear(ctx, uid, year)
-	if handleServiceError(c, err,
-		"Failed to retrieve series by year",
-		"No series found for this year",
-		"Failed to retrieve series") {
-		return
-	}
-
-	log.Info().
-		Uint64("userID", uid).
-		Int("year", year).
-		Int("count", len(series)).
-		Msg("Series retrieved successfully")
-	responses.RespondOK(c, series, "Series retrieved successfully")
-}
-
 // GetSeriesByActor godoc
 //
 //	@Summary		Get series by actor
@@ -209,7 +51,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByYear(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			actor	path		string															true	"Actor name"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Series]]	"Series retrieved"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Series]]	"Series retrieved"
 //	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/client/{clientID}/media/series/actor/{actor} [get]
@@ -247,7 +89,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByActor(c *gin.Context) {
 		Str("actor", actor).
 		Int("count", len(series)).
 		Msg("Series retrieved successfully")
-	responses.RespondOK(c, series, "Series retrieved successfully")
+	responses.RespondMediaItemListOK(c, series, "Series retrieved successfully")
 }
 
 // GetSeriesByCreator godoc
@@ -259,7 +101,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByActor(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			creator	path		string															true	"Creator name"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Series]]	"Series retrieved"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Series]]	"Series retrieved"
 //	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/client/{clientID}/media/series/creator/{creator} [get]
@@ -299,7 +141,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByCreator(c *gin.Context) {
 		Str("creator", creator).
 		Int("count", len(series)).
 		Msg("Series retrieved successfully")
-	responses.RespondOK(c, series, "Series retrieved successfully")
+	responses.RespondMediaItemListOK(c, series, "Series retrieved successfully")
 }
 
 // GetSeriesByRating godoc
@@ -312,7 +154,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByCreator(c *gin.Context) {
 //	@Security		BearerAuth
 //	@Param			min	query		number															true	"Minimum rating"
 //	@Param			max	query		number															true	"Maximum rating"
-//	@Success		200	{object}	responses.APIResponse[[]models.MediaItem[types.Series]]	"Series retrieved"
+//	@Success		200	{object}	responses.APIResponse[responses.MediaItemList[types.Series]]	"Series retrieved"
 //	@Failure		400	{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid rating parameters"
 //	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
@@ -369,7 +211,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByRating(c *gin.Context) {
 		Float64("maxRating", maxRating).
 		Int("count", len(series)).
 		Msg("Series retrieved successfully")
-	responses.RespondOK(c, series, "Series retrieved successfully")
+	responses.RespondMediaItemListOK(c, series, "Series retrieved successfully")
 }
 
 // GetLatestSeriesByAdded godoc
@@ -381,7 +223,7 @@ func (h *clientSeriesHandler[T]) GetSeriesByRating(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			count	path		int																true	"Number of series to retrieve"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Series]]	"Series retrieved"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Series]]	"Series retrieved"
 //	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid count"
 //	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
@@ -428,7 +270,7 @@ func (h *clientSeriesHandler[T]) GetLatestSeriesByAdded(c *gin.Context) {
 		Int("count", count).
 		Int("seriesReturned", len(series)).
 		Msg("Latest series retrieved successfully")
-	responses.RespondOK(c, series, "Series retrieved successfully")
+	responses.RespondMediaItemListOK(c, series, "Series retrieved successfully")
 }
 
 // GetPopularSeries godoc
@@ -440,7 +282,7 @@ func (h *clientSeriesHandler[T]) GetLatestSeriesByAdded(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			count	path		int																true	"Number of series to retrieve"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Series]]	"Series retrieved"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Series]]	"Series retrieved"
 //	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid count"
 //	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
@@ -487,7 +329,7 @@ func (h *clientSeriesHandler[T]) GetPopularSeries(c *gin.Context) {
 		Int("count", count).
 		Int("seriesReturned", len(series)).
 		Msg("Popular series retrieved successfully")
-	responses.RespondOK(c, series, "Series retrieved successfully")
+	responses.RespondMediaItemListOK(c, series, "Series retrieved successfully")
 }
 
 // GetTopRatedSeries godoc
@@ -499,7 +341,7 @@ func (h *clientSeriesHandler[T]) GetPopularSeries(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			count	path		int																true	"Number of series to retrieve"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Series]]	"Series retrieved"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Series]]	"Series retrieved"
 //	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid count"
 //	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
@@ -510,14 +352,7 @@ func (h *clientSeriesHandler[T]) GetTopRatedSeries(c *gin.Context) {
 	log.Info().Msg("Getting top rated series")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to access series without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
-
-	uid := userID.(uint64)
+	uid, _ := checkUserAccess(c)
 
 	count, err := strconv.Atoi(c.Param("count"))
 	if err != nil {
@@ -546,7 +381,7 @@ func (h *clientSeriesHandler[T]) GetTopRatedSeries(c *gin.Context) {
 		Int("count", count).
 		Int("seriesReturned", len(series)).
 		Msg("Top rated series retrieved successfully")
-	responses.RespondOK(c, series, "Series retrieved successfully")
+	responses.RespondMediaItemListOK(c, series, "Series retrieved successfully")
 }
 
 // SearchSeries godoc
@@ -558,7 +393,7 @@ func (h *clientSeriesHandler[T]) GetTopRatedSeries(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			q	query		string															true	"Search query"
-//	@Success		200	{object}	responses.APIResponse[[]models.MediaItem[types.Series]]	"Series retrieved"
+//	@Success		200	{object}	responses.APIResponse[responses.MediaItemList[types.Series]]	"Series retrieved"
 //	@Failure		400	{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid query"
 //	@Failure		401	{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500	{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
@@ -569,14 +404,8 @@ func (h *clientSeriesHandler[T]) SearchSeries(c *gin.Context) {
 	log.Info().Msg("Searching series")
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		log.Warn().Msg("Attempt to search series without authentication")
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
+	uid, _ := checkUserAccess(c)
 
-	uid := userID.(uint64)
 	query := c.Query("q")
 
 	if query == "" {
@@ -616,7 +445,7 @@ func (h *clientSeriesHandler[T]) SearchSeries(c *gin.Context) {
 		Str("query", query).
 		Int("resultsCount", len(series)).
 		Msg("Series search completed successfully")
-	responses.RespondOK(c, series, "Series retrieved successfully")
+	responses.RespondMediaItemListOK(c, series, "Series retrieved successfully")
 }
 
 // GetSeasonsBySeriesID godoc
@@ -628,12 +457,12 @@ func (h *clientSeriesHandler[T]) SearchSeries(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			clientID	path		int															true	"Client ID"
-//	@Param			seriesID	path		string														true	"Series ID"
-//	@Success		200			{object}	responses.APIResponse[models.MediaItem[types.Series]]	"Series retrieved"
+//	@Param			clientItemID	path		string														true	"Series ID"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Series]]	"Series retrieved"
 //	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid client ID"
 //	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
-//	@Router			/client/{clientID}/media/series/{seriesID}/seasons [get]
+//	@Router			/client/{clientID}/media/series/{clientItemID}/seasons [get]
 func (h *clientSeriesHandler[T]) GetSeasonsBySeriesID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -650,14 +479,8 @@ func (h *clientSeriesHandler[T]) GetSeasonsBySeriesID(c *gin.Context) {
 	uid := userID.(uint64)
 
 	// Parse client ID from URL
-	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
-	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
-		return
-	}
-
-	seriesID := c.Param("seriesID")
+	clientID, _ := checkItemID(c, "clientID")
+	seriesID := c.Param("clientItemID")
 
 	log.Info().
 		Uint64("userID", uid).
@@ -682,5 +505,117 @@ func (h *clientSeriesHandler[T]) GetSeasonsBySeriesID(c *gin.Context) {
 		Str("seriesID", seriesID).
 		Int("seasonsCount", len(seasons)).
 		Msg("Seasons retrieved successfully")
-	responses.RespondOK(c, seasons, "Seasons retrieved successfully")
+	responses.RespondMediaItemListOK(c, seasons, "Seasons retrieved successfully")
+}
+
+// GetEpisodesBySeriesID godoc
+//
+//	@Summary		Get episodes by series ID
+//	@Description	Retrieves all episodes for a specific series
+//	@Tags			series, client
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int																true	"Client ID"
+//	@Param			clientItemID	path		string														true	"Series ID"
+//	@Param			userId			query		int																true	"User ID"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Episode]]	"Episodes retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid client ID"
+//	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
+//	@Router			/client/{clientID}/media/series/{clientItemID}/episodes [get]
+func (h *clientSeriesHandler[T]) GetEpisodesBySeriesID(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := logger.LoggerFromContext(ctx)
+	log.Info().Msg("Getting episodes by series ID")
+
+	// Get authenticated user ID
+	uid, ok := checkUserAccess(c)
+	if !ok {
+		return
+	}
+
+	// Parse client ID from URL
+	clientID, _ := checkItemID(c, "clientID")
+	seriesID := c.Param("clientItemID")
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Str("seriesID", seriesID).
+		Msg("Retrieving episodes by series ID")
+
+	episodes, err := h.seriesService.GetEpisodesBySeriesID(ctx, clientID, seriesID)
+	if handleServiceError(c, err, "Failed to retrieve episodes by series ID", "", "Failed to retrieve episodes") {
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Str("seriesID", seriesID).
+		Int("episodeCount", len(episodes)).
+		Msg("Episodes retrieved successfully")
+	responses.RespondMediaItemListOK(c, episodes, "Episodes retrieved successfully")
+}
+
+// GetEpisodesBySeasonID godoc
+//
+//	@Summary		Get episodes for a season
+//	@Description	Retrieves all episodes for a specific season of a series
+//	@Tags			series, client
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int																true	"Client ID"
+//	@Param			clientItemID	path		string														true	"Series ID"
+//	@Param			seasonNumber	path		int																true	"Season number"
+//	@Param			userId			query		int																true	"User ID"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Episode]]	"Episodes retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[error]								"Invalid client ID"
+//	@Failure		401			{object}	responses.ErrorResponse[error]								"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[error]								"Server error"
+//	@Router			/client/{clientID}/media/series/{clientItemID}/season/{seasonNumber}/episodes [get]
+func (h *clientSeriesHandler[T]) GetEpisodesBySeasonNbr(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := logger.LoggerFromContext(ctx)
+	log.Info().Msg("Getting episodes by season ID")
+
+	// Get authenticated user ID
+	uid, ok := checkUserAccess(c)
+	if !ok {
+		return
+	}
+
+	// Parse client ID from URL
+	clientID, _ := checkItemID(c, "clientID")
+	seriesID := c.Param("clientItemID")
+	seasonNumber, err := strconv.Atoi(c.Param("seasonNumber"))
+
+	if err != nil {
+		log.Error().Err(err).Str("seasonNumber", c.Param("seasonNumber")).Msg("Invalid season number format")
+		responses.RespondBadRequest(c, err, "Invalid season number")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Str("seriesID", seriesID).
+		Int("seasonNumber", seasonNumber).
+		Msg("Retrieving episodes by season ID")
+
+	episodes, err := h.seriesService.GetEpisodesBySeasonNbr(ctx, clientID, seriesID, seasonNumber)
+	if handleServiceError(c, err, "Failed to retrieve episodes by season ID", "", "Failed to retrieve episodes") {
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Str("seriesID", seriesID).
+		Int("seasonNumber", seasonNumber).
+		Int("episodeCount", len(episodes)).
+		Msg("Episodes retrieved successfully")
+	responses.RespondMediaItemListOK(c, episodes, "Episodes retrieved successfully")
 }

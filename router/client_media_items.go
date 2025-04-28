@@ -23,15 +23,15 @@ func RegisterClientMediaItemRoutes(ctx context.Context, rg *gin.RouterGroup, c *
 	clientGroup := rg.Group("/:clientID/media")
 	clientGroup.Use(middleware.ClientTypeMiddleware(db))
 	{
-		registerClientItemRoutes[*mediatypes.Movie](clientGroup, c)
-		registerClientItemRoutes[*mediatypes.Series](clientGroup, c)
-		registerClientItemRoutes[*mediatypes.Track](clientGroup, c)
-		registerClientItemRoutes[*mediatypes.Album](clientGroup, c)
-		registerClientItemRoutes[*mediatypes.Artist](clientGroup, c)
+		registerClientItemRoutes[*mediatypes.Movie](ctx, clientGroup, c)
+		registerClientItemRoutes[*mediatypes.Series](ctx, clientGroup, c)
+		registerClientItemRoutes[*mediatypes.Track](ctx, clientGroup, c)
+		registerClientItemRoutes[*mediatypes.Album](ctx, clientGroup, c)
+		registerClientItemRoutes[*mediatypes.Artist](ctx, clientGroup, c)
 	}
 }
 
-func registerClientItemRoutes[T mediatypes.MediaData](rg *gin.RouterGroup, c *container.Container) {
+func registerClientItemRoutes[T mediatypes.MediaData](ctx context.Context, rg *gin.RouterGroup, c *container.Container) {
 
 	var zero T
 	mediaType := mediatypes.GetMediaTypeFromTypeName(zero)
@@ -48,7 +48,6 @@ func registerClientItemRoutes[T mediatypes.MediaData](rg *gin.RouterGroup, c *co
 	itemGroup := rg.Group("/" + string(mediaType))
 
 	// Core routes
-	// rg.POST("/sync", clientDataHandlers.SyncClientItemData)
 	itemGroup.GET("", func(g *gin.Context) {
 		if handler := getItemHandler[T](g, c); handler != nil {
 			handler.GetAllClientItems(g)
@@ -79,6 +78,11 @@ func registerClientItemRoutes[T mediatypes.MediaData](rg *gin.RouterGroup, c *co
 			handler.GetByYear(g)
 		}
 	})
+	itemGroup.GET("/rating", func(g *gin.Context) {
+		if handler := getItemHandler[T](g, c); handler != nil {
+			handler.GetByRating(g)
+		}
+	})
 	itemGroup.PUT("/:clientItemID/state", func(g *gin.Context) {
 		if handler := getItemHandler[T](g, c); handler != nil {
 			// handler.UpdatePlaybackState(g)
@@ -100,6 +104,20 @@ func registerClientItemRoutes[T mediatypes.MediaData](rg *gin.RouterGroup, c *co
 		}
 	})
 
+	switch mediaType {
+	case mediatypes.MediaTypeMovie:
+		// TODO: Add movie-specific routes
+		break
+	case mediatypes.MediaTypeSeries:
+		registerClientSeriesRoutes(ctx, itemGroup, c)
+		break
+	case mediatypes.MediaTypeTrack:
+		// TODO: Add track-specific routes
+	case mediatypes.MediaTypeAlbum:
+		// TODO: Add album-specific routes
+	case mediatypes.MediaTypeArtist:
+		// TODO: Add artist-specific routes
+	}
 }
 
 func getItemHandlerMap[T mediatypes.MediaData](ctx context.Context, c *container.Container, clientType clienttypes.ClientType) (

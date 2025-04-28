@@ -119,6 +119,21 @@ func registerMediaItemServices(ctx context.Context, c *container.Container) {
 		return services.NewCoreMusicService(musicRepo)
 	})
 
+	// Register SeriesRepository
+	container.RegisterFactory[repository.SeriesRepository](c, func(c *container.Container) repository.SeriesRepository {
+		db := container.MustGet[*gorm.DB](c)
+		episodeRepo := container.MustGet[repository.CoreMediaItemRepository[*mediatypes.Episode]](c)
+		seasonRepo := container.MustGet[repository.CoreMediaItemRepository[*mediatypes.Season]](c)
+		seriesRepo := container.MustGet[repository.CoreMediaItemRepository[*mediatypes.Series]](c)
+		return repository.NewSeriesRepository(db, episodeRepo, seasonRepo, seriesRepo)
+	})
+
+	// Register CoreSeriesService
+	container.RegisterFactory[services.CoreSeriesService](c, func(c *container.Container) services.CoreSeriesService {
+		seriesRepo := container.MustGet[repository.SeriesRepository](c)
+		return services.NewCoreSeriesService(seriesRepo)
+	})
+
 }
 
 func registerMediaItemService[T mediatypes.MediaData](c *container.Container) {

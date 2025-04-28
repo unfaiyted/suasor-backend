@@ -118,21 +118,21 @@ func registerSpecializedMediaHandlers(c *container.Container) {
 		episodeService := container.MustGet[services.CoreMediaItemService[*mediatypes.Episode]](c)
 		return handlers.NewCoreSeriesHandler(coreHandler, seriesService, seasonService, episodeService)
 	})
-	
+
 	// User series handler
 	container.RegisterFactory[handlers.UserSeriesHandler](c, func(c *container.Container) handlers.UserSeriesHandler {
 		coreHandler := container.MustGet[handlers.CoreSeriesHandler](c)
-		
+
 		// Item Services
 		seriesService := container.MustGet[services.UserMediaItemService[*mediatypes.Series]](c)
 		seasonService := container.MustGet[services.UserMediaItemService[*mediatypes.Season]](c)
 		episodeService := container.MustGet[services.UserMediaItemService[*mediatypes.Episode]](c)
-		
+
 		// Data Services
 		seriesDataService := container.MustGet[services.UserMediaItemDataService[*mediatypes.Series]](c)
 		seasonDataService := container.MustGet[services.UserMediaItemDataService[*mediatypes.Season]](c)
 		episodeDataService := container.MustGet[services.UserMediaItemDataService[*mediatypes.Episode]](c)
-		
+
 		return handlers.NewUserSeriesHandler(
 			coreHandler,
 			seriesService,
@@ -143,6 +143,11 @@ func registerSpecializedMediaHandlers(c *container.Container) {
 			episodeDataService,
 		)
 	})
+
+	// Register client series handlers
+	registerClientSeriesHandler[*clienttypes.EmbyConfig](c)
+	registerClientSeriesHandler[*clienttypes.JellyfinConfig](c)
+	registerClientSeriesHandler[*clienttypes.PlexConfig](c)
 }
 
 func registerCoreMediaItemHandler[T mediatypes.MediaData](c *container.Container) {
@@ -164,5 +169,13 @@ func registerClientMediaItemHandler[T clienttypes.ClientMediaConfig, U mediatype
 		clientService := container.MustGet[services.ClientMediaItemService[T, U]](c)
 		return handlers.NewClientMediaItemHandler[T, U](userHander, clientService)
 	})
+}
 
+// Register client series handler
+func registerClientSeriesHandler[T clienttypes.ClientMediaConfig](c *container.Container) {
+	container.RegisterFactory[handlers.ClientSeriesHandler[T]](c, func(c *container.Container) handlers.ClientSeriesHandler[T] {
+		coreHandler := container.MustGet[handlers.CoreSeriesHandler](c)
+		clientService := container.MustGet[services.ClientSeriesService[T]](c)
+		return handlers.NewClientSeriesHandler[T](coreHandler, clientService)
+	})
 }

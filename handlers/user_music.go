@@ -4,7 +4,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 
-	mediatypes "suasor/clients/media/types"
+	"suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/responses"
@@ -14,16 +14,16 @@ import (
 
 // UserMusicHandler handles operations for music items related to users
 type UserMusicHandler struct {
-	trackService  services.UserMediaItemService[*mediatypes.Track]
-	albumService  services.UserMediaItemService[*mediatypes.Album]
-	artistService services.UserMediaItemService[*mediatypes.Artist]
+	trackService  services.UserMediaItemService[*types.Track]
+	albumService  services.UserMediaItemService[*types.Album]
+	artistService services.UserMediaItemService[*types.Artist]
 }
 
 // NewUserMusicHandler creates a new user music handler
 func NewUserMusicHandler(
-	trackService services.UserMediaItemService[*mediatypes.Track],
-	albumService services.UserMediaItemService[*mediatypes.Album],
-	artistService services.UserMediaItemService[*mediatypes.Artist],
+	trackService services.UserMediaItemService[*types.Track],
+	albumService services.UserMediaItemService[*types.Album],
+	artistService services.UserMediaItemService[*types.Artist],
 ) *UserMusicHandler {
 	return &UserMusicHandler{
 		trackService:  trackService,
@@ -41,7 +41,7 @@ func NewUserMusicHandler(
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			limit	query		int															false	"Maximum number of tracks to return (default 10)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Track]]	"Tracks retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Track]]	"Tracks retrieved successfully"
 //	@Failure		401		{object}	responses.ErrorResponse[any]								"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
 //	@Router			/media/music/user/tracks/favorites [get]
@@ -63,8 +63,8 @@ func (h *UserMusicHandler) GetFavoriteTracks(c *gin.Context) {
 
 	// This is a placeholder for a real implementation
 	// In a real implementation, you would query for tracks specifically marked as favorites
-	options := mediatypes.QueryOptions{
-		MediaType: mediatypes.MediaTypeTrack,
+	options := types.QueryOptions{
+		MediaType: types.MediaTypeTrack,
 		OwnerID:   uid,
 		Favorites: true,
 		Limit:     limit,
@@ -80,7 +80,7 @@ func (h *UserMusicHandler) GetFavoriteTracks(c *gin.Context) {
 		Uint64("userID", uid).
 		Int("count", len(tracks)).
 		Msg("Favorite tracks retrieved successfully")
-	responses.RespondOK(c, tracks, "Favorite tracks retrieved successfully")
+	responses.RespondMediaItemListOK(c, tracks, "Favorite tracks retrieved successfully")
 }
 
 // GetFavoriteAlbums godoc
@@ -92,7 +92,7 @@ func (h *UserMusicHandler) GetFavoriteTracks(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			limit	query		int															false	"Maximum number of albums to return (default 10)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Album]]	"Albums retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Album]]	"Albums retrieved successfully"
 //	@Failure		401		{object}	responses.ErrorResponse[any]								"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
 //	@Router			/media/music/user/albums/favorites [get]
@@ -111,8 +111,8 @@ func (h *UserMusicHandler) GetFavoriteAlbums(c *gin.Context) {
 
 	// This is a placeholder for a real implementation
 	// In a real implementation, you would query for albums specifically marked as favorites
-	options := mediatypes.QueryOptions{
-		MediaType: mediatypes.MediaTypeAlbum,
+	options := types.QueryOptions{
+		MediaType: types.MediaTypeAlbum,
 		OwnerID:   uid,
 		Favorites: true,
 		Limit:     limit,
@@ -131,7 +131,7 @@ func (h *UserMusicHandler) GetFavoriteAlbums(c *gin.Context) {
 		Uint64("userID", uid).
 		Int("count", len(albums)).
 		Msg("Favorite albums retrieved successfully")
-	responses.RespondOK(c, albums, "Favorite albums retrieved successfully")
+	responses.RespondMediaItemListOK(c, albums, "Favorite albums retrieved successfully")
 }
 
 // GetFavoriteArtists godoc
@@ -143,7 +143,7 @@ func (h *UserMusicHandler) GetFavoriteAlbums(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			limit	query		int																false	"Maximum number of artists to return (default 10)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Artist]]	"Artists retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Artist]]	"Artists retrieved successfully"
 //	@Failure		401		{object}	responses.ErrorResponse[any]									"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[any]									"Server error"
 //	@Router			/media/music/user/artists/favorites [get]
@@ -162,8 +162,8 @@ func (h *UserMusicHandler) GetFavoriteArtists(c *gin.Context) {
 
 	// This is a placeholder for a real implementation
 	// In a real implementation, you would query for artists specifically marked as favorites
-	options := mediatypes.QueryOptions{
-		MediaType: mediatypes.MediaTypeArtist,
+	options := types.QueryOptions{
+		MediaType: types.MediaTypeArtist,
 		OwnerID:   uid,
 		Favorites: true,
 		Limit:     limit,
@@ -182,7 +182,7 @@ func (h *UserMusicHandler) GetFavoriteArtists(c *gin.Context) {
 		Uint64("userID", uid).
 		Int("count", len(artists)).
 		Msg("Favorite artists retrieved successfully")
-	responses.RespondOK(c, artists, "Favorite artists retrieved successfully")
+	responses.RespondMediaItemListOK(c, artists, "Favorite artists retrieved successfully")
 }
 
 // GetRecentlyPlayedTracks godoc
@@ -194,7 +194,7 @@ func (h *UserMusicHandler) GetFavoriteArtists(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			limit	query		int															false	"Maximum number of tracks to return (default 10)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Track]]	"Tracks retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Track]]	"Tracks retrieved successfully"
 //	@Failure		401		{object}	responses.ErrorResponse[any]								"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
 //	@Router			/media/music/user/tracks/recently-played [get]
@@ -214,8 +214,8 @@ func (h *UserMusicHandler) GetRecentlyPlayedTracks(c *gin.Context) {
 	// This is a placeholder for a real implementation
 	// In a real implementation, you would query play history to find recently played tracks
 	// For now, we'll use a simplified approach
-	options := mediatypes.QueryOptions{
-		MediaType: mediatypes.MediaTypeTrack,
+	options := types.QueryOptions{
+		MediaType: types.MediaTypeTrack,
 		OwnerID:   uid,
 		Sort:      "last_played",
 		SortOrder: "desc",
@@ -235,7 +235,7 @@ func (h *UserMusicHandler) GetRecentlyPlayedTracks(c *gin.Context) {
 		Uint64("userID", uid).
 		Int("count", len(tracks)).
 		Msg("Recently played tracks retrieved successfully")
-	responses.RespondOK(c, tracks, "Recently played tracks retrieved successfully")
+	responses.RespondMediaItemListOK(c, tracks, "Recently played tracks retrieved successfully")
 }
 
 // UpdateTrackUserData godoc
@@ -248,7 +248,7 @@ func (h *UserMusicHandler) GetRecentlyPlayedTracks(c *gin.Context) {
 //	@Security		BearerAuth
 //	@Param			trackID	path		int															true	"Track ID"
 //	@Param			data	body		requests.UserMediaItemDataRequest							true	"Updated user data"
-//	@Success		200		{object}	responses.APIResponse[models.MediaItem[mediatypes.Track]]	"Track updated successfully"
+//	@Success		200		{object}	responses.APIResponse[models.MediaItem[types.Track]]	"Track updated successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
 //	@Failure		401		{object}	responses.ErrorResponse[any]								"Unauthorized"
 //	@Failure		404		{object}	responses.ErrorResponse[any]								"Track not found"
@@ -263,7 +263,7 @@ func (h *UserMusicHandler) UpdateTrackUserData(c *gin.Context) {
 	trackID, _ := checkItemID(c, "trackID")
 
 	// Parse request body
-	var userData models.UserMediaItemData[*mediatypes.Track]
+	var userData models.UserMediaItemData[*types.Track]
 	if err := c.ShouldBindJSON(&userData); err != nil {
 		log.Warn().Err(err).Msg("Invalid request body")
 		responses.RespondBadRequest(c, err, "Invalid request body")

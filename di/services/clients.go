@@ -23,6 +23,11 @@ func registerClientServices(ctx context.Context, c *container.Container) {
 	registerClientService[*types.OpenAIConfig](c)
 	registerClientService[*types.OllamaConfig](c)
 
+	// Register ClientSeriesService for each media client type
+	registerClientSeriesService[*types.JellyfinConfig](c)
+	registerClientSeriesService[*types.EmbyConfig](c)
+	registerClientSeriesService[*types.PlexConfig](c)
+
 	// Register AutomationClientService
 	container.RegisterFactory[services.AutomationClientService](c, func(c *container.Container) services.AutomationClientService {
 		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
@@ -54,5 +59,14 @@ func registerMediaTypeService[T types.ClientMediaConfig, U mediatypes.MediaData]
 			itemRepo,
 			clientFactory,
 		)
+	})
+}
+
+// registerClientSeriesService registers a specialized series service for a given client config type
+func registerClientSeriesService[T types.ClientMediaConfig](c *container.Container) {
+	container.RegisterFactory[services.ClientSeriesService[T]](c, func(c *container.Container) services.ClientSeriesService[T] {
+		clientRepo := container.MustGet[repository.ClientRepository[T]](c)
+		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
+		return services.NewClientSeriesService[T](clientRepo, clientFactory)
 	})
 }

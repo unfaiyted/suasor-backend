@@ -46,7 +46,7 @@ func NewCoreMovieHandler(
 //	@Produce		json
 //	@Param			limit	query		int															false	"Maximum number of movies to return (default 20)"
 //	@Param			offset	query		int															false	"Offset for pagination (default 0)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Movie]]	"Movies retrieved successfully"
 //	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
 //	@Router			/media/movies [get]
 func (h *coreMovieHandler) GetAll(c *gin.Context) {
@@ -66,7 +66,7 @@ func (h *coreMovieHandler) GetAll(c *gin.Context) {
 	log.Info().
 		Int("count", len(movies)).
 		Msg("Movies retrieved successfully")
-	responses.RespondOK(c, movies, "Movies retrieved successfully")
+	responses.RespondMediaItemListOK(c, movies, "Movies retrieved successfully")
 }
 
 // GetByID godoc
@@ -115,7 +115,7 @@ func (h *coreMovieHandler) GetByID(c *gin.Context) {
 //	@Produce		json
 //	@Param			genre	path		string														true	"Genre name"
 //	@Param			limit	query		int															false	"Maximum number of movies to return (default 20)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Movie]]	"Movies retrieved successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
 //	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
 //	@Router			/media/movie/genre/{genre} [get]
@@ -152,7 +152,7 @@ func (h *coreMovieHandler) GetByGenre(c *gin.Context) {
 		Str("genre", genre).
 		Int("count", len(movies)).
 		Msg("Movies by genre retrieved successfully")
-	responses.RespondOK(c, movies, "Movies retrieved successfully")
+	responses.RespondMediaItemListOK(c, movies, "Movies retrieved successfully")
 }
 
 // GetByYear godoc
@@ -164,7 +164,7 @@ func (h *coreMovieHandler) GetByGenre(c *gin.Context) {
 //	@Produce		json
 //	@Param			year	path		int															true	"Release year"
 //	@Param			limit	query		int															false	"Maximum number of movies to return (default 20)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Movie]]	"Movies retrieved successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
 //	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
 //	@Router			/media/movie/year/{year} [get]
@@ -201,7 +201,7 @@ func (h *coreMovieHandler) GetByYear(c *gin.Context) {
 		Int("year", year).
 		Int("count", len(movies)).
 		Msg("Movies by year retrieved successfully")
-	responses.RespondOK(c, movies, "Movies retrieved successfully")
+	responses.RespondMediaItemListOK(c, movies, "Movies retrieved successfully")
 }
 
 // GetByActor godoc
@@ -213,7 +213,7 @@ func (h *coreMovieHandler) GetByYear(c *gin.Context) {
 //	@Produce		json
 //	@Param			actor	path		string														true	"Actor name"
 //	@Param			limit	query		int															false	"Maximum number of movies to return (default 20)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Movie]]	"Movies retrieved successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
 //	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
 //	@Router			/media/movie/actor/{actor} [get]
@@ -250,7 +250,7 @@ func (h *coreMovieHandler) GetByActor(c *gin.Context) {
 		Str("actor", actor).
 		Int("count", len(movies)).
 		Msg("Movies by actor retrieved successfully")
-	responses.RespondOK(c, movies, "Movies retrieved successfully")
+	responses.RespondMediaItemListOK(c, movies, "Movies retrieved successfully")
 }
 
 // GetByDirector godoc
@@ -262,7 +262,7 @@ func (h *coreMovieHandler) GetByActor(c *gin.Context) {
 //	@Produce		json
 //	@Param			director	path		string														true	"Director name"
 //	@Param			limit		query		int															false	"Maximum number of movies to return (default 20)"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved successfully"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.Movie]]	"Movies retrieved successfully"
 //	@Failure		400			{object}	responses.ErrorResponse[any]								"Invalid request"
 //	@Failure		500			{object}	responses.ErrorResponse[any]								"Server error"
 //	@Router			/media/movie/director/{director} [get]
@@ -299,7 +299,7 @@ func (h *coreMovieHandler) GetByDirector(c *gin.Context) {
 		Str("director", director).
 		Int("count", len(movies)).
 		Msg("Movies by director retrieved successfully")
-	responses.RespondOK(c, movies, "Movies retrieved successfully")
+	responses.RespondMediaItemListOK(c, movies, "Movies retrieved successfully")
 }
 
 // Search godoc
@@ -311,7 +311,7 @@ func (h *coreMovieHandler) GetByDirector(c *gin.Context) {
 //	@Produce		json
 //	@Param			q		query		string														true	"Search query"
 //	@Param			limit	query		int															false	"Maximum number of movies to return (default 20)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Movie]]	"Movies retrieved successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
 //	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
 //	@Router			/media/movie/search [get]
@@ -348,7 +348,7 @@ func (h *coreMovieHandler) Search(c *gin.Context) {
 		Str("query", query).
 		Int("count", len(movies)).
 		Msg("Movies search completed successfully")
-	responses.RespondOK(c, movies, "Movies retrieved successfully")
+	responses.RespondMediaItemListOK(c, movies, "Movies retrieved successfully")
 }
 
 // GetTopRated godoc
@@ -359,7 +359,7 @@ func (h *coreMovieHandler) Search(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			limit	query		int															false	"Maximum number of movies to return (default 20)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Movie]]	"Movies retrieved successfully"
 //	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
 //	@Router			/media/movie/top-rated [get]
 func (h *coreMovieHandler) GetTopRated(c *gin.Context) {
@@ -389,7 +389,7 @@ func (h *coreMovieHandler) GetTopRated(c *gin.Context) {
 	log.Info().
 		Int("count", len(movies)).
 		Msg("Top rated movies retrieved successfully")
-	responses.RespondOK(c, movies, "Movies retrieved successfully")
+	responses.RespondMediaItemListOK(c, movies, "Movies retrieved successfully")
 }
 
 // GetRecentlyAdded godoc
@@ -401,7 +401,7 @@ func (h *coreMovieHandler) GetTopRated(c *gin.Context) {
 //	@Produce		json
 //	@Param			limit	query		int															false	"Maximum number of movies to return (default 20)"
 //	@Param			days	query		int															false	"Number of days to look back (default 30)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Movie]]	"Movies retrieved successfully"
 //	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
 //	@Router			/media/movie/recently-added [get]
 func (h *coreMovieHandler) GetRecentlyAdded(c *gin.Context) {
@@ -425,7 +425,7 @@ func (h *coreMovieHandler) GetRecentlyAdded(c *gin.Context) {
 	log.Info().
 		Int("count", len(movies)).
 		Msg("Recently added movies retrieved successfully")
-	responses.RespondOK(c, movies, "Movies retrieved successfully")
+	responses.RespondMediaItemListOK(c, movies, "Movies retrieved successfully")
 }
 
 // GetByRating godoc
@@ -437,7 +437,7 @@ func (h *coreMovieHandler) GetRecentlyAdded(c *gin.Context) {
 //	@Produce		json
 //	@Param			rating	path		number														true	"Rating"
 //	@Param			limit	query		int															false	"Maximum number of movies to return (default 20)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Movie]]	"Movies retrieved successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
 //	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
 //	@Router			/media/movie/rating/{rating} [get]
@@ -474,7 +474,7 @@ func (h *coreMovieHandler) GetByRating(c *gin.Context) {
 		Float64("rating", rating).
 		Int("count", len(movies)).
 		Msg("Movies by rating retrieved successfully")
-	responses.RespondOK(c, movies, "Movies retrieved successfully")
+	responses.RespondMediaItemListOK(c, movies, "Movies retrieved successfully")
 }
 
 // GetLatestByAdded godoc
@@ -486,7 +486,7 @@ func (h *coreMovieHandler) GetByRating(c *gin.Context) {
 //	@Produce		json
 //	@Param			limit	query		int															false	"Maximum number of movies to return (default 20)"
 //	@Param			days	query		int															false	"Number of days to look back (default 30)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Movie]]	"Movies retrieved successfully"
 //	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
 //	@Router			/media/movie/latest [get]
 func (h *coreMovieHandler) GetLatestByAdded(c *gin.Context) {
@@ -510,7 +510,7 @@ func (h *coreMovieHandler) GetLatestByAdded(c *gin.Context) {
 	log.Info().
 		Int("count", len(movies)).
 		Msg("Latest added movies retrieved successfully")
-	responses.RespondOK(c, movies, "Movies retrieved successfully")
+	responses.RespondMediaItemListOK(c, movies, "Movies retrieved successfully")
 }
 
 // GetPopularByID godoc
@@ -521,7 +521,7 @@ func (h *coreMovieHandler) GetLatestByAdded(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			limit	query		int															false	"Maximum number of movies to return (default 20)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Movie]]	"Movies retrieved successfully"
 //	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
 //	@Router			/media/movie/popular [get]
 func (h *coreMovieHandler) GetPopular(c *gin.Context) {
@@ -543,7 +543,7 @@ func (h *coreMovieHandler) GetPopular(c *gin.Context) {
 	log.Info().
 		Int("count", len(movies)).
 		Msg("Popular movies retrieved successfully")
-	responses.RespondOK(c, movies, "Movies retrieved successfully")
+	responses.RespondMediaItemListOK(c, movies, "Movies retrieved successfully")
 }
 
 // GetByClientItemID godoc
@@ -556,7 +556,7 @@ func (h *coreMovieHandler) GetPopular(c *gin.Context) {
 //	@Param			clientID		path		int															true	"Client ID"
 //	@Param			clientItemID	path		string														true	"Client Item ID"
 //	@Param			limit			query		int															false	"Maximum number of movies to return (default 20)"
-//	@Success		200				{object}	responses.APIResponse[[]models.MediaItem[types.Movie]]	"Movies retrieved successfully"
+//	@Success		200				{object}	responses.APIResponse[responses.MediaItemList[types.Movie]]	"Movies retrieved successfully"
 //	@Failure		400				{object}	responses.ErrorResponse[any]								"Invalid request"
 //	@Failure		404				{object}	responses.ErrorResponse[any]								"Movie not found"
 //	@Failure		500				{object}	responses.ErrorResponse[any]								"Server error"

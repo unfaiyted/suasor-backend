@@ -64,6 +64,25 @@ func RespondOK[T any](c *gin.Context, data T, message ...string) {
 	RespondSuccess(c, http.StatusOK, data, msg)
 }
 
+func RespondListOK[T any](c *gin.Context, data T, count int, message ...string) {
+	msg := "Success"
+	if len(message) > 0 && message[0] != "" {
+		msg = message[0]
+	}
+
+	type temp struct {
+		Items T   `json:"items"`
+		Total int `json:"total"`
+	}
+
+	wrappedData := temp{
+		Items: data,
+		Total: count,
+	}
+
+	RespondSuccess(c, http.StatusOK, wrappedData, msg)
+}
+
 func RespondCreated[T any](c *gin.Context, data T, message ...string) {
 	msg := "Resource created successfully"
 	if len(message) > 0 && message[0] != "" {

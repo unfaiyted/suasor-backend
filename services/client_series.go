@@ -36,6 +36,8 @@ type ClientSeriesService[T types.ClientConfig] interface {
 	GetTopRatedSeries(ctx context.Context, clientID uint64, count int) ([]*models.MediaItem[*mediatypes.Series], error)
 	SearchSeries(ctx context.Context, clientID uint64, query *mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Series], error)
 	GetSeasonsBySeriesID(ctx context.Context, clientID uint64, seriesID string) ([]*models.MediaItem[*mediatypes.Season], error)
+	GetEpisodesBySeriesID(ctx context.Context, clientID uint64, seriesID string) ([]*models.MediaItem[*mediatypes.Episode], error)
+	GetEpisodesBySeasonNbr(ctx context.Context, clientID uint64, seriesID string, seasonNumber int) ([]*models.MediaItem[*mediatypes.Episode], error)
 }
 
 type clientSeriesService[T types.ClientMediaConfig] struct {
@@ -227,7 +229,7 @@ func (s *clientSeriesService[T]) GetRecentlyAdded(ctx context.Context, clientID 
 
 	options := &mediatypes.QueryOptions{
 		RecentlyAdded:  true,
-		DateAddedAfter: cutoffDate,
+		DateAddedAfter: &cutoffDate,
 		Sort:           "dateAdded",
 		SortOrder:      mediatypes.SortOrderDesc,
 		Limit:          count,
@@ -288,7 +290,7 @@ func (s *clientSeriesService[T]) GetRecentEpisodes(ctx context.Context, clientID
 
 	// First, get recently updated series
 	options := &mediatypes.QueryOptions{
-		ReleasedAfter: cutoffDate,
+		ReleasedAfter: &cutoffDate,
 		Sort:          "dateAdded",
 		SortOrder:     mediatypes.SortOrderDesc,
 		Limit:         10, // Get a reasonable number of shows
@@ -486,7 +488,7 @@ func (s *clientSeriesService[T]) GetLatestSeriesByAdded(ctx context.Context, cli
 	cutoffDate := time.Now().AddDate(0, 0, -30)
 
 	options := &mediatypes.QueryOptions{
-		DateAddedAfter: cutoffDate,
+		DateAddedAfter: &cutoffDate,
 		Sort:           "dateAdded",
 		SortOrder:      mediatypes.SortOrderDesc,
 		Limit:          count,
@@ -603,4 +605,46 @@ func (s *clientSeriesService[T]) GetSeasonsBySeriesID(ctx context.Context, clien
 	}
 
 	return seasons, nil
+}
+
+// GetEpisodesBySeriesID gets all episodes for a specific series
+func (s *clientSeriesService[T]) GetEpisodesBySeriesID(ctx context.Context, clientID uint64, seriesID string) ([]*models.MediaItem[*mediatypes.Episode], error) {
+	client, err := s.getSeriesProvider(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	showProvider, ok := client.(providers.SeriesProvider)
+	if !ok {
+		return nil, fmt.Errorf("client does not implement series provider interface")
+	}
+
+	// Get episodes for this series
+	episodes, err := showProvider.GetSeriesEpisodes(ctx, seriesID, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	return episodes, nil
+}
+
+// GetEpisodesBySeasonID gets all episodes for a specific season
+func (s *clientSeriesService[T]) GetEpisodesBySeasonNbr(ctx context.Context, clientID uint64, seriesID string, seasonNumber int) ([]*models.MediaItem[*mediatypes.Episode], error) {
+	client, err := s.getSeriesProvider(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	showProvider, ok := client.(providers.SeriesProvider)
+	if !ok {
+		return nil, fmt.Errorf("client does not implement series provider interface")
+	}
+
+	// Get episodes for this series
+	episodes, err := showProvider.GetSeriesEpisodes(ctx, seriesID, seasonNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	return episodes, nil
 }

@@ -4,7 +4,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 
-	mediatypes "suasor/clients/media/types"
+	"suasor/clients/media/types"
 	"suasor/services"
 	"suasor/types/models"
 	"suasor/types/responses"
@@ -14,12 +14,12 @@ import (
 
 // UserMovieHandler handles user-specific operations for movies
 type UserMovieHandler struct {
-	userMovieService services.UserMediaItemService[*mediatypes.Movie]
+	userMovieService services.UserMediaItemService[*types.Movie]
 }
 
 // NewUserMovieHandler creates a new user movie handler
 func NewUserMovieHandler(
-	userMovieService services.UserMediaItemService[*mediatypes.Movie],
+	userMovieService services.UserMediaItemService[*types.Movie],
 ) *UserMovieHandler {
 	return &UserMovieHandler{
 		userMovieService: userMovieService,
@@ -35,7 +35,7 @@ func NewUserMovieHandler(
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			limit	query		int															false	"Maximum number of movies to return (default 20)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Movie]]	"Movies retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Movie]]	"Movies retrieved successfully"
 //	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
 //	@Router			/media/movies/user/favorites [get]
@@ -58,8 +58,8 @@ func (h *UserMovieHandler) GetFavoriteMovies(c *gin.Context) {
 
 	// This is a placeholder for a real implementation
 	// In a real implementation, you would query for movies specifically marked as favorites
-	options := mediatypes.QueryOptions{
-		MediaType: mediatypes.MediaTypeMovie,
+	options := types.QueryOptions{
+		MediaType: types.MediaTypeMovie,
 		OwnerID:   uid,
 		Favorites: true,
 		Limit:     limit,
@@ -78,7 +78,7 @@ func (h *UserMovieHandler) GetFavoriteMovies(c *gin.Context) {
 		Uint64("userID", uid).
 		Int("count", len(movies)).
 		Msg("Favorite movies retrieved successfully")
-	responses.RespondOK(c, movies, "Favorite movies retrieved successfully")
+	responses.RespondMediaItemListOK(c, movies, "Favorite movies retrieved successfully")
 }
 
 // GetWatchedMovies godoc
@@ -90,7 +90,7 @@ func (h *UserMovieHandler) GetFavoriteMovies(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			limit	query		int															false	"Maximum number of movies to return (default 20)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Movie]]	"Movies retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Movie]]	"Movies retrieved successfully"
 //	@Failure		401		{object}	responses.ErrorResponse[any]								"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
 //	@Router			/media/movies/user/watched [get]
@@ -113,8 +113,8 @@ func (h *UserMovieHandler) GetWatchedMovies(c *gin.Context) {
 
 	// This is a placeholder for a real implementation
 	// In a real implementation, you would query play history to find watched movies
-	options := mediatypes.QueryOptions{
-		MediaType: mediatypes.MediaTypeMovie,
+	options := types.QueryOptions{
+		MediaType: types.MediaTypeMovie,
 		OwnerID:   uid,
 		Watched:   true,
 		Limit:     limit,
@@ -135,7 +135,7 @@ func (h *UserMovieHandler) GetWatchedMovies(c *gin.Context) {
 		Uint64("userID", uid).
 		Int("count", len(movies)).
 		Msg("Watched movies retrieved successfully")
-	responses.RespondOK(c, movies, "Watched movies retrieved successfully")
+	responses.RespondMediaItemListOK(c, movies, "Watched movies retrieved successfully")
 }
 
 // GetWatchlistMovies godoc
@@ -147,7 +147,7 @@ func (h *UserMovieHandler) GetWatchedMovies(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			limit	query		int															false	"Maximum number of movies to return (default 20)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Movie]]	"Movies retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Movie]]	"Movies retrieved successfully"
 //	@Failure		401		{object}	responses.ErrorResponse[any]								"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
 //	@Router			/media/movies/user/watchlist [get]
@@ -170,8 +170,8 @@ func (h *UserMovieHandler) GetWatchlistMovies(c *gin.Context) {
 
 	// This is a placeholder for a real implementation
 	// In a real implementation, you would query for movies specifically marked for watchlist
-	options := mediatypes.QueryOptions{
-		MediaType: mediatypes.MediaTypeMovie,
+	options := types.QueryOptions{
+		MediaType: types.MediaTypeMovie,
 		OwnerID:   uid,
 		Watchlist: true,
 		Limit:     limit,
@@ -190,7 +190,7 @@ func (h *UserMovieHandler) GetWatchlistMovies(c *gin.Context) {
 		Uint64("userID", uid).
 		Int("count", len(movies)).
 		Msg("Watchlist movies retrieved successfully")
-	responses.RespondOK(c, movies, "Watchlist movies retrieved successfully")
+	responses.RespondMediaItemListOK(c, movies, "Watchlist movies retrieved successfully")
 }
 
 // GetRecommendedMovies godoc
@@ -202,7 +202,7 @@ func (h *UserMovieHandler) GetWatchlistMovies(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			limit	query		int															false	"Maximum number of movies to return (default 20)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[mediatypes.Movie]]	"Movies retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.Movie]]	"Movies retrieved successfully"
 //	@Failure		401		{object}	responses.ErrorResponse[any]								"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[any]								"Server error"
 //	@Router			/media/movies/user/recommended [get]
@@ -226,8 +226,8 @@ func (h *UserMovieHandler) GetRecommendedMovies(c *gin.Context) {
 	// This is a placeholder for a real implementation
 	// In a real implementation, you would use a recommendation service
 	// For now, we can return a basic set of movies
-	options := mediatypes.QueryOptions{
-		MediaType: mediatypes.MediaTypeMovie,
+	options := types.QueryOptions{
+		MediaType: types.MediaTypeMovie,
 		OwnerID:   uid,
 		Limit:     limit,
 		Sort:      "rating",
@@ -247,7 +247,7 @@ func (h *UserMovieHandler) GetRecommendedMovies(c *gin.Context) {
 		Uint64("userID", uid).
 		Int("count", len(movies)).
 		Msg("Recommended movies retrieved successfully")
-	responses.RespondOK(c, movies, "Recommended movies retrieved successfully")
+	responses.RespondMediaItemListOK(c, movies, "Recommended movies retrieved successfully")
 }
 
 // UpdateMovie godoc
@@ -260,7 +260,7 @@ func (h *UserMovieHandler) GetRecommendedMovies(c *gin.Context) {
 //	@Security		BearerAuth
 //	@Param			itemID	path		int															true	"Movie ID"
 //	@Param			data	body		requests.UserMediaItemDataUpdateRequest						true	"Updated user data"
-//	@Success		200		{object}	responses.APIResponse[models.MediaItem[mediatypes.Movie]]	"Movie updated successfully"
+//	@Success		200		{object}	responses.APIResponse[models.MediaItem[types.Movie]]	"Movie updated successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[any]								"Invalid request"
 //	@Failure		401		{object}	responses.ErrorResponse[any]								"Unauthorized"
 //	@Failure		404		{object}	responses.ErrorResponse[any]								"Movie not found"
@@ -275,7 +275,7 @@ func (h *UserMovieHandler) UpdateMovie(c *gin.Context) {
 	movieID, _ := checkItemID(c, "itemID")
 
 	// Parse request body
-	var userData models.UserMediaItemData[*mediatypes.Movie]
+	var userData models.UserMediaItemData[*types.Movie]
 	if err := c.ShouldBindJSON(&userData); err != nil {
 		log.Warn().Err(err).Msg("Invalid request body")
 		responses.RespondBadRequest(c, err, "Invalid request body")

@@ -757,19 +757,19 @@ func (j *JellyfinQueryOptions) FromQueryOptions(options *types.QueryOptions) *Je
 
 	// Date filters
 	if !options.DateAddedAfter.IsZero() {
-		j.MinDateLastSaved = &options.DateAddedAfter
+		j.MinDateLastSaved = options.DateAddedAfter
 	}
 
 	if !options.DateAddedBefore.IsZero() {
-		j.MaxPremiereDate = &options.DateAddedBefore
+		j.MaxPremiereDate = options.DateAddedBefore
 	}
 
 	if !options.ReleasedAfter.IsZero() {
-		j.MinPremiereDate = &options.ReleasedAfter
+		j.MinPremiereDate = options.ReleasedAfter
 	}
 
 	if !options.ReleasedBefore.IsZero() {
-		j.MaxPremiereDate = &options.ReleasedBefore
+		j.MaxPremiereDate = options.ReleasedBefore
 	}
 
 	// Rating filter

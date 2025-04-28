@@ -540,7 +540,7 @@ func (h *coreMediaItemHandler[T]) GetLatestByAdded(c *gin.Context) {
 	options := types.QueryOptions{
 		MediaType:      mediaType,
 		Sort:           "created_at",
-		DateAddedAfter: cutoffDate,
+		DateAddedAfter: &cutoffDate,
 		SortOrder:      "desc",
 
 		Limit: limit,
@@ -865,12 +865,12 @@ func (h *coreMediaItemHandler[T]) GetMostPlayed(c *gin.Context) {
 //	@Tags			media, core
 //	@Accept			json
 //	@Produce		json
-//	@Param			rating		path		number													true	"Rating"
-//	@Param			mediaType	path		string													true	"Media type"
-//	@Param			limit		query		int														false	"Maximum number of media items to return (default 20)"
-//	@Success		200			{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
-//	@Failure		400			{object}	responses.ErrorResponse[any]							"Invalid request"
-//	@Failure		500			{object}	responses.ErrorResponse[any]							"Server error"
+//	@Param			rating		path	  number													true	"Rating"
+//	@Param			mediaType	path	  string													true	"Media type"
+//	@Param			limit		  query	  int														false	"Maximum number of media items to return (default 20)"
+//	@Success		200			{object}  responses.APIResponse[[]models.MediaItem[types.MediaData]]	"Media items retrieved successfully"
+//	@Failure		400			{object}  responses.ErrorResponse[any]							"Invalid request"
+//	@Failure		500			{object}  responses.ErrorResponse[any]							"Server error"
 //	@Router			/media/{mediaType}/rating/{rating} [get]
 func (h *coreMediaItemHandler[T]) GetByRating(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -883,10 +883,7 @@ func (h *coreMediaItemHandler[T]) GetByRating(c *gin.Context) {
 		return
 	}
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if err != nil {
-		limit = 20
-	}
+	limit := utils.GetLimit(c, 20, 100, true)
 
 	log.Debug().
 		Float64("rating", rating).

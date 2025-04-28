@@ -54,7 +54,7 @@ func NewUserMediaItemHandler[T types.MediaData](
 //	@Param			userID	path		int															true	"User ID"
 //	@Param			limit	query		int															false	"Maximum number of items to return (default 20)"
 //	@Param			offset	query		int															false	"Offset for pagination (default 0)"
-//	@Success		200		{object}	responses.APIResponse[[]models.MediaItem[types.MediaData]]	"User media items retrieved successfully"
+//	@Success		200		{object}	responses.APIResponse[responses.MediaItemList[types.MediaData]]	"User media items retrieved successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid request"
 //	@Failure		404		{object}	responses.ErrorResponse[responses.ErrorDetails]				"User not found"
 //	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
@@ -98,7 +98,7 @@ func (h *userMediaItemHandler[T]) GetByUserID(c *gin.Context) {
 		Uint64("userID", userID).
 		Int("count", len(items)).
 		Msg("User's media items retrieved successfully")
-	responses.RespondOK(c, items, "User's media items retrieved successfully")
+	responses.RespondMediaItemListOK(c, items, "User's media items retrieved successfully")
 }
 
 // Create godoc

@@ -3196,7 +3196,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Series"
                         }
                     },
                     "401": {
@@ -3246,64 +3246,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/{clientID}/media/series/genre/{genre}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves TV series from all connected clients that match the specified genre",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "series",
-                    "clients"
-                ],
-                "summary": "Get series by genre",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Genre name",
-                        "name": "genre",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Series retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_responses_MediaItemResponse"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Series"
                         }
                     },
                     "401": {
@@ -3353,7 +3296,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Series"
                         }
                     },
                     "400": {
@@ -3409,7 +3352,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Series"
                         }
                     },
                     "400": {
@@ -3472,7 +3415,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Series"
                         }
                     },
                     "400": {
@@ -3528,7 +3471,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Series"
                         }
                     },
                     "400": {
@@ -3584,7 +3527,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Series"
                         }
                     },
                     "400": {
@@ -3608,14 +3551,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/client/{clientID}/media/series/year/{year}": {
+        "/client/{clientID}/media/series/{clientItemID}/episodes": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieves TV series from all connected clients that were released in the specified year",
+                "description": "Retrieves all episodes for a specific series",
                 "consumes": [
                     "application/json"
                 ],
@@ -3624,65 +3567,9 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "series",
-                    "clients"
+                    "client"
                 ],
-                "summary": "Get series by release year",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Release year",
-                        "name": "year",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Series retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid year",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/{clientID}/media/series/{seriesID}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves a specific TV series from the client by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "series",
-                    "clients"
-                ],
-                "summary": "Get series by ID",
+                "summary": "Get episodes by series ID",
                 "parameters": [
                     {
                         "type": "integer",
@@ -3694,40 +3581,124 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Series ID",
-                        "name": "seriesID",
+                        "name": "clientItemID",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "query",
                         "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Series retrieved",
+                        "description": "Episodes retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Episode"
                         }
                     },
                     "400": {
                         "description": "Invalid client ID",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
                         }
                     }
                 }
             }
         },
-        "/client/{clientID}/media/series/{seriesID}/seasons": {
+        "/client/{clientID}/media/series/{clientItemID}/season/{seasonNumber}/episodes": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all episodes for a specific season of a series",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "series",
+                    "client"
+                ],
+                "summary": "Get episodes for a season",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Series ID",
+                        "name": "clientItemID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Season number",
+                        "name": "seasonNumber",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Episodes retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Episode"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/client/{clientID}/media/series/{clientItemID}/seasons": {
             "get": {
                 "security": [
                     {
@@ -3757,7 +3728,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Series ID",
-                        "name": "seriesID",
+                        "name": "clientItemID",
                         "in": "path",
                         "required": true
                     }
@@ -3766,7 +3737,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-models_MediaItem-types_Series"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Series"
                         }
                     },
                     "400": {
@@ -7324,7 +7295,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "400": {
@@ -7382,7 +7353,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "400": {
@@ -7439,7 +7410,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "400": {
@@ -7490,7 +7461,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "400": {
@@ -7540,7 +7511,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "500": {
@@ -7578,7 +7549,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "500": {
@@ -7623,7 +7594,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "400": {
@@ -7673,7 +7644,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "500": {
@@ -7718,7 +7689,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "400": {
@@ -7762,7 +7733,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "500": {
@@ -7807,7 +7778,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "400": {
@@ -7978,7 +7949,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "500": {
@@ -8020,7 +7991,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "401": {
@@ -8068,7 +8039,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "401": {
@@ -8116,7 +8087,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "401": {
@@ -8164,7 +8135,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Movies retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-suasor_clients_media_types_Movie"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie"
                         }
                     },
                     "401": {
@@ -9294,7 +9265,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Albums retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Album"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Album"
                         }
                     },
                     "401": {
@@ -9342,7 +9313,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Artists retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Artist"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Artist"
                         }
                     },
                     "401": {
@@ -9390,7 +9361,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Tracks retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Track"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Track"
                         }
                     },
                     "401": {
@@ -9438,7 +9409,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Tracks retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Track"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Track"
                         }
                     },
                     "401": {
@@ -9557,9 +9528,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Series retrieved successfully",
+                        "description": "Episodes retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_types_Series"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Series"
                         }
                     },
                     "400": {
@@ -9616,7 +9587,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_types_Series"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Series"
                         }
                     },
                     "400": {
@@ -9673,7 +9644,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_types_Series"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Series"
                         }
                     },
                     "400": {
@@ -9724,7 +9695,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Episodes retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_types_Episode"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Episode"
                         }
                     },
                     "400": {
@@ -9781,7 +9752,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Episodes retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_types_Episode"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Episode"
                         }
                     },
                     "400": {
@@ -9833,7 +9804,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Episodes retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_types_Episode"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Episode"
                         }
                     },
                     "400": {
@@ -9889,9 +9860,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Seasons retrieved successfully",
+                        "description": "Episodes retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_types_Season"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Season"
                         }
                     },
                     "400": {
@@ -9956,7 +9927,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Episodes retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_types_Episode"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Episode"
                         }
                     },
                     "400": {
@@ -10808,7 +10779,7 @@ const docTemplate = `{
                     "200": {
                         "description": "User media items retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_MediaData"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_MediaData"
                         }
                     },
                     "400": {
@@ -12279,7 +12250,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Series"
                         }
                     },
                     "400": {
@@ -12333,7 +12304,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Series"
                         }
                     },
                     "401": {
@@ -12388,7 +12359,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Episodes retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Episode"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Episode"
                         }
                     },
                     "400": {
@@ -12449,7 +12420,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Episodes retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Episode"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Episode"
                         }
                     },
                     "400": {
@@ -12497,7 +12468,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Series"
                         }
                     },
                     "401": {
@@ -12545,7 +12516,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Series retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_MediaItem-types_Series"
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Series"
                         }
                     },
                     "401": {
@@ -16598,6 +16569,81 @@ const docTemplate = `{
                 }
             }
         },
+        "models.MediaItem-types_Season": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "data": {
+                    "description": "Type-specific media data",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.Season"
+                        }
+                    ]
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "downloadUrl": {
+                    "type": "string"
+                },
+                "externalIds": {
+                    "description": "External IDs for this item (TMDB, IMDB, etc.)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ExternalID"
+                    }
+                },
+                "id": {
+                    "description": "Internal ID",
+                    "type": "integer"
+                },
+                "isPublic": {
+                    "description": "Whether this item is public or not",
+                    "type": "boolean"
+                },
+                "ownerId": {
+                    "description": "ID of the user that owns this item, 0 for system owned items",
+                    "type": "integer"
+                },
+                "releaseDate": {
+                    "type": "string"
+                },
+                "releaseYear": {
+                    "type": "integer"
+                },
+                "streamUrl": {
+                    "type": "string"
+                },
+                "syncClients": {
+                    "description": "Client IDs for this item (mapping client to their IDs)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.SyncClient"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type of media (movie, show, episode, etc.)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.MediaType"
+                        }
+                    ]
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "description": "Stable UUID for syncing",
+                    "type": "string"
+                }
+            }
+        },
         "models.MediaItem-types_Series": {
             "type": "object",
             "properties": {
@@ -19640,25 +19686,6 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.APIResponse-array_models_MediaItem-types_Episode": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.MediaItem-types_Episode"
-                    }
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Operation successful"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
         "responses.APIResponse-array_models_MediaItem-types_ListData": {
             "type": "object",
             "properties": {
@@ -19685,25 +19712,6 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.MediaItem-types_MediaData"
-                    }
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Operation successful"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
-        "responses.APIResponse-array_models_MediaItem-types_Series": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.MediaItem-types_Series"
                     }
                 },
                 "message": {
@@ -19799,82 +19807,6 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.UserMediaItemData-types_MediaData"
-                    }
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Operation successful"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
-        "responses.APIResponse-array_responses_MediaItemResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/responses.MediaItemResponse"
-                    }
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Operation successful"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
-        "responses.APIResponse-array_types_Episode": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.Episode"
-                    }
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Operation successful"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
-        "responses.APIResponse-array_types_Season": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.Season"
-                    }
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Operation successful"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
-        "responses.APIResponse-array_types_Series": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.Series"
                     }
                 },
                 "message": {
@@ -20335,6 +20267,134 @@ const docTemplate = `{
                 }
             }
         },
+        "responses.APIResponse-responses_MediaItemList-suasor_clients_media_types_Movie": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.MediaItemList-suasor_clients_media_types_Movie"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.APIResponse-responses_MediaItemList-types_Album": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.MediaItemList-types_Album"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.APIResponse-responses_MediaItemList-types_Artist": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.MediaItemList-types_Artist"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.APIResponse-responses_MediaItemList-types_Episode": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.MediaItemList-types_Episode"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.APIResponse-responses_MediaItemList-types_MediaData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.MediaItemList-types_MediaData"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.APIResponse-responses_MediaItemList-types_Season": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.MediaItemList-types_Season"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.APIResponse-responses_MediaItemList-types_Series": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.MediaItemList-types_Series"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.APIResponse-responses_MediaItemList-types_Track": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.MediaItemList-types_Track"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "responses.APIResponse-responses_MediaItemResponse": {
             "type": "object",
             "properties": {
@@ -20700,6 +20760,118 @@ const docTemplate = `{
                         "degraded"
                     ],
                     "example": "up"
+                }
+            }
+        },
+        "responses.MediaItemList-suasor_clients_media_types_Movie": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MediaItem-suasor_clients_media_types_Movie"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "responses.MediaItemList-types_Album": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MediaItem-types_Album"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "responses.MediaItemList-types_Artist": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MediaItem-types_Artist"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "responses.MediaItemList-types_Episode": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MediaItem-types_Episode"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "responses.MediaItemList-types_MediaData": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MediaItem-types_MediaData"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "responses.MediaItemList-types_Season": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MediaItem-types_Season"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "responses.MediaItemList-types_Series": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MediaItem-types_Series"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "responses.MediaItemList-types_Track": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MediaItem-types_Track"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -22704,6 +22876,10 @@ const docTemplate = `{
                 "minimumRating": {
                     "description": "Filter by minimum rating",
                     "type": "number"
+                },
+                "network": {
+                    "description": "Filter by network",
+                    "type": "string"
                 },
                 "offset": {
                     "type": "integer"
