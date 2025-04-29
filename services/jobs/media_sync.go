@@ -309,20 +309,13 @@ func (j *MediaSyncJob) getClientConfig(ctx context.Context, clientID uint64, cli
 		Msg("Retrieving client config from database")
 
 	// Get client config from database
-	var config clienttypes.ClientConfig
-	var client any
-
 	clientList, err := j.clientRepos.GetAllMediaClients(ctx)
-	config = clientList.GetClientConfig(clientID, clientType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get media clients: %w", err)
 	}
-
-	// Validate that client is not nil
-	if client == nil {
-		return nil, fmt.Errorf("retrieved nil client for clientID=%d, clientType=%s", clientID, clientType)
-	}
-
+	
+	config := clientList.GetClientConfig(clientID, clientType)
+	
 	// Validate that config is not nil
 	if config == nil {
 		return nil, fmt.Errorf("retrieved nil config for clientID=%d, clientType=%s", clientID, clientType)

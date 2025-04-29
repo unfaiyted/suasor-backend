@@ -21,7 +21,7 @@ type ClientRepository[T types.ClientConfig] interface {
 	GetAll(ctx context.Context) ([]*models.Client[T], error)
 	GetByID(ctx context.Context, id uint64) (*models.Client[T], error)
 	GetByUserID(ctx context.Context, userID uint64) ([]*models.Client[T], error)
-	GetByType(ctx context.Context, clientType types.ClientType, userID uint64) ([]*models.Client[T], error)
+	GetByType(ctx context.Context) ([]*models.Client[T], error)
 	Delete(ctx context.Context, id, userID uint64) error
 }
 
@@ -183,11 +183,18 @@ func (r *clientRepository[T]) GetByCategory(ctx context.Context, category types.
 	return clients, nil
 }
 
-func (r *clientRepository[T]) GetByType(ctx context.Context, clientType types.ClientType, userID uint64) ([]*models.Client[T], error) {
+func (r *clientRepository[T]) GetByType(ctx context.Context) ([]*models.Client[T], error) {
 	var clients []*models.Client[T]
+	log := logger.LoggerFromContext(ctx)
+	var clientType types.ClientType
+	clientType = types.GetClientType[T]()
+
+	log.Info().
+		Str("clientType", string(clientType)).
+		Msg("Retrieving clients")
 
 	if err := r.db.WithContext(ctx).
-		Where("user_id = ? AND config -> 'data' ->> 'type' = ?", userID, clientType).
+		Where("config -> 'data' ->> 'type' = ? OR type = ?", clientType, clientType).
 		Find(&clients).Error; err != nil {
 		return nil, fmt.Errorf("failed to get clients by type: %w", err)
 	}
@@ -206,10 +213,15 @@ func (r *clientRepository[T]) GetAll(ctx context.Context) ([]*models.Client[T], 
 		Msg("Retrieving clients")
 
 	if err := r.db.WithContext(ctx).
-		Where("config -> 'data' ->> 'type' = ?", clientType).
+		Where("config -> 'data' ->> 'type' = ? OR type = ?", clientType, clientType).
 		Find(&clients).Error; err != nil {
 		return nil, fmt.Errorf("failed to get clients: %w", err)
 	}
+
+	log.Info().
+		Str("clientType", clientType.String()).
+		Int("count", len(clients)).
+		Msg("Retrieved clients")
 
 	return clients, nil
 }

@@ -96,6 +96,11 @@ func checkClientType(c *gin.Context) (clienttypes.ClientType, bool) {
 
 	// Check if clientType exists in context
 	clientTypeVal, exists := c.Get("clientType")
+	// Check if its a path parameter
+	if !exists && c.Param("clientType") != "" {
+		clientTypeVal = c.Param("clientType")
+		exists = true
+	}
 	if !exists {
 		log.Warn().Msg("Client type not found in context")
 		responses.RespondBadRequest(c, nil, "Client type not found in context")

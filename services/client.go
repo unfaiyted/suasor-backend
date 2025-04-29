@@ -20,7 +20,7 @@ type ClientService[T types.ClientConfig] interface {
 	Update(ctx context.Context, client models.Client[T]) (*models.Client[T], error)
 	GetByID(ctx context.Context, id uint64, userID uint64) (*models.Client[T], error)
 	GetByUserID(ctx context.Context, userID uint64) ([]*models.Client[T], error)
-	GetByType(ctx context.Context, userID uint64) ([]*models.Client[T], error)
+	GetByType(ctx context.Context) ([]*models.Client[T], error)
 	Delete(ctx context.Context, id uint64, userID uint64) error
 	TestConnection(ctx context.Context, clientID uint64, config *T) (responses.ClientTestResponse, error)
 	TestNewConnection(ctx context.Context, config *T) (responses.ClientTestResponse, error)
@@ -56,18 +56,17 @@ func (s *clientService[T]) GetByUserID(ctx context.Context, userID uint64) ([]*m
 	return s.repo.GetByUserID(ctx, userID)
 }
 
-func (s *clientService[T]) GetByType(ctx context.Context, userID uint64) ([]*models.Client[T], error) {
+func (s *clientService[T]) GetByType(ctx context.Context) ([]*models.Client[T], error) {
 	log := logger.LoggerFromContext(ctx)
 	var zero T
 	typeName := utils.GetTypeName(zero)
 	clientType := types.GetClientType[T]()
 
 	log.Info().
-		Uint64("userID", userID).
 		Str("typeName", typeName).
 		Str("clientType", clientType.String()).
 		Msg("Retrieving clients")
-	return s.repo.GetByType(ctx, clientType, userID)
+	return s.repo.GetByType(ctx)
 }
 
 func (s *clientService[T]) Update(ctx context.Context, client models.Client[T]) (*models.Client[T], error) {

@@ -191,7 +191,7 @@ func (c *clientRepositories) GetAllClients(ctx context.Context) (*models.ClientL
 }
 
 func (c *clientRepositories) GetAllMediaClients(ctx context.Context) (*models.MediaClientList, error) {
-	var clients *models.MediaClientList
+	clients := models.NewMediaClientList()
 
 	// Emby clients
 	embyClients, err := c.embyRepo.GetAll(ctx)
@@ -294,7 +294,7 @@ func (c *clientRepositories) GetAllClientsForUser(ctx context.Context, userID ui
 }
 
 func (c *clientRepositories) GetAllMediaClientsForUser(ctx context.Context, userID uint64) (*models.MediaClientList, error) {
-	var clients *models.MediaClientList
+	clients := models.NewMediaClientList()
 
 	// Emby clients
 	embyClients, err := c.embyRepo.GetByUserID(ctx, userID)
@@ -327,7 +327,8 @@ func (c *clientRepositories) GetAllMediaClientsForUser(ctx context.Context, user
 }
 
 func (c *clientRepositories) GetAllMetadataClientsForUser(ctx context.Context, userID uint64) (*models.MetadataClientList, error) {
-	var metadataClients *models.MetadataClientList
+	// Create an empty metadata client list
+	metadataClients := &models.MetadataClientList{}
 
 	// Tmdb clients
 	// tmdbClients, err := c.tmdbRepo.GetByUserID(ctx, userID)

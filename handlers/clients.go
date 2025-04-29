@@ -77,7 +77,7 @@ func (h *ClientsHandler) GetAllClients(c *gin.Context) {
 	uid, _ := checkUserAccess(c)
 	clientCategory, _ := checkOptionalClientCategory(c)
 
-	var clientList models.ClientList
+	clientList := models.NewClientList()
 
 	if clientCategory == "media" || clientCategory == "" {
 		emby, err := h.embyService.GetByUserID(ctx, uid)
@@ -212,7 +212,7 @@ func (h *ClientsHandler) TestNewConnection(c *gin.Context) {
 //	@Success		200			{object}	responses.APIResponse[[]models.Client[types.ClientConfig]]	"Clients retrieved"
 //	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
-//	@Router			/admin/clients/{clientType} [get]
+//	@Router			/clients/{clientType} [get]
 func (h *ClientsHandler) GetClientsByType(c *gin.Context) {
 
 	clientType, _ := checkClientType(c)
@@ -234,19 +234,19 @@ func (h *ClientsHandler) GetClientsByType(c *gin.Context) {
 		clients := getClientsByType(c, h.sonarrService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	case types.ClientTypeRadarr:
-		clients := getClientsByType[*types.RadarrConfig](c, h.radarrService)
+		clients := getClientsByType(c, h.radarrService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	case types.ClientTypeLidarr:
-		clients := getClientsByType[*types.LidarrConfig](c, h.lidarrService)
+		clients := getClientsByType(c, h.lidarrService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	case types.ClientTypeClaude:
-		clients := getClientsByType[*types.ClaudeConfig](c, h.claudeService)
+		clients := getClientsByType(c, h.claudeService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	case types.ClientTypeOpenAI:
-		clients := getClientsByType[*types.OpenAIConfig](c, h.openaiService)
+		clients := getClientsByType(c, h.openaiService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	case types.ClientTypeOllama:
-		clients := getClientsByType[*types.OllamaConfig](c, h.ollamaService)
+		clients := getClientsByType(c, h.ollamaService)
 		responses.RespondOK(c, clients, "clients retrieved successfully")
 	default:
 		responses.RespondBadRequest(c, nil, "Unknown client type")
@@ -279,9 +279,9 @@ func testConnection[T types.ClientConfig](c *gin.Context, clientType types.Clien
 
 func getClientsByType[T types.ClientConfig](c *gin.Context, service services.ClientService[T]) []*models.Client[T] {
 	ctx := c.Request.Context()
-	userID, _ := checkUserAccess(c)
+	// userID, _ := checkUserAccess(c)
 
-	clients, err := service.GetByType(ctx, userID)
+	clients, err := service.GetByType(ctx)
 	if err != nil {
 		responses.RespondInternalError(c, err, "Failed to retrieve clients")
 		return nil

@@ -10,6 +10,8 @@ type ClientList struct {
 	AutomationClientList `json:"automation"`
 	AIClientList         `json:"ai"`
 
+	// IDs map[uint64]client.ClientType `json:"ids"`
+
 	Total int `json:"total"`
 }
 
@@ -20,17 +22,21 @@ func NewClientList() *ClientList {
 			Jellyfin: map[uint64]*Client[*client.JellyfinConfig]{},
 			Plex:     map[uint64]*Client[*client.PlexConfig]{},
 			Subsonic: map[uint64]*Client[*client.SubsonicConfig]{},
+			IDs:      map[uint64]client.ClientType{},
 		},
 		AutomationClientList: AutomationClientList{
 			Sonarr: map[uint64]*Client[*client.SonarrConfig]{},
 			Radarr: map[uint64]*Client[*client.RadarrConfig]{},
 			Lidarr: map[uint64]*Client[*client.LidarrConfig]{},
+			IDs:    map[uint64]client.ClientType{},
 		},
 		AIClientList: AIClientList{
 			Claude: map[uint64]*Client[*client.ClaudeConfig]{},
 			OpenAI: map[uint64]*Client[*client.OpenAIConfig]{},
 			Ollama: map[uint64]*Client[*client.OllamaConfig]{},
+			IDs:    map[uint64]client.ClientType{},
 		},
+
 		Total: 0,
 	}
 }
@@ -81,6 +87,8 @@ func NewMediaClientList() *MediaClientList {
 		Plex:     map[uint64]*Client[*client.PlexConfig]{},
 		Subsonic: map[uint64]*Client[*client.SubsonicConfig]{},
 
+		IDs: map[uint64]client.ClientType{},
+
 		Total: 0,
 	}
 }
@@ -97,18 +105,29 @@ func (c *MediaClientList) GetClientType(clientID uint64) (client.ClientType, boo
 }
 
 func (c *MediaClientList) GetClientConfig(clientID uint64, clientType client.ClientType) client.ClientConfig {
-
 	if clientType == client.ClientTypeEmby {
-		return c.Emby[clientID].Config
+		if client, ok := c.Emby[clientID]; ok && client != nil {
+			return client.Config
+		}
+		return nil
 	}
 	if clientType == client.ClientTypeJellyfin {
-		return c.Jellyfin[clientID].Config
+		if client, ok := c.Jellyfin[clientID]; ok && client != nil {
+			return client.Config
+		}
+		return nil
 	}
 	if clientType == client.ClientTypePlex {
-		return c.Plex[clientID].Config
+		if client, ok := c.Plex[clientID]; ok && client != nil {
+			return client.Config
+		}
+		return nil
 	}
 	if clientType == client.ClientTypeSubsonic {
-		return c.Subsonic[clientID].Config
+		if client, ok := c.Subsonic[clientID]; ok && client != nil {
+			return client.Config
+		}
+		return nil
 	}
 	return nil
 }

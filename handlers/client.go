@@ -373,7 +373,7 @@ func (h *clientHandler[T]) GetAllOfType(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	userID, _ := checkUserAccess(c)
+	_, _ = checkUserAccess(c)
 
 	clientType := c.Param("clientType")
 
@@ -381,7 +381,7 @@ func (h *clientHandler[T]) GetAllOfType(c *gin.Context) {
 		Str("clientType", clientType).
 		Msg("Getting clients of type")
 
-	clients, err := h.service.GetByType(ctx, userID)
+	clients, err := h.service.GetByType(ctx)
 	if err != nil {
 		responses.RespondInternalError(c, err, "Failed to retrieve clients")
 		return
