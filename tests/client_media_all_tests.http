@@ -33,12 +33,13 @@ run #getEmbyMoviesByYear
 run #getEmbySeriesByID
 run #getAllEmbySeries
 run #getEmbyEpisodesBySeriesID
-run #getJellyfinSeriesByID
+#run #getJellyfinSeriesByID
+run #getAllPlexSeries
 run #getPlexSeriesByID
 
 # Run music tests
-run #getEmbyArtistByID
 run #getAllEmbyArtists
+run #getEmbyArtistByID
 run #getEmbyAlbumByID
 run #getEmbyTrackByID
 run #getSubsonicArtistByID

@@ -50,6 +50,15 @@ func (s *ClientProviderFactoryService) RegisterClientProviderFactory(clientType 
 // UnregisterClient unregisters a client
 func (s *ClientProviderFactoryService) UnregisterClient(ctx context.Context, clientID uint64, config types.ClientConfig) {
 	log := logger.LoggerFromContext(ctx)
+	
+	// Validate input parameters
+	if config == nil {
+		log.Error().
+			Uint64("clientID", clientID).
+			Msg("Cannot unregister client: config is nil")
+		return
+	}
+	
 	clientType := config.GetType()
 	key := ClientKey{Type: clientType, ID: clientID}
 	log.Debug().
@@ -90,6 +99,16 @@ func (s *ClientProviderFactoryService) UnregisterClient(ctx context.Context, cli
 // GetClient returns an existing client or creates a new one
 func (s *ClientProviderFactoryService) GetClient(ctx context.Context, clientID uint64, config types.ClientConfig) (Client, error) {
 	log := logger.LoggerFromContext(ctx)
+	
+	// Validate input parameters
+	if config == nil {
+		err := fmt.Errorf("cannot get client: config is nil for clientID=%d", clientID)
+		log.Error().
+			Uint64("clientID", clientID).
+			Msg(err.Error())
+		return nil, err
+	}
+	
 	clientType := config.GetType()
 	key := ClientKey{Type: clientType, ID: clientID}
 	log.Debug().
@@ -166,43 +185,93 @@ func (s *ClientProviderFactoryService) GetClient(ctx context.Context, clientID u
 }
 
 func (s *ClientProviderFactoryService) GetMovieProvider(ctx context.Context, clientID uint64, config types.ClientConfig) (providers.MovieProvider, error) {
+	if config == nil {
+		return nil, fmt.Errorf("cannot get movie provider: config is nil for clientID=%d", clientID)
+	}
+	
 	client, err := s.GetClient(ctx, clientID, config)
 	if err != nil {
 		return nil, err
 	}
-	return client.(providers.MovieProvider), nil
+	
+	movieProvider, ok := client.(providers.MovieProvider)
+	if !ok {
+		return nil, fmt.Errorf("client does not implement MovieProvider interface")
+	}
+	
+	return movieProvider, nil
 }
 
 func (s *ClientProviderFactoryService) GetSeriesProvider(ctx context.Context, clientID uint64, config types.ClientConfig) (providers.SeriesProvider, error) {
+	if config == nil {
+		return nil, fmt.Errorf("cannot get series provider: config is nil for clientID=%d", clientID)
+	}
+	
 	client, err := s.GetClient(ctx, clientID, config)
 	if err != nil {
 		return nil, err
 	}
-	return client.(providers.SeriesProvider), nil
+	
+	seriesProvider, ok := client.(providers.SeriesProvider)
+	if !ok {
+		return nil, fmt.Errorf("client does not implement SeriesProvider interface")
+	}
+	
+	return seriesProvider, nil
 }
 
 func (s *ClientProviderFactoryService) GetMusicProvider(ctx context.Context, clientID uint64, config types.ClientConfig) (providers.MusicProvider, error) {
+	if config == nil {
+		return nil, fmt.Errorf("cannot get music provider: config is nil for clientID=%d", clientID)
+	}
+	
 	client, err := s.GetClient(ctx, clientID, config)
 	if err != nil {
 		return nil, err
 	}
-	return client.(providers.MusicProvider), nil
+	
+	musicProvider, ok := client.(providers.MusicProvider)
+	if !ok {
+		return nil, fmt.Errorf("client does not implement MusicProvider interface")
+	}
+	
+	return musicProvider, nil
 }
 
 func (s *ClientProviderFactoryService) GetPlaylistProvider(ctx context.Context, clientID uint64, config types.ClientConfig) (providers.PlaylistProvider, error) {
+	if config == nil {
+		return nil, fmt.Errorf("cannot get playlist provider: config is nil for clientID=%d", clientID)
+	}
+	
 	client, err := s.GetClient(ctx, clientID, config)
 	if err != nil {
 		return nil, err
 	}
-	return client.(providers.PlaylistProvider), nil
+	
+	playlistProvider, ok := client.(providers.PlaylistProvider)
+	if !ok {
+		return nil, fmt.Errorf("client does not implement PlaylistProvider interface")
+	}
+	
+	return playlistProvider, nil
 }
 
 func (s *ClientProviderFactoryService) GetCollectionProvider(ctx context.Context, clientID uint64, config types.ClientConfig) (providers.CollectionProvider, error) {
+	if config == nil {
+		return nil, fmt.Errorf("cannot get collection provider: config is nil for clientID=%d", clientID)
+	}
+	
 	client, err := s.GetClient(ctx, clientID, config)
 	if err != nil {
 		return nil, err
 	}
-	return client.(providers.CollectionProvider), nil
+	
+	collectionProvider, ok := client.(providers.CollectionProvider)
+	if !ok {
+		return nil, fmt.Errorf("client does not implement CollectionProvider interface")
+	}
+	
+	return collectionProvider, nil
 }
 
 // Convenience package-level functions for working with the singleton
@@ -214,19 +283,45 @@ func RegisterClientProviderFactory(clientType types.ClientType, factory ClientPr
 
 // GetClient gets or creates a client at the package level
 func GetClient(ctx context.Context, clientID uint64, config types.ClientConfig) (Client, error) {
+	if config == nil {
+		return nil, fmt.Errorf("cannot get client: config is nil for clientID=%d", clientID)
+	}
 	return GetClientProviderFactoryService().GetClient(ctx, clientID, config)
 }
 
 // UnregisterClient unregisters a client at the package level
 func UnregisterClient(ctx context.Context, clientID uint64, config types.ClientConfig) {
+	if config == nil {
+		log := logger.LoggerFromContext(ctx)
+		log.Error().
+			Uint64("clientID", clientID).
+			Msg("Cannot unregister client: config is nil")
+		return
+	}
 	GetClientProviderFactoryService().UnregisterClient(ctx, clientID, config)
 }
 
 // GetClientFromModel creates a client from a client model
 func (s *ClientProviderFactoryService) GetClientFromModel(ctx context.Context, model interface{}) (Client, error) {
+	log := logger.LoggerFromContext(ctx)
+	
+	// Check if model is nil
+	if model == nil {
+		err := fmt.Errorf("cannot get client: model is nil")
+		log.Error().Msg(err.Error())
+		return nil, err
+	}
+	
 	// Try to extract client ID and config from the model
 	clientID, config, err := ExtractClientInfo(model)
 	if err != nil {
+		return nil, err
+	}
+	
+	// Check if extracted config is nil
+	if config == nil {
+		err := fmt.Errorf("cannot get client: extracted config is nil for model type %T", model)
+		log.Error().Msg(err.Error())
 		return nil, err
 	}
 

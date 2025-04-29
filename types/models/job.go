@@ -1,6 +1,7 @@
 package models
 
 import (
+	clienttypes "suasor/clients/types"
 	"time"
 )
 
@@ -90,7 +91,7 @@ type MediaSyncJob struct {
 	// ID of the client to sync from
 	ClientID uint64 `json:"clientID" gorm:"index;not null"`
 	// Type of the client
-	ClientType string `json:"clientType" gorm:"not null"`
+	ClientType clienttypes.ClientType `json:"clientType" gorm:"index;not null"`
 	// Type of media to sync (movies, series, music, etc.)
 	MediaType string `json:"mediaType" gorm:"index;not null"`
 	// Last sync time

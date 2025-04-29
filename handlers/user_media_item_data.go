@@ -322,17 +322,9 @@ func (h *userMediaItemDataHandler[T]) ToggleFavorite(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
-	itemID, err := strconv.ParseUint(c.Param("itemID"), 10, 64)
+	userID, _ := checkUserAccess(c)
+	itemID, err := checkItemID(c, "itemID")
 	if err != nil {
-		log.Warn().Err(err).Str("itemID", c.Param("itemID")).Msg("Invalid media item ID")
-		responses.RespondBadRequest(c, err, "Invalid media item ID")
-		return
-	}
-
-	userID, err := utils.GetUserID(c)
-	if err != nil {
-		log.Warn().Err(err).Str("userID", c.Query("userID")).Msg("Invalid user ID")
-		responses.RespondBadRequest(c, err, "Invalid user ID")
 		return
 	}
 

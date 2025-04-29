@@ -1,0 +1,171 @@
+### Authentication Tests
+
+# @name register
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{TEST_NEW_USER}}",
+  "password": "{{TEST_PASSWORD}}",
+  "name": "Test User"
+}
+
+> {%
+  client.test("Register returns 201", function() {
+    client.assert(response.status === 201 || response.status === 409, 
+      "Response status should be 201 (created) or 409 (conflict if user exists)");
+    
+    if (response.status === 409) {
+      client.log("User already exists, continuing with login");
+    } else {
+      client.log("User registered successfully");
+      client.global.set("registeredUserId", response.body.data.id);
+    }
+  });
+%}
+
+### Login Admin
+# @name loginAdmin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{TEST_ADMIN_USER}}",
+  "password": "{{TEST_ADMIN_PASSWORD}}"
+}
+
+> {%
+  client.test("Login successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Login was not successful");
+    client.assert(response.body.data.accessToken, "No access token returned");
+  });
+  
+  // Store auth token for other tests
+  if (response.body.data && response.body.data.accessToken) {
+    client.global.set("adminToken", response.body.data.accessToken);
+    client.log("Admin token stored successfully");
+  }
+%}
+
+### Login Regular User
+# @name loginUser
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{TEST_USER}}",
+  "password": "{{TEST_PASSWORD}}"
+}
+
+> {%
+  client.test("Login successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Login was not successful");
+    client.assert(response.body.data.accessToken, "No access token returned");
+  });
+  
+  // Store auth token for other tests
+  if (response.body.data && response.body.data.accessToken) {
+    client.global.set("userToken", response.body.data.accessToken);
+    client.log("User token stored successfully");
+  }
+%}
+
+### Get User Profile
+# @name getUserProfile
+< {%
+  // Skip this test if no user token is available
+  if (!client.global.get("userToken")) {
+    client.log("No user token available, skipping user profile test");
+    request.skip();
+  }
+%}
+GET {{baseUrl}}/user/profile
+Authorization: Bearer {{userToken}}
+
+> {%
+  client.test("Get profile successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+    client.assert(response.body.data.email === client.global.get("TEST_USER"), 
+      "Email in response doesn't match expected user");
+  });
+  
+  // Store user ID for other tests
+  if (response.body.data && response.body.data.id) {
+    client.global.set("userId", response.body.data.id);
+    client.log("User ID stored: " + response.body.data.id);
+  }
+%}
+
+### Refresh Token
+# @name refreshToken
+< {%
+  if (!client.global.get("userToken")) {
+    client.log("No user token available, skipping token refresh test");
+    request.skip();
+  }
+%}
+POST {{baseUrl}}/auth/refresh
+Authorization: Bearer {{userToken}}
+
+> {%
+  client.test("Token refresh successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+    client.assert(response.body.data.accessToken, "No new access token returned");
+  });
+  
+  // Update stored token
+  if (response.body.data && response.body.data.accessToken) {
+    const oldToken = client.global.get("userToken");
+    client.global.set("userToken", response.body.data.accessToken);
+    client.log("Token refreshed successfully");
+    client.log("Old token: " + oldToken.substring(0, 10) + "...");
+    client.log("New token: " + response.body.data.accessToken.substring(0, 10) + "...");
+  }
+%}
+
+### Validate Admin Permissions
+# @name validateAdmin
+< {%
+  if (!client.global.get("adminToken")) {
+    client.log("No admin token available, skipping admin validation test");
+    request.skip();
+  }
+%}
+GET {{baseUrl}}/admin/users
+Authorization: Bearer {{adminToken}}
+
+> {%
+  client.test("Admin access successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+    client.assert(Array.isArray(response.body.data), "Data is not an array");
+  });
+  
+  client.log("Admin permissions validated successfully");
+%}
+
+### Logout
+# @name logout
+< {%
+  if (!client.global.get("userToken")) {
+    client.log("No user token available, skipping logout test");
+    request.skip();
+  }
+%}
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{userToken}}
+
+> {%
+  client.test("Logout successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Logout was not successful");
+  });
+  
+  // Clear token after logout
+  client.global.clear("userToken");
+  client.log("User logged out and token cleared");
+%}

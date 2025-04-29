@@ -1,0 +1,253 @@
+### Media Client Tests
+
+# Import auth for tokens
+import ../../_core/auth.http
+
+### Create Emby Client
+# @name createEmbyClient
+< {%
+  if (!client.global.get("adminToken")) {
+    client.log("No admin token available, skipping create Emby client test");
+    request.skip();
+  }
+  
+  // Generate a unique client name
+  const timestamp = new Date().getTime();
+  request.variables.set("clientName", "Emby Test " + timestamp);
+%}
+POST {{baseUrl}}/admin/client/emby
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "{{clientName}}",
+  "clientType": "emby",
+  "isEnabled": true,
+  "config": {
+    "details": {
+      "core": {
+        "type": "emby",
+        "category": "media",
+        "name": "Emby",
+        "baseURL": "{{EMBY_TEST_URL}}",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "emby",
+      "baseURL": "{{EMBY_TEST_URL}}",
+      "apiKey": "{{EMBY_TEST_API_KEY}}",
+      "ssl": false
+    },
+    "username": "{{EMBY_TEST_USER}}"
+  }
+}
+
+> {%
+  // Check if environment variables are set
+  const embyUrl = request.environment.get("EMBY_TEST_URL");
+  const embyApiKey = request.environment.get("EMBY_TEST_API_KEY");
+  
+  if (!embyUrl || !embyApiKey) {
+    client.log("WARNING: Emby test environment variables not set. Test may fail.");
+  }
+
+  // Handle both success and potential failure due to missing environment variables
+  if (response.status === 201) {
+    client.test("Create Emby client successful", function() {
+      client.assert(response.status === 201, "Response status is not 201");
+      client.assert(response.body.success === true, "Request was not successful");
+      client.assert(response.body.data.id, "No client ID returned");
+      client.assert(response.body.data.name === request.variables.get("clientName"), 
+        "Client name in response doesn't match expected value");
+    });
+    
+    // Store client ID for other tests
+    if (response.body.data && response.body.data.id) {
+      client.global.set("embyClientId", response.body.data.id);
+      client.log("Created Emby client ID: " + response.body.data.id);
+    }
+  } 
+  else if (response.status === 400 || response.status === 422) {
+    client.log("Failed to create Emby client. Likely due to missing or invalid environment variables.");
+    client.log("Response: " + JSON.stringify(response.body));
+  }
+  else {
+    client.test("Create Emby client", function() {
+      client.assert(false, `Unexpected response status: ${response.status}`);
+    });
+  }
+%}
+
+### Test Emby Connection
+# @name testEmbyConnection
+< {%
+  if (!client.global.get("adminToken") || !client.global.get("embyClientId")) {
+    client.log("Missing admin token or Emby client ID, skipping connection test");
+    request.skip();
+  }
+%}
+GET {{baseUrl}}/admin/client/{{embyClientId}}/test
+Authorization: Bearer {{adminToken}}
+
+> {%
+  client.test("Test Emby connection", function() {
+    // Accept both 200 (success) and 400/422 (connection failed but API works)
+    client.assert(response.status === 200 || response.status === 400 || response.status === 422, 
+      "Response status indicates API error");
+    
+    if (response.status === 200) {
+      client.assert(response.body.success === true, "Request was not successful");
+      client.log("Emby connection test passed");
+    } else {
+      client.log("Emby connection test failed. This is expected if Emby server is not available.");
+      client.log("Response: " + JSON.stringify(response.body));
+    }
+  });
+%}
+
+### Get Emby Client Details
+# @name getEmbyClientDetails
+< {%
+  if (!client.global.get("adminToken") || !client.global.get("embyClientId")) {
+    client.log("Missing admin token or Emby client ID, skipping get details test");
+    request.skip();
+  }
+%}
+GET {{baseUrl}}/admin/client/{{embyClientId}}
+Authorization: Bearer {{adminToken}}
+
+> {%
+  client.test("Get Emby client details successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+    client.assert(response.body.data.id === client.global.get("embyClientId"), 
+      "Client ID in response doesn't match expected value");
+    client.assert(response.body.data.name === request.variables.get("clientName"), 
+      "Client name in response doesn't match expected value");
+  });
+%}
+
+### Update Emby Client
+# @name updateEmbyClient
+< {%
+  if (!client.global.get("adminToken") || !client.global.get("embyClientId")) {
+    client.log("Missing admin token or Emby client ID, skipping update test");
+    request.skip();
+  }
+  
+  // Generate an updated name
+  const updatedName = request.variables.get("clientName") + " Updated";
+  request.variables.set("updatedClientName", updatedName);
+%}
+PUT {{baseUrl}}/admin/client/{{embyClientId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "{{updatedClientName}}",
+  "isEnabled": true
+}
+
+> {%
+  client.test("Update Emby client successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+    client.assert(response.body.data.id === client.global.get("embyClientId"), 
+      "Client ID in response doesn't match expected value");
+    client.assert(response.body.data.name === request.variables.get("updatedClientName"), 
+      "Client name in response doesn't match updated value");
+  });
+%}
+
+### Get Emby Movie by ID
+# @name getEmbyMovieByID
+< {%
+  if (!client.global.get("adminToken") || !client.global.get("embyClientId")) {
+    client.log("Missing admin token or Emby client ID, skipping get movie test");
+    request.skip();
+  }
+  
+  // For testing, we'll try a common movie ID or fall back to a placeholder
+  // In a real test, you would need a valid movie ID for your Emby server
+  request.variables.set("movieId", "{{EMBY_TEST_MOVIE_ID}}");
+%}
+GET {{baseUrl}}/client/{{embyClientId}}/movie/{{movieId}}
+Authorization: Bearer {{adminToken}}
+
+> {%
+  // This test allows for both success and failure since we don't know if
+  // the environment has valid movie IDs configured
+  if (response.status === 200) {
+    client.test("Get Emby movie successful", function() {
+      client.assert(response.status === 200, "Response status is not 200");
+      client.assert(response.body.success === true, "Request was not successful");
+      client.assert(response.body.data.id, "No movie ID returned");
+      client.assert(response.body.data.title, "No movie title returned");
+    });
+    
+    client.log(`Found movie: ${response.body.data.title}`);
+  } else if (response.status === 404) {
+    client.log("Movie not found. This is expected if the movie ID doesn't exist on the server.");
+  } else {
+    client.test("Get Emby movie", function() {
+      client.assert(false, `Unexpected response status: ${response.status}`);
+    });
+  }
+%}
+
+### List All Emby Movies
+# @name listEmbyMovies
+< {%
+  if (!client.global.get("adminToken") || !client.global.get("embyClientId")) {
+    client.log("Missing admin token or Emby client ID, skipping list movies test");
+    request.skip();
+  }
+%}
+GET {{baseUrl}}/client/{{embyClientId}}/movies
+Authorization: Bearer {{adminToken}}
+
+> {%
+  // This test allows for both success and empty results
+  if (response.status === 200) {
+    client.test("List Emby movies successful", function() {
+      client.assert(response.status === 200, "Response status is not 200");
+      client.assert(response.body.success === true, "Request was not successful");
+      client.assert(Array.isArray(response.body.data), "Data is not an array");
+    });
+    
+    if (response.body.data.length > 0) {
+      client.log(`Found ${response.body.data.length} movies`);
+      // Store the first movie ID for potential future tests
+      client.global.set("embyFirstMovieId", response.body.data[0].id);
+    } else {
+      client.log("No movies found in the Emby library");
+    }
+  } else {
+    client.test("List Emby movies", function() {
+      client.assert(false, `Unexpected response status: ${response.status}`);
+    });
+  }
+%}
+
+### Delete Emby Client
+# @name deleteEmbyClient
+< {%
+  if (!client.global.get("adminToken") || !client.global.get("embyClientId")) {
+    client.log("Missing admin token or Emby client ID, skipping delete test");
+    request.skip();
+  }
+%}
+DELETE {{baseUrl}}/admin/client/{{embyClientId}}
+Authorization: Bearer {{adminToken}}
+
+> {%
+  client.test("Delete Emby client successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+  });
+  
+  // Clean up stored client data
+  client.global.clear("embyClientId");
+  client.global.clear("embyFirstMovieId");
+  client.log("Emby client deleted and related data cleared");
+%}

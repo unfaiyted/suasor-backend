@@ -9,26 +9,6 @@ import (
 	"errors"
 )
 
-type AIClients struct {
-	Claude []*Client[*client.ClaudeConfig]
-	OpenAI []*Client[*client.OpenAIConfig]
-	Ollama []*Client[*client.OllamaConfig]
-
-	Total int
-}
-
-type AutomationClients struct {
-	Sonarr []*Client[*client.SonarrConfig]
-	Radarr []*Client[*client.RadarrConfig]
-	Lidarr []*Client[*client.LidarrConfig]
-
-	Total int
-}
-
-type MetadataClients struct {
-	// Tmdb []*Client[*client.TmdbConfig]
-}
-
 // Client represents a download client configuration
 type Client[T client.ClientConfig] struct {
 	BaseModel

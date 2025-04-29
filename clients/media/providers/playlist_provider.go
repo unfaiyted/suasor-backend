@@ -32,6 +32,4 @@ type CollectionProvider interface {
 type PlaylistProvider interface {
 	ListProvider[*types.Playlist]
 	SupportsPlaylists() bool
-
-	playlistFactory(ctx context.Context, item *any) (*types.Playlist, error)
 }

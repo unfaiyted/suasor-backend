@@ -7,16 +7,17 @@
     "logLevel": "info",
     "maxAvatarSize": 5242880,
     "maxPageSize": 100,
-    "name": "suasor"
+    "name": "Suasor"
   },
   "auth": {
     "accessExpiryMinutes": 15,
     "allowedOrigins": [
-      "http://localhost:3000"
+      "http://localhost:3000",
+      "http://localhost:5173"
     ],
     "enable2FA": false,
     "enableLocal": true,
-    "jwtSecret": "your-default-jwt-secret-change-me-in-production",
+    "jwtSecret": "your-jwt-secret",
     "refreshExpiryDays": 7,
     "sessionTimeout": 60,
     "tokenAudience": "suasor-client",
@@ -25,7 +26,7 @@
   },
   "db": {
     "host": "localhost",
-    "maxConns": 20,
+    "maxConns": 25,
     "name": "suasor",
     "password": "password",
     "port": "5433",
@@ -33,7 +34,7 @@
     "user": "postgres"
   },
   "http": {
-    "baseURL": "",
+    "baseURL": "http://localhost:8080",
     "enableSSL": false,
     "idleTimeout": 60,
     "port": "8080",

@@ -1,0 +1,70 @@
+### Master Test Runner
+# Runs all test suites in sequence
+
+< {%
+  // Initialize test stats
+  client.global.set("testSuitesPassed", 0);
+  client.global.set("testSuitesFailed", 0);
+  client.global.set("testSuitesTotal", 4); // Update this as new test suites are added
+  
+  // Record test start time
+  client.global.set("masterTestStartTime", new Date().toISOString());
+  client.log("=== Master Test Suite Started ===");
+  client.log("Start time: " + client.global.get("masterTestStartTime"));
+%}
+
+### Import test runners
+import ../_runners/core.http
+
+< {%
+  // Record health tests completion
+  client.global.set("testSuitesPassed", client.global.get("testSuitesPassed") + 1);
+  client.log("Core tests completed");
+%}
+
+### Run client tests
+import ../_runners/clients.http
+
+< {%
+  // Record client tests completion
+  client.global.set("testSuitesPassed", client.global.get("testSuitesPassed") + 1);
+  client.log("Client tests completed");
+%}
+
+### Placeholder for media tests
+< {%
+  // This is a placeholder for when we implement the media tests
+  client.log("Media tests would run here (not implemented yet)");
+%}
+
+### Placeholder for AI tests
+< {%
+  // This is a placeholder for when we implement the AI tests
+  client.log("AI tests would run here (not implemented yet)");
+%}
+
+### Finish master test session
+# @name finishMasterTestSession
+< {%
+  // Calculate test duration
+  const startTime = new Date(client.global.get("masterTestStartTime"));
+  const endTime = new Date();
+  const duration = (endTime - startTime) / 1000;
+  
+  // Calculate pass rate
+  const passed = client.global.get("testSuitesPassed");
+  const total = client.global.get("testSuitesTotal");
+  const passRate = (passed / total) * 100;
+  
+  client.log("=== Master Test Suite Completed ===");
+  client.log("End time: " + endTime.toISOString());
+  client.log("Duration: " + duration + " seconds");
+  client.log(`Test Suites: ${passed}/${total} passed (${passRate.toFixed(2)}%)`);
+  
+  // Clean up test session variables
+  client.global.clear("masterTestStartTime");
+  client.global.clear("testSuitesPassed");
+  client.global.clear("testSuitesFailed");
+  client.global.clear("testSuitesTotal");
+%}
+GET {{baseUrl}}/health

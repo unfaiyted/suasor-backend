@@ -21,11 +21,15 @@ type ClientRepositories interface {
 	OpenAIRepo() repository.ClientRepository[*types.OpenAIConfig]
 	OllamaRepo() repository.ClientRepository[*types.OllamaConfig]
 
+	GetAllMediaClients(ctx context.Context) (*models.MediaClientList, error)
+
 	// Helpers
 	GetAllClientsForUser(ctx context.Context, userID uint64) (*models.ClientList, error)
-	GetAllMediaClientsForUser(ctx context.Context, userID uint64) (*models.ClientList, error)
-	GetAllMetadataClientsForUser(ctx context.Context, userID uint64) (*models.MetadataClients, error)
-	GetAllAutomationClientsForUser(ctx context.Context, userID uint64) (*models.AutomationClients, error)
+	GetAllMediaClientsForUser(ctx context.Context, userID uint64) (*models.MediaClientList, error)
+	GetAllMetadataClientsForUser(ctx context.Context, userID uint64) (*models.MetadataClientList, error)
+	GetAllAutomationClientsForUser(ctx context.Context, userID uint64) (*models.AutomationClientList, error)
+
+	// GetClientByID(ctx context.Context, clientID uint64) (*models.Client[types.ClientConfig], error)
 }
 
 func NewClientRepositories(
@@ -109,8 +113,120 @@ func (c *clientRepositories) OllamaRepo() repository.ClientRepository[*types.Oll
 	return c.ollamaRepo
 }
 
+func (c *clientRepositories) GetAllClients(ctx context.Context) (*models.ClientList, error) {
+
+	clients := models.NewClientList()
+
+	// Emby clients
+	embyClients, err := c.embyRepo.GetAll(ctx)
+	if err != nil {
+		return clients, fmt.Errorf("failed to get emby client configs for user: %w", err)
+	}
+	clients.AddEmbyArray(embyClients)
+
+	// Jellyfin clients
+	jellyfinClients, err := c.jellyfinRepo.GetAll(ctx)
+	if err != nil {
+		return clients, fmt.Errorf("failed to get jellyfin client configs for user: %w", err)
+	}
+	clients.AddJellyfinArray(jellyfinClients)
+
+	// Plex clients
+	plexClients, err := c.plexRepo.GetAll(ctx)
+	if err != nil {
+		return clients, fmt.Errorf("failed to get plex client configs for user: %w", err)
+	}
+	clients.AddPlexArray(plexClients)
+
+	// Subsonic clients (primarily for music)
+	subsonicClients, err := c.subsonicRepo.GetAll(ctx)
+	if err != nil {
+		return clients, fmt.Errorf("failed to get subsonic client configs for user: %w", err)
+	}
+	clients.AddSubsonicArray(subsonicClients)
+
+	// Sonarr clients
+	sonarrClients, err := c.sonarrRepo.GetAll(ctx)
+	if err != nil {
+		return clients, fmt.Errorf("failed to get sonarr client configs for user: %w", err)
+	}
+	clients.AddSonarrArray(sonarrClients)
+
+	// Radarr clients
+	radarrClients, err := c.radarrRepo.GetAll(ctx)
+	if err != nil {
+		return clients, fmt.Errorf("failed to get radarr client configs for user: %w", err)
+	}
+	clients.AddRadarrArray(radarrClients)
+
+	// Lidarr clients
+	lidarrClients, err := c.lidarrRepo.GetAll(ctx)
+	if err != nil {
+		return clients, fmt.Errorf("failed to get lidarr client configs for user: %w", err)
+	}
+	clients.AddLidarrArray(lidarrClients)
+
+	// Claude clients
+	claudeClients, err := c.claudeRepo.GetAll(ctx)
+	if err != nil {
+		return clients, fmt.Errorf("failed to get claude client configs for user: %w", err)
+	}
+	clients.AddClaudeArray(claudeClients)
+
+	// OpenAI clients
+	openaiClients, err := c.openaiRepo.GetAll(ctx)
+	if err != nil {
+		return clients, fmt.Errorf("failed to get openai client configs for user: %w", err)
+	}
+	clients.AddOpenAIArray(openaiClients)
+
+	// Ollama clients
+	ollamaClients, err := c.ollamaRepo.GetAll(ctx)
+	if err != nil {
+		return clients, fmt.Errorf("failed to get ollama client configs for user: %w", err)
+	}
+	clients.AddOllamaArray(ollamaClients)
+
+	return clients, nil
+}
+
+func (c *clientRepositories) GetAllMediaClients(ctx context.Context) (*models.MediaClientList, error) {
+	var clients *models.MediaClientList
+
+	// Emby clients
+	embyClients, err := c.embyRepo.GetAll(ctx)
+	if err != nil {
+		return clients, fmt.Errorf("failed to get emby client configs for user: %w", err)
+	}
+	clients.AddEmbyArray(embyClients)
+
+	// Jellyfin clients
+	jellyfinClients, err := c.jellyfinRepo.GetAll(ctx)
+	if err != nil {
+		return clients, fmt.Errorf("failed to get jellyfin client configs for user: %w", err)
+	}
+	clients.AddJellyfinArray(jellyfinClients)
+
+	// Plex clients
+	plexClients, err := c.plexRepo.GetAll(ctx)
+	if err != nil {
+		return clients, fmt.Errorf("failed to get plex client configs for user: %w", err)
+	}
+	clients.AddPlexArray(plexClients)
+
+	// Subsonic clients (primarily for music)
+	subsonicClients, err := c.subsonicRepo.GetAll(ctx)
+	if err != nil {
+		return clients, fmt.Errorf("failed to get subsonic client configs for user: %w", err)
+	}
+	clients.AddSubsonicArray(subsonicClients)
+
+	return clients, nil
+}
+
 func (c *clientRepositories) GetAllClientsForUser(ctx context.Context, userID uint64) (*models.ClientList, error) {
-	var clients *models.ClientList
+
+	clients := models.NewClientList()
 
 	// Emby clients
 	embyClients, err := c.embyRepo.GetByUserID(ctx, userID)
@@ -177,8 +293,8 @@ func (c *clientRepositories) GetAllClientsForUser(ctx context.Context, userID ui
 	return clients, nil
 }
 
-func (c *clientRepositories) GetAllMediaClientsForUser(ctx context.Context, userID uint64) (*models.ClientList, error) {
-	var clients *models.ClientList
+func (c *clientRepositories) GetAllMediaClientsForUser(ctx context.Context, userID uint64) (*models.MediaClientList, error) {
+	var clients *models.MediaClientList
 
 	// Emby clients
 	embyClients, err := c.embyRepo.GetByUserID(ctx, userID)
@@ -186,18 +302,21 @@ func (c *clientRepositories) GetAllMediaClientsForUser(ctx context.Context, user
 		return clients, fmt.Errorf("failed to get emby client configs for user: %w", err)
 	}
 	clients.AddEmbyArray(embyClients)
+
 	// Jellyfin clients
 	jellyfinClients, err := c.jellyfinRepo.GetByUserID(ctx, userID)
 	if err != nil {
 		return clients, fmt.Errorf("failed to get jellyfin client configs for user: %w", err)
 	}
 	clients.AddJellyfinArray(jellyfinClients)
+
 	// Plex clients
 	plexClients, err := c.plexRepo.GetByUserID(ctx, userID)
 	if err != nil {
 		return clients, fmt.Errorf("failed to get plex client configs for user: %w", err)
 	}
 	clients.AddPlexArray(plexClients)
+
 	// Subsonic clients (primarily for music)
 	subsonicClients, err := c.subsonicRepo.GetByUserID(ctx, userID)
 	if err != nil {
@@ -207,8 +326,8 @@ func (c *clientRepositories) GetAllMediaClientsForUser(ctx context.Context, user
 	return clients, nil
 }
 
-func (c *clientRepositories) GetAllMetadataClientsForUser(ctx context.Context, userID uint64) (*models.MetadataClients, error) {
-	var metadataClients *models.MetadataClients
+func (c *clientRepositories) GetAllMetadataClientsForUser(ctx context.Context, userID uint64) (*models.MetadataClientList, error) {
+	var metadataClients *models.MetadataClientList
 
 	// Tmdb clients
 	// tmdbClients, err := c.tmdbRepo.GetByUserID(ctx, userID)
@@ -226,31 +345,27 @@ func (c *clientRepositories) GetAllMetadataClientsForUser(ctx context.Context, u
 	return metadataClients, nil
 }
 
-func (c *clientRepositories) GetAllAutomationClientsForUser(ctx context.Context, userID uint64) (*models.AutomationClients, error) {
-	var automationClients *models.AutomationClients
-	automationClients.Total = 0
-
+func (c *clientRepositories) GetAllAutomationClientsForUser(ctx context.Context, userID uint64) (*models.AutomationClientList, error) {
+	automationClients := models.NewAutomationClientList()
 	// Sonarr clients
 	sonarrClients, err := c.sonarrRepo.GetByUserID(ctx, userID)
-
 	if err != nil {
 		return automationClients, fmt.Errorf("failed to get sonarr client configs for user: %w", err)
 	}
-	automationClients.Sonarr = sonarrClients
-	automationClients.Total += len(sonarrClients)
+	automationClients.AddSonarrArray(sonarrClients)
+
 	// Radarr clients
 	radarrClients, err := c.radarrRepo.GetByUserID(ctx, userID)
 	if err != nil {
 		return automationClients, fmt.Errorf("failed to get radarr client configs for user: %w", err)
 	}
-	automationClients.Radarr = radarrClients
-	automationClients.Total += len(radarrClients)
+	automationClients.AddRadarrArray(radarrClients)
+
 	// Lidarr clients
 	lidarrClients, err := c.lidarrRepo.GetByUserID(ctx, userID)
 	if err != nil {
 		return automationClients, fmt.Errorf("failed to get lidarr client configs for user: %w", err)
 	}
-	automationClients.Lidarr = lidarrClients
-	automationClients.Total += len(lidarrClients)
+	automationClients.AddLidarrArray(lidarrClients)
 	return automationClients, nil
 }

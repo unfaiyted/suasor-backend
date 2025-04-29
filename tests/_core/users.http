@@ -1,0 +1,247 @@
+### User Management Tests
+
+# Run auth first to get tokens
+import ../_core/auth.http
+
+### Get All Users (Admin)
+# @name getAllUsers
+< {%
+  if (!client.global.get("adminToken")) {
+    client.log("No admin token available, skipping get all users test");
+    request.skip();
+  }
+%}
+GET {{baseUrl}}/admin/users
+Authorization: Bearer {{adminToken}}
+
+> {%
+  client.test("Get all users successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+    client.assert(Array.isArray(response.body.data), "Data is not an array");
+    client.assert(response.body.data.length > 0, "No users returned");
+  });
+  
+  // Store the number of users for verification in other tests
+  client.global.set("totalUsers", response.body.data.length);
+  client.log("Total users: " + response.body.data.length);
+%}
+
+### Create New User (Admin)
+# @name createUser
+< {%
+  if (!client.global.get("adminToken")) {
+    client.log("No admin token available, skipping create user test");
+    request.skip();
+  }
+  
+  // Generate a unique email for testing
+  const timestamp = new Date().getTime();
+  const testEmail = `test.user.${timestamp}@example.com`;
+  request.variables.set("testEmail", testEmail);
+%}
+POST {{baseUrl}}/admin/users
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "email": "{{testEmail}}",
+  "password": "Test@12345",
+  "name": "Test User Created By Admin",
+  "role": "user"
+}
+
+> {%
+  client.test("Create user successful", function() {
+    client.assert(response.status === 201, "Response status is not 201");
+    client.assert(response.body.success === true, "Request was not successful");
+    client.assert(response.body.data.id, "No user ID returned");
+    client.assert(response.body.data.email === request.variables.get("testEmail"), 
+      "Email in response doesn't match expected value");
+  });
+  
+  // Store the created user ID for other tests
+  if (response.body.data && response.body.data.id) {
+    client.global.set("createdUserId", response.body.data.id);
+    client.global.set("createdUserEmail", response.body.data.email);
+    client.log("Created user ID: " + response.body.data.id);
+  }
+%}
+
+### Get User By ID (Admin)
+# @name getUserById
+< {%
+  if (!client.global.get("adminToken") || !client.global.get("createdUserId")) {
+    client.log("Missing admin token or created user ID, skipping get user by ID test");
+    request.skip();
+  }
+%}
+GET {{baseUrl}}/admin/users/{{createdUserId}}
+Authorization: Bearer {{adminToken}}
+
+> {%
+  client.test("Get user by ID successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+    client.assert(response.body.data.id === client.global.get("createdUserId"), 
+      "User ID in response doesn't match expected value");
+    client.assert(response.body.data.email === client.global.get("createdUserEmail"), 
+      "Email in response doesn't match expected value");
+  });
+%}
+
+### Update User (Admin)
+# @name updateUser
+< {%
+  if (!client.global.get("adminToken") || !client.global.get("createdUserId")) {
+    client.log("Missing admin token or created user ID, skipping update user test");
+    request.skip();
+  }
+%}
+PUT {{baseUrl}}/admin/users/{{createdUserId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "Updated Test User",
+  "isActive": true
+}
+
+> {%
+  client.test("Update user successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+    client.assert(response.body.data.id === client.global.get("createdUserId"), 
+      "User ID in response doesn't match expected value");
+    client.assert(response.body.data.name === "Updated Test User", 
+      "Name in response doesn't match updated value");
+  });
+%}
+
+### Login As Created User
+# @name loginCreatedUser
+< {%
+  if (!client.global.get("createdUserEmail")) {
+    client.log("No created user email available, skipping login test");
+    request.skip();
+  }
+%}
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{createdUserEmail}}",
+  "password": "Test@12345"
+}
+
+> {%
+  client.test("Login as created user successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Login was not successful");
+    client.assert(response.body.data.accessToken, "No access token returned");
+  });
+  
+  // Store auth token for other tests
+  if (response.body.data && response.body.data.accessToken) {
+    client.global.set("createdUserToken", response.body.data.accessToken);
+    client.log("Created user token stored successfully");
+  }
+%}
+
+### Get Own Profile (Created User)
+# @name getOwnProfile
+< {%
+  if (!client.global.get("createdUserToken")) {
+    client.log("No created user token available, skipping get own profile test");
+    request.skip();
+  }
+%}
+GET {{baseUrl}}/user/profile
+Authorization: Bearer {{createdUserToken}}
+
+> {%
+  client.test("Get own profile successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+    client.assert(response.body.data.id === client.global.get("createdUserId"), 
+      "User ID in response doesn't match expected value");
+    client.assert(response.body.data.name === "Updated Test User", 
+      "Name in response doesn't match updated value");
+  });
+%}
+
+### Update Own Profile (Created User)
+# @name updateOwnProfile
+< {%
+  if (!client.global.get("createdUserToken")) {
+    client.log("No created user token available, skipping update own profile test");
+    request.skip();
+  }
+%}
+PUT {{baseUrl}}/user/profile
+Content-Type: application/json
+Authorization: Bearer {{createdUserToken}}
+
+{
+  "name": "Self Updated User"
+}
+
+> {%
+  client.test("Update own profile successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+    client.assert(response.body.data.name === "Self Updated User", 
+      "Name in response doesn't match updated value");
+  });
+%}
+
+### Delete User (Admin)
+# @name deleteUser
+< {%
+  if (!client.global.get("adminToken") || !client.global.get("createdUserId")) {
+    client.log("Missing admin token or created user ID, skipping delete user test");
+    request.skip();
+  }
+%}
+DELETE {{baseUrl}}/admin/users/{{createdUserId}}
+Authorization: Bearer {{adminToken}}
+
+> {%
+  client.test("Delete user successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+  });
+  
+  // Clear stored user data
+  client.global.clear("createdUserId");
+  client.global.clear("createdUserEmail");
+  client.global.clear("createdUserToken");
+  client.log("User deleted and related data cleared");
+%}
+
+### Verify User Count After Deletion
+# @name verifyUserCount
+< {%
+  if (!client.global.get("adminToken") || !client.global.get("totalUsers")) {
+    client.log("Missing admin token or total users count, skipping verification test");
+    request.skip();
+  }
+%}
+GET {{baseUrl}}/admin/users
+Authorization: Bearer {{adminToken}}
+
+> {%
+  const previousCount = parseInt(client.global.get("totalUsers"));
+  
+  client.test("User count should match expected value", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+    client.assert(Array.isArray(response.body.data), "Data is not an array");
+    
+    // Might be the same as before if the created user was deleted
+    client.assert(response.body.data.length === previousCount, 
+      `User count ${response.body.data.length} doesn't match expected count ${previousCount}`);
+  });
+  
+  client.log("User count verification complete");
+%}

@@ -297,9 +297,22 @@ func (h *JobHandler) SetupMediaSyncJob(c *gin.Context) {
 //	@Failure		500		{object}	responses.ErrorResponse[error]
 //	@Router			/jobs/media-sync/run [post]
 func (h *JobHandler) RunMediaSyncJob(c *gin.Context) {
+	log := logger.LoggerFromContext(c.Request.Context())
+	
 	var req requests.RunMediaSyncJobRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		responses.RespondValidationError(c, err, "Invalid request")
+		return
+	}
+
+	// Validate request parameters
+	if req.ClientID == 0 {
+		responses.RespondValidationError(c, nil, "Client ID cannot be zero")
+		return
+	}
+	
+	if req.MediaType == "" {
+		responses.RespondValidationError(c, nil, "Media type cannot be empty")
 		return
 	}
 
@@ -309,8 +322,20 @@ func (h *JobHandler) RunMediaSyncJob(c *gin.Context) {
 		responses.RespondInternalError(c, nil, "User ID not found in context")
 		return
 	}
+	
+	userIDVal, ok := userID.(uint64)
+	if !ok || userIDVal == 0 {
+		responses.RespondInternalError(c, nil, "Invalid user ID in context")
+		return
+	}
+	
+	log.Info().
+		Uint64("userID", userIDVal).
+		Uint64("clientID", req.ClientID).
+		Str("mediaType", req.MediaType).
+		Msg("Starting media sync job")
 
-	if err := h.jobService.RunMediaSyncJob(c.Request.Context(), userID.(uint64), req.ClientID, req.MediaType); err != nil {
+	if err := h.jobService.RunMediaSyncJob(c.Request.Context(), userIDVal, req.ClientID, req.MediaType); err != nil {
 		responses.RespondInternalError(c, err, "Failed to run media sync job")
 		return
 	}

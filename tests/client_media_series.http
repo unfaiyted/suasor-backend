@@ -159,15 +159,17 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 ## Plex Series Tests (abbreviated for brevity)
 
 ###
+# @name getAllPlexSeries
+# Get all series from Plex
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/series
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
 # @name getPlexSeriesByID
 # Get a specific series from Plex by ID
 GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/series/{{TEST_PLEX_SERIES_ID}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
-# @name getAllPlexSeries
-# Get all series from Plex
-GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/series
-Content-Type: application/json
-Authorization: Bearer {{login.response.body.$.data.accessToken}}
+

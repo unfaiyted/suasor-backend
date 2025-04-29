@@ -1,0 +1,65 @@
+### Core Test Runner
+
+# Import core test modules
+import ../_core/health.http
+import ../_core/auth.http
+import ../_core/users.http
+import ../_core/config.http
+
+### Start a testing session
+# @name startTestSession
+< {%
+  // Record test start time
+  client.global.set("testStartTime", new Date().toISOString());
+  client.log("=== Core Test Suite Started ===");
+  client.log("Start time: " + client.global.get("testStartTime"));
+%}
+GET {{baseUrl}}/health
+
+### Run basic health tests
+run #basicHealthCheck
+
+### Run authentication tests sequence
+run #loginAdmin
+run #loginUser
+run #getUserProfile
+run #refreshToken
+run #validateAdmin
+run #logout
+
+### Run user management tests sequence
+run #getAllUsers
+run #createUser
+run #getUserById
+run #updateUser
+run #loginCreatedUser
+run #getOwnProfile
+run #updateOwnProfile
+run #deleteUser
+run #verifyUserCount
+
+### Run configuration tests sequence
+run #getSystemConfig
+run #updateSystemConfig
+run #verifyUpdatedConfig
+run #getUserConfig
+run #updateUserConfig
+run #verifyUpdatedUserConfig
+run #restoreSystemConfig
+
+### Finish test session
+# @name finishTestSession
+< {%
+  // Calculate test duration
+  const startTime = new Date(client.global.get("testStartTime"));
+  const endTime = new Date();
+  const duration = (endTime - startTime) / 1000;
+  
+  client.log("=== Core Test Suite Completed ===");
+  client.log("End time: " + endTime.toISOString());
+  client.log("Duration: " + duration + " seconds");
+  
+  // Clean up test session variables
+  client.global.clear("testStartTime");
+%}
+GET {{baseUrl}}/health

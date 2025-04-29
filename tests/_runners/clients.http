@@ -1,0 +1,40 @@
+### Client Test Runner
+
+# Import client test modules
+import ../client/media_clients.http
+
+### Start a testing session
+# @name startClientTestSession
+< {%
+  // Record test start time
+  client.global.set("clientTestStartTime", new Date().toISOString());
+  client.log("=== Client Test Suite Started ===");
+  client.log("Start time: " + client.global.get("clientTestStartTime"));
+%}
+GET {{baseUrl}}/health
+
+### Run media client tests sequence
+run #createEmbyClient
+run #testEmbyConnection
+run #getEmbyClientDetails
+run #updateEmbyClient
+run #getEmbyMovieByID
+run #listEmbyMovies
+run #deleteEmbyClient
+
+### Finish client test session
+# @name finishClientTestSession
+< {%
+  // Calculate test duration
+  const startTime = new Date(client.global.get("clientTestStartTime"));
+  const endTime = new Date();
+  const duration = (endTime - startTime) / 1000;
+  
+  client.log("=== Client Test Suite Completed ===");
+  client.log("End time: " + endTime.toISOString());
+  client.log("Duration: " + duration + " seconds");
+  
+  // Clean up test session variables
+  client.global.clear("clientTestStartTime");
+%}
+GET {{baseUrl}}/health

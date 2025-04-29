@@ -243,7 +243,8 @@ func (r *userMediaItemDataRepository[T]) RecordPlay(ctx context.Context, data *m
 func (r *userMediaItemDataRepository[T]) ToggleFavorite(ctx context.Context, mediaItemID, userID uint64, favorite bool) error {
 	// Check if there's an existing record
 	log := logger.LoggerFromContext(ctx)
-	existingData, err := r.CoreUserMediaItemDataRepository.GetByUserIDAndMediaItemID(ctx, userID, mediaItemID)
+	existingData, err := r.CoreUserMediaItemDataRepository.
+		GetByUserIDAndMediaItemID(ctx, userID, mediaItemID)
 	if err != nil {
 		// If it's not a "not found" error, return the error
 		if err.Error() != "user media item data not found: record not found" {

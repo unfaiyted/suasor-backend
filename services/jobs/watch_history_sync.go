@@ -148,26 +148,26 @@ func (j *WatchHistorySyncJob) processUserHistory(ctx context.Context, user model
 	processedClients := 0
 	var lastError error
 
-	processed, err := processHistory[*clienttypes.EmbyConfig](j, ctx, user, clients.GetEmby(), jobRun)
+	processed, err := processHistory[*clienttypes.EmbyConfig](j, ctx, user, clients.GetEmbyArray(), jobRun)
 	processedClients += processed
 	if err != nil {
 		log.Printf("Error syncing history for client %s: %v", clients.GetEmby()[0].Name, err)
 		lastError = err
 	}
-	processed, err = processHistory[*clienttypes.JellyfinConfig](j, ctx, user, clients.GetJellyfin(), jobRun)
+	processed, err = processHistory[*clienttypes.JellyfinConfig](j, ctx, user, clients.GetJellyfinArray(), jobRun)
 	processedClients += processed
 	if err != nil {
 		log.Printf("Error syncing history for client %s: %v", clients.GetJellyfin()[0].Name, err)
 		lastError = err
 	}
 
-	processed, err = processHistory[*clienttypes.PlexConfig](j, ctx, user, clients.GetPlex(), jobRun)
+	processed, err = processHistory[*clienttypes.PlexConfig](j, ctx, user, clients.GetPlexArray(), jobRun)
 	if err != nil {
 		log.Printf("Error syncing history for client %s: %v", clients.GetPlex()[0].Name, err)
 		lastError = err
 	}
 	processedClients += processed
-	processed, err = processHistory[*clienttypes.SubsonicConfig](j, ctx, user, clients.GetSubsonic(), jobRun)
+	processed, err = processHistory[*clienttypes.SubsonicConfig](j, ctx, user, clients.GetSubsonicArray(), jobRun)
 	if err != nil {
 		log.Printf("Error syncing history for client %s: %v", clients.GetSubsonic()[0].Name, err)
 		lastError = err

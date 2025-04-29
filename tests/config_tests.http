@@ -1,6 +1,6 @@
 import ./common/auth.http
 
-# Import and use the admin login for all configuration operations
+### Import and use the admin login for all configuration operations
 run #adminLogin
 run #persistentUserLogin
 

@@ -68,7 +68,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "clientID": {{getEmbyClients.response.body.$.data[0].id}},
+  "clientID": {{getEmbyClients.response.body.$.data.emby[0].id}},
   "mediaType": "movie"
 }
 

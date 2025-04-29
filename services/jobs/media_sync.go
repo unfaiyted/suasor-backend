@@ -125,16 +125,38 @@ func (j *MediaSyncJob) RunManualSync(ctx context.Context, userID uint64, clientI
 		Str("mediaType", mediaType).
 		Msg("Running manual media sync job")
 
+	// Validate input parameters
+	if userID == 0 {
+		return fmt.Errorf("invalid user ID: cannot be zero")
+	}
+
+	if clientID == 0 {
+		return fmt.Errorf("invalid client ID: cannot be zero")
+	}
+
+	if mediaType == "" {
+		return fmt.Errorf("invalid media type: cannot be empty")
+	}
+
 	// Get a list of possible client types to check
-	clientTypes := []string{"emby", "jellyfin", "plex", "subsonic"}
+	clientTypes := []clienttypes.ClientType{
+		clienttypes.ClientTypeEmby,
+		clienttypes.ClientTypeJellyfin,
+		clienttypes.ClientTypePlex,
+		clienttypes.ClientTypeSubsonic,
+	}
 
 	// Try to find which type this client is
-	var clientType string
+	var clientType clienttypes.ClientType
 	for _, cType := range clientTypes {
 		// Try to get the config for this client type
-		_, err := j.getClientConfig(ctx, clientID, cType)
-		if err == nil {
+		config, err := j.getClientConfig(ctx, clientID, cType)
+		if err == nil && config != nil {
 			// Found the client type
+			log.Info().
+				Uint64("clientID", clientID).
+				Str("clientType", string(cType)).
+				Msg("Found client type")
 			clientType = cType
 			break
 		}
@@ -146,7 +168,7 @@ func (j *MediaSyncJob) RunManualSync(ctx context.Context, userID uint64, clientI
 	}
 
 	log.Info().
-		Str("clientType", clientType).
+		Str("clientType", string(clientType)).
 		Msg("Determined client type for manual sync")
 
 	// Create a temporary sync job
@@ -269,50 +291,64 @@ func (j *MediaSyncJob) completeJobRun(ctx context.Context, jobRunID uint64, stat
 	}
 }
 
-func (j *MediaSyncJob) getClientConfig(ctx context.Context, clientID uint64, clientType string) (clienttypes.ClientConfig, error) {
+func (j *MediaSyncJob) getClientConfig(ctx context.Context, clientID uint64, clientType clienttypes.ClientType) (clienttypes.ClientConfig, error) {
 	log := logger.LoggerFromContext(ctx)
+
+	// Validate input parameters
+	if clientID == 0 {
+		return nil, fmt.Errorf("invalid client ID: cannot be zero")
+	}
+
+	if clientType == "" {
+		return nil, fmt.Errorf("invalid client type: cannot be empty")
+	}
 
 	log.Info().
 		Uint64("clientID", clientID).
+		Str("clientType", string(clientType)).
 		Msg("Retrieving client config from database")
 
 	// Get client config from database
 	var config clienttypes.ClientConfig
+	var client any
 
-	switch clientType {
-	case "emby":
-		c, err := j.clientRepos.EmbyRepo().GetByID(ctx, clientID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get emby client: %w", err)
-		}
-		config = c.GetConfig()
-	case "jellyfin":
-		c, err := j.clientRepos.JellyfinRepo().GetByID(ctx, clientID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get jellyfin client: %w", err)
-		}
-		config = c.GetConfig()
-	case "plex":
-		c, err := j.clientRepos.PlexRepo().GetByID(ctx, clientID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get plex client: %w", err)
-		}
-		config = c.GetConfig()
-	case "subsonic":
-		c, err := j.clientRepos.SubsonicRepo().GetByID(ctx, clientID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get subsonic client: %w", err)
-		}
-		config = c.GetConfig()
-	default:
-		return nil, fmt.Errorf("unsupported client type: %s", clientType)
+	clientList, err := j.clientRepos.GetAllMediaClients(ctx)
+	config = clientList.GetClientConfig(clientID, clientType)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get media clients: %w", err)
+	}
+
+	// Validate that client is not nil
+	if client == nil {
+		return nil, fmt.Errorf("retrieved nil client for clientID=%d, clientType=%s", clientID, clientType)
+	}
+
+	// Validate that config is not nil
+	if config == nil {
+		return nil, fmt.Errorf("retrieved nil config for clientID=%d, clientType=%s", clientID, clientType)
 	}
 
 	return config, nil
 }
 
 // getClientMedia gets a media client from the database and initializes it
-func (j *MediaSyncJob) getClientMedia(ctx context.Context, clientID uint64, clientType string) (media.ClientMedia, error) {
+func (j *MediaSyncJob) getClientMedia(ctx context.Context, clientID uint64, clientType clienttypes.ClientType) (media.ClientMedia, error) {
+	log := logger.LoggerFromContext(ctx)
+
+	// Validate input parameters
+	if clientID == 0 {
+		return nil, fmt.Errorf("invalid client ID: cannot be zero")
+	}
+
+	if clientType == "" {
+		return nil, fmt.Errorf("invalid client type: cannot be empty")
+	}
+
+	log.Info().
+		Uint64("clientID", clientID).
+		Str("clientType", string(clientType)).
+		Msg("Getting client media")
+
 	// Use the type to get the client config by id
 	clientConfig, err := j.getClientConfig(ctx, clientID, clientType)
 	if err != nil {
@@ -400,7 +436,7 @@ func (j *MediaSyncJob) syncSeries(ctx context.Context, clientMedia media.ClientM
 	}
 
 	// Get all series from the client
-	clientType := clientMedia.(clients.Client).GetClientType().AsClientMediaType()
+	clientType := clientMedia.(clients.Client).GetClientType()
 	series, err := seriesProvider.GetSeries(ctx, &mediatypes.QueryOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to get series: %w", err)
@@ -797,9 +833,9 @@ func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []*models.M
 }
 
 // processSeriesBatch processes a batch of series and saves them to the database
-func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []*models.MediaItem[*mediatypes.Series], clientID uint64, clientType clienttypes.ClientMediaType) error {
+func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []*models.MediaItem[*mediatypes.Series], clientID uint64, clientType clienttypes.ClientType) error {
 	// Try to get a series provider for this client to fetch season details
-	clientMedia, err := j.getClientMedia(ctx, clientID, clientType.String())
+	clientMedia, err := j.getClientMedia(ctx, clientID, clientType)
 	if err != nil {
 		// Just log the error but continue processing with what we have
 		log.Printf("Failed to get media client for season details: %v", err)

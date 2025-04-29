@@ -1,0 +1,136 @@
+### Health Check Tests
+
+### Basic Health Check
+# @name basicHealthCheck
+GET {{baseUrl}}/health
+
+> {%
+  client.test("Health check successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.status === "ok" || response.body.status === "up", 
+      "Health status is not ok/up");
+  });
+  
+  client.global.set("systemHealthy", response.status === 200);
+  client.log("Basic health check complete. System healthy: " + client.global.get("systemHealthy"));
+%}
+
+### Detailed Health Check
+# @name detailedHealthCheck
+< {%
+  // Only proceed if basic health check passed
+  if (!client.global.get("systemHealthy")) {
+    client.log("System not healthy, skipping detailed health check");
+    request.skip();
+  }
+%}
+GET {{baseUrl}}/health/details
+
+> {%
+  client.test("Detailed health check successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.status, "No status returned");
+    
+    // Check database status if available
+    if (response.body.components && response.body.components.database) {
+      client.assert(response.body.components.database.status === "up", 
+        "Database status is not up");
+    }
+  });
+  
+  // Log component statuses
+  if (response.body.components) {
+    const components = response.body.components;
+    for (const component in components) {
+      client.log(`Component ${component}: ${components[component].status}`);
+    }
+  }
+%}
+
+### Check Version Info
+# @name versionCheck
+< {%
+  // Only proceed if system is healthy
+  if (!client.global.get("systemHealthy")) {
+    client.log("System not healthy, skipping version check");
+    request.skip();
+  }
+%}
+GET {{baseUrl}}/version
+
+> {%
+  client.test("Version check successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.version, "No version information returned");
+  });
+  
+  if (response.body.version) {
+    client.log(`Application version: ${response.body.version}`);
+    client.global.set("appVersion", response.body.version);
+  }
+  
+  if (response.body.buildDate) {
+    client.log(`Build date: ${response.body.buildDate}`);
+  }
+%}
+
+### Check Database Connection
+# @name dbCheck
+< {%
+  // Skip if system isn't healthy
+  if (!client.global.get("systemHealthy")) {
+    client.log("System not healthy, skipping database check");
+    request.skip();
+  }
+  
+  // This endpoint might require authentication
+  if (client.global.get("adminToken")) {
+    request.headers.add("Authorization", "Bearer " + client.global.get("adminToken"));
+  } else {
+    client.log("No admin token available, database check might fail");
+  }
+%}
+GET {{baseUrl}}/health/db
+
+> {%
+  client.test("Database check", function() {
+    if (response.status === 401) {
+      client.log("Authentication required for database check");
+      client.global.set("dbCheckRequiresAuth", true);
+    } else {
+      client.assert(response.status === 200, "Response status is not 200");
+      client.assert(response.body.status === "ok" || response.body.status === "up", 
+        "Database status is not ok/up");
+    }
+  });
+  
+  if (response.status === 200) {
+    client.log("Database connection verified");
+  } else if (response.status === 401) {
+    client.log("Database check requires authentication");
+  } else {
+    client.log("Database check failed with status: " + response.status);
+  }
+%}
+
+### Authenticated Database Check
+# @name authDbCheck
+< {%
+  // Only run if previous DB check required authentication
+  if (!client.global.get("dbCheckRequiresAuth") || !client.global.get("adminToken")) {
+    client.log("Skipping authenticated database check");
+    request.skip();
+  }
+%}
+GET {{baseUrl}}/health/db
+Authorization: Bearer {{adminToken}}
+
+> {%
+  client.test("Authenticated database check", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.status === "ok" || response.body.status === "up", 
+      "Database status is not ok/up");
+  });
+  
+  client.log("Authenticated database check complete");
+%}

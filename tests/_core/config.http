@@ -1,0 +1,214 @@
+### Configuration Tests
+
+# Run auth first to get tokens
+import ../_core/auth.http
+
+### Get System Configuration (Admin)
+# @name getSystemConfig
+< {%
+  if (!client.global.get("adminToken")) {
+    client.log("No admin token available, skipping get system config test");
+    request.skip();
+  }
+%}
+GET {{baseUrl}}/admin/config
+Authorization: Bearer {{adminToken}}
+
+> {%
+  client.test("Get system config successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+    client.assert(response.body.data, "No configuration data returned");
+  });
+  
+  // Store the initial config for comparison
+  client.global.set("initialConfig", JSON.stringify(response.body.data));
+  client.log("Initial configuration stored");
+%}
+
+### Update System Configuration (Admin)
+# @name updateSystemConfig
+< {%
+  if (!client.global.get("adminToken") || !client.global.get("initialConfig")) {
+    client.log("Missing admin token or initial config, skipping update config test");
+    request.skip();
+  }
+  
+  // Parse the initial config
+  const config = JSON.parse(client.global.get("initialConfig"));
+  
+  // Store original values for restoration
+  client.global.set("originalAppName", config.appName || "Suasor");
+  
+  // Prepare the update payload - modify only non-critical settings
+  request.variables.set("updatedAppName", "Suasor Test Environment");
+%}
+PUT {{baseUrl}}/admin/config
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "appName": "{{updatedAppName}}",
+  "maintenance": {
+    "enabled": false,
+    "message": "System test in progress"
+  }
+}
+
+> {%
+  client.test("Update system config successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+    client.assert(response.body.data.appName === request.variables.get("updatedAppName"), 
+      "App name in response doesn't match updated value");
+  });
+  
+  client.log("System configuration updated successfully");
+%}
+
+### Verify Updated Configuration (Admin)
+# @name verifyUpdatedConfig
+< {%
+  if (!client.global.get("adminToken")) {
+    client.log("No admin token available, skipping verify config test");
+    request.skip();
+  }
+%}
+GET {{baseUrl}}/admin/config
+Authorization: Bearer {{adminToken}}
+
+> {%
+  client.test("Updated config applied successfully", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+    client.assert(response.body.data.appName === "Suasor Test Environment", 
+      "App name in response doesn't match updated value");
+    client.assert(response.body.data.maintenance.enabled === false, 
+      "Maintenance mode doesn't match updated value");
+    client.assert(response.body.data.maintenance.message === "System test in progress", 
+      "Maintenance message doesn't match updated value");
+  });
+  
+  client.log("Updated configuration verified successfully");
+%}
+
+### Get User Configuration
+# @name getUserConfig
+< {%
+  if (!client.global.get("userToken")) {
+    client.log("No user token available, skipping get user config test");
+    request.skip();
+  }
+%}
+GET {{baseUrl}}/user/config
+Authorization: Bearer {{userToken}}
+
+> {%
+  client.test("Get user config successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+    client.assert(response.body.data, "No configuration data returned");
+  });
+  
+  // Store the initial user config
+  client.global.set("initialUserConfig", JSON.stringify(response.body.data));
+  client.log("Initial user configuration stored");
+%}
+
+### Update User Configuration
+# @name updateUserConfig
+< {%
+  if (!client.global.get("userToken") || !client.global.get("initialUserConfig")) {
+    client.log("Missing user token or initial user config, skipping update test");
+    request.skip();
+  }
+  
+  // Generate timestamp for unique theme name
+  const timestamp = new Date().getTime();
+  request.variables.set("themePreference", "test-theme-" + timestamp);
+%}
+PUT {{baseUrl}}/user/config
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+
+{
+  "preferences": {
+    "theme": "{{themePreference}}",
+    "language": "en",
+    "notifications": {
+      "enabled": true,
+      "email": true,
+      "push": false
+    }
+  }
+}
+
+> {%
+  client.test("Update user config successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+    client.assert(response.body.data.preferences.theme === request.variables.get("themePreference"), 
+      "Theme preference in response doesn't match updated value");
+  });
+  
+  client.log("User configuration updated successfully");
+%}
+
+### Verify Updated User Configuration
+# @name verifyUpdatedUserConfig
+< {%
+  if (!client.global.get("userToken")) {
+    client.log("No user token available, skipping verify user config test");
+    request.skip();
+  }
+%}
+GET {{baseUrl}}/user/config
+Authorization: Bearer {{userToken}}
+
+> {%
+  client.test("Updated user config applied successfully", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+    client.assert(response.body.data.preferences.theme === request.variables.get("themePreference"), 
+      "Theme preference in response doesn't match updated value");
+    client.assert(response.body.data.preferences.notifications.enabled === true, 
+      "Notification setting doesn't match updated value");
+  });
+  
+  client.log("Updated user configuration verified successfully");
+%}
+
+### Restore Original System Configuration (Admin)
+# @name restoreSystemConfig
+< {%
+  if (!client.global.get("adminToken") || !client.global.get("originalAppName")) {
+    client.log("Missing admin token or original app name, skipping restore config test");
+    request.skip();
+  }
+%}
+PUT {{baseUrl}}/admin/config
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "appName": "{{originalAppName}}",
+  "maintenance": {
+    "enabled": false,
+    "message": ""
+  }
+}
+
+> {%
+  client.test("Restore system config successful", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.success === true, "Request was not successful");
+    client.assert(response.body.data.appName === client.global.get("originalAppName"), 
+      "App name in response doesn't match original value");
+  });
+  
+  client.log("System configuration restored successfully");
+  
+  // Clean up stored config data
+  client.global.clear("initialConfig");
+  client.global.clear("originalAppName");
+%}
