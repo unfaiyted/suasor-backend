@@ -327,7 +327,7 @@ func (s *clientSeriesService[T]) GetRecentEpisodes(ctx context.Context, clientID
 		latestSeason := seasons[latestSeasonIdx]
 
 		// Get episodes for the latest season
-		episodes, err := provider.GetSeriesEpisodes(ctx, showID, latestSeason.Data.Number)
+		episodes, err := provider.GetSeriesEpisodesBySeasonNbr(ctx, showID, latestSeason.Data.Number)
 		if err != nil || len(episodes) == 0 {
 			// Log error but continue with other providers
 			log.Warn().
@@ -620,7 +620,8 @@ func (s *clientSeriesService[T]) GetEpisodesBySeriesID(ctx context.Context, clie
 	}
 
 	// Get episodes for this series
-	episodes, err := showProvider.GetSeriesEpisodes(ctx, seriesID, 0)
+	episodes, err := showProvider.GetSeriesEpisodesBySeasonNbr(ctx, seriesID, 0)
+	// TODO: get all episodes:
 	if err != nil {
 		return nil, err
 	}
@@ -641,7 +642,7 @@ func (s *clientSeriesService[T]) GetEpisodesBySeasonNbr(ctx context.Context, cli
 	}
 
 	// Get episodes for this series
-	episodes, err := showProvider.GetSeriesEpisodes(ctx, seriesID, seasonNumber)
+	episodes, err := showProvider.GetSeriesEpisodesBySeasonNbr(ctx, seriesID, seasonNumber)
 	if err != nil {
 		return nil, err
 	}

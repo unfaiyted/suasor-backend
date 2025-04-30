@@ -110,7 +110,7 @@ func (e *EmbyClient) movieFactory(ctx context.Context, item *embyclient.BaseItem
 
 	movie := &types.Movie{
 
-		Details: types.MediaDetails{
+		Details: &types.MediaDetails{
 			Title:         item.Name,
 			Description:   item.Overview,
 			ReleaseDate:   item.PremiereDate,
@@ -143,7 +143,7 @@ func (e *EmbyClient) movieFactory(ctx context.Context, item *embyclient.BaseItem
 // Factory function for Track
 func (e *EmbyClient) trackFactory(ctx context.Context, item *embyclient.BaseItemDto) (*types.Track, error) {
 	track := &types.Track{
-		Details: types.MediaDetails{
+		Details: &types.MediaDetails{
 			Title:         item.Name,
 			Description:   item.Overview,
 			AddedAt:       time.Now(),
@@ -157,11 +157,11 @@ func (e *EmbyClient) trackFactory(ctx context.Context, item *embyclient.BaseItem
 		AlbumName: item.Album,
 	}
 
-	track.SyncAlbum.AddClient(e.GetClientID(), item.Id)
+	// track.SyncAlbum.AddClient(e.GetClientID(), item.Id)
 
 	// Add artist information if available
 	if len(item.ArtistItems) > 0 {
-		track.AddSyncClient(e.GetClientID(), item.AlbumId, item.ArtistItems[0].Id)
+		// track.AddSyncClient(e.GetClientID(), item.AlbumId, item.ArtistItems[0].Id)
 		track.ArtistName = item.ArtistItems[0].Name
 	}
 
@@ -176,7 +176,7 @@ func (e *EmbyClient) trackFactory(ctx context.Context, item *embyclient.BaseItem
 // Factory function for Artist
 func (e *EmbyClient) artistFactory(ctx context.Context, item *embyclient.BaseItemDto) (*types.Artist, error) {
 	artist := &types.Artist{
-		Details: types.MediaDetails{
+		Details: &types.MediaDetails{
 			Title:         item.Name,
 			Description:   item.Overview,
 			AddedAt:       time.Now(),
@@ -200,7 +200,7 @@ func (e *EmbyClient) artistFactory(ctx context.Context, item *embyclient.BaseIte
 // Factory function for Album
 func (e *EmbyClient) albumFactory(ctx context.Context, item *embyclient.BaseItemDto) (*types.Album, error) {
 	album := &types.Album{
-		Details: types.MediaDetails{
+		Details: &types.MediaDetails{
 			Title:       item.Name,
 			Description: item.Overview,
 			ReleaseYear: int(item.ProductionYear),
@@ -227,7 +227,7 @@ func (e *EmbyClient) albumFactory(ctx context.Context, item *embyclient.BaseItem
 func (e *EmbyClient) playlistFactory(ctx context.Context, item *embyclient.BaseItemDto) (*types.Playlist, error) {
 	playlist := &types.Playlist{
 		ItemList: types.ItemList{
-			Details: types.MediaDetails{
+			Details: &types.MediaDetails{
 				Title:       item.Name,
 				Description: item.Overview,
 				AddedAt:     time.Now(),
@@ -247,18 +247,19 @@ func (e *EmbyClient) seriesFactory(ctx context.Context, item *embyclient.BaseIte
 	series := &types.Series{
 
 		ContentRating: item.OfficialRating,
-		Details: types.MediaDetails{
-			Title:       item.Name,
-			Description: item.Overview,
-			ReleaseDate: item.PremiereDate,
-			ReleaseYear: int(item.PremiereDate.Year()),
-			AddedAt:     time.Now(),
-			UpdatedAt:   time.Now(),
-			Genres:      item.Genres,
-			Studio:      item.SeriesStudio,
-			Artwork:     e.getArtworkURLs(item),
-			Duration:    int64(item.RunTimeTicks / 10000000),
-			Ratings:     getRatingsFromItem(item),
+		Details: &types.MediaDetails{
+			Title:         item.Name,
+			Description:   item.Overview,
+			ReleaseDate:   item.PremiereDate,
+			ReleaseYear:   int(item.PremiereDate.Year()),
+			AddedAt:       time.Now(),
+			UpdatedAt:     time.Now(),
+			Genres:        item.Genres,
+			ContentRating: item.OfficialRating,
+			Studio:        item.SeriesStudio,
+			Artwork:       e.getArtworkURLs(item),
+			Duration:      int64(item.RunTimeTicks / 10000000),
+			Ratings:       getRatingsFromItem(item),
 		},
 		ReleaseYear: int(item.PremiereDate.Year()),
 		SeasonCount: int(item.ChildCount),
@@ -277,19 +278,22 @@ func (e *EmbyClient) seriesFactory(ctx context.Context, item *embyclient.BaseIte
 // Factory function for Season
 func (e *EmbyClient) seasonFactory(ctx context.Context, item *embyclient.BaseItemDto) (*types.Season, error) {
 	season := &types.Season{
-		Details: types.MediaDetails{
-			Title:       item.Name,
-			Description: item.Overview,
-			AddedAt:     time.Now(),
-			UpdatedAt:   time.Now(),
-			Artwork:     e.getArtworkURLs(item),
-			Ratings:     getRatingsFromItem(item),
+		Details: &types.MediaDetails{
+			Title:         item.Name,
+			Description:   item.Overview,
+			ReleaseDate:   item.PremiereDate,
+			ReleaseYear:   int(item.PremiereDate.Year()),
+			AddedAt:       time.Now(),
+			ContentRating: item.OfficialRating,
+			UpdatedAt:     time.Now(),
+			Artwork:       e.getArtworkURLs(item),
+			Ratings:       getRatingsFromItem(item),
 		},
 		Number:       int(item.IndexNumber),
 		EpisodeCount: int(item.ChildCount),
 	}
 
-	season.SyncSeries.AddClient(e.GetClientID(), item.ParentId)
+	// season.SyncSeries.AddClient(e.GetClientID(), item.ParentId)
 
 	if !item.PremiereDate.IsZero() {
 		season.ReleaseDate = item.PremiereDate
@@ -301,12 +305,15 @@ func (e *EmbyClient) seasonFactory(ctx context.Context, item *embyclient.BaseIte
 // Factory function for Episode
 func (e *EmbyClient) episodeFactory(ctx context.Context, item *embyclient.BaseItemDto) (*types.Episode, error) {
 	episode := &types.Episode{
-		Details: types.MediaDetails{
+		Details: &types.MediaDetails{
+			ReleaseYear:   int(item.PremiereDate.Year()),
+			ReleaseDate:   item.PremiereDate,
 			Title:         item.Name,
 			Description:   item.Overview,
 			AddedAt:       time.Now(),
 			UpdatedAt:     time.Now(),
 			ContentRating: item.OfficialRating,
+			Genres:        item.Genres,
 			Artwork:       e.getArtworkURLs(item),
 			Duration:      int64(item.RunTimeTicks / 10000000),
 			Ratings:       getRatingsFromItem(item),
@@ -316,7 +323,7 @@ func (e *EmbyClient) episodeFactory(ctx context.Context, item *embyclient.BaseIt
 		ShowTitle:    item.SeriesName,
 	}
 
-	episode.AddSyncClient(e.GetClientID(), item.SeasonId, item.SeriesId)
+	// episode.AddSyncClient(e.GetClientID(), item.SeasonId, item.SeriesId)
 
 	// Add external IDs
 	if item.ProviderIds != nil {
@@ -330,7 +337,7 @@ func (e *EmbyClient) episodeFactory(ctx context.Context, item *embyclient.BaseIt
 func (e *EmbyClient) collectionFactory(ctx context.Context, item *embyclient.BaseItemDto) (*types.Collection, error) {
 	collection := &types.Collection{
 		ItemList: types.ItemList{
-			Details: types.MediaDetails{
+			Details: &types.MediaDetails{
 
 				Title:       item.Name,
 				Description: item.Overview,

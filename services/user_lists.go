@@ -1061,7 +1061,7 @@ func createList[T mediatypes.ListData](name string, description string, criteria
 	var list T
 	now := time.Now()
 	list.SetItemList(mediatypes.ItemList{
-		Details: mediatypes.MediaDetails{
+		Details: &mediatypes.MediaDetails{
 			Title:       name,
 			Description: description,
 			AddedAt:     now,

@@ -160,3 +160,60 @@ func GetMediaTypeFromTypeName(ofType any) MediaType {
 		return MediaTypeUnknown
 	}
 }
+
+func (m *MediaDetails) Merge(other *MediaDetails) {
+	if m.Title == "" {
+		m.Title = other.Title
+	}
+	if m.Description == "" {
+		m.Description = other.Description
+	}
+	if m.ReleaseDate.IsZero() {
+		m.ReleaseDate = other.ReleaseDate
+	}
+	if m.ReleaseYear == 0 {
+		m.ReleaseYear = other.ReleaseYear
+	}
+	if m.AddedAt.IsZero() {
+		m.AddedAt = other.AddedAt
+	}
+	if m.UpdatedAt.IsZero() {
+		m.UpdatedAt = other.UpdatedAt
+	}
+	if m.Genres == nil {
+		m.Genres = other.Genres
+	}
+	if m.Tags == nil {
+		m.Tags = other.Tags
+	}
+	if m.Studio == "" {
+		m.Studio = other.Studio
+	}
+	if m.ExternalIDs == nil {
+		m.ExternalIDs = other.ExternalIDs
+	}
+	if m.ContentRating == "" {
+		m.ContentRating = other.ContentRating
+	}
+	if m.Language == "" {
+		m.Language = other.Language
+	}
+	if m.Ratings == nil {
+		m.Ratings = other.Ratings
+	}
+	if m.UserRating == 0 {
+		m.UserRating = other.UserRating
+	}
+	if m.Artwork.Poster == "" {
+		m.Artwork.Poster = other.Artwork.Poster
+	}
+	if m.Artwork.Banner == "" {
+		m.Artwork.Banner = other.Artwork.Banner
+	}
+	if m.Artwork.Thumbnail == "" {
+		m.Artwork.Thumbnail = other.Artwork.Thumbnail
+	}
+	if m.Artwork.Logo == "" {
+		m.Artwork.Logo = other.Artwork.Logo
+	}
+}

@@ -150,10 +150,7 @@ func (h *coreMusicHandler) GetArtistAlbums(c *gin.Context) {
 	}
 
 	// Get albums for the artist
-	albums := artist.Data.Albums
-	if albums == nil {
-		albums = []*types.Album{}
-	}
+	albums := artist.Data.AlbumIDs
 
 	log.Info().
 		Uint64("artistID", artistID).
@@ -369,10 +366,7 @@ func (h *coreMusicHandler) GetAlbumsByArtistID(c *gin.Context) {
 	}
 
 	// Get albums for the artist
-	albums := artist.Data.Albums
-	if albums == nil {
-		albums = []*types.Album{}
-	}
+	albums := artist.Data.AlbumIDs
 
 	log.Info().
 		Uint64("artistID", artistID).

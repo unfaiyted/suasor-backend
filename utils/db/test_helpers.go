@@ -23,7 +23,7 @@ type TestDBHelper struct {
 func NewTestDBHelper(t *testing.T) *TestDBHelper {
 	// Set test environment
 	t.Setenv("GO_ENV", "dev")
-	
+
 	// Create context with logger
 	ctx := context.Background()
 	logger := NewTestLogger()
@@ -72,13 +72,13 @@ func (h *TestDBHelper) CreateTestUsers(t *testing.T, count int) []models.User {
 // CreateTestMovie creates a test movie in the database
 func (h *TestDBHelper) CreateTestMovie(t *testing.T, title string, releaseYear int) *models.MediaItem[*mediatypes.Movie] {
 	movieData := &mediatypes.Movie{
-		Details: mediatypes.MediaDetails{
+		Details: &mediatypes.MediaDetails{
 			Title:       title,
 			Description: "A test movie created for testing",
 			ReleaseYear: releaseYear,
 		},
 	}
-	
+
 	mediaItem := &models.MediaItem[*mediatypes.Movie]{
 		Type:        mediatypes.MediaTypeMovie,
 		Title:       title,
@@ -86,21 +86,21 @@ func (h *TestDBHelper) CreateTestMovie(t *testing.T, title string, releaseYear i
 		ReleaseDate: time.Now().AddDate(-1, 0, 0),
 		Data:        movieData,
 	}
-	
+
 	// For SQLite testing, insert the record using SQL
 	now := time.Now()
 	id := uint64(0)
 	err := h.DB.Raw("INSERT INTO media_items (type, title, release_year, release_date, data, created_at, updated_at) "+
 		"VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id",
-		mediaItem.Type, mediaItem.Title, mediaItem.ReleaseYear, mediaItem.ReleaseDate, 
-		`{"Details":{"Title":"` + title + `","Description":"A test movie created for testing","ReleaseYear":` + string(rune(releaseYear)) + `}}`,
+		mediaItem.Type, mediaItem.Title, mediaItem.ReleaseYear, mediaItem.ReleaseDate,
+		`{"Details":{"Title":"`+title+`","Description":"A test movie created for testing","ReleaseYear":`+string(rune(releaseYear))+`}}`,
 		now, now).Scan(&id).Error
 	require.NoError(t, err, "Failed to create test movie")
-	
+
 	// Create a simple result with the ID
 	insertedMovie := &models.MediaItem[*mediatypes.Movie]{
 		Data: &mediatypes.Movie{
-			Details: mediatypes.MediaDetails{
+			Details: &mediatypes.MediaDetails{
 				Title:       title,
 				Description: "A test movie created for testing",
 				ReleaseYear: releaseYear,
@@ -114,20 +114,20 @@ func (h *TestDBHelper) CreateTestMovie(t *testing.T, title string, releaseYear i
 	insertedMovie.ReleaseDate = mediaItem.ReleaseDate
 	insertedMovie.CreatedAt = now
 	insertedMovie.UpdatedAt = now
-	
+
 	return insertedMovie
 }
 
 // CreateTestSeries creates a test series in the database
 func (h *TestDBHelper) CreateTestSeries(t *testing.T, title string, releaseYear int) *models.MediaItem[*mediatypes.Series] {
 	seriesData := &mediatypes.Series{
-		Details: mediatypes.MediaDetails{
+		Details: &mediatypes.MediaDetails{
 			Title:       title,
 			Description: "A test series created for testing",
 			ReleaseYear: releaseYear,
 		},
 	}
-	
+
 	mediaItem := &models.MediaItem[*mediatypes.Series]{
 		Type:        mediatypes.MediaTypeSeries,
 		Title:       title,
@@ -135,21 +135,21 @@ func (h *TestDBHelper) CreateTestSeries(t *testing.T, title string, releaseYear 
 		ReleaseDate: time.Now().AddDate(-1, 0, 0),
 		Data:        seriesData,
 	}
-	
+
 	// For SQLite testing, insert the record using SQL
 	now := time.Now()
 	id := uint64(0)
 	err := h.DB.Raw("INSERT INTO media_items (type, title, release_year, release_date, data, created_at, updated_at) "+
 		"VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id",
-		mediaItem.Type, mediaItem.Title, mediaItem.ReleaseYear, mediaItem.ReleaseDate, 
-		`{"Details":{"Title":"` + title + `","Description":"A test series created for testing","ReleaseYear":` + string(rune(releaseYear)) + `}}`,
+		mediaItem.Type, mediaItem.Title, mediaItem.ReleaseYear, mediaItem.ReleaseDate,
+		`{"Details":{"Title":"`+title+`","Description":"A test series created for testing","ReleaseYear":`+string(rune(releaseYear))+`}}`,
 		now, now).Scan(&id).Error
 	require.NoError(t, err, "Failed to create test series")
-	
+
 	// Create a simple result with the ID
 	insertedSeries := &models.MediaItem[*mediatypes.Series]{
 		Data: &mediatypes.Series{
-			Details: mediatypes.MediaDetails{
+			Details: &mediatypes.MediaDetails{
 				Title:       title,
 				Description: "A test series created for testing",
 				ReleaseYear: releaseYear,
@@ -163,13 +163,13 @@ func (h *TestDBHelper) CreateTestSeries(t *testing.T, title string, releaseYear 
 	insertedSeries.ReleaseDate = mediaItem.ReleaseDate
 	insertedSeries.CreatedAt = now
 	insertedSeries.UpdatedAt = now
-	
+
 	return insertedSeries
 }
 
 // CreateUserMediaDataForMovie creates a user media data entry for a movie
 func (h *TestDBHelper) CreateUserMediaDataForMovie(
-	t *testing.T, 
+	t *testing.T,
 	user models.User,
 	mediaItem *models.MediaItem[*mediatypes.Movie],
 	isFavorite bool,
@@ -189,7 +189,7 @@ func (h *TestDBHelper) CreateUserMediaDataForMovie(
 		DurationSeconds: 7200,
 	}
 	userData.UUID = "movie-data-" + uuid.New().String()
-	
+
 	err := h.DB.Table("user_media_item_data").Create(userData).Error
 	require.NoError(t, err, "Failed to create user media data")
 	return userData
@@ -197,7 +197,7 @@ func (h *TestDBHelper) CreateUserMediaDataForMovie(
 
 // CreateUserMediaDataForSeries creates a user media data entry for a series
 func (h *TestDBHelper) CreateUserMediaDataForSeries(
-	t *testing.T, 
+	t *testing.T,
 	user models.User,
 	mediaItem *models.MediaItem[*mediatypes.Series],
 	isFavorite bool,
@@ -217,7 +217,7 @@ func (h *TestDBHelper) CreateUserMediaDataForSeries(
 		DurationSeconds: 7200,
 	}
 	userData.UUID = "series-data-" + uuid.New().String()
-	
+
 	err := h.DB.Table("user_media_item_data").Create(userData).Error
 	require.NoError(t, err, "Failed to create user media data")
 	return userData
@@ -254,3 +254,4 @@ func NewContextWithTestLogger(t *testing.T) context.Context {
 	testLogger := NewTestLogger()
 	return ContextWithTestLogger(ctx, testLogger)
 }
+

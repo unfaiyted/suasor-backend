@@ -47,13 +47,32 @@ type Artwork struct {
 	Logo       string `json:"logo,omitempty"`
 }
 
+func (a *Artwork) Merge(other *Artwork) {
+	if other.Poster != "" {
+		a.Poster = other.Poster
+	}
+	if other.Background != "" {
+		a.Background = other.Background
+	}
+	if other.Banner != "" {
+		a.Banner = other.Banner
+	}
+	if other.Thumbnail != "" {
+		a.Thumbnail = other.Thumbnail
+	}
+	if other.Logo != "" {
+		a.Logo = other.Logo
+	}
+}
+
 // Person represents someone involved with the media
 
 type MediaData interface {
 	isMediaData()
-	GetDetails() MediaDetails
+	GetDetails() *MediaDetails
 	GetMediaType() MediaType
-	SetDetails(MediaDetails)
+	SetDetails(*MediaDetails)
+	Merge(MediaData)
 }
 
 func NewItem[T MediaData]() T {

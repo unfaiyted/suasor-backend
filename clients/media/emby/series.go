@@ -25,6 +25,7 @@ func (e *EmbyClient) GetSeries(ctx context.Context, options *types.QueryOptions)
 
 	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
 		IncludeItemTypes: optional.NewString("Series"),
+		ExcludeItemTypes: optional.NewString("Episode,Season"),
 		Fields:           optional.NewString("ChannelMappingInfo,PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
 		Recursive:        optional.NewBool(true),
 	}
@@ -55,7 +56,7 @@ func (e *EmbyClient) GetSeries(ctx context.Context, options *types.QueryOptions)
 			if err != nil {
 				log.Warn().
 					Err(err).
-					Str("showID", item.Id).
+					Str("seriesID", item.Id).
 					Str("showName", item.Name).
 					Msg("Error converting Emby item to TV show format")
 				continue
@@ -74,12 +75,14 @@ func (e *EmbyClient) GetSeriesByID(ctx context.Context, id string) (*models.Medi
 	log.Info().
 		Uint64("clientID", e.GetClientID()).
 		Str("clientType", string(e.GetClientType())).
-		Str("showID", id).
+		Str("seriesID", id).
 		Msg("Retrieving specific TV show from Emby server")
 
 	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
 		Ids:              optional.NewString(id),
-		IncludeItemTypes: optional.NewString("Series"),
+		IncludeItemTypes: optional.NewString("TVShow,Series,Show"),
+		ExcludeItemTypes: optional.NewString("Episode,Season"),
+		Recursive:        optional.NewBool(true),
 		Fields:           optional.NewString("ChannelMappingInfo,PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
 	}
 
@@ -89,14 +92,14 @@ func (e *EmbyClient) GetSeriesByID(ctx context.Context, id string) (*models.Medi
 			Err(err).
 			Str("baseURL", e.embyConfig().GetBaseURL()).
 			Str("apiEndpoint", "/Items").
-			Str("showID", id).
+			Str("seriesID", id).
 			Msg("Failed to fetch TV show from Emby")
 		return &models.MediaItem[*types.Series]{}, fmt.Errorf("failed to fetch TV show: %w", err)
 	}
 
 	if len(items.Items) == 0 {
 		log.Error().
-			Str("showID", id).
+			Str("seriesID", id).
 			Int("statusCode", resp.StatusCode).
 			Msg("No TV show found with the specified ID")
 		return &models.MediaItem[*types.Series]{}, fmt.Errorf("TV show with ID %s not found", id)
@@ -105,7 +108,7 @@ func (e *EmbyClient) GetSeriesByID(ctx context.Context, id string) (*models.Medi
 	item := items.Items[0]
 	if item.Type_ != "Series" {
 		log.Error().
-			Str("showID", id).
+			Str("seriesID", id).
 			Str("actualType", item.Type_).
 			Msg("Item with specified ID is not a TV show")
 		return &models.MediaItem[*types.Series]{}, fmt.Errorf("item with ID %s is not a TV show", id)
@@ -124,13 +127,13 @@ func (e *EmbyClient) GetSeriesByID(ctx context.Context, id string) (*models.Medi
 }
 
 // GetSeriesSeasons retrieves seasons for a TV show
-func (e *EmbyClient) GetSeriesSeasons(ctx context.Context, showID string) ([]*models.MediaItem[*types.Season], error) {
+func (e *EmbyClient) GetSeriesSeasons(ctx context.Context, seriesID string) ([]*models.MediaItem[*types.Season], error) {
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
 		Uint64("clientID", e.GetClientID()).
 		Str("clientType", string(e.GetClientType())).
-		Str("showID", showID).
+		Str("seriesID", seriesID).
 		Msg("Retrieving seasons for TV show from Emby server")
 
 	opts := embyclient.TvShowsServiceApiGetShowsByIdSeasonsOpts{
@@ -139,13 +142,13 @@ func (e *EmbyClient) GetSeriesSeasons(ctx context.Context, showID string) ([]*mo
 		EnableUserData: optional.NewBool(true),
 	}
 
-	result, resp, err := e.client.TvShowsServiceApi.GetShowsByIdSeasons(ctx, e.embyConfig().UserID, showID, &opts)
+	result, resp, err := e.client.TvShowsServiceApi.GetShowsByIdSeasons(ctx, e.embyConfig().UserID, seriesID, &opts)
 	if err != nil {
 		log.Error().
 			Err(err).
 			Str("baseURL", e.embyConfig().GetBaseURL()).
-			Str("apiEndpoint", "/Shows/"+showID+"/Seasons").
-			Str("showID", showID).
+			Str("apiEndpoint", "/Shows/"+seriesID+"/Seasons").
+			Str("seriesID", seriesID).
 			Msg("Failed to fetch seasons for TV show from Emby")
 		return nil, fmt.Errorf("failed to fetch seasons: %w", err)
 	}
@@ -153,7 +156,7 @@ func (e *EmbyClient) GetSeriesSeasons(ctx context.Context, showID string) ([]*mo
 	log.Info().
 		Int("statusCode", resp.StatusCode).
 		Int("seasonCount", len(result.Items)).
-		Str("showID", showID).
+		Str("seriesID", seriesID).
 		Msg("Successfully retrieved seasons for TV show from Emby")
 
 	seasons := make([]*models.MediaItem[*types.Season], 0)
@@ -177,60 +180,67 @@ func (e *EmbyClient) GetSeriesSeasons(ctx context.Context, showID string) ([]*mo
 }
 
 // GetSeriesEpisodes retrieves episodes for a season
-func (e *EmbyClient) GetSeriesEpisodes(ctx context.Context, showID string, seasonNumber int) ([]*models.MediaItem[*types.Episode], error) {
+func (e *EmbyClient) GetSeriesEpisodesBySeasonNbr(ctx context.Context, seriesID string, seasonNumber int) ([]*models.MediaItem[*types.Episode], error) {
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
 		Uint64("clientID", e.GetClientID()).
 		Str("clientType", string(e.GetClientType())).
-		Str("showID", showID).
+		Str("seriesID", seriesID).
 		Int("seasonNumber", seasonNumber).
 		Msg("Retrieving episodes for TV show season from Emby server")
 
-	queryParams := embyclient.TvShowsServiceApiGetShowsByIdEpisodesOpts{
-		IncludeItemTypes: optional.NewString("Episode"),
-		Fields:           optional.NewString("ChannelMappingInfo,PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
-		Recursive:        optional.NewBool(true),
-	}
-
-	items, _, err := e.client.TvShowsServiceApi.GetShowsByIdEpisodes(ctx, showID, &queryParams)
+	// check if seriesID is a valid show
+	series, err := e.GetSeriesByID(ctx, seriesID)
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("baseURL", e.embyConfig().GetBaseURL()).
-			Str("apiEndpoint", "/Shows/"+showID+"/Episodes").
-			Str("showID", showID).
+			Uint64("clientID", e.GetClientID()).
+			Str("clientType", string(e.GetClientType())).
+			Str("seriesID", seriesID).
+			Int("seasonNumber", seasonNumber).
+			Msg("Failed to get series by ID")
+		return nil, fmt.Errorf("failed to get series by ID: %w", err)
+	}
+
+	episodes, err := getEpisodes(ctx, e, seriesID, seasonNumber)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("clientID", e.GetClientID()).
+			Str("clientType", string(e.GetClientType())).
+			Str("seriesID", seriesID).
+			Str("seriesName", series.Data.Details.Title).
 			Int("seasonNumber", seasonNumber).
 			Msg("Failed to fetch episodes for TV show season from Emby")
 		return nil, fmt.Errorf("failed to fetch episodes: %w", err)
 	}
 
 	mediaItemEpisodes := make([]*models.MediaItem[*types.Episode], 0)
-	for _, item := range items.Items {
-		if item.Type_ == "Episode" && int(item.ParentIndexNumber) == seasonNumber {
-			itemEpisode, err := GetItem[*types.Episode](ctx, e, &item)
-			episode, err := GetMediaItem[*types.Episode](ctx, e, itemEpisode, item.Id)
-			if err != nil {
-				log.Warn().
-					Err(err).
-					Str("episodeID", item.Id).
-					Str("episodeName", item.Name).
-					Msg("Error converting Emby item to episode format")
-				continue
-			}
-			if err != nil {
-				log.Warn().
-					Err(err).
-					Str("episodeID", item.Id).
-					Str("episodeName", item.Name).
-					Msg("Error converting Emby item to episode format")
-				continue
-			}
-			mediaItemEpisodes = append(mediaItemEpisodes, episode)
+	for _, item := range episodes {
+		itemEpisode, err := GetItem[*types.Episode](ctx, e, &item)
+		episode, err := GetMediaItem[*types.Episode](ctx, e, itemEpisode, item.Id)
+		if err != nil {
+			log.Warn().
+				Err(err).
+				Str("episodeID", item.Id).
+				Str("episodeName", item.Name).
+				Msg("Error converting Emby item to episode format")
+			continue
 		}
-	}
+		if err != nil {
+			log.Warn().
+				Err(err).
+				Str("episodeID", item.Id).
+				Str("episodeName", item.Name).
+				Msg("Error converting Emby item to episode format")
+			continue
+		}
+		mediaItemEpisodes = append(mediaItemEpisodes, episode)
 
+	}
 	return mediaItemEpisodes, nil
+
 }
 
 // GetEpisodeByID retrieves a specific episode by ID
@@ -287,4 +297,100 @@ func (e *EmbyClient) GetEpisodeByID(ctx context.Context, id string) (*models.Med
 	}
 
 	return episode, nil
+}
+
+func getSeasons(ctx context.Context, e *EmbyClient, seriesID string) ([]embyclient.BaseItemDto, error) {
+	log := logger.LoggerFromContext(ctx)
+
+	log.Info().
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
+		Str("seriesID", seriesID).
+		Msg("Retrieving seasons for TV show from Emby server")
+
+	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
+		IncludeItemTypes: optional.NewString("Season"),
+		ParentId:         optional.NewString(seriesID),
+		Fields:           optional.NewString("ChannelMappingInfo,PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
+		Recursive:        optional.NewBool(true),
+	}
+
+	log.Info().
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
+		Str("seriesID", seriesID).
+		Msg("Making API request to Emby server for seasons")
+
+	seasons, _, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("clientID", e.GetClientID()).
+			Str("clientType", string(e.GetClientType())).
+			Str("seriesID", seriesID).
+			Msg("Failed to fetch seasons for TV show from Emby")
+		return nil, fmt.Errorf("failed to fetch seasons: %w", err)
+	}
+
+	return seasons.Items, nil
+}
+
+func getEpisodes(ctx context.Context, e *EmbyClient, seriesID string, seasonNumber int) ([]embyclient.BaseItemDto, error) {
+	log := logger.LoggerFromContext(ctx)
+
+	log.Info().
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
+		Str("seriesID", seriesID).
+		Int("seasonNumber", seasonNumber).
+		Msg("Retrieving episodes for TV show season from Emby server")
+
+	seasons, err := getSeasons(ctx, e, seriesID)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("clientID", e.GetClientID()).
+			Str("clientType", string(e.GetClientType())).
+			Str("seriesID", seriesID).
+			Int("seasonNumber", seasonNumber).
+			Msg("Failed to fetch seasons for TV show from Emby")
+		return nil, fmt.Errorf("failed to fetch seasons: %w", err)
+	}
+
+	var seasonID string
+	for _, season := range seasons {
+		if season.IndexNumber == int32(seasonNumber) {
+			seasonID = season.Id
+			break
+		}
+	}
+	if seasonID == "" {
+		log.Error().
+			Uint64("clientID", e.GetClientID()).
+			Str("clientType", string(e.GetClientType())).
+			Str("seriesID", seriesID).
+			Int("seasonNumber", seasonNumber).
+			Msg("Failed to find season ID for TV show from Emby")
+		return nil, fmt.Errorf("failed to find season ID: %w", err)
+	}
+	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
+		ParentId:  optional.NewString(seasonID),
+		Fields:    optional.NewString("ChannelMappingInfo,PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
+		Recursive: optional.NewBool(true),
+	}
+
+	episodes, _, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("clientID", e.GetClientID()).
+			Str("clientType", string(e.GetClientType())).
+			Str("seriesID", seriesID).
+			Int("seasonNumber", seasonNumber).
+			Msg("Failed to fetch episodes for TV show season from Emby")
+		return nil, fmt.Errorf("failed to fetch episodes: %w", err)
+	}
+
+	return episodes.Items, nil
+
 }

@@ -39,3 +39,33 @@ func (m *Person) Value() (driver.Value, error) {
 	}
 	return json.Marshal(m)
 }
+
+func (m *Person) Merge(other *Person) {
+	if m.Name == "" {
+		m.Name = other.Name
+	}
+	if m.Role == "" {
+		m.Role = other.Role
+	}
+	if m.Character == "" {
+		m.Character = other.Character
+	}
+	if m.Photo == "" {
+		m.Photo = other.Photo
+	}
+	if m.IsCast == false {
+		m.IsCast = other.IsCast
+	}
+	if m.IsCrew == false {
+		m.IsCrew = other.IsCrew
+	}
+	if m.IsGuest == false {
+		m.IsGuest = other.IsGuest
+	}
+	if m.IsCreator == false {
+		m.IsCreator = other.IsCreator
+	}
+	if m.IsArtist == false {
+		m.IsArtist = other.IsArtist
+	}
+}

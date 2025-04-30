@@ -16,6 +16,7 @@ import (
 type CoreMediaItemService[T types.MediaData] interface {
 	// Basic CRUD operations
 	GetByID(ctx context.Context, id uint64) (*models.MediaItem[T], error)
+	GetByIDs(ctx context.Context, ids []uint64) ([]*models.MediaItem[T], error)
 	GetAll(ctx context.Context, limit int, offset int) ([]*models.MediaItem[T], error)
 	GetByClientItemID(ctx context.Context, clientID uint64, clientItemID string) (*models.MediaItem[T], error)
 
@@ -284,6 +285,28 @@ func (s *coreMediaItemService[T]) Search(ctx context.Context, query types.QueryO
 		Str("type", string(query.MediaType)).
 		Int("count", len(results)).
 		Msg("Media items found")
+
+	return results, nil
+}
+
+func (s *coreMediaItemService[T]) GetByIDs(ctx context.Context, ids []uint64) ([]*models.MediaItem[T], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Int("count", len(ids)).
+		Msg("Getting media items by IDs")
+
+	// Delegate to repository
+	results, err := s.itemRepo.GetByIDs(ctx, ids)
+	if err != nil {
+		log.Error().Err(err).
+			Int("count", len(ids)).
+			Msg("Failed to get media items by IDs")
+		return nil, fmt.Errorf("failed to get media items by IDs: %w", err)
+	}
+
+	log.Info().
+		Int("count", len(results)).
+		Msg("Media items retrieved by IDs")
 
 	return results, nil
 }

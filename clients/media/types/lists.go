@@ -22,20 +22,18 @@ type ListData interface {
 	isListData()
 
 	GetTitle() string
-	GetDetails() MediaDetails
 	GetItemList() *ItemList
 
 	SetItemList(ItemList)
-	SetDetails(MediaDetails)
 	AddListItem(ListItem)
 
 	GetMediaType() MediaType
 }
 
 type ItemList struct {
-	Details   MediaDetails `json:"details"`
-	Items     []ListItem   `json:"items"`
-	ItemCount int          `json:"itemCount"`
+	Details   *MediaDetails `json:"details"`
+	Items     []ListItem    `json:"items"`
+	ItemCount int           `json:"itemCount"`
 
 	OwnerID  uint64 `json:"ownerId"`
 	IsPublic bool   `json:"isPublic"`
@@ -55,7 +53,7 @@ type ItemList struct {
 	AutoUpdateTime time.Time      `json:"autoUpdateTime"`
 }
 
-func NewList[T ListData](details MediaDetails, itemList ItemList) T {
+func NewList[T ListData](details *MediaDetails, itemList ItemList) T {
 	var result T
 
 	// Create a concrete type based on T
@@ -586,4 +584,10 @@ func (m *ItemList) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return json.Marshal(m)
+}
+
+func (m *ItemList) Merge(other *ItemList) {
+	m.Details.Merge(other.Details)
+	// TODO: Additional merge logic for fields
+
 }

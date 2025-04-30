@@ -346,3 +346,66 @@ func CreateMediaItem(mediaType types.MediaType) (any, error) {
 		return nil, fmt.Errorf("unknown media type: %s", mediaType)
 	}
 }
+
+func (existingItem *MediaItem[T]) Merge(newItem *MediaItem[T]) *MediaItem[T] {
+	// Merge sync clients
+	existingItem.SyncClients.Merge(newItem.SyncClients)
+	existingItem.ExternalIDs.Merge(newItem.ExternalIDs)
+
+	existingDetails := existingItem.Data.GetDetails()
+	newDetails := newItem.Data.GetDetails()
+	existingDetails.ExternalIDs = existingItem.ExternalIDs
+
+	// Update data fields
+	if existingDetails.Title == "" {
+		existingDetails.Title = newDetails.Title
+	}
+	if existingDetails.Description == "" {
+		existingDetails.Description = newDetails.Description
+	}
+	if existingDetails.ContentRating == "" {
+		existingDetails.ContentRating = newDetails.ContentRating
+	}
+	if existingDetails.ContentRating == "" {
+		existingDetails.ContentRating = newDetails.ContentRating
+	}
+	if existingDetails.Studio == "" {
+		existingDetails.Studio = newDetails.Studio
+	}
+
+	existingDetails.Genres = mergeStringArray(existingDetails.Genres, newDetails.Genres)
+	existingDetails.Ratings = mergeRatings(existingDetails.Ratings, newDetails.Ratings)
+
+	// Artworks
+	if existingDetails.Artwork.Poster == "" {
+		existingDetails.Artwork.Poster = newDetails.Artwork.Poster
+	}
+	if existingDetails.Artwork.Banner == "" {
+		existingDetails.Artwork.Banner = newDetails.Artwork.Banner
+	}
+	if existingDetails.Artwork.Thumbnail == "" {
+		existingDetails.Artwork.Thumbnail = newDetails.Artwork.Thumbnail
+	}
+	if existingDetails.Artwork.Logo == "" {
+		existingDetails.Artwork.Logo = newDetails.Artwork.Logo
+	}
+
+	if existingDetails.ReleaseYear == 0 {
+		existingDetails.ReleaseYear = newDetails.ReleaseYear
+	}
+	if existingDetails.ReleaseDate.IsZero() {
+		existingDetails.ReleaseDate = newDetails.ReleaseDate
+	}
+
+	if existingItem.Title == "" {
+		existingItem.Title = newDetails.Title
+	}
+	if existingItem.ReleaseYear == 0 {
+		existingItem.ReleaseYear = newDetails.ReleaseYear
+	}
+	if existingItem.ReleaseDate.IsZero() {
+		existingItem.ReleaseDate = newDetails.ReleaseDate
+	}
+
+	return existingItem
+}

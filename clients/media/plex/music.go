@@ -459,7 +459,7 @@ func (c *PlexClient) GetMusicTrackByID(ctx context.Context, id string) (*models.
 	track.Data.AlbumName = albumName
 	track.Data.ArtistName = artistName
 	track.Data.Number = int(*item.Index)
-	track.Data.AddSyncClient(c.GetClientID(), *item.ParentRatingKey, artistID)
+	// track.Data.AddSyncClient(c.GetClientID(), *item.ParentRatingKey, artistID)
 	track.SetClientInfo(c.GetClientID(), c.GetClientType(), item.RatingKey)
 
 	log.Info().

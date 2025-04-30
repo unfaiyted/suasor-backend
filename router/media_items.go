@@ -67,7 +67,7 @@ func registerSeriesRoutes(c *container.Container, rg *gin.RouterGroup) {
 	seriesGroup := rg.Group("/series")
 
 	seriesGroup.GET("/:itemID/seasons", coreSeriesHandler.GetSeasonsBySeriesID)
-	seriesGroup.GET("/:itemID/seasons/:seasonNumber/episodes", coreSeriesHandler.GetEpisodesBySeriesIDAndSeasonNumber)
+	seriesGroup.GET("/:itemID/seasons/:seasonNumber/episodes", coreSeriesHandler.GetEpisodesBySeriesIDAndSeasonNbr)
 	seriesGroup.GET("/:itemID/episodes", coreSeriesHandler.GetAllEpisodes)
 	seriesGroup.GET("/continue-watching", coreUserHandler.GetNextUpEpisodes)
 	seriesGroup.GET("/next-up", coreUserHandler.GetNextUpEpisodes)

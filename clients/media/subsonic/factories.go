@@ -66,7 +66,7 @@ func (c *SubsonicClient) trackFactory(ctx context.Context, song *gosonic.Child) 
 	duration := time.Duration(song.Duration) * time.Second
 
 	track := &types.Track{
-		Details: types.MediaDetails{
+		Details: &types.MediaDetails{
 			Title:       song.Title,
 			Duration:    int64(duration.Seconds()),
 			ReleaseYear: song.Year,
@@ -110,7 +110,7 @@ func (c *SubsonicClient) albumFactory(ctx context.Context, album *gosonic.AlbumI
 		Msg("Converting Subsonic item to album format")
 
 	musicAlbum := &types.Album{
-		Details: types.MediaDetails{
+		Details: &types.MediaDetails{
 			Title:       album.Name,
 			ReleaseYear: album.Year,
 			Duration:    int64(album.Duration),
@@ -146,7 +146,7 @@ func (c *SubsonicClient) artistFactory(ctx context.Context, artist *gosonic.Arti
 		Msg("Converting Subsonic item to artist format")
 
 	musicArtist := &types.Artist{
-		Details: types.MediaDetails{
+		Details: &types.MediaDetails{
 			Title: artist.Name,
 			Artwork: types.Artwork{
 				Poster: c.GetCoverArtURL(artist.CoverArt),
@@ -177,7 +177,7 @@ func (c *SubsonicClient) playlistFactory(ctx context.Context, pl *gosonic.Playli
 
 	playlist := &types.Playlist{
 		ItemList: types.ItemList{
-			Details: types.MediaDetails{
+			Details: &types.MediaDetails{
 				Title:       pl.Name,
 				Description: pl.Comment,
 				Duration:    int64(pl.Duration),

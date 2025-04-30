@@ -9,7 +9,7 @@ import (
 	"github.com/LukeHagar/plexgo/models/operations"
 )
 
-func (c *PlexClient) createDetailsFromMetadataChildren(item *operations.GetMetadataChildrenMetadata) types.MediaDetails {
+func (c *PlexClient) createDetailsFromMetadataChildren(item *operations.GetMetadataChildrenMetadata) *types.MediaDetails {
 	metadata := types.MediaDetails{
 		Title:       *item.Title,
 		Description: *item.Summary,
@@ -31,7 +31,7 @@ func (c *PlexClient) createDetailsFromMetadataChildren(item *operations.GetMetad
 		metadata.ReleaseYear = *item.ParentYear
 	}
 
-	return metadata
+	return &metadata
 }
 
 func convertToExternalIDs(mediaGUIDs []operations.MediaGUID) types.ExternalIDs {
@@ -105,7 +105,7 @@ func (c *PlexClient) createDetailsFromLibraryMetadata(item *operations.GetLibrar
 		metadata.Duration = int64(duration.Seconds())
 	}
 	if item.Studio != nil {
-		metadata.Studios = []string{*item.Studio}
+		metadata.Studio = *item.Studio
 	}
 	if item.ContentRating != nil {
 		metadata.ContentRating = *item.ContentRating
@@ -125,7 +125,7 @@ func (c *PlexClient) createDetailsFromLibraryMetadata(item *operations.GetLibrar
 }
 
 // createMediaDetailsFromPlexItem creates a MediaDetails from a Plex item
-func (c *PlexClient) createDetailsFromMediaMetadata(item *operations.GetMediaMetaDataMetadata) types.MediaDetails {
+func (c *PlexClient) createDetailsFromMediaMetadata(item *operations.GetMediaMetaDataMetadata) *types.MediaDetails {
 	metadata := types.MediaDetails{
 		Title:       item.Title,
 		Description: item.Summary,
@@ -153,7 +153,7 @@ func (c *PlexClient) createDetailsFromMediaMetadata(item *operations.GetMediaMet
 		}
 	}
 	if item.Studio != nil {
-		metadata.Studios = []string{*item.Studio}
+		metadata.Studio = *item.Studio
 	}
 	if item.ContentRating != nil {
 		metadata.ContentRating = *item.ContentRating
@@ -167,5 +167,5 @@ func (c *PlexClient) createDetailsFromMediaMetadata(item *operations.GetMediaMet
 		}
 	}
 
-	return metadata
+	return &metadata
 }

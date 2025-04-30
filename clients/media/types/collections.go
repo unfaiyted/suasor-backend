@@ -50,9 +50,9 @@ func (c *Collection) AddItem(item ListItem, clientID uint64) {
 
 func (c *Collection) isListData() {}
 
-func (c *Collection) GetItemList() *ItemList   { return &c.ItemList }
-func (c *Collection) GetDetails() MediaDetails { return c.ItemList.Details }
-func (c *Collection) SetDetails(details MediaDetails) {
+func (c *Collection) GetItemList() *ItemList    { return &c.ItemList }
+func (c *Collection) GetDetails() *MediaDetails { return c.ItemList.Details }
+func (c *Collection) SetDetails(details *MediaDetails) {
 	c.ItemList.Details = details
 }
 func (c *Collection) SetItemList(itemList ItemList) { c.ItemList = itemList }
@@ -114,4 +114,12 @@ func (m *Collection) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return json.Marshal(m)
+}
+
+func (m *Collection) Merge(other MediaData) {
+	otherCollection, ok := other.(*Collection)
+	if !ok {
+		return
+	}
+	m.ItemList.Merge(&otherCollection.ItemList)
 }

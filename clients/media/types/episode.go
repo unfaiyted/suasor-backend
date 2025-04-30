@@ -8,46 +8,36 @@ import (
 
 // Episode represents a TV episode
 type Episode struct {
-	Details      MediaDetails
-	Number       int64       `json:"number"`
-	SeriesID     uint64      `json:"showID"`
-	SyncSeries   SyncClients `json:"syncSeries,omitempty"`
-	SeasonID     uint64      `json:"seasonID"`
-	SyncSeason   SyncClients `json:"syncSeason,omitempty"`
-	SeasonNumber int         `json:"seasonNumber"`
-	ShowTitle    string      `json:"showTitle,omitempty"`
-	Credits      Credits     `json:"credits,omitempty"`
-}
+	MediaData `json:"-"`
+	Details   *MediaDetails
 
-func (e *Episode) AddSyncClient(clientID uint64, seriesID string, seasonID string) {
-	itemID := e.SyncSeries.GetClientItemID(clientID)
-	if itemID == "" {
-		e.SyncSeries.AddClient(clientID, seriesID)
-	}
-	itemID = e.SyncSeason.GetClientItemID(clientID)
-	if itemID == "" {
-		e.SyncSeason.AddClient(clientID, seasonID)
-	}
+	SeriesID uint64 `json:"seriesID"` // itemID of the series
+	SeasonID uint64 `json:"seasonID"` // itemID of the season
+
+	Number       int64   `json:"number"`
+	SeasonNumber int     `json:"seasonNumber"`
+	ShowTitle    string  `json:"showTitle,omitempty"`
+	Credits      Credits `json:"credits,omitempty"`
 }
 
 func (e *Episode) isMediaData() {}
 
-func (e *Episode) GetDetails() MediaDetails { return e.Details }
-func (e *Episode) GetMediaType() MediaType  { return MediaTypeEpisode }
+func (e *Episode) GetDetails() *MediaDetails { return e.Details }
+func (e *Episode) GetMediaType() MediaType   { return MediaTypeEpisode }
+
+func (e *Episode) GetSeriesID() uint64         { return e.SeriesID }
+func (e *Episode) SetSeriesID(seriesID uint64) { e.SeriesID = seriesID }
+
+func (e *Episode) GetSeasonNumber() int             { return e.SeasonNumber }
+func (e *Episode) SetSeasonNumber(seasonNumber int) { e.SeasonNumber = seasonNumber }
+
+func (e *Episode) SetSeasonID(seasonID uint64) { e.SeasonID = seasonID }
+func (e *Episode) GetSeasonID() uint64         { return e.SeasonID }
 
 func (e *Episode) GetTitle() string { return e.Details.Title }
 
-func (e *Episode) SetDetails(details MediaDetails) {
+func (e *Episode) SetDetails(details *MediaDetails) {
 	e.Details = details
-}
-
-// the clients id stored in the sync clients
-func (e *Episode) GetClientSeriesID(clientID uint64) string {
-	return e.SyncSeries.GetClientItemID(clientID)
-}
-
-func (e *Episode) GetClientSeasonID(clientID uint64) string {
-	return e.SyncSeason.GetClientItemID(clientID)
 }
 
 // Scan
@@ -68,4 +58,13 @@ func (m *Episode) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return json.Marshal(m)
+}
+
+func (m *Episode) Merge(other MediaData) {
+	otherEpisode, ok := other.(*Episode)
+	if !ok {
+		return
+	}
+	m.Details.Merge(otherEpisode.Details)
+	m.SeasonNumber = otherEpisode.SeasonNumber
 }

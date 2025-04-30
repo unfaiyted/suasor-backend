@@ -75,7 +75,7 @@ func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 		playlist := models.MediaItem[*t.Playlist]{
 			Data: &t.Playlist{
 				ItemList: t.ItemList{
-					Details: t.MediaDetails{
+					Details: &t.MediaDetails{
 						Title:       title,
 						Description: description,
 						Artwork:     *j.getArtworkURLs(&item),
@@ -183,7 +183,7 @@ func (j *JellyfinClient) CreatePlaylist(ctx context.Context, name string, descri
 	playlist := &models.MediaItem[*t.Playlist]{
 		Data: &t.Playlist{
 			ItemList: t.ItemList{
-				Details: t.MediaDetails{
+				Details: &t.MediaDetails{
 					Title:       name,
 					Description: description,
 					// Use default artwork and fill in when items are added
@@ -294,7 +294,7 @@ func (j *JellyfinClient) UpdatePlaylist(ctx context.Context, playlistID string, 
 	playlist := models.NewMediaItem[*t.Playlist](t.MediaTypePlaylist, &t.Playlist{
 		ItemList: t.ItemList{
 			SyncStates: t.ListSyncStates{syncClientState},
-			Details: t.MediaDetails{
+			Details: &t.MediaDetails{
 				Title:       name,
 				Description: description,
 				// TODO: need to look into playlist artwork handling

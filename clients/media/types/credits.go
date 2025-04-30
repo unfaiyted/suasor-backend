@@ -41,3 +41,22 @@ func (c Credits) GetCreators() []Person {
 	}
 	return creators
 }
+
+// Merge merges two credits lists
+func (c *Credits) Merge(other *Credits) {
+	for _, person := range *other {
+		found := false
+		for i, existingPerson := range *c {
+			if existingPerson.Name == person.Name {
+				// Update existing entry
+				(*c)[i].Merge(&person)
+				found = true
+				break
+			}
+		}
+		if !found {
+			// Add new entry
+			*c = append(*c, person)
+		}
+	}
+}

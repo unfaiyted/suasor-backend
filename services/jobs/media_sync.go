@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"slices"
 	"strings"
 	"suasor/clients"
 	"suasor/clients/media"
@@ -479,7 +478,7 @@ func (j *MediaSyncJob) syncEpisodes(ctx context.Context, clientMedia media.Clien
 	}
 
 	// Get all episodes from the client
-	clientType := clientMedia.(clients.Client).GetClientType().AsClientMediaType()
+	clientType := clientMedia.(clients.Client).GetClientType()
 
 	// Initialize a slice to hold all episodes
 	var allEpisodes []*models.MediaItem[*mediatypes.Episode]
@@ -534,7 +533,7 @@ func (j *MediaSyncJob) syncEpisodes(ctx context.Context, clientMedia media.Clien
 			}
 
 			seasonNumber := season.Data.Number
-			episodes, err := seriesProvider.GetSeriesEpisodes(ctx, seriesID, seasonNumber)
+			episodes, err := seriesProvider.GetSeriesEpisodesBySeasonNbr(ctx, seriesID, seasonNumber)
 			if err != nil {
 				log.Printf("Error getting episodes for series %s season %d: %v",
 					series.Data.Details.Title, seasonNumber, err)
@@ -569,12 +568,12 @@ func (j *MediaSyncJob) syncEpisodes(ctx context.Context, clientMedia media.Clien
 		}
 
 		episodeBatch := allEpisodes[i:end]
-		err := j.processEpisodeBatch(ctx, episodeBatch, clientID, clientType)
+		processedEpisodesBatch, err := j.processEpisodeBatch(ctx, episodeBatch, clientID, clientType)
 		if err != nil {
 			return fmt.Errorf("failed to process episode batch: %w", err)
 		}
 
-		processedEpisodes += len(episodeBatch)
+		processedEpisodes += len(processedEpisodesBatch)
 		progress := 50 + int(float64(processedEpisodes)/float64(totalEpisodes)*50.0)
 		j.jobRepo.UpdateJobProgress(ctx, jobRunID, progress,
 			fmt.Sprintf("Processed %d/%d episodes", processedEpisodes, totalEpisodes))
@@ -772,90 +771,7 @@ func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []*models.M
 		if err == nil {
 			log.Printf("Found movie by Title+Year: %s", movie.Data.Details.Title)
 			// Movie exists, update it
-			// Merge client IDs
-			for _, cid := range movie.SyncClients {
-				found := false
-				for i, existingCid := range existingMovie.SyncClients {
-					if existingCid.ID == cid.ID && existingCid.Type == cid.Type {
-						// Update existing entry if needed
-						existingMovie.SyncClients[i].ItemID = cid.ItemID
-						found = true
-						break
-					}
-				}
-				if !found {
-					// Add new client ID
-					existingMovie.SyncClients = append(existingMovie.SyncClients, cid)
-				}
-			}
-
-			// Merge external IDs
-			for _, extID := range movie.ExternalIDs {
-				found := false
-				for i, existingExtID := range existingMovie.ExternalIDs {
-					if existingExtID.Source == extID.Source {
-						// Update existing entry
-						existingMovie.ExternalIDs[i].ID = extID.ID
-						found = true
-						break
-					}
-				}
-				if !found {
-					// Add new external ID
-					existingMovie.ExternalIDs = append(existingMovie.ExternalIDs, extID)
-				}
-			}
-
-			existingMovie.Data.Details.ExternalIDs = existingMovie.ExternalIDs
-
-			// Update data fields
-			if existingMovie.Data.Details.Title == "" {
-				existingMovie.Data.Details.Title = movie.Data.Details.Title
-			}
-			if existingMovie.Data.Details.Description == "" {
-				existingMovie.Data.Details.Description = movie.Data.Details.Description
-			}
-			if existingMovie.Data.Details.ContentRating == "" {
-				existingMovie.Data.Details.ContentRating = movie.Data.Details.ContentRating
-			}
-			if existingMovie.Data.Details.ContentRating == "" {
-				existingMovie.Data.Details.ContentRating = movie.Data.Details.ContentRating
-			}
-			existingMovie.Data.Details.Genres = mergeStringArray(existingMovie.Data.Details.Genres, movie.Data.Details.Genres)
-			existingMovie.Data.Details.Studios = mergeStringArray(existingMovie.Data.Details.Studios, movie.Data.Details.Studios)
-			existingMovie.Data.Details.Studios = mergeStringArray(existingMovie.Data.Details.Studios, movie.Data.Details.Studios)
-			existingMovie.Data.Details.Ratings = mergeRatings(existingMovie.Data.Details.Ratings, movie.Data.Details.Ratings)
-
-			// Artworks
-			if existingMovie.Data.Details.Artwork.Poster == "" {
-				existingMovie.Data.Details.Artwork.Poster = movie.Data.Details.Artwork.Poster
-			}
-			if existingMovie.Data.Details.Artwork.Banner == "" {
-				existingMovie.Data.Details.Artwork.Banner = movie.Data.Details.Artwork.Banner
-			}
-			if existingMovie.Data.Details.Artwork.Thumbnail == "" {
-				existingMovie.Data.Details.Artwork.Thumbnail = movie.Data.Details.Artwork.Thumbnail
-			}
-			if existingMovie.Data.Details.Artwork.Logo == "" {
-				existingMovie.Data.Details.Artwork.Logo = movie.Data.Details.Artwork.Logo
-			}
-
-			if existingMovie.Data.Details.ReleaseYear == 0 {
-				existingMovie.Data.Details.ReleaseYear = movie.Data.Details.ReleaseYear
-			}
-			if existingMovie.Data.Details.ReleaseDate.IsZero() {
-				existingMovie.Data.Details.ReleaseDate = movie.Data.Details.ReleaseDate
-			}
-
-			if existingMovie.Title == "" {
-				existingMovie.Title = movie.Data.Details.Title
-			}
-			if existingMovie.ReleaseYear == 0 {
-				existingMovie.ReleaseYear = movie.Data.Details.ReleaseYear
-			}
-			if existingMovie.ReleaseDate.IsZero() {
-				existingMovie.ReleaseDate = movie.Data.Details.ReleaseDate
-			}
+			existingMovie.Merge(movie)
 
 			// Save the updated movie
 			log.Printf("Updating movie: %s", movie.Data.Details.Title)
@@ -899,131 +815,64 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []*models.
 			seriesProvider = sp
 		}
 	}
+
+	// processedSeries := make([]*models.MediaItem[*mediatypes.Series], 0, len(series))
 	for _, s := range series {
-		// Skip if series has no client ID information
-		if len(s.SyncClients) == 0 {
-			log.Printf("Skipping series with no client IDs: %s", s.Data.Details.Title)
+
+		clientSeriesID, exists := s.GetClientItemID(clientID)
+		if !exists {
+			log.Printf("Skipping series with no client IDs: %s", s.GetData().Details.Title)
 			continue
 		}
 
-		// Get the client ID and item ID for lookup
-		clientItemID := ""
-		for _, cid := range s.SyncClients {
-			if cid.ID == clientID {
-				clientItemID = cid.ItemID
-				break
-			}
+		// Get Seasons and episodes for this series from the provider
+		seasons, err := seriesProvider.GetSeriesSeasons(ctx, clientSeriesID)
+		if err != nil {
+			log.Printf("Error getting seasons for series %s: %v", s.GetData().Details.Title, err)
 		}
 
-		if clientItemID == "" {
-			log.Printf("No matching client item ID found for series: %s", s.Data.Details.Title)
-			continue
+		// Get the data for  seasons/episodes updates them to the database and returns
+		// the processed seasons/episodes
+		processedSeasons, err := j.processSeasonBatch(ctx, seasons, clientSeriesID, clientID, clientType)
+
+		for _, season := range processedSeasons {
+			log.Printf("Season: %d", season.GetData().Number)
+			seasonNumber := season.GetData().Number
+			seasonID := season.ID
+
+			log.Printf("Adding season: number=%d, ID=%d, title=%s",
+				seasonNumber, seasonID, season.GetData().Details.Title)
+
+			// Add season episodes first
+			s.Data.AddSeasonEpisodeIDs(season.GetData())
+
+			// Now assign the season ID to the corresponding season number
+			s.Data.SetSeasonID(seasonNumber, seasonID)
 		}
 
 		// Check if the series already exists in the database
-		existingSeries, err := j.itemRepos.SeriesUserRepo().GetByClientItemID(ctx, clientID, clientItemID)
+		existingSeries, err := j.itemRepos.SeriesUserRepo().GetByClientItemID(ctx, clientID, clientSeriesID)
+
+		// Check by external services IDs
+		if err != nil || existingSeries == nil {
+			existingSeries, err = j.itemRepos.SeriesUserRepo().GetByExternalIDs(ctx, s.GetData().Details.ExternalIDs)
+		}
+
+		// Check by title and year
+		if err != nil || existingSeries == nil {
+			existingSeries, err = j.itemRepos.SeriesUserRepo().GetByTitleAndYear(ctx, clientID, s.GetData().Details.Title, s.GetData().Details.ReleaseYear)
+		}
+
 		if err == nil {
 			// Series exists, update it
-			// Merge client IDs
-			for _, cid := range s.SyncClients {
-				found := false
-				for i, existingCid := range existingSeries.SyncClients {
-					if existingCid.ID == cid.ID && existingCid.Type == cid.Type {
-						// Update existing entry if needed
-						existingSeries.SyncClients[i].ItemID = cid.ItemID
-						found = true
-						break
-					}
-				}
-				if !found {
-					// Add new client ID
-					existingSeries.SyncClients = append(existingSeries.SyncClients, cid)
-				}
-			}
-
-			// Merge external IDs
-			for _, extID := range s.ExternalIDs {
-				found := false
-				for i, existingExtID := range existingSeries.ExternalIDs {
-					if existingExtID.Source == extID.Source {
-						// Update existing entry
-						existingSeries.ExternalIDs[i].ID = extID.ID
-						found = true
-						break
-					}
-				}
-				if !found {
-					// Add new external ID
-					existingSeries.ExternalIDs = append(existingSeries.ExternalIDs, extID)
-				}
-			}
-
-			// Update data fields
-			existingSeries.Data.Details = s.Data.Details
-			existingSeries.Title = s.Data.Details.Title
-			existingSeries.ReleaseDate = s.Data.Details.ReleaseDate
-			existingSeries.ReleaseYear = s.Data.Details.ReleaseYear
-
-			// Update additional series-specific fields
-			existingSeries.Data.Genres = s.Data.Genres
-			existingSeries.Data.Network = s.Data.Network
-			existingSeries.Data.Status = s.Data.Status
-			existingSeries.Data.ContentRating = s.Data.ContentRating
-			existingSeries.Data.Rating = s.Data.Rating
-
-			// Update seasons if available
-			if len(s.Data.Seasons) > 0 {
-				existingSeries.Data.Seasons = s.Data.Seasons
-				existingSeries.Data.SeasonCount = s.Data.SeasonCount
-			} else if seriesProvider != nil {
-				// Try to fetch seasons if they're not already loaded
-				var seriesID string
-				for _, cid := range s.SyncClients {
-					if cid.ID == clientID {
-						seriesID = cid.ItemID
-						break
-					}
-				}
-
-				if seriesID != "" {
-					// Fetch seasons for this series
-					seasons, err := seriesProvider.GetSeriesSeasons(ctx, seriesID)
-					if err == nil && len(seasons) > 0 {
-						// Convert to Season type from pointer
-						seriesSeasons := make([]*mediatypes.Season, 0, len(seasons))
-						for _, season := range seasons {
-							if season.Data != nil {
-								seriesSeasons = append(seriesSeasons, season.Data)
-							}
-						}
-
-						existingSeries.Data.Seasons = seriesSeasons
-						existingSeries.Data.SeasonCount = len(seriesSeasons)
-
-						// Update episode count by summing episode counts from seasons
-						totalEpisodes := 0
-						for _, season := range seriesSeasons {
-							totalEpisodes += season.EpisodeCount
-						}
-
-						if totalEpisodes > 0 {
-							existingSeries.Data.EpisodeCount = totalEpisodes
-						}
-					}
-				}
-			}
-
-			// Update episode count
-			if s.Data.EpisodeCount > 0 {
-				existingSeries.Data.EpisodeCount = s.Data.EpisodeCount
-			}
-
-			// Save the updated series
-			_, err = j.itemRepos.SeriesUserRepo().Update(ctx, existingSeries)
+			existingSeries.Merge(s)
+			existingSeries.Data.Merge(s.Data)
+			updatedSeries, err := j.itemRepos.SeriesUserRepo().Update(ctx, existingSeries)
+			j.updateSeasonsEpisodesShowIDs(ctx, updatedSeries, clientID, clientType)
 			if err != nil {
-				log.Printf("Error updating series: %v", err)
-				continue
+				log.Printf("Error processing season batch: %v", err)
 			}
+
 		} else {
 			// Series doesn't exist, create it
 			// Set top level title and release fields
@@ -1036,112 +885,166 @@ func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []*models.
 				s.Data.Genres = []string{}
 			}
 
-			if s.Data.Seasons == nil {
-				s.Data.Seasons = []*mediatypes.Season{}
-			}
-
 			// Create the series
-			_, err = j.itemRepos.SeriesUserRepo().Create(ctx, s)
+			createdSeries, err := j.itemRepos.SeriesUserRepo().Create(ctx, s)
 			if err != nil {
 				log.Printf("Error creating series: %v", err)
 				continue
 			}
+			// update seasons/episodes showIDs
+			j.updateSeasonsEpisodesShowIDs(ctx, createdSeries, clientID, clientType)
 		}
 	}
 
 	return nil
 }
 
+func (j *MediaSyncJob) processSeasonBatch(
+	ctx context.Context,
+	seasons []*models.MediaItem[*mediatypes.Season],
+	clientSeriesID string,
+	clientID uint64, clientType clienttypes.ClientType) ([]*models.MediaItem[*mediatypes.Season], error) {
+
+	clientMedia, err := j.getClientMedia(ctx, clientID, clientType)
+	if err != nil {
+		// Just log the error but continue processing with what we have
+		log.Printf("Failed to get media client for season details: %v", err)
+	}
+	// Cast to series provider if possible
+	var seriesProvider providers.SeriesProvider
+	if clientMedia != nil {
+		if sp, ok := clientMedia.(providers.SeriesProvider); ok {
+			seriesProvider = sp
+		}
+	}
+	processedSeasons := make([]*models.MediaItem[*mediatypes.Season], 0, len(seasons))
+	// seasonEpisodes := make(map[uint][]*models.MediaItem[*mediatypes.Episode])
+	for _, season := range seasons {
+
+		seasonClientItemID, exists := season.GetClientItemID(clientID)
+		if !exists {
+			log.Printf("Skipping season with no client IDs: %s", season.GetData().Details.Title)
+			continue
+		}
+
+		// Check if the season already exists in the database
+		existingSeason, err := j.itemRepos.SeasonUserRepo().GetByClientItemID(ctx, clientID, seasonClientItemID)
+		if err != nil || existingSeason == nil {
+			// existingSeason, err = j.itemRepos.SeasonUserRepo().GetByExternalIDs(ctx, season.GetData().Details.ExternalIDs)
+		}
+		if err != nil && existingSeason == nil {
+			// TODO: Season Might want Title and Date for better matching.
+			// existingSeason, err = j.itemRepos.SeasonUserRepo().GetByTitleAndYear(ctx, clientID, season.GetData().Details.Title, season.GetData().Details.ReleaseYear)
+		}
+
+		_, exists = season.GetClientItemID(clientID)
+		if !exists {
+			log.Printf("Skipping season with no client IDs: %s", season.GetData().Details.Title)
+			continue
+		}
+		episodes, err := seriesProvider.GetSeriesEpisodesBySeasonNbr(ctx, clientSeriesID, season.GetData().Number)
+		if err != nil || len(episodes) == 0 {
+			log.Printf("Error getting episodes for series %s season %d: %v",
+				season.GetData().Details.Title, season.GetData().Number, err)
+		}
+		processedEpisodes, err := j.processEpisodeBatch(ctx, episodes, clientID, clientType)
+		if err != nil {
+			log.Printf("Error processing episode batch: %v", err)
+		}
+
+		// get EpisodeIDs
+		seasonEpisodes := make([]uint64, 0, len(processedEpisodes))
+		for _, episode := range processedEpisodes {
+			seasonEpisodes = append(seasonEpisodes, episode.ID)
+		}
+
+		// Add debug logging to check season numbers
+		log.Printf("Processing season number: %d for series %s", season.GetData().Number, season.GetData().Details.Title)
+
+		// Update exisiting season or save new one.
+		if existingSeason != nil {
+			log.Printf("Existing season found with number: %d", existingSeason.GetData().Number)
+			existingSeason.Merge(season)
+			existingSeason.Data.MergeEpisodeIDs(seasonEpisodes)
+
+			// Ensure the season number is preserved and not overwritten
+			if existingSeason.GetData().Number != season.GetData().Number && season.GetData().Number > 0 {
+				log.Printf("Updating season number from %d to %d", existingSeason.GetData().Number, season.GetData().Number)
+				existingSeason.GetData().Number = season.GetData().Number
+			}
+
+			updatedSeason, err := j.itemRepos.SeasonUserRepo().Update(ctx, existingSeason)
+			if err != nil {
+				log.Printf("Error updating season: %v", err)
+				continue
+			}
+			processedSeasons = append(processedSeasons, updatedSeason)
+		} else {
+			// Ensure season has a valid number
+			if season.GetData().Number == 0 {
+				log.Printf("WARNING: Season has zero number, forcing to 1")
+				season.GetData().Number = 1
+			}
+
+			season.Data.MergeEpisodeIDs(seasonEpisodes)
+			newSeason, err := j.itemRepos.SeasonUserRepo().Create(ctx, season)
+			if err != nil {
+				log.Printf("Error creating season: %v", err)
+				continue
+			}
+			processedSeasons = append(processedSeasons, newSeason)
+		}
+
+	}
+
+	return processedSeasons, nil
+}
+
 // processEpisodeBatch processes a batch of episodes and saves them to the database
-func (j *MediaSyncJob) processEpisodeBatch(ctx context.Context, episodes []*models.MediaItem[*mediatypes.Episode], clientID uint64, clientType clienttypes.ClientMediaType) error {
+func (j *MediaSyncJob) processEpisodeBatch(
+	ctx context.Context,
+	episodes []*models.MediaItem[*mediatypes.Episode],
+	clientID uint64, clientType clienttypes.ClientType) ([]*models.MediaItem[*mediatypes.Episode], error) {
+
+	processedEpisodes := make([]*models.MediaItem[*mediatypes.Episode], 0, len(episodes))
+	// Finding existing episodes, try to match on them like we do for movies
 	for _, episode := range episodes {
-		// Skip if episode has no client ID information
-		if len(episode.SyncClients) == 0 {
-			log.Printf("Skipping episode with no client IDs: %s", episode.Data.Details.Title)
+		episodeClientID, exists := episode.GetClientItemID(clientID)
+		if !exists {
+			log.Printf("Skipping episode with no client IDs: %s", episode.GetData().Details.Title)
 			continue
 		}
-
-		// Get the client ID and item ID for lookup
-		clientItemID := ""
-		for _, cid := range episode.SyncClients {
-			if cid.ID == clientID {
-				clientItemID = cid.ItemID
-				break
-			}
+		existingEpisode, err := j.itemRepos.EpisodeUserRepo().GetByClientItemID(ctx, clientID, episodeClientID)
+		if err != nil || existingEpisode == nil {
+			existingEpisode, err = j.itemRepos.EpisodeUserRepo().GetByExternalIDs(ctx, episode.GetData().Details.ExternalIDs)
+		}
+		if err != nil && existingEpisode == nil {
+			// TODO: Episode Might want Title and Date for better matching.
+			existingEpisode, err = j.itemRepos.EpisodeUserRepo().GetByTitleAndYear(ctx, clientID, episode.GetData().Details.Title, episode.GetData().Details.ReleaseYear)
 		}
 
-		if clientItemID == "" {
-			log.Printf("No matching client item ID found for episode: %s", episode.Data.Details.Title)
-			continue
-		}
+		// Update exisiting episode or save new one.
+		if existingEpisode != nil {
+			existingEpisode.Merge(episode)
+			// TODO: Episode specific logic for merging.
 
-		// Check if the episode already exists in the database
-		existingEpisode, err := j.itemRepos.EpisodeUserRepo().GetByClientItemID(ctx, clientID, clientItemID)
-		if err == nil {
-			// Episode exists, update it
-			// Merge client IDs
-			for _, cid := range episode.SyncClients {
-				found := false
-				for i, existingCid := range existingEpisode.SyncClients {
-					if existingCid.ID == cid.ID && existingCid.Type == cid.Type {
-						// Update existing entry if needed
-						existingEpisode.SyncClients[i].ItemID = cid.ItemID
-						found = true
-						break
-					}
-				}
-				if !found {
-					// Add new client ID
-					existingEpisode.SyncClients = append(existingEpisode.SyncClients, cid)
-				}
-			}
-
-			// Merge external IDs
-			for _, extID := range episode.ExternalIDs {
-				found := false
-				for i, existingExtID := range existingEpisode.ExternalIDs {
-					if existingExtID.Source == extID.Source {
-						// Update existing entry
-						existingEpisode.ExternalIDs[i].ID = extID.ID
-						found = true
-						break
-					}
-				}
-				if !found {
-					// Add new external ID
-					existingEpisode.ExternalIDs = append(existingEpisode.ExternalIDs, extID)
-				}
-			}
-
-			// Update data fields
-			existingEpisode.Data.Details = episode.Data.Details
-			existingEpisode.Title = episode.Data.Details.Title
-			existingEpisode.ReleaseDate = episode.Data.Details.ReleaseDate
-			existingEpisode.ReleaseYear = episode.Data.Details.ReleaseYear
-
-			// Save the updated episode
-			_, err = j.itemRepos.EpisodeUserRepo().Update(ctx, existingEpisode)
+			updatedEpisode, err := j.itemRepos.EpisodeUserRepo().Update(ctx, existingEpisode)
 			if err != nil {
 				log.Printf("Error updating episode: %v", err)
 				continue
 			}
+			processedEpisodes = append(processedEpisodes, updatedEpisode)
 		} else {
-			// Episode doesn't exist, create it
-			// Set top level title and release fields
-			episode.Title = episode.Data.Details.Title
-			episode.ReleaseDate = episode.Data.Details.ReleaseDate
-			episode.ReleaseYear = episode.Data.Details.ReleaseYear
-
-			// Create the episode
 			_, err = j.itemRepos.EpisodeUserRepo().Create(ctx, episode)
 			if err != nil {
 				log.Printf("Error creating episode: %v", err)
 				continue
 			}
+			processedEpisodes = append(processedEpisodes, episode)
 		}
 	}
 
-	return nil
+	return processedEpisodes, nil
 }
 
 // processTrackBatch processes a batch of music tracks and saves them to the database
@@ -1169,47 +1072,16 @@ func (j *MediaSyncJob) processTrackBatch(ctx context.Context, tracks []*models.M
 
 		// Check if the track already exists in the database
 		existingTrack, err := j.itemRepos.TrackUserRepo().GetByClientItemID(ctx, clientID, clientItemID)
+		if err == nil && existingTrack != nil {
+			existingTrack, err = j.itemRepos.TrackUserRepo().GetByExternalIDs(ctx, track.GetData().Details.ExternalIDs)
+		}
+		if err == nil && existingTrack != nil {
+			existingTrack, err = j.itemRepos.TrackUserRepo().GetByTitleAndYear(ctx, clientID, track.GetData().Details.Title, track.GetData().Details.ReleaseYear)
+		}
+
 		if err == nil {
 			// Track exists, update it
-			// Merge client IDs
-			for _, cid := range track.SyncClients {
-				found := false
-				for i, existingCid := range existingTrack.SyncClients {
-					if existingCid.ID == cid.ID && existingCid.Type == cid.Type {
-						// Update existing entry if needed
-						existingTrack.SyncClients[i].ItemID = cid.ItemID
-						found = true
-						break
-					}
-				}
-				if !found {
-					// Add new client ID
-					existingTrack.SyncClients = append(existingTrack.SyncClients, cid)
-				}
-			}
-
-			// Merge external IDs
-			for _, extID := range track.ExternalIDs {
-				found := false
-				for i, existingExtID := range existingTrack.ExternalIDs {
-					if existingExtID.Source == extID.Source {
-						// Update existing entry
-						existingTrack.ExternalIDs[i].ID = extID.ID
-						found = true
-						break
-					}
-				}
-				if !found {
-					// Add new external ID
-					existingTrack.ExternalIDs = append(existingTrack.ExternalIDs, extID)
-				}
-			}
-
-			// Update data fields
-			existingTrack.Data = track.Data
-			existingTrack.Title = track.Data.Details.Title
-			existingTrack.ReleaseDate = track.Data.Details.ReleaseDate
-			existingTrack.ReleaseYear = track.Data.Details.ReleaseYear
+			existingTrack.Merge(track)
 
 			// Save the updated track
 			_, err = j.itemRepos.TrackUserRepo().Update(ctx, existingTrack)
@@ -1416,21 +1288,106 @@ func (j *MediaSyncJob) processArtistBatch(ctx context.Context, artists []*models
 	return nil
 }
 
-// Helpers
-func mergeStringArray(genres []string, newGenres []string) []string {
-	for _, newGenre := range newGenres {
-		if !slices.Contains(genres, newGenre) {
-			genres = append(genres, newGenre)
-		}
-	}
-	return genres
-}
+func (j *MediaSyncJob) updateSeasonsEpisodesShowIDs(
+	ctx context.Context,
+	series *models.MediaItem[*mediatypes.Series],
+	clientID uint64, clientType clienttypes.ClientType) {
 
-func mergeRatings(ratings mediatypes.Ratings, newRatings mediatypes.Ratings) mediatypes.Ratings {
-	for _, newRating := range newRatings {
-		if !slices.Contains(ratings, newRating) {
-			ratings = append(ratings, newRating)
+	log := logger.LoggerFromContext(ctx)
+	log.Info().
+		Uint64("clientID", clientID).
+		Str("clientType", string(clientType)).
+		Msg("Updating seasons/episodes showIDs")
+
+	// Guard against no seasons
+	if len(series.Data.Seasons) == 0 {
+		log.Warn().Msg("Series has no seasons")
+		return
+	}
+
+	// Debug logging of all seasons and their IDs
+	log.Debug().Msg("Before processing - Season information:")
+	for i, season := range series.Data.Seasons {
+		log.Debug().
+			Int("index", i).
+			Int("seasonNumber", season.SeasonNumber).
+			Uint64("seasonID", season.SeasonID).
+			Int("episodeCount", len(season.EpisodeIDs)).
+			Msg("Season info")
+	}
+
+	// Loop through each season entry
+	for _, season := range series.Data.Seasons {
+		// Skip if season ID is not set
+		if season.SeasonID == 0 {
+			log.Warn().
+				Int("seasonNumber", season.SeasonNumber).
+				Msg("Season has no ID, skipping")
+			continue
+		}
+
+		// Update season record
+		seasonRecord, err := j.itemRepos.SeasonUserRepo().GetByID(ctx, season.SeasonID)
+		if err != nil {
+			log.Error().
+				Err(err).
+				Uint64("seasonID", season.SeasonID).
+				Int("seasonNumber", season.SeasonNumber).
+				Uint64("clientID", clientID).
+				Str("clientType", string(clientType)).
+				Msg("Failed to get season by ID")
+			continue
+		}
+
+		// Set the series ID on the season
+		seasonRecord.GetData().SetSeriesID(series.ID)
+		_, err = j.itemRepos.SeasonUserRepo().Update(ctx, seasonRecord)
+		if err != nil {
+			log.Error().
+				Err(err).
+				Uint64("seasonID", season.SeasonID).
+				Int("seasonNumber", season.SeasonNumber).
+				Uint64("clientID", clientID).
+				Str("clientType", string(clientType)).
+				Msg("Failed to update season")
+			continue
+		}
+
+		// Update all episodes for this season
+		for _, episodeID := range season.EpisodeIDs {
+			episode, err := j.itemRepos.EpisodeUserRepo().GetByID(ctx, episodeID)
+			if err != nil {
+				log.Error().
+					Err(err).
+					Uint64("episodeID", episodeID).
+					Int("seasonNumber", season.SeasonNumber).
+					Uint64("clientID", clientID).
+					Str("clientType", string(clientType)).
+					Msg("Failed to get episode by ID")
+				continue
+			}
+
+			// Set season and series IDs on the episode
+			episode.GetData().SetSeriesID(series.ID)
+			episode.GetData().SetSeasonNumber(season.SeasonNumber)
+			episode.GetData().SetSeasonID(season.SeasonID)
+
+			log.Debug().
+				Int("seasonNumber", season.SeasonNumber).
+				Uint64("episodeID", episodeID).
+				Uint64("seasonID", season.SeasonID).
+				Msg("Setting season ID for episode")
+
+			_, err = j.itemRepos.EpisodeUserRepo().Update(ctx, episode)
+			if err != nil {
+				log.Error().
+					Err(err).
+					Uint64("episodeID", episodeID).
+					Uint64("clientID", clientID).
+					Str("clientType", string(clientType)).
+					Msg("Failed to update episode")
+				continue
+			}
 		}
 	}
-	return ratings
 }

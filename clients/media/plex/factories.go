@@ -102,7 +102,7 @@ func (c *PlexClient) movieFactory(ctx context.Context, item *operations.GetLibra
 
 	// Create the movie object
 	movie := &types.Movie{
-		Details: metadata,
+		Details: &metadata,
 	}
 
 	log.Debug().
@@ -132,7 +132,7 @@ func (c *PlexClient) seriesFactory(ctx context.Context, item *operations.GetLibr
 
 	// Create the series object
 	series := &types.Series{
-		Details: metadata,
+		Details: &metadata,
 	}
 
 	if item.Rating != nil {
@@ -217,7 +217,7 @@ func (c *PlexClient) seasonFactory(ctx context.Context, item *operations.GetMeta
 
 	// Add parent series ID for synchronization
 	if item.ParentRatingKey != nil {
-		season.SyncSeries.AddClient(c.GetClientID(), *item.ParentRatingKey)
+		// TODO:
 	}
 
 	log.Debug().
@@ -263,12 +263,12 @@ func (c *PlexClient) episodeFactory(ctx context.Context, item *operations.GetMed
 
 	// Add show ID if available (via grandparentRatingKey)
 	if item.GrandparentRatingKey != nil {
-		episode.AddSyncClient(c.GetClientID(), *item.GrandparentRatingKey, *item.ParentRatingKey)
+		// episode.AddSyncClient(c.GetClientID(), *item.GrandparentRatingKey, *item.ParentRatingKey)
 	}
 
 	// Add studio if available
 	if item.Studio != nil {
-		episode.Details.Studios = []string{*item.Studio}
+		episode.Details.Studio = *item.Studio
 	}
 
 	parentRatingKey, err := strconv.Atoi(*item.ParentRatingKey)
@@ -295,7 +295,7 @@ func (c *PlexClient) episodeFactory(ctx context.Context, item *operations.GetMed
 
 	// Add parent IDs for synchronization
 	if item.ParentRatingKey != nil && item.GrandparentRatingKey != nil {
-		episode.AddSyncClient(c.GetClientID(), *item.ParentRatingKey, *item.GrandparentRatingKey)
+		// episode.AddSyncClient(c.GetClientID(), *item.ParentRatingKey, *item.GrandparentRatingKey)
 	}
 
 	log.Debug().
@@ -327,7 +327,7 @@ func (c *PlexClient) collectionFactory(ctx context.Context, item *operations.Get
 		ItemList: types.ItemList{
 			// TODO: Get the items for the list itself
 			Items: []types.ListItem{},
-			Details: types.MediaDetails{
+			Details: &types.MediaDetails{
 				Title:       item.Title,
 				Description: item.Summary,
 				Artwork: types.Artwork{
@@ -370,7 +370,7 @@ func (c *PlexClient) playlistFactory(ctx context.Context, item *operations.GetPl
 	// Create the playlist object
 	playlist := &types.Playlist{
 		ItemList: types.ItemList{
-			Details: types.MediaDetails{
+			Details: &types.MediaDetails{
 				Title:       *item.Title,
 				Description: *item.Summary,
 				Artwork:     types.Artwork{
@@ -492,7 +492,7 @@ func (c *PlexClient) trackFactory(ctx context.Context, item *operations.GetLibra
 
 	// Create the track object
 	track := &types.Track{
-		Details: metadata,
+		Details: &metadata,
 	}
 
 	// Add specific track fields
@@ -510,11 +510,11 @@ func (c *PlexClient) trackFactory(ctx context.Context, item *operations.GetLibra
 
 	// Add synchronization IDs
 	if item.ParentRatingKey != nil {
-		track.SyncAlbum.AddClient(c.GetClientID(), *item.ParentRatingKey)
+		// track.SyncAlbum.AddClient(c.GetClientID(), *item.ParentRatingKey)
 	}
 
 	if item.ParentRatingKey != nil && item.GrandparentRatingKey != nil {
-		track.AddSyncClient(c.GetClientID(), *item.ParentRatingKey, *item.GrandparentRatingKey)
+		// track.AddSyncClient(c.GetClientID(), *item.ParentRatingKey, *item.GrandparentRatingKey)
 	}
 
 	log.Debug().

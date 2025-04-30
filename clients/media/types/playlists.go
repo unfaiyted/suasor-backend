@@ -84,10 +84,10 @@ func (p *Playlist) ReorderItem(itemID uint64, newPosition int, clientID uint64) 
 }
 
 // Create transformation methods between ID types
-func (p *Playlist) isMediaData()             {}
-func (p *Playlist) isListData()              {}
-func (p *Playlist) GetDetails() MediaDetails { return p.ItemList.Details }
-func (p *Playlist) SetDetails(details MediaDetails) {
+func (p *Playlist) isMediaData()              {}
+func (p *Playlist) isListData()               {}
+func (p *Playlist) GetDetails() *MediaDetails { return p.ItemList.Details }
+func (p *Playlist) SetDetails(details *MediaDetails) {
 	p.ItemList.Details = details
 }
 func (p *Playlist) GetItemList() *ItemList        { return &p.ItemList }
@@ -168,4 +168,11 @@ func MergePlaylists(primary, secondary *Playlist) *Playlist {
 	result.LastModified = time.Now()
 
 	return &result
+}
+func (p *Playlist) Merge(other MediaData) {
+	otherPlaylist, ok := other.(*Playlist)
+	if !ok {
+		return
+	}
+	p.ItemList.Merge(&otherPlaylist.ItemList)
 }

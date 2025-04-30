@@ -22,6 +22,24 @@ func (ids ExternalIDs) GetID(source string) string {
 	return ""
 }
 
+func (ids ExternalIDs) Merge(other ExternalIDs) {
+	for _, otherID := range other {
+		found := false
+		for i, id := range ids {
+			if id.Source == otherID.Source {
+				// Update existing entry
+				ids[i].ID = otherID.ID
+				found = true
+				break
+			}
+		}
+		if !found {
+			// Add new entry
+			ids = append(ids, otherID)
+		}
+	}
+}
+
 // Value implements driver.Valuer for database storage
 func (ids ExternalIDs) Value() (driver.Value, error) {
 	if ids == nil {

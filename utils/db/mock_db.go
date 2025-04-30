@@ -207,7 +207,7 @@ func MockMediaItem[T types.MediaData](id uint64, title string, mediaType types.M
 // MockMovie creates a mock movie for testing
 func MockMovie(id uint64, title string) *models.MediaItem[*types.Movie] {
 	movieData := &types.Movie{
-		Details: types.MediaDetails{
+		Details: &types.MediaDetails{
 			Title:       title,
 			Description: "A mock movie for testing",
 			ReleaseYear: 2023,
@@ -220,7 +220,7 @@ func MockMovie(id uint64, title string) *models.MediaItem[*types.Movie] {
 // MockSeries creates a mock series for testing
 func MockSeries(id uint64, title string) *models.MediaItem[*types.Series] {
 	seriesData := &types.Series{
-		Details: types.MediaDetails{
+		Details: &types.MediaDetails{
 			Title:       title,
 			Description: "A mock series for testing",
 			ReleaseYear: 2023,
@@ -257,3 +257,4 @@ func SetupMockDB(t mock.TestingT) *MockDB {
 	mockDB := NewMockDB()
 	return mockDB
 }
+

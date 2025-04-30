@@ -58,7 +58,7 @@ func (j *JellyfinClient) GetMusic(ctx context.Context, options *t.QueryOptions) 
 		if *item.Type == "Audio" {
 			track := models.MediaItem[*t.Track]{
 				Data: &t.Track{
-					Details: t.MediaDetails{
+					Details: &t.MediaDetails{
 						Title:       *item.Name.Get(),
 						Description: *item.Overview.Get(),
 						Duration:    getDurationFromTicks(item.RunTimeTicks.Get()),
@@ -73,7 +73,7 @@ func (j *JellyfinClient) GetMusic(ctx context.Context, options *t.QueryOptions) 
 			track.Data.AlbumName = *item.Album.Get()
 			// Set album info if available
 			if item.AlbumId.IsSet() && item.ArtistItems != nil && len(item.ArtistItems) > 0 {
-				track.Data.AddSyncClient(j.GetClientID(), *item.AlbumId.Get(), *item.ArtistItems[0].Id)
+				// TODO: check if we need to do something
 			}
 
 			// Add artist information if available
@@ -137,7 +137,7 @@ func (j *JellyfinClient) GetMusicArtists(ctx context.Context, options *t.QueryOp
 	for _, item := range result.Items {
 		artist := models.MediaItem[*t.Artist]{
 			Data: &t.Artist{
-				Details: t.MediaDetails{
+				Details: &t.MediaDetails{
 					Title:       *item.Name.Get(),
 					Description: *item.Overview.Get(),
 					Artwork:     *j.getArtworkURLs(&item),
@@ -207,7 +207,7 @@ func (j *JellyfinClient) GetMusicAlbums(ctx context.Context, options *t.QueryOpt
 	for _, item := range result.Items {
 		album := models.MediaItem[*t.Album]{
 			Data: &t.Album{
-				Details: t.MediaDetails{
+				Details: &t.MediaDetails{
 					Title:       *item.Name.Get(),
 					Description: *item.Overview.Get(),
 					ReleaseYear: int(*item.ProductionYear.Get()),
@@ -301,7 +301,7 @@ func (j *JellyfinClient) GetMusicTrackByID(ctx context.Context, id string) (mode
 
 	track := models.MediaItem[*t.Track]{
 		Data: &t.Track{
-			Details: t.MediaDetails{
+			Details: &t.MediaDetails{
 				Title:       *item.Name.Get(),
 				Description: *item.Overview.Get(),
 				Duration:    getDurationFromTicks(item.RunTimeTicks.Get()),
@@ -314,7 +314,7 @@ func (j *JellyfinClient) GetMusicTrackByID(ctx context.Context, id string) (mode
 
 	// Set album info if available
 	if item.AlbumId.IsSet() && item.ArtistItems != nil && len(item.ArtistItems) > 0 {
-		track.Data.AddSyncClient(j.GetClientID(), *item.AlbumId.Get(), *item.ArtistItems[0].Id)
+		// TODO: check if we need to do something
 	}
 
 	if item.Album.IsSet() {

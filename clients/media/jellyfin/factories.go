@@ -155,7 +155,7 @@ func (j *JellyfinClient) movieFactory(ctx context.Context, item *jellyfin.BaseIt
 	}
 
 	movie := &types.Movie{
-		Details: types.MediaDetails{
+		Details: &types.MediaDetails{
 			Title:         title,
 			Description:   description,
 			ReleaseDate:   releaseDate,
@@ -231,7 +231,7 @@ func (j *JellyfinClient) trackFactory(ctx context.Context, item *jellyfin.BaseIt
 	}
 
 	track := &types.Track{
-		Details: types.MediaDetails{
+		Details: &types.MediaDetails{
 			Title:       title,
 			Description: description,
 			Duration:    durationSecs,
@@ -241,16 +241,9 @@ func (j *JellyfinClient) trackFactory(ctx context.Context, item *jellyfin.BaseIt
 		AlbumName: albumName,
 	}
 
-	// Set album ID if available
-	if item.AlbumId.IsSet() {
-		track.SyncAlbum.AddClient(j.GetClientID(), *item.AlbumId.Get())
-	}
-
 	// Add artist information if available
 	if item.AlbumArtists != nil && len(item.AlbumArtists) > 0 {
-		artistID := *item.AlbumArtists[0].Id
 		name := *item.AlbumArtists[0].Name.Get()
-		track.AddSyncClient(j.GetClientID(), *item.AlbumId.Get(), artistID)
 		track.ArtistName = name
 	}
 
@@ -291,7 +284,7 @@ func (j *JellyfinClient) artistFactory(ctx context.Context, item *jellyfin.BaseI
 	}
 
 	artist := &types.Artist{
-		Details: types.MediaDetails{
+		Details: &types.MediaDetails{
 			Title:       name,
 			Description: description,
 			Genres:      genres,
@@ -362,7 +355,7 @@ func (j *JellyfinClient) albumFactory(ctx context.Context, item *jellyfin.BaseIt
 	}
 
 	album := &types.Album{
-		Details: types.MediaDetails{
+		Details: &types.MediaDetails{
 			Title:       title,
 			Description: description,
 			ReleaseYear: releaseYear,
@@ -418,7 +411,7 @@ func (j *JellyfinClient) playlistFactory(ctx context.Context, item *jellyfin.Bas
 
 	playlist := &types.Playlist{
 		ItemList: types.ItemList{
-			Details: types.MediaDetails{
+			Details: &types.MediaDetails{
 				Title:       title,
 				Description: description,
 				Artwork:     *j.getArtworkURLs(item),
@@ -493,7 +486,7 @@ func (j *JellyfinClient) seriesFactory(ctx context.Context, item *jellyfin.BaseI
 	}
 
 	series := &types.Series{
-		Details: types.MediaDetails{
+		Details: &types.MediaDetails{
 			Title:       title,
 			Description: description,
 			ReleaseYear: releaseYear,
@@ -566,7 +559,7 @@ func (j *JellyfinClient) seasonFactory(ctx context.Context, item *jellyfin.BaseI
 	}
 
 	season := &types.Season{
-		Details: types.MediaDetails{
+		Details: &types.MediaDetails{
 			Title:       title,
 			Description: description,
 			Artwork:     *j.getArtworkURLs(item),
@@ -578,7 +571,7 @@ func (j *JellyfinClient) seasonFactory(ctx context.Context, item *jellyfin.BaseI
 
 	// Safely handle series ID
 	if item.SeriesId.IsSet() {
-		season.SyncSeries.AddClient(j.GetClientID(), *item.SeriesId.Get())
+		// TODO: check if we need to do something
 	}
 
 	// Add release year if available
@@ -653,7 +646,7 @@ func (j *JellyfinClient) episodeFactory(ctx context.Context, item *jellyfin.Base
 	}
 
 	episode := &types.Episode{
-		Details: types.MediaDetails{
+		Details: &types.MediaDetails{
 			Title:       title,
 			Description: description,
 			Artwork:     *j.getArtworkURLs(item),
@@ -666,7 +659,7 @@ func (j *JellyfinClient) episodeFactory(ctx context.Context, item *jellyfin.Base
 
 	// Safely set IDs if available
 	if item.SeriesId.IsSet() && item.SeasonId.IsSet() {
-		episode.AddSyncClient(j.GetClientID(), *item.SeasonId.Get(), *item.SeriesId.Get())
+		// TODO: check if we need to do something
 	}
 
 	// Add air date if available
@@ -719,7 +712,7 @@ func (j *JellyfinClient) collectionFactory(ctx context.Context, item *jellyfin.B
 
 	collection := &types.Collection{
 		ItemList: types.ItemList{
-			Details: types.MediaDetails{
+			Details: &types.MediaDetails{
 				Title:       title,
 				Description: description,
 				Artwork:     *j.getArtworkURLs(item),

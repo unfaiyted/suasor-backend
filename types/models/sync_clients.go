@@ -49,6 +49,24 @@ func (s *SyncClients) GetByClientID(clientID uint64) (*SyncClient, bool) {
 	return &SyncClient{}, false
 }
 
+func (s *SyncClients) Merge(other SyncClients) {
+	for _, otherClient := range other {
+		found := false
+		for i, client := range *s {
+			if client.ID == otherClient.ID && client.Type == otherClient.Type {
+				// Update existing entry
+				(*s)[i].ItemID = otherClient.ItemID
+				found = true
+				break
+			}
+		}
+		if !found {
+			// Add new entry
+			*s = append(*s, otherClient)
+		}
+	}
+}
+
 func (s *SyncClients) Value() (driver.Value, error) {
 	if s == nil || len(*s) == 0 {
 		return "[]", nil
