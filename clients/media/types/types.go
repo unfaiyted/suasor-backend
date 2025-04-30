@@ -70,7 +70,7 @@ type MediaDetails struct {
 	UpdatedAt     time.Time   `json:"updatedAt,omitempty"`
 	Genres        []string    `json:"genres,omitempty"`
 	Tags          []string    `json:"tags,omitempty"`
-	Studios       []string    `json:"studios,omitempty"`
+	Studio        string      `json:"studio,omitempty"`
 	ExternalIDs   ExternalIDs `json:"externalIDs,omitempty"`
 	ContentRating string      `json:"contentRating,omitempty"`
 	Language      string      `json:"language,omitempty"`

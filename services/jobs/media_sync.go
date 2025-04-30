@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 	"suasor/clients"
 	"suasor/clients/media"
@@ -805,11 +806,56 @@ func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []*models.M
 				}
 			}
 
+			existingMovie.Data.Details.ExternalIDs = existingMovie.ExternalIDs
+
 			// Update data fields
-			existingMovie.Data.Details = movie.Data.Details
-			existingMovie.Title = movie.Data.Details.Title
-			existingMovie.ReleaseDate = movie.Data.Details.ReleaseDate
-			existingMovie.ReleaseYear = movie.Data.Details.ReleaseYear
+			if existingMovie.Data.Details.Title == "" {
+				existingMovie.Data.Details.Title = movie.Data.Details.Title
+			}
+			if existingMovie.Data.Details.Description == "" {
+				existingMovie.Data.Details.Description = movie.Data.Details.Description
+			}
+			if existingMovie.Data.Details.ContentRating == "" {
+				existingMovie.Data.Details.ContentRating = movie.Data.Details.ContentRating
+			}
+			if existingMovie.Data.Details.ContentRating == "" {
+				existingMovie.Data.Details.ContentRating = movie.Data.Details.ContentRating
+			}
+			existingMovie.Data.Details.Genres = mergeStringArray(existingMovie.Data.Details.Genres, movie.Data.Details.Genres)
+			existingMovie.Data.Details.Studios = mergeStringArray(existingMovie.Data.Details.Studios, movie.Data.Details.Studios)
+			existingMovie.Data.Details.Studios = mergeStringArray(existingMovie.Data.Details.Studios, movie.Data.Details.Studios)
+			existingMovie.Data.Details.Ratings = mergeRatings(existingMovie.Data.Details.Ratings, movie.Data.Details.Ratings)
+
+			// Artworks
+			if existingMovie.Data.Details.Artwork.Poster == "" {
+				existingMovie.Data.Details.Artwork.Poster = movie.Data.Details.Artwork.Poster
+			}
+			if existingMovie.Data.Details.Artwork.Banner == "" {
+				existingMovie.Data.Details.Artwork.Banner = movie.Data.Details.Artwork.Banner
+			}
+			if existingMovie.Data.Details.Artwork.Thumbnail == "" {
+				existingMovie.Data.Details.Artwork.Thumbnail = movie.Data.Details.Artwork.Thumbnail
+			}
+			if existingMovie.Data.Details.Artwork.Logo == "" {
+				existingMovie.Data.Details.Artwork.Logo = movie.Data.Details.Artwork.Logo
+			}
+
+			if existingMovie.Data.Details.ReleaseYear == 0 {
+				existingMovie.Data.Details.ReleaseYear = movie.Data.Details.ReleaseYear
+			}
+			if existingMovie.Data.Details.ReleaseDate.IsZero() {
+				existingMovie.Data.Details.ReleaseDate = movie.Data.Details.ReleaseDate
+			}
+
+			if existingMovie.Title == "" {
+				existingMovie.Title = movie.Data.Details.Title
+			}
+			if existingMovie.ReleaseYear == 0 {
+				existingMovie.ReleaseYear = movie.Data.Details.ReleaseYear
+			}
+			if existingMovie.ReleaseDate.IsZero() {
+				existingMovie.ReleaseDate = movie.Data.Details.ReleaseDate
+			}
 
 			// Save the updated movie
 			log.Printf("Updating movie: %s", movie.Data.Details.Title)
@@ -1368,4 +1414,23 @@ func (j *MediaSyncJob) processArtistBatch(ctx context.Context, artists []*models
 	}
 
 	return nil
+}
+
+// Helpers
+func mergeStringArray(genres []string, newGenres []string) []string {
+	for _, newGenre := range newGenres {
+		if !slices.Contains(genres, newGenre) {
+			genres = append(genres, newGenre)
+		}
+	}
+	return genres
+}
+
+func mergeRatings(ratings mediatypes.Ratings, newRatings mediatypes.Ratings) mediatypes.Ratings {
+	for _, newRating := range newRatings {
+		if !slices.Contains(ratings, newRating) {
+			ratings = append(ratings, newRating)
+		}
+	}
+	return ratings
 }

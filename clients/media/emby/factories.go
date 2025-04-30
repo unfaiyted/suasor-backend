@@ -3,6 +3,7 @@ package emby
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"suasor/clients/media"
 	"suasor/clients/media/types"
@@ -110,30 +111,19 @@ func (e *EmbyClient) movieFactory(ctx context.Context, item *embyclient.BaseItem
 	movie := &types.Movie{
 
 		Details: types.MediaDetails{
-			Title:       item.Name,
-			Description: item.Overview,
-			ReleaseDate: item.PremiereDate,
-			ReleaseYear: releaseYear,
-			Genres:      item.Genres,
-			Artwork:     e.getArtworkURLs(item),
-			Duration:    int64(item.RunTimeTicks / 10000000),
-			Ratings: types.Ratings{
-				types.Rating{
-					Source: "emby",
-					Value:  float32(item.CommunityRating),
-				},
-			},
+			Title:         item.Name,
+			Description:   item.Overview,
+			ReleaseDate:   item.PremiereDate,
+			ReleaseYear:   releaseYear,
+			AddedAt:       time.Now(),
+			UpdatedAt:     time.Now(),
+			ContentRating: item.OfficialRating,
+			Genres:        item.Genres,
+			Studio:        item.SeriesStudio,
+			Artwork:       e.getArtworkURLs(item),
+			Duration:      int64(item.RunTimeTicks / 10000000),
+			Ratings:       getRatingsFromItem(item),
 		},
-	}
-
-	// Only set UserRating if UserData is not nil
-	if item.UserData != nil {
-		movie.Details.UserRating = float32(item.UserData.Rating)
-		movie.Details.IsFavorite = item.UserData.IsFavorite
-	} else {
-		log.Debug().
-			Str("movieID", item.Id).
-			Msg("Movie has no user data, skipping user rating")
 	}
 
 	// Extract provider IDs if available
@@ -154,10 +144,14 @@ func (e *EmbyClient) movieFactory(ctx context.Context, item *embyclient.BaseItem
 func (e *EmbyClient) trackFactory(ctx context.Context, item *embyclient.BaseItemDto) (*types.Track, error) {
 	track := &types.Track{
 		Details: types.MediaDetails{
-			Title:       item.Name,
-			Description: item.Overview,
-			Duration:    int64(item.RunTimeTicks / 10000000),
-			Artwork:     e.getArtworkURLs(item),
+			Title:         item.Name,
+			Description:   item.Overview,
+			AddedAt:       time.Now(),
+			UpdatedAt:     time.Now(),
+			ContentRating: item.OfficialRating,
+			Duration:      int64(item.RunTimeTicks / 10000000),
+			Artwork:       e.getArtworkURLs(item),
+			Ratings:       getRatingsFromItem(item),
 		},
 		Number:    int(item.IndexNumber),
 		AlbumName: item.Album,
@@ -183,10 +177,15 @@ func (e *EmbyClient) trackFactory(ctx context.Context, item *embyclient.BaseItem
 func (e *EmbyClient) artistFactory(ctx context.Context, item *embyclient.BaseItemDto) (*types.Artist, error) {
 	artist := &types.Artist{
 		Details: types.MediaDetails{
-			Title:       item.Name,
-			Description: item.Overview,
-			Artwork:     e.getArtworkURLs(item),
-			Genres:      item.Genres,
+			Title:         item.Name,
+			Description:   item.Overview,
+			AddedAt:       time.Now(),
+			UpdatedAt:     time.Now(),
+			ContentRating: item.OfficialRating,
+
+			Artwork: e.getArtworkURLs(item),
+			Genres:  item.Genres,
+			Ratings: getRatingsFromItem(item),
 		},
 	}
 
@@ -205,8 +204,12 @@ func (e *EmbyClient) albumFactory(ctx context.Context, item *embyclient.BaseItem
 			Title:       item.Name,
 			Description: item.Overview,
 			ReleaseYear: int(item.ProductionYear),
+			AddedAt:     time.Now(),
+			UpdatedAt:   time.Now(),
 			Genres:      item.Genres,
+			Studio:      item.SeriesStudio,
 			Artwork:     e.getArtworkURLs(item),
+			Ratings:     getRatingsFromItem(item),
 		},
 		ArtistName: item.AlbumArtist,
 		TrackCount: int(item.ChildCount),
@@ -227,6 +230,8 @@ func (e *EmbyClient) playlistFactory(ctx context.Context, item *embyclient.BaseI
 			Details: types.MediaDetails{
 				Title:       item.Name,
 				Description: item.Overview,
+				AddedAt:     time.Now(),
+				UpdatedAt:   time.Now(),
 				Artwork:     e.getArtworkURLs(item),
 			},
 			ItemCount: int(item.ChildCount),
@@ -240,14 +245,22 @@ func (e *EmbyClient) playlistFactory(ctx context.Context, item *embyclient.BaseI
 // Factory function for Series
 func (e *EmbyClient) seriesFactory(ctx context.Context, item *embyclient.BaseItemDto) (*types.Series, error) {
 	series := &types.Series{
+
+		ContentRating: item.OfficialRating,
 		Details: types.MediaDetails{
 			Title:       item.Name,
 			Description: item.Overview,
-			ReleaseYear: int(item.ProductionYear),
+			ReleaseDate: item.PremiereDate,
+			ReleaseYear: int(item.PremiereDate.Year()),
+			AddedAt:     time.Now(),
+			UpdatedAt:   time.Now(),
 			Genres:      item.Genres,
+			Studio:      item.SeriesStudio,
 			Artwork:     e.getArtworkURLs(item),
 			Duration:    int64(item.RunTimeTicks / 10000000),
+			Ratings:     getRatingsFromItem(item),
 		},
+		ReleaseYear: int(item.PremiereDate.Year()),
 		SeasonCount: int(item.ChildCount),
 		Status:      item.Status,
 		Network:     item.SeriesStudio,
@@ -267,7 +280,10 @@ func (e *EmbyClient) seasonFactory(ctx context.Context, item *embyclient.BaseIte
 		Details: types.MediaDetails{
 			Title:       item.Name,
 			Description: item.Overview,
+			AddedAt:     time.Now(),
+			UpdatedAt:   time.Now(),
 			Artwork:     e.getArtworkURLs(item),
+			Ratings:     getRatingsFromItem(item),
 		},
 		Number:       int(item.IndexNumber),
 		EpisodeCount: int(item.ChildCount),
@@ -286,10 +302,14 @@ func (e *EmbyClient) seasonFactory(ctx context.Context, item *embyclient.BaseIte
 func (e *EmbyClient) episodeFactory(ctx context.Context, item *embyclient.BaseItemDto) (*types.Episode, error) {
 	episode := &types.Episode{
 		Details: types.MediaDetails{
-			Title:       item.Name,
-			Description: item.Overview,
-			Artwork:     e.getArtworkURLs(item),
-			Duration:    int64(item.RunTimeTicks / 10000000),
+			Title:         item.Name,
+			Description:   item.Overview,
+			AddedAt:       time.Now(),
+			UpdatedAt:     time.Now(),
+			ContentRating: item.OfficialRating,
+			Artwork:       e.getArtworkURLs(item),
+			Duration:      int64(item.RunTimeTicks / 10000000),
+			Ratings:       getRatingsFromItem(item),
 		},
 		Number:       int64(item.IndexNumber),
 		SeasonNumber: int(item.ParentIndexNumber),
@@ -311,9 +331,13 @@ func (e *EmbyClient) collectionFactory(ctx context.Context, item *embyclient.Bas
 	collection := &types.Collection{
 		ItemList: types.ItemList{
 			Details: types.MediaDetails{
+
 				Title:       item.Name,
 				Description: item.Overview,
-				Artwork:     e.getArtworkURLs(item),
+				AddedAt:     time.Now(),
+				UpdatedAt:   time.Now(),
+
+				Artwork: e.getArtworkURLs(item),
 			},
 			ItemCount: int(item.ChildCount),
 			IsPublic:  true, // Assume public by default in Emby
@@ -321,4 +345,17 @@ func (e *EmbyClient) collectionFactory(ctx context.Context, item *embyclient.Bas
 	}
 
 	return collection, nil
+}
+
+func getRatingsFromItem(item *embyclient.BaseItemDto) types.Ratings {
+	return types.Ratings{
+		types.Rating{
+			Source: "emby-community",
+			Value:  float32(item.CommunityRating),
+		},
+		types.Rating{
+			Source: "emby-critic",
+			Value:  float32(item.CriticRating),
+		},
+	}
 }

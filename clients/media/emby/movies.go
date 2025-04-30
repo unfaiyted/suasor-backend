@@ -33,7 +33,7 @@ func (e *EmbyClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 		IncludeItemTypes: optional.NewString("Movie"),
 		Recursive:        optional.NewBool(true),
 		UserId:           optional.NewString(userID),
-		Fields:           optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
+		Fields:           optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds,CommunityRating,CriticRating"),
 	}
 
 	// Apply options
@@ -106,7 +106,7 @@ func (e *EmbyClient) GetMovieByID(ctx context.Context, id string) (*models.Media
 		Ids:              optional.NewString(id),
 		IncludeItemTypes: optional.NewString("Movie"),
 		UserId:           optional.NewString(userID),
-		Fields:           optional.NewString("ProductionYear,PremiereDate,ChannelMappingInfo,DateCreated,Genres,IndexOptions,HomePageUrl,Overview,ParentId,Path,ProviderIds,Studios,SortName"),
+		Fields:           optional.NewString("ProductionYear,PremiereDate,ChannelMappingInfo,DateCreated,Genres,IndexOptions,HomePageUrl,Overview,ParentId,Path,ProviderIds,Studios,SortName,CommunityRating,CriticRating"),
 	}
 
 	// Call the Emby API

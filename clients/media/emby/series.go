@@ -25,7 +25,7 @@ func (e *EmbyClient) GetSeries(ctx context.Context, options *types.QueryOptions)
 
 	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
 		IncludeItemTypes: optional.NewString("Series"),
-		Fields:           optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
+		Fields:           optional.NewString("ChannelMappingInfo,PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
 		Recursive:        optional.NewBool(true),
 	}
 
@@ -80,7 +80,7 @@ func (e *EmbyClient) GetSeriesByID(ctx context.Context, id string) (*models.Medi
 	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
 		Ids:              optional.NewString(id),
 		IncludeItemTypes: optional.NewString("Series"),
-		Fields:           optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
+		Fields:           optional.NewString("ChannelMappingInfo,PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
 	}
 
 	items, resp, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
@@ -135,7 +135,7 @@ func (e *EmbyClient) GetSeriesSeasons(ctx context.Context, showID string) ([]*mo
 
 	opts := embyclient.TvShowsServiceApiGetShowsByIdSeasonsOpts{
 		EnableImages:   optional.NewBool(true),
-		Fields:         optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
+		Fields:         optional.NewString("ChannelMappingInfo,PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
 		EnableUserData: optional.NewBool(true),
 	}
 
@@ -189,7 +189,7 @@ func (e *EmbyClient) GetSeriesEpisodes(ctx context.Context, showID string, seaso
 
 	queryParams := embyclient.TvShowsServiceApiGetShowsByIdEpisodesOpts{
 		IncludeItemTypes: optional.NewString("Episode"),
-		Fields:           optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
+		Fields:           optional.NewString("ChannelMappingInfo,PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
 		Recursive:        optional.NewBool(true),
 	}
 
@@ -245,7 +245,7 @@ func (e *EmbyClient) GetEpisodeByID(ctx context.Context, id string) (*models.Med
 
 	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
 		Ids:              optional.NewString(id),
-		Fields:           optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
+		Fields:           optional.NewString("ChannelMappingInfo,PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
 		IncludeItemTypes: optional.NewString("Episode"),
 	}
 
