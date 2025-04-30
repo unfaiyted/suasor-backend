@@ -108,6 +108,7 @@ func (e *EmbyClient) movieFactory(ctx context.Context, item *embyclient.BaseItem
 	}
 
 	movie := &types.Movie{
+
 		Details: types.MediaDetails{
 			Title:       item.Name,
 			Description: item.Overview,
@@ -137,13 +138,7 @@ func (e *EmbyClient) movieFactory(ctx context.Context, item *embyclient.BaseItem
 
 	// Extract provider IDs if available
 	if item.ProviderIds != nil {
-		ids := *item.ProviderIds
-		if imdbID, ok := ids["Imdb"]; ok {
-			movie.Details.ExternalIDs.AddOrUpdate("imdb", imdbID)
-		}
-		if tmdbID, ok := ids["Tmdb"]; ok {
-			movie.Details.ExternalIDs.AddOrUpdate("tmdb", tmdbID)
-		}
+		movie.Details.ExternalIDs = convertToExternalIDs(item.ProviderIds)
 	}
 
 	log.Debug().
@@ -178,10 +173,7 @@ func (e *EmbyClient) trackFactory(ctx context.Context, item *embyclient.BaseItem
 
 	// Extract provider IDs
 	if item.ProviderIds != nil {
-		ids := *item.ProviderIds
-		if musicbrainzID, ok := ids["MusicBrainzTrack"]; ok {
-			track.Details.ExternalIDs.AddOrUpdate("musicbrainz", musicbrainzID)
-		}
+		track.Details.ExternalIDs = convertToExternalIDs(item.ProviderIds)
 	}
 
 	return track, nil
@@ -200,10 +192,7 @@ func (e *EmbyClient) artistFactory(ctx context.Context, item *embyclient.BaseIte
 
 	// Extract provider IDs if available
 	if item.ProviderIds != nil {
-		ids := *item.ProviderIds
-		if musicbrainzID, ok := ids["MusicBrainzArtist"]; ok {
-			artist.Details.ExternalIDs.AddOrUpdate("musicbrainz", musicbrainzID)
-		}
+		artist.Details.ExternalIDs = convertToExternalIDs(item.ProviderIds)
 	}
 
 	return artist, nil
@@ -225,10 +214,7 @@ func (e *EmbyClient) albumFactory(ctx context.Context, item *embyclient.BaseItem
 
 	// Extract provider IDs
 	if item.ProviderIds != nil {
-		ids := *item.ProviderIds
-		if musicbrainzID, ok := ids["MusicBrainzAlbum"]; ok {
-			album.Details.ExternalIDs.AddOrUpdate("musicbrainz", musicbrainzID)
-		}
+		album.Details.ExternalIDs = convertToExternalIDs(item.ProviderIds)
 	}
 
 	return album, nil
@@ -269,16 +255,7 @@ func (e *EmbyClient) seriesFactory(ctx context.Context, item *embyclient.BaseIte
 
 	// Extract provider IDs if available
 	if item.ProviderIds != nil {
-		ids := *item.ProviderIds
-		if imdbID, ok := ids["Imdb"]; ok {
-			series.Details.ExternalIDs.AddOrUpdate("imdb", imdbID)
-		}
-		if tmdbID, ok := ids["Tmdb"]; ok {
-			series.Details.ExternalIDs.AddOrUpdate("tmdb", tmdbID)
-		}
-		if tvdbID, ok := ids["Tvdb"]; ok {
-			series.Details.ExternalIDs.AddOrUpdate("tvdb", tvdbID)
-		}
+		series.Details.ExternalIDs = convertToExternalIDs(item.ProviderIds)
 	}
 
 	return series, nil
@@ -323,16 +300,7 @@ func (e *EmbyClient) episodeFactory(ctx context.Context, item *embyclient.BaseIt
 
 	// Add external IDs
 	if item.ProviderIds != nil {
-		ids := *item.ProviderIds
-		if imdbID, ok := ids["Imdb"]; ok {
-			episode.Details.ExternalIDs.AddOrUpdate("imdb", imdbID)
-		}
-		if tmdbID, ok := ids["Tmdb"]; ok {
-			episode.Details.ExternalIDs.AddOrUpdate("tmdb", tmdbID)
-		}
-		if tvdbID, ok := ids["Tvdb"]; ok {
-			episode.Details.ExternalIDs.AddOrUpdate("tvdb", tvdbID)
-		}
+		episode.Details.ExternalIDs = convertToExternalIDs(item.ProviderIds)
 	}
 
 	return episode, nil

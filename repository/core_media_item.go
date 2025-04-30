@@ -16,12 +16,13 @@ package repository
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"gorm.io/gorm"
+	"regexp"
+	"strings"
 	"suasor/clients/media/types"
 	"suasor/types/models"
 	"suasor/utils/logger"
+	"time"
 )
 
 // CoreMediaItemRepository defines the interface for generic media item operations
@@ -37,6 +38,7 @@ type CoreMediaItemRepository[T types.MediaData] interface {
 
 	// Query operations
 	GetByType(ctx context.Context, mediaType types.MediaType) ([]*models.MediaItem[T], error)
+	GetByTitleAndYear(ctx context.Context, clientID uint64, title string, year int) (*models.MediaItem[T], error)
 	GetByExternalID(ctx context.Context, source string, externalID string) (*models.MediaItem[T], error)
 	Search(ctx context.Context, query types.QueryOptions) ([]*models.MediaItem[T], error)
 
@@ -235,7 +237,7 @@ func (r *mediaItemRepository[T]) GetPopularItems(ctx context.Context, limit int)
 
 	// Add an order by play_count or a similar metric from the JSON data
 	// This is PostgreSQL-specific JSON path syntax
-	dbQuery = dbQuery.Order("(data->>'PlayCount')::int DESC NULLS LAST")
+	dbQuery = dbQuery.Order("(data->>'playCount')::int DESC NULLS LAST")
 
 	// Add limit if provided
 	if limit > 0 {
@@ -429,7 +431,7 @@ func (r *mediaItemRepository[T]) GetByUserID(ctx context.Context, userID uint64,
 
 		// Should for now be limited to user-owned playlists and collections
 		query := r.db.WithContext(ctx).
-			Where("type IN (?) AND data->'ItemList'->>'Owner' = ?", mediaType, userID)
+			Where("type IN (?) AND data->'itemList'->>'ownerID' = ?", mediaType, userID)
 
 		if limit > 0 {
 			query = query.Limit(limit)
@@ -451,4 +453,243 @@ func (r *mediaItemRepository[T]) GetByUserID(ctx context.Context, userID uint64,
 	}
 	return nil, fmt.Errorf("media type not supported")
 
+}
+
+func (r *mediaItemRepository[T]) GetByTitleAndYear(ctx context.Context, clientID uint64, title string, year int) (*models.MediaItem[T], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("clientID", clientID).
+		Str("title", title).
+		Int("year", year).
+		Msg("Getting media items by title and year")
+
+	var zero T
+	mediaType := types.GetMediaTypeFromTypeName(zero)
+
+	// Format year as string since JSON extraction with ->> always returns text
+	yearStr := fmt.Sprintf("%d", year)
+
+	// Normalize the search title
+	normalizedSearchTitle := normalizeTitle(title)
+	log.Debug().Str("normalizedTitle", normalizedSearchTitle).Msg("Normalized search title")
+
+	// Split into words for word-by-word search
+	searchWords := strings.Fields(normalizedSearchTitle)
+	significantWords := make([]string, 0, len(searchWords))
+	for _, word := range searchWords {
+		if len(word) > 2 && !isCommonWord(word) {
+			significantWords = append(significantWords, word)
+		}
+	}
+
+	log.Debug().Strs("significantWords", significantWords).Msg("Significant words for search")
+
+	// 1. First try exact match (highest confidence)
+	exactQuery := r.db.WithContext(ctx).
+		Where("type = ?", mediaType).
+		Where("data->'details'->>'releaseYear' = ?", yearStr)
+
+	// Add title variants
+	exactCondition := r.db.Where("FALSE")
+	for _, variant := range generateTitleVariants(title) {
+		exactCondition = exactCondition.Or("LOWER(data->'details'->>'title') = LOWER(?)", variant)
+	}
+
+	var items []*models.MediaItem[T]
+	if err := exactQuery.Where(exactCondition).Find(&items).Error; err == nil && len(items) > 0 {
+		log.Debug().Str("title", items[0].Data.GetDetails().Title).Msg("Found exact title match")
+		return items[0], nil
+	}
+
+	// 2. Try word-by-word search with the significant words
+	if len(significantWords) > 0 {
+		wordQuery := r.db.WithContext(ctx).
+			Where("type = ?", mediaType).
+			Where("data->'details'->>'releaseYear' = ?", yearStr)
+
+		// Build word conditions
+		wordCondition := r.db.Where("FALSE")
+		for _, word := range significantWords {
+			if len(word) >= 3 { // Only use words of reasonable length
+				wordCondition = wordCondition.Or(
+					"LOWER(data->'details'->>'title') LIKE ?",
+					"%"+strings.ToLower(word)+"%")
+			}
+		}
+
+		if err := wordQuery.Where(wordCondition).Find(&items).Error; err != nil {
+			log.Error().Err(err).Msg("Error searching by words")
+		} else {
+			log.Debug().Int("count", len(items)).Msg("Items found by word search")
+		}
+
+		// If we found items, score them and find the best match
+		if len(items) > 0 {
+			bestScore := 0.0
+			var bestMatch *models.MediaItem[T]
+
+			for _, item := range items {
+				itemTitle := item.Data.GetDetails().Title
+				normalizedItemTitle := normalizeTitle(itemTitle)
+
+				// Calculate match score (0.0 to 1.0)
+				score := calculateTitleSimilarity(normalizedSearchTitle, normalizedItemTitle, searchWords)
+
+				log.Debug().
+					Str("title", itemTitle).
+					Str("normalized", normalizedItemTitle).
+					Float64("score", score).
+					Msg("Title similarity score")
+
+				if score > bestScore {
+					bestScore = score
+					bestMatch = item
+				}
+			}
+
+			// Only return if we have a reasonable match (score above threshold)
+			const MATCH_THRESHOLD = 0.7 // 70% similarity required
+			if bestMatch != nil && bestScore >= MATCH_THRESHOLD {
+				log.Debug().
+					Str("matchedTitle", bestMatch.Data.GetDetails().Title).
+					Float64("score", bestScore).
+					Msg("Found best match with acceptable score")
+				return bestMatch, nil
+			} else if bestMatch != nil {
+				log.Debug().
+					Str("bestTitle", bestMatch.Data.GetDetails().Title).
+					Float64("score", bestScore).
+					Float64("threshold", MATCH_THRESHOLD).
+					Msg("Best match below acceptable threshold")
+			}
+		}
+	}
+
+	return nil, fmt.Errorf("no media item found matching title '%s' and year %d", title, year)
+}
+
+// calculateTitleSimilarity returns a score from 0.0 to 1.0 indicating how similar two titles are
+func calculateTitleSimilarity(title1, title2 string, title1Words []string) float64 {
+	// 1. Exact match is perfect score
+	if title1 == title2 {
+		return 1.0
+	}
+
+	// 2. Check word overlap
+	title2Words := strings.Fields(title2)
+
+	// Empty titles can't be compared
+	if len(title1Words) == 0 || len(title2Words) == 0 {
+		return 0.0
+	}
+
+	// Count matching words
+	matchCount := 0
+	for _, word1 := range title1Words {
+		if len(word1) < 3 || isCommonWord(word1) {
+			continue // Skip short/common words
+		}
+
+		for _, word2 := range title2Words {
+			if word1 == word2 || strings.Contains(word2, word1) || strings.Contains(word1, word2) {
+				matchCount++
+				break
+			}
+		}
+	}
+
+	// Calculate percentage of significant words that matched
+	significantWordCount := 0
+	for _, w := range title1Words {
+		if len(w) >= 3 && !isCommonWord(w) {
+			significantWordCount++
+		}
+	}
+
+	if significantWordCount == 0 {
+		return 0.0
+	}
+
+	wordMatchScore := float64(matchCount) / float64(significantWordCount)
+
+	// 3. Penalize length difference
+	lengthRatio := 1.0
+	if len(title1) > len(title2) {
+		lengthRatio = float64(len(title2)) / float64(len(title1))
+	} else {
+		lengthRatio = float64(len(title1)) / float64(len(title2))
+	}
+
+	// 4. Consider if one is a substring of the other
+	substringBonus := 0.0
+	if strings.Contains(title1, title2) || strings.Contains(title2, title1) {
+		substringBonus = 0.2 // Add 20% bonus for substring match
+	}
+
+	// Calculate final score (word match + length similarity + substring bonus)
+	score := (wordMatchScore * 0.7) + (lengthRatio * 0.2) + substringBonus
+	if score > 1.0 {
+		score = 1.0 // Cap at 1.0
+	}
+
+	return score
+}
+
+// normalizeTitle removes all punctuation and normalizes spacing
+func normalizeTitle(title string) string {
+	// Convert to lowercase
+	normalized := strings.ToLower(title)
+
+	// Replace common fractions
+	normalized = strings.ReplaceAll(normalized, "½", "1/2")
+	normalized = strings.ReplaceAll(normalized, "¼", "1/4")
+	normalized = strings.ReplaceAll(normalized, "¾", "3/4")
+
+	// Remove ALL punctuation
+	punctRegex := regexp.MustCompile(`[^\w\s]`)
+	normalized = punctRegex.ReplaceAllString(normalized, " ")
+
+	// Normalize spaces (collapse multiple spaces into one)
+	spaceRegex := regexp.MustCompile(`\s+`)
+	normalized = spaceRegex.ReplaceAllString(normalized, " ")
+
+	return strings.TrimSpace(normalized)
+}
+
+// isCommonWord returns true if the word is a common word to ignore
+func isCommonWord(word string) bool {
+	commonWords := map[string]bool{
+		"the": true, "and": true, "but": true, "for": true,
+		"not": true, "you": true, "one": true, "with": true,
+	}
+	return commonWords[strings.ToLower(word)]
+}
+
+// generateTitleVariants creates different variants of a title to handle article placement
+func generateTitleVariants(title string) []string {
+	title = strings.TrimSpace(title)
+	if title == "" {
+		return []string{}
+	}
+
+	variants := []string{title} // Original title is always included
+
+	// Handle articles at the beginning: "The Matrix" -> "Matrix, The"
+	for _, article := range []string{"The ", "A ", "An "} {
+		if strings.HasPrefix(strings.ToUpper(title), strings.ToUpper(article)) {
+			remainder := title[len(article):]
+			variants = append(variants, remainder+", "+strings.TrimSpace(article))
+		}
+	}
+
+	// Handle articles at the end: "Matrix, The" -> "The Matrix"
+	for _, article := range []string{", The", ", A", ", An"} {
+		if strings.HasSuffix(strings.ToUpper(title), strings.ToUpper(article)) {
+			baseTitle := title[:len(title)-len(article)]
+			articleForFront := strings.TrimPrefix(article, ", ")
+			variants = append(variants, articleForFront+" "+baseTitle)
+		}
+	}
+
+	return variants
 }

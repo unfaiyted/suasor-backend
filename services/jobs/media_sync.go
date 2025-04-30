@@ -313,9 +313,9 @@ func (j *MediaSyncJob) getClientConfig(ctx context.Context, clientID uint64, cli
 	if err != nil {
 		return nil, fmt.Errorf("failed to get media clients: %w", err)
 	}
-	
+
 	config := clientList.GetClientConfig(clientID, clientType)
-	
+
 	// Validate that config is not nil
 	if config == nil {
 		return nil, fmt.Errorf("retrieved nil config for clientID=%d, clientType=%s", clientID, clientType)
@@ -758,7 +758,18 @@ func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []*models.M
 
 		// Check if the movie already exists in the database
 		existingMovie, err := j.itemRepos.MovieUserRepo().GetByClientItemID(ctx, clientID, clientItemID)
+
+		if err != nil || existingMovie == nil {
+			log.Printf("No matching client item ID found for movie: %s", movie.Data.Details.Title)
+			existingMovie, err = j.itemRepos.MovieUserRepo().GetByExternalIDs(ctx, movie.Data.Details.ExternalIDs)
+		}
+		// If we cant find it by client Item Id we should check by Title+Year
+		if err != nil || existingMovie == nil {
+			log.Printf("No matching client item ID found for movie: %s", movie.Data.Details.Title)
+			existingMovie, err = j.itemRepos.MovieUserRepo().GetByTitleAndYear(ctx, clientID, movie.Data.Details.Title, movie.Data.Details.ReleaseYear)
+		}
 		if err == nil {
+			log.Printf("Found movie by Title+Year: %s", movie.Data.Details.Title)
 			// Movie exists, update it
 			// Merge client IDs
 			for _, cid := range movie.SyncClients {
@@ -801,6 +812,7 @@ func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []*models.M
 			existingMovie.ReleaseYear = movie.Data.Details.ReleaseYear
 
 			// Save the updated movie
+			log.Printf("Updating movie: %s", movie.Data.Details.Title)
 			_, err = j.itemRepos.MovieUserRepo().Update(ctx, existingMovie)
 			if err != nil {
 				log.Printf("Error updating movie: %v", err)

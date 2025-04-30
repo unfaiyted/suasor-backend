@@ -33,7 +33,7 @@ func (e *EmbyClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 		IncludeItemTypes: optional.NewString("Movie"),
 		Recursive:        optional.NewBool(true),
 		UserId:           optional.NewString(userID),
-		Fields:           optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines"),
+		Fields:           optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
 	}
 
 	// Apply options

@@ -408,3 +408,14 @@ func ApplyClientQueryOptions(queryParams *embyclient.ItemsServiceApiGetItemsOpts
 
 	// Debug logging removed to avoid logger dependency
 }
+
+func convertToExternalIDs(providerIds *map[string]string) types.ExternalIDs {
+	externalIDs := types.ExternalIDs{}
+	if providerIds == nil {
+		return externalIDs
+	}
+	for key, value := range *providerIds {
+		externalIDs = append(externalIDs, types.ExternalID{Source: strings.ToLower(key), ID: value})
+	}
+	return externalIDs
+}

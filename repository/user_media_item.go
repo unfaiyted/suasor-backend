@@ -16,10 +16,12 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"suasor/clients/media/types"
 	"suasor/types/models"
 	"suasor/utils/logger"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -41,6 +43,7 @@ type UserMediaItemRepository[T types.MediaData] interface {
 	// General retrieval operations
 	GetByType(ctx context.Context, mediaType types.MediaType) ([]*models.MediaItem[T], error)
 	GetByExternalID(ctx context.Context, source string, externalID string) (*models.MediaItem[T], error)
+	GetByExternalIDs(ctx context.Context, externalIDs types.ExternalIDs) (*models.MediaItem[T], error)
 	Search(ctx context.Context, options types.QueryOptions) ([]*models.MediaItem[T], error)
 
 	BatchCreate(ctx context.Context, items []*models.MediaItem[T]) ([]*models.MediaItem[T], error)
@@ -91,10 +94,32 @@ func (r *userMediaItemRepository[T]) Update(ctx context.Context, item *models.Me
 	// Preserve createdAt
 	item.CreatedAt = existing.CreatedAt
 
-	// Update the record
-	if err := r.db.WithContext(ctx).Save(&item).Error; err != nil {
+	// Convert SyncClients to JSON manually
+	syncClientsJSON, err := json.Marshal(item.SyncClients)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal sync clients: %w", err)
+	}
+
+	// Use updates map to ensure proper JSON formatting
+	updates := map[string]interface{}{
+		"updated_at":   time.Now(),
+		"sync_clients": json.RawMessage(syncClientsJSON),
+		"external_ids": item.ExternalIDs,
+		"is_public":    item.IsPublic,
+		"type":         item.Type,
+		"title":        item.Title,
+		"release_date": item.ReleaseDate,
+		"release_year": item.ReleaseYear,
+		"stream_url":   item.StreamURL,
+		"download_url": item.DownloadURL,
+		"data":         item.Data,
+	}
+
+	// Update the record using a map to ensure proper JSON handling
+	if err := r.db.WithContext(ctx).Model(&item).Where("id = ?", item.ID).Updates(updates).Error; err != nil {
 		return nil, fmt.Errorf("failed to update media item: %w", err)
 	}
+
 	return item, nil
 }
 
@@ -231,4 +256,46 @@ func (r *userMediaItemRepository[T]) GetUserContent(ctx context.Context, userID 
 		Msg("User-owned content retrieved successfully")
 
 	return items, nil
+}
+
+// GetByExternalIDs retrieves a media item by any of the provided external IDs
+func (r *userMediaItemRepository[T]) GetByExternalIDs(ctx context.Context, externalIDs types.ExternalIDs) (*models.MediaItem[T], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Info().
+		Msg("Retrieving media item by external IDs")
+
+	var items []*models.MediaItem[T]
+
+	if len(externalIDs) == 0 {
+		return nil, fmt.Errorf("no external IDs provided")
+	}
+
+	// Start building the query
+	db := r.db.WithContext(ctx)
+
+	// For the first external ID, use Where; for subsequent IDs, use Or
+	for i, externalID := range externalIDs {
+		jsonPattern := fmt.Sprintf(`[{"source":"%s","id":"%s"}]`, externalID.Source, externalID.ID)
+
+		if i == 0 {
+			db = db.Where("external_ids @> ?", jsonPattern)
+		} else {
+			db = db.Or("external_ids @> ?", jsonPattern)
+		}
+	}
+
+	// Execute the query
+	if err := db.Find(&items).Error; err != nil {
+		return nil, fmt.Errorf("failed to get media items by external IDs: %w", err)
+	}
+
+	log.Info().
+		Int("count", len(items)).
+		Msg("Media items retrieved successfully")
+
+	if len(items) == 0 {
+		return nil, fmt.Errorf("no media item found matching external IDs")
+	}
+
+	return items[0], nil
 }

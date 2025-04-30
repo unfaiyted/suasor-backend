@@ -4,15 +4,15 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	// client "suasor/clients/types"
+	"suasor/clients/media/types"
 	"time"
 )
 
 // Person represents someone involved with media (actors, directors, etc.)
 type Person struct {
-	BaseModel               // Include base fields (ID, timestamps)
-	Name        string      `json:"name" gorm:"type:varchar(255);index"`
-	ExternalIDs ExternalIDs `json:"externalIDs" gorm:"type:jsonb"`
+	BaseModel                     // Include base fields (ID, timestamps)
+	Name        string            `json:"name" gorm:"type:varchar(255);index"`
+	ExternalIDs types.ExternalIDs `json:"externalIDs" gorm:"type:jsonb"`
 
 	// Biographical information
 	Photo       string     `json:"photo,omitempty" gorm:"type:text"`
@@ -143,7 +143,7 @@ func NewPerson(name string) *Person {
 	return &Person{
 		Name: name,
 		// ClientIDs:   make(ClientIDs, 0),
-		ExternalIDs: make(ExternalIDs, 0),
+		ExternalIDs: make(types.ExternalIDs, 0),
 		Metadata: PersonMetadata{
 			SocialMedia:    SocialMedia{},
 			AwardHistory:   make([]Award, 0),
@@ -164,7 +164,7 @@ func (p *Person) AddExternalID(source string, id string) {
 		}
 	}
 	// Add new ID
-	p.ExternalIDs = append(p.ExternalIDs, ExternalID{
+	p.ExternalIDs = append(p.ExternalIDs, types.ExternalID{
 		Source: source,
 		ID:     id,
 	})

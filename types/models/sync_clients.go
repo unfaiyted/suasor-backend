@@ -50,11 +50,15 @@ func (s *SyncClients) GetByClientID(clientID uint64) (*SyncClient, bool) {
 }
 
 func (s *SyncClients) Value() (driver.Value, error) {
-	if len(*s) == 0 {
+	if s == nil || len(*s) == 0 {
 		return "[]", nil
 	}
 	// Serialize the entire item to JSON for storage
-	return json.Marshal(*s)
+	jsonData, err := json.Marshal(*s)
+	if err != nil {
+		return nil, err
+	}
+	return string(jsonData), nil
 }
 
 func (s *SyncClients) Scan(value any) error {

@@ -20,8 +20,8 @@ type MediaItem[T types.MediaData] struct {
 
 	SyncClients SyncClients `json:"syncClients" gorm:"type:jsonb"` // Client IDs for this item (mapping client to their IDs)
 
-	ExternalIDs ExternalIDs `json:"externalIds" gorm:"type:jsonb"` // External IDs for this item (TMDB, IMDB, etc.)
-	IsPublic    bool        `json:"isPublic"`                      // Whether this item is public or not
+	ExternalIDs types.ExternalIDs `json:"externalIds" gorm:"type:jsonb"` // External IDs for this item (TMDB, IMDB, etc.)
+	IsPublic    bool              `json:"isPublic"`                      // Whether this item is public or not
 
 	Type types.MediaType `json:"type" gorm:"type:varchar(50)"` // Type of media (movie, show, episode, etc.)
 
@@ -41,7 +41,12 @@ func (MediaItem[T]) TableName() string {
 func NewMediaItem[T types.MediaData](itemType types.MediaType, data T) *MediaItem[T] {
 	// Initialize with empty arrays
 	clientIDs := make(SyncClients, 0)
-	externalIDs := make(ExternalIDs, 0)
+	externalIDs := make(types.ExternalIDs, 0)
+
+	if data.GetDetails().ExternalIDs != nil {
+		externalIDs = data.GetDetails().ExternalIDs
+	}
+
 	return &MediaItem[T]{
 		BaseModel: BaseModel{
 			CreatedAt: time.Now(),
@@ -212,7 +217,7 @@ func (m *MediaItem[T]) AddExternalID(source string, id string) {
 
 	if !found {
 		// Add new entry
-		m.ExternalIDs = append(m.ExternalIDs, ExternalID{
+		m.ExternalIDs = append(m.ExternalIDs, types.ExternalID{
 			Source: source,
 			ID:     id,
 		})
@@ -280,7 +285,7 @@ func (m *MediaItem[T]) IsCollection() bool {
 func CreateMediaItem(mediaType types.MediaType) (any, error) {
 	// Initialize with empty arrays for SyncClients and ExternalIDs
 	clientIDs := make(SyncClients, 0)
-	externalIDs := make(ExternalIDs, 0)
+	externalIDs := make(types.ExternalIDs, 0)
 
 	switch mediaType {
 	case types.MediaTypeMovie:

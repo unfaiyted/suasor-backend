@@ -124,7 +124,7 @@ func (h *userMediaItemHandler[T]) Create(c *gin.Context) {
 
 	// Initialize empty collections to prevent nil pointers
 	mediaItem.SyncClients = models.SyncClients{}
-	mediaItem.ExternalIDs = models.ExternalIDs{}
+	mediaItem.ExternalIDs = types.ExternalIDs{}
 
 	if err := c.ShouldBindJSON(&mediaItem); err != nil {
 		log.Warn().Err(err).Msg("Invalid media item data")
@@ -226,7 +226,7 @@ func (h *userMediaItemHandler[T]) Update(c *gin.Context) {
 
 	// Initialize empty collections to prevent nil pointers
 	mediaItem.SyncClients = models.SyncClients{}
-	mediaItem.ExternalIDs = models.ExternalIDs{}
+	mediaItem.ExternalIDs = types.ExternalIDs{}
 
 	// For updates, we'll keep the existing UUID and not generate a new one
 

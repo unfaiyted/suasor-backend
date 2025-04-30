@@ -1,6 +1,8 @@
 package plex
 
 import (
+	"fmt"
+	"strings"
 	"suasor/clients/media/types"
 	"time"
 
@@ -14,10 +16,6 @@ func (c *PlexClient) createDetailsFromMetadataChildren(item *operations.GetMetad
 		Artwork: types.Artwork{
 			Thumbnail: c.makeFullURL(*item.Thumb),
 		},
-		ExternalIDs: types.ExternalIDs{types.ExternalID{
-			Source: "plex",
-			ID:     *item.RatingKey,
-		}},
 		UpdatedAt: time.Unix(int64(*item.UpdatedAt), 0),
 		AddedAt:   time.Unix(int64(*item.AddedAt), 0),
 	}
@@ -36,6 +34,41 @@ func (c *PlexClient) createDetailsFromMetadataChildren(item *operations.GetMetad
 	return metadata
 }
 
+func convertToExternalIDs(mediaGUIDs []operations.MediaGUID) types.ExternalIDs {
+	externalIDs := types.ExternalIDs{}
+	if mediaGUIDs == nil {
+		fmt.Printf("mediaGUIDs is nil\n")
+		return externalIDs
+	}
+	fmt.Printf("mediaGUIDs: %v\n", mediaGUIDs)
+	for _, value := range mediaGUIDs {
+		source := strings.Split(value.ID, "://")[0]
+		id := strings.Split(value.ID, "://")[1]
+		externalIDs = append(externalIDs, types.ExternalID{
+			Source: strings.ToLower(source),
+			ID:     id,
+		})
+	}
+	return externalIDs
+}
+
+func convertGuidsToExternalIDs(guids []operations.GetMediaMetaDataGuids) types.ExternalIDs {
+	externalIDs := types.ExternalIDs{}
+	if guids == nil {
+		return externalIDs
+	}
+	for _, value := range guids {
+		// imdb://tt13015952, tmdb://2434012, tvdb://7945991
+		source := strings.Split(value.ID, "://")[0]
+		id := strings.Split(value.ID, "://")[1]
+		externalIDs = append(externalIDs, types.ExternalID{
+			Source: strings.ToLower(source),
+			ID:     id,
+		})
+	}
+	return externalIDs
+}
+
 // createMetadataFromPlexItem creates a MediaDetails from a Plex item
 func (c *PlexClient) createDetailsFromLibraryMetadata(item *operations.GetLibraryItemsMetadata) types.MediaDetails {
 	metadata := types.MediaDetails{
@@ -44,11 +77,10 @@ func (c *PlexClient) createDetailsFromLibraryMetadata(item *operations.GetLibrar
 		Artwork: types.Artwork{
 			Thumbnail: c.makeFullURL(*item.Thumb),
 		},
-		ExternalIDs: types.ExternalIDs{types.ExternalID{
-			Source: "plex",
-			ID:     item.RatingKey,
-		}},
 	}
+
+	metadata.ExternalIDs = convertToExternalIDs(item.MediaGUID)
+	fmt.Printf("externalIDs: %v\n", metadata.ExternalIDs)
 
 	// Add optional fields if present
 	if item.UpdatedAt != nil {
@@ -100,11 +132,9 @@ func (c *PlexClient) createDetailsFromMediaMetadata(item *operations.GetMediaMet
 		Artwork:     types.Artwork{
 			// Thumbnail: c.makeFullURL(*item.Thumb),
 		},
-		ExternalIDs: types.ExternalIDs{types.ExternalID{
-			Source: "plex",
-			ID:     item.RatingKey,
-		}},
 	}
+
+	metadata.ExternalIDs = convertGuidsToExternalIDs(item.Guids)
 
 	// Add optional fields if present
 	if item.AddedAt != 0 {

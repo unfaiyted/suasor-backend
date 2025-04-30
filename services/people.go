@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	mediatypes "suasor/clients/media/types"
 	"suasor/repository"
 	"suasor/types/models"
 	"suasor/utils/logger"
@@ -206,7 +207,7 @@ func (s *PersonService) ImportPerson(ctx context.Context, source string, externa
 		}
 
 		if !existingID {
-			personData.ExternalIDs = append(personData.ExternalIDs, models.ExternalID{
+			personData.ExternalIDs = append(personData.ExternalIDs, mediatypes.ExternalID{
 				Source: source,
 				ID:     externalID,
 			})
@@ -217,7 +218,7 @@ func (s *PersonService) ImportPerson(ctx context.Context, source string, externa
 	}
 
 	// Add the external ID
-	personData.ExternalIDs = append(personData.ExternalIDs, models.ExternalID{
+	personData.ExternalIDs = append(personData.ExternalIDs, mediatypes.ExternalID{
 		Source: source,
 		ID:     externalID,
 	})

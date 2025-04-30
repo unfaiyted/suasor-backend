@@ -25,6 +25,7 @@ func (e *EmbyClient) GetMusic(ctx context.Context, options *types.QueryOptions) 
 
 	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
 		IncludeItemTypes: optional.NewString("Audio"),
+		Fields:           optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
 		Recursive:        optional.NewBool(true),
 	}
 
@@ -77,6 +78,7 @@ func (e *EmbyClient) GetMusicArtists(ctx context.Context, options *types.QueryOp
 
 	opts := embyclient.ArtistsServiceApiGetArtistsOpts{
 		Recursive: optional.NewBool(true),
+		Fields:    optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
 	}
 
 	// Apply pagination and sorting
@@ -144,6 +146,7 @@ func (e *EmbyClient) GetMusicAlbums(ctx context.Context, options *types.QueryOpt
 
 	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
 		IncludeItemTypes: optional.NewString("Album"),
+		Fields:           optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
 		Recursive:        optional.NewBool(true),
 	}
 
@@ -195,6 +198,7 @@ func (e *EmbyClient) GetMusicTrackByID(ctx context.Context, id string) (*models.
 
 	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
 		Ids:              optional.NewString(id),
+		Fields:           optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
 		IncludeItemTypes: optional.NewString("Audio"),
 	}
 

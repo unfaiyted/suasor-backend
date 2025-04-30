@@ -6,12 +6,6 @@ import (
 )
 
 // ExternalID represents an ID from an external source
-type ExternalID struct {
-	Source string `json:"source"` // e.g., "tmdb", "imdb", "trakt", "tvdb"
-	ID     string `json:"id"`     // The actual ID
-}
-
-// ExternalID represents an ID from an external source
 type Rating struct {
 	Source string  `json:"source"` // e.g., "tmdb", "imdb", "trakt", "tvdb"
 	Value  float32 `json:"value"`  // The actual ID
@@ -20,21 +14,6 @@ type Rating struct {
 }
 
 type Ratings []Rating
-
-// ExternalIDs is a collection of IDs from different sources
-type ExternalIDs []ExternalID
-
-// GetID returns the ID for a specific source, empty string if not found
-func (ids ExternalIDs) GetID(source string) string {
-	for _, id := range ids {
-		if id.Source == source {
-			return id.ID
-		}
-	}
-	return ""
-}
-
-// Add method to add/update exisiting IDs by source
 
 func (ratings Ratings) GetRating(source string) float32 {
 	for _, rating := range ratings {
@@ -146,7 +125,7 @@ func GetMediaTypeFromTypeName(ofType any) MediaType {
 	if t == nil {
 		return MediaTypeUnknown
 	}
-	
+
 	// Normalize the type name by removing package paths and pointer symbols
 	typeName := t.String()
 	// Handle pointer types
@@ -156,7 +135,7 @@ func GetMediaTypeFromTypeName(ofType any) MediaType {
 	} else {
 		typeName = t.Name()
 	}
-	
+
 	// Now match on just the type name, not the full path
 	switch typeName {
 	case "Movie":

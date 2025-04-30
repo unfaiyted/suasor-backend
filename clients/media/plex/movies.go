@@ -47,15 +47,21 @@ func (c *PlexClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 		Int("sectionKey", sectionKey).
 		Msg("Making API request to Plex server for movies")
 
-	res, err := c.plexAPI.Library.GetLibraryItems(ctx, operations.GetLibraryItemsRequest{
-		Tag:         "all",
-		Type:        operations.GetLibraryItemsQueryParamTypeMovie,
-		SectionKey:  sectionKey,
-		IncludeMeta: operations.GetLibraryItemsQueryParamIncludeMetaEnable.ToPointer(),
-	})
+	// Handle pagination when fetching all movies (limit=0, offset=0)
+	if options.Limit == 0 && options.Offset == 0 {
+		return c.getAllMovies(ctx, sectionKey)
+	}
 
-	// TODO: this interface here is wrong, need differernt type
-	// log.Debug().Interface("response", res).Msg("Response from Plex")
+	// Regular case with specified limit and offset
+	res, err := c.plexAPI.Library.GetLibraryItems(ctx, operations.GetLibraryItemsRequest{
+		Tag:                 "all",
+		Type:                operations.GetLibraryItemsQueryParamTypeMovie,
+		SectionKey:          sectionKey,
+		XPlexContainerStart: &options.Offset,
+		XPlexContainerSize:  &options.Limit,
+		IncludeGuids:        operations.IncludeGuidsEnable.ToPointer(),
+		IncludeMeta:         operations.GetLibraryItemsQueryParamIncludeMetaEnable.ToPointer(),
+	})
 
 	if err != nil {
 		log.Error().
@@ -249,3 +255,127 @@ func (c *PlexClient) GetMovieGenres(ctx context.Context) ([]string, error) {
 	return genres, nil
 }
 
+// getAllMovies fetches all movies from Plex using pagination with batch size of 50
+func (c *PlexClient) getAllMovies(ctx context.Context, sectionKey int) ([]*models.MediaItem[*types.Movie], error) {
+	log := logger.LoggerFromContext(ctx)
+	var allMovies []*models.MediaItem[*types.Movie]
+
+	batchSize := 50
+	offset := 0
+
+	for {
+		log.Debug().
+			Int("sectionKey", sectionKey).
+			Int("offset", offset).
+			Int("batchSize", batchSize).
+			Msg("Fetching batch of movies from Plex")
+
+		res, err := c.plexAPI.Library.GetLibraryItems(ctx, operations.GetLibraryItemsRequest{
+			Tag:                 "all",
+			Type:                operations.GetLibraryItemsQueryParamTypeMovie,
+			SectionKey:          sectionKey,
+			XPlexContainerStart: &offset,
+			XPlexContainerSize:  &batchSize,
+			IncludeGuids:        operations.IncludeGuidsEnable.ToPointer(),
+			IncludeMeta:         operations.GetLibraryItemsQueryParamIncludeMetaEnable.ToPointer(),
+		})
+
+		if err != nil {
+			log.Error().
+				Err(err).
+				Uint64("clientID", c.GetClientID()).
+				Str("clientType", string(c.GetClientType())).
+				Int("sectionKey", sectionKey).
+				Int("offset", offset).
+				Msg("Failed to get batch of movies from Plex")
+			return nil, fmt.Errorf("failed to get movies batch: %w", err)
+		}
+
+		// Check if we have results
+		if res.Object.MediaContainer == nil || res.Object.MediaContainer.Metadata == nil || len(res.Object.MediaContainer.Metadata) == 0 {
+			// No more results, break the loop
+			break
+		}
+
+		// Process the current batch with error recovery for individual items
+		var batchMovies []*models.MediaItem[*types.Movie]
+		for i, item := range res.Object.MediaContainer.Metadata {
+			// Skip potential problematic items
+			if item.RatingKey == "" {
+				log.Warn().
+					Int("batchIndex", i).
+					Int("offset", offset).
+					Msg("Skipping movie with missing RatingKey")
+				continue
+			}
+
+			// Try to process each movie individually
+			movieID := item.RatingKey
+			movieTitle := item.Title
+
+			try := func() (movie *models.MediaItem[*types.Movie], err error) {
+				// Recover from panics during processing
+				defer func() {
+					if r := recover(); r != nil {
+						log.Error().
+							Interface("panic", r).
+							Str("movieID", movieID).
+							Str("movieTitle", movieTitle).
+							Int("offset", offset+i).
+							Msg("Panic while processing movie, skipping")
+						err = fmt.Errorf("panic while processing movie: %v", r)
+					}
+				}()
+
+				itemT, err := GetItemFromLibraryMetadata[*types.Movie](ctx, c, &item)
+				if err != nil {
+					return nil, err
+				}
+
+				movie, err = GetMediaItem[*types.Movie](ctx, c, itemT, item.RatingKey)
+				return movie, err
+			}
+
+			movie, err := try()
+			if err != nil {
+				log.Error().
+					Err(err).
+					Str("movieID", movieID).
+					Str("movieTitle", movieTitle).
+					Int("offset", offset+i).
+					Msg("Error processing movie, skipping")
+				continue
+			}
+
+			if movie != nil {
+				batchMovies = append(batchMovies, movie)
+			}
+		}
+
+		// Add to our accumulated results
+		allMovies = append(allMovies, batchMovies...)
+
+		batchCount := len(res.Object.MediaContainer.Metadata)
+		log.Debug().
+			Int("batchCount", batchCount).
+			Int("processedCount", len(batchMovies)).
+			Int("totalSoFar", len(allMovies)).
+			Msg("Retrieved batch of movies")
+
+		// If we got fewer items than requested, we've reached the end
+		if batchCount < batchSize {
+			break
+		}
+
+		// Move to the next batch
+		offset += batchSize
+	}
+
+	log.Info().
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
+		Int("totalMovies", len(allMovies)).
+		Msg("Successfully retrieved all movies from Plex")
+
+	return allMovies, nil
+}
