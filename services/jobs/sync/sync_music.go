@@ -22,7 +22,7 @@ func (j *MediaSyncJob) syncMusic(ctx context.Context, clientMedia media.ClientMe
 
 	// Get all tracks from the client
 	clientType := clientMedia.(clients.Client).GetClientType()
-	tracks, err := musicProvider.GetMusic(ctx, &mediatypes.QueryOptions{})
+	tracks, err := musicProvider.GetMusic(ctx, &mediatypes.QueryOptions{Limit: 100, Offset: 0})
 	if err != nil {
 		return fmt.Errorf("failed to get tracks: %w", err)
 	}

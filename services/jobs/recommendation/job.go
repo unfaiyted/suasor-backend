@@ -302,9 +302,9 @@ func (j *RecommendationJob) processUserRecommendations(ctx context.Context, jobR
 }
 
 // SetupMediaSyncJob creates or updates a media sync job for a user
-func (j *RecommendationJob) SetupMediaSyncJob(ctx context.Context, userID, clientID uint64, clientType, mediaType, frequency string) error {
+func (j *RecommendationJob) SetupMediaSyncJob(ctx context.Context, userID, clientID uint64, clientType string, syncType models.SyncType, frequency string) error {
 	// Implementation would set up a media sync job
 	// This is just a stub to satisfy the interface
-	log.Printf("Setting up media sync job for user %d, client %d, type %s", userID, clientID, mediaType)
+	log.Printf("Setting up media sync job for user %d, client %d, type %s", userID, clientID, syncType)
 	return nil
 }

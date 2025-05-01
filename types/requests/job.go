@@ -11,10 +11,10 @@ type UpdateJobScheduleRequest struct {
 
 // SetupMediaSyncJobRequest represents a request to setup a media sync job
 type SetupMediaSyncJobRequest struct {
-	ClientID   uint64 `json:"clientID" binding:"required"`
-	ClientType string `json:"clientType" binding:"required"`
-	MediaType  string `json:"mediaType" binding:"required"`
-	Frequency  string `json:"frequency" binding:"required"`
+	ClientID   uint64          `json:"clientID" binding:"required"`
+	ClientType string          `json:"clientType" binding:"required"`
+	SyncType   models.SyncType `json:"syncType" binding:"required"`
+	Frequency  string          `json:"frequency" binding:"required"`
 }
 
 // RunMediaSyncJobRequest represents a request to run a media sync job

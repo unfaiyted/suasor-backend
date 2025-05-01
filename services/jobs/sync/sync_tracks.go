@@ -276,18 +276,18 @@ func (j *MediaSyncJob) updateAlbumsTracksArtistIDs(
 	}
 }
 
-func (j *MediaSyncJob) getMusicService(ctx context.Context, clientID uint64, clientType clienttypes.ClientType) (services.ClientMusicService[clienttypes.ClientConfig], error) {
-	// Get the client
-	client, err := j.getClientMedia(ctx, clientID, clientType)
-	if err != nil {
-		return nil, err
+func (j *MediaSyncJob) getMusicService(ctx context.Context, clientID uint64, clientType clienttypes.ClientType) (services.CoreMusicService, error) {
+	// Based on the client type, return the appropriate music service
+	switch clientType {
+	case clienttypes.ClientTypeEmby:
+		return j.clientMusicServices.EmbyMusicService(), nil
+	case clienttypes.ClientTypeJellyfin:
+		return j.clientMusicServices.JellyfinMusicService(), nil
+	case clienttypes.ClientTypePlex:
+		return j.clientMusicServices.PlexMusicService(), nil
+	case clienttypes.ClientTypeSubsonic:
+		return j.clientMusicServices.SubsonicMusicService(), nil
+	default:
+		return nil, fmt.Errorf("unsupported client type for music service: %s", clientType)
 	}
-
-	// Get the music service for this client
-	musicService, ok := client.(services.ClientMusicService[clienttypes.ClientMediaConfig])
-	if !ok {
-		return nil, fmt.Errorf("client does not implement music service interface")
-	}
-
-	return musicService, nil
 }

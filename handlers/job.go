@@ -276,7 +276,7 @@ func (h *JobHandler) SetupMediaSyncJob(c *gin.Context) {
 		return
 	}
 
-	if err := h.jobService.SetupMediaSyncJob(c.Request.Context(), userID.(uint64), req.ClientID, req.ClientType, req.MediaType, req.Frequency); err != nil {
+	if err := h.jobService.SetupMediaSyncJob(c.Request.Context(), userID.(uint64), req.ClientID, req.ClientType, req.SyncType, req.Frequency); err != nil {
 		responses.RespondInternalError(c, err, "Failed to setup media sync job")
 		return
 	}

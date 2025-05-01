@@ -63,7 +63,7 @@ type JobService interface {
 	UpdateRecommendationViewedStatus(ctx context.Context, recommendationID uint64, viewed bool) error
 
 	// SetupMediaSyncJob creates or updates a media sync job
-	SetupMediaSyncJob(ctx context.Context, userID, clientID uint64, clientType, mediaType, frequency string) error
+	SetupMediaSyncJob(ctx context.Context, userID, clientID uint64, clientType string, syncType models.SyncType, frequency string) error
 	// RunMediaSyncJob runs a media sync job manually
 	RunMediaSyncJob(ctx context.Context, userID, clientID uint64, syncType models.SyncType) error
 	// GetMediaSyncJobs retrieves all media sync jobs for a user
@@ -339,9 +339,9 @@ func (s *jobService) UpdateRecommendationViewedStatus(ctx context.Context, recom
 }
 
 // SetupMediaSyncJob creates or updates a media sync job
-func (s *jobService) SetupMediaSyncJob(ctx context.Context, userID, clientID uint64, clientType, mediaType, frequency string) error {
+func (s *jobService) SetupMediaSyncJob(ctx context.Context, userID, clientID uint64, clientType string, syncType models.SyncType, frequency string) error {
 	// Validate inputs
-	if userID == 0 || clientID == 0 || mediaType == "" || frequency == "" {
+	if userID == 0 || clientID == 0 || syncType == "" || frequency == "" {
 		return fmt.Errorf("invalid input parameters")
 	}
 
@@ -355,7 +355,7 @@ func (s *jobService) SetupMediaSyncJob(ctx context.Context, userID, clientID uin
 	}
 
 	// Create or update the sync job
-	return s.recommendationJob.SetupMediaSyncJob(ctx, userID, clientID, clientType, mediaType, frequency)
+	return s.recommendationJob.SetupMediaSyncJob(ctx, userID, clientID, clientType, syncType, frequency)
 }
 
 // RunMediaSyncJob runs a media sync job manually
