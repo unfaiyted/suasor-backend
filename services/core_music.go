@@ -35,6 +35,13 @@ type CoreMusicService interface {
 	GetTrackByTitleAndArtistName(ctx context.Context, title string, artistName string) (*models.MediaItem[*types.Track], error)
 	GetAlbumByTitleAndArtistName(ctx context.Context, title string, artistName string) (*models.MediaItem[*types.Album], error)
 
+	// Music external_IDs often have somthing like
+	// [{ "id": "1234", "source": "musicbrainzartist"},{"id": "1234", "source":"discogartist" }]
+	// These ids may show up on the album or track details
+	GetArtistByExternalIDs(ctx context.Context, externalIDs []string) (*models.MediaItem[*types.Artist], error)
+	GetArtistTracksByExternalIDs(ctx context.Context, externalIDs []string) ([]*models.MediaItem[*types.Track], error)
+	GetArtistAlbumsByExternalIDs(ctx context.Context, externalIDs []string) ([]*models.MediaItem[*types.Album], error)
+
 	// Search operations
 	SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error)
 }
@@ -391,4 +398,57 @@ func (s *coreMusicService) GetAlbumByTitleAndArtistName(ctx context.Context, tit
 	}
 
 	return album, nil
+}
+
+// GetArtistByExternalIDs gets an artist by external IDs
+func (s *coreMusicService) GetArtistByExternalIDs(ctx context.Context, externalIDs types.ExternalIDs) (*models.MediaItem[*types.Artist], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Msg("Getting artist by external IDs")
+
+	artist, err := s.musicRepo.GetArtistByExternalIDs(ctx, externalIDs)
+	if err != nil {
+		log.Error().Err(err).
+			Str("externalIDs", externalIDs.String()).
+			Msg("Failed to get artist by external IDs")
+		return nil, fmt.Errorf("failed to get artist by external IDs: %w", err)
+	}
+
+	return artist, nil
+}
+
+// GetArtistTracksByExternalIDs gets tracks by external IDs
+func (s *coreMusicService) GetArtistTracksByExternalIDs(ctx context.Context, externalIDs types.ExternalIDs) ([]*models.MediaItem[*types.Track], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Str("externalIDs", externalIDs.String()).
+		Msg("Getting artist tracks by external IDs")
+
+	tracks, err := s.musicRepo.GetArtistTracksByExternalIDs(ctx, externalIDs)
+	if err != nil {
+		log.Error().Err(err).
+			Str("externalIDs", externalIDs.String()).
+			Msg("Failed to get artist tracks by external IDs")
+		return nil, fmt.Errorf("failed to get artist tracks by external IDs: %w", err)
+	}
+
+	return tracks, nil
+}
+
+// GetArtistAlbumsByExternalIDs gets albums by external IDs
+func (s *coreMusicService) GetArtistAlbumsByExternalIDs(ctx context.Context, externalIDs types.ExternalIDs) ([]*models.MediaItem[*types.Album], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Str("externalIDs", externalIDs.String()).
+		Msg("Getting artist albums by external IDs")
+
+	albums, err := s.musicRepo.GetArtistAlbumsByExternalIDs(ctx, externalIDs)
+	if err != nil {
+		log.Error().Err(err).
+			Str("externalIDs", externalIDs.String()).
+			Msg("Failed to get artist albums by external IDs")
+		return nil, fmt.Errorf("failed to get artist albums by external IDs: %w", err)
+	}
+
+	return albums, nil
 }

@@ -38,6 +38,13 @@ type MusicRepository interface {
 	GetTrackByTitleAndArtistName(ctx context.Context, title string, artistName string) (*models.MediaItem[*types.Track], error)
 	GetAlbumByTitleAndArtistName(ctx context.Context, title string, artistName string) (*models.MediaItem[*types.Album], error)
 
+	// Music external_IDs often have somthing like
+	// [{ "id": "1234", "source": "musicbrainzartist"},{"id": "1234", "source":"discogartist" }]
+	// These ids may show up on the album or track details
+	GetArtistByExternalIDs(ctx context.Context, externalIDs types.ExternalIDs) (*models.MediaItem[*types.Artist], error)
+	GetArtistTracksByExternalIDs(ctx context.Context, externalIDs types.ExternalIDs) ([]*models.MediaItem[*types.Track], error)
+	GetArtistAlbumsByExternalIDs(ctx context.Context, externalIDs types.ExternalIDs) ([]*models.MediaItem[*types.Album], error)
+
 	// Advanced search operations
 	SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error)
 	GetSimilarTracks(ctx context.Context, trackID uint64, limit int) ([]*models.MediaItem[*types.Track], error)
@@ -484,4 +491,131 @@ func (r *musicRepository) GetAlbumByTitleAndArtistName(ctx context.Context, titl
 	}
 
 	return album, nil
+}
+
+// GetArtistByExternalIDs gets an artist by external IDs
+func (r *musicRepository) GetArtistByExternalIDs(ctx context.Context, externalIDs types.ExternalIDs) (*models.MediaItem[*types.Artist], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Info().
+		Msg("Retrieving media item by external IDs")
+
+	var items []*models.MediaItem[*types.Artist]
+
+	if len(externalIDs) == 0 {
+		return nil, fmt.Errorf("no external IDs provided")
+	}
+
+	// Start building the query
+	db := r.db.WithContext(ctx)
+	db.Where("type = ?", types.MediaTypeArtist)
+	// For the first external ID, use Where; for subsequent IDs, use Or
+	for i, externalID := range externalIDs {
+		jsonPattern := fmt.Sprintf(`[{"source":"%s","id":"%s"}]`, externalID.Source, externalID.ID)
+
+		if i == 0 {
+			db = db.Where("external_ids @> ?", jsonPattern)
+		} else {
+			db = db.Or("external_ids @> ?", jsonPattern)
+		}
+	}
+
+	// Execute the query
+	if err := db.Find(&items).Error; err != nil {
+		return nil, fmt.Errorf("failed to get media items by external IDs: %w", err)
+	}
+
+	log.Info().
+		Int("count", len(items)).
+		Msg("Media items retrieved successfully")
+
+	if len(items) == 0 {
+		return nil, fmt.Errorf("no media item found matching external IDs")
+	}
+
+	return items[0], nil
+}
+
+// GetArtistTracksByExternalIDs gets tracks by external IDs
+func (r *musicRepository) GetArtistTracksByExternalIDs(ctx context.Context, externalIDs types.ExternalIDs) ([]*models.MediaItem[*types.Track], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Info().
+		Msg("Retrieving artist tracks by external IDs")
+
+	var tracks []*models.MediaItem[*types.Track]
+
+	if len(externalIDs) == 0 {
+		return nil, fmt.Errorf("no external IDs provided")
+	}
+
+	// Start building the query
+	db := r.db.WithContext(ctx)
+
+	// For the first external ID, use Where; for subsequent IDs, use Or
+	for i, externalID := range externalIDs {
+		jsonPattern := fmt.Sprintf(`[{"source":"%s","id":"%s"}]`, externalID.Source, externalID.ID)
+
+		if i == 0 {
+			db = db.Where("external_ids @> ?", jsonPattern)
+		} else {
+			db = db.Or("external_ids @> ?", jsonPattern)
+		}
+	}
+
+	// Execute the query
+	if err := db.Find(&tracks).Error; err != nil {
+		return nil, fmt.Errorf("failed to get artist tracks by external IDs: %w", err)
+	}
+
+	log.Info().
+		Int("count", len(tracks)).
+		Msg("Artist tracks retrieved successfully")
+
+	if len(tracks) == 0 {
+		return nil, fmt.Errorf("no artist track found matching external IDs")
+	}
+
+	return tracks, nil
+}
+
+// GetArtistAlbumsByExternalIDs gets albums by external IDs
+func (r *musicRepository) GetArtistAlbumsByExternalIDs(ctx context.Context, externalIDs types.ExternalIDs) ([]*models.MediaItem[*types.Album], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Info().
+		Msg("Retrieving artist albums by external IDs")
+
+	var albums []*models.MediaItem[*types.Album]
+
+	if len(externalIDs) == 0 {
+		return nil, fmt.Errorf("no external IDs provided")
+	}
+
+	// Start building the query
+	db := r.db.WithContext(ctx)
+
+	// For the first external ID, use Where; for subsequent IDs, use Or
+	for i, externalID := range externalIDs {
+		jsonPattern := fmt.Sprintf(`[{"source":"%s","id":"%s"}]`, externalID.Source, externalID.ID)
+
+		if i == 0 {
+			db = db.Where("external_ids @> ?", jsonPattern)
+		} else {
+			db = db.Or("external_ids @> ?", jsonPattern)
+		}
+	}
+
+	// Execute the query
+	if err := db.Find(&albums).Error; err != nil {
+		return nil, fmt.Errorf("failed to get artist albums by external IDs: %w", err)
+	}
+
+	log.Info().
+		Int("count", len(albums)).
+		Msg("Artist albums retrieved successfully")
+
+	if len(albums) == 0 {
+		return nil, fmt.Errorf("no artist album found matching external IDs")
+	}
+
+	return albums, nil
+
 }

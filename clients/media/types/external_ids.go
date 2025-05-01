@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"strings"
 )
 
 type ExternalID struct {
@@ -61,4 +62,15 @@ func (ids *ExternalIDs) Scan(value any) error {
 	}
 
 	return json.Unmarshal(bytes, ids)
+}
+
+func (ids ExternalIDs) String() string {
+	if len(ids) == 0 {
+		return ""
+	}
+	var strs []string
+	for _, id := range ids {
+		strs = append(strs, id.Source+":"+id.ID)
+	}
+	return "[" + strings.Join(strs, ", ") + "]"
 }

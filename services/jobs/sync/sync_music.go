@@ -7,10 +7,12 @@ import (
 	"suasor/clients/media"
 	"suasor/clients/media/providers"
 	mediatypes "suasor/clients/media/types"
+	"suasor/utils/logger"
 )
 
 // syncMusic syncs music tracks from the client to the database
 func (j *MediaSyncJob) syncMusic(ctx context.Context, clientMedia media.ClientMedia, jobRunID uint64, clientID uint64) error {
+	log := logger.LoggerFromContext(ctx)
 	// Update job progress
 	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 10, "Fetching music from client")
 
@@ -20,11 +22,30 @@ func (j *MediaSyncJob) syncMusic(ctx context.Context, clientMedia media.ClientMe
 		return fmt.Errorf("client doesn't support music")
 	}
 
-	// Get all tracks from the client
+	// Get all tracks from the client in batches
 	clientType := clientMedia.(clients.Client).GetClientType()
-	tracks, err := musicProvider.GetMusic(ctx, &mediatypes.QueryOptions{Limit: 1000, Offset: 0})
+	// Fetch tracks in pages to avoid overwhelming the provider
+	pageSize := 1000
+	offset := 0
+	tracks, err := musicProvider.GetMusic(ctx, &mediatypes.QueryOptions{Limit: pageSize, Offset: offset})
 	if err != nil {
 		return fmt.Errorf("failed to get tracks: %w", err)
+	}
+	offset += len(tracks)
+	for {
+		batch, err := musicProvider.GetMusic(ctx, &mediatypes.QueryOptions{Limit: pageSize, Offset: offset})
+		if err != nil {
+			return fmt.Errorf("failed to get tracks: %w", err)
+		}
+		if len(batch) == 0 {
+			break
+		}
+		tracks = append(tracks, batch...)
+		offset += len(batch)
+		log.Debug().
+			Int("offset", offset).
+			Int("totalTracks", len(tracks)).
+			Msg("Fetched more tracks from the provider")
 	}
 
 	// Update job progress
@@ -52,10 +73,8 @@ func (j *MediaSyncJob) syncMusic(ctx context.Context, clientMedia media.ClientMe
 		j.jobRepo.UpdateJobProgress(ctx, jobRunID, progress, fmt.Sprintf("Processed %d/%d tracks", processedTracks, totalTracks))
 	}
 
-	j.syncArtists(ctx, clientMedia, jobRunID, clientID)
 	j.syncAlbums(ctx, clientMedia, jobRunID, clientID)
-
-	// fix missing IDs
+	j.syncArtists(ctx, clientMedia, jobRunID, clientID)
 
 	// Update job progress
 	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 100, fmt.Sprintf("Synced %d tracks", totalTracks))
