@@ -22,7 +22,7 @@ func (j *MediaSyncJob) syncMusic(ctx context.Context, clientMedia media.ClientMe
 
 	// Get all tracks from the client
 	clientType := clientMedia.(clients.Client).GetClientType()
-	tracks, err := musicProvider.GetMusic(ctx, &mediatypes.QueryOptions{Limit: 100, Offset: 0})
+	tracks, err := musicProvider.GetMusic(ctx, &mediatypes.QueryOptions{Limit: 1000, Offset: 0})
 	if err != nil {
 		return fmt.Errorf("failed to get tracks: %w", err)
 	}
@@ -51,6 +51,11 @@ func (j *MediaSyncJob) syncMusic(ctx context.Context, clientMedia media.ClientMe
 		progress := 50 + int(float64(processedTracks)/float64(totalTracks)*50.0)
 		j.jobRepo.UpdateJobProgress(ctx, jobRunID, progress, fmt.Sprintf("Processed %d/%d tracks", processedTracks, totalTracks))
 	}
+
+	j.syncArtists(ctx, clientMedia, jobRunID, clientID)
+	j.syncAlbums(ctx, clientMedia, jobRunID, clientID)
+
+	// fix missing IDs
 
 	// Update job progress
 	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 100, fmt.Sprintf("Synced %d tracks", totalTracks))

@@ -7,18 +7,18 @@ import (
 )
 
 type Track struct {
-	Details    *MediaDetails
-	AlbumID    uint64  `json:"albumID"`
-	ArtistID   uint64  `json:"artistID"`
-	AlbumName  string  `json:"albumName"`
-	AlbumTitle string  `json:"albumTitle,omitempty"`
-	Duration   int     `json:"duration,omitempty"`
-	ArtistName string  `json:"artistName,omitempty"`
-	Number     int     `json:"trackNumber,omitempty"`
-	DiscNumber int     `json:"discNumber,omitempty"`
-	Composer   string  `json:"composer,omitempty"`
-	Lyrics     string  `json:"lyrics,omitempty"`
-	Credits    Credits `json:"credits,omitempty"`
+	Details    *MediaDetails `json:"details"`
+	AlbumID    uint64        `json:"albumID"`
+	ArtistID   uint64        `json:"artistID"`
+	AlbumName  string        `json:"albumName"`
+	AlbumTitle string        `json:"albumTitle,omitempty"`
+	Duration   int           `json:"duration,omitempty"`
+	ArtistName string        `json:"artistName,omitempty"`
+	Number     int           `json:"trackNumber,omitempty"`
+	DiscNumber int           `json:"discNumber,omitempty"`
+	Composer   string        `json:"composer,omitempty"`
+	Lyrics     string        `json:"lyrics,omitempty"`
+	Credits    Credits       `json:"credits,omitempty"`
 }
 
 func (Track) isMediaData()                {}

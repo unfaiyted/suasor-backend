@@ -9,7 +9,7 @@ import (
 // Episode represents a TV episode
 type Episode struct {
 	MediaData `json:"-"`
-	Details   *MediaDetails
+	Details   *MediaDetails `json:"details"`
 
 	SeriesID uint64 `json:"seriesID"` // itemID of the series
 	SeasonID uint64 `json:"seasonID"` // itemID of the season

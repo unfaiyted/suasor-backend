@@ -143,8 +143,13 @@ func (e *EmbyClient) movieFactory(ctx context.Context, item *embyclient.BaseItem
 // Factory function for Track
 func (e *EmbyClient) trackFactory(ctx context.Context, item *embyclient.BaseItemDto) (*types.Track, error) {
 	track := &types.Track{
+		Number:     int(item.IndexNumber),
+		AlbumName:  item.Album,
+		DiscNumber: int(item.ParentIndexNumber),
 		Details: &types.MediaDetails{
 			Title:         item.Name,
+			ReleaseDate:   item.PremiereDate,
+			ReleaseYear:   int(item.PremiereDate.Year()),
 			Description:   item.Overview,
 			AddedAt:       time.Now(),
 			UpdatedAt:     time.Now(),
@@ -153,8 +158,6 @@ func (e *EmbyClient) trackFactory(ctx context.Context, item *embyclient.BaseItem
 			Artwork:       e.getArtworkURLs(item),
 			Ratings:       getRatingsFromItem(item),
 		},
-		Number:    int(item.IndexNumber),
-		AlbumName: item.Album,
 	}
 
 	// track.SyncAlbum.AddClient(e.GetClientID(), item.Id)
@@ -203,7 +206,8 @@ func (e *EmbyClient) albumFactory(ctx context.Context, item *embyclient.BaseItem
 		Details: &types.MediaDetails{
 			Title:       item.Name,
 			Description: item.Overview,
-			ReleaseYear: int(item.ProductionYear),
+			ReleaseYear: int(item.PremiereDate.Year()),
+			ReleaseDate: item.PremiereDate,
 			AddedAt:     time.Now(),
 			UpdatedAt:   time.Now(),
 			Genres:      item.Genres,

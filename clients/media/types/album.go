@@ -6,6 +6,18 @@ import (
 	"errors"
 )
 
+// MusicAlbum represents a music album
+type Album struct {
+	MediaData `json:"-"`
+
+	Details    *MediaDetails `json:"details"`
+	ArtistID   uint64        `json:"artistID"`
+	ArtistName string        `json:"artistName"`
+	TrackCount int           `json:"trackCount"`
+	Credits    *Credits      `json:"credits,omitempty"`
+	Tracks     *TrackEntries `json:"tracks,omitempty"`
+}
+
 type TrackEntry struct {
 	Number  int    `json:"number"`
 	Title   string `json:"title"`
@@ -47,18 +59,6 @@ func (t *TrackEntries) Merge(other TrackEntries) {
 			*t = append(*t, otherTrack)
 		}
 	}
-}
-
-// MusicAlbum represents a music album
-type Album struct {
-	MediaData `json:"-"`
-
-	Details    *MediaDetails `json:"details"`
-	ArtistID   uint64        `json:"artistID"`
-	ArtistName string        `json:"artistName"`
-	TrackCount int           `json:"trackCount"`
-	Credits    *Credits      `json:"credits,omitempty"`
-	Tracks     *TrackEntries `json:"tracks,omitempty"`
 }
 
 func (a *Album) isMediaData() {}
