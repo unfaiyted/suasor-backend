@@ -8,6 +8,7 @@ import (
 	"suasor/di/container"
 	"suasor/repository"
 	"suasor/services"
+	svcbundles "suasor/services/bundles"
 )
 
 func registerClientServices(ctx context.Context, c *container.Container) {
@@ -27,6 +28,15 @@ func registerClientServices(ctx context.Context, c *container.Container) {
 	registerClientSeriesService[*types.JellyfinConfig](c)
 	registerClientSeriesService[*types.EmbyConfig](c)
 	registerClientSeriesService[*types.PlexConfig](c)
+
+	// Register ClientMusicService for each media client type
+	registerClientMusicService[*types.JellyfinConfig](c)
+	registerClientMusicService[*types.EmbyConfig](c)
+	registerClientMusicService[*types.PlexConfig](c)
+	registerClientMusicService[*types.SubsonicConfig](c)
+
+	// Register client music services bundle
+	registerClientMusicServicesBundle(c)
 
 	// Register AutomationClientService
 	container.RegisterFactory[services.AutomationClientService](c, func(c *container.Container) services.AutomationClientService {
@@ -68,5 +78,55 @@ func registerClientSeriesService[T types.ClientMediaConfig](c *container.Contain
 		clientRepo := container.MustGet[repository.ClientRepository[T]](c)
 		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
 		return services.NewClientSeriesService[T](clientRepo, clientFactory)
+	})
+}
+
+// registerClientMusicService registers a specialized music service for a given client config type
+func registerClientMusicService[T types.ClientMediaConfig](c *container.Container) {
+	container.RegisterFactory[services.ClientMusicService[T]](c, func(c *container.Container) services.ClientMusicService[T] {
+		clientRepo := container.MustGet[repository.ClientRepository[T]](c)
+		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
+		coreService := container.MustGet[services.CoreMusicService](c)
+		return services.NewClientMusicService[T](coreService, clientRepo, clientFactory)
+	})
+}
+
+// ClientMusicServicesImpl is a bundled implementation of the ClientMusicServices interface
+type ClientMusicServicesImpl struct {
+	embyService     services.ClientMusicService[*types.EmbyConfig]
+	jellyfinService services.ClientMusicService[*types.JellyfinConfig]
+	plexService     services.ClientMusicService[*types.PlexConfig]
+	subsonicService services.ClientMusicService[*types.SubsonicConfig]
+}
+
+// EmbyMusicService returns the Emby music service
+func (s *ClientMusicServicesImpl) EmbyMusicService() services.ClientMusicService[*types.EmbyConfig] {
+	return s.embyService
+}
+
+// JellyfinMusicService returns the Jellyfin music service
+func (s *ClientMusicServicesImpl) JellyfinMusicService() services.ClientMusicService[*types.JellyfinConfig] {
+	return s.jellyfinService
+}
+
+// PlexMusicService returns the Plex music service
+func (s *ClientMusicServicesImpl) PlexMusicService() services.ClientMusicService[*types.PlexConfig] {
+	return s.plexService
+}
+
+// SubsonicMusicService returns the Subsonic music service
+func (s *ClientMusicServicesImpl) SubsonicMusicService() services.ClientMusicService[*types.SubsonicConfig] {
+	return s.subsonicService
+}
+
+// registerClientMusicServicesBundle registers the ClientMusicServices implementation
+func registerClientMusicServicesBundle(c *container.Container) {
+	container.RegisterFactory[svcbundles.ClientMusicServices](c, func(c *container.Container) svcbundles.ClientMusicServices {
+		return &ClientMusicServicesImpl{
+			embyService:     container.MustGet[services.ClientMusicService[*types.EmbyConfig]](c),
+			jellyfinService: container.MustGet[services.ClientMusicService[*types.JellyfinConfig]](c),
+			plexService:     container.MustGet[services.ClientMusicService[*types.PlexConfig]](c),
+			subsonicService: container.MustGet[services.ClientMusicService[*types.SubsonicConfig]](c),
+		}
 	})
 }

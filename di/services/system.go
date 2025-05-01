@@ -10,6 +10,7 @@ import (
 	"suasor/services"
 	"suasor/services/jobs"
 	"suasor/services/jobs/recommendation"
+	"suasor/services/jobs/sync"
 	"suasor/utils/logger"
 	"time"
 )
@@ -116,9 +117,9 @@ func registerSystemServices(ctx context.Context, c *container.Container) {
 		userMusicDataRepo := userDataRepos.TrackDataRepo()
 
 		// Get job implementations
-		watchHistorySyncJob := container.MustGet[*jobs.WatchHistorySyncJob](c)
-		favoritesSyncJob := container.MustGet[*jobs.FavoritesSyncJob](c)
-		mediaSyncJob := container.MustGet[*jobs.MediaSyncJob](c)
+		watchHistorySyncJob := container.MustGet[*sync.WatchHistorySyncJob](c)
+		favoritesSyncJob := container.MustGet[*sync.FavoritesSyncJob](c)
+		mediaSyncJob := container.MustGet[*sync.MediaSyncJob](c)
 		recommendationJob := container.MustGet[*recommendation.RecommendationJob](c)
 
 		// Job implementations

@@ -5,6 +5,35 @@ import (
 	"time"
 )
 
+type SyncType string
+
+const (
+	// Media types
+	SyncTypeMovies SyncType = "movies"
+	SyncTypeSeries SyncType = "series"
+	SyncTypeMusic  SyncType = "music"
+
+	// Other types
+	SyncTypeHistory     SyncType = "history"
+	SyncTypeFavorites   SyncType = "favorites"
+	SyncTypeCollections SyncType = "collections"
+	SyncTypePlaylists   SyncType = "playlists"
+)
+
+func (s SyncType) String() string {
+	return string(s)
+}
+
+func (s SyncType) IsValid() bool {
+	switch s {
+	case SyncTypeMovies, SyncTypeSeries, SyncTypeMusic,
+		SyncTypeHistory, SyncTypeFavorites, SyncTypeCollections, SyncTypePlaylists:
+		return true
+	default:
+		return false
+	}
+}
+
 // JobType defines the type of scheduled job
 type JobType string
 
@@ -93,7 +122,7 @@ type MediaSyncJob struct {
 	// Type of the client
 	ClientType clienttypes.ClientType `json:"clientType" gorm:"index;not null"`
 	// Type of media to sync (movies, series, music, etc.)
-	MediaType string `json:"mediaType" gorm:"index;not null"`
+	SyncType SyncType `json:"syncType" gorm:"index;not null"`
 	// Last sync time
 	LastSyncTime *time.Time `json:"lastSyncTime"`
 	// Sync frequency

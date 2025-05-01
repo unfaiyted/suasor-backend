@@ -39,6 +39,7 @@ type CoreMediaItemRepository[T types.MediaData] interface {
 	// Query operations
 	GetByType(ctx context.Context, mediaType types.MediaType) ([]*models.MediaItem[T], error)
 	GetByTitleAndYear(ctx context.Context, clientID uint64, title string, year int) (*models.MediaItem[T], error)
+	GetByTitle(ctx context.Context, clientID uint64, title string) (*models.MediaItem[T], error)
 	GetByExternalID(ctx context.Context, source string, externalID string) (*models.MediaItem[T], error)
 	Search(ctx context.Context, query types.QueryOptions) ([]*models.MediaItem[T], error)
 
@@ -692,4 +693,26 @@ func generateTitleVariants(title string) []string {
 	}
 
 	return variants
+}
+
+// GetByTitle returns a media item array by title
+func (r *mediaItemRepository[T]) GetByTitle(ctx context.Context, clientID uint64, title string) (*models.MediaItem[T], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("clientID", clientID).
+		Str("title", title).
+		Msg("Getting media items by title")
+
+	var zero T
+	mediaType := types.GetMediaTypeFromTypeName(zero)
+
+	var items []*models.MediaItem[T]
+	if err := r.db.WithContext(ctx).
+		Where("type = ?", mediaType).
+		Where("data->'details'->>'title' = ?", title).
+		Find(&items).Error; err != nil {
+		return nil, fmt.Errorf("failed to get media items by title: %w", err)
+	}
+
+	return items[0], nil
 }

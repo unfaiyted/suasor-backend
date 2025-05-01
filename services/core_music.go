@@ -32,6 +32,9 @@ type CoreMusicService interface {
 	GetTopArtists(ctx context.Context, limit int) ([]*models.MediaItem[*types.Artist], error)
 	GetArtistsByGenre(ctx context.Context, genre string, limit int) ([]*models.MediaItem[*types.Artist], error)
 
+	GetTrackByTitleAndArtistName(ctx context.Context, title string, artistName string) (*models.MediaItem[*types.Track], error)
+	GetAlbumByTitleAndArtistName(ctx context.Context, title string, artistName string) (*models.MediaItem[*types.Album], error)
+
 	// Search operations
 	SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error)
 }
@@ -346,4 +349,46 @@ func (s *coreMusicService) SearchMusicLibrary(ctx context.Context, query types.Q
 	}
 
 	return results, nil
+}
+
+// GetTrackByTitleAndArtist gets a track by title and artist ID
+func (s *coreMusicService) GetTrackByTitleAndArtistName(ctx context.Context, title string, artistName string) (*models.MediaItem[*types.Track], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Str("title", title).
+		Str("artistName", artistName).
+		Msg("Getting track by title and artist")
+
+	// Get the track
+	track, err := s.musicRepo.GetTrackByTitleAndArtistName(ctx, title, artistName)
+	if err != nil {
+		log.Error().Err(err).
+			Str("title", title).
+			Str("artistName", artistName).
+			Msg("Failed to get track by title and artist")
+		return nil, fmt.Errorf("failed to get track by title and artist: %w", err)
+	}
+
+	return track, nil
+}
+
+// GetAlbumByTitleAndArtistName gets an album by title and artist name
+func (s *coreMusicService) GetAlbumByTitleAndArtistName(ctx context.Context, title string, artistName string) (*models.MediaItem[*types.Album], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Str("title", title).
+		Str("artistName", artistName).
+		Msg("Getting album by title and artist")
+
+	// Get the album
+	album, err := s.musicRepo.GetAlbumByTitleAndArtistName(ctx, title, artistName)
+	if err != nil {
+		log.Error().Err(err).
+			Str("title", title).
+			Str("artistName", artistName).
+			Msg("Failed to get album by title and artist")
+		return nil, fmt.Errorf("failed to get album by title and artist: %w", err)
+	}
+
+	return album, nil
 }

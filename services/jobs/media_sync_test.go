@@ -6,7 +6,6 @@ import (
 
 	mediatypes "suasor/clients/media/types"
 	"suasor/types/models"
-	"suasor/utils/db"
 )
 
 func TestUpdateSeasonsEpisodesShowIDs(t *testing.T) {
@@ -71,7 +70,7 @@ func TestUpdateSeasonsEpisodesShowIDs(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create a mock repository
 			mockDB := db.NewMockDB()
-			
+
 			// Create the job service with mocks
 			job := &MediaSyncJob{
 				// Use mock repositories
@@ -80,8 +79,9 @@ func TestUpdateSeasonsEpisodesShowIDs(t *testing.T) {
 
 			// Call the method - we're just checking it doesn't panic
 			job.updateSeasonsEpisodesShowIDs(context.Background(), tt.series, 1, "emby")
-			
+
 			// In a real test, we would verify specific repository calls here
 		})
 	}
 }
+

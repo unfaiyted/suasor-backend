@@ -1,5 +1,7 @@
 package requests
 
+import "suasor/types/models"
+
 // UpdateJobScheduleRequest represents a request to update a job schedule
 type UpdateJobScheduleRequest struct {
 	JobName   string `json:"jobName" binding:"required"`
@@ -17,12 +19,11 @@ type SetupMediaSyncJobRequest struct {
 
 // RunMediaSyncJobRequest represents a request to run a media sync job
 type RunMediaSyncJobRequest struct {
-	ClientID  uint64 `json:"clientID" binding:"required"`
-	MediaType string `json:"mediaType" binding:"required"`
+	ClientID uint64          `json:"clientID" binding:"required"`
+	SyncType models.SyncType `json:"syncType" binding:"required"`
 }
 
 // UpdateRecommendationViewedRequest represents a request to update recommendation viewed status
 type UpdateRecommendationViewedRequest struct {
 	Viewed bool `json:"viewed"`
 }
-

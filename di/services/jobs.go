@@ -6,8 +6,10 @@ import (
 	"suasor/di/container"
 	"suasor/repository"
 	repobundles "suasor/repository/bundles"
+	svcbundles "suasor/services/bundles"
 	"suasor/services/jobs"
 	"suasor/services/jobs/recommendation"
+	"suasor/services/jobs/sync"
 	"suasor/utils/logger"
 )
 
@@ -46,9 +48,9 @@ func registerJobServices(ctx context.Context, c *container.Container) {
 		userMusicDataRepo := userDataRepos.TrackDataRepo()
 
 		// Get job implementations
-		watchHistorySyncJob := container.MustGet[*jobs.WatchHistorySyncJob](c)
-		favoritesSyncJob := container.MustGet[*jobs.FavoritesSyncJob](c)
-		mediaSyncJob := container.MustGet[*jobs.MediaSyncJob](c)
+		watchHistorySyncJob := container.MustGet[*sync.WatchHistorySyncJob](c)
+		favoritesSyncJob := container.MustGet[*sync.FavoritesSyncJob](c)
+		mediaSyncJob := container.MustGet[*sync.MediaSyncJob](c)
 		recommendationJob := container.MustGet[*recommendation.RecommendationJob](c)
 
 		// Job implementations
@@ -70,7 +72,7 @@ func registerJobServices(ctx context.Context, c *container.Container) {
 	})
 
 	log.Info().Msg("Registering watch history sync job service")
-	container.RegisterFactory[*jobs.WatchHistorySyncJob](c, func(c *container.Container) *jobs.WatchHistorySyncJob {
+	container.RegisterFactory[*sync.WatchHistorySyncJob](c, func(c *container.Container) *sync.WatchHistorySyncJob {
 		jobRepo := container.MustGet[repository.JobRepository](c)
 		userRepo := container.MustGet[repository.UserRepository](c)
 		userConfigRepo := container.MustGet[repository.UserConfigRepository](c)
@@ -79,11 +81,11 @@ func registerJobServices(ctx context.Context, c *container.Container) {
 		clientItemRepos := container.MustGet[repobundles.ClientMediaItemRepositories](c)
 		itemRepos := container.MustGet[repobundles.CoreMediaItemRepositories](c)
 		clientFactories := container.MustGet[*clients.ClientProviderFactoryService](c)
-		return jobs.NewWatchHistorySyncJob(jobRepo, userRepo, userConfigRepo, clientRepos, dataRepos, clientItemRepos, itemRepos, clientFactories)
+		return sync.NewWatchHistorySyncJob(jobRepo, userRepo, userConfigRepo, clientRepos, dataRepos, clientItemRepos, itemRepos, clientFactories)
 	})
 	// Favorites Sync Job
 	log.Info().Msg("Registering favorites sync job service")
-	container.RegisterFactory[*jobs.FavoritesSyncJob](c, func(c *container.Container) *jobs.FavoritesSyncJob {
+	container.RegisterFactory[*sync.FavoritesSyncJob](c, func(c *container.Container) *sync.FavoritesSyncJob {
 		jobRepo := container.MustGet[repository.JobRepository](c)
 		userRepo := container.MustGet[repository.UserRepository](c)
 		userConfigRepo := container.MustGet[repository.UserConfigRepository](c)
@@ -92,13 +94,13 @@ func registerJobServices(ctx context.Context, c *container.Container) {
 		clientItemRepos := container.MustGet[repobundles.ClientMediaItemRepositories](c)
 		itemRepos := container.MustGet[repobundles.UserMediaItemRepositories](c)
 		clientFactories := container.MustGet[*clients.ClientProviderFactoryService](c)
-		return jobs.NewFavoritesSyncJob(jobRepo, userRepo, userConfigRepo, clientRepos, dataRepos, clientItemRepos, itemRepos, clientFactories)
+		return sync.NewFavoritesSyncJob(jobRepo, userRepo, userConfigRepo, clientRepos, dataRepos, clientItemRepos, itemRepos, clientFactories)
 
 	})
 
 	// Media Sync Job
 	log.Info().Msg("Registering media sync job service")
-	container.RegisterFactory[*jobs.MediaSyncJob](c, func(c *container.Container) *jobs.MediaSyncJob {
+	container.RegisterFactory[*sync.MediaSyncJob](c, func(c *container.Container) *sync.MediaSyncJob {
 
 		jobRepo := container.MustGet[repository.JobRepository](c)
 		userRepo := container.MustGet[repository.UserRepository](c)
@@ -106,9 +108,10 @@ func registerJobServices(ctx context.Context, c *container.Container) {
 		clientRepos := container.MustGet[repobundles.ClientRepositories](c)
 		dataRepos := container.MustGet[repobundles.UserMediaDataRepositories](c)
 		clientItemRepos := container.MustGet[repobundles.ClientMediaItemRepositories](c)
+		clientMusicServices := container.MustGet[svcbundles.ClientMusicServices](c)
 		itemRepos := container.MustGet[repobundles.UserMediaItemRepositories](c)
 		clientFactories := container.MustGet[*clients.ClientProviderFactoryService](c)
-		return jobs.NewMediaSyncJob(jobRepo, userRepo, userConfigRepo, clientRepos, dataRepos, clientItemRepos, itemRepos, clientFactories)
+		return sync.NewMediaSyncJob(jobRepo, userRepo, userConfigRepo, clientRepos, dataRepos, clientItemRepos, clientMusicServices, itemRepos, clientFactories)
 	})
 
 	// Recommendation Job

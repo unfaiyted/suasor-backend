@@ -43,7 +43,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 {
   "clientID": {{getEmbyClients.response.body.$.data[0].id}},
   "clientType": "emby",
-  "mediaType": "movie",
+  "syncType": "movie",
   "frequency": "daily"
 }
 
@@ -57,7 +57,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 {
   "clientID": {{getJellyfinClients.response.body.$.data[0].id}},
   "clientType": "jellyfin",
-  "mediaType": "movie",
+  "syncType": "movie",
   "frequency": "daily"
 }
 
@@ -71,7 +71,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 {
   "clientID": {{getPlexClients.response.body.$.data[0].id}},
   "clientType": "plex",
-  "mediaType": "movie",
+  "syncType": "movie",
   "frequency": "daily"
 }
 
@@ -84,7 +84,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
   "clientID": {{getEmbyClients.response.body.$.data[0].id}},
-  "mediaType": "movie"
+  "syncType": "movie"
 }
 
 ###
@@ -103,7 +103,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
   "clientID": {{getJellyfinClients.response.body.$.data[0].id}},
-  "mediaType": "movie"
+  "syncType": "movie"
 }
 
 ###
@@ -115,7 +115,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
   "clientID": {{getPlexClients.response.body.$.data[0].id}},
-  "mediaType": "movie"
+  "syncType": "movie"
 }
 
 ###
@@ -134,5 +134,5 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
   "clientID": {{getEmbyClients.response.body.$.data[0].id}},
-  "mediaType": "series"
+  "syncType": "series"
 }

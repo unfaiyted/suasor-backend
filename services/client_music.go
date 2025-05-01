@@ -18,6 +18,8 @@ import (
 
 // ClientMusicService defines operations for interacting with music clients
 type ClientMusicService[T types.ClientConfig] interface {
+	CoreMusicService
+
 	GetClientAlbumByID(ctx context.Context, clientID uint64, albumID string) (models.MediaItem[*mediatypes.Album], error)
 	GetClientArtistByID(ctx context.Context, clientID uint64, artistID string) (models.MediaItem[*mediatypes.Artist], error)
 	GetClientTrackByID(ctx context.Context, clientID uint64, trackID string) (models.MediaItem[*mediatypes.Track], error)
@@ -66,17 +68,20 @@ type MusicSearchResults struct {
 }
 
 type mediaMusicService[T types.ClientMediaConfig] struct {
+	CoreMusicService
 	clientRepo    repository.ClientRepository[T]
 	clientFactory *clients.ClientProviderFactoryService
 }
 
 func NewClientMusicService[T types.ClientMediaConfig](
+	coreService CoreMusicService,
 	clientRepo repository.ClientRepository[T],
 	clientFactory *clients.ClientProviderFactoryService,
 ) ClientMusicService[T] {
 	return &mediaMusicService[T]{
-		clientRepo:    clientRepo,
-		clientFactory: clientFactory,
+		CoreMusicService: coreService,
+		clientRepo:       clientRepo,
+		clientFactory:    clientFactory,
 	}
 }
 

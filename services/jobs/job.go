@@ -7,6 +7,7 @@ import (
 	mediatypes "suasor/clients/media/types"
 	"suasor/repository"
 	"suasor/services/jobs/recommendation"
+	"suasor/services/jobs/sync"
 	"suasor/services/scheduler"
 	"suasor/types/models"
 	"time"
@@ -64,7 +65,7 @@ type JobService interface {
 	// SetupMediaSyncJob creates or updates a media sync job
 	SetupMediaSyncJob(ctx context.Context, userID, clientID uint64, clientType, mediaType, frequency string) error
 	// RunMediaSyncJob runs a media sync job manually
-	RunMediaSyncJob(ctx context.Context, userID, clientID uint64, mediaType string) error
+	RunMediaSyncJob(ctx context.Context, userID, clientID uint64, syncType models.SyncType) error
 	// GetMediaSyncJobs retrieves all media sync jobs for a user
 	GetMediaSyncJobs(ctx context.Context, userID uint64) ([]models.MediaSyncJob, error)
 }
@@ -82,9 +83,9 @@ type jobService struct {
 	scheduler           *scheduler.Scheduler
 	jobs                map[string]scheduler.Job
 	recommendationJob   *recommendation.RecommendationJob
-	mediaSyncJob        *MediaSyncJob
-	watchHistorySyncJob *WatchHistorySyncJob
-	favoritesSyncJob    *FavoritesSyncJob
+	mediaSyncJob        *sync.MediaSyncJob
+	watchHistorySyncJob *sync.WatchHistorySyncJob
+	favoritesSyncJob    *sync.FavoritesSyncJob
 }
 
 // NewJobService creates a new job service
@@ -99,9 +100,9 @@ func NewJobService(
 	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series],
 	userTrackDataRepo repository.UserMediaItemDataRepository[*mediatypes.Track],
 	recommendationJob *recommendation.RecommendationJob,
-	mediaSyncJob *MediaSyncJob,
-	watchHistorySyncJob *WatchHistorySyncJob,
-	favoritesSyncJob *FavoritesSyncJob,
+	mediaSyncJob *sync.MediaSyncJob,
+	watchHistorySyncJob *sync.WatchHistorySyncJob,
+	favoritesSyncJob *sync.FavoritesSyncJob,
 ) JobService {
 	return &jobService{
 		jobRepo:             jobRepo,
@@ -358,9 +359,9 @@ func (s *jobService) SetupMediaSyncJob(ctx context.Context, userID, clientID uin
 }
 
 // RunMediaSyncJob runs a media sync job manually
-func (s *jobService) RunMediaSyncJob(ctx context.Context, userID, clientID uint64, mediaType string) error {
+func (s *jobService) RunMediaSyncJob(ctx context.Context, userID, clientID uint64, syncType models.SyncType) error {
 	// Validate inputs
-	if userID == 0 || clientID == 0 || mediaType == "" {
+	if userID == 0 || clientID == 0 || syncType == "" {
 		return fmt.Errorf("invalid input parameters")
 	}
 
@@ -374,7 +375,7 @@ func (s *jobService) RunMediaSyncJob(ctx context.Context, userID, clientID uint6
 	}
 
 	// Run the sync job
-	return s.mediaSyncJob.SyncUserMediaFromClient(ctx, userID, clientID, mediaType)
+	return s.mediaSyncJob.SyncUserMediaFromClient(ctx, userID, clientID, syncType)
 }
 
 // GetMediaSyncJobs retrieves all media sync jobs for a user
@@ -387,7 +388,7 @@ func getJobType(job scheduler.Job) models.JobType {
 	switch job.(type) {
 	case *recommendation.RecommendationJob:
 		return models.JobTypeRecommendation
-	case *MediaSyncJob, *WatchHistorySyncJob, *FavoritesSyncJob:
+	case *sync.MediaSyncJob, *sync.WatchHistorySyncJob, *sync.FavoritesSyncJob:
 		return models.JobTypeSync
 	default:
 		return models.JobType("unknown")

@@ -101,13 +101,9 @@ func (h *coreMusicHandler) GetAlbumTracks(c *gin.Context) {
 
 	// Get tracks from the album data
 	tracks := album.Data.Tracks
-	if tracks == nil {
-		tracks = []*types.Track{}
-	}
 
 	log.Info().
 		Uint64("albumID", albumID).
-		Int("trackCount", len(tracks)).
 		Msg("Tracks retrieved successfully")
 	responses.RespondOK(c, tracks, "Tracks retrieved successfully")
 }
@@ -150,7 +146,7 @@ func (h *coreMusicHandler) GetArtistAlbums(c *gin.Context) {
 	}
 
 	// Get albums for the artist
-	albums := artist.Data.AlbumIDs
+	albums := artist.Data.Albums
 
 	log.Info().
 		Uint64("artistID", artistID).
@@ -366,7 +362,7 @@ func (h *coreMusicHandler) GetAlbumsByArtistID(c *gin.Context) {
 	}
 
 	// Get albums for the artist
-	albums := artist.Data.AlbumIDs
+	albums := artist.Data.Albums
 
 	log.Info().
 		Uint64("artistID", artistID).
@@ -420,7 +416,7 @@ func (h *coreMusicHandler) GetSimilarArtists(c *gin.Context) {
 	// Get similar artists
 	similarArtists := artist.Data.SimilarArtists
 	if similarArtists == nil {
-		similarArtists = []types.ArtistReference{}
+		similarArtists = []types.Person{}
 	}
 
 	log.Info().
@@ -523,7 +519,7 @@ func (h *coreMusicHandler) GetRecentlyAddedMusic(c *gin.Context) {
 		Uint64("userID", userID).
 		Int("count", len(items)).
 		Msg("Recently added music retrieved successfully")
-	responses.RespondMediaItemListOK(c, items, "Recently added music retrieved successfully")
+	responses.RespondMediaItemListOK[*types.Album](c, items, "Recently added music retrieved successfully")
 }
 
 // GetGenreRecommendations godoc

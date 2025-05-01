@@ -1,7 +1,7 @@
 package jobs_test
 
 import (
-	"suasor/services/jobs"
+	"suasor/services/jobs/recommendation"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,7 +9,7 @@ import (
 
 // TestIsContentTypeEnabled tests the IsContentTypeEnabled method
 func TestIsContentTypeEnabled(t *testing.T) {
-	job := &jobs.RecommendationJob{}
+	job := &recommendation.RecommendationJob{}
 
 	// Test with empty content types (should return true for all)
 	assert.True(t, job.IsContentTypeEnabled("", "movie"))
@@ -30,3 +30,4 @@ func TestIsContentTypeEnabled(t *testing.T) {
 	assert.True(t, job.IsContentTypeEnabled("movie, series", "series"))
 	assert.True(t, job.IsContentTypeEnabled(" movie , series ", "movie"))
 }
+

@@ -35,6 +35,9 @@ type MusicRepository interface {
 	GetAlbumsByGenre(ctx context.Context, genre string, limit int) ([]*models.MediaItem[*types.Album], error)
 	GetArtistsByGenre(ctx context.Context, genre string, limit int) ([]*models.MediaItem[*types.Artist], error)
 
+	GetTrackByTitleAndArtistName(ctx context.Context, title string, artistName string) (*models.MediaItem[*types.Track], error)
+	GetAlbumByTitleAndArtistName(ctx context.Context, title string, artistName string) (*models.MediaItem[*types.Album], error)
+
 	// Advanced search operations
 	SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error)
 	GetSimilarTracks(ctx context.Context, trackID uint64, limit int) ([]*models.MediaItem[*types.Track], error)
@@ -437,4 +440,48 @@ func (r *musicRepository) GetSimilarTracks(ctx context.Context, trackID uint64, 
 	}
 
 	return tracks, nil
+}
+
+// GetTrackByTitleAndArtist gets a track by title and artist ID
+func (r *musicRepository) GetTrackByTitleAndArtistName(ctx context.Context, title string, artistName string) (*models.MediaItem[*types.Track], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Str("title", title).
+		Str("artistName", artistName).
+		Msg("Getting track by title and artist")
+
+	// First get the track
+	var track *models.MediaItem[*types.Track]
+	query := r.db.WithContext(ctx).
+		Where("type = ?", types.MediaTypeTrack).
+		Where("data->>'title' = ?", title).
+		Where("data->>'artistID' = ?", fmt.Sprint(artistName))
+
+	if err := query.First(&track).Error; err != nil {
+		return nil, fmt.Errorf("failed to get track by title and artist: %w", err)
+	}
+
+	// TODO: Advanced similarity calculations like we did with Title/Year with Movies
+
+	return track, nil
+}
+
+// GetAlbumByTitleAndArtistName gets an album by title and artist name
+func (r *musicRepository) GetAlbumByTitleAndArtistName(ctx context.Context, title string, artistName string) (*models.MediaItem[*types.Album], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Str("title", title).
+		Str("artistName", artistName).
+		Msg("Getting album by title and artist")
+
+	var album *models.MediaItem[*types.Album]
+	if err := r.db.WithContext(ctx).
+		Where("type = ?", types.MediaTypeAlbum).
+		Where("data->>'title' = ?", title).
+		Where("data->>'artistName' = ?", artistName).
+		First(&album).Error; err != nil {
+		return nil, fmt.Errorf("failed to get album by title and artist: %w", err)
+	}
+
+	return album, nil
 }
