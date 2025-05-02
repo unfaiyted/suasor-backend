@@ -26,9 +26,19 @@ func (e *EmbyClient) GetPlayHistory(ctx context.Context, options *types.QueryOpt
 		return nil, fmt.Errorf("user ID is required for watch history")
 	}
 
+	// queryParams := embyclient.ItemsServiceApiGetUsersByUseridItemsOpts{
+	// 	IsPlayed:  optional.NewBool(true),
+	// 	Recursive: optional.NewBool(true),
+	// }
+
+	userID := e.getUserID()
+
 	queryParams := embyclient.ItemsServiceApiGetUsersByUseridItemsOpts{
-		IsPlayed:  optional.NewBool(true),
-		Recursive: optional.NewBool(true),
+		Recursive:        optional.NewBool(true),
+		IncludeItemTypes: optional.NewString("Movie,Episode,Audio,Playlist,Series,Season"),
+		IsPlayed:         optional.NewBool(true),
+		EnableUserData:   optional.NewBool(true),
+		Fields:           optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds,CommunityRating,CriticRating,UserData"),
 	}
 
 	// Apply options for pagination
@@ -40,13 +50,24 @@ func (e *EmbyClient) GetPlayHistory(ctx context.Context, options *types.QueryOpt
 			queryParams.StartIndex = optional.NewInt32(int32(options.Offset))
 		}
 	}
+	queryParams.Limit = optional.NewInt32(100)
+	queryParams.StartIndex = optional.NewInt32(0)
+	// Apply options
+	// ApplyClientQueryOptions(&queryParams, options)
 
-	items, resp, err := e.client.ItemsServiceApi.GetUsersByUseridItems(ctx, e.embyConfig().UserID, &queryParams)
+	log.Debug().
+		Int32("limit", queryParams.Limit.Value()).
+		Int32("offset", queryParams.StartIndex.Value()).
+		Str("userID", userID).
+		Msg("Applying query options")
+
+	// Call the Emby API
+	items, resp, err := e.client.ItemsServiceApi.GetUsersByUseridItems(ctx, userID, &queryParams)
 	if err != nil {
 		log.Error().
 			Err(err).
 			Str("baseURL", e.embyConfig().GetBaseURL()).
-			Str("apiEndpoint", "/Users/"+e.embyConfig().UserID+"/Items").
+			// Str("apiEndpoint", "/Users/"+e.embyConfig().UserID+"/Items").
 			Msg("Failed to fetch watch history from Emby")
 		return nil, fmt.Errorf("failed to fetch watch history: %w", err)
 	}

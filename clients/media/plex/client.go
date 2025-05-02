@@ -17,6 +17,7 @@ type PlexClient struct {
 	media.ClientMedia
 	httpClient *http.Client
 	plexAPI    *plexgo.PlexAPI
+	config     *clienttypes.PlexConfig
 }
 
 // NewPlexClient creates a new Plex client
@@ -78,3 +79,4 @@ func (c *PlexClient) TestConnection(ctx context.Context) (bool, error) {
 	}
 	return true, nil
 }
+

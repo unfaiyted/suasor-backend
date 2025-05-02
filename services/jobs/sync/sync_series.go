@@ -185,7 +185,7 @@ func (j *MediaSyncJob) syncEpisodes(ctx context.Context, clientMedia media.Clien
 // processSeriesBatch processes a batch of series and saves them to the database
 func (j *MediaSyncJob) processSeriesBatch(ctx context.Context, series []*models.MediaItem[*mediatypes.Series], clientID uint64, clientType clienttypes.ClientType) error {
 	// Try to get a series provider for this client to fetch season details
-	clientMedia, err := j.getClientMedia(ctx, clientID)
+	clientMedia, _, err := j.getClientMedia(ctx, clientID)
 	if err != nil {
 		// Just log the error but continue processing with what we have
 		log.Printf("Failed to get media client for season details: %v", err)
@@ -288,7 +288,7 @@ func (j *MediaSyncJob) processSeasonBatch(
 	clientSeriesID string,
 	clientID uint64, clientType clienttypes.ClientType) ([]*models.MediaItem[*mediatypes.Season], error) {
 
-	clientMedia, err := j.getClientMedia(ctx, clientID)
+	clientMedia, _, err := j.getClientMedia(ctx, clientID)
 	if err != nil {
 		// Just log the error but continue processing with what we have
 		log.Printf("Failed to get media client for season details: %v", err)

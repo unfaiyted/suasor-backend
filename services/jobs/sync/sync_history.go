@@ -11,7 +11,7 @@ import (
 )
 
 // syncHistory syncs watch history from a client to the database
-func (j *MediaSyncJob) syncHistory(ctx context.Context, clientMedia media.ClientMedia, jobRunID uint64, clientID uint64) error {
+func (j *MediaSyncJob) syncHistory(ctx context.Context, clientMedia media.ClientMedia, ownerID, jobRunID, clientID uint64) error {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
 
@@ -74,7 +74,7 @@ func (j *MediaSyncJob) syncHistory(ctx context.Context, clientMedia media.Client
 			Msg("Processing movie history items")
 
 		for uuid, movieHistory := range historyList.Movies {
-			if err := j.processMovieHistory(ctx, clientID, movieHistory); err != nil {
+			if err := j.processMovieHistory(ctx, ownerID, clientID, movieHistory); err != nil {
 				log.Warn().
 					Err(err).
 					Str("uuid", uuid).
@@ -100,7 +100,7 @@ func (j *MediaSyncJob) syncHistory(ctx context.Context, clientMedia media.Client
 			Msg("Processing series history items")
 
 		for uuid, seriesHistory := range historyList.Series {
-			if err := j.processSeriesHistory(ctx, clientID, seriesHistory); err != nil {
+			if err := j.processSeriesHistory(ctx, ownerID, clientID, seriesHistory); err != nil {
 				log.Warn().
 					Err(err).
 					Str("uuid", uuid).
@@ -126,7 +126,7 @@ func (j *MediaSyncJob) syncHistory(ctx context.Context, clientMedia media.Client
 			Msg("Processing episode history items")
 
 		for uuid, episodeHistory := range historyList.Episodes {
-			if err := j.processEpisodeHistory(ctx, clientID, episodeHistory); err != nil {
+			if err := j.processEpisodeHistory(ctx, ownerID, clientID, episodeHistory); err != nil {
 				log.Warn().
 					Err(err).
 					Str("uuid", uuid).
@@ -152,7 +152,7 @@ func (j *MediaSyncJob) syncHistory(ctx context.Context, clientMedia media.Client
 			Msg("Processing track history items")
 
 		for uuid, trackHistory := range historyList.Tracks {
-			if err := j.processTrackHistory(ctx, clientID, trackHistory); err != nil {
+			if err := j.processTrackHistory(ctx, ownerID, clientID, trackHistory); err != nil {
 				log.Warn().
 					Err(err).
 					Str("uuid", uuid).
@@ -178,7 +178,7 @@ func (j *MediaSyncJob) syncHistory(ctx context.Context, clientMedia media.Client
 			Msg("Processing album history items")
 
 		for uuid, albumHistory := range historyList.Albums {
-			if err := j.processAlbumHistory(ctx, clientID, albumHistory); err != nil {
+			if err := j.processAlbumHistory(ctx, ownerID, clientID, albumHistory); err != nil {
 				log.Warn().
 					Err(err).
 					Str("uuid", uuid).
@@ -205,7 +205,7 @@ func (j *MediaSyncJob) syncHistory(ctx context.Context, clientMedia media.Client
 }
 
 // processMovieHistory processes a movie history item and saves it to the database
-func (j *MediaSyncJob) processMovieHistory(ctx context.Context, clientID uint64, historyItem *models.UserMediaItemData[*mediatypes.Movie]) error {
+func (j *MediaSyncJob) processMovieHistory(ctx context.Context, ownerID, clientID uint64, historyItem *models.UserMediaItemData[*mediatypes.Movie]) error {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get client item ID from the media item
@@ -231,23 +231,19 @@ func (j *MediaSyncJob) processMovieHistory(ctx context.Context, clientID uint64,
 		}
 
 		// Now we have the movie in our database, create the history record
-		historyRecord := models.UserMediaItemData[*mediatypes.Movie]{
-			MediaItemID:      item.ID,
-			Type:             mediatypes.MediaTypeMovie,
-			PlayedAt:         historyItem.PlayedAt,
-			LastPlayedAt:     historyItem.LastPlayedAt,
-			PlayedPercentage: historyItem.PlayedPercentage,
-			PlayCount:        historyItem.PlayCount,
-			PositionSeconds:  historyItem.PositionSeconds,
-			DurationSeconds:  historyItem.DurationSeconds,
-			Completed:        historyItem.PlayedPercentage >= 90, // Mark as completed if watched 90% or more
-		}
+		historyRecord := models.NewUserMediaItemData(item, clientID)
+		historyRecord.PlayedAt = historyItem.PlayedAt
+		historyRecord.LastPlayedAt = historyItem.LastPlayedAt
+		historyRecord.PlayedPercentage = historyItem.PlayedPercentage
+		historyRecord.PlayCount = historyItem.PlayCount
+		historyRecord.PositionSeconds = historyItem.PositionSeconds
+		historyRecord.DurationSeconds = historyItem.DurationSeconds
 
 		// Associate with the movie item
 		historyRecord.Associate(item)
 
 		// Save to database
-		newHistoryItem, err := j.dataRepos.MovieDataRepo().Create(ctx, &historyRecord)
+		newHistoryItem, err := j.dataRepos.MovieDataRepo().Create(ctx, historyRecord)
 		if err != nil {
 			return fmt.Errorf("failed to save movie history: %w", err)
 		}
@@ -276,23 +272,20 @@ func (j *MediaSyncJob) processMovieHistory(ctx context.Context, clientID uint64,
 		}
 
 		// Now we have the movie in our database, create the history record
-		historyRecord := models.UserMediaItemData[*mediatypes.Movie]{
-			MediaItemID:      item.ID,
-			Type:             mediatypes.MediaTypeMovie,
-			PlayedAt:         historyItem.PlayedAt,
-			LastPlayedAt:     historyItem.LastPlayedAt,
-			PlayedPercentage: historyItem.PlayedPercentage,
-			PlayCount:        historyItem.PlayCount,
-			PositionSeconds:  historyItem.PositionSeconds,
-			DurationSeconds:  historyItem.DurationSeconds,
-			Completed:        historyItem.PlayedPercentage >= 90, // Mark as completed if watched 90% or more
-		}
+		historyRecord := models.NewUserMediaItemData(item, clientID)
+		historyRecord.PlayedAt = historyItem.PlayedAt
+		historyRecord.LastPlayedAt = historyItem.LastPlayedAt
+		historyRecord.PlayedPercentage = historyItem.PlayedPercentage
+		historyRecord.PlayCount = historyItem.PlayCount
+		historyRecord.PositionSeconds = historyItem.PositionSeconds
+		historyRecord.DurationSeconds = historyItem.DurationSeconds
+		historyRecord.Completed = historyItem.PlayedPercentage >= 90 // Mark as completed if watched 90% or more
 
 		// Associate with the movie item
 		historyRecord.Associate(item)
 
 		// Save to database
-		newHistoryItem, err := j.dataRepos.MovieDataRepo().Create(ctx, &historyRecord)
+		newHistoryItem, err := j.dataRepos.MovieDataRepo().Create(ctx, historyRecord)
 		if err != nil {
 			return fmt.Errorf("failed to save movie history: %w", err)
 		}
@@ -307,23 +300,19 @@ func (j *MediaSyncJob) processMovieHistory(ctx context.Context, clientID uint64,
 	}
 
 	// Movie exists in our database, create history record
-	historyRecord := models.UserMediaItemData[*mediatypes.Movie]{
-		MediaItemID:      existingMovie.ID,
-		Type:             mediatypes.MediaTypeMovie,
-		PlayedAt:         historyItem.PlayedAt,
-		LastPlayedAt:     historyItem.LastPlayedAt,
-		PlayedPercentage: historyItem.PlayedPercentage,
-		PlayCount:        historyItem.PlayCount,
-		PositionSeconds:  historyItem.PositionSeconds,
-		DurationSeconds:  historyItem.DurationSeconds,
-		Completed:        historyItem.PlayedPercentage >= 90, // Mark as completed if watched 90% or more
-	}
-
+	historyRecord := models.NewUserMediaItemData(existingMovie, ownerID)
+	historyRecord.PlayedAt = historyItem.PlayedAt
+	historyRecord.LastPlayedAt = historyItem.LastPlayedAt
+	historyRecord.PlayedPercentage = historyItem.PlayedPercentage
+	historyRecord.PlayCount = historyItem.PlayCount
+	historyRecord.PositionSeconds = historyItem.PositionSeconds
+	historyRecord.DurationSeconds = historyItem.DurationSeconds
+	historyRecord.Completed = historyItem.PlayedPercentage >= 90 // Mark as completed if watched 90% or mor
 	// Associate with the movie item
 	historyRecord.Associate(existingMovie)
 
 	// Save to database
-	item, err := j.dataRepos.MovieDataRepo().Create(ctx, &historyRecord)
+	item, err := j.dataRepos.MovieDataRepo().Create(ctx, historyRecord)
 	if err != nil {
 		return fmt.Errorf("failed to save movie history: %w", err)
 	}
@@ -338,7 +327,7 @@ func (j *MediaSyncJob) processMovieHistory(ctx context.Context, clientID uint64,
 }
 
 // processSeriesHistory processes a series history item and saves it to the database
-func (j *MediaSyncJob) processSeriesHistory(ctx context.Context, clientID uint64, historyItem *models.UserMediaItemData[*mediatypes.Series]) error {
+func (j *MediaSyncJob) processSeriesHistory(ctx context.Context, ownerID, clientID uint64, historyItem *models.UserMediaItemData[*mediatypes.Series]) error {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get client item ID from the media item
@@ -363,23 +352,20 @@ func (j *MediaSyncJob) processSeriesHistory(ctx context.Context, clientID uint64
 		}
 
 		// Now we have the series in our database, create the history record
-		historyRecord := models.UserMediaItemData[*mediatypes.Series]{
-			MediaItemID:      item.ID,
-			Type:             mediatypes.MediaTypeSeries,
-			PlayedAt:         historyItem.PlayedAt,
-			LastPlayedAt:     historyItem.LastPlayedAt,
-			PlayedPercentage: historyItem.PlayedPercentage,
-			PlayCount:        historyItem.PlayCount,
-			PositionSeconds:  historyItem.PositionSeconds,
-			DurationSeconds:  historyItem.DurationSeconds,
-			Completed:        historyItem.PlayedPercentage >= 90, // Mark as completed if watched 90% or more
-		}
+		historyRecord := models.NewUserMediaItemData(item, ownerID)
+		historyRecord.PlayedAt = historyItem.PlayedAt
+		historyRecord.LastPlayedAt = historyItem.LastPlayedAt
+		historyRecord.PlayedPercentage = historyItem.PlayedPercentage
+		historyRecord.PlayCount = historyItem.PlayCount
+		historyRecord.PositionSeconds = historyItem.PositionSeconds
+		historyRecord.DurationSeconds = historyItem.DurationSeconds
+		historyRecord.Completed = historyItem.PlayedPercentage >= 90 // Mark as completed if watched 90% or more
 
 		// Associate with the series item
 		historyRecord.Associate(item)
 
 		// Save to database
-		newHistoryItem, err := j.dataRepos.SeriesDataRepo().Create(ctx, &historyRecord)
+		newHistoryItem, err := j.dataRepos.SeriesDataRepo().Create(ctx, historyRecord)
 		if err != nil {
 			return fmt.Errorf("failed to save series history: %w", err)
 		}
@@ -408,23 +394,20 @@ func (j *MediaSyncJob) processSeriesHistory(ctx context.Context, clientID uint64
 		}
 
 		// Now we have the series in our database, create the history record
-		historyRecord := models.UserMediaItemData[*mediatypes.Series]{
-			MediaItemID:      item.ID,
-			Type:             mediatypes.MediaTypeSeries,
-			PlayedAt:         historyItem.PlayedAt,
-			LastPlayedAt:     historyItem.LastPlayedAt,
-			PlayedPercentage: historyItem.PlayedPercentage,
-			PlayCount:        historyItem.PlayCount,
-			PositionSeconds:  historyItem.PositionSeconds,
-			DurationSeconds:  historyItem.DurationSeconds,
-			Completed:        historyItem.PlayedPercentage >= 90, // Mark as completed if watched 90% or more
-		}
+		historyRecord := models.NewUserMediaItemData(item, clientID)
+		historyRecord.PlayedAt = historyItem.PlayedAt
+		historyRecord.LastPlayedAt = historyItem.LastPlayedAt
+		historyRecord.PlayedPercentage = historyItem.PlayedPercentage
+		historyRecord.PlayCount = historyItem.PlayCount
+		historyRecord.PositionSeconds = historyItem.PositionSeconds
+		historyRecord.DurationSeconds = historyItem.DurationSeconds
+		historyRecord.Completed = historyItem.PlayedPercentage >= 90 // Mark as completed if watched 90% or more
 
 		// Associate with the series item
 		historyRecord.Associate(item)
 
 		// Save to database
-		newHistoryItem, err := j.dataRepos.SeriesDataRepo().Create(ctx, &historyRecord)
+		newHistoryItem, err := j.dataRepos.SeriesDataRepo().Create(ctx, historyRecord)
 		if err != nil {
 			return fmt.Errorf("failed to save series history: %w", err)
 		}
@@ -439,23 +422,21 @@ func (j *MediaSyncJob) processSeriesHistory(ctx context.Context, clientID uint64
 	}
 
 	// Series exists in our database, create history record
-	historyRecord := models.UserMediaItemData[*mediatypes.Series]{
-		MediaItemID:      existingSeries.ID,
-		Type:             mediatypes.MediaTypeSeries,
-		PlayedAt:         historyItem.PlayedAt,
-		LastPlayedAt:     historyItem.LastPlayedAt,
-		PlayedPercentage: historyItem.PlayedPercentage,
-		PlayCount:        historyItem.PlayCount,
-		PositionSeconds:  historyItem.PositionSeconds,
-		DurationSeconds:  historyItem.DurationSeconds,
-		Completed:        historyItem.PlayedPercentage >= 90, // Mark as completed if watched 90% or more
-	}
+
+	historyRecord := models.NewUserMediaItemData(existingSeries, clientID)
+	historyRecord.PlayedAt = historyItem.PlayedAt
+	historyRecord.LastPlayedAt = historyItem.LastPlayedAt
+	historyRecord.PlayedPercentage = historyItem.PlayedPercentage
+	historyRecord.PlayCount = historyItem.PlayCount
+	historyRecord.PositionSeconds = historyItem.PositionSeconds
+	historyRecord.DurationSeconds = historyItem.DurationSeconds
+	historyRecord.Completed = historyItem.PlayedPercentage >= 90 // Mark as completed if watched 90% or more
 
 	// Associate with the series item
 	historyRecord.Associate(existingSeries)
 
 	// Save to database
-	item, err := j.dataRepos.SeriesDataRepo().Create(ctx, &historyRecord)
+	item, err := j.dataRepos.SeriesDataRepo().Create(ctx, historyRecord)
 	if err != nil {
 		return fmt.Errorf("failed to save series history: %w", err)
 	}
@@ -471,7 +452,7 @@ func (j *MediaSyncJob) processSeriesHistory(ctx context.Context, clientID uint64
 }
 
 // processEpisodeHistory processes an episode history item and saves it to the database
-func (j *MediaSyncJob) processEpisodeHistory(ctx context.Context, clientID uint64, historyItem *models.UserMediaItemData[*mediatypes.Episode]) error {
+func (j *MediaSyncJob) processEpisodeHistory(ctx context.Context, ownerID, clientID uint64, historyItem *models.UserMediaItemData[*mediatypes.Episode]) error {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get client item ID from the media item
@@ -502,23 +483,20 @@ func (j *MediaSyncJob) processEpisodeHistory(ctx context.Context, clientID uint6
 	}
 
 	// Create history record
-	historyRecord := models.UserMediaItemData[*mediatypes.Episode]{
-		MediaItemID:      existingEpisode.ID,
-		Type:             mediatypes.MediaTypeEpisode,
-		PlayedAt:         historyItem.PlayedAt,
-		LastPlayedAt:     historyItem.LastPlayedAt,
-		PlayedPercentage: historyItem.PlayedPercentage,
-		PlayCount:        historyItem.PlayCount,
-		PositionSeconds:  historyItem.PositionSeconds,
-		DurationSeconds:  historyItem.DurationSeconds,
-		Completed:        historyItem.PlayedPercentage >= 90, // Mark as completed if watched 90% or more
-	}
 
+	historyRecord := models.NewUserMediaItemData(existingEpisode, clientID)
+	historyRecord.PlayedAt = historyItem.PlayedAt
+	historyRecord.LastPlayedAt = historyItem.LastPlayedAt
+	historyRecord.PlayedPercentage = historyItem.PlayedPercentage
+	historyRecord.PlayCount = historyItem.PlayCount
+	historyRecord.PositionSeconds = historyItem.PositionSeconds
+	historyRecord.DurationSeconds = historyItem.DurationSeconds
+	historyRecord.Completed = historyItem.PlayedPercentage >= 90 // Mark as completed if watched 90% or more
 	// Associate with the episode item
 	historyRecord.Associate(existingEpisode)
 
 	// Save to database
-	item, err := j.dataRepos.EpisodeDataRepo().Create(ctx, &historyRecord)
+	item, err := j.dataRepos.EpisodeDataRepo().Create(ctx, historyRecord)
 	if err != nil {
 		return fmt.Errorf("failed to save episode history: %w", err)
 	}
@@ -534,7 +512,7 @@ func (j *MediaSyncJob) processEpisodeHistory(ctx context.Context, clientID uint6
 }
 
 // processMusicHistory processes a music track history item and saves it to the database
-func (j *MediaSyncJob) processTrackHistory(ctx context.Context, clientID uint64, historyItem *models.UserMediaItemData[*mediatypes.Track]) error {
+func (j *MediaSyncJob) processTrackHistory(ctx context.Context, ownerID, clientID uint64, historyItem *models.UserMediaItemData[*mediatypes.Track]) error {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get client item ID from the media item
@@ -566,23 +544,20 @@ func (j *MediaSyncJob) processTrackHistory(ctx context.Context, clientID uint64,
 	}
 
 	// Create history record
-	historyRecord := models.UserMediaItemData[*mediatypes.Track]{
-		MediaItemID:      existingTrack.ID,
-		Type:             mediatypes.MediaTypeTrack,
-		PlayedAt:         historyItem.PlayedAt,
-		LastPlayedAt:     historyItem.LastPlayedAt,
-		PlayedPercentage: historyItem.PlayedPercentage,
-		PlayCount:        historyItem.PlayCount,
-		PositionSeconds:  historyItem.PositionSeconds,
-		DurationSeconds:  historyItem.DurationSeconds,
-		Completed:        historyItem.PlayedPercentage >= 90, // Mark as completed if listened to 90% or more
-	}
+	historyRecord := models.NewUserMediaItemData(existingTrack, clientID)
+	historyRecord.PlayedAt = historyItem.PlayedAt
+	historyRecord.LastPlayedAt = historyItem.LastPlayedAt
+	historyRecord.PlayedPercentage = historyItem.PlayedPercentage
+	historyRecord.PlayCount = historyItem.PlayCount
+	historyRecord.PositionSeconds = historyItem.PositionSeconds
+	historyRecord.DurationSeconds = historyItem.DurationSeconds
+	historyRecord.Completed = historyItem.PlayedPercentage >= 90 // Mark as completed if listened to 90% or more
 
 	// Associate with the track item
 	historyRecord.Associate(existingTrack)
 
 	// Save to database
-	item, err := j.dataRepos.TrackDataRepo().Create(ctx, &historyRecord)
+	item, err := j.dataRepos.TrackDataRepo().Create(ctx, historyRecord)
 	if err != nil {
 		return fmt.Errorf("failed to save track history: %w", err)
 	}
@@ -597,7 +572,7 @@ func (j *MediaSyncJob) processTrackHistory(ctx context.Context, clientID uint64,
 	return nil
 }
 
-func (j *MediaSyncJob) processAlbumHistory(ctx context.Context, clientID uint64, historyItem *models.UserMediaItemData[*mediatypes.Album]) error {
+func (j *MediaSyncJob) processAlbumHistory(ctx context.Context, ownerID, clientID uint64, historyItem *models.UserMediaItemData[*mediatypes.Album]) error {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get client item ID from the media item
@@ -625,23 +600,20 @@ func (j *MediaSyncJob) processAlbumHistory(ctx context.Context, clientID uint64,
 	}
 
 	// Create history record
-	historyRecord := models.UserMediaItemData[*mediatypes.Album]{
-		MediaItemID:      existingAlbum.ID,
-		Type:             mediatypes.MediaTypeAlbum,
-		PlayedAt:         historyItem.PlayedAt,
-		LastPlayedAt:     historyItem.LastPlayedAt,
-		PlayedPercentage: historyItem.PlayedPercentage,
-		PlayCount:        historyItem.PlayCount,
-		PositionSeconds:  historyItem.PositionSeconds,
-		DurationSeconds:  historyItem.DurationSeconds,
-		Completed:        historyItem.PlayedPercentage >= 90, // Mark as completed if listened to 90% or more
-	}
 
+	historyRecord := models.NewUserMediaItemData(existingAlbum, clientID)
+	historyRecord.PlayedAt = historyItem.PlayedAt
+	historyRecord.LastPlayedAt = historyItem.LastPlayedAt
+	historyRecord.PlayedPercentage = historyItem.PlayedPercentage
+	historyRecord.PlayCount = historyItem.PlayCount
+	historyRecord.PositionSeconds = historyItem.PositionSeconds
+	historyRecord.DurationSeconds = historyItem.DurationSeconds
+	historyRecord.Completed = historyItem.PlayedPercentage >= 90 // Mark as completed if listened to 90% or more
 	// Associate with the album item
 	historyRecord.Associate(existingAlbum)
 
 	// Save to database
-	item, err := j.dataRepos.AlbumDataRepo().Create(ctx, &historyRecord)
+	item, err := j.dataRepos.AlbumDataRepo().Create(ctx, historyRecord)
 	if err != nil {
 		return fmt.Errorf("failed to save album history: %w", err)
 	}
@@ -661,7 +633,7 @@ func (j *MediaSyncJob) fetchMovieFromClient(ctx context.Context, clientID uint64
 	log := logger.LoggerFromContext(ctx)
 
 	// Get client info
-	clientMedia, err := j.getClientMedia(ctx, clientID)
+	clientMedia, _, err := j.getClientMedia(ctx, clientID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get client: %w", err)
 	}
@@ -712,7 +684,7 @@ func (j *MediaSyncJob) fetchSeriesFromClient(ctx context.Context, clientID uint6
 	log := logger.LoggerFromContext(ctx)
 
 	// Get client info
-	clientMedia, err := j.getClientMedia(ctx, clientID)
+	clientMedia, _, err := j.getClientMedia(ctx, clientID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get client: %w", err)
 	}

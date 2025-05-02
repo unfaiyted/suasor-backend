@@ -141,6 +141,39 @@ func (c *MediaClientList) GetClientConfig(clientID uint64) client.ClientConfig {
 	return config
 }
 
+func (c *MediaClientList) GetClientOwnerID(clientID uint64) uint64 {
+	clientType, exists := c.GetClientType(clientID)
+	if !exists {
+		return 0
+	}
+	if clientType == client.ClientTypeEmby {
+		if client, ok := c.Emby[clientID]; ok && client != nil {
+			return client.UserID
+		}
+		return 0
+	}
+	if clientType == client.ClientTypeJellyfin {
+		if client, ok := c.Jellyfin[clientID]; ok && client != nil {
+			return client.UserID
+		}
+		return 0
+	}
+	if clientType == client.ClientTypePlex {
+		if client, ok := c.Plex[clientID]; ok && client != nil {
+			return client.UserID
+		}
+		return 0
+	}
+	if clientType == client.ClientTypeSubsonic {
+		if client, ok := c.Subsonic[clientID]; ok && client != nil {
+			return client.UserID
+		}
+		return 0
+	}
+
+	return 0
+}
+
 func (c *MediaClientList) AddEmby(client *Client[*client.EmbyConfig]) {
 	c.Emby[client.ID] = client
 	c.IDs[client.ID] = client.GetType()

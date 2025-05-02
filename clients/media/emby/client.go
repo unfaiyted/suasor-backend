@@ -16,7 +16,8 @@ import (
 
 type EmbyClient struct {
 	media.ClientMedia
-	client *embyclient.APIClient
+	client       *embyclient.APIClient
+	clientConfig *clienttypes.EmbyConfig
 }
 
 // NewEmbyClient creates a new Emby client instance
@@ -38,8 +39,9 @@ func NewEmbyClient(ctx context.Context, registry *media.ClientItemRegistry, clie
 		return nil, err
 	}
 	embyClient := &EmbyClient{
-		ClientMedia: clientMedia,
-		client:      client,
+		ClientMedia:  clientMedia,
+		client:       client,
+		clientConfig: cfg,
 	}
 
 	// Resolve user ID if username is provided

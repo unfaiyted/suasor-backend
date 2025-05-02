@@ -10,19 +10,25 @@ import (
 // @Description Plex media server configuration
 type PlexConfig struct {
 	ClientMediaConfig `json:"details"`
+	Username          string `json:"username" mapstructure:"username" example:"your-plex-username" binding:"required_if=Enabled true"`
 	Token             string `json:"token" mapstructure:"token" example:"your-plex-token" binding:"required_if=Enabled true"`
 }
 
-func NewPlexConfig(host string, token string, enabled bool, validateConn bool) PlexConfig {
+func NewPlexConfig(host, token, username string, enabled, validateConn bool) PlexConfig {
 	clientConfig := NewClientMediaConfig(ClientMediaTypePlex, ClientCategoryMedia, "Plex", host, "", enabled, validateConn)
 	return PlexConfig{
 		ClientMediaConfig: clientConfig,
+		Username:          username,
 		Token:             token,
 	}
 }
 
 func (c *PlexConfig) GetToken() string {
 	return c.Token
+}
+
+func (c *PlexConfig) GetUsername() string {
+	return c.Username
 }
 
 func (PlexConfig) GetClientType() ClientMediaType {

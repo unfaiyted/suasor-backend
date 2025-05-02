@@ -124,6 +124,16 @@ func Initialize(ctx context.Context, dbConfig types.DatabaseConfig) (*gorm.DB, e
 		&models.MediaItem[*media.Collection]{},
 		&models.MediaItem[*media.Playlist]{},
 
+		&models.UserMediaItemData[*media.Movie]{},
+		&models.UserMediaItemData[*media.Series]{},
+		&models.UserMediaItemData[*media.Episode]{},
+		&models.UserMediaItemData[*media.Season]{},
+		&models.UserMediaItemData[*media.Track]{},
+		&models.UserMediaItemData[*media.Album]{},
+		&models.UserMediaItemData[*media.Artist]{},
+		&models.UserMediaItemData[*media.Collection]{},
+		&models.UserMediaItemData[*media.Playlist]{},
+
 		&models.ListCollaborator{},
 
 		&models.Session{},

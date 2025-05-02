@@ -31,6 +31,10 @@ type UserMediaItemData[T types.MediaData] struct {
 	UpdatedAt        time.Time       `json:"updatedAt" gorm:"autoUpdateTime"`
 }
 
+func (h *UserMediaItemData[T]) TableName() string {
+	return "user_media_item_data"
+}
+
 // Associate links this history record with a media item
 func (h *UserMediaItemData[T]) Associate(item *MediaItem[T]) {
 	h.MediaItemID = item.ID

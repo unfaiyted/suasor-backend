@@ -64,21 +64,16 @@ func GetMediaItemData[T types.MediaData](
 	baseItem, err := GetItem[T](ctx, e, item)
 	mediaItem, err := GetMediaItem[T](ctx, e, baseItem, item.Id)
 
-	if err != nil {
-		return nil, err
-	}
-	mediaItemData := models.UserMediaItemData[T]{
-		Type:             types.MediaType(item.Type_),
-		PlayedAt:         item.UserData.LastPlayedDate,
-		PlayedPercentage: item.UserData.PlayedPercentage,
-		IsFavorite:       item.UserData.IsFavorite,
-		PlayCount:        item.UserData.PlayCount,
-		PositionSeconds:  int(item.UserData.PlaybackPositionTicks / 10000000),
-	}
-	mediaItemData.Item.SetClientInfo(e.GetClientID(), e.GetClientType(), item.Id)
+	mediaItemData := models.NewUserMediaItemData[T](mediaItem, 0)
+	mediaItemData.PlayedAt = item.UserData.LastPlayedDate
+	mediaItemData.PlayedPercentage = item.UserData.PlayedPercentage
+	mediaItemData.IsFavorite = item.UserData.IsFavorite
+	mediaItemData.PlayCount = item.UserData.PlayCount
+	mediaItemData.PositionSeconds = int(item.UserData.PlaybackPositionTicks / 10000000)
+
 	mediaItemData.Associate(mediaItem)
 
-	return &mediaItemData, err
+	return mediaItemData, err
 }
 
 func GetMediaItemDataList[T types.MediaData](
@@ -192,6 +187,14 @@ func GetMixedMediaItemsData(
 	datas := models.NewMediaItemDataList()
 
 	for _, item := range items {
+
+		log.Debug().
+			Str("itemID", item.Id).
+			Str("itemName", item.Name).
+			Str("itemType", item.Type_).
+			Msg("Processing item")
+
+		// TODO: Handle other item types, SWITCH, improve this to some sort of generic loop
 		if item.Type_ == "Movie" {
 			movie, err := GetMediaItemData[*types.Movie](ctx, e, &item)
 			if err != nil {
@@ -257,6 +260,7 @@ func GetMixedMediaItemsData(
 					Msg("Error converting Emby item to media data format")
 				continue
 			}
+
 			datas.AddSeason(season)
 		} else if item.Type_ == "Collection" {
 			collection, err := GetMediaItemData[*types.Collection](ctx, e, &item)
@@ -272,6 +276,18 @@ func GetMixedMediaItemsData(
 		}
 
 	}
+
+	log.Info().
+		Int("totalMovies", len(datas.Movies)).
+		Int("totalSeries", len(datas.Series)).
+		Int("totalEpisodes", len(datas.Episodes)).
+		Int("totalTracks", len(datas.Tracks)).
+		Int("totalAlbums", len(datas.Albums)).
+		Int("totalArtists", len(datas.Artists)).
+		Int("totalPlaylists", len(datas.Playlists)).
+		Int("totalCollections", len(datas.Collections)).
+		Int("totalItems", datas.GetTotalItems()).
+		Msg("Completed GetMixedMediaItemsData request")
 
 	return datas, nil
 }

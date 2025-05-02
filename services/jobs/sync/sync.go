@@ -151,11 +151,12 @@ func (j *MediaSyncJob) RunManualSync(ctx context.Context, userID uint64, clientI
 	var clientType clienttypes.ClientType
 	for _, cType := range clientTypes {
 		// Try to get the config for this client type
-		config, err := j.getClientConfig(ctx, clientID)
+		config, ownerID, err := j.getClientConfig(ctx, clientID)
 		if err == nil && config != nil {
 			// Found the client type
 			log.Info().
 				Uint64("clientID", clientID).
+				Uint64("ownerID", ownerID).
 				Str("clientType", string(cType)).
 				Msg("Found client type")
 			clientType = cType
@@ -197,12 +198,12 @@ func (j *MediaSyncJob) completeJobRun(ctx context.Context, jobRunID uint64, stat
 	}
 }
 
-func (j *MediaSyncJob) getClientConfig(ctx context.Context, clientID uint64) (clienttypes.ClientConfig, error) {
+func (j *MediaSyncJob) getClientConfig(ctx context.Context, clientID uint64) (clienttypes.ClientConfig, uint64, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Validate input parameters
 	if clientID == 0 {
-		return nil, fmt.Errorf("invalid client ID: cannot be zero")
+		return nil, 0, fmt.Errorf("invalid client ID: cannot be zero")
 	}
 
 	log.Info().
@@ -212,56 +213,18 @@ func (j *MediaSyncJob) getClientConfig(ctx context.Context, clientID uint64) (cl
 	// Get client config from database
 	clientList, err := j.clientRepos.GetAllMediaClients(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get media clients: %w", err)
+		return nil, 0, fmt.Errorf("failed to get media clients: %w", err)
 	}
 
 	config := clientList.GetClientConfig(clientID)
+	ownerID := clientList.GetClientOwnerID(clientID)
 
 	// Validate that config is not nil
 	if config == nil {
-		return nil, fmt.Errorf("retrieved nil config for clientID=%d", clientID)
+		return nil, 0, fmt.Errorf("retrieved nil config for clientID=%d", clientID)
 	}
 
-	return config, nil
-}
-
-// getClientMedia gets a media client from the database and initializes it
-func (j *MediaSyncJob) getClientMedia(ctx context.Context, clientID uint64) (media.ClientMedia, error) {
-	log := logger.LoggerFromContext(ctx)
-
-	// Validate input parameters
-	if clientID == 0 {
-		return nil, fmt.Errorf("invalid client ID: cannot be zero")
-	}
-
-	log.Info().
-		Uint64("clientID", clientID).
-		Msg("Getting client media")
-
-	// Use the type to get the client config by id
-	clientConfig, err := j.getClientConfig(ctx, clientID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get client config: %w", err)
-	}
-
-	// Validate client config is not nil before proceeding
-	if clientConfig == nil {
-		return nil, fmt.Errorf("client config is nil for clientID=%d, clientType=%s", clientID)
-	}
-
-	// Cast media client from generic client
-	client, err := j.clientFactories.GetClient(ctx, clientID, clientConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get client: %w", err)
-	}
-
-	// Cast to media client
-	clientMedia, ok := client.(media.ClientMedia)
-	if !ok {
-		return nil, fmt.Errorf("client is not a media client")
-	}
-
-	return clientMedia, nil
+	return config, ownerID, nil
 }
 
 // isDue checks if a sync job is due to run
@@ -318,7 +281,8 @@ func (j *MediaSyncJob) runSyncJob(ctx context.Context, syncJob models.MediaSyncJ
 	j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 0, "Starting media sync")
 
 	// Get the client from the database
-	clientMedia, err := j.getClientMedia(ctx, syncJob.ClientID)
+	clientMedia, ownerID, err := j.getClientMedia(ctx, syncJob.ClientID)
+
 	if err != nil {
 		errorMsg := fmt.Sprintf("Failed to get media client: %v", err)
 		j.completeJobRun(ctx, jobRun.ID, models.JobStatusFailed, errorMsg)
@@ -337,7 +301,7 @@ func (j *MediaSyncJob) runSyncJob(ctx context.Context, syncJob models.MediaSyncJ
 	case models.SyncTypeMusic:
 		syncError = j.syncMusic(ctx, clientMedia, jobRun.ID, syncJob.ClientID)
 	case models.SyncTypeHistory:
-		syncError = j.syncHistory(ctx, clientMedia, jobRun.ID, syncJob.ClientID)
+		syncError = j.syncHistory(ctx, clientMedia, ownerID, jobRun.ID, syncJob.ClientID)
 	case models.SyncTypeFavorites:
 		// syncError = j.syncFavorites(ctx, clientMedia, jobRun.ID, syncJob.ClientID)
 	case models.SyncTypeCollections:
@@ -358,4 +322,42 @@ func (j *MediaSyncJob) runSyncJob(ctx context.Context, syncJob models.MediaSyncJ
 
 	j.completeJobRun(ctx, jobRun.ID, status, errorMessage)
 	return syncError
+}
+
+func (j *MediaSyncJob) getClientMedia(ctx context.Context, clientID uint64) (media.ClientMedia, uint64, error) {
+	log := logger.LoggerFromContext(ctx)
+
+	// Validate input parameters
+	if clientID == 0 {
+		return nil, 0, fmt.Errorf("invalid client ID: cannot be zero")
+	}
+
+	log.Info().
+		Uint64("clientID", clientID).
+		Msg("Getting client media")
+
+	// Use the type to get the client config by id
+	clientConfig, userID, err := j.getClientConfig(ctx, clientID)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to get client config: %w", err)
+	}
+
+	// Validate client config is not nil before proceeding
+	if clientConfig == nil {
+		return nil, 0, fmt.Errorf("client config is nil for clientID=%d, userID=%d", clientID, userID)
+	}
+
+	// Cast media client from generic client
+	client, err := j.clientFactories.GetClient(ctx, clientID, clientConfig)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to get client: %w", err)
+	}
+
+	// Cast to media client
+	clientMedia, ok := client.(media.ClientMedia)
+	if !ok {
+		return nil, 0, fmt.Errorf("client is not a media client")
+	}
+
+	return clientMedia, userID, nil
 }

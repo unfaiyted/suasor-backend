@@ -181,7 +181,7 @@ func CheckClientSupportsMediaType[T clienttypes.ClientMediaConfig, U mediatypes.
 		config := clienttypes.NewJellyfinConfig("", "", "", "", true, true)
 		return config.SupportsMediaType(mediaType)
 	case *clienttypes.PlexConfig:
-		config := clienttypes.NewPlexConfig("", "", true, true)
+		config := clienttypes.NewPlexConfig("", "", "", true, true)
 		return config.SupportsMediaType(mediaType)
 	case *clienttypes.SubsonicConfig:
 		config := clienttypes.NewSubsonicConfig("", "", "", true, true)
