@@ -31,9 +31,16 @@ func (j *JellyfinClient) GetSeries(ctx context.Context, options *t.QueryOptions)
 	itemsReq := j.client.ItemsAPI.GetItems(ctx).
 		IncludeItemTypes(includeItemTypes).
 		Recursive(true)
+		
+	// Set user ID first if available to ensure it's never nil
+	if j.getUserID() != "" {
+		itemsReq.UserId(j.getUserID())
+	}
 
-	NewJellyfinQueryOptions(options).
-		SetItemsRequest(&itemsReq)
+	// Then apply any additional options
+	if queryOptions := NewJellyfinQueryOptions(options); queryOptions != nil {
+		queryOptions.SetItemsRequest(&itemsReq)
+	}
 
 	result, resp, err := itemsReq.Execute()
 
@@ -99,6 +106,11 @@ func (j *JellyfinClient) GetSeriesByID(ctx context.Context, id string) (models.M
 		Msg("Making API request to Jellyfin server")
 
 	itemsReq := j.client.ItemsAPI.GetItems(ctx).Ids(strings.Split(ids, ","))
+	
+	// Set user ID if available
+	if j.getUserID() != "" {
+		itemsReq.UserId(j.getUserID())
+	}
 
 	result, resp, err := itemsReq.Execute()
 
@@ -181,8 +193,12 @@ func (j *JellyfinClient) GetSeriesSeasons(ctx context.Context, showID string) ([
 
 	seasonsReq := j.client.TvShowsAPI.GetSeasons(ctx, showID).
 		EnableImages(true).
-		EnableUserData(true).
-		UserId(j.config.UserID)
+		EnableUserData(true)
+		
+	// Set user ID if available
+	if j.getUserID() != "" {
+		seasonsReq.UserId(j.getUserID())
+	}
 	result, resp, err := seasonsReq.Execute()
 
 	if err != nil {
@@ -248,7 +264,12 @@ func (j *JellyfinClient) GetSeriesEpisodes(ctx context.Context, showID string, s
 		Int("seasonNumber", seasonNumber).
 		Msg("Making API request to Jellyfin server for TV show episodes")
 
-	episodesReq := j.client.TvShowsAPI.GetEpisodes(ctx, showID).Season(seasonNum).UserId(j.config.UserID)
+	episodesReq := j.client.TvShowsAPI.GetEpisodes(ctx, showID).Season(seasonNum)
+	
+	// Set user ID if available
+	if j.getUserID() != "" {
+		episodesReq.UserId(j.getUserID())
+	}
 	result, resp, err := episodesReq.Execute()
 
 	if err != nil {
@@ -318,6 +339,11 @@ func (j *JellyfinClient) GetEpisodeByID(ctx context.Context, id string) (*models
 		Msg("Making API request to Jellyfin server")
 
 	itemsReq := j.client.ItemsAPI.GetItems(ctx).Ids(strings.Split(ids, ","))
+	
+	// Set user ID if available
+	if j.getUserID() != "" {
+		itemsReq.UserId(j.getUserID())
+	}
 
 	result, resp, err := itemsReq.Execute()
 

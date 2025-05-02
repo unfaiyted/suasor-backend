@@ -104,7 +104,7 @@ func (c *MediaClientList) GetClientType(clientID uint64) (client.ClientType, boo
 	return "", false
 }
 
-func (c *MediaClientList) GetClientConfig(clientID uint64, clientType client.ClientType) client.ClientConfig {
+func (c *MediaClientList) GetClientConfigByType(clientID uint64, clientType client.ClientType) client.ClientConfig {
 	if clientType == client.ClientTypeEmby {
 		if client, ok := c.Emby[clientID]; ok && client != nil {
 			return client.Config
@@ -130,6 +130,15 @@ func (c *MediaClientList) GetClientConfig(clientID uint64, clientType client.Cli
 		return nil
 	}
 	return nil
+}
+
+func (c *MediaClientList) GetClientConfig(clientID uint64) client.ClientConfig {
+	clientType, exists := c.GetClientType(clientID)
+	if !exists {
+		return nil
+	}
+	config := c.GetClientConfigByType(clientID, clientType)
+	return config
 }
 
 func (c *MediaClientList) AddEmby(client *Client[*client.EmbyConfig]) {

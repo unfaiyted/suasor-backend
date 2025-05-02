@@ -10,6 +10,7 @@ import (
 	mediatypes "suasor/clients/media/types"
 	clienttypes "suasor/clients/types"
 	"suasor/types/models"
+	"suasor/utils"
 )
 
 // syncMovies syncs movies from the client to the database
@@ -89,6 +90,15 @@ func (j *MediaSyncJob) processMovieBatch(ctx context.Context, movies []*models.M
 
 		if err != nil || existingMovie == nil {
 			log.Printf("No matching client item ID found for movie: %s", movie.Data.Details.Title)
+
+			approvedSources := []string{"imdb", "tmdb", "tvdb"}
+			filteredExternalIDs := make([]mediatypes.ExternalID, 0, len(movie.Data.Details.ExternalIDs))
+			for _, externalID := range movie.Data.Details.ExternalIDs {
+				if utils.Contains(approvedSources, externalID.Source) {
+					filteredExternalIDs = append(filteredExternalIDs, externalID)
+				}
+			}
+
 			existingMovie, err = j.itemRepos.MovieUserRepo().GetByExternalIDs(ctx, movie.Data.Details.ExternalIDs)
 		}
 		// If we cant find it by client Item Id we should check by Title+Year

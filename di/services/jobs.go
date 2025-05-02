@@ -48,7 +48,6 @@ func registerJobServices(ctx context.Context, c *container.Container) {
 		userMusicDataRepo := userDataRepos.TrackDataRepo()
 
 		// Get job implementations
-		watchHistorySyncJob := container.MustGet[*sync.WatchHistorySyncJob](c)
 		favoritesSyncJob := container.MustGet[*sync.FavoritesSyncJob](c)
 		mediaSyncJob := container.MustGet[*sync.MediaSyncJob](c)
 		recommendationJob := container.MustGet[*recommendation.RecommendationJob](c)
@@ -66,23 +65,10 @@ func registerJobServices(ctx context.Context, c *container.Container) {
 			userMusicDataRepo,
 			recommendationJob,
 			mediaSyncJob,
-			watchHistorySyncJob,
 			favoritesSyncJob,
 		)
 	})
 
-	log.Info().Msg("Registering watch history sync job service")
-	container.RegisterFactory[*sync.WatchHistorySyncJob](c, func(c *container.Container) *sync.WatchHistorySyncJob {
-		jobRepo := container.MustGet[repository.JobRepository](c)
-		userRepo := container.MustGet[repository.UserRepository](c)
-		userConfigRepo := container.MustGet[repository.UserConfigRepository](c)
-		clientRepos := container.MustGet[repobundles.ClientRepositories](c)
-		dataRepos := container.MustGet[repobundles.UserMediaDataRepositories](c)
-		clientItemRepos := container.MustGet[repobundles.ClientMediaItemRepositories](c)
-		itemRepos := container.MustGet[repobundles.CoreMediaItemRepositories](c)
-		clientFactories := container.MustGet[*clients.ClientProviderFactoryService](c)
-		return sync.NewWatchHistorySyncJob(jobRepo, userRepo, userConfigRepo, clientRepos, dataRepos, clientItemRepos, itemRepos, clientFactories)
-	})
 	// Favorites Sync Job
 	log.Info().Msg("Registering favorites sync job service")
 	container.RegisterFactory[*sync.FavoritesSyncJob](c, func(c *container.Container) *sync.FavoritesSyncJob {

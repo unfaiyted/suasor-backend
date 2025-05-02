@@ -17,7 +17,7 @@ func (j *MediaSyncJob) processAlbumBatchForArtist(
 	clientID uint64,
 	clientType clienttypes.ClientType) ([]*models.MediaItem[*mediatypes.Album], error) {
 
-	clientMedia, err := j.getClientMedia(ctx, clientID, clientType)
+	clientMedia, err := j.getClientMedia(ctx, clientID)
 	if err != nil {
 		// Just log the error but continue processing with what we have
 		log.Printf("Failed to get media client for album details: %v", err)
@@ -140,7 +140,7 @@ func (j *MediaSyncJob) processAlbumBatchForArtist(
 // processArtistBatch processes a batch of music artists and saves them to the database
 func (j *MediaSyncJob) processArtistBatch(ctx context.Context, artists []*models.MediaItem[*mediatypes.Artist], clientID uint64, clientType clienttypes.ClientType) error {
 	// Try to get a music provider for this client to fetch album details
-	clientMedia, err := j.getClientMedia(ctx, clientID, clientType)
+	clientMedia, err := j.getClientMedia(ctx, clientID)
 	if err != nil {
 		// Just log the error but continue processing with what we have
 		log.Printf("Failed to get media client for album details: %v", err)
@@ -251,7 +251,7 @@ func (j *MediaSyncJob) processIndependentAlbumBatch(
 	clientID uint64,
 	clientType clienttypes.ClientType) ([]*models.MediaItem[*mediatypes.Album], error) {
 
-	clientMedia, err := j.getClientMedia(ctx, clientID, clientType)
+	clientMedia, err := j.getClientMedia(ctx, clientID)
 	if err != nil {
 		// Just log the error but continue processing with what we have
 		log.Printf("Failed to get media client for album details: %v", err)
@@ -380,4 +380,3 @@ func (j *MediaSyncJob) processIndependentAlbumBatch(
 
 	return processedAlbums, nil
 }
-

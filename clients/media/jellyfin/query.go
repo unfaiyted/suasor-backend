@@ -101,21 +101,23 @@ type JellyfinQueryOptions struct {
 
 // NewJellyfinQueryOptions creates a new instance of JellyfinQueryOptions
 func NewJellyfinQueryOptions(options *types.QueryOptions) *JellyfinQueryOptions {
-	var jellyfinOptions *JellyfinQueryOptions
+	// Always create a new instance
+	jellyfinOptions := &JellyfinQueryOptions{}
 
-	// Create a new instance if none was provided
-	if options == nil {
-		jellyfinOptions = &JellyfinQueryOptions{}
+	// Only process options if they are provided
+	if options != nil {
+		jellyfinOptions.FromQueryOptions(options)
 	}
 
-	jellyfinOptions.FromQueryOptions(options)
-
 	return jellyfinOptions
-
 }
 
 // ToItemsRequest converts JellyfinQueryOptions to an API request object for GetItems
 func (j *JellyfinQueryOptions) SetItemsRequest(req *jellyfin.ApiGetItemsRequest) {
+	// Defensive programming: check for nil pointers
+	if j == nil || req == nil {
+		return
+	}
 
 	// Apply all parameters using method-based approach
 	if j.UserId != nil {
@@ -466,6 +468,10 @@ func (j *JellyfinQueryOptions) SetItemsRequest(req *jellyfin.ApiGetItemsRequest)
 
 // ToArtistsRequest converts JellyfinQueryOptions to an API request object for GetArtists
 func (j *JellyfinQueryOptions) SetArtistsRequest(req *jellyfin.ApiGetArtistsRequest) {
+	// Defensive programming: check for nil pointers
+	if j == nil || req == nil {
+		return
+	}
 
 	if j.UserId != nil {
 		req.UserId(*j.UserId)
@@ -599,13 +605,8 @@ func (j *JellyfinQueryOptions) SetArtistsRequest(req *jellyfin.ApiGetArtistsRequ
 
 // FromQueryOptions converts Suasor's QueryOptions to JellyfinQueryOptions
 func (j *JellyfinQueryOptions) FromQueryOptions(options *types.QueryOptions) *JellyfinQueryOptions {
-	if options == nil {
-		return nil
-	}
-
-	// Create a new instance if none was provided
-	if j == nil {
-		j = &JellyfinQueryOptions{}
+	if options == nil || j == nil {
+		return j
 	}
 
 	// ItemIDs
@@ -756,19 +757,19 @@ func (j *JellyfinQueryOptions) FromQueryOptions(options *types.QueryOptions) *Je
 	}
 
 	// Date filters
-	if !options.DateAddedAfter.IsZero() {
+	if options.DateAddedAfter != nil && !options.DateAddedAfter.IsZero() {
 		j.MinDateLastSaved = options.DateAddedAfter
 	}
 
-	if !options.DateAddedBefore.IsZero() {
+	if options.DateAddedBefore != nil && !options.DateAddedBefore.IsZero() {
 		j.MaxPremiereDate = options.DateAddedBefore
 	}
 
-	if !options.ReleasedAfter.IsZero() {
+	if options.ReleasedAfter != nil && !options.ReleasedAfter.IsZero() {
 		j.MinPremiereDate = options.ReleasedAfter
 	}
 
-	if !options.ReleasedBefore.IsZero() {
+	if options.ReleasedBefore != nil && !options.ReleasedBefore.IsZero() {
 		j.MaxPremiereDate = options.ReleasedBefore
 	}
 

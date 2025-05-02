@@ -71,21 +71,20 @@ type JobService interface {
 }
 
 type jobService struct {
-	jobRepo             repository.JobRepository
-	userRepo            repository.UserRepository
-	configRepo          repository.UserConfigRepository
-	movieRepo           repository.CoreMediaItemRepository[*mediatypes.Movie]
-	seriesRepo          repository.CoreMediaItemRepository[*mediatypes.Series]
-	trackRepo           repository.CoreMediaItemRepository[*mediatypes.Track]
-	userMovieDataRepo   repository.UserMediaItemDataRepository[*mediatypes.Movie]
-	userSeriesDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Series]
-	userTrackDataRepo   repository.UserMediaItemDataRepository[*mediatypes.Track]
-	scheduler           *scheduler.Scheduler
-	jobs                map[string]scheduler.Job
-	recommendationJob   *recommendation.RecommendationJob
-	mediaSyncJob        *sync.MediaSyncJob
-	watchHistorySyncJob *sync.WatchHistorySyncJob
-	favoritesSyncJob    *sync.FavoritesSyncJob
+	jobRepo            repository.JobRepository
+	userRepo           repository.UserRepository
+	configRepo         repository.UserConfigRepository
+	movieRepo          repository.CoreMediaItemRepository[*mediatypes.Movie]
+	seriesRepo         repository.CoreMediaItemRepository[*mediatypes.Series]
+	trackRepo          repository.CoreMediaItemRepository[*mediatypes.Track]
+	userMovieDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Movie]
+	userSeriesDataRepo repository.UserMediaItemDataRepository[*mediatypes.Series]
+	userTrackDataRepo  repository.UserMediaItemDataRepository[*mediatypes.Track]
+	scheduler          *scheduler.Scheduler
+	jobs               map[string]scheduler.Job
+	recommendationJob  *recommendation.RecommendationJob
+	mediaSyncJob       *sync.MediaSyncJob
+	favoritesSyncJob   *sync.FavoritesSyncJob
 }
 
 // NewJobService creates a new job service
@@ -101,25 +100,23 @@ func NewJobService(
 	userTrackDataRepo repository.UserMediaItemDataRepository[*mediatypes.Track],
 	recommendationJob *recommendation.RecommendationJob,
 	mediaSyncJob *sync.MediaSyncJob,
-	watchHistorySyncJob *sync.WatchHistorySyncJob,
 	favoritesSyncJob *sync.FavoritesSyncJob,
 ) JobService {
 	return &jobService{
-		jobRepo:             jobRepo,
-		userRepo:            userRepo,
-		configRepo:          configRepo,
-		movieRepo:           movieRepo,
-		seriesRepo:          seriesRepo,
-		trackRepo:           trackRepo,
-		userMovieDataRepo:   userMovieDataRepo,
-		userSeriesDataRepo:  userSeriesDataRepo,
-		userTrackDataRepo:   userTrackDataRepo,
-		scheduler:           scheduler.NewScheduler(),
-		jobs:                make(map[string]scheduler.Job),
-		recommendationJob:   recommendationJob,
-		mediaSyncJob:        mediaSyncJob,
-		watchHistorySyncJob: watchHistorySyncJob,
-		favoritesSyncJob:    favoritesSyncJob,
+		jobRepo:            jobRepo,
+		userRepo:           userRepo,
+		configRepo:         configRepo,
+		movieRepo:          movieRepo,
+		seriesRepo:         seriesRepo,
+		trackRepo:          trackRepo,
+		userMovieDataRepo:  userMovieDataRepo,
+		userSeriesDataRepo: userSeriesDataRepo,
+		userTrackDataRepo:  userTrackDataRepo,
+		scheduler:          scheduler.NewScheduler(),
+		jobs:               make(map[string]scheduler.Job),
+		recommendationJob:  recommendationJob,
+		mediaSyncJob:       mediaSyncJob,
+		favoritesSyncJob:   favoritesSyncJob,
 	}
 }
 
@@ -137,9 +134,6 @@ func (s *jobService) StartScheduler() error {
 	}
 	if s.mediaSyncJob == nil {
 		log.Printf("Warning: mediaSyncJob is nil, some media sync functionality will be unavailable")
-	}
-	if s.watchHistorySyncJob == nil {
-		log.Printf("Warning: watchHistorySyncJob is nil, some watch history sync functionality will be unavailable")
 	}
 	if s.favoritesSyncJob == nil {
 		log.Printf("Warning: favoritesSyncJob is nil, some favorites sync functionality will be unavailable")
@@ -388,7 +382,7 @@ func getJobType(job scheduler.Job) models.JobType {
 	switch job.(type) {
 	case *recommendation.RecommendationJob:
 		return models.JobTypeRecommendation
-	case *sync.MediaSyncJob, *sync.WatchHistorySyncJob, *sync.FavoritesSyncJob:
+	case *sync.MediaSyncJob, *sync.FavoritesSyncJob:
 		return models.JobTypeSync
 	default:
 		return models.JobType("unknown")

@@ -30,8 +30,12 @@ func (j *JellyfinClient) GetMusicTracks(ctx context.Context, options *t.QueryOpt
 	log.Debug().Msg("Making API request to Jellyfin server for music tracks")
 	itemsReq := j.client.ItemsAPI.GetItems(ctx).
 		IncludeItemTypes(includeItemTypes).
-		Recursive(true).
-		UserId(j.config.UserID)
+		Recursive(true)
+
+	// Set user ID if available
+	if j.getUserID() != "" {
+		itemsReq.UserId(j.getUserID())
+	}
 
 	NewJellyfinQueryOptions(options).
 		SetItemsRequest(&itemsReq)
@@ -84,7 +88,7 @@ func (j *JellyfinClient) GetMusicTracks(ctx context.Context, options *t.QueryOpt
 				track.Data.ArtistName = *item.ArtistItems[0].Name.Get()
 			}
 
-			extractProviderIDs(&item.ProviderIds, &track.Data.Details.ExternalIDs)
+			embedProviderIDs(ctx, &item.ProviderIds, &track.Data.Details.ExternalIDs)
 
 			tracks = append(tracks, track)
 		}
@@ -109,8 +113,12 @@ func (j *JellyfinClient) GetMusicArtists(ctx context.Context, options *t.QueryOp
 
 	// Call the Jellyfin API
 	log.Debug().Msg("Making API request to Jellyfin server for music artists")
-	artistReq := j.client.ArtistsAPI.GetArtists(ctx).
-		UserId(j.config.UserID)
+	artistReq := j.client.ArtistsAPI.GetArtists(ctx)
+
+	// Set user ID if available
+	if j.getUserID() != "" {
+		artistReq.UserId(j.getUserID())
+	}
 
 	NewJellyfinQueryOptions(options).
 		SetArtistsRequest(&artistReq)
@@ -151,7 +159,7 @@ func (j *JellyfinClient) GetMusicArtists(ctx context.Context, options *t.QueryOp
 		}
 		artist.SetClientInfo(j.GetClientID(), j.GetClientType(), *item.Id)
 
-		extractProviderIDs(&item.ProviderIds, &artist.Data.Details.ExternalIDs)
+		embedProviderIDs(ctx, &item.ProviderIds, &artist.Data.Details.ExternalIDs)
 
 		artists = append(artists, artist)
 	}
@@ -180,8 +188,12 @@ func (j *JellyfinClient) GetMusicAlbums(ctx context.Context, options *t.QueryOpt
 	log.Debug().Msg("Making API request to Jellyfin server for music albums")
 	itemsReq := j.client.ItemsAPI.GetItems(ctx).
 		IncludeItemTypes(includeItemTypes).
-		Recursive(true).
-		UserId(j.config.UserID)
+		Recursive(true)
+
+	// Set user ID if available
+	if j.getUserID() != "" {
+		itemsReq.UserId(j.getUserID())
+	}
 
 	NewJellyfinQueryOptions(options).
 		SetItemsRequest(&itemsReq)
@@ -228,7 +240,7 @@ func (j *JellyfinClient) GetMusicAlbums(ctx context.Context, options *t.QueryOpt
 			album.Data.ArtistName = *item.AlbumArtist.Get()
 		}
 
-		extractProviderIDs(&item.ProviderIds, &album.Data.Details.ExternalIDs)
+		embedProviderIDs(ctx, &item.ProviderIds, &album.Data.Details.ExternalIDs)
 
 		albums = append(albums, album)
 	}
@@ -314,7 +326,7 @@ func (j *JellyfinClient) GetMusicTrackByID(ctx context.Context, trackID string) 
 	}
 
 	// Extract provider IDs
-	extractProviderIDs(&resultItem.ProviderIds, &track.Data.Details.ExternalIDs)
+	embedProviderIDs(ctx, &resultItem.ProviderIds, &track.Data.Details.ExternalIDs)
 
 	log.Debug().
 		Str("trackID", trackID).
@@ -386,7 +398,7 @@ func (j *JellyfinClient) GetMusicArtistByID(ctx context.Context, artistID string
 		// TODO: check if we need to do something
 	}
 
-	extractProviderIDs(&resultItem.ProviderIds, &artist.Details.ExternalIDs)
+	embedProviderIDs(ctx, &resultItem.ProviderIds, &artist.Details.ExternalIDs)
 
 	log.Debug().
 		Str("artistID", artistID).
@@ -454,7 +466,7 @@ func (j *JellyfinClient) GetMusicAlbumByID(ctx context.Context, albumID string) 
 	mediaItem := models.NewMediaItem[*t.Album](mediatype.MediaTypeAlbum, &album)
 	mediaItem.SetClientInfo(j.GetClientID(), j.GetClientType(), *resultItem.Id)
 
-	extractProviderIDs(&resultItem.ProviderIds, &album.Details.ExternalIDs)
+	embedProviderIDs(ctx, &resultItem.ProviderIds, &album.Details.ExternalIDs)
 
 	log.Debug().
 		Str("albumID", albumID).
@@ -527,8 +539,12 @@ func (j *JellyfinClient) getItemByIDs(ctx context.Context, IDs string) ([]jellyf
 		Msg("Making API request to Jellyfin server")
 
 	itemsReq := j.client.ItemsAPI.GetItems(ctx)
-
 	itemsReq.Ids(strings.Split(IDs, ","))
+
+	// Set user ID if available
+	if j.getUserID() != "" {
+		itemsReq.UserId(j.getUserID())
+	}
 
 	result, resp, err := itemsReq.Execute()
 	if err != nil {

@@ -65,7 +65,8 @@ func (j *JellyfinClient) jellyfinConfig() *clienttypes.JellyfinConfig {
 
 // getUserID returns the Jellyfin user ID - either directly from config or resolved from username
 func (j *JellyfinClient) getUserID() string {
-	if j.jellyfinConfig() == nil {
+	// Defensive programming - check for nil pointer
+	if j == nil || j.jellyfinConfig() == nil {
 		return ""
 	}
 
@@ -74,9 +75,7 @@ func (j *JellyfinClient) getUserID() string {
 		return j.jellyfinConfig().GetUserID()
 	}
 
-	// Try to infer it from username, but this won't work in this context
-	// since we'd need to make API call which requires context
-	// log error and return empty
+	// If no user ID is available, return empty string
 	return ""
 }
 

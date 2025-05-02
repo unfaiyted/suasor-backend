@@ -378,28 +378,27 @@ func (j *JellyfinClient) getArtworkURLs(item *jellyfin.BaseItemDto) *types.Artwo
 	return &imageURLs
 }
 
-// extractProviderIDs adds external IDs from the Jellyfin provider IDs map to the metadata
-func extractProviderIDs(providerIds *map[string]string, externalIDs *types.ExternalIDs) {
+// embedProviderIDs adds external IDs from the Jellyfin provider IDs map to the metadata
+func embedProviderIDs(ctx context.Context, providerIds *map[string]string, externalIDs *types.ExternalIDs) {
+	log := logger.LoggerFromContext(ctx)
 	if providerIds == nil {
+		log.Debug().
+			Str("providerIDs", "nil").
+			Msg("No provider IDs found, skipping embedding")
 		return
 	}
-
-	// Common media identifier mappings
-	idMappings := map[string]string{
-		"Imdb":              "imdb",
-		"Tmdb":              "tmdb",
-		"Tvdb":              "tvdb",
-		"MusicBrainzTrack":  "musicbrainz",
-		"MusicBrainzAlbum":  "musicbrainz",
-		"MusicBrainzArtist": "musicbrainz",
+	log.Debug().
+		Int("providerIDs", len(*providerIds)).
+		Msg("Embedding provider IDs")
+	// loop over provider ids and add each one to the external IDs
+	for sourceKey, externalValue := range *providerIds {
+		log.Debug().
+			Str("sourceKey", sourceKey).
+			Str("externalKey", externalValue).
+			Msg("Embedding provider ID")
+		externalIDs.AddOrUpdate(strings.ToLower(sourceKey), externalValue)
 	}
 
-	// Extract all available IDs based on the mappings
-	for jellyfinKey, externalKey := range idMappings {
-		if id, ok := (*providerIds)[jellyfinKey]; ok {
-			externalIDs.AddOrUpdate(externalKey, id)
-		}
-	}
 }
 
 // Helper function to get duration seconds from ticks pointer
@@ -410,4 +409,3 @@ func getDurationFromTicks(ticks *int64) int64 {
 	duration := time.Duration(*ticks/10000000) * time.Second
 	return int64(duration.Seconds())
 }
-

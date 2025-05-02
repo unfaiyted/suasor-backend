@@ -11,6 +11,16 @@ import (
 	"suasor/utils/logger"
 )
 
+var defaultExtraFields = []jellyfin.ItemFields{
+	jellyfin.ITEMFIELDS_DATE_CREATED,
+	jellyfin.ITEMFIELDS_GENRES,
+	jellyfin.ITEMFIELDS_PROVIDER_IDS,
+	jellyfin.ITEMFIELDS_ORIGINAL_TITLE,
+	jellyfin.ITEMFIELDS_AIR_TIME,
+	jellyfin.ITEMFIELDS_EXTERNAL_URLS,
+	jellyfin.ITEMFIELDS_STUDIOS,
+}
+
 func (j *JellyfinClient) SupportsMovies() bool { return true }
 
 func (j *JellyfinClient) GetMovies(ctx context.Context, options *t.QueryOptions) ([]*models.MediaItem[*t.Movie], error) {
@@ -28,16 +38,28 @@ func (j *JellyfinClient) GetMovies(ctx context.Context, options *t.QueryOptions)
 	// Include movie type in the query
 	includeItemTypes := []jellyfin.BaseItemKind{jellyfin.BASEITEMKIND_MOVIE}
 	mediaTypes := []jellyfin.MediaType{jellyfin.MEDIATYPE_VIDEO}
+	fields := defaultExtraFields
 	// Call the Jellyfin API
 	log.Debug().Msg("Making API request to Jellyfin server")
 	itemsReq := j.client.ItemsAPI.GetItems(ctx).
 		IncludeItemTypes(includeItemTypes).
 		IsMovie(true).
 		Recursive(true).
+		Fields(fields).
 		MediaTypes(mediaTypes)
 
-	NewJellyfinQueryOptions(options).
-		SetItemsRequest(&itemsReq)
+	// Set user ID first if available to ensure it's never nil
+	if j.getUserID() != "" {
+		log.Debug().
+			Str("userID", j.getUserID()).
+			Msg("Setting user ID")
+		itemsReq.UserId(j.getUserID())
+	}
+
+	// Then apply any additional options
+	if queryOptions := NewJellyfinQueryOptions(options); queryOptions != nil {
+		queryOptions.SetItemsRequest(&itemsReq)
+	}
 
 	log.Debug().
 		Bool("Recursive", true).
@@ -45,16 +67,12 @@ func (j *JellyfinClient) GetMovies(ctx context.Context, options *t.QueryOptions)
 
 	result, resp, err := itemsReq.Execute()
 
-	log.Debug().
-		Interface("responseItems", result.Items).
-		Msg("Full response data from Jellyfin API")
-
 	if err != nil {
 		log.Error().
 			Err(err).
 			Str("baseURL", j.jellyfinConfig().GetBaseURL()).
 			Str("apiEndpoint", "/Items").
-			Int("statusCode", 0).
+			Int("statusCode", resp.StatusCode).
 			Msg("Failed to fetch movies from Jellyfin")
 		return nil, fmt.Errorf("failed to fetch movies: %w", err)
 	}
@@ -130,6 +148,11 @@ func (j *JellyfinClient) GetMovieByID(ctx context.Context, id string) (*models.M
 		Ids(strings.Split(ids, ",")).
 		IncludeItemTypes(includeItemTypes).
 		Fields(fields)
+
+	// Set user ID if available
+	if j.getUserID() != "" {
+		itemsReq.UserId(j.getUserID())
+	}
 
 	result, resp, err := itemsReq.Execute()
 	if err != nil {

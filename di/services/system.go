@@ -117,7 +117,6 @@ func registerSystemServices(ctx context.Context, c *container.Container) {
 		userMusicDataRepo := userDataRepos.TrackDataRepo()
 
 		// Get job implementations
-		watchHistorySyncJob := container.MustGet[*sync.WatchHistorySyncJob](c)
 		favoritesSyncJob := container.MustGet[*sync.FavoritesSyncJob](c)
 		mediaSyncJob := container.MustGet[*sync.MediaSyncJob](c)
 		recommendationJob := container.MustGet[*recommendation.RecommendationJob](c)
@@ -135,7 +134,6 @@ func registerSystemServices(ctx context.Context, c *container.Container) {
 			userMusicDataRepo,
 			recommendationJob,
 			mediaSyncJob,
-			watchHistorySyncJob,
 			favoritesSyncJob,
 		)
 	})

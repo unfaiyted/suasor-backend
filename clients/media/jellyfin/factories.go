@@ -149,8 +149,15 @@ func (j *JellyfinClient) movieFactory(ctx context.Context, item *jellyfin.BaseIt
 	// Safely add community rating if available
 	if item.CommunityRating.IsSet() {
 		ratings = append(ratings, types.Rating{
-			Source: "jellyfin",
+			Source: "jellyfin-community",
 			Value:  float32(*item.CommunityRating.Get()),
+		})
+	}
+	// critic rating
+	if item.CriticRating.IsSet() {
+		ratings = append(ratings, types.Rating{
+			Source: "jellyfin-critic",
+			Value:  float32(*item.CriticRating.Get()),
 		})
 	}
 
@@ -168,27 +175,14 @@ func (j *JellyfinClient) movieFactory(ctx context.Context, item *jellyfin.BaseIt
 		},
 	}
 
-	// Set user rating if available
-	if item.UserData.IsSet() && item.UserData.Get().Rating.IsSet() {
-		movie.Details.UserRating = float32(*item.UserData.Get().Rating.Get())
-		// Set favorite status if available
-
-		isFavorite := *item.UserData.Get().IsFavorite
-		movie.Details.IsFavorite = isFavorite
-
-	} else {
-		log.Debug().
-			Str("movieID", *item.Id).
-			Msg("Movie has no user data, skipping user rating")
-	}
-
 	// Extract provider IDs if available
-	extractProviderIDs(&item.ProviderIds, &movie.Details.ExternalIDs)
+	embedProviderIDs(ctx, &item.ProviderIds, &movie.Details.ExternalIDs)
 
 	log.Debug().
 		Str("movieID", *item.Id).
 		Str("movieTitle", movie.Details.Title).
 		Int("year", movie.Details.ReleaseYear).
+		Str("externalIDs", movie.Details.ExternalIDs.String()).
 		Msg("Successfully converted Jellyfin item to movie")
 
 	return movie, nil
@@ -248,7 +242,7 @@ func (j *JellyfinClient) trackFactory(ctx context.Context, item *jellyfin.BaseIt
 	}
 
 	// Extract provider IDs
-	extractProviderIDs(&item.ProviderIds, &track.Details.ExternalIDs)
+	embedProviderIDs(ctx, &item.ProviderIds, &track.Details.ExternalIDs)
 
 	return track, nil
 }
@@ -307,7 +301,7 @@ func (j *JellyfinClient) artistFactory(ctx context.Context, item *jellyfin.BaseI
 	}
 
 	// Extract provider IDs if available
-	extractProviderIDs(&item.ProviderIds, &artist.Details.ExternalIDs)
+	embedProviderIDs(ctx, &item.ProviderIds, &artist.Details.ExternalIDs)
 
 	return artist, nil
 }
@@ -380,7 +374,7 @@ func (j *JellyfinClient) albumFactory(ctx context.Context, item *jellyfin.BaseIt
 	}
 
 	// Extract provider IDs if available
-	extractProviderIDs(&item.ProviderIds, &album.Details.ExternalIDs)
+	embedProviderIDs(ctx, &item.ProviderIds, &album.Details.ExternalIDs)
 
 	return album, nil
 }
@@ -504,7 +498,7 @@ func (j *JellyfinClient) seriesFactory(ctx context.Context, item *jellyfin.BaseI
 	}
 
 	// Extract provider IDs if available
-	extractProviderIDs(&item.ProviderIds, &series.Details.ExternalIDs)
+	embedProviderIDs(ctx, &item.ProviderIds, &series.Details.ExternalIDs)
 
 	// Set ratings if available
 	if item.CommunityRating.IsSet() {
@@ -598,7 +592,7 @@ func (j *JellyfinClient) seasonFactory(ctx context.Context, item *jellyfin.BaseI
 	}
 
 	// Extract provider IDs if available
-	extractProviderIDs(&item.ProviderIds, &season.Details.ExternalIDs)
+	embedProviderIDs(ctx, &item.ProviderIds, &season.Details.ExternalIDs)
 
 	return season, nil
 }
@@ -681,7 +675,7 @@ func (j *JellyfinClient) episodeFactory(ctx context.Context, item *jellyfin.Base
 	}
 
 	// Extract provider IDs if available
-	extractProviderIDs(&item.ProviderIds, &episode.Details.ExternalIDs)
+	embedProviderIDs(ctx, &item.ProviderIds, &episode.Details.ExternalIDs)
 
 	return episode, nil
 }
@@ -746,7 +740,7 @@ func (j *JellyfinClient) collectionFactory(ctx context.Context, item *jellyfin.B
 	}
 
 	// Extract provider IDs if available
-	extractProviderIDs(&item.ProviderIds, &collection.Details.ExternalIDs)
+	embedProviderIDs(ctx, &item.ProviderIds, &collection.Details.ExternalIDs)
 
 	return collection, nil
 }

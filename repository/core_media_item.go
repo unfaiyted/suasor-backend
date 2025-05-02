@@ -549,7 +549,7 @@ func (r *mediaItemRepository[T]) GetByTitleAndYear(ctx context.Context, clientID
 			}
 
 			// Only return if we have a reasonable match (score above threshold)
-			const MATCH_THRESHOLD = 0.7 // 70% similarity required
+			const MATCH_THRESHOLD = 0.99 // 70% similarity required
 			if bestMatch != nil && bestScore >= MATCH_THRESHOLD {
 				log.Debug().
 					Str("matchedTitle", bestMatch.Data.GetDetails().Title).
