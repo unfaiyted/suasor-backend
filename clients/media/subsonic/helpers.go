@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	gosonic "github.com/supersonic-app/go-subsonic/subsonic"
-	"net/url"
-	media "suasor/clients/media"
+	"strconv"
+	"strings"
+
+	"suasor/clients/media"
+	"suasor/clients/media/types"
 	mediatypes "suasor/clients/media/types"
 	"suasor/types/models"
 	"suasor/utils/logger"
@@ -178,4 +181,52 @@ func GetPlaylistItem(
 	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), item.ID)
 
 	return mediaItem, nil
+}
+
+// Helper function to check if any typed filter is present in the options
+func hasAnyTypedFilter(options *types.QueryOptions) bool {
+	if options == nil {
+		return false
+	}
+
+	return options.ClientAlbumID != "" ||
+		options.ClientArtistID != "" ||
+		options.Genre != "" ||
+		options.Year != 0
+}
+
+// Helper function to build a search query string from options
+func buildQueryString(options *types.QueryOptions) string {
+	if options == nil {
+		return ""
+	}
+
+	var parts []string
+
+	// Add the main query
+	if options.Query != "" {
+		parts = append(parts, options.Query)
+	}
+
+	// Add artist filter
+	if options.ClientArtistID != "" {
+		parts = append(parts, "artist:"+options.ClientArtistID)
+	}
+
+	// Add album filter
+	if options.ClientAlbumID != "" {
+		parts = append(parts, "album:"+options.ClientAlbumID)
+	}
+
+	// Add genre filter
+	if options.Genre != "" {
+		parts = append(parts, "genre:"+options.Genre)
+	}
+
+	// Add year filter
+	if options.Year != 0 {
+		parts = append(parts, "year:"+strconv.Itoa(options.Year))
+	}
+
+	return strings.Join(parts, " ")
 }

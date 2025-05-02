@@ -76,11 +76,6 @@ func (c *SubsonicClient) SupportsSeries() bool      { return false }
 func (c *SubsonicClient) SupportsCollections() bool { return false }
 func (c *SubsonicClient) SupportsHistory() bool     { return true }
 
-// GetArtists is an alias for backward compatibility
-func (c *SubsonicClient) GetArtists(ctx context.Context, options *mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Artist], error) {
-	return c.GetArtistsWithContext(ctx, options)
-}
-
 func (c *SubsonicClient) subsonicConfig() *clienttypes.SubsonicConfig {
 	cfg := c.GetConfig().(*clienttypes.SubsonicConfig)
 	return cfg

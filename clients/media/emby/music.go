@@ -15,7 +15,7 @@ import (
 func (e *EmbyClient) SupportsMusic() bool { return true }
 
 // GetMusic retrieves music tracks from the Emby server
-func (e *EmbyClient) GetMusic(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Track], error) {
+func (e *EmbyClient) GetMusicTracks(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Track], error) {
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
@@ -234,6 +234,106 @@ func (e *EmbyClient) GetMusicTrackByID(ctx context.Context, id string) (*models.
 	mediaItemTrack, err := GetMediaItem[*types.Track](ctx, e, itemTrack, item.Id)
 
 	return mediaItemTrack, nil
+}
+
+// GetMusicArtistByID retrieves a specific music artist by ID
+func (e *EmbyClient) GetMusicArtistByID(ctx context.Context, id string) (*models.MediaItem[*types.Artist], error) {
+	log := logger.LoggerFromContext(ctx)
+
+	log.Info().
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
+		Str("artistID", id).
+		Msg("Retrieving specific music artist from Emby server")
+
+	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
+		Ids:              optional.NewString(id),
+		Fields:           optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
+		IncludeItemTypes: optional.NewString("MusicArtist"),
+	}
+
+	items, resp, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("baseURL", e.embyConfig().GetBaseURL()).
+			Str("apiEndpoint", "/Items").
+			Str("artistID", id).
+			Msg("Failed to fetch music artist from Emby")
+		return &models.MediaItem[*types.Artist]{}, fmt.Errorf("failed to fetch music artist: %w", err)
+	}
+
+	if len(items.Items) == 0 {
+		log.Error().
+			Str("artistID", id).
+			Int("statusCode", resp.StatusCode).
+			Msg("No music artist found with the specified ID")
+		return &models.MediaItem[*types.Artist]{}, fmt.Errorf("music artist with ID %s not found", id)
+	}
+
+	item := items.Items[0]
+	if item.Type_ != "MusicArtist" {
+		log.Error().
+			Str("artistID", id).
+			Str("actualType", item.Type_).
+			Msg("Item with specified ID is not a music artist")
+		return &models.MediaItem[*types.Artist]{}, fmt.Errorf("item with ID %s is not a music artist", id)
+	}
+
+	itemArtist, err := GetItem[*types.Artist](ctx, e, &item)
+	mediaItemArtist, err := GetMediaItem[*types.Artist](ctx, e, itemArtist, item.Id)
+
+	return mediaItemArtist, nil
+}
+
+// GetMusicAlbumByID retrieves a specific music album by ID
+func (e *EmbyClient) GetMusicAlbumByID(ctx context.Context, id string) (*models.MediaItem[*types.Album], error) {
+	log := logger.LoggerFromContext(ctx)
+
+	log.Info().
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
+		Str("albumID", id).
+		Msg("Retrieving specific music album from Emby server")
+
+	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
+		Ids:              optional.NewString(id),
+		Fields:           optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSourceCount,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines,ProviderIds"),
+		IncludeItemTypes: optional.NewString("MusicAlbum"),
+	}
+
+	items, resp, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("baseURL", e.embyConfig().GetBaseURL()).
+			Str("apiEndpoint", "/Items").
+			Str("albumID", id).
+			Msg("Failed to fetch music album from Emby")
+		return &models.MediaItem[*types.Album]{}, fmt.Errorf("failed to fetch music album: %w", err)
+	}
+
+	if len(items.Items) == 0 {
+		log.Error().
+			Str("albumID", id).
+			Int("statusCode", resp.StatusCode).
+			Msg("No music album found with the specified ID")
+		return &models.MediaItem[*types.Album]{}, fmt.Errorf("music album with ID %s not found", id)
+	}
+
+	item := items.Items[0]
+	if item.Type_ != "MusicAlbum" {
+		log.Error().
+			Str("albumID", id).
+			Str("actualType", item.Type_).
+			Msg("Item with specified ID is not a music album")
+		return &models.MediaItem[*types.Album]{}, fmt.Errorf("item with ID %s is not a music album", id)
+	}
+
+	itemAlbum, err := GetItem[*types.Album](ctx, e, &item)
+	mediaItemAlbum, err := GetMediaItem[*types.Album](ctx, e, itemAlbum, item.Id)
+
+	return mediaItemAlbum, nil
 }
 
 // GetMusicGenres retrieves music genres from the Emby server

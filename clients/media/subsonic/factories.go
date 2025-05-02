@@ -5,7 +5,7 @@ import (
 	"time"
 
 	gosonic "github.com/supersonic-app/go-subsonic/subsonic"
-	media "suasor/clients/media"
+	"suasor/clients/media"
 	"suasor/clients/media/types"
 	"suasor/di/container"
 	"suasor/utils/logger"
