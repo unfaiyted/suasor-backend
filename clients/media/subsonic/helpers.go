@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"net/url"
 	"suasor/clients/media"
 	"suasor/clients/media/types"
 	mediatypes "suasor/clients/media/types"

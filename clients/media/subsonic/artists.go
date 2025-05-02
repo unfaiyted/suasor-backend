@@ -12,14 +12,26 @@ import (
 )
 
 // GetArtist returns an Artist by ID.
-func (c *SubsonicClient) GetMusicArtistByID(id string) (*models.MediaItem[*mediatypes.Artist], error) {
+func (c *SubsonicClient) GetMusicArtistByID(ctx context.Context, artistID string) (*models.MediaItem[*types.Artist], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Info().
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
+		Str("artistID", artistID).
+		Msg("Retrieving specific artist from Subsonic server")
 
-	resp, err := c.client.GetArtist(id)
+	resp, err := c.client.GetArtist(artistID)
 	if err != nil {
+		log.Error().Err(err).Str("artistID", artistID).Msg("Failed to fetch artist from Subsonic")
 		return nil, err
 	}
 
-	return resp, nil
+	// Convert to MediaItem
+	log.Debug().
+		Str("artistID", artistID).
+		Msg("Converting Subsonic artist to MediaItem")
+	return GetArtistItem(ctx, c, resp)
+
 }
 
 // GetArtists retrieves all artists in the server.

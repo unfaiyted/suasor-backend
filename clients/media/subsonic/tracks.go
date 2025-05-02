@@ -1,3 +1,15 @@
+package subsonic
+
+import (
+	"context"
+	"fmt"
+	"suasor/clients/media/types"
+	"suasor/types/models"
+	"suasor/utils/logger"
+
+	mediatypes "suasor/clients/media/types"
+)
+
 func (c *SubsonicClient) GetMusicTracks(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Track], error) {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
@@ -41,7 +53,7 @@ func (c *SubsonicClient) GetMusicTracksByAlbumID(ctx context.Context, albumID st
 		Msg("Retrieving tracks from album")
 
 	// Get album details including tracks using the API method
-	album, err := c.GetAlbum(albumID)
+	album, err := c.GetMusicAlbumByID(albumID)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -80,29 +92,24 @@ func (c *SubsonicClient) GetMusicTracksByAlbumID(ctx context.Context, albumID st
 	return tracks, nil
 }
 
-func (c *SubsonicClient) GetMusicTrackByID(ctx context.Context, id string) (*models.MediaItem[*mediatypes.Track], error) {
+func (c *SubsonicClient) GetMusicTrackByID(ctx context.Context, trackID string) (*models.MediaItem[*mediatypes.Track], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("clientID", c.GetClientID()).
 		Str("clientType", string(c.GetClientType())).
-		Str("trackID", id).
+		Str("trackID", trackID).
 		Msg("Retrieving specific music track from Subsonic server")
 	// Call Subsonic getSong endpoint
-	params := map[string]string{"id": id}
+	params := map[string]string{"id": trackID}
 	resp, err := c.client.Get("getSong", params)
 	if err != nil {
-		log.Error().Err(err).Str("trackID", id).Msg("Failed to fetch music track from Subsonic")
+		log.Error().Err(err).Str("trackID", trackID).Msg("Failed to fetch music track from Subsonic")
 		return nil, fmt.Errorf("failed to fetch music track: %w", err)
 	}
 	// Ensure a track was returned
 	if resp.Song == nil {
-		return nil, fmt.Errorf("music track with ID %s not found", id)
+		return nil, fmt.Errorf("music track with ID %s not found", trackID)
 	}
 	// Convert to MediaItem
 	return GetTrackItem(ctx, c, resp.Song)
 }
-
-
-
-
-

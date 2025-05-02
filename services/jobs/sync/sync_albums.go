@@ -63,7 +63,7 @@ func (j *MediaSyncJob) processAlbumBatchForArtist(
 
 		// Create an empty TrackEntries collection
 		trackEntries := make(mediatypes.TrackEntries, 0)
-		
+
 		// Process track if we have one
 		if singleTrack != nil {
 			// Get the client ID for the track
@@ -76,7 +76,7 @@ func (j *MediaSyncJob) processAlbumBatchForArtist(
 					singleTrack.Title = singleTrack.GetData().Details.Title
 					singleTrack.ReleaseDate = singleTrack.GetData().Details.ReleaseDate
 					singleTrack.ReleaseYear = singleTrack.GetData().Details.ReleaseYear
-					
+
 					existingTrack, err = j.itemRepos.TrackUserRepo().Create(ctx, singleTrack)
 					if err != nil {
 						log.Printf("Error creating track: %v", err)
@@ -98,7 +98,7 @@ func (j *MediaSyncJob) processAlbumBatchForArtist(
 				}
 			}
 		}
-		
+
 		// Add tracks to album
 		album.GetData().Tracks = &trackEntries
 		album.GetData().TrackCount = len(trackEntries)
@@ -288,7 +288,7 @@ func (j *MediaSyncJob) processIndependentAlbumBatch(
 		// Need to use GetMusic and filter by album ID since GetAlbumTracks isn't available
 		var albumTracks []*models.MediaItem[*mediatypes.Track]
 		if musicProvider != nil {
-			allTracks, err := musicProvider.GetMusic(ctx, &mediatypes.QueryOptions{})
+			allTracks, err := musicProvider.GetMusicTracks(ctx, &mediatypes.QueryOptions{})
 			if err == nil {
 				// Filter tracks to only those belonging to this album
 				for _, track := range allTracks {
@@ -311,7 +311,7 @@ func (j *MediaSyncJob) processIndependentAlbumBatch(
 			if !hasID {
 				continue
 			}
-			
+
 			savedTrack, err := j.itemRepos.TrackUserRepo().GetByClientItemID(ctx, clientID, trackClientID)
 			if err != nil || savedTrack == nil {
 				// Set top level title and release fields
@@ -380,3 +380,4 @@ func (j *MediaSyncJob) processIndependentAlbumBatch(
 
 	return processedAlbums, nil
 }
+

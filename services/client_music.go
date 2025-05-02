@@ -339,7 +339,7 @@ func (s *mediaMusicService[T]) GetClientRecentlyPlayedTracks(ctx context.Context
 		Limit:          limit,
 	}
 
-	tracks, err := provider.GetMusic(ctx, options)
+	tracks, err := provider.GetMusicTracks(ctx, options)
 	if err != nil {
 		// Log error but continue with other clients
 		log.Warn().
@@ -559,7 +559,7 @@ func (s *mediaMusicService[T]) SearchMusic(ctx context.Context, clientID uint64,
 			query.Limit = 10
 		}
 
-		tracks, err := musicClient.GetMusic(ctx, query)
+		tracks, err := musicClient.GetMusicTracks(ctx, query)
 		if err == nil {
 			// Add track results
 			results.Tracks = append(results.Tracks, tracks...)
@@ -613,7 +613,7 @@ func (s *mediaMusicService[T]) GetClientTracksByAlbum(ctx context.Context, clien
 	}
 
 	// GetClient tracks associated with the album
-	tracks, err := musicClient.GetMusic(ctx, options)
+	tracks, err := musicClient.GetMusicTracks(ctx, options)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -687,7 +687,7 @@ func (s *mediaMusicService[T]) GetClientTracksByGenre(ctx context.Context, clien
 		Limit: 50, // Reasonable limit per client
 	}
 
-	tracks, err := provider.GetMusic(ctx, options)
+	tracks, err := provider.GetMusicTracks(ctx, options)
 	if err != nil {
 		// Log error but continue with other clients
 		log.Warn().
@@ -843,11 +843,11 @@ func (s *mediaMusicService[T]) GetClientTopTracks(ctx context.Context, clientID 
 		Limit:     limit,
 	}
 
-	tracks, err := musicClient.GetMusic(ctx, options)
+	tracks, err := musicClient.GetMusicTracks(ctx, options)
 	if err != nil {
 		// Try a different approach if the first fails
 		options.Sort = "popularity"
-		tracks, err = musicClient.GetMusic(ctx, options)
+		tracks, err = musicClient.GetMusicTracks(ctx, options)
 		if err != nil {
 			log.Error().
 				Err(err).
@@ -889,7 +889,7 @@ func (s *mediaMusicService[T]) GetClientRecentlyAddedTracks(ctx context.Context,
 		Limit:         limit,
 	}
 
-	tracks, err := musicClient.GetMusic(ctx, options)
+	tracks, err := musicClient.GetMusicTracks(ctx, options)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -932,7 +932,7 @@ func (s *mediaMusicService[T]) GetClientSimilarTracks(ctx context.Context, clien
 		Limit:            limit,
 	}
 
-	tracks, err := musicClient.GetMusic(ctx, options)
+	tracks, err := musicClient.GetMusicTracks(ctx, options)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -976,7 +976,7 @@ func (s *mediaMusicService[T]) GetClientFavoriteTracks(ctx context.Context, clie
 		Limit:     limit,
 	}
 
-	tracks, err := musicClient.GetMusic(ctx, options)
+	tracks, err := musicClient.GetMusicTracks(ctx, options)
 	if err != nil {
 		log.Error().
 			Err(err).

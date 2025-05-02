@@ -698,7 +698,7 @@ func (j *FavoritesSyncJob) syncMusicFavorites(ctx context.Context, userID, clien
 	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 70, "Fetching favorite music")
 
 	// Get tracks from client with favorites filter
-	tracks, err := musicProvider.GetMusic(ctx, &mediatypes.QueryOptions{
+	tracks, err := musicProvider.GetMusicTracks(ctx, &mediatypes.QueryOptions{
 		Limit:     100,
 		Favorites: true,
 	})

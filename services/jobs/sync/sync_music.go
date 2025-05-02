@@ -27,13 +27,13 @@ func (j *MediaSyncJob) syncMusic(ctx context.Context, clientMedia media.ClientMe
 	// Fetch tracks in pages to avoid overwhelming the provider
 	pageSize := 1000
 	offset := 0
-	tracks, err := musicProvider.GetMusic(ctx, &mediatypes.QueryOptions{Limit: pageSize, Offset: offset})
+	tracks, err := musicProvider.GetMusicTracks(ctx, &mediatypes.QueryOptions{Limit: pageSize, Offset: offset})
 	if err != nil {
 		return fmt.Errorf("failed to get tracks: %w", err)
 	}
 	offset += len(tracks)
 	for {
-		batch, err := musicProvider.GetMusic(ctx, &mediatypes.QueryOptions{Limit: pageSize, Offset: offset})
+		batch, err := musicProvider.GetMusicTracks(ctx, &mediatypes.QueryOptions{Limit: pageSize, Offset: offset})
 		if err != nil {
 			return fmt.Errorf("failed to get tracks: %w", err)
 		}
