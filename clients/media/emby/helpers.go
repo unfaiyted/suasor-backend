@@ -189,9 +189,7 @@ func GetMixedMediaItemsData(
 	items []embyclient.BaseItemDto,
 ) (*models.MediaItemDataList, error) {
 	log := logger.LoggerFromContext(ctx)
-	datas := models.MediaItemDataList{
-		TotalItems: 0,
-	}
+	datas := models.NewMediaItemDataList()
 
 	for _, item := range items {
 		if item.Type_ == "Movie" {
@@ -275,7 +273,7 @@ func GetMixedMediaItemsData(
 
 	}
 
-	return &datas, nil
+	return datas, nil
 }
 
 // Converts intenal mapped QueryOptions to external Emby API query options

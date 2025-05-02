@@ -226,9 +226,7 @@ func GetMixedMediaItemsData(
 	items []jellyfin.BaseItemDto,
 ) (*models.MediaItemDataList, error) {
 	log := logger.LoggerFromContext(ctx)
-	datas := models.MediaItemDataList{
-		TotalItems: 0,
-	}
+	datas := models.NewMediaItemDataList()
 
 	for _, item := range items {
 		if item.Id == nil || item.Type == nil {
@@ -322,7 +320,7 @@ func GetMixedMediaItemsData(
 		}
 	}
 
-	return &datas, nil
+	return datas, nil
 }
 
 // getItemName safely gets an item name with nil checking
