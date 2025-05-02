@@ -6,13 +6,15 @@ import (
 	"strings"
 
 	jellyfin "github.com/sj14/jellyfin-go/api"
+	mediatype "suasor/clients/media/types"
 	t "suasor/clients/media/types"
 	"suasor/types/models"
 	"suasor/utils/logger"
 )
 
-func (j *JellyfinClient) GetMusic(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[*t.Track], error) {
-	// Get logger from context
+// Array of music types
+func (j *JellyfinClient) GetMusicTracks(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[*t.Track], error) {
+
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
@@ -96,7 +98,7 @@ func (j *JellyfinClient) GetMusic(ctx context.Context, options *t.QueryOptions) 
 }
 
 func (j *JellyfinClient) GetMusicArtists(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[*t.Artist], error) {
-	// Get logger from context
+
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
@@ -162,7 +164,7 @@ func (j *JellyfinClient) GetMusicArtists(ctx context.Context, options *t.QueryOp
 }
 
 func (j *JellyfinClient) GetMusicAlbums(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[*t.Album], error) {
-	// Get logger from context
+
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
@@ -238,99 +240,84 @@ func (j *JellyfinClient) GetMusicAlbums(ctx context.Context, options *t.QueryOpt
 	return albums, nil
 }
 
-func (j *JellyfinClient) GetMusicTrackByID(ctx context.Context, id string) (models.MediaItem[*t.Track], error) {
-	// Get logger from context
+// Single music type
+func (j *JellyfinClient) GetMusicTrackByID(ctx context.Context, trackID string) (models.MediaItem[*t.Track], error) {
+
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
 		Uint64("clientID", j.GetClientID()).
 		Str("clientType", string(j.GetClientType())).
-		Str("trackID", id).
+		Str("trackID", trackID).
 		Str("baseURL", j.config.GetBaseURL()).
 		Msg("Retrieving specific music track from Jellyfin server")
 
-	// Set up query parameters
-	ids := id
-
 	// Call the Jellyfin API
 	log.Debug().
-		Str("trackID", id).
+		Str("trackID", trackID).
 		Msg("Making API request to Jellyfin server")
 
-	itemsReq := j.client.ItemsAPI.GetItems(ctx)
-
-	itemsReq.Ids(strings.Split(ids, ","))
-
-	result, resp, err := itemsReq.Execute()
+	resultItems, err := j.getItemByIDs(ctx, trackID)
 	if err != nil {
-		log.Error().
-			Err(err).
-			Str("baseURL", j.config.GetBaseURL()).
-			Str("apiEndpoint", "/Items").
-			Str("trackID", id).
-			Int("statusCode", 0).
-			Msg("Failed to fetch music track from Jellyfin")
-		return models.MediaItem[*t.Track]{}, fmt.Errorf("failed to fetch music track: %w", err)
+		return models.MediaItem[*t.Track]{}, err
 	}
 
 	// Check if any items were returned
-	if len(result.Items) == 0 {
+	if len(resultItems) == 0 {
 		log.Error().
-			Str("trackID", id).
-			Int("statusCode", resp.StatusCode).
+			Str("trackID", trackID).
 			Msg("No music track found with the specified ID")
-		return models.MediaItem[*t.Track]{}, fmt.Errorf("music track with ID %s not found", id)
+		return models.MediaItem[*t.Track]{}, fmt.Errorf("music track with ID %s not found", trackID)
 	}
 
-	item := result.Items[0]
+	resultItem := resultItems[0]
 
-	// Double-check that the returned item is a music track
-	if *item.Type != "Audio" {
+	// Double-check that the returned item is a audio track
+	if *resultItem.Type != jellyfin.BASEITEMKIND_AUDIO {
 		log.Error().
-			Str("trackID", id).
-			Str("actualType", string(*item.Type)).
+			Str("trackID", trackID).
+			Str("actualType", string(*resultItem.Type)).
 			Msg("Item with specified ID is not a music track")
-		return models.MediaItem[*t.Track]{}, fmt.Errorf("item with ID %s is not a music track", id)
+		return models.MediaItem[*t.Track]{}, fmt.Errorf("item with ID %s is not a music track", resultItem.Id)
 	}
 
 	log.Info().
-		Int("statusCode", resp.StatusCode).
-		Str("trackID", id).
-		Str("trackName", *item.Name.Get()).
+		Str("trackID", trackID).
+		Str("trackName", *resultItem.Name.Get()).
 		Msg("Successfully retrieved music track from Jellyfin")
 
 	track := models.MediaItem[*t.Track]{
 		Data: &t.Track{
 			Details: &t.MediaDetails{
-				Title:       *item.Name.Get(),
-				Description: *item.Overview.Get(),
-				Duration:    getDurationFromTicks(item.RunTimeTicks.Get()),
-				Artwork:     *j.getArtworkURLs(&item),
+				Title:       *resultItem.Name.Get(),
+				Description: *resultItem.Overview.Get(),
+				Duration:    getDurationFromTicks(resultItem.RunTimeTicks.Get()),
+				Artwork:     *j.getArtworkURLs(&resultItem),
 			},
-			Number: int(*item.IndexNumber.Get()),
+			Number: int(*resultItem.IndexNumber.Get()),
 		},
-		Type: "track",
+		Type: mediatype.MediaTypeTrack,
 	}
 
 	// Set album info if available
-	if item.AlbumId.IsSet() && item.ArtistItems != nil && len(item.ArtistItems) > 0 {
+	if resultItem.AlbumId.IsSet() && resultItem.ArtistItems != nil {
 		// TODO: check if we need to do something
 	}
 
-	if item.Album.IsSet() {
-		track.Data.AlbumName = *item.Album.Get()
+	if resultItem.Album.IsSet() {
+		track.Data.AlbumName = *resultItem.Album.Get()
 	}
 
 	// Add artist information if available
-	if item.ArtistItems != nil && len(item.ArtistItems) > 0 {
-		track.Data.ArtistName = *item.ArtistItems[0].Name.Get()
+	if resultItem.ArtistItems != nil && len(resultItem.ArtistItems) > 0 {
+		track.Data.ArtistName = *resultItem.ArtistItems[0].Name.Get()
 	}
 
 	// Extract provider IDs
-	extractProviderIDs(&item.ProviderIds, &track.Data.Details.ExternalIDs)
+	extractProviderIDs(&resultItem.ProviderIds, &track.Data.Details.ExternalIDs)
 
 	log.Debug().
-		Str("trackID", id).
+		Str("trackID", trackID).
 		Str("trackName", track.Data.Details.Title).
 		Int("trackNumber", track.Data.Number).
 		Msg("Successfully returned music track data")
@@ -338,8 +325,148 @@ func (j *JellyfinClient) GetMusicTrackByID(ctx context.Context, id string) (mode
 	return track, nil
 }
 
+func (j *JellyfinClient) GetMusicArtistByID(ctx context.Context, artistID string) (*models.MediaItem[*t.Artist], error) {
+
+	log := logger.LoggerFromContext(ctx)
+
+	log.Info().
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
+		Str("artistID", artistID).
+		Str("baseURL", j.config.GetBaseURL()).
+		Msg("Retrieving specific music track from Jellyfin server")
+
+	// Call the Jellyfin API
+	log.Debug().
+		Str("artistID", artistID).
+		Msg("Making API request to Jellyfin server")
+
+	resultItems, err := j.getItemByIDs(ctx, artistID)
+	if err != nil {
+		return &models.MediaItem[*t.Artist]{}, err
+	}
+
+	// Check if any items were returned
+	if len(resultItems) == 0 {
+		log.Error().
+			Str("artistID", artistID).
+			Msg("No music track found with the specified ID")
+		return &models.MediaItem[*t.Artist]{}, fmt.Errorf("music track with ID %s not found", artistID)
+	}
+
+	resultItem := resultItems[0]
+
+	// Double-check that the returned item is a audio track
+	if *resultItem.Type != jellyfin.BASEITEMKIND_MUSIC_ARTIST {
+		log.Error().
+			Str("artistID", artistID).
+			Str("actualType", string(*resultItem.Type)).
+			Msg("Item with specified ID is not a music track")
+		return &models.MediaItem[*t.Artist]{}, fmt.Errorf("item with ID %s is not a music track", resultItem.Id)
+	}
+
+	log.Info().
+		Str("artistID", artistID).
+		Str("trackName", *resultItem.Name.Get()).
+		Msg("Successfully retrieved music track from Jellyfin")
+
+	artist := t.Artist{
+		Details: &t.MediaDetails{
+			Title:       *resultItem.Name.Get(),
+			Description: *resultItem.Overview.Get(),
+			Duration:    getDurationFromTicks(resultItem.RunTimeTicks.Get()),
+			Artwork:     *j.getArtworkURLs(&resultItem),
+		},
+	}
+
+	mediaItem := models.NewMediaItem[*t.Artist](mediatype.MediaTypeArtist, &artist)
+
+	// Set album info if available
+	if resultItem.AlbumId.IsSet() && resultItem.ArtistItems != nil {
+		// TODO: check if we need to do something
+	}
+
+	extractProviderIDs(&resultItem.ProviderIds, &artist.Details.ExternalIDs)
+
+	log.Debug().
+		Str("artistID", artistID).
+		Str("trackName", artist.Details.Title).
+		Msg("Successfully returned music track data")
+
+	return mediaItem, nil
+}
+
+func (j *JellyfinClient) GetMusicAlbumByID(ctx context.Context, albumID string) (*models.MediaItem[*t.Album], error) {
+
+	log := logger.LoggerFromContext(ctx)
+
+	log.Info().
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
+		Str("albumID", albumID).
+		Str("baseURL", j.config.GetBaseURL()).
+		Msg("Retrieving specific music album from Jellyfin server")
+
+	// Call the Jellyfin API
+	log.Debug().
+		Str("albumID", albumID).
+		Msg("Making API request to Jellyfin server")
+
+	resultItems, err := j.getItemByIDs(ctx, albumID)
+	if err != nil {
+		return &models.MediaItem[*t.Album]{}, err
+	}
+
+	// Check if any items were returned
+	if len(resultItems) == 0 {
+		log.Error().
+			Str("albumID", albumID).
+			Msg("No music album found with the specified ID")
+		return &models.MediaItem[*t.Album]{}, fmt.Errorf("music album with ID %s not found", albumID)
+	}
+
+	resultItem := resultItems[0]
+
+	// Double-check that the returned item is a audio track
+	if *resultItem.Type != jellyfin.BASEITEMKIND_MUSIC_ALBUM {
+		log.Error().
+			Str("albumID", albumID).
+			Str("actualType", string(*resultItem.Type)).
+			Msg("Item with specified ID is not a music album")
+		return &models.MediaItem[*t.Album]{}, fmt.Errorf("item with ID %s is not a music album", resultItem.Id)
+	}
+	log.Info().
+		Str("albumID", albumID).
+		Str("trackName", *resultItem.Name.Get()).
+		Msg("Successfully retrieved music album from Jellyfin")
+
+	album := t.Album{
+		Details: &t.MediaDetails{
+			Title:       *resultItem.Name.Get(),
+			Description: *resultItem.Overview.Get(),
+			ReleaseYear: int(*resultItem.ProductionYear.Get()),
+			Genres:      resultItem.Genres,
+			Artwork:     *j.getArtworkURLs(&resultItem),
+		},
+		TrackCount: int(*resultItem.ChildCount.Get()),
+	}
+
+	mediaItem := models.NewMediaItem[*t.Album](mediatype.MediaTypeAlbum, &album)
+	mediaItem.SetClientInfo(j.GetClientID(), j.GetClientType(), *resultItem.Id)
+
+	extractProviderIDs(&resultItem.ProviderIds, &album.Details.ExternalIDs)
+
+	log.Debug().
+		Str("albumID", albumID).
+		Str("trackName", album.Details.Title).
+		Msg("Successfully returned music album data")
+
+	return mediaItem, nil
+}
+
+// GetMusicGenres retrieves music genres from the Jellyfin server
 func (j *JellyfinClient) GetMusicGenres(ctx context.Context) ([]string, error) {
-	// Get logger from context
+
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
@@ -384,51 +511,45 @@ func (j *JellyfinClient) GetMusicGenres(ctx context.Context) ([]string, error) {
 	return genres, nil
 }
 
-func (j *JellyfinClient) GetMovieGenres(ctx context.Context) ([]string, error) {
-	// Get logger from context
+// Helper function to get item by IDs
+func (j *JellyfinClient) getItemByIDs(ctx context.Context, IDs string) ([]jellyfin.BaseItemDto, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
 		Uint64("clientID", j.GetClientID()).
 		Str("clientType", string(j.GetClientType())).
 		Str("baseURL", j.config.GetBaseURL()).
-		Msg("Retrieving movie genres from Jellyfin server")
+		Msg("Retrieving specific music track from Jellyfin server")
 
-	// Set up query parameters to get only movie genres
-	includeItemTypes := []jellyfin.BaseItemKind{jellyfin.BASEITEMKIND_MOVIE}
 	// Call the Jellyfin API
-	log.Debug().Msg("Making API request to Jellyfin server for movie genres")
-	genresReq := j.client.GenresAPI.GetGenres(ctx)
+	log.Debug().
+		Str("ID", IDs).
+		Msg("Making API request to Jellyfin server")
 
-	genresReq.IncludeItemTypes(includeItemTypes)
-	result, resp, err := genresReq.Execute()
+	itemsReq := j.client.ItemsAPI.GetItems(ctx)
+
+	itemsReq.Ids(strings.Split(IDs, ","))
+
+	result, resp, err := itemsReq.Execute()
 	if err != nil {
 		log.Error().
 			Err(err).
 			Str("baseURL", j.config.GetBaseURL()).
-			Str("apiEndpoint", "/Genres").
+			Str("apiEndpoint", "/Items").
+			Str("IDs", IDs).
 			Int("statusCode", 0).
-			Msg("Failed to fetch movie genres from Jellyfin")
-		return nil, fmt.Errorf("failed to fetch movie genres: %w", err)
+			Msg("Failed to fetch music track from Jellyfin")
+		return nil, fmt.Errorf("failed to fetch music track: %w", err)
 	}
 
-	log.Info().
-		Int("statusCode", resp.StatusCode).
-		Int("totalItems", len(result.Items)).
-		Int("totalRecordCount", int(*result.TotalRecordCount)).
-		Msg("Successfully retrieved movie genres from Jellyfin")
-
-	// Convert results to expected format
-	genres := make([]string, 0, len(result.Items))
-	for _, item := range result.Items {
-		if item.Name.Get() != nil {
-			genres = append(genres, *item.Name.Get())
-		}
+	// Check if any items were returned
+	if len(result.Items) == 0 {
+		log.Error().
+			Str("IDs", IDs).
+			Int("statusCode", resp.StatusCode).
+			Msg("No music track found with the specified ID")
+		return nil, fmt.Errorf("music track with ID %s not found", IDs)
 	}
 
-	log.Info().
-		Int("genresReturned", len(genres)).
-		Msg("Completed GetMovieGenres request")
-
-	return genres, nil
+	return result.Items, nil
 }

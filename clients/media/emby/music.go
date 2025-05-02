@@ -67,7 +67,6 @@ func (e *EmbyClient) GetMusicTracks(ctx context.Context, options *types.QueryOpt
 	return tracks, nil
 }
 
-// GetMusicArtists retrieves music artists from the Emby server
 func (e *EmbyClient) GetMusicArtists(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Artist], error) {
 	log := logger.LoggerFromContext(ctx)
 
@@ -135,7 +134,6 @@ func (e *EmbyClient) GetMusicArtists(ctx context.Context, options *types.QueryOp
 	return artists, nil
 }
 
-// GetAlbums retrieves music albums from the Emby server
 func (e *EmbyClient) GetMusicAlbums(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Album], error) {
 	log := logger.LoggerFromContext(ctx)
 
@@ -236,7 +234,6 @@ func (e *EmbyClient) GetMusicTrackByID(ctx context.Context, id string) (*models.
 	return mediaItemTrack, nil
 }
 
-// GetMusicArtistByID retrieves a specific music artist by ID
 func (e *EmbyClient) GetMusicArtistByID(ctx context.Context, id string) (*models.MediaItem[*types.Artist], error) {
 	log := logger.LoggerFromContext(ctx)
 
@@ -286,7 +283,6 @@ func (e *EmbyClient) GetMusicArtistByID(ctx context.Context, id string) (*models
 	return mediaItemArtist, nil
 }
 
-// GetMusicAlbumByID retrieves a specific music album by ID
 func (e *EmbyClient) GetMusicAlbumByID(ctx context.Context, id string) (*models.MediaItem[*types.Album], error) {
 	log := logger.LoggerFromContext(ctx)
 

@@ -189,3 +189,51 @@ func (j *JellyfinClient) GetMovieByID(ctx context.Context, id string) (*models.M
 	return movie, nil
 }
 
+func (j *JellyfinClient) GetMovieGenres(ctx context.Context) ([]string, error) {
+	// Get logger from context
+	log := logger.LoggerFromContext(ctx)
+
+	log.Info().
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
+		Str("baseURL", j.config.GetBaseURL()).
+		Msg("Retrieving movie genres from Jellyfin server")
+
+	// Set up query parameters to get only movie genres
+	includeItemTypes := []jellyfin.BaseItemKind{jellyfin.BASEITEMKIND_MOVIE}
+	// Call the Jellyfin API
+	log.Debug().Msg("Making API request to Jellyfin server for movie genres")
+	genresReq := j.client.GenresAPI.GetGenres(ctx)
+
+	genresReq.IncludeItemTypes(includeItemTypes)
+	result, resp, err := genresReq.Execute()
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("baseURL", j.config.GetBaseURL()).
+			Str("apiEndpoint", "/Genres").
+			Int("statusCode", 0).
+			Msg("Failed to fetch movie genres from Jellyfin")
+		return nil, fmt.Errorf("failed to fetch movie genres: %w", err)
+	}
+
+	log.Info().
+		Int("statusCode", resp.StatusCode).
+		Int("totalItems", len(result.Items)).
+		Int("totalRecordCount", int(*result.TotalRecordCount)).
+		Msg("Successfully retrieved movie genres from Jellyfin")
+
+	// Convert results to expected format
+	genres := make([]string, 0, len(result.Items))
+	for _, item := range result.Items {
+		if item.Name.Get() != nil {
+			genres = append(genres, *item.Name.Get())
+		}
+	}
+
+	log.Info().
+		Int("genresReturned", len(genres)).
+		Msg("Completed GetMovieGenres request")
+
+	return genres, nil
+}
