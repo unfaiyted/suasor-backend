@@ -114,13 +114,11 @@ func GetTrackItem(
 		return nil, err
 	}
 
-	mediaItem := models.MediaItem[*mediatypes.Track]{
-		Data: track,
-		Type: track.GetMediaType(),
-	}
-	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), item.ID)
+	mediaItem := models.NewMediaItem[*mediatypes.Track](
+		mediatypes.MediaTypeTrack,
+		track)
 
-	return &mediaItem, nil
+	return mediaItem, nil
 }
 
 // Helper function to convert a Subsonic Album to a MediaItem Album
@@ -134,13 +132,13 @@ func GetAlbumItem(
 		return nil, err
 	}
 
-	mediaItem := models.MediaItem[*mediatypes.Album]{
-		Data: album,
-		Type: album.GetMediaType(),
-	}
+	mediaItem := models.NewMediaItem[*mediatypes.Album](
+		mediatypes.MediaTypeAlbum,
+		album)
+
 	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), item.ID)
 
-	return &mediaItem, nil
+	return mediaItem, nil
 }
 
 // Helper function to convert a Subsonic Artist to a MediaItem Artist
@@ -154,13 +152,12 @@ func GetArtistItem(
 		return nil, err
 	}
 
-	mediaItem := models.MediaItem[*mediatypes.Artist]{
-		Data: artist,
-		Type: artist.GetMediaType(),
-	}
+	mediaItem := models.NewMediaItem[*mediatypes.Artist](
+		mediatypes.MediaTypeArtist,
+		artist)
 	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), item.ID)
 
-	return &mediaItem, nil
+	return mediaItem, nil
 }
 
 // Helper function to convert a Subsonic Playlist to a MediaItem Playlist
@@ -174,12 +171,11 @@ func GetPlaylistItem(
 		return nil, err
 	}
 
-	mediaItem := models.MediaItem[*mediatypes.Playlist]{
-		Data: playlist,
-		Type: playlist.GetMediaType(),
-	}
+	mediaItem := models.NewMediaItem[*mediatypes.Playlist](
+		playlist.GetMediaType(),
+		playlist,
+	)
 	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), item.ID)
 
-	return &mediaItem, nil
+	return mediaItem, nil
 }
-

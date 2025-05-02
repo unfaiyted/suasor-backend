@@ -26,7 +26,45 @@ func (c *SubsonicClient) GetMusic(ctx context.Context, options *types.QueryOptio
 	// If query or typed filters provided, use search3
 	if options != nil && (options.Query != "" || hasAnyTypedFilter(options)) {
 		queryString := buildQueryString(options)
-		tracks, err = c.searchMusic(ctx, queryString, options.Limit)
+		log.Info().
+			Str("query", queryString).
+			Msg("Searching for music tracks")
+		tracks, err = c.searchMusic(ctx, *options)
+	} else {
+		// If no query or filters, get a list of newest tracks
+		// Use getAlbumList2 to get newest albums then fetch their tracks
+
+		// params := map[string]string{
+		// 	"size":   string(limit),
+		// 	"offset": string(offset),
+		// }
+
+		// albums, err := c.GetAlbumList2("newest", params)
+		// if err != nil {
+		// 	log.Error().
+		// 		Err(err).
+		// 		Msg("Failed to retrieve albums for track listing from Subsonic")
+		// 	return nil, fmt.Errorf("failed to retrieve albums for track listing: %w", err)
+		// }
+
+		// Collect tracks from each album
+		// for _, album := range albums {
+		// 	albumTracks, err := c.GetAlbumTracks(ctx, album.ID)
+		// 	if err != nil {
+		// 		log.Warn().
+		// 			Err(err).
+		// 			Str("albumID", album.ID).
+		// 			Msg("Error retrieving tracks from album")
+		// 		continue
+		// 	}
+		// 	tracks = append(tracks, albumTracks...)
+		//
+		// 	// Break if we have enough tracks
+		// 	if limit > 0 && len(tracks) >= limit {
+		// 		tracks = tracks[:limit]
+		// 		break
+		// 	}
+		// }
 	}
 
 	if err != nil {
@@ -41,15 +79,18 @@ func (c *SubsonicClient) GetMusic(ctx context.Context, options *types.QueryOptio
 }
 
 // searchMusic searches for music tracks using the Subsonic search3 endpoint
-func (c *SubsonicClient) searchMusic(ctx context.Context, query string, limit int) ([]*models.MediaItem[*types.Track], error) {
+func (c *SubsonicClient) searchMusic(ctx context.Context, options types.QueryOptions) ([]*models.MediaItem[*types.Track], error) {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
+
+	limit := options.Limit
+	offset := options.Offset
 
 	log.Info().
 		Uint64("clientID", c.GetClientID()).
 		Str("clientType", string(c.GetClientType())).
-		Str("query", query).
-		Int("limit", limit).
+		Str("query", options.Query).
+		Int("limit", options.Limit).
 		Msg("Searching for music tracks")
 
 	// Default to 50 items if not specified
@@ -59,7 +100,8 @@ func (c *SubsonicClient) searchMusic(ctx context.Context, query string, limit in
 
 	// Call the Subsonic search3 API with proper parameters
 	params := map[string]string{
-		"query":       query,
+		"query":       options.Query,
+		"songOffset":  strconv.Itoa(offset),
 		"songCount":   strconv.Itoa(limit),
 		"artistCount": "0",
 		"albumCount":  "0",
@@ -69,14 +111,14 @@ func (c *SubsonicClient) searchMusic(ctx context.Context, query string, limit in
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("query", query).
+			Str("query", options.Query).
 			Msg("Failed to search for music tracks")
 		return nil, fmt.Errorf("failed to search for music tracks: %w", err)
 	}
 
 	if resp.SearchResult3 == nil || resp.SearchResult3.Song == nil || len(resp.SearchResult3.Song) == 0 {
 		log.Info().
-			Str("query", query).
+			Str("query", options.Query).
 			Msg("No music tracks found matching query")
 		return []*models.MediaItem[*types.Track]{}, nil
 	}
@@ -97,7 +139,7 @@ func (c *SubsonicClient) searchMusic(ctx context.Context, query string, limit in
 	}
 
 	log.Info().
-		Str("query", query).
+		Str("query", options.Query).
 		Int("trackCount", len(tracks)).
 		Msg("Successfully searched for music tracks")
 
@@ -448,4 +490,3 @@ func buildQueryString(options *types.QueryOptions) string {
 
 	return strings.Join(parts, " ")
 }
-

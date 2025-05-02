@@ -38,9 +38,9 @@ type CoreMusicService interface {
 	// Music external_IDs often have somthing like
 	// [{ "id": "1234", "source": "musicbrainzartist"},{"id": "1234", "source":"discogartist" }]
 	// These ids may show up on the album or track details
-	GetArtistByExternalIDs(ctx context.Context, externalIDs []string) (*models.MediaItem[*types.Artist], error)
-	GetArtistTracksByExternalIDs(ctx context.Context, externalIDs []string) ([]*models.MediaItem[*types.Track], error)
-	GetArtistAlbumsByExternalIDs(ctx context.Context, externalIDs []string) ([]*models.MediaItem[*types.Album], error)
+	GetArtistByExternalIDs(ctx context.Context, externalIDs types.ExternalIDs) (*models.MediaItem[*types.Artist], error)
+	GetArtistTracksByExternalIDs(ctx context.Context, externalIDs types.ExternalIDs) ([]*models.MediaItem[*types.Track], error)
+	GetArtistAlbumsByExternalIDs(ctx context.Context, externalIDs types.ExternalIDs) ([]*models.MediaItem[*types.Album], error)
 
 	// Search operations
 	SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error)
