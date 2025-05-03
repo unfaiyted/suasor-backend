@@ -78,7 +78,7 @@ func Setup(ctx context.Context, c *container.Container) *gin.Engine {
 		RegisterMediaPlayHistoryRoutes(authenticated, c)
 
 		// {base}/ai/
-		RegisterAIRoutes(authenticated, c) // Register AI routes
+		// RegisterAIRoutes(authenticated, c) // Register AI routes
 
 		// {base}/jobs/
 		RegisterJobRoutes(authenticated, c) // Register job routes

@@ -32,6 +32,93 @@ definitions:
     additionalProperties:
       $ref: '#/definitions/models.MediaItem-types_MediaData'
     type: object
+  models.AIClientList:
+    properties:
+      claude:
+        additionalProperties:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.ClaudeConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: object
+      ids:
+        additionalProperties:
+          $ref: '#/definitions/types.ClientType'
+        type: object
+      ollama:
+        additionalProperties:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.OllamaConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: object
+      openai:
+        additionalProperties:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.OpenAIConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: object
+      total:
+        type: integer
+    type: object
   models.AIModelPreferences:
     properties:
       defaultMaxTokens:
@@ -50,6 +137,93 @@ definitions:
         maximum: 1
         minimum: 0
         type: number
+    type: object
+  models.AutomationClientList:
+    properties:
+      ids:
+        additionalProperties:
+          $ref: '#/definitions/types.ClientType'
+        type: object
+      lidarr:
+        additionalProperties:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.LidarrConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: object
+      radarr:
+        additionalProperties:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.RadarrConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: object
+      sonarr:
+        additionalProperties:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.SonarrConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: object
+      total:
+        type: integer
     type: object
   models.Award:
     properties:
@@ -90,266 +264,12 @@ definitions:
     type: object
   models.ClientList:
     properties:
-      claude:
-        items:
-          properties:
-            category:
-              $ref: '#/definitions/types.ClientCategory'
-            config:
-              $ref: '#/definitions/types.ClaudeConfig'
-            createdAt:
-              type: string
-            deletedAt:
-              type: string
-            id:
-              description: Internal ID
-              type: integer
-            isEnabled:
-              type: boolean
-            name:
-              type: string
-            type:
-              $ref: '#/definitions/types.ClientType'
-            updatedAt:
-              type: string
-            userID:
-              type: integer
-          type: object
-        type: array
-      emby:
-        items:
-          properties:
-            category:
-              $ref: '#/definitions/types.ClientCategory'
-            config:
-              $ref: '#/definitions/types.EmbyConfig'
-            createdAt:
-              type: string
-            deletedAt:
-              type: string
-            id:
-              description: Internal ID
-              type: integer
-            isEnabled:
-              type: boolean
-            name:
-              type: string
-            type:
-              $ref: '#/definitions/types.ClientType'
-            updatedAt:
-              type: string
-            userID:
-              type: integer
-          type: object
-        type: array
-      jellyfin:
-        items:
-          properties:
-            category:
-              $ref: '#/definitions/types.ClientCategory'
-            config:
-              $ref: '#/definitions/types.JellyfinConfig'
-            createdAt:
-              type: string
-            deletedAt:
-              type: string
-            id:
-              description: Internal ID
-              type: integer
-            isEnabled:
-              type: boolean
-            name:
-              type: string
-            type:
-              $ref: '#/definitions/types.ClientType'
-            updatedAt:
-              type: string
-            userID:
-              type: integer
-          type: object
-        type: array
-      lidarr:
-        items:
-          properties:
-            category:
-              $ref: '#/definitions/types.ClientCategory'
-            config:
-              $ref: '#/definitions/types.LidarrConfig'
-            createdAt:
-              type: string
-            deletedAt:
-              type: string
-            id:
-              description: Internal ID
-              type: integer
-            isEnabled:
-              type: boolean
-            name:
-              type: string
-            type:
-              $ref: '#/definitions/types.ClientType'
-            updatedAt:
-              type: string
-            userID:
-              type: integer
-          type: object
-        type: array
-      ollama:
-        items:
-          properties:
-            category:
-              $ref: '#/definitions/types.ClientCategory'
-            config:
-              $ref: '#/definitions/types.OllamaConfig'
-            createdAt:
-              type: string
-            deletedAt:
-              type: string
-            id:
-              description: Internal ID
-              type: integer
-            isEnabled:
-              type: boolean
-            name:
-              type: string
-            type:
-              $ref: '#/definitions/types.ClientType'
-            updatedAt:
-              type: string
-            userID:
-              type: integer
-          type: object
-        type: array
-      openai:
-        items:
-          properties:
-            category:
-              $ref: '#/definitions/types.ClientCategory'
-            config:
-              $ref: '#/definitions/types.OpenAIConfig'
-            createdAt:
-              type: string
-            deletedAt:
-              type: string
-            id:
-              description: Internal ID
-              type: integer
-            isEnabled:
-              type: boolean
-            name:
-              type: string
-            type:
-              $ref: '#/definitions/types.ClientType'
-            updatedAt:
-              type: string
-            userID:
-              type: integer
-          type: object
-        type: array
-      plex:
-        items:
-          properties:
-            category:
-              $ref: '#/definitions/types.ClientCategory'
-            config:
-              $ref: '#/definitions/types.PlexConfig'
-            createdAt:
-              type: string
-            deletedAt:
-              type: string
-            id:
-              description: Internal ID
-              type: integer
-            isEnabled:
-              type: boolean
-            name:
-              type: string
-            type:
-              $ref: '#/definitions/types.ClientType'
-            updatedAt:
-              type: string
-            userID:
-              type: integer
-          type: object
-        type: array
-      radarr:
-        items:
-          properties:
-            category:
-              $ref: '#/definitions/types.ClientCategory'
-            config:
-              $ref: '#/definitions/types.RadarrConfig'
-            createdAt:
-              type: string
-            deletedAt:
-              type: string
-            id:
-              description: Internal ID
-              type: integer
-            isEnabled:
-              type: boolean
-            name:
-              type: string
-            type:
-              $ref: '#/definitions/types.ClientType'
-            updatedAt:
-              type: string
-            userID:
-              type: integer
-          type: object
-        type: array
-      sonarr:
-        items:
-          properties:
-            category:
-              $ref: '#/definitions/types.ClientCategory'
-            config:
-              $ref: '#/definitions/types.SonarrConfig'
-            createdAt:
-              type: string
-            deletedAt:
-              type: string
-            id:
-              description: Internal ID
-              type: integer
-            isEnabled:
-              type: boolean
-            name:
-              type: string
-            type:
-              $ref: '#/definitions/types.ClientType'
-            updatedAt:
-              type: string
-            userID:
-              type: integer
-          type: object
-        type: array
-      subsonic:
-        items:
-          properties:
-            category:
-              $ref: '#/definitions/types.ClientCategory'
-            config:
-              $ref: '#/definitions/types.SubsonicConfig'
-            createdAt:
-              type: string
-            deletedAt:
-              type: string
-            id:
-              description: Internal ID
-              type: integer
-            isEnabled:
-              type: boolean
-            name:
-              type: string
-            type:
-              $ref: '#/definitions/types.ClientType'
-            updatedAt:
-              type: string
-            userID:
-              type: integer
-          type: object
-        type: array
+      ai:
+        $ref: '#/definitions/models.AIClientList'
+      automation:
+        $ref: '#/definitions/models.AutomationClientList'
+      media:
+        $ref: '#/definitions/models.MediaClientList'
       total:
         type: integer
     type: object
@@ -471,15 +391,6 @@ definitions:
       videoClientId:
         example: 1
         type: integer
-    type: object
-  models.ExternalID:
-    properties:
-      id:
-        description: The actual ID
-        type: string
-      source:
-        description: e.g., "tmdb", "imdb", "trakt", "tvdb"
-        type: string
     type: object
   models.ExternalIDMap:
     additionalProperties:
@@ -696,6 +607,119 @@ definitions:
         minimum: 5
         type: integer
     type: object
+  models.MediaClientList:
+    properties:
+      emby:
+        additionalProperties:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.EmbyConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: object
+      ids:
+        additionalProperties:
+          $ref: '#/definitions/types.ClientType'
+        type: object
+      jellyfin:
+        additionalProperties:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.JellyfinConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: object
+      plex:
+        additionalProperties:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.PlexConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: object
+      subsonic:
+        additionalProperties:
+          properties:
+            category:
+              $ref: '#/definitions/types.ClientCategory'
+            config:
+              $ref: '#/definitions/types.SubsonicConfig'
+            createdAt:
+              type: string
+            deletedAt:
+              type: string
+            id:
+              description: Internal ID
+              type: integer
+            isEnabled:
+              type: boolean
+            name:
+              type: string
+            type:
+              $ref: '#/definitions/types.ClientType'
+            updatedAt:
+              type: string
+            userID:
+              type: integer
+          type: object
+        type: object
+      total:
+        type: integer
+    type: object
   models.MediaDepartment:
     enum:
     - Cast
@@ -733,7 +757,7 @@ definitions:
       externalIds:
         description: External IDs for this item (TMDB, IMDB, etc.)
         items:
-          $ref: '#/definitions/models.ExternalID'
+          $ref: '#/definitions/suasor_clients_media_types.ExternalID'
         type: array
       id:
         description: Internal ID
@@ -782,7 +806,7 @@ definitions:
       externalIds:
         description: External IDs for this item (TMDB, IMDB, etc.)
         items:
-          $ref: '#/definitions/models.ExternalID'
+          $ref: '#/definitions/suasor_clients_media_types.ExternalID'
         type: array
       id:
         description: Internal ID
@@ -831,7 +855,7 @@ definitions:
       externalIds:
         description: External IDs for this item (TMDB, IMDB, etc.)
         items:
-          $ref: '#/definitions/models.ExternalID'
+          $ref: '#/definitions/suasor_clients_media_types.ExternalID'
         type: array
       id:
         description: Internal ID
@@ -880,7 +904,7 @@ definitions:
       externalIds:
         description: External IDs for this item (TMDB, IMDB, etc.)
         items:
-          $ref: '#/definitions/models.ExternalID'
+          $ref: '#/definitions/suasor_clients_media_types.ExternalID'
         type: array
       id:
         description: Internal ID
@@ -929,7 +953,7 @@ definitions:
       externalIds:
         description: External IDs for this item (TMDB, IMDB, etc.)
         items:
-          $ref: '#/definitions/models.ExternalID'
+          $ref: '#/definitions/suasor_clients_media_types.ExternalID'
         type: array
       id:
         description: Internal ID
@@ -976,7 +1000,7 @@ definitions:
       externalIds:
         description: External IDs for this item (TMDB, IMDB, etc.)
         items:
-          $ref: '#/definitions/models.ExternalID'
+          $ref: '#/definitions/suasor_clients_media_types.ExternalID'
         type: array
       id:
         description: Internal ID
@@ -1023,7 +1047,7 @@ definitions:
       externalIds:
         description: External IDs for this item (TMDB, IMDB, etc.)
         items:
-          $ref: '#/definitions/models.ExternalID'
+          $ref: '#/definitions/suasor_clients_media_types.ExternalID'
         type: array
       id:
         description: Internal ID
@@ -1072,7 +1096,7 @@ definitions:
       externalIds:
         description: External IDs for this item (TMDB, IMDB, etc.)
         items:
-          $ref: '#/definitions/models.ExternalID'
+          $ref: '#/definitions/suasor_clients_media_types.ExternalID'
         type: array
       id:
         description: Internal ID
@@ -1121,7 +1145,7 @@ definitions:
       externalIds:
         description: External IDs for this item (TMDB, IMDB, etc.)
         items:
-          $ref: '#/definitions/models.ExternalID'
+          $ref: '#/definitions/suasor_clients_media_types.ExternalID'
         type: array
       id:
         description: Internal ID
@@ -1170,7 +1194,7 @@ definitions:
       externalIds:
         description: External IDs for this item (TMDB, IMDB, etc.)
         items:
-          $ref: '#/definitions/models.ExternalID'
+          $ref: '#/definitions/suasor_clients_media_types.ExternalID'
         type: array
       id:
         description: Internal ID
@@ -1219,7 +1243,7 @@ definitions:
       externalIds:
         description: External IDs for this item (TMDB, IMDB, etc.)
         items:
-          $ref: '#/definitions/models.ExternalID'
+          $ref: '#/definitions/suasor_clients_media_types.ExternalID'
         type: array
       id:
         description: Internal ID
@@ -1271,7 +1295,7 @@ definitions:
             externalIds:
               description: External IDs for this item (TMDB, IMDB, etc.)
               items:
-                $ref: '#/definitions/models.ExternalID'
+                $ref: '#/definitions/suasor_clients_media_types.ExternalID'
               type: array
             id:
               description: Internal ID
@@ -1323,7 +1347,7 @@ definitions:
             externalIds:
               description: External IDs for this item (TMDB, IMDB, etc.)
               items:
-                $ref: '#/definitions/models.ExternalID'
+                $ref: '#/definitions/suasor_clients_media_types.ExternalID'
               type: array
             id:
               description: Internal ID
@@ -1375,7 +1399,7 @@ definitions:
             externalIds:
               description: External IDs for this item (TMDB, IMDB, etc.)
               items:
-                $ref: '#/definitions/models.ExternalID'
+                $ref: '#/definitions/suasor_clients_media_types.ExternalID'
               type: array
             id:
               description: Internal ID
@@ -1429,7 +1453,7 @@ definitions:
             externalIds:
               description: External IDs for this item (TMDB, IMDB, etc.)
               items:
-                $ref: '#/definitions/models.ExternalID'
+                $ref: '#/definitions/suasor_clients_media_types.ExternalID'
               type: array
             id:
               description: Internal ID
@@ -1486,7 +1510,7 @@ definitions:
             externalIds:
               description: External IDs for this item (TMDB, IMDB, etc.)
               items:
-                $ref: '#/definitions/models.ExternalID'
+                $ref: '#/definitions/suasor_clients_media_types.ExternalID'
               type: array
             id:
               description: Internal ID
@@ -1544,7 +1568,7 @@ definitions:
             externalIds:
               description: External IDs for this item (TMDB, IMDB, etc.)
               items:
-                $ref: '#/definitions/models.ExternalID'
+                $ref: '#/definitions/suasor_clients_media_types.ExternalID'
               type: array
             id:
               description: Internal ID
@@ -1596,7 +1620,7 @@ definitions:
             externalIds:
               description: External IDs for this item (TMDB, IMDB, etc.)
               items:
-                $ref: '#/definitions/models.ExternalID'
+                $ref: '#/definitions/suasor_clients_media_types.ExternalID'
               type: array
             id:
               description: Internal ID
@@ -1648,7 +1672,7 @@ definitions:
             externalIds:
               description: External IDs for this item (TMDB, IMDB, etc.)
               items:
-                $ref: '#/definitions/models.ExternalID'
+                $ref: '#/definitions/suasor_clients_media_types.ExternalID'
               type: array
             id:
               description: Internal ID
@@ -1702,7 +1726,7 @@ definitions:
             externalIds:
               description: External IDs for this item (TMDB, IMDB, etc.)
               items:
-                $ref: '#/definitions/models.ExternalID'
+                $ref: '#/definitions/suasor_clients_media_types.ExternalID'
               type: array
             id:
               description: Internal ID
@@ -1767,8 +1791,9 @@ definitions:
         description: ID of the client to sync from
         type: integer
       clientType:
+        allOf:
+        - $ref: '#/definitions/types.ClientType'
         description: Type of the client
-        type: string
       createdAt:
         type: string
       deletedAt:
@@ -1788,9 +1813,10 @@ definitions:
       lastSyncTime:
         description: Last sync time
         type: string
-      mediaType:
+      syncType:
+        allOf:
+        - $ref: '#/definitions/models.SyncType'
         description: Type of media to sync (movies, series, music, etc.)
-        type: string
       updatedAt:
         type: string
       userID:
@@ -1813,7 +1839,7 @@ definitions:
         type: string
       externalIDs:
         items:
-          $ref: '#/definitions/models.ExternalID'
+          $ref: '#/definitions/suasor_clients_media_types.ExternalID'
         type: array
       gender:
         type: string
@@ -1890,7 +1916,7 @@ definitions:
         type: string
       externalIDs:
         items:
-          $ref: '#/definitions/models.ExternalID'
+          $ref: '#/definitions/suasor_clients_media_types.ExternalID'
         type: array
       gender:
         type: string
@@ -2068,6 +2094,24 @@ definitions:
         description: The actual ID value in the external system
         type: string
     type: object
+  models.SyncType:
+    enum:
+    - movies
+    - series
+    - music
+    - history
+    - favorites
+    - collections
+    - playlists
+    type: string
+    x-enum-varnames:
+    - SyncTypeMovies
+    - SyncTypeSeries
+    - SyncTypeMusic
+    - SyncTypeHistory
+    - SyncTypeFavorites
+    - SyncTypeCollections
+    - SyncTypePlaylists
   models.UserConfig:
     description: User-specific configuration stored in the database
     properties:
@@ -2948,11 +2992,11 @@ definitions:
     properties:
       clientID:
         type: integer
-      mediaType:
-        type: string
+      syncType:
+        $ref: '#/definitions/models.SyncType'
     required:
     - clientID
-    - mediaType
+    - syncType
     type: object
   requests.SetupMediaSyncJobRequest:
     properties:
@@ -2962,13 +3006,13 @@ definitions:
         type: string
       frequency:
         type: string
-      mediaType:
-        type: string
+      syncType:
+        $ref: '#/definitions/models.SyncType'
     required:
     - clientID
     - clientType
     - frequency
-    - mediaType
+    - syncType
     type: object
   requests.StartConversationRequest:
     description: Request to start a new AI-powered conversation for recommendations
@@ -4316,7 +4360,7 @@ definitions:
             externalIds:
               description: External IDs for this item (TMDB, IMDB, etc.)
               items:
-                $ref: '#/definitions/models.ExternalID'
+                $ref: '#/definitions/suasor_clients_media_types.ExternalID'
               type: array
             id:
               description: Internal ID
@@ -4368,7 +4412,7 @@ definitions:
             externalIds:
               description: External IDs for this item (TMDB, IMDB, etc.)
               items:
-                $ref: '#/definitions/models.ExternalID'
+                $ref: '#/definitions/suasor_clients_media_types.ExternalID'
               type: array
             id:
               description: Internal ID
@@ -4420,7 +4464,7 @@ definitions:
             externalIds:
               description: External IDs for this item (TMDB, IMDB, etc.)
               items:
-                $ref: '#/definitions/models.ExternalID'
+                $ref: '#/definitions/suasor_clients_media_types.ExternalID'
               type: array
             id:
               description: Internal ID
@@ -4472,7 +4516,7 @@ definitions:
             externalIds:
               description: External IDs for this item (TMDB, IMDB, etc.)
               items:
-                $ref: '#/definitions/models.ExternalID'
+                $ref: '#/definitions/suasor_clients_media_types.ExternalID'
               type: array
             id:
               description: Internal ID
@@ -4524,7 +4568,7 @@ definitions:
             externalIds:
               description: External IDs for this item (TMDB, IMDB, etc.)
               items:
-                $ref: '#/definitions/models.ExternalID'
+                $ref: '#/definitions/suasor_clients_media_types.ExternalID'
               type: array
             id:
               description: Internal ID
@@ -4580,7 +4624,7 @@ definitions:
             externalIds:
               description: External IDs for this item (TMDB, IMDB, etc.)
               items:
-                $ref: '#/definitions/models.ExternalID'
+                $ref: '#/definitions/suasor_clients_media_types.ExternalID'
               type: array
             id:
               description: Internal ID
@@ -4632,7 +4676,7 @@ definitions:
             externalIds:
               description: External IDs for this item (TMDB, IMDB, etc.)
               items:
-                $ref: '#/definitions/models.ExternalID'
+                $ref: '#/definitions/suasor_clients_media_types.ExternalID'
               type: array
             id:
               description: Internal ID
@@ -4684,7 +4728,7 @@ definitions:
             externalIds:
               description: External IDs for this item (TMDB, IMDB, etc.)
               items:
-                $ref: '#/definitions/models.ExternalID'
+                $ref: '#/definitions/suasor_clients_media_types.ExternalID'
               type: array
             id:
               description: Internal ID
@@ -4738,7 +4782,7 @@ definitions:
             externalIds:
               description: External IDs for this item (TMDB, IMDB, etc.)
               items:
-                $ref: '#/definitions/models.ExternalID'
+                $ref: '#/definitions/suasor_clients_media_types.ExternalID'
               type: array
             id:
               description: Internal ID
@@ -4933,48 +4977,56 @@ definitions:
         type: array
       details:
         $ref: '#/definitions/types.MediaDetails'
-      syncArtist:
-        items:
-          $ref: '#/definitions/types.SyncClient'
-        type: array
       trackCount:
         type: integer
+      tracks:
+        items:
+          $ref: '#/definitions/types.TrackEntry'
+        type: array
+    type: object
+  types.AlbumEntry:
+    properties:
+      albumID:
+        type: integer
+      albumName:
+        type: string
       trackIDs:
         items:
           type: integer
-        type: array
-      tracks:
-        items:
-          $ref: '#/definitions/types.Track'
         type: array
     type: object
   types.Artist:
     properties:
       albumCount:
         type: integer
-      albumIDs:
-        items:
-          type: integer
-        type: array
       albums:
         items:
-          $ref: '#/definitions/types.Album'
+          $ref: '#/definitions/types.AlbumEntry'
         type: array
       biography:
         type: string
+      credits:
+        items:
+          $ref: '#/definitions/suasor_clients_media_types.Person'
+        type: array
       details:
         $ref: '#/definitions/types.MediaDetails'
+      endYear:
+        type: integer
+      genres:
+        items:
+          type: string
+        type: array
+      rating:
+        type: number
       similarArtists:
         items:
-          $ref: '#/definitions/types.ArtistReference'
+          $ref: '#/definitions/suasor_clients_media_types.Person'
         type: array
-    type: object
-  types.ArtistReference:
-    properties:
-      id:
+      startYear:
         type: integer
-      name:
-        type: string
+      trackCount:
+        type: integer
     type: object
   types.Artwork:
     properties:
@@ -5285,21 +5337,15 @@ definitions:
       number:
         type: integer
       seasonID:
+        description: itemID of the season
         type: integer
       seasonNumber:
         type: integer
-      showID:
+      seriesID:
+        description: itemID of the series
         type: integer
       showTitle:
         type: string
-      syncSeason:
-        items:
-          $ref: '#/definitions/types.SyncClient'
-        type: array
-      syncSeries:
-        items:
-          $ref: '#/definitions/types.SyncClient'
-        type: array
     type: object
   types.GenerationOptions:
     properties:
@@ -5444,10 +5490,8 @@ definitions:
         type: string
       releaseYear:
         type: integer
-      studios:
-        items:
-          type: string
-        type: array
+      studio:
+        type: string
       tags:
         items:
           type: string
@@ -5524,6 +5568,9 @@ definitions:
       details: {}
       token:
         example: your-plex-token
+        type: string
+      username:
+        example: your-plex-username
         type: string
     type: object
   types.QueryOptions:
@@ -5696,10 +5743,6 @@ definitions:
         items:
           type: integer
         type: array
-      episodes:
-        items:
-          $ref: '#/definitions/types.Episode'
-        type: array
       overview:
         type: string
       releaseDate:
@@ -5710,12 +5753,19 @@ definitions:
         type: integer
       seriesName:
         type: string
-      syncSeries:
-        items:
-          $ref: '#/definitions/types.SyncClient'
-        type: array
       title:
         type: string
+    type: object
+  types.SeasonEntry:
+    properties:
+      episodeIDs:
+        items:
+          type: integer
+        type: array
+      seasonID:
+        type: integer
+      seasonNumber:
+        type: integer
     type: object
   types.Series:
     properties:
@@ -5742,8 +5792,9 @@ definitions:
       seasonCount:
         type: integer
       seasons:
+        description: Collection of seasons with their IDs and episode IDs
         items:
-          $ref: '#/definitions/types.Season'
+          $ref: '#/definitions/types.SeasonEntry'
         type: array
       status:
         description: e.g., "Ended", "Continuing"
@@ -5785,16 +5836,6 @@ definitions:
         example: admin
         type: string
     type: object
-  types.SyncClient:
-    properties:
-      clientID:
-        description: ID of the client that this external ID belongs to (optional for
-          service IDs like TMDB)
-        type: integer
-      itemID:
-        description: The actual ID value in the external system
-        type: string
-    type: object
   types.Track:
     properties:
       albumID:
@@ -5821,15 +5862,16 @@ definitions:
         type: integer
       lyrics:
         type: string
-      syncAlbum:
-        items:
-          $ref: '#/definitions/types.SyncClient'
-        type: array
-      syncArtist:
-        items:
-          $ref: '#/definitions/types.SyncClient'
-        type: array
       trackNumber:
+        type: integer
+    type: object
+  types.TrackEntry:
+    properties:
+      number:
+        type: integer
+      title:
+        type: string
+      trackID:
         type: integer
     type: object
 host: localhost:8080
@@ -6487,37 +6529,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Get all clients
-      tags:
-      - clients
-  /admin/clients/{clientType}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves all clients of a specific type for the user
-      parameters:
-      - description: Client type (e.g. 'plex', 'jellyfin', 'emby')
-        in: path
-        name: clientType
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Clients retrieved
-          schema:
-            $ref: '#/definitions/responses.APIResponse-array_models_Client-types_ClientConfig'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
-      security:
-      - BearerAuth: []
-      summary: Get clients by type
       tags:
       - clients
   /admin/clients/{clientType}/test:
@@ -10194,6 +10205,37 @@ paths:
       tags:
       - media
       - clients
+  /clients/{clientType}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all clients of a specific type for the user
+      parameters:
+      - description: Client type (e.g. 'plex', 'jellyfin', 'emby')
+        in: path
+        name: clientType
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Clients retrieved
+          schema:
+            $ref: '#/definitions/responses.APIResponse-array_models_Client-types_ClientConfig'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-responses_ErrorDetails'
+      security:
+      - BearerAuth: []
+      summary: Get clients by type
+      tags:
+      - clients
   /config:
     get:
       consumes:
@@ -13310,7 +13352,7 @@ paths:
       summary: Get recently played tracks
       tags:
       - music
-  /media/series/{id}/episodes:
+  /media/series/{seriesID}/episodes:
     get:
       consumes:
       - application/json
@@ -13318,7 +13360,7 @@ paths:
       parameters:
       - description: Series ID
         in: path
-        name: id
+        name: seriesID
         required: true
         type: integer
       - description: User ID
@@ -13349,46 +13391,7 @@ paths:
       tags:
       - series
       - core
-  /media/series/{seriesID}/seasons:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves all seasons for a specific series
-      parameters:
-      - description: Series ID
-        in: path
-        name: seriesID
-        required: true
-        type: integer
-      - description: User ID
-        in: query
-        name: userId
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Episodes retrieved successfully
-          schema:
-            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Season'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "404":
-          description: Series not found
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse-any'
-      summary: Get seasons for a series
-      tags:
-      - series
-      - core
-  /media/series/{seriesID}/seasons/{seasonNumber}/episodes:
+  /media/series/{seriesID}/season/{seasonNumber}/episodes:
     get:
       consumes:
       - application/json
@@ -13429,6 +13432,45 @@ paths:
           schema:
             $ref: '#/definitions/responses.ErrorResponse-any'
       summary: Get episodes for a season
+      tags:
+      - series
+      - core
+  /media/series/{seriesID}/seasons:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all seasons for a specific series
+      parameters:
+      - description: Series ID
+        in: path
+        name: seriesID
+        required: true
+        type: integer
+      - description: User ID
+        in: query
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Episodes retrieved successfully
+          schema:
+            $ref: '#/definitions/responses.APIResponse-responses_MediaItemList-types_Season'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "404":
+          description: Series not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse-any'
+      summary: Get seasons for a series
       tags:
       - series
       - core

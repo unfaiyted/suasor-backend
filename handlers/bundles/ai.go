@@ -7,15 +7,15 @@ import (
 
 // AIClientHandlersImpl implements the AIClientHandlers interface
 type AIClientHandlersImpl struct {
-	claudeHandler *handlers.AIHandler[*types.ClaudeConfig]
-	openaiHandler *handlers.AIHandler[*types.OpenAIConfig]
-	ollamaHandler *handlers.AIHandler[*types.OllamaConfig]
+	claudeHandler handlers.AIHandler[*types.ClaudeConfig]
+	openaiHandler handlers.AIHandler[*types.OpenAIConfig]
+	ollamaHandler handlers.AIHandler[*types.OllamaConfig]
 }
 
 func NewAIClientHandlers(
-	claudeHandler *handlers.AIHandler[*types.ClaudeConfig],
-	openaiHandler *handlers.AIHandler[*types.OpenAIConfig],
-	ollamaHandler *handlers.AIHandler[*types.OllamaConfig],
+	claudeHandler handlers.AIHandler[*types.ClaudeConfig],
+	openaiHandler handlers.AIHandler[*types.OpenAIConfig],
+	ollamaHandler handlers.AIHandler[*types.OllamaConfig],
 ) AIClientHandlers {
 	return &AIClientHandlersImpl{
 		claudeHandler: claudeHandler,
@@ -24,14 +24,14 @@ func NewAIClientHandlers(
 	}
 }
 
-func (h *AIClientHandlersImpl) ClaudeAIHandler() *handlers.AIHandler[*types.ClaudeConfig] {
+func (h *AIClientHandlersImpl) ClaudeAIHandler() handlers.AIHandler[*types.ClaudeConfig] {
 	return h.claudeHandler
 }
 
-func (h *AIClientHandlersImpl) OpenAIHandler() *handlers.AIHandler[*types.OpenAIConfig] {
+func (h *AIClientHandlersImpl) OpenAIHandler() handlers.AIHandler[*types.OpenAIConfig] {
 	return h.openaiHandler
 }
 
-func (h *AIClientHandlersImpl) OllamaHandler() *handlers.AIHandler[*types.OllamaConfig] {
+func (h *AIClientHandlersImpl) OllamaHandler() handlers.AIHandler[*types.OllamaConfig] {
 	return h.ollamaHandler
 }

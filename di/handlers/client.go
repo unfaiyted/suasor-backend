@@ -46,39 +46,55 @@ func RegisterClientHandlers(ctx context.Context, c *container.Container) {
 	})
 
 	// Register AI handlers TODO: move to AI bundle
-	container.RegisterFactory[*handlers.AIHandler[*types.ClaudeConfig]](c, func(c *container.Container) *handlers.AIHandler[*types.ClaudeConfig] {
+	container.RegisterFactory[handlers.AIHandler[*types.ClaudeConfig]](c, func(c *container.Container) handlers.AIHandler[*types.ClaudeConfig] {
 		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
 		clientService := container.MustGet[services.ClientService[*types.ClaudeConfig]](c)
 
-		return handlers.NewAIHandler(
+		handler := handlers.NewAIHandler(
 			clientFactory,
 			clientService,
 		)
+		return handler
 	})
-	container.RegisterFactory[*handlers.AIHandler[*types.OpenAIConfig]](c, func(c *container.Container) *handlers.AIHandler[*types.OpenAIConfig] {
+
+	container.RegisterFactory[handlers.AIHandler[*types.OpenAIConfig]](c, func(c *container.Container) handlers.AIHandler[*types.OpenAIConfig] {
 		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
 		clientService := container.MustGet[services.ClientService[*types.OpenAIConfig]](c)
 
-		return handlers.NewAIHandler(
+		handler := handlers.NewAIHandler(
 			clientFactory,
 			clientService,
 		)
+		return handler
 	})
-	container.RegisterFactory[*handlers.AIHandler[*types.OllamaConfig]](c, func(c *container.Container) *handlers.AIHandler[*types.OllamaConfig] {
+
+	container.RegisterFactory[handlers.AIHandler[*types.OllamaConfig]](c, func(c *container.Container) handlers.AIHandler[*types.OllamaConfig] {
 		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
 		clientService := container.MustGet[services.ClientService[*types.OllamaConfig]](c)
 
-		return handlers.NewAIHandler(
+		handler := handlers.NewAIHandler(
 			clientFactory,
 			clientService,
 		)
+		return handler
+	})
+
+	container.RegisterFactory[handlers.AIHandler[types.AIClientConfig]](c, func(c *container.Container) handlers.AIHandler[types.AIClientConfig] {
+		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
+		clientService := container.MustGet[services.ClientService[*types.OllamaConfig]](c)
+
+		handler := handlers.NewAIHandler(
+			clientFactory,
+			clientService,
+		)
+		return handler
 	})
 
 	// Register AIClientHandlers for the router
 	container.RegisterFactory[apphandlers.AIClientHandlers](c, func(c *container.Container) apphandlers.AIClientHandlers {
-		claudeHandler := container.MustGet[*handlers.AIHandler[*types.ClaudeConfig]](c)
-		openaiHandler := container.MustGet[*handlers.AIHandler[*types.OpenAIConfig]](c)
-		ollamaHandler := container.MustGet[*handlers.AIHandler[*types.OllamaConfig]](c)
+		claudeHandler := container.MustGet[handlers.AIHandler[*types.ClaudeConfig]](c)
+		openaiHandler := container.MustGet[handlers.AIHandler[*types.OpenAIConfig]](c)
+		ollamaHandler := container.MustGet[handlers.AIHandler[*types.OllamaConfig]](c)
 
 		return apphandlers.NewAIClientHandlers(
 			claudeHandler,
@@ -86,7 +102,7 @@ func RegisterClientHandlers(ctx context.Context, c *container.Container) {
 			ollamaHandler,
 		)
 	})
-	
+
 	// Register ClientAutomationHandler for automation endpoints
 	container.RegisterFactory[*handlers.ClientAutomationHandler](c, func(c *container.Container) *handlers.ClientAutomationHandler {
 		automationService := container.MustGet[services.AutomationClientService](c)
@@ -97,6 +113,6 @@ func RegisterClientHandlers(ctx context.Context, c *container.Container) {
 func registerClientHandler[T types.ClientConfig](c *container.Container) {
 	container.RegisterFactory[handlers.ClientHandler[T]](c, func(c *container.Container) handlers.ClientHandler[T] {
 		service := container.MustGet[services.ClientService[T]](c)
-		return handlers.NewClientHandler[T](service)
+		return handlers.NewClientHandler(service)
 	})
 }

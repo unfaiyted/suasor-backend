@@ -189,55 +189,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/clients/{clientType}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves all clients of a specific type for the user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "clients"
-                ],
-                "summary": "Get clients by type",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Client type (e.g. 'plex', 'jellyfin', 'emby')",
-                        "name": "clientType",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Clients retrieved",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-array_models_Client-types_ClientConfig"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
-                        }
-                    }
-                }
-            }
-        },
         "/admin/clients/{clientType}/test": {
             "get": {
                 "security": [
@@ -5855,6 +5806,55 @@ const docTemplate = `{
                 }
             }
         },
+        "/clients/{clientType}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all clients of a specific type for the user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Get clients by type",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Client type (e.g. 'plex', 'jellyfin', 'emby')",
+                        "name": "clientType",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Clients retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-array_models_Client-types_ClientConfig"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-responses_ErrorDetails"
+                        }
+                    }
+                }
+            }
+        },
         "/config": {
             "get": {
                 "description": "Returns the current system configuration",
@@ -9770,7 +9770,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/media/series/{id}/episodes": {
+        "/media/series/{seriesID}/episodes": {
             "get": {
                 "description": "Retrieves all episodes across all seasons for a specific series",
                 "consumes": [
@@ -9788,7 +9788,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Series ID",
-                        "name": "id",
+                        "name": "seriesID",
                         "in": "path",
                         "required": true
                     },
@@ -9815,6 +9815,71 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Series not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/media/series/{seriesID}/season/{seasonNumber}/episodes": {
+            "get": {
+                "description": "Retrieves all episodes for a specific season of a series",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "series",
+                    "core"
+                ],
+                "summary": "Get episodes for a season",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Series ID",
+                        "name": "seriesID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Season number",
+                        "name": "seasonNumber",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Episodes retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Episode"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Series or season not found",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-any"
                         }
@@ -9873,71 +9938,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Series not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/media/series/{seriesID}/seasons/{seasonNumber}/episodes": {
-            "get": {
-                "description": "Retrieves all episodes for a specific season of a series",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "series",
-                    "core"
-                ],
-                "summary": "Get episodes for a season",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Series ID",
-                        "name": "seriesID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Season number",
-                        "name": "seasonNumber",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "userId",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Episodes retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/responses.APIResponse-responses_MediaItemList-types_Episode"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "Series or season not found",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse-any"
                         }
@@ -14988,6 +14988,137 @@ const docTemplate = `{
                 "$ref": "#/definitions/models.MediaItem-types_MediaData"
             }
         },
+        "models.AIClientList": {
+            "type": "object",
+            "properties": {
+                "claude": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.ClaudeConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "ids": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/types.ClientType"
+                    }
+                },
+                "ollama": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.OllamaConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "openai": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.OpenAIConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.AIModelPreferences": {
             "type": "object",
             "properties": {
@@ -15010,6 +15141,137 @@ const docTemplate = `{
                     "maximum": 1,
                     "minimum": 0,
                     "example": 0.7
+                }
+            }
+        },
+        "models.AutomationClientList": {
+            "type": "object",
+            "properties": {
+                "ids": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/types.ClientType"
+                    }
+                },
+                "lidarr": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.LidarrConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "radarr": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.RadarrConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "sonarr": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.SonarrConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -15071,395 +15333,14 @@ const docTemplate = `{
         "models.ClientList": {
             "type": "object",
             "properties": {
-                "claude": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "category": {
-                                "$ref": "#/definitions/types.ClientCategory"
-                            },
-                            "config": {
-                                "$ref": "#/definitions/types.ClaudeConfig"
-                            },
-                            "createdAt": {
-                                "type": "string"
-                            },
-                            "deletedAt": {
-                                "type": "string"
-                            },
-                            "id": {
-                                "description": "Internal ID",
-                                "type": "integer"
-                            },
-                            "isEnabled": {
-                                "type": "boolean"
-                            },
-                            "name": {
-                                "type": "string"
-                            },
-                            "type": {
-                                "$ref": "#/definitions/types.ClientType"
-                            },
-                            "updatedAt": {
-                                "type": "string"
-                            },
-                            "userID": {
-                                "type": "integer"
-                            }
-                        }
-                    }
+                "ai": {
+                    "$ref": "#/definitions/models.AIClientList"
                 },
-                "emby": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "category": {
-                                "$ref": "#/definitions/types.ClientCategory"
-                            },
-                            "config": {
-                                "$ref": "#/definitions/types.EmbyConfig"
-                            },
-                            "createdAt": {
-                                "type": "string"
-                            },
-                            "deletedAt": {
-                                "type": "string"
-                            },
-                            "id": {
-                                "description": "Internal ID",
-                                "type": "integer"
-                            },
-                            "isEnabled": {
-                                "type": "boolean"
-                            },
-                            "name": {
-                                "type": "string"
-                            },
-                            "type": {
-                                "$ref": "#/definitions/types.ClientType"
-                            },
-                            "updatedAt": {
-                                "type": "string"
-                            },
-                            "userID": {
-                                "type": "integer"
-                            }
-                        }
-                    }
+                "automation": {
+                    "$ref": "#/definitions/models.AutomationClientList"
                 },
-                "jellyfin": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "category": {
-                                "$ref": "#/definitions/types.ClientCategory"
-                            },
-                            "config": {
-                                "$ref": "#/definitions/types.JellyfinConfig"
-                            },
-                            "createdAt": {
-                                "type": "string"
-                            },
-                            "deletedAt": {
-                                "type": "string"
-                            },
-                            "id": {
-                                "description": "Internal ID",
-                                "type": "integer"
-                            },
-                            "isEnabled": {
-                                "type": "boolean"
-                            },
-                            "name": {
-                                "type": "string"
-                            },
-                            "type": {
-                                "$ref": "#/definitions/types.ClientType"
-                            },
-                            "updatedAt": {
-                                "type": "string"
-                            },
-                            "userID": {
-                                "type": "integer"
-                            }
-                        }
-                    }
-                },
-                "lidarr": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "category": {
-                                "$ref": "#/definitions/types.ClientCategory"
-                            },
-                            "config": {
-                                "$ref": "#/definitions/types.LidarrConfig"
-                            },
-                            "createdAt": {
-                                "type": "string"
-                            },
-                            "deletedAt": {
-                                "type": "string"
-                            },
-                            "id": {
-                                "description": "Internal ID",
-                                "type": "integer"
-                            },
-                            "isEnabled": {
-                                "type": "boolean"
-                            },
-                            "name": {
-                                "type": "string"
-                            },
-                            "type": {
-                                "$ref": "#/definitions/types.ClientType"
-                            },
-                            "updatedAt": {
-                                "type": "string"
-                            },
-                            "userID": {
-                                "type": "integer"
-                            }
-                        }
-                    }
-                },
-                "ollama": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "category": {
-                                "$ref": "#/definitions/types.ClientCategory"
-                            },
-                            "config": {
-                                "$ref": "#/definitions/types.OllamaConfig"
-                            },
-                            "createdAt": {
-                                "type": "string"
-                            },
-                            "deletedAt": {
-                                "type": "string"
-                            },
-                            "id": {
-                                "description": "Internal ID",
-                                "type": "integer"
-                            },
-                            "isEnabled": {
-                                "type": "boolean"
-                            },
-                            "name": {
-                                "type": "string"
-                            },
-                            "type": {
-                                "$ref": "#/definitions/types.ClientType"
-                            },
-                            "updatedAt": {
-                                "type": "string"
-                            },
-                            "userID": {
-                                "type": "integer"
-                            }
-                        }
-                    }
-                },
-                "openai": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "category": {
-                                "$ref": "#/definitions/types.ClientCategory"
-                            },
-                            "config": {
-                                "$ref": "#/definitions/types.OpenAIConfig"
-                            },
-                            "createdAt": {
-                                "type": "string"
-                            },
-                            "deletedAt": {
-                                "type": "string"
-                            },
-                            "id": {
-                                "description": "Internal ID",
-                                "type": "integer"
-                            },
-                            "isEnabled": {
-                                "type": "boolean"
-                            },
-                            "name": {
-                                "type": "string"
-                            },
-                            "type": {
-                                "$ref": "#/definitions/types.ClientType"
-                            },
-                            "updatedAt": {
-                                "type": "string"
-                            },
-                            "userID": {
-                                "type": "integer"
-                            }
-                        }
-                    }
-                },
-                "plex": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "category": {
-                                "$ref": "#/definitions/types.ClientCategory"
-                            },
-                            "config": {
-                                "$ref": "#/definitions/types.PlexConfig"
-                            },
-                            "createdAt": {
-                                "type": "string"
-                            },
-                            "deletedAt": {
-                                "type": "string"
-                            },
-                            "id": {
-                                "description": "Internal ID",
-                                "type": "integer"
-                            },
-                            "isEnabled": {
-                                "type": "boolean"
-                            },
-                            "name": {
-                                "type": "string"
-                            },
-                            "type": {
-                                "$ref": "#/definitions/types.ClientType"
-                            },
-                            "updatedAt": {
-                                "type": "string"
-                            },
-                            "userID": {
-                                "type": "integer"
-                            }
-                        }
-                    }
-                },
-                "radarr": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "category": {
-                                "$ref": "#/definitions/types.ClientCategory"
-                            },
-                            "config": {
-                                "$ref": "#/definitions/types.RadarrConfig"
-                            },
-                            "createdAt": {
-                                "type": "string"
-                            },
-                            "deletedAt": {
-                                "type": "string"
-                            },
-                            "id": {
-                                "description": "Internal ID",
-                                "type": "integer"
-                            },
-                            "isEnabled": {
-                                "type": "boolean"
-                            },
-                            "name": {
-                                "type": "string"
-                            },
-                            "type": {
-                                "$ref": "#/definitions/types.ClientType"
-                            },
-                            "updatedAt": {
-                                "type": "string"
-                            },
-                            "userID": {
-                                "type": "integer"
-                            }
-                        }
-                    }
-                },
-                "sonarr": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "category": {
-                                "$ref": "#/definitions/types.ClientCategory"
-                            },
-                            "config": {
-                                "$ref": "#/definitions/types.SonarrConfig"
-                            },
-                            "createdAt": {
-                                "type": "string"
-                            },
-                            "deletedAt": {
-                                "type": "string"
-                            },
-                            "id": {
-                                "description": "Internal ID",
-                                "type": "integer"
-                            },
-                            "isEnabled": {
-                                "type": "boolean"
-                            },
-                            "name": {
-                                "type": "string"
-                            },
-                            "type": {
-                                "$ref": "#/definitions/types.ClientType"
-                            },
-                            "updatedAt": {
-                                "type": "string"
-                            },
-                            "userID": {
-                                "type": "integer"
-                            }
-                        }
-                    }
-                },
-                "subsonic": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "category": {
-                                "$ref": "#/definitions/types.ClientCategory"
-                            },
-                            "config": {
-                                "$ref": "#/definitions/types.SubsonicConfig"
-                            },
-                            "createdAt": {
-                                "type": "string"
-                            },
-                            "deletedAt": {
-                                "type": "string"
-                            },
-                            "id": {
-                                "description": "Internal ID",
-                                "type": "integer"
-                            },
-                            "isEnabled": {
-                                "type": "boolean"
-                            },
-                            "name": {
-                                "type": "string"
-                            },
-                            "type": {
-                                "$ref": "#/definitions/types.ClientType"
-                            },
-                            "updatedAt": {
-                                "type": "string"
-                            },
-                            "userID": {
-                                "type": "integer"
-                            }
-                        }
-                    }
+                "media": {
+                    "$ref": "#/definitions/models.MediaClientList"
                 },
                 "total": {
                     "type": "integer"
@@ -15639,19 +15520,6 @@ const docTemplate = `{
                 "videoClientId": {
                     "type": "integer",
                     "example": 1
-                }
-            }
-        },
-        "models.ExternalID": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "description": "The actual ID",
-                    "type": "string"
-                },
-                "source": {
-                    "description": "e.g., \"tmdb\", \"imdb\", \"trakt\", \"tvdb\"",
-                    "type": "string"
                 }
             }
         },
@@ -15954,6 +15822,176 @@ const docTemplate = `{
                 }
             }
         },
+        "models.MediaClientList": {
+            "type": "object",
+            "properties": {
+                "emby": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.EmbyConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "ids": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/types.ClientType"
+                    }
+                },
+                "jellyfin": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.JellyfinConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "plex": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.PlexConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "subsonic": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "$ref": "#/definitions/types.ClientCategory"
+                            },
+                            "config": {
+                                "$ref": "#/definitions/types.SubsonicConfig"
+                            },
+                            "createdAt": {
+                                "type": "string"
+                            },
+                            "deletedAt": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "description": "Internal ID",
+                                "type": "integer"
+                            },
+                            "isEnabled": {
+                                "type": "boolean"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "$ref": "#/definitions/types.ClientType"
+                            },
+                            "updatedAt": {
+                                "type": "string"
+                            },
+                            "userID": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.MediaDepartment": {
             "type": "string",
             "enum": [
@@ -16000,7 +16038,7 @@ const docTemplate = `{
                     "description": "External IDs for this item (TMDB, IMDB, etc.)",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ExternalID"
+                        "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                     }
                 },
                 "id": {
@@ -16075,7 +16113,7 @@ const docTemplate = `{
                     "description": "External IDs for this item (TMDB, IMDB, etc.)",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ExternalID"
+                        "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                     }
                 },
                 "id": {
@@ -16150,7 +16188,7 @@ const docTemplate = `{
                     "description": "External IDs for this item (TMDB, IMDB, etc.)",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ExternalID"
+                        "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                     }
                 },
                 "id": {
@@ -16225,7 +16263,7 @@ const docTemplate = `{
                     "description": "External IDs for this item (TMDB, IMDB, etc.)",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ExternalID"
+                        "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                     }
                 },
                 "id": {
@@ -16300,7 +16338,7 @@ const docTemplate = `{
                     "description": "External IDs for this item (TMDB, IMDB, etc.)",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ExternalID"
+                        "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                     }
                 },
                 "id": {
@@ -16370,7 +16408,7 @@ const docTemplate = `{
                     "description": "External IDs for this item (TMDB, IMDB, etc.)",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ExternalID"
+                        "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                     }
                 },
                 "id": {
@@ -16440,7 +16478,7 @@ const docTemplate = `{
                     "description": "External IDs for this item (TMDB, IMDB, etc.)",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ExternalID"
+                        "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                     }
                 },
                 "id": {
@@ -16515,7 +16553,7 @@ const docTemplate = `{
                     "description": "External IDs for this item (TMDB, IMDB, etc.)",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ExternalID"
+                        "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                     }
                 },
                 "id": {
@@ -16590,7 +16628,7 @@ const docTemplate = `{
                     "description": "External IDs for this item (TMDB, IMDB, etc.)",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ExternalID"
+                        "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                     }
                 },
                 "id": {
@@ -16665,7 +16703,7 @@ const docTemplate = `{
                     "description": "External IDs for this item (TMDB, IMDB, etc.)",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ExternalID"
+                        "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                     }
                 },
                 "id": {
@@ -16740,7 +16778,7 @@ const docTemplate = `{
                     "description": "External IDs for this item (TMDB, IMDB, etc.)",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ExternalID"
+                        "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                     }
                 },
                 "id": {
@@ -16820,7 +16858,7 @@ const docTemplate = `{
                                 "description": "External IDs for this item (TMDB, IMDB, etc.)",
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/models.ExternalID"
+                                    "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                                 }
                             },
                             "id": {
@@ -16898,7 +16936,7 @@ const docTemplate = `{
                                 "description": "External IDs for this item (TMDB, IMDB, etc.)",
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/models.ExternalID"
+                                    "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                                 }
                             },
                             "id": {
@@ -16976,7 +17014,7 @@ const docTemplate = `{
                                 "description": "External IDs for this item (TMDB, IMDB, etc.)",
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/models.ExternalID"
+                                    "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                                 }
                             },
                             "id": {
@@ -17057,7 +17095,7 @@ const docTemplate = `{
                                 "description": "External IDs for this item (TMDB, IMDB, etc.)",
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/models.ExternalID"
+                                    "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                                 }
                             },
                             "id": {
@@ -17142,7 +17180,7 @@ const docTemplate = `{
                                 "description": "External IDs for this item (TMDB, IMDB, etc.)",
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/models.ExternalID"
+                                    "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                                 }
                             },
                             "id": {
@@ -17229,7 +17267,7 @@ const docTemplate = `{
                                 "description": "External IDs for this item (TMDB, IMDB, etc.)",
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/models.ExternalID"
+                                    "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                                 }
                             },
                             "id": {
@@ -17307,7 +17345,7 @@ const docTemplate = `{
                                 "description": "External IDs for this item (TMDB, IMDB, etc.)",
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/models.ExternalID"
+                                    "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                                 }
                             },
                             "id": {
@@ -17385,7 +17423,7 @@ const docTemplate = `{
                                 "description": "External IDs for this item (TMDB, IMDB, etc.)",
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/models.ExternalID"
+                                    "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                                 }
                             },
                             "id": {
@@ -17466,7 +17504,7 @@ const docTemplate = `{
                                 "description": "External IDs for this item (TMDB, IMDB, etc.)",
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/models.ExternalID"
+                                    "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                                 }
                             },
                             "id": {
@@ -17554,7 +17592,11 @@ const docTemplate = `{
                 },
                 "clientType": {
                     "description": "Type of the client",
-                    "type": "string"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/types.ClientType"
+                        }
+                    ]
                 },
                 "createdAt": {
                     "type": "string"
@@ -17582,9 +17624,13 @@ const docTemplate = `{
                     "description": "Last sync time",
                     "type": "string"
                 },
-                "mediaType": {
+                "syncType": {
                     "description": "Type of media to sync (movies, series, music, etc.)",
-                    "type": "string"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.SyncType"
+                        }
+                    ]
                 },
                 "updatedAt": {
                     "type": "string"
@@ -17619,7 +17665,7 @@ const docTemplate = `{
                 "externalIDs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ExternalID"
+                        "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                     }
                 },
                 "gender": {
@@ -17736,7 +17782,7 @@ const docTemplate = `{
                 "externalIDs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ExternalID"
+                        "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                     }
                 },
                 "gender": {
@@ -17996,6 +18042,27 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "models.SyncType": {
+            "type": "string",
+            "enum": [
+                "movies",
+                "series",
+                "music",
+                "history",
+                "favorites",
+                "collections",
+                "playlists"
+            ],
+            "x-enum-varnames": [
+                "SyncTypeMovies",
+                "SyncTypeSeries",
+                "SyncTypeMusic",
+                "SyncTypeHistory",
+                "SyncTypeFavorites",
+                "SyncTypeCollections",
+                "SyncTypePlaylists"
+            ]
         },
         "models.UserConfig": {
             "description": "User-specific configuration stored in the database",
@@ -19129,14 +19196,14 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "clientID",
-                "mediaType"
+                "syncType"
             ],
             "properties": {
                 "clientID": {
                     "type": "integer"
                 },
-                "mediaType": {
-                    "type": "string"
+                "syncType": {
+                    "$ref": "#/definitions/models.SyncType"
                 }
             }
         },
@@ -19146,7 +19213,7 @@ const docTemplate = `{
                 "clientID",
                 "clientType",
                 "frequency",
-                "mediaType"
+                "syncType"
             ],
             "properties": {
                 "clientID": {
@@ -19158,8 +19225,8 @@ const docTemplate = `{
                 "frequency": {
                     "type": "string"
                 },
-                "mediaType": {
-                    "type": "string"
+                "syncType": {
+                    "$ref": "#/definitions/models.SyncType"
                 }
             }
         },
@@ -21059,7 +21126,7 @@ const docTemplate = `{
                                 "description": "External IDs for this item (TMDB, IMDB, etc.)",
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/models.ExternalID"
+                                    "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                                 }
                             },
                             "id": {
@@ -21137,7 +21204,7 @@ const docTemplate = `{
                                 "description": "External IDs for this item (TMDB, IMDB, etc.)",
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/models.ExternalID"
+                                    "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                                 }
                             },
                             "id": {
@@ -21215,7 +21282,7 @@ const docTemplate = `{
                                 "description": "External IDs for this item (TMDB, IMDB, etc.)",
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/models.ExternalID"
+                                    "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                                 }
                             },
                             "id": {
@@ -21293,7 +21360,7 @@ const docTemplate = `{
                                 "description": "External IDs for this item (TMDB, IMDB, etc.)",
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/models.ExternalID"
+                                    "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                                 }
                             },
                             "id": {
@@ -21371,7 +21438,7 @@ const docTemplate = `{
                                 "description": "External IDs for this item (TMDB, IMDB, etc.)",
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/models.ExternalID"
+                                    "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                                 }
                             },
                             "id": {
@@ -21455,7 +21522,7 @@ const docTemplate = `{
                                 "description": "External IDs for this item (TMDB, IMDB, etc.)",
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/models.ExternalID"
+                                    "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                                 }
                             },
                             "id": {
@@ -21533,7 +21600,7 @@ const docTemplate = `{
                                 "description": "External IDs for this item (TMDB, IMDB, etc.)",
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/models.ExternalID"
+                                    "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                                 }
                             },
                             "id": {
@@ -21611,7 +21678,7 @@ const docTemplate = `{
                                 "description": "External IDs for this item (TMDB, IMDB, etc.)",
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/models.ExternalID"
+                                    "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                                 }
                             },
                             "id": {
@@ -21692,7 +21759,7 @@ const docTemplate = `{
                                 "description": "External IDs for this item (TMDB, IMDB, etc.)",
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/models.ExternalID"
+                                    "$ref": "#/definitions/suasor_clients_media_types.ExternalID"
                                 }
                             },
                             "id": {
@@ -21973,25 +22040,30 @@ const docTemplate = `{
                 "details": {
                     "$ref": "#/definitions/types.MediaDetails"
                 },
-                "syncArtist": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.SyncClient"
-                    }
-                },
                 "trackCount": {
                     "type": "integer"
+                },
+                "tracks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.TrackEntry"
+                    }
+                }
+            }
+        },
+        "types.AlbumEntry": {
+            "type": "object",
+            "properties": {
+                "albumID": {
+                    "type": "integer"
+                },
+                "albumName": {
+                    "type": "string"
                 },
                 "trackIDs": {
                     "type": "array",
                     "items": {
                         "type": "integer"
-                    }
-                },
-                "tracks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.Track"
                     }
                 }
             }
@@ -22002,40 +22074,47 @@ const docTemplate = `{
                 "albumCount": {
                     "type": "integer"
                 },
-                "albumIDs": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
                 "albums": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/types.Album"
+                        "$ref": "#/definitions/types.AlbumEntry"
                     }
                 },
                 "biography": {
                     "type": "string"
                 },
+                "credits": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/suasor_clients_media_types.Person"
+                    }
+                },
                 "details": {
                     "$ref": "#/definitions/types.MediaDetails"
+                },
+                "endYear": {
+                    "type": "integer"
+                },
+                "genres": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "rating": {
+                    "type": "number"
                 },
                 "similarArtists": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/types.ArtistReference"
+                        "$ref": "#/definitions/suasor_clients_media_types.Person"
                     }
-                }
-            }
-        },
-        "types.ArtistReference": {
-            "type": "object",
-            "properties": {
-                "id": {
+                },
+                "startYear": {
                     "type": "integer"
                 },
-                "name": {
-                    "type": "string"
+                "trackCount": {
+                    "type": "integer"
                 }
             }
         },
@@ -22444,28 +22523,18 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "seasonID": {
+                    "description": "itemID of the season",
                     "type": "integer"
                 },
                 "seasonNumber": {
                     "type": "integer"
                 },
-                "showID": {
+                "seriesID": {
+                    "description": "itemID of the series",
                     "type": "integer"
                 },
                 "showTitle": {
                     "type": "string"
-                },
-                "syncSeason": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.SyncClient"
-                    }
-                },
-                "syncSeries": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.SyncClient"
-                    }
                 }
             }
         },
@@ -22676,11 +22745,8 @@ const docTemplate = `{
                 "releaseYear": {
                     "type": "integer"
                 },
-                "studios": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                "studio": {
+                    "type": "string"
                 },
                 "tags": {
                     "type": "array",
@@ -22782,6 +22848,10 @@ const docTemplate = `{
                 "token": {
                     "type": "string",
                     "example": "your-plex-token"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "your-plex-username"
                 }
             }
         },
@@ -23023,12 +23093,6 @@ const docTemplate = `{
                         "type": "integer"
                     }
                 },
-                "episodes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.Episode"
-                    }
-                },
                 "overview": {
                     "type": "string"
                 },
@@ -23044,14 +23108,25 @@ const docTemplate = `{
                 "seriesName": {
                     "type": "string"
                 },
-                "syncSeries": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.SyncClient"
-                    }
-                },
                 "title": {
                     "type": "string"
+                }
+            }
+        },
+        "types.SeasonEntry": {
+            "type": "object",
+            "properties": {
+                "episodeIDs": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "seasonID": {
+                    "type": "integer"
+                },
+                "seasonNumber": {
+                    "type": "integer"
                 }
             }
         },
@@ -23092,9 +23167,10 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "seasons": {
+                    "description": "Collection of seasons with their IDs and episode IDs",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/types.Season"
+                        "$ref": "#/definitions/types.SeasonEntry"
                     }
                 },
                 "status": {
@@ -23151,19 +23227,6 @@ const docTemplate = `{
                 }
             }
         },
-        "types.SyncClient": {
-            "type": "object",
-            "properties": {
-                "clientID": {
-                    "description": "ID of the client that this external ID belongs to (optional for service IDs like TMDB)",
-                    "type": "integer"
-                },
-                "itemID": {
-                    "description": "The actual ID value in the external system",
-                    "type": "string"
-                }
-            }
-        },
         "types.Track": {
             "type": "object",
             "properties": {
@@ -23203,19 +23266,21 @@ const docTemplate = `{
                 "lyrics": {
                     "type": "string"
                 },
-                "syncAlbum": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.SyncClient"
-                    }
-                },
-                "syncArtist": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.SyncClient"
-                    }
-                },
                 "trackNumber": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.TrackEntry": {
+            "type": "object",
+            "properties": {
+                "number": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "trackID": {
                     "type": "integer"
                 }
             }

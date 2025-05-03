@@ -15,20 +15,27 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AIHandler implements AI-related handlers with support for multiple AI client types
-type AIHandler[T types.AIClientConfig] struct {
+type AIHandler[T types.AIClientConfig] interface {
+	RequestRecommendation(c *gin.Context)
+	AnalyzeContent(c *gin.Context)
+	StartConversation(c *gin.Context)
+	SendConversationMessage(c *gin.Context)
+}
+
+// aiHandler implements AI-related handlers with support for multiple AI client types
+type aiHandler[T types.AIClientConfig] struct {
 	factory *clients.ClientProviderFactoryService
 	service services.ClientService[T]
 	// Map to track active conversations by conversationID
 	activeConversations map[string]uint64 // conversationID -> userID
 }
 
-// NewAIHandler creates a new AI handler
+// NewaiHandler creates a new AI handler
 func NewAIHandler[T types.AIClientConfig](
 	factory *clients.ClientProviderFactoryService,
 	service services.ClientService[T],
-) *AIHandler[T] {
-	return &AIHandler[T]{
+) AIHandler[T] {
+	return &aiHandler[T]{
 		factory:             factory,
 		service:             service,
 		activeConversations: make(map[string]uint64),
@@ -50,7 +57,7 @@ func NewAIHandler[T types.AIClientConfig](
 //		@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
 //		@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
 //		@Router			/client/{clientID}/ai/recommendations [post]
-func (h *AIHandler[T]) RequestRecommendation(c *gin.Context) {
+func (h *aiHandler[T]) RequestRecommendation(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
@@ -102,7 +109,7 @@ func (h *AIHandler[T]) RequestRecommendation(c *gin.Context) {
 //	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
 //	@Router			/client/{clientID}/ai/analyze [post]
-func (h *AIHandler[T]) AnalyzeContent(c *gin.Context) {
+func (h *aiHandler[T]) AnalyzeContent(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
@@ -162,7 +169,7 @@ func (h *AIHandler[T]) AnalyzeContent(c *gin.Context) {
 //	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]			"Unauthorized"
 //	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]			"Server error"
 //	@Router			/client/{clientID}/ai/conversation/start [post]
-func (h *AIHandler[T]) StartConversation(c *gin.Context) {
+func (h *aiHandler[T]) StartConversation(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
@@ -221,7 +228,7 @@ func (h *AIHandler[T]) StartConversation(c *gin.Context) {
 	responses.RespondOK(c, response, "Conversation started successfully")
 }
 
-func (h *AIHandler[T]) getAIClient(ctx context.Context, userID uint64, clientType types.ClientType, clientID uint64) (ai.ClientAI, error) {
+func (h *aiHandler[T]) getAIClient(ctx context.Context, userID uint64, clientType types.ClientType, clientID uint64) (ai.ClientAI, error) {
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
@@ -271,7 +278,7 @@ func (h *AIHandler[T]) getAIClient(ctx context.Context, userID uint64, clientTyp
 //	@Failure		404		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Conversation not found"
 //	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/client/{clientID}/ai/conversation/message [post]
-func (h *AIHandler[T]) SendConversationMessage(c *gin.Context) {
+func (h *aiHandler[T]) SendConversationMessage(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
@@ -319,7 +326,7 @@ func (h *AIHandler[T]) SendConversationMessage(c *gin.Context) {
 	// Set extractRecommendations to true by default if not specified
 	context := req.Context
 	if context == nil {
-		context = make(map[string]interface{})
+		context = make(map[string]any)
 	}
 	if _, exists := context["extractRecommendations"]; !exists {
 		context["extractRecommendations"] = true
@@ -341,7 +348,7 @@ func (h *AIHandler[T]) SendConversationMessage(c *gin.Context) {
 	response := responses.ConversationMessageResponse{
 		Message:         message,
 		Recommendations: recommendations,
-		Context:         make(map[string]interface{}),
+		Context:         make(map[string]any),
 	}
 
 	responses.RespondOK(c, response, "Message sent successfully")

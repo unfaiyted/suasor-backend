@@ -44,22 +44,17 @@ func RegisterClientRoutes(ctx context.Context, r *gin.RouterGroup, c *container.
 	existingClientGroup.Use(middleware.ClientTypeMiddleware(db))
 	{
 		existingClientGroup.GET("", func(g *gin.Context) {
-			clientType := getClientType(g)
-			getClientHandler(g, c, clientType).GetClient(g)
+			getClientHandler(g, c).GetClient(g)
 		})
 		existingClientGroup.PUT("", func(g *gin.Context) {
-			clientType := getClientType(g)
-			getClientHandler(g, c, clientType).UpdateClient(g)
+			getClientHandler(g, c).UpdateClient(g)
 		})
 		existingClientGroup.DELETE("", func(g *gin.Context) {
-			clientType := getClientType(g)
-
-			getClientHandler(g, c, clientType).DeleteClient(g)
+			getClientHandler(g, c).DeleteClient(g)
 		})
 
 		existingClientGroup.GET("/test", func(g *gin.Context) {
-			clientType := getClientType(g)
-			getClientHandler(g, c, clientType).TestConnection(g)
+			getClientHandler(g, c).TestConnection(g)
 		})
 	}
 
@@ -77,10 +72,22 @@ func RegisterClientRoutes(ctx context.Context, r *gin.RouterGroup, c *container.
 		automationClientGroup.GET("/search", automationHandler.SearchMedia)
 
 	}
+	aiHandler := container.MustGet[handlers.AIHandler[clienttypes.AIClientConfig]](c)
+	{
+		aiGroup := r.Group("/client/:clientID/ai")
+		{
+			aiGroup.GET("/recommendations", aiHandler.RequestRecommendation)
+			aiGroup.POST("/recommendations", aiHandler.AnalyzeContent)
+			aiGroup.POST("/conversation/start", aiHandler.StartConversation)
+			aiGroup.POST("/conversation/message", aiHandler.SendConversationMessage)
+		}
+	}
 }
 
-func getClientHandler(g *gin.Context, c *container.Container, clientType clienttypes.ClientType) handlers.ClientHandler[clienttypes.ClientConfig] {
+func getClientHandler(g *gin.Context, c *container.Container) handlers.ClientHandler[clienttypes.ClientConfig] {
 	log := logger.LoggerFromContext(g.Request.Context())
+	clientType := getClientType(g)
+
 	log.Info().
 		Str("clientType", string(clientType)).
 		Msg("Retrieving client handler")
@@ -104,6 +111,26 @@ func getClientHandler(g *gin.Context, c *container.Container, clientType clientt
 	return handler
 }
 
+func getAIClientHandler(g *gin.Context, c *container.Container) handlers.AIHandler[clienttypes.AIClientConfig] {
+	log := logger.LoggerFromContext(g.Request.Context())
+	clientType := getClientType(g)
+
+	log.Info().
+		Str("clientType", string(clientType)).
+		Msg("Retrieving AI client handler")
+	handlers := map[clienttypes.ClientType]handlers.AIHandler[clienttypes.AIClientConfig]{
+		clienttypes.ClientTypeClaude: container.MustGet[handlers.AIHandler[*clienttypes.ClaudeConfig]](c),
+		clienttypes.ClientTypeOpenAI: container.MustGet[handlers.AIHandler[*clienttypes.OpenAIConfig]](c),
+		clienttypes.ClientTypeOllama: container.MustGet[handlers.AIHandler[*clienttypes.OllamaConfig]](c),
+	}
+	handler, exists := handlers[clientType]
+	if !exists {
+		responses.RespondInternalError(g, nil, "AI client handler not found")
+		return nil
+	}
+	return handler
+}
+
 func registerClientRoutes[T types.ClientConfig](ctx context.Context, r *gin.RouterGroup, c *container.Container) {
 	log := logger.LoggerFromContext(ctx)
 	clientType := types.GetClientType[T]()
@@ -118,10 +145,10 @@ func registerClientRoutes[T types.ClientConfig](ctx context.Context, r *gin.Rout
 			log.Info().
 				Str("clientType", string(clientType)).
 				Msg("Retrieving clients")
-			getClientHandler(g, c, clientType).GetAllOfType(g)
+			getClientHandler(g, c).GetAllOfType(g)
 		})
 		clientGroup.POST("", func(g *gin.Context) {
-			getClientHandler(g, c, clientType).CreateClient(g)
+			getClientHandler(g, c).CreateClient(g)
 		})
 	}
 }
