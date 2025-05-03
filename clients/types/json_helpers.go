@@ -65,11 +65,11 @@ func unmarshalMediaClientConfig[T interface {
 		Password string `json:"password,omitempty"`
 		Token    string `json:"token,omitempty"`
 	}{}
-	
+
 	if err := json.Unmarshal(data, &baseStruct); err != nil {
 		return fmt.Errorf("error unmarshaling base fields: %w", err)
 	}
-	
+
 	// Second structure for API payload format where fields are in the config object
 	configStruct := struct {
 		Config struct {
@@ -79,10 +79,10 @@ func unmarshalMediaClientConfig[T interface {
 			Token    string `json:"token,omitempty"`
 		} `json:"config,omitempty"`
 	}{}
-	
+
 	// Try to unmarshal for API format where fields are inside config
 	_ = json.Unmarshal(data, &configStruct)
-	
+
 	// Use config fields if root fields are empty
 	if baseStruct.Username == "" && configStruct.Config.Username != "" {
 		baseStruct.Username = configStruct.Config.Username
@@ -118,6 +118,7 @@ func unmarshalMediaClientConfig[T interface {
 			c.Username = baseStruct.Username
 		case *PlexConfig:
 			c.ClientMediaConfig = mediaConfig
+			c.Username = baseStruct.Username
 			c.Token = baseStruct.Token
 		case *SubsonicConfig:
 			c.ClientMediaConfig = mediaConfig

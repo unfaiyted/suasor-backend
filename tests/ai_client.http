@@ -1,6 +1,7 @@
 ###
+
 # @name login
-POST http://localhost:8080/api/v1/auth/login
+POST http://localhost:8080/api/v1/auth/login HTTP/1.1
 Content-Type: application/json
 
 {
@@ -9,8 +10,9 @@ Content-Type: application/json
 }
 
 ###
+
 # @name createClaudeClient
-POST http://localhost:8080/api/v1/admin/client/claude
+POST http://localhost:8080/api/v1/admin/client/claude HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -29,26 +31,30 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 }
 
 ###
+
 # @name getClaudeClients
-GET http://localhost:8080/api/v1/admin/client/claude
+GET http://localhost:8080/api/v1/admin/client/claude HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ###
+
 # @name getClientByID
-GET http://localhost:8080/api/v1/admin/client/claude/{{createClaudeClient.response.body.$.data.id}}
+GET http://localhost:8080/api/v1/admin/client/{{createClaudeClient.response.body.$.data.id}} HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ###
+
 # @name testClaudeConnection
-GET http://localhost:8080/api/v1/admin/client/claude/{{createClaudeClient.response.body.$.data.id}}/test
+GET http://localhost:8080/api/v1/admin/client/{{createClaudeClient.response.body.$.data.id}}/test HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ###
+
 # @name generateText
-POST http://localhost:8080/api/v1/ai/generate/{{createClaudeClient.response.body.$.data.id}}
+POST http://localhost:8080/api/v1/ai/generate/{{createClaudeClient.response.body.$.data.id}} HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -60,8 +66,9 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 }
 
 ###
+
 # @name generateStructured
-POST http://localhost:8080/api/v1/ai/generate-structured/{{createClaudeClient.response.body.$.data.id}}
+POST http://localhost:8080/api/v1/ai/generate-structured/{{createClaudeClient.response.body.$.data.id}} HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -73,8 +80,9 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 }
 
 ###
+
 # @name updateClaudeClient
-PUT http://localhost:8080/api/v1/admin/client/claude/{{createClaudeClient.response.body.$.data.id}}
+PUT http://localhost:8080/api/v1/admin/client/claude/{{createClaudeClient.response.body.$.data.id}} HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -93,7 +101,8 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 }
 
 ###
+
 # @name deleteClaudeClient
-DELETE http://localhost:8080/api/v1/admin/client/claude/{{createClaudeClient.response.body.$.data.id}}
+DELETE http://localhost:8080/api/v1/admin/client/claude/{{createClaudeClient.response.body.$.data.id}} HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}

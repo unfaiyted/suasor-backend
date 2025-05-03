@@ -18,10 +18,10 @@ import (
 type ClientService[T types.ClientConfig] interface {
 	Create(ctx context.Context, client models.Client[T]) (*models.Client[T], error)
 	Update(ctx context.Context, client models.Client[T]) (*models.Client[T], error)
-	GetByID(ctx context.Context, id uint64, userID uint64) (*models.Client[T], error)
+	GetByID(ctx context.Context, clientID uint64) (*models.Client[T], error)
 	GetByUserID(ctx context.Context, userID uint64) ([]*models.Client[T], error)
 	GetByType(ctx context.Context) ([]*models.Client[T], error)
-	Delete(ctx context.Context, id uint64, userID uint64) error
+	Delete(ctx context.Context, userID uint64, clientID uint64) error
 	TestConnection(ctx context.Context, clientID uint64, config *T) (responses.ClientTestResponse, error)
 	TestNewConnection(ctx context.Context, config *T) (responses.ClientTestResponse, error)
 
@@ -48,8 +48,8 @@ func (s *clientService[T]) Create(ctx context.Context, client models.Client[T]) 
 	return s.repo.Create(ctx, client)
 }
 
-func (s *clientService[T]) GetByID(ctx context.Context, id uint64, userID uint64) (*models.Client[T], error) {
-	return s.repo.GetByID(ctx, id)
+func (s *clientService[T]) GetByID(ctx context.Context, clientID uint64) (*models.Client[T], error) {
+	return s.repo.GetByID(ctx, clientID)
 }
 
 func (s *clientService[T]) GetByUserID(ctx context.Context, userID uint64) ([]*models.Client[T], error) {
@@ -73,8 +73,8 @@ func (s *clientService[T]) Update(ctx context.Context, client models.Client[T]) 
 	return s.repo.Update(ctx, client)
 }
 
-func (s *clientService[T]) Delete(ctx context.Context, id uint64, userID uint64) error {
-	return s.repo.Delete(ctx, id, userID)
+func (s *clientService[T]) Delete(ctx context.Context, userID, clientID uint64) error {
+	return s.repo.Delete(ctx, userID, clientID)
 }
 
 func (s *clientService[T]) TestConnection(ctx context.Context, clientID uint64, config *T) (responses.ClientTestResponse, error) {

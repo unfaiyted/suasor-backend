@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"math/big"
 	"strconv"
+	"time"
 )
 
 // GenerateRandomID generates a URL-safe random ID of the specified length
@@ -41,4 +42,21 @@ func GetUint64(s string) uint64 {
 		return 0
 	}
 	return i
+}
+
+// GetStringPtr returns a string pointer from a string or nil if empty
+func GetStringPtr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
+// GetTimeFromUnix converts a unix timestamp string to time.Time
+func GetTimeFromUnix(s string) time.Time {
+	ts := GetInt64(s)
+	if ts == 0 {
+		return time.Time{}
+	}
+	return time.Unix(ts, 0)
 }

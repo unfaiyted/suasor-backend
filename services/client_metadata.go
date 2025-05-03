@@ -25,7 +25,7 @@ func NewClientMetadataService[T types.ClientMetadataConfig](factory *clients.Cli
 // GetClient returns a metadata client instance for the given client ID
 func (s *ClientMetadataService[T]) GetClient(ctx context.Context, clientID uint64) (metadata.ClientMetadata, error) {
 	// Get the client configuration
-	clientModel, err := s.clientService.GetByID(ctx, clientID, 0) // 0 for userID as metadata clients may be system-wide
+	clientModel, err := s.clientService.GetByID(ctx, clientID) // 0 for userID as metadata clients may be system-wide
 	if err != nil {
 		return nil, err
 	}

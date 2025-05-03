@@ -162,7 +162,7 @@ func (h *clientHandler[T]) GetClient(c *gin.Context) {
 		Uint64("clientID", clientID).
 		Msg("Retrieving client")
 
-	client, err := h.service.GetByID(ctx, uid, clientID)
+	client, err := h.service.GetByID(ctx, clientID)
 	if err != nil {
 		// Check if it's a not found error
 		if err.Error() == "client not found" {
@@ -331,7 +331,7 @@ func (h *clientHandler[T]) TestConnection(c *gin.Context) {
 		Uint64("clientID", cid).
 		Msg("Testing client connection")
 
-	client, err := h.service.GetByID(ctx, cid, uid)
+	client, err := h.service.GetByID(ctx, cid)
 	if err != nil {
 		// Check if it's a not found error
 		if err.Error() == "client not found" {

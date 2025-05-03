@@ -2,18 +2,25 @@ package plex
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 
+	"context"
 	"github.com/LukeHagar/plexgo/models/operations"
 	"io"
+	"suasor/utils/logger"
 )
 
 // ParsePlexUsersResponse parses a GetUsersResponse into a structured PlexResponse
-func ParsePlexUsersResponse(response *operations.GetUsersResponse) (*PlexResponse, error) {
+func ParsePlexUsersResponse(ctx context.Context, response *operations.GetUsersResponse) (*PlexResponse, error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Str("responseBody", string(response.Body)).
+		Msg("Parsing Plex response")
 	// If Body is already populated, use it
 	if len(response.Body) > 0 {
 		var plexResponse PlexResponse
-		err := json.Unmarshal(response.Body, &plexResponse)
+		err := xml.Unmarshal(response.Body, &plexResponse)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal Plex response: %w", err)
 		}
@@ -42,52 +49,52 @@ func ParsePlexUsersResponse(response *operations.GetUsersResponse) (*PlexRespons
 
 // PlexResponse represents the top-level response from Plex
 type PlexResponse struct {
-	MediaContainer MediaContainer `json:"MediaContainer"`
+	MediaContainer MediaContainer `xml:"MediaContainer" json:"MediaContainer"`
 }
 
 // MediaContainer represents the container holding Plex users and metadata
 type MediaContainer struct {
-	FriendlyName      string `json:"friendlyName"`
-	Identifier        string `json:"identifier"`
-	MachineIdentifier string `json:"machineIdentifier"`
-	TotalSize         int    `json:"totalSize"`
-	Size              int    `json:"size"`
-	Users             []User `json:"User"`
+	FriendlyName      string `xml:"friendlyName,attr" json:"friendlyName"`
+	Identifier        string `xml:"identifier,attr" json:"identifier"`
+	MachineIdentifier string `xml:"machineIdentifier,attr" json:"machineIdentifier"`
+	TotalSize         int    `xml:"totalSize,attr" json:"totalSize"`
+	Size              int    `xml:"size,attr" json:"size"`
+	Users             []User `xml:"User" json:"User"`
 }
 
 // User represents a Plex user account
 type User struct {
-	ID                        int64    `json:"id"`
-	Title                     string   `json:"title"`
-	Username                  string   `json:"username"`
-	Email                     string   `json:"email"`
-	RecommendationsPlaylistID string   `json:"recommendationsPlaylistId"`
-	Thumb                     string   `json:"thumb"`
-	Protected                 int      `json:"protected"`
-	Home                      int      `json:"home"`
-	AllowTuners               int      `json:"allowTuners"`
-	AllowSync                 int      `json:"allowSync"`
-	AllowCameraUpload         int      `json:"allowCameraUpload"`
-	AllowChannels             int      `json:"allowChannels"`
-	AllowSubtitleAdmin        int      `json:"allowSubtitleAdmin"`
-	FilterAll                 string   `json:"filterAll"`
-	FilterMovies              string   `json:"filterMovies"`
-	FilterMusic               string   `json:"filterMusic"`
-	FilterPhotos              string   `json:"filterPhotos"`
-	FilterTelevision          string   `json:"filterTelevision"`
-	Restricted                int      `json:"restricted"`
-	Servers                   []Server `json:"Server"`
+	ID                        int64    `xml:"id,attr" json:"id"`
+	Title                     string   `xml:"title,attr" json:"title"`
+	Username                  string   `xml:"username,attr" json:"username"`
+	Email                     string   `xml:"email,attr" json:"email"`
+	RecommendationsPlaylistID string   `xml:"recommendationsPlaylistId,attr" json:"recommendationsPlaylistId"`
+	Thumb                     string   `xml:"thumb,attr" json:"thumb"`
+	Protected                 int      `xml:"protected,attr" json:"protected"`
+	Home                      int      `xml:"home,attr" json:"home"`
+	AllowTuners               int      `xml:"allowTuners,attr" json:"allowTuners"`
+	AllowSync                 int      `xml:"allowSync,attr" json:"allowSync"`
+	AllowCameraUpload         int      `xml:"allowCameraUpload,attr" json:"allowCameraUpload"`
+	AllowChannels             int      `xml:"allowChannels,attr" json:"allowChannels"`
+	AllowSubtitleAdmin        int      `xml:"allowSubtitleAdmin,attr" json:"allowSubtitleAdmin"`
+	FilterAll                 string   `xml:"filterAll,attr" json:"filterAll"`
+	FilterMovies              string   `xml:"filterMovies,attr" json:"filterMovies"`
+	FilterMusic               string   `xml:"filterMusic,attr" json:"filterMusic"`
+	FilterPhotos              string   `xml:"filterPhotos,attr" json:"filterPhotos"`
+	FilterTelevision          string   `xml:"filterTelevision,attr" json:"filterTelevision"`
+	Restricted                int      `xml:"restricted,attr" json:"restricted"`
+	Servers                   []Server `xml:"Server" json:"Server"`
 }
 
 // Server represents a Plex server associated with a user
 type Server struct {
-	ID                int    `json:"id"`
-	ServerID          int    `json:"serverId"`
-	MachineIdentifier string `json:"machineIdentifier"`
-	Name              string `json:"name"`
-	LastSeenAt        int64  `json:"lastSeenAt"`
-	NumLibraries      int    `json:"numLibraries"`
-	AllLibraries      int    `json:"allLibraries"`
-	Owned             int    `json:"owned"`
-	Pending           int    `json:"pending"`
+	ID                int    `xml:"id,attr" json:"id"`
+	ServerID          int    `xml:"serverId,attr" json:"serverId"`
+	MachineIdentifier string `xml:"machineIdentifier,attr" json:"machineIdentifier"`
+	Name              string `xml:"name,attr" json:"name"`
+	LastSeenAt        int64  `xml:"lastSeenAt,attr" json:"lastSeenAt"`
+	NumLibraries      int    `xml:"numLibraries,attr" json:"numLibraries"`
+	AllLibraries      int    `xml:"allLibraries,attr" json:"allLibraries"`
+	Owned             int    `xml:"owned,attr" json:"owned"`
+	Pending           int    `xml:"pending,attr" json:"pending"`
 }

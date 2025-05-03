@@ -230,7 +230,7 @@ func (h *AIHandler[T]) getAIClient(ctx context.Context, userID uint64, clientTyp
 		Uint64("clientID", clientID).
 		Msg("Retrieving client")
 	// Get all AI clients for the user
-	clientModel, err := h.service.GetByID(ctx, clientID, userID)
+	clientModel, err := h.service.GetByID(ctx, clientID)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get AI client")
 		return nil, err

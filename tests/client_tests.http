@@ -144,7 +144,7 @@ Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
 
 ###
 # @name createPlexClient
-POST {{baseUrl}}/client/plex
+POST {{baseUrl}}/admin/client/plex
 Content-Type: application/json
 Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
 
@@ -164,9 +164,10 @@ Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
       },
       "clientType": "plex",
       "baseURL": "{{PLEX_TEST_URL}}",
-      "token": "{{PLEX_TEST_TOKEN}}",
       "ssl": false
-    }
+    },
+      "username": "{{PLEX_TEST_USERNAME}}",
+      "token": "{{PLEX_TEST_TOKEN}}"
   }
 }
 

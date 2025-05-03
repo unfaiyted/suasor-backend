@@ -45,6 +45,7 @@ func NewPlexClient(ctx context.Context, registry *media.ClientItemRegistry, clie
 	pClient := &PlexClient{
 		ClientMedia: clientMedia,
 		plexAPI:     plexAPI,
+		config:      config,
 	}
 
 	log.Info().
@@ -65,7 +66,16 @@ func (c *PlexClient) SupportsCollections() bool { return true }
 func (c *PlexClient) SupportsHistory() bool     { return true }
 
 func (c *PlexClient) plexConfig() *clienttypes.PlexConfig {
-	cfg := c.GetConfig().(*clienttypes.PlexConfig)
+	// First check if c.config is already set
+	if c.config != nil {
+		return c.config
+	}
+	
+	// If not, try to get from the client interface
+	cfg, ok := c.GetConfig().(*clienttypes.PlexConfig)
+	if !ok {
+		return nil
+	}
 	return cfg
 }
 

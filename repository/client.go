@@ -22,7 +22,7 @@ type ClientRepository[T types.ClientConfig] interface {
 	GetByID(ctx context.Context, id uint64) (*models.Client[T], error)
 	GetByUserID(ctx context.Context, userID uint64) ([]*models.Client[T], error)
 	GetByType(ctx context.Context) ([]*models.Client[T], error)
-	Delete(ctx context.Context, id, userID uint64) error
+	Delete(ctx context.Context, userID uint64, clientID uint64) error
 }
 
 type clientRepository[T types.ClientConfig] struct {
@@ -145,14 +145,14 @@ func (r *clientRepository[T]) GetByUserID(ctx context.Context, userID uint64) ([
 }
 
 // Delete deletes a media client
-func (r *clientRepository[T]) Delete(ctx context.Context, id, userID uint64) error {
+func (r *clientRepository[T]) Delete(ctx context.Context, userID, clientID uint64) error {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("userID", userID).
-		Uint64("clientID", id).
+		Uint64("clientID", clientID).
 		Msg("Deleting media client")
 	result := r.db.WithContext(ctx).
-		Where("id = ? AND user_id = ?", id, userID).
+		Where("id = ? AND user_id = ?", clientID, userID).
 		Delete(&models.Client[T]{})
 
 	if err := result.Error; err != nil {
@@ -161,7 +161,7 @@ func (r *clientRepository[T]) Delete(ctx context.Context, id, userID uint64) err
 
 	log.Info().
 		Uint64("userID", userID).
-		Uint64("clientID", id).
+		Uint64("clientID", clientID).
 		Msg("Deleted media client")
 
 	if result.RowsAffected == 0 {

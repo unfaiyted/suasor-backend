@@ -23,13 +23,19 @@ func RegisterClientRoutes(ctx context.Context, r *gin.RouterGroup, c *container.
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().Msg("Registering client routes")
+
+	// Media Clients
 	registerClientRoutes[*types.EmbyConfig](ctx, r, c)
 	registerClientRoutes[*types.JellyfinConfig](ctx, r, c)
 	registerClientRoutes[*types.PlexConfig](ctx, r, c)
 	registerClientRoutes[*types.SubsonicConfig](ctx, r, c)
+
+	// Automation Clients
 	registerClientRoutes[*types.SonarrConfig](ctx, r, c)
 	registerClientRoutes[*types.RadarrConfig](ctx, r, c)
 	registerClientRoutes[*types.LidarrConfig](ctx, r, c)
+
+	// Ai Clients
 	registerClientRoutes[*types.ClaudeConfig](ctx, r, c)
 	registerClientRoutes[*types.OpenAIConfig](ctx, r, c)
 	registerClientRoutes[*types.OllamaConfig](ctx, r, c)

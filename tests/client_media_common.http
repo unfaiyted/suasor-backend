@@ -88,7 +88,8 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
       },
       "clientType": "plex"
     },
-  "token": "{{PLEX_TEST_TOKEN}}"
+  "token": "{{PLEX_TEST_TOKEN}}",
+  "username": "{{PLEX_TEST_USERNAME}}"
   }
 }
 
