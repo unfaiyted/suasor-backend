@@ -47,3 +47,5 @@ Thumbs.db
 .env.local
 
 http-client.private.env.json
+
+tmp/
