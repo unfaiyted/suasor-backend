@@ -323,11 +323,10 @@ func (h *clientHandler[T]) TestConnection(c *gin.Context) {
 	uid, _ := checkUserAccess(c)
 	cid, _ := checkClientID(c)
 
-	clientType := c.Param("clientType")
+	// clientType := getClientType(c)
 
 	log.Info().
 		Uint64("userID", uid).
-		Str("clientType", clientType).
 		Uint64("clientID", cid).
 		Msg("Testing client connection")
 

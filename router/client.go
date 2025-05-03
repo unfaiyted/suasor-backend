@@ -60,6 +60,8 @@ func RegisterClientRoutes(ctx context.Context, r *gin.RouterGroup, c *container.
 
 	automationHandler := container.MustGet[*handlers.ClientAutomationHandler](c)
 	automationClientGroup := r.Group("client/:clientID/automation")
+	automationClientGroup.Use(middleware.ClientTypeMiddleware(db))
+
 	{
 		automationClientGroup.GET("/status", automationHandler.GetSystemStatus)
 		automationClientGroup.POST("/library", automationHandler.GetLibraryItems)
@@ -72,15 +74,21 @@ func RegisterClientRoutes(ctx context.Context, r *gin.RouterGroup, c *container.
 		automationClientGroup.GET("/search", automationHandler.SearchMedia)
 
 	}
-	aiHandler := container.MustGet[handlers.AIHandler[clienttypes.AIClientConfig]](c)
+	aiGroup := r.Group("/client/:clientID/ai")
+	aiGroup.Use(middleware.ClientTypeMiddleware(db))
 	{
-		aiGroup := r.Group("/client/:clientID/ai")
-		{
-			aiGroup.GET("/recommendations", aiHandler.RequestRecommendation)
-			aiGroup.POST("/recommendations", aiHandler.AnalyzeContent)
-			aiGroup.POST("/conversation/start", aiHandler.StartConversation)
-			aiGroup.POST("/conversation/message", aiHandler.SendConversationMessage)
-		}
+		aiGroup.GET("/recommendations", func(g *gin.Context) {
+			getAIClientHandler(g, c).RequestRecommendation(g)
+		})
+		aiGroup.POST("/recommendations", func(g *gin.Context) {
+			getAIClientHandler(g, c).AnalyzeContent(g)
+		})
+		aiGroup.POST("/conversation/start", func(g *gin.Context) {
+			getAIClientHandler(g, c).StartConversation(g)
+		})
+		aiGroup.POST("/conversation/message", func(g *gin.Context) {
+			getAIClientHandler(g, c).SendConversationMessage(g)
+		})
 	}
 }
 
@@ -145,9 +153,11 @@ func registerClientRoutes[T types.ClientConfig](ctx context.Context, r *gin.Rout
 			log.Info().
 				Str("clientType", string(clientType)).
 				Msg("Retrieving clients")
+			g.Set("clientType", clientType)
 			getClientHandler(g, c).GetAllOfType(g)
 		})
 		clientGroup.POST("", func(g *gin.Context) {
+			g.Set("clientType", clientType)
 			getClientHandler(g, c).CreateClient(g)
 		})
 	}

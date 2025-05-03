@@ -435,3 +435,22 @@ func checkMediaType(c *gin.Context) (types.MediaType, bool) {
 	}
 
 }
+func getClientType(g *gin.Context) clienttypes.ClientType {
+	log := logger.LoggerFromContext(g.Request.Context())
+	clientTypeVal, exists := g.Get("clientType")
+	if !exists {
+		responses.RespondBadRequest(g, nil, "Client type not found in context")
+		return ""
+	}
+
+	// Cast to ClientType
+	clientType, ok := clientTypeVal.(clienttypes.ClientType)
+	if !ok {
+		log.Error().Str("actual_type", fmt.Sprintf("%T", clientTypeVal)).Msg("Invalid client type in context")
+		responses.RespondInternalError(g, nil, "Invalid client type in context")
+		return ""
+	}
+
+	log.Debug().Str("clientType", string(clientType)).Msg("Got client type")
+	return clientType
+}

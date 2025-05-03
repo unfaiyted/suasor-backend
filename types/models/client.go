@@ -68,6 +68,10 @@ func (c Client[T]) GetClientType() client.ClientType {
 		return automationConfig.GetClientType().AsGenericClient()
 	} else if mediaConfig, ok := any(c.Config).(client.ClientMediaConfig); ok {
 		return mediaConfig.GetClientType().AsGenericClient()
+	} else if metadataConfig, ok := any(c.Config).(client.ClientMetadataConfig); ok {
+		return metadataConfig.GetClientType()
+	} else if aiConfig, ok := any(c.Config).(client.AIClientConfig); ok {
+		return aiConfig.GetClientType().AsGenericClient()
 	}
 	return client.ClientTypeUnknown
 }
