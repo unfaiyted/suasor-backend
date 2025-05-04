@@ -19,7 +19,7 @@ GET http://localhost:8080/api/v1/user/profile
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-# ===========================================
+### ===========================================
 # Playlist CRUD Operations
 # ===========================================
 
@@ -84,13 +84,14 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 ###
 # @name createPlaylist
 # Create a new playlist (core list operation)
+@title=New Playlist
 POST http://localhost:8080/api/v1/playlist
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
   "type": "playlist",
-  "title": "Test Playlist",
+  "title": "{{title}}",
   "ownerId": {{login.response.body.$.data.user.id}},
   "isPublic": true,
   "data": {
@@ -200,11 +201,11 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 ###
 # @name searchPlaylists
 # Search for playlists by name
-GET http://localhost:8080/api/v1/playlist/search?query=Updated
+GET http://localhost:8080/api/v1/playlist/search?q=Updated
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-# ===========================================
+### ===========================================
 # Collection CRUD Operations 
 # ===========================================
 
@@ -292,21 +293,21 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 ###
 # @name removeItemFromCollection
 # Remove an item from the collection
-DELETE http://localhost:8080/api/v1/collection/{{createCollection.response.body.$.data.id}}/items/{{createTestMovie2.response.body.$.data.id}}
+DELETE http://localhost:8080/api/v1/collection/{{createCollection.response.body.$.data.id}}/item/{{createTestMovie2.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ###
 # @name verifyCollectionItemRemoval
 # Check that item was removed
-GET http://localhost:8080/api/v1/collection/{{createCollection.response.body.$.data.id}}/items
+GET http://localhost:8080/api/v1/collection/{{createCollection.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ###
 # @name searchCollections
 # Search for collections by name
-GET http://localhost:8080/api/v1/collection/search?query=Updated
+GET http://localhost:8080/api/v1/collection/search?q=Updated
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -317,7 +318,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 ###
 # @name searchAllListTypes
 # Search across all list types
-GET http://localhost:8080/api/v1/list/search?query=Updated
+GET http://localhost:8080/api/v1/list/search?q=Updated
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 

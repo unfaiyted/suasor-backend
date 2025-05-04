@@ -18,7 +18,6 @@ GET http://localhost:8080/api/v1/user/profile
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-# First create and configure test clients
 
 ###
 # @name getAllClients
@@ -27,60 +26,6 @@ GET http://localhost:8080/api/v1/clients
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
-# @name createEmbyClient
-# Create an Emby test client
-POST http://localhost:8080/api/v1/admin/client/emby
-Content-Type: application/json
-Authorization: Bearer {{login.response.body.$.data.accessToken}}
-
-{
-  "name": "Emby Test Client",
-  "clientType": "emby",
-  "isEnabled": true,
-  "client": {
-    "baseURL": "{{EMBY_TEST_URL}}",
-    "apiKey": "{{EMBY_TEST_API_KEY}}",
-    "username": "{{EMBY_TEST_USER}}",
-    "ssl": false
-  }
-}
-
-###
-# @name createPlexClient
-# Create a Plex test client
-POST http://localhost:8080/api/v1/admin/client/plex
-Content-Type: application/json
-Authorization: Bearer {{login.response.body.$.data.accessToken}}
-
-{
-  "name": "Plex Test Client",
-  "clientType": "plex",
-  "isEnabled": true,
-  "client": {
-    "baseURL": "{{PLEX_TEST_URL}}",
-    "token": "{{PLEX_TEST_TOKEN}}",
-    "ssl": false
-  }
-}
-
-###
-# @name testEmbyConnection
-# Test Emby connection
-GET http://localhost:8080/api/v1/admin/client/emby/{{createEmbyClient.response.body.$.data.id}}/test
-Content-Type: application/json
-Authorization: Bearer {{login.response.body.$.data.accessToken}}
-
-###
-# @name testPlexConnection
-# Test Plex connection
-GET http://localhost:8080/api/v1/admin/client/plex/{{createPlexClient.response.body.$.data.id}}/test
-Content-Type: application/json
-Authorization: Bearer {{login.response.body.$.data.accessToken}}
-
-# ===========================================
-# Create Test Movies for List Operations
-# ===========================================
 
 ###
 # @name createTestMovie1
@@ -140,88 +85,86 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   "externalIds": []
 }
 
-# ===========================================
-# Playlist Sync Tests
-# ===========================================
 
 ###
 # @name createLocalPlaylist
 # Create a playlist in the local database
-POST http://localhost:8080/api/v1/playlists
+POST http://localhost:8080/api/v1/playlist
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "name": "Sync Test Playlist",
-  "description": "Playlist created for sync testing",
-  "isPublic": true
+  "type": "playlist",
+  "title": "{{title}}",
+  "ownerId": {{login.response.body.$.data.user.id}},
+  "isPublic": true,
+  "data": {
+    "list": {
+      "details": {
+        "title": "{{title}}",
+        "description": "Test playlist for CRUD operations"
+      },
+      "items": [],
+      "itemCount": 0,
+      "isPublic": true,
+      "ownerId": {{login.response.body.$.data.user.id}}
+    }
+  }
 }
 
 ###
 # @name addItemsToLocalPlaylist
 # Add items to the local playlist
-POST http://localhost:8080/api/v1/playlists/{{createLocalPlaylist.response.body.$.data.id}}/items
+POST http://localhost:8080/api/v1/playlist/{{createLocalPlaylist.response.body.$.data.id}}/item/{{createTestMovie1.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
-
-{
-  "itemID": {{createTestMovie1.response.body.$.data.id}}
-}
 
 ###
 # @name addSecondItemToLocalPlaylist
 # Add second item to the local playlist
-POST http://localhost:8080/api/v1/playlists/{{createLocalPlaylist.response.body.$.data.id}}/items
+POST http://localhost:8080/api/v1/playlist/{{createLocalPlaylist.response.body.$.data.id}}/item/{{createTestMovie2.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
-
-{
-  "itemID": {{createTestMovie2.response.body.$.data.id}}
-}
 
 ###
 # @name getEmbyMovies
 # Get movie items from Emby to use in playlists
-GET http://localhost:8080/api/v1/client/emby/{{createEmbyClient.response.body.$.data.id}}/movie/search?q=test&limit=5
+GET http://localhost:8080/api/v1/client/{{createEmbyClient.response.body.$.data.id}}/media/movie/search?q=test&limit=5
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ###
 # @name getPlexMovies
 # Get movie items from Plex to use in playlists
-GET http://localhost:8080/api/v1/client/plex/{{createPlexClient.response.body.$.data.id}}/movie/search?q=test&limit=5
+GET http://localhost:8080/api/v1/client/{{createPlexClient.response.body.$.data.id}}/media/movie/search?q=test&limit=5
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ###
 # @name syncPlaylistToEmby
 # Sync the local playlist to Emby
-POST http://localhost:8080/api/v1/playlists/{{createLocalPlaylist.response.body.$.data.id}}/sync
+POST http://localhost:8080/api/v1/playlist/{{createLocalPlaylist.response.body.$.data.id}}/sync/{{createEmbyClient.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
-
-{
-  "clientID": {{createEmbyClient.response.body.$.data.id}}
-}
 
 ###
 # @name checkEmbyPlaylists
 # Check for the synced playlist in Emby
-GET http://localhost:8080/api/v1/client/emby/{{createEmbyClient.response.body.$.data.id}}/playlists
+GET http://localhost:8080/api/v1/client/{{createEmbyClient.response.body.$.data.id}}/playlist
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ###
 # @name findSyncedPlaylistInEmby
 # Find the specific synced playlist in Emby by name
-GET http://localhost:8080/api/v1/client/emby/{{createEmbyClient.response.body.$.data.id}}/playlists/search?query=Sync Test Playlist
+GET http://localhost:8080/api/v1/client/{{createEmbyClient.response.body.$.data.id}}/playlist/search?query=Sync Test Playlist
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ###
 # @name syncPlaylistToPlex
 # Sync the local playlist to Plex
-POST http://localhost:8080/api/v1/playlists/{{createLocalPlaylist.response.body.$.data.id}}/sync
+POST http://localhost:8080/api/v1/playlist/{{createLocalPlaylist.response.body.$.data.id}}/sync
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -236,49 +179,55 @@ GET http://localhost:8080/api/v1/client/plex/{{createPlexClient.response.body.$.
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-# ===========================================
+### ===========================================
 # Collection Sync Tests
 # ===========================================
 
 ###
 # @name createLocalCollection
+@title=New Collection
 # Create a collection in the local database
-POST http://localhost:8080/api/v1/collections
+POST http://localhost:8080/api/v1/collection
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "name": "Sync Test Collection",
-  "description": "Collection created for sync testing",
-  "isPublic": true
+  "type": "collection",
+  "title": "Test Collection",
+  "ownerId": {{login.response.body.$.data.user.id}},
+  "isPublic": true,
+  "data": {
+    "list": {
+      "details": {
+        "title": "Test Collection",
+        "description": "Test collection for CRUD operations"
+      },
+      "items": [],
+      "itemCount": 0,
+      "isPublic": true,
+      "ownerId": {{login.response.body.$.data.user.id}}
+    }
+  }
 }
 
 ###
 # @name addItemsToLocalCollection
 # Add items to the local collection
-POST http://localhost:8080/api/v1/collections/{{createLocalCollection.response.body.$.data.id}}/items
+POST http://localhost:8080/api/v1/collection/{{createLocalCollection.response.body.$.data.id}}/item/{{createTestMovie1.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
-
-{
-  "itemID": {{createTestMovie1.response.body.$.data.id}}
-}
 
 ###
 # @name addSecondItemToLocalCollection
 # Add second item to the local collection
-POST http://localhost:8080/api/v1/collections/{{createLocalCollection.response.body.$.data.id}}/items
+POST http://localhost:8080/api/v1/collection/{{createLocalCollection.response.body.$.data.id}}/item/{{createTestMovie2.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
-
-{
-  "itemID": {{createTestMovie2.response.body.$.data.id}}
-}
 
 ###
 # @name syncCollectionToEmby
 # Sync the local collection to Emby
-POST http://localhost:8080/api/v1/collections/{{createLocalCollection.response.body.$.data.id}}/sync
+POST http://localhost:8080/api/v1/collection/{{createLocalCollection.response.body.$.data.id}}/sync
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -311,9 +260,6 @@ GET http://localhost:8080/api/v1/client/plex/{{createPlexClient.response.body.$.
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-# ===========================================
-# Bidirectional Sync Tests
-# ===========================================
 
 ###
 # @name createEmbyPlaylist
@@ -348,25 +294,25 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 ###
 # @name checkLocalPlaylists
 # Check if the Emby playlist was synced to local
-GET http://localhost:8080/api/v1/playlists/search?query=Emby Created
+GET http://localhost:8080/api/v1/playlists/search?q=Emby Created
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-# ===========================================
+### ===========================================
 # Cleanup
 # ===========================================
 
 ###
 # @name deleteLocalPlaylist
 # Delete the test playlist from local database
-DELETE http://localhost:8080/api/v1/playlists/{{createLocalPlaylist.response.body.$.data.id}}
+DELETE http://localhost:8080/api/v1/playlist/{{createLocalPlaylist.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ###
 # @name deleteLocalCollection
 # Delete the test collection from local database
-DELETE http://localhost:8080/api/v1/collections/{{createLocalCollection.response.body.$.data.id}}
+DELETE http://localhost:8080/api/v1/collection/{{createLocalCollection.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 

@@ -55,6 +55,7 @@ func registerMediaListHandler[T mediatypes.ListData](c *container.Container) {
 		coreHandler := container.MustGet[handlers.CoreListHandler[T]](c)
 		itemService := container.MustGet[services.UserMediaItemService[T]](c)
 		listService := container.MustGet[services.UserListService[T]](c)
-		return handlers.NewUserListHandler[T](coreHandler, itemService, listService)
+		syncService := container.MustGet[services.ListSyncService[T]](c)
+		return handlers.NewUserListHandler[T](coreHandler, itemService, listService, syncService)
 	})
 }

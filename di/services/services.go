@@ -42,4 +42,7 @@ func RegisterServices(ctx context.Context, c *container.Container) {
 	log.Info().Msg("Registering recommendation service")
 	registerRecommendationService(ctx, c)
 
+	// List sync services
+	log.Info().Msg("Registering list sync services")
+	RegisterListSyncServices(c)
 }

@@ -1,15 +1,15 @@
 ### Master file to run all list handler tests
 # This file imports and runs all list-related tests
 
-# Import test files
+###  Import test files
 import ./list_handlers_crud_test.http
 import ./list_sync_test.http
+import ./client_media_common.http
 
-# Log in to get an access token
+### Log in to get an access token
 run #login
 
 # Run the CRUD tests for local operations
-# Playlist CRUD tests
 run #createTestMovie1
 run #createTestMovie2
 run #createPlaylist
@@ -84,5 +84,5 @@ run #deleteSyncedPlaylists
 run #deleteEmbyCreatePlaylist
 run #deleteTestMovie1
 run #deleteTestMovie2
-run #deleteEmbyClient
-run #deletePlexClient
+# run #deleteEmbyClient
+# run #deletePlexClient

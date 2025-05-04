@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"net/http"
 	"strconv"
@@ -33,6 +34,9 @@ type UserListHandler[T types.ListData] interface {
 	// User-specific operations
 	GetFavorite(c *gin.Context)
 	GetUserLists(c *gin.Context)
+
+	// Sync local list with remote list
+	Sync(c *gin.Context)
 }
 
 // userListHandler handles user-specific operations for lists
@@ -41,6 +45,7 @@ type userListHandler[T types.ListData] struct {
 
 	itemService services.UserMediaItemService[T]
 	listService services.UserListService[T]
+	syncService services.ListSyncService[T]
 }
 
 // NewuserListHandler creates a new user list handler
@@ -48,11 +53,13 @@ func NewUserListHandler[T types.ListData](
 	coreHandler CoreListHandler[T],
 	itemService services.UserMediaItemService[T],
 	listService services.UserListService[T],
+	syncService services.ListSyncService[T],
 ) UserListHandler[T] {
 	return &userListHandler[T]{
 		CoreListHandler: coreHandler,
 		itemService:     itemService,
 		listService:     listService,
+		syncService:     syncService,
 	}
 }
 
@@ -710,4 +717,83 @@ func (h *userListHandler[T]) GetFavorite(c *gin.Context) {
 		Int("count", len(favorites)).
 		Msg("Favorites retrieved successfully")
 	responses.RespondOK(c, favorites, "Favorites retrieved successfully")
+}
+
+// Sync godoc
+//
+// @Summary		Sync local list with remote list
+// @Description	Synchronizes the local list with the remote list
+// @Tags			lists
+// @Accept			json
+// @Produce		json
+// @Security		BearerAuth
+// @Param			listID		path		int																true	"List ID"
+// @Param			listType	path		string															true	"List type (e.g. 'playlist', 'collection')"
+// @Param			clientID	path		int																true	"Client ID"
+// @Success		200			{object}	responses.SuccessResponse									"List synced successfully"
+// @Failure		400			{object}	responses.ErrorResponse[any]									"Invalid request"
+// @Failure		401			{object}	responses.ErrorResponse[any]									"Unauthorized"
+// @Failure		403			{object}	responses.ErrorResponse[any]									"Forbidden"
+// @Failure		404			{object}	responses.ErrorResponse[any]									"List not found"
+// @Failure		500			{object}	responses.ErrorResponse[any]									"Server error"
+// @Router			/{listType}/{listID}/sync/{clientID} [post]
+func (h *userListHandler[T]) Sync(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := logger.LoggerFromContext(ctx)
+
+	// Get authenticated user ID
+	userID, _ := checkUserAccess(c)
+	if userID == 0 {
+		return
+	}
+
+	// Parse list ID and client ID
+	listID, _ := checkItemID(c, "listID")
+	clientID, _ := checkItemID(c, "clientID")
+
+	log.Debug().
+		Uint64("userID", userID).
+		Uint64("clientID", clientID).
+		Uint64("listID", listID).
+		Msg("Syncing list to client")
+
+	// Verify list exists and user has access
+	list, err := h.listService.GetByID(ctx, listID)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("listID", listID).
+			Msg("Failed to retrieve list")
+		responses.RespondNotFound(c, err, "List not found")
+		return
+	}
+
+	// Check if user owns the list
+	if list.OwnerID != userID {
+		log.Warn().
+			Uint64("userID", userID).
+			Uint64("ownerID", list.OwnerID).
+			Uint64("listID", listID).
+			Msg("User does not own the list")
+		responses.RespondForbidden(c, nil, "You do not have permission to sync this list")
+		return
+	}
+
+	// Use the sync service to sync the list to the client
+	err = h.syncService.SyncToClient(ctx, userID, listID, clientID)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("listID", listID).
+			Uint64("clientID", clientID).
+			Msg("Failed to sync list to client")
+		responses.RespondInternalError(c, err, fmt.Sprintf("Failed to sync list: %s", err.Error()))
+		return
+	}
+
+	// Return success response
+	log.Info().
+		Uint64("userID", userID).
+		Uint64("listID", listID).
+		Uint64("clientID", clientID).
+		Msg("List synced successfully")
+	responses.RespondOK(c, nil, "List synced successfully")
 }

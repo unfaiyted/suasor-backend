@@ -42,6 +42,8 @@ func registerGenericListRoutes[T mediatypes.ListData](c *container.Container, rg
 	// Delets all instances of an item from a list
 	listGroup.DELETE("/:listID/item/:itemID", userHandler.RemoveItem)
 
+	listGroup.POST("/:listID/sync/:clientID", userHandler.Sync)
+
 	// Type-specific operations based on list type
 	if mediaType == mediatypes.MediaTypePlaylist {
 		// Playlist-specific routes

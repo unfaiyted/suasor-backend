@@ -25,6 +25,10 @@ type ListUpdateRequest struct {
 	Description string `json:"description"`
 }
 
+type ListSyncRequest struct {
+	ClientID uint64 `json:"clientID"`
+}
+
 type ListAddTrackRequest struct {
 	TrackID uint64 `json:"trackID"`
 }

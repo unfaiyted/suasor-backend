@@ -42,12 +42,12 @@ func NewMediaItem[T types.MediaData](itemType types.MediaType, data T) *MediaIte
 	// Initialize with empty arrays
 	clientIDs := make(SyncClients, 0)
 	externalIDs := make(types.ExternalIDs, 0)
-	
+
 	// Make sure data has a valid Details field
 	details := data.GetDetails()
 	title := ""
 	releaseDate := time.Time{}
-	
+
 	if details != nil {
 		// Safe to access Details fields
 		if details.ExternalIDs != nil {
@@ -278,6 +278,15 @@ func (m *MediaItem[T]) AddSyncClient(clientID uint64, clientType client.ClientTy
 			ItemID: itemID,
 		})
 	}
+}
+
+func (m *MediaItem[T]) IsSyncClient(clientID uint64) bool {
+	for _, syncClient := range m.SyncClients {
+		if syncClient.ID == clientID {
+			return true
+		}
+	}
+	return false
 }
 
 // IsList returns true if the media item is a list
