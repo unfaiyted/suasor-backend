@@ -131,14 +131,14 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 ###
 # @name addItemToPlaylist
 # Add first movie to playlist
-POST http://localhost:8080/api/v1/playlist/{{createPlaylist.response.body.$.data.id}}/add/{{createTestMovie1.response.body.$.data.id}}
+POST http://localhost:8080/api/v1/playlist/{{createPlaylist.response.body.$.data.id}}/item/{{createTestMovie1.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ###
 # @name addSecondItemToPlaylist
 # Add second movie to playlist
-POST http://localhost:8080/api/v1/playlist/{{createPlaylist.response.body.$.data.id}}/add/{{createTestMovie2.response.body.$.data.id}}
+POST http://localhost:8080/api/v1/playlist/{{createPlaylist.response.body.$.data.id}}/item/{{createTestMovie2.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -186,7 +186,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 ###
 # @name removeItemFromPlaylist
 # Remove an item from the playlist
-DELETE http://localhost:8080/api/v1/playlist/{{createPlaylist.response.body.$.data.id}}/items/{{createTestMovie1.response.body.$.data.id}}
+DELETE http://localhost:8080/api/v1/playlist/{{createPlaylist.response.body.$.data.id}}/item/{{createTestMovie1.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -258,14 +258,14 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 ###
 # @name addItemToCollection
 # Add first movie to collection
-POST http://localhost:8080/api/v1/collection/{{createCollection.response.body.$.data.id}}/add/{{createTestMovie1.response.body.$.data.id}}
+POST http://localhost:8080/api/v1/collection/{{createCollection.response.body.$.data.id}}/item/{{createTestMovie1.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ###
 # @name addSecondItemToCollection
 # Add second movie to collection
-POST http://localhost:8080/api/v1/collection/{{createCollection.response.body.$.data.id}}/add/{{createTestMovie2.response.body.$.data.id}}
+POST http://localhost:8080/api/v1/collection/{{createCollection.response.body.$.data.id}}/item/{{createTestMovie2.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 

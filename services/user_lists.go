@@ -23,6 +23,7 @@ type UserListService[T mediatypes.ListData] interface {
 
 	AddItem(ctx context.Context, userID uint64, listID uint64, itemID uint64) error
 	RemoveItem(ctx context.Context, userID uint64, listID uint64, itemID uint64) error
+	RemoveItemAtPosition(ctx context.Context, userID uint64, listID uint64, itemID uint64, position int) error
 	ReorderItems(ctx context.Context, userID uint64, listID uint64, itemIDs []uint64) error
 	UpdateItems(ctx context.Context, userID uint64, listID uint64, items []*models.MediaItem[T]) error
 
@@ -1076,4 +1077,48 @@ func createList[T mediatypes.ListData](name string, description string, criteria
 		AutoUpdateTime: now,
 	})
 	return list
+}
+
+func (s *userListService[T]) RemoveItemAtPosition(ctx context.Context, userID uint64, listID uint64, itemID uint64, position int) error {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("listID", listID).
+		Uint64("itemID", itemID).
+		Int("position", position).
+		Msg("Removing item from list")
+
+	// Verify user has permission to modify this list
+	list, err := s.GetByID(ctx, listID)
+	if err != nil {
+		return fmt.Errorf("failed to remove item from list: %w", err)
+	}
+	itemList := list.GetData().GetItemList()
+
+	// Use the RemoveItem method provided by ItemList
+	// 0 indicates application level modification
+	err = itemList.RemoveItemAtPosition(itemID, position, 0)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("listID", listID).
+			Uint64("itemID", itemID).
+			Msg("Failed to remove item from list")
+		return err
+	}
+
+	// Store the update
+	_, err = s.Update(ctx, userID, list)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("listID", listID).
+			Uint64("itemID", itemID).
+			Msg("Failed to update list after removing item")
+		return fmt.Errorf("failed to update list after removing item: %w", err)
+	}
+
+	log.Info().
+		Uint64("listID", listID).
+		Uint64("itemID", itemID).
+		Msg("Item removed from list successfully")
+
+	return nil
 }

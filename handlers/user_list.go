@@ -27,6 +27,7 @@ type UserListHandler[T types.ListData] interface {
 	Delete(c *gin.Context)
 	AddItem(c *gin.Context)
 	RemoveItem(c *gin.Context)
+	RemoveItemAtPosition(c *gin.Context)
 	ReorderItems(c *gin.Context)
 
 	// User-specific operations
@@ -402,21 +403,21 @@ func (h *userListHandler[T]) AddItem(c *gin.Context) {
 
 // RemoveItemFromList godoc
 //
-//	@Summary		Remove a track from a list
-//	@Description	Removes a track from a list owned by the authenticated user
+//	@Summary		Remove a item from a list
+//	@Description	Removes a item from a list owned by the authenticated user
 //	@Tags			lists
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			listID		path		int																true	"List ID"
 //	@Param			itemID	path		int																true	"Track ID"
-//	@Success		200		{object}	responses.APIResponse[models.MediaItem[types.Playlist]]	"Track removed successfully"
+//	@Success		200		{object}	responses.APIResponse[models.MediaItem[types.ListData]]	"Track removed successfully"
 //	@Failure		400		{object}	responses.ErrorResponse[any]									"Invalid request"
 //	@Failure		401		{object}	responses.ErrorResponse[any]									"Unauthorized"
 //	@Failure		403		{object}	responses.ErrorResponse[any]									"Forbidden"
 //	@Failure		404		{object}	responses.ErrorResponse[any]									"List not found"
 //	@Failure		500		{object}	responses.ErrorResponse[any]									"Server error"
-//	@Router			/{listType}/{listID}/add/{itemID} [delete]
+//	@Router			/{listType}/{listID}/item/{itemID} [delete]
 func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -482,6 +483,93 @@ func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 		Uint64("trackID", itemID).
 		Msg("Track removed from list successfully")
 	responses.RespondOK(c, updatedList, "Track removed from list successfully")
+}
+
+// RemoveItemAtPosition godoc
+//
+//	@Summary		Remove an item from a list at a specific position
+//	@Description	Removes an item from a list owned by the authenticated user
+//	@Tags			lists
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			listID		path		int																true	"List ID"
+//	@Param			itemID	path		int																true	"Item ID"
+//	@Param			position	path		int																true	"Position of item to remove"
+//	@Success		200		{object}	responses.APIResponse[models.MediaItem[types.ListData]]	"Item removed successfully"
+//	@Failure		400		{object}	responses.ErrorResponse[any]									"Invalid request"
+//	@Failure		401		{object}	responses.ErrorResponse[any]									"Unauthorized"
+//	@Failure		403		{object}	responses.ErrorResponse[any]									"Forbidden"
+//	@Failure		404		{object}	responses.ErrorResponse[any]									"List not found"
+//	@Failure		500		{object}	responses.ErrorResponse[any]									"Server error"
+//	@Router			/{listType}/{listID}/item/{itemID}/position/{position} [delete]
+func (h *userListHandler[T]) RemoveItemAtPosition(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := logger.LoggerFromContext(ctx)
+
+	// Get authenticated user ID
+	userID, _ := checkUserAccess(c)
+
+	// Parse list ID
+	listID, _ := checkItemID(c, "listID")
+	itemID, _ := checkItemID(c, "itemID")
+	position, _ := checkItemID(c, "position")
+
+	log.Debug().
+		Uint64("userID", userID).
+		Uint64("listID", listID).
+		Uint64("itemID", itemID).
+		Uint64("position", position).
+		Msg("Removing item from list")
+
+	// Get existing list
+	existingList, err := h.listService.GetByID(ctx, listID)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("listID", listID).
+			Msg("Failed to retrieve list")
+		responses.RespondNotFound(c, err, "List not found")
+		return
+	}
+
+	// Check if user owns the list
+	if existingList.OwnerID != userID {
+		log.Warn().
+			Uint64("userID", userID).
+			Uint64("ownerID", existingList.OwnerID).
+			Uint64("listID", listID).
+			Msg("User does not own the list")
+		responses.RespondForbidden(c, nil, "You do not have permission to modify this list")
+		return
+	}
+
+	// Remove item from list
+	err = h.listService.RemoveItemAtPosition(ctx, userID, listID, itemID, int(position))
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("listID", listID).
+			Uint64("itemID", itemID).
+			Msg("Failed to remove item from list")
+		responses.RespondInternalError(c, err, "Failed to remove item from list")
+		return
+	}
+
+	// Get updated list
+	updatedList, err := h.listService.GetByID(ctx, listID)
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("listID", listID).
+			Msg("Failed to retrieve updated list")
+		responses.RespondInternalError(c, err, "Failed to retrieve updated list")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", userID).
+		Uint64("listID", listID).
+		Uint64("itemID", itemID).
+		Msg("Item removed from list successfully")
+	responses.RespondOK(c, updatedList, "Item removed from list successfully")
 }
 
 // Reorder godoc

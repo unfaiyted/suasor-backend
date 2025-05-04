@@ -38,16 +38,19 @@ func registerGenericListRoutes[T mediatypes.ListData](c *container.Container, rg
 	listGroup.DELETE("/:listID", userHandler.Delete)
 	listGroup.GET("/user", userHandler.GetUserLists)
 	listGroup.GET("/user/:userID", userHandler.GetUserLists)
-	listGroup.POST("/:listID/add/:itemID", userHandler.AddItem)
+	listGroup.POST("/:listID/item/:itemID", userHandler.AddItem)
+	// Delets all instances of an item from a list
+	listGroup.DELETE("/:listID/item/:itemID", userHandler.RemoveItem)
 
 	// Type-specific operations based on list type
 	if mediaType == mediatypes.MediaTypePlaylist {
 		// Playlist-specific routes
 		listGroup.POST("/:listID/reorder", userHandler.ReorderItems)
-		// listGroup.DELETE("/:listID/delete/:itemID/position/:position", userHandler.Delete)
+		// Delete item at specific position
+		listGroup.DELETE("/:listID/item/:itemID/position/:position", userHandler.RemoveItemAtPosition)
 
 	} else if mediaType == mediatypes.MediaTypeCollection {
-		listGroup.DELETE("/:listID/delete/:itemID", userHandler.Delete)
+		// listGroup.DELETE("/:listID/item/:itemID", userHandler.Delete)
 		// Collection-specific routes (can be extended as needed)
 	}
 }

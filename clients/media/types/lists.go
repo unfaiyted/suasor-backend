@@ -1,12 +1,14 @@
 package types
 
 import (
+	"context"
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
 	"sort"
+	"suasor/utils/logger"
 	"time"
 )
 
@@ -590,4 +592,60 @@ func (m *ItemList) Merge(other *ItemList) {
 	m.Details.Merge(other.Details)
 	// TODO: Additional merge logic for fields
 
+}
+
+// RemoveItemAtPosition removes an item from a list at a specific position
+func (il *ItemList) RemoveItemAtPosition(itemID uint64, position int, clientID uint64) error {
+	log := logger.LoggerFromContext(context.Background())
+	log.Debug().
+		Uint64("itemID", itemID).
+		Int("position", position).
+		Msg("Removing item from list")
+
+	// Find item to remove
+	var item *ListItem
+	for i, existingItem := range il.Items {
+		if existingItem.ItemID == itemID && existingItem.Position == position {
+			item = &il.Items[i]
+			break
+		}
+	}
+
+	if item == nil {
+		log.Warn().
+			Uint64("itemID", itemID).
+			Msg("Item not found in list at specified position")
+		return fmt.Errorf("item not found")
+	}
+
+	// Remove item
+	il.Items = slices.Delete(il.Items, position, position+1)
+
+	// Update client state
+	if item.ChangeHistory == nil {
+		item.ChangeHistory = make([]ChangeRecord, 0)
+	}
+
+	item.ChangeHistory = append(item.ChangeHistory, ChangeRecord{
+		ClientID:   clientID,
+		ItemID:     fmt.Sprintf("%d", itemID),
+		ChangeType: "remove",
+		Timestamp:  time.Now(),
+	})
+
+	// Normalize positions
+	il.normalizePositions()
+
+	log.Info().
+		Uint64("itemID", itemID).
+		Int("position", position).
+		Msg("Item removed from list successfully")
+
+	return nil
+}
+
+func (il *ItemList) normalizePositions() {
+	for i := range il.Items {
+		il.Items[i].Position = i
+	}
 }
