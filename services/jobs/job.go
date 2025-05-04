@@ -356,8 +356,17 @@ func (s *jobService) SetupMediaSyncJob(ctx context.Context, userID, clientID uin
 // and returns immediately to the caller
 func (s *jobService) RunMediaSyncJob(ctx context.Context, userID, clientID uint64, syncType models.SyncType) error {
 	// Validate inputs
-	if userID == 0 || clientID == 0 || syncType == "" {
-		return fmt.Errorf("invalid input parameters")
+	if userID == 0 {
+		return fmt.Errorf("invalid user ID: cannot be zero")
+	}
+
+	// Allow clientID to be 0 for full sync or similar special cases
+	if clientID == 0 && syncType != models.SyncTypeFull {
+		return fmt.Errorf("invalid client ID: cannot be zero unless using full sync")
+	}
+
+	if syncType == "" {
+		return fmt.Errorf("invalid sync type: cannot be empty")
 	}
 
 	// Verify user exists
@@ -378,10 +387,20 @@ func (s *jobService) RunMediaSyncJob(ctx context.Context, userID, clientID uint6
 		// Create a new logger for this goroutine
 		innerLog := log.New(log.Writer(), log.Prefix(), log.Flags())
 		
-		// Run the sync job
-		if err := s.mediaSyncJob.SyncUserMediaFromClient(jobCtx, userID, clientID, syncType); err != nil {
-			// Log the error but don't return it since we're in a goroutine
-			innerLog.Printf("Error running media sync job for user %d and client %d: %v", userID, clientID, err)
+		// Different handling based on sync type
+		if syncType == models.SyncTypeFull {
+			// Run full sync across all clients
+			innerLog.Printf("Starting full sync for user %d", userID)
+			if err := s.mediaSyncJob.RunFullSync(jobCtx, userID); err != nil {
+				innerLog.Printf("Error running full sync for user %d: %v", userID, err)
+			}
+		} else {
+			// Run the specific sync job
+			innerLog.Printf("Starting sync for user %d, client %d, type %s", userID, clientID, syncType)
+			if err := s.mediaSyncJob.SyncUserMediaFromClient(jobCtx, userID, clientID, syncType); err != nil {
+				// Log the error but don't return it since we're in a goroutine
+				innerLog.Printf("Error running media sync job for user %d and client %d: %v", userID, clientID, err)
+			}
 		}
 	}()
 

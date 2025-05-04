@@ -30,6 +30,7 @@ func RegisterJobRoutes(r *gin.RouterGroup, c *container.Container) {
 		jobs.GET("/media-sync", jobHandler.GetMediaSyncJobs)
 		jobs.POST("/media-sync", jobHandler.SetupMediaSyncJob)
 		jobs.POST("/media-sync/run", jobHandler.RunMediaSyncJob)
+		jobs.POST("/full-sync", jobHandler.RunFullSync)  // New endpoint for full sync
 
 		// Recommendations
 		jobs.GET("/recommendations", jobHandler.GetUserRecommendations)

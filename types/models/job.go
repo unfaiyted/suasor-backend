@@ -18,6 +18,9 @@ const (
 	SyncTypeFavorites   SyncType = "favorites"
 	SyncTypeCollections SyncType = "collections"
 	SyncTypePlaylists   SyncType = "playlists"
+	
+	// Special types
+	SyncTypeFull        SyncType = "full"    // Syncs everything from all clients
 )
 
 func (s SyncType) String() string {
@@ -27,7 +30,8 @@ func (s SyncType) String() string {
 func (s SyncType) IsValid() bool {
 	switch s {
 	case SyncTypeMovies, SyncTypeSeries, SyncTypeMusic,
-		SyncTypeHistory, SyncTypeFavorites, SyncTypeCollections, SyncTypePlaylists:
+		SyncTypeHistory, SyncTypeFavorites, SyncTypeCollections, SyncTypePlaylists,
+		SyncTypeFull:
 		return true
 	default:
 		return false

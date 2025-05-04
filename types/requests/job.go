@@ -23,6 +23,11 @@ type RunMediaSyncJobRequest struct {
 	SyncType models.SyncType `json:"syncType" binding:"required"`
 }
 
+// RunFullSyncRequest represents a request to run a full sync for all clients
+type RunFullSyncRequest struct {
+	// No parameters needed - we'll use the user ID from the context
+}
+
 // UpdateRecommendationViewedRequest represents a request to update recommendation viewed status
 type UpdateRecommendationViewedRequest struct {
 	Viewed bool `json:"viewed"`

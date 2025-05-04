@@ -305,6 +305,12 @@ func (h *JobHandler) RunMediaSyncJob(c *gin.Context) {
 		return
 	}
 
+	// Special handling for full sync
+	if req.SyncType == models.SyncTypeFull {
+		h.RunFullSync(c)
+		return
+	}
+
 	// Validate request parameters
 	if req.ClientID == 0 {
 		responses.RespondValidationError(c, nil, "Client ID cannot be zero")
@@ -341,6 +347,46 @@ func (h *JobHandler) RunMediaSyncJob(c *gin.Context) {
 	}
 
 	responses.RespondSuccess[struct{}](c, http.StatusAccepted, struct{}{}, "Media sync job started successfully")
+}
+
+// RunFullSync godoc
+//
+//	@Summary		Run full sync across all clients
+//	@Description	Runs a comprehensive sync across all user's media clients
+//	@Tags			jobs
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		requests.RunFullSyncRequest	true	"Full sync request (empty body)"
+//	@Success		202		{object}	responses.APIResponse[any]
+//	@Failure		500		{object}	responses.ErrorResponse[error]
+//	@Router			/jobs/full-sync [post]
+func (h *JobHandler) RunFullSync(c *gin.Context) {
+	log := logger.LoggerFromContext(c.Request.Context())
+
+	// Get the user ID from the context
+	userID, exists := c.Get("userID")
+	if !exists {
+		responses.RespondInternalError(c, nil, "User ID not found in context")
+		return
+	}
+
+	userIDVal, ok := userID.(uint64)
+	if !ok || userIDVal == 0 {
+		responses.RespondInternalError(c, nil, "Invalid user ID in context")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", userIDVal).
+		Msg("Starting full sync across all clients")
+
+	// Use the full sync type directly
+	if err := h.jobService.RunMediaSyncJob(c.Request.Context(), userIDVal, 0, models.SyncTypeFull); err != nil {
+		responses.RespondInternalError(c, err, "Failed to run full sync")
+		return
+	}
+
+	responses.RespondSuccess[struct{}](c, http.StatusAccepted, struct{}{}, "Full sync started successfully")
 }
 
 // GetUserRecommendations godoc
