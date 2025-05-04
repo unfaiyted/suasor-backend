@@ -1,0 +1,361 @@
+### List Handlers CRUD Test
+# This file contains HTTP tests for both playlist and collection list handlers
+# Tests focus on the local client CRUD operations for both types
+
+###
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@dev.com",
+  "password": "TestPassword123"
+}
+
+###
+# @name getUserProfile
+# Get user profile to ensure we have user ID for tests
+GET http://localhost:8080/api/v1/user/profile
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+# ===========================================
+# Playlist CRUD Operations
+# ===========================================
+
+###
+# @name createTestMovie1
+# Create a test movie for list operations
+POST http://localhost:8080/api/v1/media/movie
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "type": "movie",
+  "title": "List Test Movie 1",
+  "data": {
+    "details": {
+      "title": "List Test Movie 1",
+      "originalTitle": "List Test Movie 1 Original",
+      "overview": "This is a test movie for list operations",
+      "releaseDate": "2023-01-01T00:00:00Z",
+      "runtime": 120,
+      "genres": ["Action", "Drama"]
+    },
+    "credits": [
+      {"name": "Test Director", "role": "Director", "isCrew": true},
+      {"name": "Test Actor", "character": "Character 1", "isCast": true}
+    ],
+    "trailerURL": "https://example.com/trailer1.mp4",
+    "resolution": "1080p"
+  },
+  "externalIds": []
+}
+
+###
+# @name createTestMovie2 
+# Create a second test movie
+POST http://localhost:8080/api/v1/media/movie
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "type": "movie",
+  "title": "List Test Movie 2",
+  "data": {
+    "details": {
+      "title": "List Test Movie 2",
+      "originalTitle": "List Test Movie 2 Original",
+      "overview": "This is a second test movie for list operations",
+      "releaseDate": "2023-02-01T00:00:00Z",
+      "runtime": 110,
+      "genres": ["Comedy", "Romance"]
+    },
+    "credits": [
+      {"name": "Test Director 2", "role": "Director", "isCrew": true},
+      {"name": "Test Actor 2", "character": "Character 2", "isCast": true}
+    ],
+    "trailerURL": "https://example.com/trailer2.mp4",
+    "resolution": "1080p"
+  },
+  "externalIds": []
+}
+
+###
+# @name createPlaylist
+# Create a new playlist (core list operation)
+POST http://localhost:8080/api/v1/playlist
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "type": "playlist",
+  "title": "Test Playlist",
+  "ownerId": {{login.response.body.$.data.user.id}},
+  "isPublic": true,
+  "data": {
+    "list": {
+      "details": {
+        "title": "Test Playlist",
+        "description": "Test playlist for CRUD operations"
+      },
+      "items": [],
+      "itemCount": 0,
+      "isPublic": true,
+      "ownerId": {{login.response.body.$.data.user.id}}
+    }
+  }
+}
+
+###
+# @name getPlaylistById
+# Get the playlist by ID
+GET http://localhost:8080/api/v1/playlist/{{createPlaylist.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getAllPlaylists
+# Get all playlists
+GET http://localhost:8080/api/v1/playlist
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getUserPlaylists
+# Get playlists for the current user
+GET http://localhost:8080/api/v1/playlist/user
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name addItemToPlaylist
+# Add first movie to playlist
+POST http://localhost:8080/api/v1/playlist/{{createPlaylist.response.body.$.data.id}}/add/{{createTestMovie1.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name addSecondItemToPlaylist
+# Add second movie to playlist
+POST http://localhost:8080/api/v1/playlist/{{createPlaylist.response.body.$.data.id}}/add/{{createTestMovie2.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPlaylistItems
+# Get all items in the playlist
+GET http://localhost:8080/api/v1/playlist/{{createPlaylist.response.body.$.data.id}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name updatePlaylist
+# Update playlist information
+PUT http://localhost:8080/api/v1/playlist/{{createPlaylist.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Updated Playlist Name",
+  "description": "This playlist has been updated",
+  "isPublic": false
+}
+
+###
+# @name reorderPlaylistItems
+# Reorder items in the playlist
+POST http://localhost:8080/api/v1/playlist/{{createPlaylist.response.body.$.data.id}}/reorder
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "itemIDs": [
+    {{createTestMovie2.response.body.$.data.id}},
+    {{createTestMovie1.response.body.$.data.id}}
+  ]
+}
+
+###
+# @name getReorderedPlaylistItems
+# Verify new order of items
+GET http://localhost:8080/api/v1/playlist/{{createPlaylist.response.body.$.data.id}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name removeItemFromPlaylist
+# Remove an item from the playlist
+DELETE http://localhost:8080/api/v1/playlist/{{createPlaylist.response.body.$.data.id}}/items/{{createTestMovie1.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name verifyItemRemoval
+# Check that item was removed
+GET http://localhost:8080/api/v1/playlist/{{createPlaylist.response.body.$.data.id}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name searchPlaylists
+# Search for playlists by name
+GET http://localhost:8080/api/v1/playlist/search?query=Updated
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+# ===========================================
+# Collection CRUD Operations 
+# ===========================================
+
+###
+# @name createCollection
+# Create a new collection
+POST http://localhost:8080/api/v1/collection
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "type": "collection",
+  "title": "Test Collection",
+  "ownerId": {{login.response.body.$.data.user.id}},
+  "isPublic": true,
+  "data": {
+    "list": {
+      "details": {
+        "title": "Test Collection",
+        "description": "Test collection for CRUD operations"
+      },
+      "items": [],
+      "itemCount": 0,
+      "isPublic": true,
+      "ownerId": {{login.response.body.$.data.user.id}}
+    }
+  }
+}
+
+###
+# @name getCollectionById
+# Get the collection by ID
+GET http://localhost:8080/api/v1/collection/{{createCollection.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getAllCollections
+# Get all collections
+GET http://localhost:8080/api/v1/collection
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getUserCollections
+# Get collections for the current user
+GET http://localhost:8080/api/v1/collection/user
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name addItemToCollection
+# Add first movie to collection
+POST http://localhost:8080/api/v1/collection/{{createCollection.response.body.$.data.id}}/add/{{createTestMovie1.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name addSecondItemToCollection
+# Add second movie to collection
+POST http://localhost:8080/api/v1/collection/{{createCollection.response.body.$.data.id}}/add/{{createTestMovie2.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getCollectionItems
+# Get all items in the collection
+GET http://localhost:8080/api/v1/collection/{{createCollection.response.body.$.data.id}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name updateCollection
+# Update collection information
+PUT http://localhost:8080/api/v1/collection/{{createCollection.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Updated Collection Name",
+  "description": "This collection has been updated",
+  "isPublic": false
+}
+
+###
+# @name removeItemFromCollection
+# Remove an item from the collection
+DELETE http://localhost:8080/api/v1/collection/{{createCollection.response.body.$.data.id}}/items/{{createTestMovie2.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name verifyCollectionItemRemoval
+# Check that item was removed
+GET http://localhost:8080/api/v1/collection/{{createCollection.response.body.$.data.id}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name searchCollections
+# Search for collections by name
+GET http://localhost:8080/api/v1/collection/search?query=Updated
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+# ===========================================
+# Combined List Operations (across types)
+# ===========================================
+
+###
+# @name searchAllListTypes
+# Search across all list types
+GET http://localhost:8080/api/v1/list/search?query=Updated
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getUserAllListTypes
+# Get all lists for the current user (both collections and playlists)
+GET http://localhost:8080/api/v1/list/user
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+# ===========================================
+# Cleanup
+# ===========================================
+
+###
+# @name deletePlaylist
+# Delete the test playlist
+DELETE http://localhost:8080/api/v1/playlist/{{createPlaylist.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name deleteCollection
+# Delete the test collection
+DELETE http://localhost:8080/api/v1/collection/{{createCollection.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name deleteTestMovie1
+# Clean up test movie 1
+DELETE http://localhost:8080/api/v1/media/movie/{{createTestMovie1.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name deleteTestMovie2
+# Clean up test movie 2
+DELETE http://localhost:8080/api/v1/media/movie/{{createTestMovie2.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

@@ -432,7 +432,7 @@ func (r *mediaItemRepository[T]) GetByUserID(ctx context.Context, userID uint64,
 
 		// Should for now be limited to user-owned playlists and collections
 		query := r.db.WithContext(ctx).
-			Where("type IN (?) AND data->'itemList'->>'ownerID' = ?", mediaType, userID)
+			Where("type IN (?) AND owner_id = ?", mediaType, userID)
 
 		if limit > 0 {
 			query = query.Limit(limit)

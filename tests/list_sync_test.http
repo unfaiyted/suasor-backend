@@ -1,0 +1,413 @@
+### List Sync Test
+# This file contains HTTP tests for syncing lists (playlists and collections) between local and remote clients
+
+###
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@dev.com",
+  "password": "TestPassword123"
+}
+
+###
+# @name getUserProfile
+# Get user profile to ensure we have user ID for tests
+GET http://localhost:8080/api/v1/user/profile
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+# First create and configure test clients
+
+###
+# @name getAllClients
+# Get all configured clients to check what's available
+GET http://localhost:8080/api/v1/clients
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name createEmbyClient
+# Create an Emby test client
+POST http://localhost:8080/api/v1/admin/client/emby
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Emby Test Client",
+  "clientType": "emby",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "{{EMBY_TEST_URL}}",
+    "apiKey": "{{EMBY_TEST_API_KEY}}",
+    "username": "{{EMBY_TEST_USER}}",
+    "ssl": false
+  }
+}
+
+###
+# @name createPlexClient
+# Create a Plex test client
+POST http://localhost:8080/api/v1/admin/client/plex
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Plex Test Client",
+  "clientType": "plex",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "{{PLEX_TEST_URL}}",
+    "token": "{{PLEX_TEST_TOKEN}}",
+    "ssl": false
+  }
+}
+
+###
+# @name testEmbyConnection
+# Test Emby connection
+GET http://localhost:8080/api/v1/admin/client/emby/{{createEmbyClient.response.body.$.data.id}}/test
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name testPlexConnection
+# Test Plex connection
+GET http://localhost:8080/api/v1/admin/client/plex/{{createPlexClient.response.body.$.data.id}}/test
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+# ===========================================
+# Create Test Movies for List Operations
+# ===========================================
+
+###
+# @name createTestMovie1
+# Create a test movie for list operations
+POST http://localhost:8080/api/v1/media/movie
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "type": "movie",
+  "title": "Sync Test Movie 1",
+  "data": {
+    "details": {
+      "title": "Sync Test Movie 1",
+      "originalTitle": "Sync Test Movie 1 Original",
+      "overview": "This is a test movie for list sync operations",
+      "releaseDate": "2023-01-01T00:00:00Z",
+      "runtime": 120,
+      "genres": ["Action", "Sci-Fi"]
+    },
+    "credits": [
+      {"name": "Sync Director", "role": "Director", "isCrew": true},
+      {"name": "Sync Actor", "character": "Character 1", "isCast": true}
+    ],
+    "trailerURL": "https://example.com/sync_trailer1.mp4",
+    "resolution": "1080p"
+  },
+  "externalIds": []
+}
+
+###
+# @name createTestMovie2
+# Create a second test movie
+POST http://localhost:8080/api/v1/media/movie
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "type": "movie",
+  "title": "Sync Test Movie 2",
+  "data": {
+    "details": {
+      "title": "Sync Test Movie 2",
+      "originalTitle": "Sync Test Movie 2 Original",
+      "overview": "This is a second test movie for list sync operations",
+      "releaseDate": "2023-02-01T00:00:00Z",
+      "runtime": 110,
+      "genres": ["Drama", "Thriller"]
+    },
+    "credits": [
+      {"name": "Sync Director 2", "role": "Director", "isCrew": true},
+      {"name": "Sync Actor 2", "character": "Character 2", "isCast": true}
+    ],
+    "trailerURL": "https://example.com/sync_trailer2.mp4",
+    "resolution": "1080p"
+  },
+  "externalIds": []
+}
+
+# ===========================================
+# Playlist Sync Tests
+# ===========================================
+
+###
+# @name createLocalPlaylist
+# Create a playlist in the local database
+POST http://localhost:8080/api/v1/playlists
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Sync Test Playlist",
+  "description": "Playlist created for sync testing",
+  "isPublic": true
+}
+
+###
+# @name addItemsToLocalPlaylist
+# Add items to the local playlist
+POST http://localhost:8080/api/v1/playlists/{{createLocalPlaylist.response.body.$.data.id}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "itemID": {{createTestMovie1.response.body.$.data.id}}
+}
+
+###
+# @name addSecondItemToLocalPlaylist
+# Add second item to the local playlist
+POST http://localhost:8080/api/v1/playlists/{{createLocalPlaylist.response.body.$.data.id}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "itemID": {{createTestMovie2.response.body.$.data.id}}
+}
+
+###
+# @name getEmbyMovies
+# Get movie items from Emby to use in playlists
+GET http://localhost:8080/api/v1/client/emby/{{createEmbyClient.response.body.$.data.id}}/movie/search?q=test&limit=5
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPlexMovies
+# Get movie items from Plex to use in playlists
+GET http://localhost:8080/api/v1/client/plex/{{createPlexClient.response.body.$.data.id}}/movie/search?q=test&limit=5
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name syncPlaylistToEmby
+# Sync the local playlist to Emby
+POST http://localhost:8080/api/v1/playlists/{{createLocalPlaylist.response.body.$.data.id}}/sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{createEmbyClient.response.body.$.data.id}}
+}
+
+###
+# @name checkEmbyPlaylists
+# Check for the synced playlist in Emby
+GET http://localhost:8080/api/v1/client/emby/{{createEmbyClient.response.body.$.data.id}}/playlists
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name findSyncedPlaylistInEmby
+# Find the specific synced playlist in Emby by name
+GET http://localhost:8080/api/v1/client/emby/{{createEmbyClient.response.body.$.data.id}}/playlists/search?query=Sync Test Playlist
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name syncPlaylistToPlex
+# Sync the local playlist to Plex
+POST http://localhost:8080/api/v1/playlists/{{createLocalPlaylist.response.body.$.data.id}}/sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{createPlexClient.response.body.$.data.id}}
+}
+
+###
+# @name checkPlexPlaylists
+# Check for the synced playlist in Plex
+GET http://localhost:8080/api/v1/client/plex/{{createPlexClient.response.body.$.data.id}}/playlists
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+# ===========================================
+# Collection Sync Tests
+# ===========================================
+
+###
+# @name createLocalCollection
+# Create a collection in the local database
+POST http://localhost:8080/api/v1/collections
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Sync Test Collection",
+  "description": "Collection created for sync testing",
+  "isPublic": true
+}
+
+###
+# @name addItemsToLocalCollection
+# Add items to the local collection
+POST http://localhost:8080/api/v1/collections/{{createLocalCollection.response.body.$.data.id}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "itemID": {{createTestMovie1.response.body.$.data.id}}
+}
+
+###
+# @name addSecondItemToLocalCollection
+# Add second item to the local collection
+POST http://localhost:8080/api/v1/collections/{{createLocalCollection.response.body.$.data.id}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "itemID": {{createTestMovie2.response.body.$.data.id}}
+}
+
+###
+# @name syncCollectionToEmby
+# Sync the local collection to Emby
+POST http://localhost:8080/api/v1/collections/{{createLocalCollection.response.body.$.data.id}}/sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{createEmbyClient.response.body.$.data.id}}
+}
+
+###
+# @name checkEmbyCollections
+# Check for the synced collection in Emby
+GET http://localhost:8080/api/v1/client/emby/{{createEmbyClient.response.body.$.data.id}}/collections
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name syncCollectionToPlex
+# Sync the local collection to Plex
+POST http://localhost:8080/api/v1/collections/{{createLocalCollection.response.body.$.data.id}}/sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{createPlexClient.response.body.$.data.id}}
+}
+
+###
+# @name checkPlexCollections
+# Check for the synced collection in Plex
+GET http://localhost:8080/api/v1/client/plex/{{createPlexClient.response.body.$.data.id}}/collections
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+# ===========================================
+# Bidirectional Sync Tests
+# ===========================================
+
+###
+# @name createEmbyPlaylist
+# Create a playlist directly in Emby
+POST http://localhost:8080/api/v1/client/emby/{{createEmbyClient.response.body.$.data.id}}/playlists
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Emby Created Playlist",
+  "description": "Playlist created directly in Emby to test sync back to local"
+}
+
+###
+# @name addMoviesToEmbyPlaylist
+# Add a movie to the Emby playlist if movies exist
+POST http://localhost:8080/api/v1/client/emby/{{createEmbyClient.response.body.$.data.id}}/playlists/{{createEmbyPlaylist.response.body.$.data.clientIDs.emby}}/items
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "itemID": "{{getEmbyMovies.response.body.$.data.items[0].clientIDs.emby}}"
+}
+
+###
+# @name syncEmbyPlaylistToLocal
+# Sync the Emby-created playlist back to local database
+POST http://localhost:8080/api/v1/client/emby/{{createEmbyClient.response.body.$.data.id}}/playlists/{{createEmbyPlaylist.response.body.$.data.clientIDs.emby}}/sync-to-local
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name checkLocalPlaylists
+# Check if the Emby playlist was synced to local
+GET http://localhost:8080/api/v1/playlists/search?query=Emby Created
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+# ===========================================
+# Cleanup
+# ===========================================
+
+###
+# @name deleteLocalPlaylist
+# Delete the test playlist from local database
+DELETE http://localhost:8080/api/v1/playlists/{{createLocalPlaylist.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name deleteLocalCollection
+# Delete the test collection from local database
+DELETE http://localhost:8080/api/v1/collections/{{createLocalCollection.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name deleteSyncedPlaylists
+# Delete any synced playlists from Emby
+DELETE http://localhost:8080/api/v1/client/emby/{{createEmbyClient.response.body.$.data.id}}/playlists/{{findSyncedPlaylistInEmby.response.body.$.data.items[0].clientIDs.emby}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name deleteEmbyCreatePlaylist
+# Delete the Emby-created playlist
+DELETE http://localhost:8080/api/v1/client/emby/{{createEmbyClient.response.body.$.data.id}}/playlists/{{createEmbyPlaylist.response.body.$.data.clientIDs.emby}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name deleteTestMovie1
+# Clean up test movie 1
+DELETE http://localhost:8080/api/v1/media/movie/{{createTestMovie1.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name deleteTestMovie2
+# Clean up test movie 2
+DELETE http://localhost:8080/api/v1/media/movie/{{createTestMovie2.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name deleteEmbyClient
+# Clean up test Emby client
+DELETE http://localhost:8080/api/v1/admin/client/emby/{{createEmbyClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name deletePlexClient
+# Clean up test Plex client
+DELETE http://localhost:8080/api/v1/admin/client/plex/{{createPlexClient.response.body.$.data.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
