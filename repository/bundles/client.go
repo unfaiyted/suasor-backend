@@ -28,8 +28,6 @@ type ClientRepositories interface {
 	GetAllMediaClientsForUser(ctx context.Context, userID uint64) (*models.MediaClientList, error)
 	GetAllMetadataClientsForUser(ctx context.Context, userID uint64) (*models.MetadataClientList, error)
 	GetAllAutomationClientsForUser(ctx context.Context, userID uint64) (*models.AutomationClientList, error)
-
-	// GetClientByID(ctx context.Context, clientID uint64) (*models.Client[types.ClientConfig], error)
 }
 
 func NewClientRepositories(

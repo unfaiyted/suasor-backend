@@ -29,6 +29,10 @@ func (a *PlaylistListAdapter) CreateListWithItems(ctx context.Context, name stri
 	return a.provider.CreatePlaylistWithItems(ctx, name, description, itemIDs)
 }
 
+func (a *PlaylistListAdapter) GetList(ctx context.Context, listID string) (*models.MediaItem[*mediatypes.Playlist], error) {
+	return a.provider.GetPlaylist(ctx, listID)
+}
+
 func (a *PlaylistListAdapter) CreateList(ctx context.Context, name string, description string) (*models.MediaItem[*mediatypes.Playlist], error) {
 	return a.provider.CreatePlaylist(ctx, name, description)
 }
@@ -41,8 +45,12 @@ func (a *PlaylistListAdapter) DeleteList(ctx context.Context, listID string) err
 	return a.provider.DeletePlaylist(ctx, listID)
 }
 
-func (a *PlaylistListAdapter) AddItemList(ctx context.Context, listID string, itemID string) error {
-	return a.provider.AddItemPlaylist(ctx, listID, itemID)
+func (a *PlaylistListAdapter) AddListItem(ctx context.Context, listID string, itemID string) error {
+	return a.provider.AddPlaylistItem(ctx, listID, itemID)
+}
+
+func (a *PlaylistListAdapter) AddListItems(ctx context.Context, listID string, itemIDs []string) error {
+	return a.provider.AddPlaylistItems(ctx, listID, itemIDs)
 }
 
 func (a *PlaylistListAdapter) RemoveListItem(ctx context.Context, listID string, itemID string) error {
@@ -81,6 +89,10 @@ func (a *CollectionListAdapter) CreateList(ctx context.Context, name string, des
 	return a.provider.CreateCollection(ctx, name, description)
 }
 
+func (a *CollectionListAdapter) GetList(ctx context.Context, listID string) (*models.MediaItem[*mediatypes.Collection], error) {
+	return a.provider.GetCollection(ctx, listID)
+}
+
 func (a *CollectionListAdapter) CreateListWithItems(ctx context.Context, name string, description string, itemIDs []string) (*models.MediaItem[*mediatypes.Collection], error) {
 	return a.provider.CreateCollectionWithItems(ctx, name, description, itemIDs)
 }
@@ -93,8 +105,12 @@ func (a *CollectionListAdapter) DeleteList(ctx context.Context, listID string) e
 	return a.provider.DeleteCollection(ctx, listID)
 }
 
-func (a *CollectionListAdapter) AddItemList(ctx context.Context, listID string, itemID string) error {
-	return a.provider.AddItemCollection(ctx, listID, itemID)
+func (a *CollectionListAdapter) AddListItem(ctx context.Context, listID string, itemID string) error {
+	return a.provider.AddCollectionItem(ctx, listID, itemID)
+}
+
+func (a *CollectionListAdapter) AddListItems(ctx context.Context, listID string, itemIDs []string) error {
+	return a.provider.AddCollectionItems(ctx, listID, itemIDs)
 }
 
 func (a *CollectionListAdapter) RemoveListItem(ctx context.Context, listID string, itemID string) error {

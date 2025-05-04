@@ -4,6 +4,14 @@ import (
 	"time"
 )
 
+type SyncState string
+
+const (
+	SyncStatusSuccess SyncState = "success"
+	SyncStatusFailed  SyncState = "failed"
+	SyncStatusPending SyncState = "pending"
+)
+
 // ListSyncState represents the state of a collection or playlist on a particular client
 type ListSyncState struct {
 	ClientID     uint64 `json:"clientID"`
@@ -99,4 +107,13 @@ func (states *ListSyncStates) MergeItemsIntoSyncState(clientID uint64, newItems 
 	// Update state metadata
 	state.LastSynced = now
 	state.ClientListID = clientListID
+}
+
+func (states ListSyncStates) IsClientPresent(clientID uint64) bool {
+	for _, state := range states {
+		if state.ClientID == clientID {
+			return true
+		}
+	}
+	return false
 }

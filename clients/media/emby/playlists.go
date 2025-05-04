@@ -4,6 +4,7 @@ package emby
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/antihax/optional"
 	"suasor/clients/media/types"
@@ -78,6 +79,32 @@ func (e *EmbyClient) SearchPlaylists(ctx context.Context, options *types.QueryOp
 		Msg("Completed Search playlists request")
 
 	return playlists, nil
+}
+
+func (e *EmbyClient) GetPlaylist(ctx context.Context, playlistID string) (*models.MediaItem[*types.Playlist], error) {
+	return e.GetPlaylistByID(ctx, playlistID)
+}
+
+func (e *EmbyClient) GetPlaylistByID(ctx context.Context, playlistID string) (*models.MediaItem[*types.Playlist], error) {
+
+	// opts := embclient.ItemsServiceApiGetItemsOpts{
+	// 	Ids:    optional.NewString(collectionID),
+	// 	Fields: optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines"),
+	// }
+	opts := types.QueryOptions{
+		Limit:   1,
+		ItemIDs: playlistID,
+	}
+	playlists, err := e.SearchPlaylists(ctx, &opts)
+	if err != nil {
+		return nil, err
+	}
+	if len(playlists) == 0 {
+		return nil, fmt.Errorf("collection not found")
+	}
+	playlist := playlists[0]
+
+	return playlist, err
 }
 
 // GetItems retrieves the items in a specific playlist
@@ -331,10 +358,16 @@ func (e *EmbyClient) DeletePlaylist(ctx context.Context, playlistID string) erro
 // AddPlaylistItem adds an item to a playlist in Emby
 // Implementation detail - called by AddItemPlaylist to match the PlaylistProvider interface
 func (e *EmbyClient) AddPlaylistItem(ctx context.Context, playlistID string, itemID string) error {
+	return e.AddPlaylistItems(ctx, playlistID, []string{itemID})
+}
+
+// AddPlaylistItems adds items to a playlist in Emby
+// Implements PlaylistProvider interface method
+func (e *EmbyClient) AddPlaylistItems(ctx context.Context, playlistID string, itemIDs []string) error {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Str("playlistID", playlistID).
-		Str("itemID", itemID).
+		Strs("itemIDs", itemIDs).
 		Uint64("clientID", e.GetClientID()).
 		Msg("Adding item to playlist in Emby")
 
@@ -350,12 +383,14 @@ func (e *EmbyClient) AddPlaylistItem(ctx context.Context, playlistID string, ite
 		UserId: optional.NewString(userID),
 	}
 
-	result, resp, err := e.client.PlaylistServiceApi.PostPlaylistsByIdItems(ctx, itemID, playlistID, &opts)
+	strItemIDs := strings.Join(itemIDs, ",")
+
+	result, resp, err := e.client.PlaylistServiceApi.PostPlaylistsByIdItems(ctx, strItemIDs, playlistID, &opts)
 	if err != nil {
 		log.Error().
 			Err(err).
 			Str("playlistID", playlistID).
-			Str("itemID", itemID).
+			Strs("itemIDs", itemIDs).
 			Msg("Failed to add item to playlist in Emby")
 		return fmt.Errorf("failed to add item to playlist: %w", err)
 	}
@@ -363,7 +398,7 @@ func (e *EmbyClient) AddPlaylistItem(ctx context.Context, playlistID string, ite
 	log.Info().
 		Int("statusCode", resp.StatusCode).
 		Str("playlistID", playlistID).
-		Str("itemID", itemID).
+		Strs("itemIDs", itemIDs).
 		Msg("Successfully added item to playlist in Emby")
 
 	if result.ItemAddedCount == 0 {
@@ -373,14 +408,6 @@ func (e *EmbyClient) AddPlaylistItem(ctx context.Context, playlistID string, ite
 	return nil
 }
 
-// AddItemPlaylist adds an item to a playlist in Emby
-// Implements PlaylistProvider interface method
-func (e *EmbyClient) AddItemPlaylist(ctx context.Context, playlistID string, itemID string) error {
-	// Delegate to the existing implementation
-	return e.AddPlaylistItem(ctx, playlistID, itemID)
-}
-
-// RemoveItem removes an item from a playlist in Emby
 // Implements ListProvider[*types.Playlist] interface method
 func (e *EmbyClient) RemovePlaylistItem(ctx context.Context, playlistID string, itemID string) error {
 	log := logger.LoggerFromContext(ctx)

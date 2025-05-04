@@ -14,6 +14,126 @@ import (
 
 func (e *EmbyClient) SupportsCollections() bool { return true }
 
+func (e *EmbyClient) SearchCollections(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Collection], error) {
+	// Get logger from context
+	log := logger.LoggerFromContext(ctx)
+
+	log.Info().
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
+		Msg("Retrieving collections from Emby")
+
+	// Prepare the query options
+	includeItemTypes := "BoxSet"
+
+	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
+		IncludeItemTypes: optional.NewString(includeItemTypes),
+		Recursive:        optional.NewBool(true),
+	}
+
+	ApplyClientQueryOptions(ctx, &queryParams, options)
+
+	// Get collections
+	results, _, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Msg("Failed to fetch collections from Emby")
+		return nil, err
+	}
+
+	if results.Items == nil || len(results.Items) == 0 {
+		log.Info().Msg("No collections returned from Emby")
+		return []*models.MediaItem[*types.Collection]{}, nil
+	}
+
+	collections := make([]*models.MediaItem[*types.Collection], 0, len(results.Items))
+
+	for _, item := range results.Items {
+		collection := e.ConvertItemToCollection(item)
+		if collection != nil {
+			collection.SetClientInfo(e.GetClientID(), e.GetClientType(), item.Id)
+			collections = append(collections, collection)
+		}
+	}
+
+	log.Info().
+		Int("collectionCount", len(collections)).
+		Msg("Successfully retrieved collections from Emby")
+
+	return collections, nil
+}
+
+func (e *EmbyClient) GetCollection(ctx context.Context, collectionID string) (*models.MediaItem[*types.Collection], error) {
+	return e.GetCollectionByID(ctx, collectionID)
+}
+
+func (e *EmbyClient) GetCollectionByID(ctx context.Context, collectionID string) (*models.MediaItem[*types.Collection], error) {
+
+	opts := types.QueryOptions{
+		Limit:   1,
+		ItemIDs: collectionID,
+	}
+	collections, err := e.SearchCollections(ctx, &opts)
+	if err != nil {
+		return nil, err
+	}
+	if len(collections) == 0 {
+		return nil, fmt.Errorf("collection not found")
+	}
+	collection := collections[0]
+
+	return collection, err
+}
+
+func (e *EmbyClient) GetCollectionItems(ctx context.Context, collectionID string) (*models.MediaItemList, error) {
+	// Get logger from context
+	log := logger.LoggerFromContext(ctx)
+
+	log.Info().
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
+		Str("collectionID", collectionID).
+		Msg("Retrieving collection items from Emby")
+
+	opts := embyclient.ItemsServiceApiGetItemsOpts{
+		ParentId:     optional.NewString(collectionID),
+		SortBy:       optional.NewString("SortName"),
+		SortOrder:    optional.NewString("Ascending"),
+		Recursive:    optional.NewBool(true),
+		Fields:       optional.NewString("Overview,Path,Genres,Tags"),
+		EnableImages: optional.NewBool(true),
+	}
+
+	response, _, err := e.client.ItemsServiceApi.GetItems(ctx, &opts)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("collectionID", collectionID).
+			Msg("Failed to fetch collection items from Emby")
+		return nil, err
+	}
+
+	if response.Items == nil || len(response.Items) == 0 {
+		log.Info().
+			Str("collectionID", collectionID).
+			Msg("No items found in collection")
+		return nil, nil
+	}
+
+	items, err := GetMixedMediaItems(e, ctx, response.Items)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info().
+		Str("collectionID", collectionID).
+		Int("itemCount", items.GetTotalItems()).
+		Msg("Successfully retrieved collection items from Emby")
+
+	return items, nil
+}
+
 func (e *EmbyClient) CreateCollection(ctx context.Context, name string, description string, itemIDs []string) (*models.MediaItem[*types.Collection], error) {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
@@ -78,100 +198,6 @@ func (e *EmbyClient) CreateCollection(ctx context.Context, name string, descript
 	return collection, nil
 }
 
-func (e *EmbyClient) ConvertItemToCollection(item embyclient.BaseItemDto) *models.MediaItem[*types.Collection] {
-
-	collection := models.MediaItem[*types.Collection]{
-		Data: &types.Collection{
-			ItemList: types.ItemList{
-				Details: &types.MediaDetails{
-					Title:       item.Name,
-					Description: item.Overview,
-					Artwork:     e.getArtworkURLs(&item),
-				},
-			},
-		},
-		Type: "collection",
-	}
-
-	if collection.Data.ItemList.Details.Title == "" {
-		collection.Data.ItemList.Details.Title = "Unnamed Collection"
-	}
-
-	return &collection
-}
-
-func (e *EmbyClient) GetCollections(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Collection], error) {
-	// Get logger from context
-	log := logger.LoggerFromContext(ctx)
-
-	log.Info().
-		Uint64("clientID", e.GetClientID()).
-		Str("clientType", string(e.GetClientType())).
-		Msg("Retrieving collections from Emby")
-
-	// Prepare the query options
-	includeItemTypes := "BoxSet"
-
-	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
-		IncludeItemTypes: optional.NewString(includeItemTypes),
-		Recursive:        optional.NewBool(true),
-	}
-
-	ApplyClientQueryOptions(ctx, &queryParams, options)
-
-	// Get collections
-	results, _, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
-	if err != nil {
-		log.Error().
-			Err(err).
-			Msg("Failed to fetch collections from Emby")
-		return nil, err
-	}
-
-	if results.Items == nil || len(results.Items) == 0 {
-		log.Info().Msg("No collections returned from Emby")
-		return []*models.MediaItem[*types.Collection]{}, nil
-	}
-
-	collections := make([]*models.MediaItem[*types.Collection], 0, len(results.Items))
-
-	for _, item := range results.Items {
-		collection := e.ConvertItemToCollection(item)
-		if collection != nil {
-			collection.SetClientInfo(e.GetClientID(), e.GetClientType(), item.Id)
-			collections = append(collections, collection)
-		}
-	}
-
-	log.Info().
-		Int("collectionCount", len(collections)).
-		Msg("Successfully retrieved collections from Emby")
-
-	return collections, nil
-}
-
-func (e *EmbyClient) GetCollectionByID(ctx context.Context, collectionID string) (*models.MediaItem[*types.Collection], error) {
-
-	// opts := embclient.ItemsServiceApiGetItemsOpts{
-	// 	Ids:    optional.NewString(collectionID),
-	// 	Fields: optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines"),
-	// }
-	opts := types.QueryOptions{
-		Limit:   1,
-		ItemIDs: collectionID,
-	}
-	collections, err := e.GetCollections(ctx, &opts)
-	if err != nil {
-		return nil, err
-	}
-	if len(collections) == 0 {
-		return nil, fmt.Errorf("collection not found")
-	}
-	collection := collections[0]
-
-	return collection, err
-}
-
 func (e *EmbyClient) UpdateCollection(ctx context.Context, collectionID string, name string, description string) (*models.MediaItem[*types.Collection], error) {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
@@ -182,8 +208,6 @@ func (e *EmbyClient) UpdateCollection(ctx context.Context, collectionID string, 
 		Str("collectionID", collectionID).
 		Str("name", name).
 		Msg("Updating collection in Emby")
-
-	// originalCollection, err := e.GetCollectionByID(ctx, collectionID)
 
 	updatedCollection := embyclient.BaseItemDto{
 		Name:      name,
@@ -255,7 +279,11 @@ func (e *EmbyClient) DeleteCollection(ctx context.Context, collectionID string) 
 	return nil
 }
 
-func (e *EmbyClient) AddItemsToCollection(ctx context.Context, collectionID string, itemIDs []string) error {
+func (e *EmbyClient) AddCollectionItem(ctx context.Context, collectionID string, itemID string) error {
+	return e.AddCollectionItems(ctx, collectionID, []string{itemID})
+}
+
+func (e *EmbyClient) AddCollectionItems(ctx context.Context, collectionID string, itemIDs []string) error {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
 
@@ -267,17 +295,17 @@ func (e *EmbyClient) AddItemsToCollection(ctx context.Context, collectionID stri
 		Msg("Adding items to collection in Emby")
 
 	// Emby requires a separate call for each item
-	for _, itemID := range itemIDs {
-		// Add item to collection
-		_, err := e.client.CollectionServiceApi.PostCollectionsByIdItems(ctx, collectionID, itemID)
-		if err != nil {
-			log.Error().
-				Err(err).
-				Str("collectionID", collectionID).
-				Str("itemID", itemID).
-				Msg("Failed to add item to collection in Emby")
-			return err
-		}
+	strItemIDs := strings.Join(itemIDs, ",")
+
+	// Add item to collection
+	_, err := e.client.CollectionServiceApi.PostCollectionsByIdItems(ctx, strItemIDs, collectionID)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("collectionID", collectionID).
+			Strs("itemIDs", itemIDs).
+			Msg("Failed to add item to collection in Emby")
+		return err
 	}
 
 	log.Info().
@@ -288,7 +316,11 @@ func (e *EmbyClient) AddItemsToCollection(ctx context.Context, collectionID stri
 	return nil
 }
 
-func (e *EmbyClient) RemoveItemsFromCollection(ctx context.Context, collectionID string, itemIDs []string) error {
+func (e *EmbyClient) RemoveCollectionItem(ctx context.Context, collectionID string, itemID string) error {
+	return e.RemoveCollectionItems(ctx, collectionID, []string{itemID})
+}
+
+func (e *EmbyClient) RemoveCollectionItems(ctx context.Context, collectionID string, itemIDs []string) error {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
 
@@ -319,52 +351,4 @@ func (e *EmbyClient) RemoveItemsFromCollection(ctx context.Context, collectionID
 		Msg("Successfully removed items from collection in Emby")
 
 	return nil
-}
-
-func (e *EmbyClient) GetCollectionItems(ctx context.Context, collectionID string) (*models.MediaItemList, error) {
-	// Get logger from context
-	log := logger.LoggerFromContext(ctx)
-
-	log.Info().
-		Uint64("clientID", e.GetClientID()).
-		Str("clientType", string(e.GetClientType())).
-		Str("collectionID", collectionID).
-		Msg("Retrieving collection items from Emby")
-
-	opts := embyclient.ItemsServiceApiGetItemsOpts{
-		ParentId:     optional.NewString(collectionID),
-		SortBy:       optional.NewString("SortName"),
-		SortOrder:    optional.NewString("Ascending"),
-		Recursive:    optional.NewBool(true),
-		Fields:       optional.NewString("Overview,Path,Genres,Tags"),
-		EnableImages: optional.NewBool(true),
-	}
-
-	response, _, err := e.client.ItemsServiceApi.GetItems(ctx, &opts)
-	if err != nil {
-		log.Error().
-			Err(err).
-			Str("collectionID", collectionID).
-			Msg("Failed to fetch collection items from Emby")
-		return nil, err
-	}
-
-	if response.Items == nil || len(response.Items) == 0 {
-		log.Info().
-			Str("collectionID", collectionID).
-			Msg("No items found in collection")
-		return nil, nil
-	}
-
-	items, err := GetMixedMediaItems(e, ctx, response.Items)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Info().
-		Str("collectionID", collectionID).
-		Int("itemCount", items.GetTotalItems()).
-		Msg("Successfully retrieved collection items from Emby")
-
-	return items, nil
 }
