@@ -193,7 +193,8 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 {
   "clientID": {{getEmbyClients.response.body.$.data[0].id}},
   "clientType": "emby",
-  "syncType": "history"
+  "syncType": "history",
+  "frequency": "daily"
 }
 
 ###
@@ -206,7 +207,8 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 {
   "clientID": {{getJellyfinClients.response.body.$.data[0].id}},
   "clientType": "jellyfin",
-  "syncType": "history"
+  "syncType": "history",
+  "frequency": "daily"
 }
 
 ###
@@ -219,7 +221,8 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 {
   "clientID": {{getPlexClients.response.body.$.data[0].id}},
   "clientType": "plex",
-  "syncType": "history"
+  "syncType": "history",
+  "frequency": "daily"
 }
 
 
@@ -233,7 +236,8 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 {
   "clientID": {{getSubsonicClients.response.body.$.data[0].id}},
   "clientType": "subsonic",
-  "syncType": "history"
+  "syncType": "history",
+  "frequency": "daily"
 }
 
 ###
@@ -286,3 +290,215 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   "syncType": "history"
 }
 
+
+###
+# @name setUpEmbyPlaylistSync
+# Setup movie sync from Emby
+POST http://localhost:8080/api/v1/jobs/media-sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{getEmbyClients.response.body.$.data[0].id}},
+  "clientType": "emby",
+  "syncType": "playlists",
+  "frequency": "daily"
+}
+
+###
+# @name setUpJellyfinPlaylistSync
+# Setup movie sync from Jellyfin
+POST http://localhost:8080/api/v1/jobs/media-sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{getJellyfinClients.response.body.$.data[0].id}},
+  "clientType": "jellyfin",
+  "syncType": "playlists",
+  "frequency": "daily"
+}
+
+###
+# @name setUpPlexPlaylistSync
+# Setup movie sync from Plex
+POST http://localhost:8080/api/v1/jobs/media-sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{getPlexClients.response.body.$.data[0].id}},
+  "clientType": "plex",
+  "syncType": "playlists",
+  "frequency": "daily"
+}
+
+###
+# @name setUpSubsonicPlaylistSync
+# Setup movie sync from Subsonic
+POST http://localhost:8080/api/v1/jobs/media-sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{getSubsonicClients.response.body.$.data[0].id}},
+  "clientType": "subsonic",
+  "syncType": "playlists",
+  "frequency": "daily"
+}
+
+
+###
+# @name runEmbyPlaylistSync
+# Run Emby movie sync manually
+POST http://localhost:8080/api/v1/jobs/media-sync/run
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{getEmbyClients.response.body.$.data[0].id}},
+  "syncType": "playlists"
+}
+
+###
+# @name runJellyfinPlaylistSync
+# Run Jellyfin movie sync manually
+POST http://localhost:8080/api/v1/jobs/media-sync/run
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{getJellyfinClients.response.body.$.data[0].id}},
+  "syncType": "playlists"
+}
+
+###
+# @name runPlexPlaylistSync
+# Run Plex movie sync manually
+POST http://localhost:8080/api/v1/jobs/media-sync/run
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{getPlexClients.response.body.$.data[0].id}},
+  "syncType": "playlists"
+}
+
+###
+# @name runSubsonicPlaylistSync
+# Run Subsonic movie sync manually
+POST http://localhost:8080/api/v1/jobs/media-sync/run
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{getSubsonicClients.response.body.$.data[0].id}},
+  "syncType": "playlists"
+}
+
+###
+# @name setUpEmbyCollectionSync
+# Setup movie sync from Emby
+POST http://localhost:8080/api/v1/jobs/media-sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{getEmbyClients.response.body.$.data[0].id}},
+  "clientType": "emby",
+  "syncType": "collections",
+  "frequency": "daily"
+}
+
+###
+# @name setUpJellyfinCollectionSync
+# Setup movie sync from Jellyfin
+POST http://localhost:8080/api/v1/jobs/media-sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{getJellyfinClients.response.body.$.data[0].id}},
+  "clientType": "jellyfin",
+  "syncType": "collections",
+  "frequency": "daily"
+}
+
+###
+# @name setUpPlexCollectionSync
+# Setup movie sync from Plex
+POST http://localhost:8080/api/v1/jobs/media-sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{getPlexClients.response.body.$.data[0].id}},
+  "clientType": "plex",
+  "syncType": "collections",
+  "frequency": "daily"
+}
+
+
+###
+# @name setUpSubsonicCollectionSync
+# Setup movie sync from Subsonic
+POST http://localhost:8080/api/v1/jobs/media-sync
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{getSubsonicClients.response.body.$.data[0].id}},
+  "clientType": "subsonic",
+  "syncType": "collections",
+  "frequency": "daily"
+}
+
+
+###
+# @name runEmbyCollectionSync
+# Run Emby movie sync manually
+POST http://localhost:8080/api/v1/jobs/media-sync/run
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{getEmbyClients.response.body.$.data[0].id}},
+  "syncType": "collections"
+}
+
+
+###
+# @name runJellyfinCollectionSync
+# Run Jellyfin movie sync manually
+POST http://localhost:8080/api/v1/jobs/media-sync/run
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{getJellyfinClients.response.body.$.data[0].id}},
+  "syncType": "collections"
+}
+
+###
+# @name runPlexCollectionSync
+# Run Plex movie sync manually
+POST http://localhost:8080/api/v1/jobs/media-sync/run
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{getPlexClients.response.body.$.data[0].id}},
+  "syncType": "collections"
+}
+
+###
+# @name runSubsonicCollectionSync
+# Run Subsonic movie sync manually
+POST http://localhost:8080/api/v1/jobs/media-sync/run
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "clientID": {{getSubsonicClients.response.body.$.data[0].id}},
+  "syncType": "collections"
+}

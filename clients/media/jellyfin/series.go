@@ -31,15 +31,15 @@ func (j *JellyfinClient) GetSeries(ctx context.Context, options *t.QueryOptions)
 	itemsReq := j.client.ItemsAPI.GetItems(ctx).
 		IncludeItemTypes(includeItemTypes).
 		Recursive(true)
-		
+
 	// Set user ID first if available to ensure it's never nil
 	if j.getUserID() != "" {
 		itemsReq.UserId(j.getUserID())
 	}
 
 	// Then apply any additional options
-	if queryOptions := NewJellyfinQueryOptions(options); queryOptions != nil {
-		queryOptions.SetItemsRequest(&itemsReq)
+	if queryOptions := NewJellyfinQueryOptions(ctx, options); queryOptions != nil {
+		queryOptions.SetItemsRequest(ctx, &itemsReq)
 	}
 
 	result, resp, err := itemsReq.Execute()
@@ -106,7 +106,7 @@ func (j *JellyfinClient) GetSeriesByID(ctx context.Context, id string) (models.M
 		Msg("Making API request to Jellyfin server")
 
 	itemsReq := j.client.ItemsAPI.GetItems(ctx).Ids(strings.Split(ids, ","))
-	
+
 	// Set user ID if available
 	if j.getUserID() != "" {
 		itemsReq.UserId(j.getUserID())
@@ -194,7 +194,7 @@ func (j *JellyfinClient) GetSeriesSeasons(ctx context.Context, showID string) ([
 	seasonsReq := j.client.TvShowsAPI.GetSeasons(ctx, showID).
 		EnableImages(true).
 		EnableUserData(true)
-		
+
 	// Set user ID if available
 	if j.getUserID() != "" {
 		seasonsReq.UserId(j.getUserID())
@@ -265,7 +265,7 @@ func (j *JellyfinClient) GetSeriesEpisodes(ctx context.Context, showID string, s
 		Msg("Making API request to Jellyfin server for TV show episodes")
 
 	episodesReq := j.client.TvShowsAPI.GetEpisodes(ctx, showID).Season(seasonNum)
-	
+
 	// Set user ID if available
 	if j.getUserID() != "" {
 		episodesReq.UserId(j.getUserID())
@@ -339,7 +339,7 @@ func (j *JellyfinClient) GetEpisodeByID(ctx context.Context, id string) (*models
 		Msg("Making API request to Jellyfin server")
 
 	itemsReq := j.client.ItemsAPI.GetItems(ctx).Ids(strings.Split(ids, ","))
-	
+
 	// Set user ID if available
 	if j.getUserID() != "" {
 		itemsReq.UserId(j.getUserID())

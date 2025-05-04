@@ -28,7 +28,6 @@ require (
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.4
 	github.com/teilomillet/gollm v0.1.9
-	go.uber.org/mock v0.5.1
 	golang.org/x/crypto v0.37.0
 	golang.org/x/oauth2 v0.28.0
 	gorm.io/driver/postgres v1.5.11

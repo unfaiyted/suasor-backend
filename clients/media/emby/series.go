@@ -30,7 +30,7 @@ func (e *EmbyClient) GetSeries(ctx context.Context, options *types.QueryOptions)
 		Recursive:        optional.NewBool(true),
 	}
 
-	ApplyClientQueryOptions(&queryParams, options)
+	ApplyClientQueryOptions(ctx, &queryParams, options)
 
 	items, resp, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
 	if err != nil {
@@ -371,7 +371,7 @@ func getEpisodes(ctx context.Context, e *EmbyClient, seriesID string, seasonNumb
 			Str("seriesID", seriesID).
 			Int("seasonNumber", seasonNumber).
 			Msg("Failed to find season ID for TV show from Emby")
-		return nil, fmt.Errorf("failed to find season ID: %w", err)
+		return nil, fmt.Errorf("season with number %d not found for series ID %s", seasonNumber, seriesID)
 	}
 	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
 		ParentId:  optional.NewString(seasonID),

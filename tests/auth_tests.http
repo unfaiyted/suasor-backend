@@ -24,6 +24,12 @@ Content-Type: application/json
   "password": "TestPassword123"
 }
 
+> {%
+  client.test("Register with existing email should fail", function() {
+    assert.responseHas('responseCode',409)
+  });
+%}
+
 ###
 # @name registerInvalidData
 # @description Attempt to register a user with invalid data (should fail)
@@ -35,6 +41,12 @@ Content-Type: application/json
   "username": "u",
   "password": "short"
 }
+
+> {%
+  client.test("Register with invalid data should fail", function() {
+    assert.responseHas('responseCode', 400)
+  });
+%}
 
 ###
 # @name loginWithExistingAdmin
@@ -52,6 +64,12 @@ Content-Type: application/json
   "password": "WrongPassword123"
 }
 
+> {%
+  client.test("Login with invalid credentials should fail", function() {
+    assert.responseHas('responseCode', 401)
+  });
+%}
+
 ###
 # @name loginInvalidFormat
 # @description Attempt to login with invalid format (should fail)
@@ -62,6 +80,12 @@ Content-Type: application/json
   "email": "not-an-email",
   "password": "pass"
 }
+
+> {%
+  client.test("Login with invalid format should fail", function() {
+    assert.responseHas('responseCode', 400)
+  });
+%}
 
 ###
 # @name refreshToken
@@ -83,6 +107,15 @@ Content-Type: application/json
   "refreshToken": "invalid.refresh.token"
 }
 
+> {%
+  client.test("Refresh with invalid token should fail", function() {
+    // Allow for either 401 or 400 response code
+    client.test("Response code is 401 or 400", function() {
+      assert(response.status === 401 || response.status === 400)
+    });
+  });
+%}
+
 ###
 # @name validateSession
 # @description Validate the current session
@@ -94,6 +127,12 @@ Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
 # @description Attempt to validate with an invalid token (should fail)
 GET {{baseUrl}}/auth/validate
 Authorization: Bearer invalid.access.token
+
+> {%
+  client.test("Validate session with invalid token should fail", function() {
+    assert.responseHas('responseCode', 401)
+  });
+%}
 
 ###
 # @name logout
@@ -115,11 +154,26 @@ Content-Type: application/json
   "refreshToken": "invalid.refresh.token"
 }
 
+> {%
+  client.test("Logout with invalid token should fail", function() {
+    // Allow for either 401 or 400 response code
+    client.test("Response code is 401 or 400", function() {
+      assert(response.status === 401 || response.status === 400)
+    });
+  });
+%}
+
 ###
 # @name validateAfterLogout
 # @description Validate session after logout (should fail)
 GET {{baseUrl}}/auth/validate
 Authorization: Bearer {{adminLogin.response.body.$.data.accessToken}}
+
+> {%
+  client.test("Validate session after logout should fail", function() {
+    assert.responseHas('responseCode', 401)
+  });
+%}
 
 # Create a persistent test user that we can use in later tests
 run #getPersistentTestUser

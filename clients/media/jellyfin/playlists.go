@@ -32,8 +32,8 @@ func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 		IncludeItemTypes(includeItemTypes).
 		Recursive(true)
 
-	NewJellyfinQueryOptions(options).
-		SetItemsRequest(&itemsReq)
+	NewJellyfinQueryOptions(ctx, options).
+		SetItemsRequest(ctx, &itemsReq)
 
 	// Get playlists from Jellyfin
 	response, _, err := itemsReq.Execute()

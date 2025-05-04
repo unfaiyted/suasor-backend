@@ -25,6 +25,7 @@ func RegisterClientMediaItemRoutes(ctx context.Context, rg *gin.RouterGroup, c *
 	{
 		registerClientItemRoutes[*mediatypes.Movie](ctx, clientGroup, c)
 		registerClientItemRoutes[*mediatypes.Series](ctx, clientGroup, c)
+		registerClientItemRoutes[*mediatypes.Episode](ctx, clientGroup, c)
 		registerClientItemRoutes[*mediatypes.Track](ctx, clientGroup, c)
 		registerClientItemRoutes[*mediatypes.Album](ctx, clientGroup, c)
 		registerClientItemRoutes[*mediatypes.Artist](ctx, clientGroup, c)
@@ -110,6 +111,9 @@ func registerClientItemRoutes[T mediatypes.MediaData](ctx context.Context, rg *g
 		break
 	case mediatypes.MediaTypeSeries:
 		registerClientSeriesRoutes(ctx, itemGroup, c)
+		break
+	case mediatypes.MediaTypeEpisode:
+		registerClientEpisodeRoutes(ctx, itemGroup, c)
 		break
 	case mediatypes.MediaTypeTrack:
 		// TODO: Add track-specific routes

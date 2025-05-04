@@ -23,6 +23,16 @@ func GetItem[T types.MediaData](
 	return media.ConvertTo[*EmbyClient, *embyclient.BaseItemDto, T](
 		client, ctx, item)
 }
+
+func GetPlaylistItem(
+	ctx context.Context,
+	client *EmbyClient,
+	item *embyclient.PlaylistsPlaylistCreationResult,
+) (*types.Playlist, error) {
+	return media.ConvertTo[*EmbyClient, *embyclient.PlaylistsPlaylistCreationResult, *types.Playlist](
+		client, ctx, item)
+}
+
 func GetMediaItem[T types.MediaData](
 	ctx context.Context,
 	client *EmbyClient,
@@ -293,42 +303,53 @@ func GetMixedMediaItemsData(
 }
 
 // Converts intenal mapped QueryOptions to external Emby API query options
-func ApplyClientQueryOptions(queryParams *embyclient.ItemsServiceApiGetItemsOpts, options *types.QueryOptions) {
+func ApplyClientQueryOptions(ctx context.Context, queryParams *embyclient.ItemsServiceApiGetItemsOpts, options *types.QueryOptions) {
+	log := logger.LoggerFromContext(ctx)
 	if options == nil {
+		log.Debug().Msg("No options provided, skipping query options")
 		return
 	}
 
 	if options.ItemIDs != "" {
+		log.Debug().Str("itemIDs", options.ItemIDs).Msg("Applying item IDs filter")
 		queryParams.Ids = optional.NewString(options.ItemIDs)
 	}
 
 	if options.Limit > 0 {
+		log.Debug().Int("limit", options.Limit).Msg("Applying limit filter")
 		queryParams.Limit = optional.NewInt32(int32(options.Limit))
 	}
 
 	if options.Offset > 0 {
+		log.Debug().Int("offset", options.Offset).Msg("Applying offset filter")
 		queryParams.StartIndex = optional.NewInt32(int32(options.Offset))
 	}
 
 	if options.Sort != "" {
+		log.Debug().Str("sort", string(options.Sort)).Msg("Applying sort filter")
 		// TODO: Look into mapping the SortBy to emby definitions
 		queryParams.SortBy = optional.NewString(string(options.Sort))
 		if options.SortOrder == "desc" {
+			log.Debug().Msg("Applying descending sort order")
 			queryParams.SortOrder = optional.NewString("Descending")
 		} else {
+			log.Debug().Msg("Applying ascending sort order")
 			queryParams.SortOrder = optional.NewString("Ascending")
 		}
 	}
 
 	// Apply search term (should be outside the filters check)
 	if options.Query != "" {
+		log.Debug().Str("query", options.Query).Msg("Applying search term filter")
 		queryParams.SearchTerm = optional.NewString(options.Query)
 		// Also enable recursive search when searching
 		if !queryParams.Recursive.IsSet() {
+			log.Debug().Msg("Enabling recursive search")
 			queryParams.Recursive = optional.NewBool(true)
 		}
 		// Increase the limit for search results if not explicitly set
 		if options.Limit <= 0 && !queryParams.Limit.IsSet() {
+			log.Debug().Msg("Increasing default search limit")
 			queryParams.Limit = optional.NewInt32(50) // Higher default for searches
 		}
 	}
@@ -337,35 +358,42 @@ func ApplyClientQueryOptions(queryParams *embyclient.ItemsServiceApiGetItemsOpts
 
 	// Media type filter
 	if options.MediaType != "" {
+		log.Debug().Str("mediaType", string(options.MediaType)).Msg("Applying media type filter")
 		queryParams.IncludeItemTypes = optional.NewString(string(options.MediaType))
 	}
 
 	// Genre filter
 	if options.Genre != "" {
+		log.Debug().Str("genre", options.Genre).Msg("Applying genre filter")
 		queryParams.Genres = optional.NewString(options.Genre)
 	}
 
 	// Favorite filter
 	if options.Favorites {
+		log.Debug().Msg("Applying favorite filter")
 		queryParams.IsFavorite = optional.NewBool(true)
 	}
 
 	// Year filter
 	if options.Year > 0 {
+		log.Debug().Int("year", options.Year).Msg("Applying year filter")
 		queryParams.Years = optional.NewString(fmt.Sprintf("%d", options.Year))
 	}
 
 	// Person filters
 	if options.Actor != "" {
+		log.Debug().Str("actor", options.Actor).Msg("Applying actor filter")
 		queryParams.Person = optional.NewString(options.Actor)
 	}
 
 	if options.Director != "" {
+		log.Debug().Str("director", options.Director).Msg("Applying director filter")
 		queryParams.Person = optional.NewString(options.Director)
 	}
 
 	// Creator filter
 	if options.Creator != "" {
+		log.Debug().Str("creator", options.Creator).Msg("Applying creator filter")
 		queryParams.Person = optional.NewString(options.Creator)
 	}
 
@@ -373,54 +401,63 @@ func ApplyClientQueryOptions(queryParams *embyclient.ItemsServiceApiGetItemsOpts
 
 	// Content rating filter
 	if options.ContentRating != "" {
+		log.Debug().Str("contentRating", options.ContentRating).Msg("Applying content rating filter")
 		queryParams.OfficialRatings = optional.NewString(options.ContentRating)
 	}
 
 	// Tags filter
 	if len(options.Tags) > 0 {
+		log.Debug().Strs("tags", options.Tags).Msg("Applying tags filter")
 		queryParams.Tags = optional.NewString(strings.Join(options.Tags, ","))
 	}
 
 	// Recently added filter
 	if options.RecentlyAdded {
+		log.Debug().Msg("Applying recently added filter")
 		queryParams.SortBy = optional.NewString("DateCreated,SortName")
 		queryParams.SortOrder = optional.NewString("Descending")
 	}
 
 	// Recently played filter
 	if options.RecentlyPlayed {
+		log.Debug().Msg("Applying recently played filter")
 		queryParams.SortBy = optional.NewString("DatePlayed,SortName")
 		queryParams.SortOrder = optional.NewString("Descending")
 	}
 
 	// Unwatched filter
 	if options.Watched {
+		log.Debug().Msg("Applying unwatched filter")
 		queryParams.IsPlayed = optional.NewBool(true)
 	}
 
 	// Date filters
 	if options.DateAddedAfter != nil {
+		log.Debug().Time("dateAddedAfter", *options.DateAddedAfter).Msg("Applying date added after filter")
 		queryParams.MinDateLastSaved = optional.NewString(options.DateAddedAfter.Format(time.RFC3339))
 	}
 
 	if options.DateAddedBefore != nil {
+		log.Debug().Time("dateAddedBefore", *options.DateAddedBefore).Msg("Applying date added before filter")
 		queryParams.MaxPremiereDate = optional.NewString(options.DateAddedBefore.Format(time.RFC3339))
 	}
 
 	if options.ReleasedAfter != nil {
+		log.Debug().Time("releasedAfter", *options.ReleasedAfter).Msg("Applying released after filter")
 		queryParams.MinPremiereDate = optional.NewString(options.ReleasedAfter.Format(time.RFC3339))
 	}
 
 	if options.ReleasedBefore != nil {
+		log.Debug().Time("releasedBefore", *options.ReleasedBefore).Msg("Applying released before filter")
 		queryParams.MaxPremiereDate = optional.NewString(options.ReleasedBefore.Format(time.RFC3339))
 	}
 
 	// Rating filter
 	if options.MinimumRating > 0 {
+		log.Debug().Float32("minimumRating", options.MinimumRating).Msg("Applying minimum rating filter")
 		queryParams.MinCommunityRating = optional.NewFloat64(float64(options.MinimumRating))
 	}
 
-	// Debug logging removed to avoid logger dependency
 }
 
 func convertToExternalIDs(providerIds *map[string]string) types.ExternalIDs {

@@ -197,12 +197,14 @@ func (h *clientMediaItemHandler[T, U]) GetAllClientItems(c *gin.Context) {
 	var zero U
 	mediaType := types.GetMediaTypeFromTypeName(zero)
 
-	limit := utils.GetLimit(c, 20, 100, true)
+	limit := utils.GetLimit(c, 20, 100, false)
 	offset := utils.GetOffset(c, 0)
 
 	log.Debug().
 		Uint64("clientID", clientID).
 		Str("mediaType", string(mediaType)).
+		Int("limit", limit).
+		Int("offset", offset).
 		Msg("Getting media items by client")
 
 	var items []*models.MediaItem[U]
@@ -731,9 +733,20 @@ func (h *clientMediaItemHandler[T, U]) SearchClient(c *gin.Context) {
 	if query != "" {
 		options.Query = query
 	}
+	mediaType := types.GetMediaType[U]()
 
 	// Set the client ID in the options
 	options.WithClientID(clientID)
+	options.WithMediaType(mediaType)
+
+	// if there is no limit set, set it to 20
+	if options.Limit == 0 {
+		options.Limit = 20
+	}
+	// offset is set to 0 by default
+	if options.Offset == 0 {
+		options.Offset = 0
+	}
 
 	log.Debug().
 		Uint64("clientID", clientID).

@@ -62,7 +62,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 ###
 
 # @name createJellyfinClient
-POST http://localhost:8080/api/v1/client/jellyfin HTTP/1.1
+POST http://localhost:8080/api/v1/admin/client/jellyfin HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -92,7 +92,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 ###
 
 # @name createLidarrClient
-POST http://localhost:8080/api/v1/client/lidarr HTTP/1.1
+POST http://localhost:8080/api/v1/admin/client/lidarr HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 

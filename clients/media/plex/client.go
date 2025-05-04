@@ -70,7 +70,7 @@ func (c *PlexClient) plexConfig() *clienttypes.PlexConfig {
 	if c.config != nil {
 		return c.config
 	}
-	
+
 	// If not, try to get from the client interface
 	cfg, ok := c.GetConfig().(*clienttypes.PlexConfig)
 	if !ok {
@@ -89,4 +89,3 @@ func (c *PlexClient) TestConnection(ctx context.Context) (bool, error) {
 	}
 	return true, nil
 }
-

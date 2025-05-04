@@ -25,8 +25,8 @@ func (j *JellyfinClient) GetPlayHistory(ctx context.Context, options *t.QueryOpt
 		UserId(j.config.UserID).
 		IsPlayed(true)
 
-	NewJellyfinQueryOptions(options).
-		SetItemsRequest(&userItemData)
+	NewJellyfinQueryOptions(ctx, options).
+		SetItemsRequest(ctx, &userItemData)
 
 	results, resp, err := userItemData.Execute()
 

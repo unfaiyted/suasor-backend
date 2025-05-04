@@ -4,7 +4,11 @@ import ./client_media_common.http
 ### Run the common setup to get valid clients and authentication token
 run #login
 run #createEmbyClient
+run #createJellyfinClient
+run #createPlexClient
 run #createSubsonicClient
+
+### Emby Music Tests
 
 
 ###
@@ -101,7 +105,116 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   }
 }
 
-## Subsonic Music Tests (abbreviated for brevity)
+### Jellyfin Music Tests
+
+###
+# @name getAllJellyfinArtists
+# Get all artists from Jellyfin
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/artist
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getJellyfinArtistByID
+# Get a specific artist from Jellyfin by ID
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/artist/{{TEST_JELLYFIN_ARTIST_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getJellyfinAlbumsByArtistID
+# Get albums for a specific artist from Jellyfin
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/artist/{{TEST_JELLYFIN_ARTIST_ID}}/albums
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getJellyfinAlbumByID
+# Get a specific album from Jellyfin by ID
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/album/{{TEST_JELLYFIN_ALBUM_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getJellyfinTrackByID
+# Get a specific track from Jellyfin
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/track/{{TEST_JELLYFIN_TRACK_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getJellyfinTracksByAlbumID
+# Get tracks for a specific album from Jellyfin
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/album/{{TEST_JELLYFIN_ALBUM_ID}}/tracks
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name searchJellyfinMusic
+# Search for music in Jellyfin
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/music/search?q={{TEST_SEARCH_QUERY}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Plex Music Tests
+
+###
+# @name getAllPlexArtists
+# Get all artists from Plex
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/artist
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPlexArtistByID
+# Get a specific artist from Plex by ID
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/artist/{{TEST_PLEX_ARTIST_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPlexAlbumsByArtistID
+# Get albums for a specific artist from Plex
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/artist/{{TEST_PLEX_ARTIST_ID}}/albums
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPlexAlbumByID
+# Get a specific album from Plex by ID
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/album/{{TEST_PLEX_ALBUM_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPlexTrackByID
+# Get a specific track from Plex
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/track/{{TEST_PLEX_TRACK_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPlexTracksByAlbumID
+# Get tracks for a specific album from Plex
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/album/{{TEST_PLEX_ALBUM_ID}}/tracks
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name searchPlexMusic
+# Search for music in Plex
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/music/search?q={{TEST_SEARCH_QUERY}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Subsonic Music Tests
+
+###
+# @name getAllSubsonicArtists
+# Get all artists from Subsonic
+GET {{baseUrl}}/client/{{createSubsonicClient.response.body.$.data.id}}/media/artist
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ###
 # @name getSubsonicArtistByID
@@ -111,9 +224,9 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 ###
-# @name getAllSubsonicArtists
-# Get all artists from Subsonic
-GET {{baseUrl}}/client/{{createSubsonicClient.response.body.$.data.id}}/media/artist
+# @name getSubsonicAlbumsByArtistID
+# Get albums for a specific artist from Subsonic
+GET {{baseUrl}}/client/{{createSubsonicClient.response.body.$.data.id}}/media/artist/{{TEST_SUBSONIC_ARTIST_ID}}/albums
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -128,5 +241,19 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 # @name getSubsonicTrackByID
 # Get a specific track from Subsonic
 GET {{baseUrl}}/client/{{createSubsonicClient.response.body.$.data.id}}/media/track/{{TEST_SUBSONIC_TRACK_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getSubsonicTracksByAlbumID
+# Get tracks for a specific album from Subsonic
+GET {{baseUrl}}/client/{{createSubsonicClient.response.body.$.data.id}}/media/album/{{TEST_SUBSONIC_ALBUM_ID}}/tracks
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name searchSubsonicMusic
+# Search for music in Subsonic
+GET {{baseUrl}}/client/{{createSubsonicClient.response.body.$.data.id}}/media/music/search?q={{TEST_SEARCH_QUERY}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}

@@ -139,23 +139,14 @@ func (s *clientMediaItemService[T, U]) fetchItemFromClient(ctx context.Context, 
 	switch mediaType {
 	case types.MediaTypeMovie:
 		movieProvider, _ := provider.(providers.MovieProvider)
-		options := &types.QueryOptions{
-			MediaType: mediaType,
-			ItemIDs:   itemID,
-		}
-		movies, err := movieProvider.GetMovies(ctx, options)
+
+		movie, err := movieProvider.GetMovieByID(ctx, itemID)
 		if err != nil {
 			return nil, err
 		}
-		if len(movies) == 0 {
-			return nil, fmt.Errorf("movie not found")
-		}
-		if len(movies) > 1 {
-			return nil, fmt.Errorf("multiple movies found")
-		}
 
 		// Convert from, to generic types
-		mediaItem = models.NewMediaItemCopy[*types.Movie, U](movies[0])
+		mediaItem = models.NewMediaItemCopy[*types.Movie, U](movie)
 
 	case types.MediaTypeSeries, types.MediaTypeSeason, types.MediaTypeEpisode:
 		seriesProvider, _ := provider.(providers.SeriesProvider)
@@ -868,8 +859,7 @@ func (s *clientMediaItemService[T, U]) SearchClient(ctx context.Context, clientI
 		Interface("options", options).
 		Msg("Searching media items in client")
 
-	var zero U
-	mediaType := types.GetMediaTypeFromTypeName(zero)
+	mediaType := types.GetMediaType[U]()
 	// Create query options and ensure clientID is set
 	options.WithClientID(clientID)
 	options.WithMediaType(mediaType)

@@ -148,6 +148,11 @@ func registerSpecializedMediaHandlers(c *container.Container) {
 	registerClientSeriesHandler[*clienttypes.EmbyConfig](c)
 	registerClientSeriesHandler[*clienttypes.JellyfinConfig](c)
 	registerClientSeriesHandler[*clienttypes.PlexConfig](c)
+	
+	// Register client episode handlers
+	registerClientEpisodeHandler[*clienttypes.EmbyConfig](c)
+	registerClientEpisodeHandler[*clienttypes.JellyfinConfig](c)
+	registerClientEpisodeHandler[*clienttypes.PlexConfig](c)
 }
 
 func registerCoreMediaItemHandler[T mediatypes.MediaData](c *container.Container) {
@@ -177,5 +182,13 @@ func registerClientSeriesHandler[T clienttypes.ClientMediaConfig](c *container.C
 		coreHandler := container.MustGet[handlers.CoreSeriesHandler](c)
 		clientService := container.MustGet[services.ClientSeriesService[T]](c)
 		return handlers.NewClientSeriesHandler[T](coreHandler, clientService)
+	})
+}
+
+// Register client episode handler
+func registerClientEpisodeHandler[T clienttypes.ClientMediaConfig](c *container.Container) {
+	container.RegisterFactory[handlers.ClientEpisodeHandler[T]](c, func(c *container.Container) handlers.ClientEpisodeHandler[T] {
+		clientService := container.MustGet[services.ClientSeriesService[T]](c)
+		return handlers.NewClientEpisodeHandler[T](clientService)
 	})
 }

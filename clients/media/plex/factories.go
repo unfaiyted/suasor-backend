@@ -23,6 +23,14 @@ func RegisterMediaItemFactories(c *container.Container) {
 			return client.movieFactory(ctx, item)
 		},
 	)
+	
+	// Register factory for GetMediaMetaData response type for Movie
+	media.RegisterFactory[*PlexClient, *operations.GetMediaMetaDataMetadata, *types.Movie](
+		&registry,
+		func(client *PlexClient, ctx context.Context, item *operations.GetMediaMetaDataMetadata) (*types.Movie, error) {
+			return client.movieMetadataFactory(ctx, item)
+		},
+	)
 
 	media.RegisterFactory[*PlexClient, *operations.GetLibraryItemsMetadata, *types.Series](
 		&registry,
@@ -84,7 +92,7 @@ func RegisterMediaItemFactories(c *container.Container) {
 	// Add more factory registrations for other Plex-specific types as needed
 }
 
-// Factory function for Movie
+// Factory function for Movie from LibraryItems
 func (c *PlexClient) movieFactory(ctx context.Context, item *operations.GetLibraryItemsMetadata) (*types.Movie, error) {
 	log := logger.LoggerFromContext(ctx)
 
@@ -95,7 +103,7 @@ func (c *PlexClient) movieFactory(ctx context.Context, item *operations.GetLibra
 	log.Debug().
 		Str("movieID", item.RatingKey).
 		Str("movieTitle", item.Title).
-		Msg("Converting Plex item to movie format")
+		Msg("Converting Plex library item to movie format")
 
 	// Create base metadata using helper
 	metadata := c.createDetailsFromLibraryMetadata(item)
@@ -109,7 +117,44 @@ func (c *PlexClient) movieFactory(ctx context.Context, item *operations.GetLibra
 		Str("movieID", item.RatingKey).
 		Str("movieTitle", movie.Details.Title).
 		Int("year", movie.Details.ReleaseYear).
-		Msg("Successfully converted Plex item to movie")
+		Msg("Successfully converted Plex library item to movie")
+
+	return movie, nil
+}
+
+// Factory function for Movie from MediaMetaData
+func (c *PlexClient) movieMetadataFactory(ctx context.Context, item *operations.GetMediaMetaDataMetadata) (*types.Movie, error) {
+	log := logger.LoggerFromContext(ctx)
+
+	if item.RatingKey == "" {
+		return nil, fmt.Errorf("movie is missing required ID field (RatingKey)")
+	}
+
+	log.Debug().
+		Str("movieID", item.RatingKey).
+		Str("movieTitle", item.Title).
+		Msg("Converting Plex metadata item to movie format")
+
+	// Create base metadata using helper
+	metadata := c.createDetailsFromMediaMetadata(item)
+	
+	// Make sure metadata is not nil
+	if metadata == nil {
+		metadata = &types.MediaDetails{
+			Title: item.Title,
+		}
+	}
+
+	// Create the movie object
+	movie := &types.Movie{
+		Details: metadata,
+	}
+
+	log.Debug().
+		Str("movieID", item.RatingKey).
+		Str("movieTitle", movie.Details.Title).
+		Int("year", movie.Details.ReleaseYear).
+		Msg("Successfully converted Plex metadata item to movie")
 
 	return movie, nil
 }

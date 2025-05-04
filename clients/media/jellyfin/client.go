@@ -8,7 +8,9 @@ import (
 
 	jellyfin "github.com/sj14/jellyfin-go/api"
 	"suasor/clients/media"
+	mediatypes "suasor/clients/media/types"
 	clienttypes "suasor/clients/types"
+	"suasor/types/responses"
 	"suasor/utils/logger"
 )
 
@@ -137,3 +139,66 @@ func (j *JellyfinClient) TestConnection(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
+// Search implements the Search method for JellyfinClient
+// This overrides the default implementation to provide better search results
+func (j *JellyfinClient) Search(ctx context.Context, options *mediatypes.QueryOptions) (responses.SearchResults, error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Info().
+		Str("query", options.Query).
+		Str("mediaType", string(options.MediaType)).
+		Msg("Searching media items in Jellyfin")
+
+	var results responses.SearchResults
+
+	// If no query, return empty results
+	if options.Query == "" {
+		return results, fmt.Errorf("search query cannot be empty")
+	}
+
+	// Check if mediaType is empty and if it is, set it to ALL
+	if options.MediaType == "" {
+		options.MediaType = mediatypes.MediaTypeAll
+	}
+
+	// Process the search based on media type
+	switch options.MediaType {
+	case mediatypes.MediaTypeMovie:
+		movies, err := j.SearchMovies(ctx, options)
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to search movies")
+			return results, fmt.Errorf("failed to search through client: %w", err)
+		}
+		results.Movies = movies
+
+	case mediatypes.MediaTypeSeries:
+		// TODO: Implement series search when available
+		return results, media.ErrFeatureNotSupported
+
+	case mediatypes.MediaTypeTrack, mediatypes.MediaTypeAlbum, mediatypes.MediaTypeArtist:
+		// TODO: Implement music search when available
+		return results, media.ErrFeatureNotSupported
+
+	case mediatypes.MediaTypePlaylist:
+		// TODO: Implement playlist search when available
+		return results, media.ErrFeatureNotSupported
+
+	case mediatypes.MediaTypeCollection:
+		// TODO: Implement collection search when available
+		return results, media.ErrFeatureNotSupported
+
+	default:
+		// For generic searches, try all supported types
+		// For now we just search movies since that's what we've implemented
+		movies, err := j.SearchMovies(ctx, options)
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to search movies")
+			// Continue with other types even if movies fail
+		} else {
+			results.Movies = movies
+		}
+
+		// TODO: Add series, music, etc. when those search methods are implemented
+	}
+
+	return results, nil
+}

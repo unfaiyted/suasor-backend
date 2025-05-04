@@ -8,7 +8,6 @@ import (
 	"suasor/types/models"
 	"suasor/utils/logger"
 
-	"github.com/LukeHagar/plexgo"
 	"github.com/LukeHagar/plexgo/models/operations"
 )
 
@@ -118,7 +117,8 @@ func (c *PlexClient) GetSeriesSeasons(ctx context.Context, showID string) ([]*mo
 		Float64("ratingKey", float64RatingKey).
 		Msg("Making API request to Plex server for TV show seasons")
 
-	childRes, err := c.plexAPI.Library.GetMetadataChildren(ctx, float64RatingKey, plexgo.String("Stream"))
+	// Don't pass "Stream" as includeElements to avoid 400 Bad Request errors
+	childRes, err := c.plexAPI.Library.GetMetadataChildren(ctx, float64RatingKey, nil)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -157,8 +157,8 @@ func (c *PlexClient) GetSeriesSeasons(ctx context.Context, showID string) ([]*mo
 	return seasons, nil
 }
 
-// GetSeriesEpisodes retrieves episodes for a specific season of a TV show
-func (c *PlexClient) GetSeriesEpisodes(ctx context.Context, showID string, seasonNumber int) ([]*models.MediaItem[*types.Episode], error) {
+// GetSeriesEpisodesBySeasonNbr retrieves episodes for a specific season of a TV show
+func (c *PlexClient) GetSeriesEpisodesBySeasonNbr(ctx context.Context, showID string, seasonNumber int) ([]*models.MediaItem[*types.Episode], error) {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
 
@@ -218,7 +218,8 @@ func (c *PlexClient) GetSeriesEpisodes(ctx context.Context, showID string, seaso
 		Float64("ratingKey", float64RatingKey).
 		Msg("Making API request to Plex server for TV show episodes")
 
-	childRes, err := c.plexAPI.Library.GetMetadataChildren(ctx, float64RatingKey, plexgo.String("Stream"))
+	// Don't pass "Stream" as includeElements to avoid 400 Bad Request errors
+	childRes, err := c.plexAPI.Library.GetMetadataChildren(ctx, float64RatingKey, nil)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -383,4 +384,10 @@ func (c *PlexClient) GetEpisodeByID(ctx context.Context, id string) (*models.Med
 		Msg("Successfully retrieved episode")
 
 	return episode, nil
+}
+
+// GetSeriesEpisodes is an alias for GetSeriesEpisodesBySeasonNbr
+// Kept for backward compatibility
+func (c *PlexClient) GetSeriesEpisodes(ctx context.Context, showID string, seasonNumber int) ([]*models.MediaItem[*types.Episode], error) {
+	return c.GetSeriesEpisodesBySeasonNbr(ctx, showID, seasonNumber)
 }

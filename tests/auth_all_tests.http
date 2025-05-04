@@ -1,0 +1,67 @@
+# Auth All Tests Master Runner
+# Run this file to execute all auth-related tests in sequence
+
+### Initialize the test session
+< {%
+  // Record test start time
+  client.global.set("authTestStartTime", new Date().toISOString());
+  client.log("=== Authentication Test Suite Started ===");
+  client.log("Start time: " + client.global.get("authTestStartTime"));
+  
+  // Initialize test counters
+  client.global.set("authTestsPassed", 0);
+  client.global.set("authTestsFailed", 0);
+  client.global.set("authTestsTotal", 13); // Update this as tests are added
+%}
+
+### Import auth test file
+import ./auth_tests.http
+
+### Registration Tests
+run #register
+run #registerExistingEmail
+run #registerInvalidData
+
+### Login Tests
+run #loginWithExistingAdmin
+run #loginInvalidCredentials
+run #loginInvalidFormat
+
+### Token Tests
+run #refreshToken
+run #refreshTokenInvalid
+
+### Session Validation Tests
+run #validateSession
+run #validateSessionInvalid
+
+### Logout Tests
+run #logout
+run #logoutInvalidToken
+run #validateAfterLogout
+
+### Persistent User Setup
+# This creates a user that persists between test runs for other tests to use
+run #getPersistentTestUser
+run #persistentUserLogin
+
+### Finish the test session
+< {%
+  // Calculate test duration
+  const startTime = new Date(client.global.get("authTestStartTime"));
+  const endTime = new Date();
+  const duration = (endTime - startTime) / 1000;
+  
+  // Log test results
+  client.log("=== Authentication Test Suite Completed ===");
+  client.log("End time: " + endTime.toISOString());
+  client.log("Duration: " + duration + " seconds");
+  
+  // Clean up test session variables
+  client.global.clear("authTestStartTime");
+  client.global.clear("authTestsPassed");
+  client.global.clear("authTestsFailed");
+  client.global.clear("authTestsTotal");
+  
+  client.log("Authentication test suite execution complete");
+%}

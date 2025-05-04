@@ -29,20 +29,77 @@ run #searchEmbyMovies
 run #getEmbyMoviesByGenre
 run #getEmbyMoviesByYear
 
+run #getJellyfinMovieByID
+run #getAllJellyfinMovies
+run #searchJellyfinMovies
+run #getJellyfinMoviesByGenre
+run #getJellyfinMoviesByYear
+
+run #getPlexMovieByID
+run #getAllPlexMovies 
+run #searchPlexMovies
+run #getPlexMoviesByGenre
+run #getPlexMoviesByYear
+
 # Run series tests
-run #getEmbySeriesByID
 run #getAllEmbySeries
+run #getEmbySeriesByID
 run #getEmbyEpisodesBySeriesID
-#run #getJellyfinSeriesByID
+run #getEmbySeasonByID
+run #getEmbyEpisodesBySeasonID
+run #searchEmbySeries
+
 run #getAllPlexSeries
 run #getPlexSeriesByID
+run #getPlexEpisodesBySeriesID
+run #getPlexSeasonByID
+run #getPlexEpisodesBySeasonID
+run #searchPlexSeries
 
-# Run music tests
+run #getAllJellyfinSeries
+run #getJellyfinSeriesByID
+run #getJellyfinEpisodesBySeriesID
+run #getJellyfinSeasonByID
+run #getJellyfinEpisodesBySeasonID
+
+
+# Run music tests - Emby
 run #getAllEmbyArtists
 run #getEmbyArtistByID
+run #getEmbyAlbumsByArtistID
 run #getEmbyAlbumByID
 run #getEmbyTrackByID
+run #getEmbyTracksByAlbumID
+run #searchEmbyMusic
+run #getEmbyMusicByGenre
+run #recordEmbyTrackPlay
+
+# Run music tests - Jellyfin
+run #getAllJellyfinArtists
+run #getJellyfinArtistByID
+run #getJellyfinAlbumsByArtistID
+run #getJellyfinAlbumByID
+run #getJellyfinTrackByID
+run #getJellyfinTracksByAlbumID
+run #searchJellyfinMusic
+
+# Run music tests - Plex
+run #getAllPlexArtists
+run #getPlexArtistByID
+run #getPlexAlbumsByArtistID
+run #getPlexAlbumByID
+run #getPlexTrackByID
+run #getPlexTracksByAlbumID
+run #searchPlexMusic
+
+# Run music tests - Subsonic
+run #getAllSubsonicArtists
 run #getSubsonicArtistByID
+run #getSubsonicAlbumsByArtistID
+run #getSubsonicAlbumByID
+run #getSubsonicTrackByID
+run #getSubsonicTracksByAlbumID
+run #searchSubsonicMusic
 
 # Run multi-client tests
 run #getMediaItemsByMultipleClients

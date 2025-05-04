@@ -37,8 +37,8 @@ func (j *JellyfinClient) GetMusicTracks(ctx context.Context, options *t.QueryOpt
 		itemsReq.UserId(j.getUserID())
 	}
 
-	NewJellyfinQueryOptions(options).
-		SetItemsRequest(&itemsReq)
+	NewJellyfinQueryOptions(ctx, options).
+		SetItemsRequest(ctx, &itemsReq)
 
 	result, resp, err := itemsReq.Execute()
 
@@ -120,7 +120,7 @@ func (j *JellyfinClient) GetMusicArtists(ctx context.Context, options *t.QueryOp
 		artistReq.UserId(j.getUserID())
 	}
 
-	NewJellyfinQueryOptions(options).
+	NewJellyfinQueryOptions(ctx, options).
 		SetArtistsRequest(&artistReq)
 
 	result, resp, err := artistReq.Execute()
@@ -195,8 +195,8 @@ func (j *JellyfinClient) GetMusicAlbums(ctx context.Context, options *t.QueryOpt
 		itemsReq.UserId(j.getUserID())
 	}
 
-	NewJellyfinQueryOptions(options).
-		SetItemsRequest(&itemsReq)
+	NewJellyfinQueryOptions(ctx, options).
+		SetItemsRequest(ctx, &itemsReq)
 
 	result, resp, err := itemsReq.Execute()
 

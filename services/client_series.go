@@ -609,6 +609,8 @@ func (s *clientSeriesService[T]) GetSeasonsBySeriesID(ctx context.Context, clien
 
 // GetEpisodesBySeriesID gets all episodes for a specific series
 func (s *clientSeriesService[T]) GetEpisodesBySeriesID(ctx context.Context, clientID uint64, seriesID string) ([]*models.MediaItem[*mediatypes.Episode], error) {
+	log := logger.LoggerFromContext(ctx)
+	
 	client, err := s.getSeriesProvider(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -619,14 +621,48 @@ func (s *clientSeriesService[T]) GetEpisodesBySeriesID(ctx context.Context, clie
 		return nil, fmt.Errorf("client does not implement series provider interface")
 	}
 
-	// Get episodes for this series
-	episodes, err := showProvider.GetSeriesEpisodesBySeasonNbr(ctx, seriesID, 0)
-	// TODO: get all episodes:
+	// First, get all seasons for this series
+	seasons, err := showProvider.GetSeriesSeasons(ctx, seriesID)
 	if err != nil {
-		return nil, err
+		log.Error().
+			Err(err).
+			Uint64("clientID", clientID).
+			Str("seriesID", seriesID).
+			Msg("Failed to get seasons for series")
+		return nil, fmt.Errorf("failed to get seasons for series: %w", err)
 	}
 
-	return episodes, nil
+	if len(seasons) == 0 {
+		log.Warn().
+			Uint64("clientID", clientID).
+			Str("seriesID", seriesID).
+			Msg("No seasons found for series")
+		return []*models.MediaItem[*mediatypes.Episode]{}, nil
+	}
+
+	// Get episodes for each season and combine them
+	var allEpisodes []*models.MediaItem[*mediatypes.Episode]
+	for _, season := range seasons {
+		// Skip season 0 (specials) for now as it might not exist in all clients
+		if season.Data.Number == 0 {
+			continue
+		}
+
+		seasonEpisodes, err := showProvider.GetSeriesEpisodesBySeasonNbr(ctx, seriesID, season.Data.Number)
+		if err != nil {
+			log.Warn().
+				Err(err).
+				Uint64("clientID", clientID).
+				Str("seriesID", seriesID).
+				Int("seasonNumber", season.Data.Number).
+				Msg("Failed to get episodes for season, continuing with other seasons")
+			continue
+		}
+
+		allEpisodes = append(allEpisodes, seasonEpisodes...)
+	}
+
+	return allEpisodes, nil
 }
 
 // GetEpisodesBySeasonID gets all episodes for a specific season

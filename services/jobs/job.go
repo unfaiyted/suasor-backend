@@ -352,7 +352,8 @@ func (s *jobService) SetupMediaSyncJob(ctx context.Context, userID, clientID uin
 	return s.recommendationJob.SetupMediaSyncJob(ctx, userID, clientID, clientType, syncType, frequency)
 }
 
-// RunMediaSyncJob runs a media sync job manually
+// RunMediaSyncJob runs a media sync job manually in the background
+// and returns immediately to the caller
 func (s *jobService) RunMediaSyncJob(ctx context.Context, userID, clientID uint64, syncType models.SyncType) error {
 	// Validate inputs
 	if userID == 0 || clientID == 0 || syncType == "" {
@@ -368,8 +369,24 @@ func (s *jobService) RunMediaSyncJob(ctx context.Context, userID, clientID uint6
 		return fmt.Errorf("user not found: %d", userID)
 	}
 
-	// Run the sync job
-	return s.mediaSyncJob.SyncUserMediaFromClient(ctx, userID, clientID, syncType)
+	// Launch the sync job in a background goroutine
+	go func() {
+		// Create a new background context with a reasonable timeout
+		jobCtx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+		defer cancel()
+
+		// Create a new logger for this goroutine
+		innerLog := log.New(log.Writer(), log.Prefix(), log.Flags())
+		
+		// Run the sync job
+		if err := s.mediaSyncJob.SyncUserMediaFromClient(jobCtx, userID, clientID, syncType); err != nil {
+			// Log the error but don't return it since we're in a goroutine
+			innerLog.Printf("Error running media sync job for user %d and client %d: %v", userID, clientID, err)
+		}
+	}()
+
+	// Return immediately to the caller
+	return nil
 }
 
 // GetMediaSyncJobs retrieves all media sync jobs for a user

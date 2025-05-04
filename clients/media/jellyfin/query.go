@@ -1,9 +1,11 @@
 package jellyfin
 
 import (
+	"context"
 	jellyfin "github.com/sj14/jellyfin-go/api"
 	"strings"
 	"suasor/clients/media/types"
+	"suasor/utils/logger"
 	"time"
 )
 
@@ -100,231 +102,287 @@ type JellyfinQueryOptions struct {
 }
 
 // NewJellyfinQueryOptions creates a new instance of JellyfinQueryOptions
-func NewJellyfinQueryOptions(options *types.QueryOptions) *JellyfinQueryOptions {
+func NewJellyfinQueryOptions(ctx context.Context, options *types.QueryOptions) *JellyfinQueryOptions {
 	// Always create a new instance
 	jellyfinOptions := &JellyfinQueryOptions{}
 
 	// Only process options if they are provided
 	if options != nil {
-		jellyfinOptions.FromQueryOptions(options)
+		jellyfinOptions.FromQueryOptions(ctx, options)
 	}
 
 	return jellyfinOptions
 }
 
 // ToItemsRequest converts JellyfinQueryOptions to an API request object for GetItems
-func (j *JellyfinQueryOptions) SetItemsRequest(req *jellyfin.ApiGetItemsRequest) {
+func (j *JellyfinQueryOptions) SetItemsRequest(ctx context.Context, req *jellyfin.ApiGetItemsRequest) {
+	log := logger.LoggerFromContext(ctx)
 	// Defensive programming: check for nil pointers
 	if j == nil || req == nil {
+		log.Debug().Msg("No options provided, skipping query options")
 		return
 	}
 
 	// Apply all parameters using method-based approach
 	if j.UserId != nil {
+		log.Debug().Str("userID", *j.UserId).Msg("Applying user ID filter")
 		req.UserId(*j.UserId)
 	}
 
 	if j.MaxOfficialRating != nil {
+		log.Debug().Str("maxOfficialRating", *j.MaxOfficialRating).Msg("Applying max official rating filter")
 		req.MaxOfficialRating(*j.MaxOfficialRating)
 	}
 
 	if j.HasThemeSong != nil {
+		log.Debug().Bool("hasThemeSong", *j.HasThemeSong).Msg("Applying has theme song filter")
 		req.HasThemeSong(*j.HasThemeSong)
 	}
 
 	if j.HasThemeVideo != nil {
+		log.Debug().Bool("hasThemeVideo", *j.HasThemeVideo).Msg("Applying has theme video filter")
 		req.HasThemeVideo(*j.HasThemeVideo)
 	}
 
 	if j.HasSubtitles != nil {
+		log.Debug().Bool("hasSubtitles", *j.HasSubtitles).Msg("Applying has subtitles filter")
 		req.HasSubtitles(*j.HasSubtitles)
 	}
 
 	if j.HasSpecialFeature != nil {
+		log.Debug().Bool("hasSpecialFeature", *j.HasSpecialFeature).Msg("Applying has special feature filter")
 		req.HasSpecialFeature(*j.HasSpecialFeature)
 	}
 
 	if j.HasTrailer != nil {
+		log.Debug().Bool("hasTrailer", *j.HasTrailer).Msg("Applying has trailer filter")
 		req.HasTrailer(*j.HasTrailer)
 	}
 
 	if j.AdjacentTo != nil {
+		log.Debug().Str("adjacentTo", *j.AdjacentTo).Msg("Applying adjacent to filter")
 		req.AdjacentTo(*j.AdjacentTo)
 	}
 
 	if j.IndexNumber != nil {
+		log.Debug().Int32("indexNumber", *j.IndexNumber).Msg("Applying index number filter")
 		req.IndexNumber(*j.IndexNumber)
 	}
 
 	if j.ParentIndexNumber != nil {
+		log.Debug().Int32("parentIndexNumber", *j.ParentIndexNumber).Msg("Applying parent index number filter")
 		req.ParentIndexNumber(*j.ParentIndexNumber)
 	}
 
 	if j.HasParentalRating != nil {
+		log.Debug().Bool("hasParentalRating", *j.HasParentalRating).Msg("Applying has parental rating filter")
 		req.HasParentalRating(*j.HasParentalRating)
 	}
 
 	if j.IsHd != nil {
+		log.Debug().Bool("isHd", *j.IsHd).Msg("Applying is HD filter")
 		req.IsHd(*j.IsHd)
 	}
 
 	if j.Is4K != nil {
+		log.Debug().Bool("is4K", *j.Is4K).Msg("Applying is 4K filter")
 		req.Is4K(*j.Is4K)
 	}
 
 	if j.LocationTypes != nil {
+		log.Debug().Interface("locationTypes", *j.LocationTypes).Msg("Applying location types filter")
 		req.LocationTypes(*j.LocationTypes)
 	}
 
 	if j.ExcludeLocationTypes != nil {
+		log.Debug().Interface("excludeLocationTypes", *j.ExcludeLocationTypes).Msg("Applying exclude location types filter")
 		req.ExcludeLocationTypes(*j.ExcludeLocationTypes)
 	}
 
 	if j.IsMissing != nil {
+		log.Debug().Bool("isMissing", *j.IsMissing).Msg("Applying is missing filter")
 		req.IsMissing(*j.IsMissing)
 	}
 
 	if j.IsUnaired != nil {
+		log.Debug().Bool("isUnaired", *j.IsUnaired).Msg("Applying is unaired filter")
 		req.IsUnaired(*j.IsUnaired)
 	}
 
 	if j.MinCommunityRating != nil {
+		log.Debug().Float64("minCommunityRating", *j.MinCommunityRating).Msg("Applying min community rating filter")
 		req.MinCommunityRating(*j.MinCommunityRating)
 	}
 
 	if j.MinCriticRating != nil {
+		log.Debug().Float64("minCriticRating", *j.MinCriticRating).Msg("Applying min critic rating filter")
 		req.MinCriticRating(*j.MinCriticRating)
 	}
 
 	if j.MinPremiereDate != nil {
+		log.Debug().Time("minPremiereDate", *j.MinPremiereDate).Msg("Applying min premiere")
 		req.MinPremiereDate(*j.MinPremiereDate)
 	}
 
 	if j.MinDateLastSaved != nil {
+		log.Debug().Time("minDateLastSaved", *j.MinDateLastSaved).Msg("Applying min date last saved filter")
 		req.MinDateLastSaved(*j.MinDateLastSaved)
 	}
 
 	if j.MinDateLastSavedForUser != nil {
+		log.Debug().Time("minDateLastSavedForUser", *j.MinDateLastSavedForUser).Msg("Applying min date last saved for user filter")
 		req.MinDateLastSavedForUser(*j.MinDateLastSavedForUser)
 	}
 
 	if j.MaxPremiereDate != nil {
+		log.Debug().Time("maxPremiereDate", *j.MaxPremiereDate).Msg("Applying max premiere date filter")
 		req.MaxPremiereDate(*j.MaxPremiereDate)
 	}
 
 	if j.HasOverview != nil {
+		log.Debug().Bool("hasOverview", *j.HasOverview).Msg("Applying has overview filter")
 		req.HasOverview(*j.HasOverview)
+
 	}
 
 	if j.HasImdbId != nil {
+		log.Debug().Bool("hasImdbId", *j.HasImdbId).Msg("Applying has IMDB ID filter")
 		req.HasImdbId(*j.HasImdbId)
 	}
 
 	if j.HasTmdbId != nil {
+		log.Debug().Bool("hasTmdbId", *j.HasTmdbId).Msg("Applying has TMDB ID filter")
 		req.HasTmdbId(*j.HasTmdbId)
 	}
 
 	if j.HasTvdbId != nil {
+		log.Debug().Bool("hasTvdbId", *j.HasTvdbId).Msg("Applying has TVDB ID filter")
 		req.HasTvdbId(*j.HasTvdbId)
 	}
 
 	if j.IsMovie != nil {
+		log.Debug().Bool("isMovie", *j.IsMovie).Msg("Applying is movie filter")
 		req.IsMovie(*j.IsMovie)
 	}
 
 	if j.IsSeries != nil {
+		log.Debug().Bool("isSeries", *j.IsSeries).Msg("Applying is series filter")
 		req.IsSeries(*j.IsSeries)
 	}
 
 	if j.IsNews != nil {
+		log.Debug().Bool("isNews", *j.IsNews).Msg("Applying is news filter")
 		req.IsNews(*j.IsNews)
 	}
 
 	if j.IsKids != nil {
+		log.Debug().Bool("isKids", *j.IsKids).Msg("Applying is kids filter")
 		req.IsKids(*j.IsKids)
 	}
 
 	if j.IsSports != nil {
+		log.Debug().Bool("isSports", *j.IsSports).Msg("Applying is sports filter")
 		req.IsSports(*j.IsSports)
 	}
 
 	if j.ExcludeItemIds != nil && len(*j.ExcludeItemIds) > 0 {
+		log.Debug().Interface("excludeItemIds", *j.ExcludeItemIds).Msg("Applying exclude item IDs filter")
 		req.ExcludeItemIds(*j.ExcludeItemIds)
 	}
 
 	if j.StartIndex != nil {
+		log.Debug().Int32("startIndex", *j.StartIndex).Msg("Applying start index filter")
 		req.StartIndex(*j.StartIndex)
+
 	}
 
 	if j.Limit != nil {
+		log.Debug().Int32("limit", *j.Limit).Msg("Applying limit filter")
 		req.Limit(*j.Limit)
 	}
 
 	if j.Recursive != nil {
+		log.Debug().Bool("recursive", *j.Recursive).Msg("Applying recursive filter")
 		req.Recursive(*j.Recursive)
 	}
 
 	if j.SearchTerm != nil {
+		log.Debug().Str("searchTerm", *j.SearchTerm).Msg("Applying search term filter")
 		req.SearchTerm(*j.SearchTerm)
 	}
 
 	if j.SortOrder != nil {
+		log.Debug().Interface("sortOrder", *j.SortOrder).Msg("Applying sort order filter")
 		req.SortOrder(*j.SortOrder)
 	}
 
 	if j.ParentId != nil {
+		log.Debug().Str("parentId", *j.ParentId).Msg("Applying parent ID filter")
 		req.ParentId(*j.ParentId)
 	}
 
 	if j.Fields != nil {
 		req.Fields(*j.Fields)
+		log.Debug().Interface("fields", *j.Fields).Msg("Applying fields filter")
 	}
 
 	if j.ExcludeItemTypes != nil {
+		log.Debug().Interface("excludeItemTypes", *j.ExcludeItemTypes).Msg("Applying exclude item types filter")
 		req.ExcludeItemTypes(*j.ExcludeItemTypes)
 	}
 
 	if j.IncludeItemTypes != nil {
+		log.Debug().Interface("includeItemTypes", *j.IncludeItemTypes).Msg("Applying include item types filter")
 		req.IncludeItemTypes(*j.IncludeItemTypes)
 	}
 
 	if j.Filters != nil {
+		log.Debug().Interface("filters", *j.Filters).Msg("Applying filters filter")
 		req.Filters(*j.Filters)
 	}
 
 	if j.IsFavorite != nil {
+		log.Debug().Bool("isFavorite", *j.IsFavorite).Msg("Applying is favorite filter")
 		req.IsFavorite(*j.IsFavorite)
 	}
 
 	if j.MediaTypes != nil {
+		log.Debug().Interface("mediaTypes", *j.MediaTypes).Msg("Applying media types filter")
 		req.MediaTypes(*j.MediaTypes)
 	}
 
 	if j.ImageTypes != nil {
+		log.Debug().Interface("imageTypes", *j.ImageTypes).Msg("Applying image types filter")
 		req.ImageTypes(*j.ImageTypes)
 	}
 
 	if j.SortBy != nil {
+		log.Debug().Interface("sortBy", *j.SortBy).Msg("Applying sort by filter")
 		req.SortBy(*j.SortBy)
 	}
 
 	if j.IsPlayed != nil {
+		log.Debug().Bool("isPlayed", *j.IsPlayed).Msg("Applying is played filter")
 		req.IsPlayed(*j.IsPlayed)
 	}
 
 	if j.Genres != nil {
+		log.Debug().Interface("genres", *j.Genres).Msg("Applying genres filter")
 		req.Genres(*j.Genres)
 	}
 
 	if j.OfficialRatings != nil {
+		log.Debug().Interface("officialRatings", *j.OfficialRatings).Msg("Applying official ratings filter")
 		req.OfficialRatings(*j.OfficialRatings)
 	}
 
 	if j.Tags != nil {
+		log.Debug().Interface("tags", *j.Tags).Msg("Applying tags filter")
 		req.Tags(*j.Tags)
 	}
 
 	if j.Years != nil {
+		log.Debug().Interface("years", *j.Years).Msg("Applying years filter")
 		req.Years(*j.Years)
 	}
 
@@ -604,44 +662,58 @@ func (j *JellyfinQueryOptions) SetArtistsRequest(req *jellyfin.ApiGetArtistsRequ
 }
 
 // FromQueryOptions converts Suasor's QueryOptions to JellyfinQueryOptions
-func (j *JellyfinQueryOptions) FromQueryOptions(options *types.QueryOptions) *JellyfinQueryOptions {
+func (j *JellyfinQueryOptions) FromQueryOptions(ctx context.Context, options *types.QueryOptions) *JellyfinQueryOptions {
+	log := logger.LoggerFromContext(ctx)
 	if options == nil || j == nil {
+		log.Debug().Msg("No options provided, skipping query options")
 		return j
 	}
+	
+	// Enable deeper debug logging to diagnose query option issues
+	log.Debug().
+		Interface("options", options).
+		Msg("Converting query options to Jellyfin options")
 
 	// ItemIDs
 	if options.ItemIDs != "" {
+		log.Debug().Str("itemIDs", options.ItemIDs).Msg("Applying item IDs filter")
 		ids := strings.Split(options.ItemIDs, ",")
 		j.Ids = &ids
 	}
 
 	// Limit
 	if options.Limit > 0 {
+		log.Debug().Int("limit", options.Limit).Msg("Applying limit filter")
 		limit := int32(options.Limit)
 		j.Limit = &limit
 	}
 
 	// Offset/StartIndex
 	if options.Offset > 0 {
+		log.Debug().Int("offset", options.Offset).Msg("Applying offset filter")
 		startIndex := int32(options.Offset)
 		j.StartIndex = &startIndex
 	}
 
 	// Sort
 	if options.Sort != "" {
+		log.Debug().Str("sort", string(options.Sort)).Msg("Applying sort filter")
 		sortBy := []jellyfin.ItemSortBy{jellyfin.ItemSortBy(options.Sort)}
 		j.SortBy = &sortBy
 
 		// SortOrder
 		if options.SortOrder == "desc" {
+			log.Debug().Msg("Applying descending sort order")
 			j.SortOrder = &[]jellyfin.SortOrder{jellyfin.SORTORDER_DESCENDING}
 		} else {
+			log.Debug().Msg("Applying ascending sort order")
 			j.SortOrder = &[]jellyfin.SortOrder{jellyfin.SORTORDER_ASCENDING}
 		}
 	}
 
 	// Search term
 	if options.Query != "" {
+		log.Debug().Str("query", options.Query).Msg("Applying search term filter")
 		j.SearchTerm = &options.Query
 
 		// Enable recursive search when searching
@@ -652,11 +724,13 @@ func (j *JellyfinQueryOptions) FromQueryOptions(options *types.QueryOptions) *Je
 		if options.Limit <= 0 && j.Limit == nil {
 			defaultLimit := int32(50)
 			j.Limit = &defaultLimit
+			log.Debug().Int32("defaultLimit", defaultLimit).Msg("Applying default search limit")
 		}
 	}
 
 	// MediaType filter
 	if options.MediaType != "" {
+		log.Debug().Str("mediaType", string(options.MediaType)).Msg("Applying media type filter")
 		var includeItemTypes []jellyfin.BaseItemKind
 
 		switch options.MediaType {
@@ -682,11 +756,13 @@ func (j *JellyfinQueryOptions) FromQueryOptions(options *types.QueryOptions) *Je
 
 		if len(includeItemTypes) > 0 {
 			j.IncludeItemTypes = &includeItemTypes
+			log.Debug().Interface("includeItemTypes", includeItemTypes).Msg("Applying media type filter")
 		}
 	}
 
 	// Genre filter
 	if options.Genre != "" {
+		log.Debug().Str("genre", options.Genre).Msg("Applying genre filter")
 		genres := []string{options.Genre}
 		j.Genres = &genres
 	}
@@ -694,6 +770,7 @@ func (j *JellyfinQueryOptions) FromQueryOptions(options *types.QueryOptions) *Je
 	// Favorite filter
 	if options.Favorites {
 		favorite := true
+		log.Debug().Bool("favorite", favorite).Msg("Applying favorite filter")
 		j.IsFavorite = &favorite
 	}
 
@@ -702,11 +779,17 @@ func (j *JellyfinQueryOptions) FromQueryOptions(options *types.QueryOptions) *Je
 		year := int32(options.Year)
 		years := []int32{year}
 		j.Years = &years
+		log.Debug().Int32("year", year).Msg("Applying year filter")
 	}
 
 	// Person filters
 	if options.Actor != "" || options.Director != "" || options.Creator != "" {
 		// Use the first non-empty person value
+		log.Debug().
+			Str("actor", options.Actor).
+			Str("director", options.Director).
+			Str("creator", options.Creator).
+			Msg("Applying person filters")
 		var person string
 		if options.Actor != "" {
 			person = options.Actor
@@ -717,23 +800,27 @@ func (j *JellyfinQueryOptions) FromQueryOptions(options *types.QueryOptions) *Je
 		}
 
 		if person != "" {
+			log.Debug().Str("person", person).Msg("Applying person filter")
 			j.Person = &person
 		}
 	}
 
 	// Content rating filter
 	if options.ContentRating != "" {
+		log.Debug().Str("contentRating", options.ContentRating).Msg("Applying content rating filter")
 		ratings := []string{options.ContentRating}
 		j.OfficialRatings = &ratings
 	}
 
 	// Tags filter
 	if len(options.Tags) > 0 {
+		log.Debug().Strs("tags", options.Tags).Msg("Applying tags filter")
 		j.Tags = &options.Tags
 	}
 
 	// Recently added filter
 	if options.RecentlyAdded {
+		log.Debug().Msg("Applying recently added filter")
 		sortBy := []jellyfin.ItemSortBy{jellyfin.ITEMSORTBY_DATE_CREATED, jellyfin.ITEMSORTBY_SORT_NAME}
 		j.SortBy = &sortBy
 
@@ -743,6 +830,7 @@ func (j *JellyfinQueryOptions) FromQueryOptions(options *types.QueryOptions) *Je
 
 	// Recently played filter
 	if options.RecentlyPlayed {
+		log.Debug().Msg("Applying recently played filter")
 		sortBy := []jellyfin.ItemSortBy{jellyfin.ITEMSORTBY_DATE_PLAYED, jellyfin.ITEMSORTBY_SORT_NAME}
 		j.SortBy = &sortBy
 
@@ -752,29 +840,35 @@ func (j *JellyfinQueryOptions) FromQueryOptions(options *types.QueryOptions) *Je
 
 	// Watched filter
 	if options.Watched {
+		log.Debug().Msg("Applying watched filter")
 		watched := true
 		j.IsPlayed = &watched
 	}
 
 	// Date filters
 	if options.DateAddedAfter != nil && !options.DateAddedAfter.IsZero() {
+		log.Debug().Time("dateAddedAfter", *options.DateAddedAfter).Msg("Applying date added after filter")
 		j.MinDateLastSaved = options.DateAddedAfter
 	}
 
 	if options.DateAddedBefore != nil && !options.DateAddedBefore.IsZero() {
+		log.Debug().Time("dateAddedBefore", *options.DateAddedBefore).Msg("Applying date added before filter")
 		j.MaxPremiereDate = options.DateAddedBefore
 	}
 
 	if options.ReleasedAfter != nil && !options.ReleasedAfter.IsZero() {
+		log.Debug().Time("releasedAfter", *options.ReleasedAfter).Msg("Applying released after filter")
 		j.MinPremiereDate = options.ReleasedAfter
 	}
 
 	if options.ReleasedBefore != nil && !options.ReleasedBefore.IsZero() {
+		log.Debug().Time("releasedBefore", *options.ReleasedBefore).Msg("Applying released before filter")
 		j.MaxPremiereDate = options.ReleasedBefore
 	}
 
 	// Rating filter
 	if options.MinimumRating > 0 {
+		log.Debug().Float32("minimumRating", options.MinimumRating).Msg("Applying minimum rating filter")
 		minRating := float64(options.MinimumRating)
 		j.MinCommunityRating = &minRating
 	}
@@ -788,6 +882,8 @@ func (j *JellyfinQueryOptions) FromQueryOptions(options *types.QueryOptions) *Je
 
 	enableTotalCount := true
 	j.EnableTotalRecordCount = &enableTotalCount
+
+	log.Debug().Msg("Successfully applied query options")
 
 	return j
 }

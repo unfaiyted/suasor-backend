@@ -93,6 +93,7 @@ const (
 	MediaTypeTrack      MediaType = "track"
 	MediaTypePlaylist   MediaType = "playlist"
 	MediaTypeCollection MediaType = "collection"
+	MediaTypePhoto      MediaType = "photo"
 	MediaTypeAll        MediaType = "all"
 	MediaTypeUnknown    MediaType = "unknown"
 )
@@ -159,6 +160,11 @@ func GetMediaTypeFromTypeName(ofType any) MediaType {
 	default:
 		return MediaTypeUnknown
 	}
+}
+
+func GetMediaType[T MediaData]() MediaType {
+	var item T
+	return GetMediaTypeFromTypeName(item)
 }
 
 func (m *MediaDetails) Merge(other *MediaDetails) {

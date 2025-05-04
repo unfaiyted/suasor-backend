@@ -117,7 +117,7 @@ func (e *EmbyClient) GetCollections(ctx context.Context, options *types.QueryOpt
 		Recursive:        optional.NewBool(true),
 	}
 
-	ApplyClientQueryOptions(&queryParams, options)
+	ApplyClientQueryOptions(ctx, &queryParams, options)
 
 	// Get collections
 	results, _, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)

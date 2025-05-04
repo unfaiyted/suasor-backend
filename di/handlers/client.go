@@ -45,7 +45,6 @@ func RegisterClientHandlers(ctx context.Context, c *container.Container) {
 		)
 	})
 
-	// Register AI handlers TODO: move to AI bundle
 	container.RegisterFactory[handlers.AIHandler[*types.ClaudeConfig]](c, func(c *container.Container) handlers.AIHandler[*types.ClaudeConfig] {
 		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
 		clientService := container.MustGet[services.ClientService[*types.ClaudeConfig]](c)

@@ -27,8 +27,8 @@ func (j *JellyfinClient) GetCollections(ctx context.Context, options *t.QueryOpt
 	log.Debug().Msg("Making API request to Jellyfin server for collections")
 	itemsReq := j.client.ItemsAPI.GetItems(ctx)
 
-	NewJellyfinQueryOptions(options).
-		SetItemsRequest(&itemsReq)
+	NewJellyfinQueryOptions(ctx, options).
+		SetItemsRequest(ctx, &itemsReq)
 
 	itemsReq.IncludeItemTypes([]jellyfin.BaseItemKind{jellyfin.BASEITEMKIND_BOX_SET})
 
@@ -87,8 +87,8 @@ func (j *JellyfinClient) GetCollectionItems(ctx context.Context, collectionID st
 	itemsReq := j.client.ItemsAPI.GetItems(ctx).
 		ParentId(collectionID).Fields(fields).EnableImages(true)
 
-	NewJellyfinQueryOptions(options).
-		SetItemsRequest(&itemsReq)
+	NewJellyfinQueryOptions(ctx, options).
+		SetItemsRequest(ctx, &itemsReq)
 
 	result, resp, err := itemsReq.Execute()
 	if err != nil {

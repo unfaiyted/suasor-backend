@@ -64,7 +64,7 @@ func NewClientMovieHandler[T clienttypes.ClientMediaConfig](
 //	@Failure		400				{object}	responses.ErrorResponse[responses.ErrorDetails]				"Invalid client ID"
 //	@Failure		401				{object}	responses.ErrorResponse[responses.ErrorDetails]				"Unauthorized"
 //	@Failure		500				{object}	responses.ErrorResponse[responses.ErrorDetails]				"Server error"
-//	@Router			/client/{clientID}/movie/item/{clientItemId} [get]
+//	@Router			/client/{clientID}/movie/{clientItemId} [get]
 func (h *clientMovieHandler[T]) GetClientMovieByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)

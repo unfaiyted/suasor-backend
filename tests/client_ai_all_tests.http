@@ -1,0 +1,28 @@
+### Master file to run all client AI tests
+
+# Import test files
+import ./ai_client.http
+import ./ai_content_analysis.http
+import ./ai_conversation_tests.http
+import ./ai_recommendation.http
+import ./ai_routes_tests.http
+
+
+# Run authentication
+run #login
+
+# Run client creation tests
+run #createClaudeClient
+run #createOpenAIClient
+run #createOllamaClient
+
+# Run connection tests
+run #testClaudeConnection
+run #testOpenAIConnection
+run #testOllamaConnection
+
+# Run content analysis tests
+run #analyzeMoviePlot
+run #extractTVSeriesMetadata
+run #analyzeMediaTrends
+run #generateContentTags

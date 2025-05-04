@@ -42,9 +42,19 @@ func NewMediaItem[T types.MediaData](itemType types.MediaType, data T) *MediaIte
 	// Initialize with empty arrays
 	clientIDs := make(SyncClients, 0)
 	externalIDs := make(types.ExternalIDs, 0)
-
-	if data.GetDetails().ExternalIDs != nil {
-		externalIDs = data.GetDetails().ExternalIDs
+	
+	// Make sure data has a valid Details field
+	details := data.GetDetails()
+	title := ""
+	releaseDate := time.Time{}
+	
+	if details != nil {
+		// Safe to access Details fields
+		if details.ExternalIDs != nil {
+			externalIDs = details.ExternalIDs
+		}
+		title = details.Title
+		releaseDate = details.ReleaseDate
 	}
 
 	return &MediaItem[T]{
@@ -56,8 +66,8 @@ func NewMediaItem[T types.MediaData](itemType types.MediaType, data T) *MediaIte
 		Type:        itemType,
 		SyncClients: clientIDs,
 		IsPublic:    true,
-		Title:       data.GetDetails().Title,
-		ReleaseDate: data.GetDetails().ReleaseDate,
+		Title:       title,
+		ReleaseDate: releaseDate,
 		Data:        data,
 		ExternalIDs: externalIDs,
 	}

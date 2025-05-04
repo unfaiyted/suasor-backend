@@ -92,7 +92,9 @@ func (s *clientListService[T, U]) GetClientList(ctx context.Context, clientID ui
 		ExternalSourceID: clientListID,
 	}
 
-	playlists, err := provider.Search(ctx, options)
+	mediaType := mediatypes.GetMediaType[U]()
+
+	playlists, err := provider.SearchLists(ctx, options)
 	if err != nil {
 		return nil, err
 	}
@@ -278,7 +280,7 @@ func (s *clientListService[T, U]) AddClientItem(ctx context.Context, clientID ui
 	options := &mediatypes.QueryOptions{
 		ExternalSourceID: clientListID,
 	}
-	lists, err := provider.Search(ctx, options)
+	lists, err := provider.SearchPlaylist(ctx, options)
 	if err == nil && len(lists) > 0 {
 		// Record the change in the playlist metadata
 		now := time.Now()

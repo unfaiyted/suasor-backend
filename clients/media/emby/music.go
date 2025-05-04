@@ -29,7 +29,7 @@ func (e *EmbyClient) GetMusicTracks(ctx context.Context, options *types.QueryOpt
 		Recursive:        optional.NewBool(true),
 	}
 
-	ApplyClientQueryOptions(&queryParams, options)
+	ApplyClientQueryOptions(ctx, &queryParams, options)
 
 	items, resp, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
 	if err != nil {
@@ -148,7 +148,7 @@ func (e *EmbyClient) GetMusicAlbums(ctx context.Context, options *types.QueryOpt
 		Recursive:        optional.NewBool(true),
 	}
 
-	ApplyClientQueryOptions(&queryParams, options)
+	ApplyClientQueryOptions(ctx, &queryParams, options)
 
 	items, resp, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
 	if err != nil {

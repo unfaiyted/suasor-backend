@@ -45,10 +45,17 @@ func RegisterMediaItemFactories(c *container.Container) {
 		},
 	)
 
+	media.RegisterFactory[*EmbyClient, *embyclient.PlaylistsPlaylistCreationResult, *types.Playlist](
+		&registry,
+		func(client *EmbyClient, ctx context.Context, item *embyclient.PlaylistsPlaylistCreationResult) (*types.Playlist, error) {
+			return client.playlistFactory(ctx, item)
+		},
+	)
+
 	media.RegisterFactory[*EmbyClient, *embyclient.BaseItemDto, *types.Playlist](
 		&registry,
 		func(client *EmbyClient, ctx context.Context, item *embyclient.BaseItemDto) (*types.Playlist, error) {
-			return client.playlistFactory(ctx, item)
+			return client.playlistBaseItemFactory(ctx, item)
 		},
 	)
 
@@ -228,14 +235,30 @@ func (e *EmbyClient) albumFactory(ctx context.Context, item *embyclient.BaseItem
 }
 
 // Factory function for Playlist
-func (e *EmbyClient) playlistFactory(ctx context.Context, item *embyclient.BaseItemDto) (*types.Playlist, error) {
+func (e *EmbyClient) playlistFactory(ctx context.Context, item *embyclient.PlaylistsPlaylistCreationResult) (*types.Playlist, error) {
+	playlist := &types.Playlist{
+		ItemList: types.ItemList{
+			Details: &types.MediaDetails{
+				Title:       item.Name,
+				Description: "Emby Playlist",
+				AddedAt:     time.Now(),
+				UpdatedAt:   time.Now(),
+				// Artwork:     e.getArtworkURLs(item),
+			},
+			ItemCount: int(item.ItemAddedCount),
+			IsPublic:  true, // Assume public by default in Emby
+		},
+	}
+
+	return playlist, nil
+}
+
+func (e *EmbyClient) playlistBaseItemFactory(ctx context.Context, item *embyclient.BaseItemDto) (*types.Playlist, error) {
 	playlist := &types.Playlist{
 		ItemList: types.ItemList{
 			Details: &types.MediaDetails{
 				Title:       item.Name,
 				Description: item.Overview,
-				AddedAt:     time.Now(),
-				UpdatedAt:   time.Now(),
 				Artwork:     e.getArtworkURLs(item),
 			},
 			ItemCount: int(item.ChildCount),

@@ -37,7 +37,7 @@ func (e *EmbyClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 	}
 
 	// Apply options
-	ApplyClientQueryOptions(&queryParams, options)
+	ApplyClientQueryOptions(ctx, &queryParams, options)
 
 	// Call the Emby API
 	items, resp, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)

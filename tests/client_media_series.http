@@ -140,7 +140,7 @@ DELETE {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/ser
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-## Jellyfin Series Tests (abbreviated for brevity)
+## Jellyfin Series Tests
 
 ###
 # @name getJellyfinSeriesByID
@@ -156,7 +156,62 @@ GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/se
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-## Plex Series Tests (abbreviated for brevity)
+###
+# @name getJellyfinEpisodesBySeriesID
+# Get episodes for a specific series from Jellyfin
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/series/{{TEST_JELLYFIN_SERIES_ID}}/episodes
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getJellyfinEpisodeByID
+# Get a specific episode from Jellyfin
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/episode/{{TEST_JELLYFIN_EPISODE_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getJellyfinSeasonByID
+# Get a specific season from Jellyfin
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/season/{{TEST_JELLYFIN_SEASON_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getJellyfinEpisodesBySeasonID
+# Get episodes for a specific season from Jellyfin
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/season/{{TEST_JELLYFIN_SEASON_ID}}/episodes
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name searchJellyfinSeries
+# Search for series in Jellyfin
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/series/search?q={{TEST_SEARCH_QUERY}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getJellyfinSeriesByGenre
+# Get series from Jellyfin by genre
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/series/genre/{{TEST_GENRE}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name recordJellyfinEpisodePlay
+# Record a play event for a Jellyfin episode
+POST {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/episode/{{TEST_JELLYFIN_EPISODE_ID}}/play
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "positionTicks": 0,
+  "isMuted": false,
+  "isPaused": false
+}
+
+## Plex Series Tests
 
 ###
 # @name getAllPlexSeries
@@ -172,4 +227,58 @@ GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/series
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
+###
+# @name getPlexEpisodesBySeriesID
+# Get episodes for a specific series from Plex
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/series/{{TEST_PLEX_SERIES_ID}}/episodes
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPlexEpisodeByID
+# Get a specific episode from Plex
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/episode/{{TEST_PLEX_EPISODE_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPlexSeasonByID
+# Get a specific season from Plex
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/season/{{TEST_PLEX_SEASON_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPlexEpisodesBySeasonID
+# Get episodes for a specific season from Plex
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/season/{{TEST_PLEX_SEASON_ID}}/episodes
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name searchPlexSeries
+# Search for series in Plex
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/series/search?q={{TEST_SEARCH_QUERY}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPlexSeriesByGenre
+# Get series from Plex by genre
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/series/genre/{{TEST_GENRE}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name recordPlexEpisodePlay
+# Record a play event for a Plex episode
+POST {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/episode/{{TEST_PLEX_EPISODE_ID}}/play
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "positionTicks": 0,
+  "isMuted": false,
+  "isPaused": false
+}
 

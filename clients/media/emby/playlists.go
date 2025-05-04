@@ -12,23 +12,33 @@ import (
 	"suasor/utils/logger"
 )
 
-func (e *EmbyClient) SupportsPlaylists() bool { return true }
+// SupportsPlaylists returns true since Emby supports playlists
+func (e *EmbyClient) SupportsPlaylists() bool {
+	return true
+}
 
-// GetPlaylists retrieves playlists from the Emby server
-func (e *EmbyClient) GetPlaylists(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Playlist], error) {
+// Search retrieves playlists from the Emby server matching the query options
+// Implements ListProvider[*types.Playlist] interface method
+func (e *EmbyClient) SearchPlaylists(ctx context.Context, options *types.QueryOptions) ([]*models.MediaItem[*types.Playlist], error) {
 	log := logger.LoggerFromContext(ctx)
 
 	log.Info().
 		Uint64("clientID", e.GetClientID()).
 		Str("clientType", string(e.GetClientType())).
-		Msg("Retrieving playlists from Emby server")
+		Msg("Searching playlists from Emby server")
 
 	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
 		IncludeItemTypes: optional.NewString("Playlist"),
 		Recursive:        optional.NewBool(true),
 	}
 
-	ApplyClientQueryOptions(&queryParams, options)
+	ApplyClientQueryOptions(ctx, &queryParams, options)
+
+	// Get user ID
+	userID := e.getUserID()
+	if userID != "" {
+		queryParams.UserId = optional.NewString(userID)
+	}
 
 	items, resp, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
 	if err != nil {
@@ -65,7 +75,522 @@ func (e *EmbyClient) GetPlaylists(ctx context.Context, options *types.QueryOptio
 
 	log.Info().
 		Int("playlistsReturned", len(playlists)).
-		Msg("Completed GetPlaylists request")
+		Msg("Completed Search playlists request")
 
 	return playlists, nil
+}
+
+// GetItems retrieves the items in a specific playlist
+// Implements ListProvider[*types.Playlist] interface method
+func (e *EmbyClient) GetPlaylistItems(ctx context.Context, playlistID string, options *types.QueryOptions) ([]*models.MediaItem[*types.Playlist], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Info().
+		Str("playlistID", playlistID).
+		Uint64("clientID", e.GetClientID()).
+		Msg("Getting items from Emby playlist")
+
+	// Get user ID
+	userID := e.getUserID()
+	if userID == "" {
+		log.Error().Msg("User ID is required for Emby queries but was not provided or resolved")
+		return nil, fmt.Errorf("failed to get playlist items: missing user ID")
+	}
+
+	// Query for playlist items
+	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
+		ParentId:  optional.NewString(playlistID),
+		UserId:    optional.NewString(userID),
+		Recursive: optional.NewBool(false),
+	}
+
+	ApplyClientQueryOptions(ctx, &queryParams, options)
+
+	// Make the API call
+	response, resp, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("playlistID", playlistID).
+			Msg("Failed to get playlist items from Emby")
+		return nil, fmt.Errorf("failed to get playlist items: %w", err)
+	}
+
+	log.Info().
+		Int("statusCode", resp.StatusCode).
+		Int("itemCount", len(response.Items)).
+		Msg("Successfully retrieved playlist items from Emby")
+
+	// Process each item
+	items := make([]*models.MediaItem[*types.Playlist], 0, len(response.Items))
+	for _, item := range response.Items {
+		// Convert to playlist item
+		playlistItem, err := GetItem[*types.Playlist](ctx, e, &item)
+		if err != nil {
+			log.Warn().
+				Err(err).
+				Str("itemID", item.Id).
+				Str("itemName", item.Name).
+				Msg("Error converting Emby item to playlist format")
+			continue
+		}
+
+		mediaItem, err := GetMediaItem[*types.Playlist](ctx, e, playlistItem, item.Id)
+		if err != nil {
+			log.Warn().
+				Err(err).
+				Str("itemID", item.Id).
+				Str("itemName", item.Name).
+				Msg("Error creating media item for playlist item")
+			continue
+		}
+
+		items = append(items, mediaItem)
+	}
+
+	log.Info().
+		Int("itemsReturned", len(items)).
+		Str("playlistID", playlistID).
+		Msg("Completed getting items from playlist")
+
+	return items, nil
+}
+
+// Create creates a new playlist in Emby
+// Implements ListProvider[*types.Playlist] interface method
+func (e *EmbyClient) CreatePlaylist(ctx context.Context, name string, description string) (*models.MediaItem[*types.Playlist], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Info().
+		Str("name", name).
+		Uint64("clientID", e.GetClientID()).
+		Msg("Creating new playlist in Emby")
+
+	// Get user ID
+	userID := e.getUserID()
+	if userID == "" {
+		log.Error().Msg("User ID is required for Emby queries but was not provided or resolved")
+		return nil, fmt.Errorf("failed to create playlist: missing user ID")
+	}
+
+	// Create the playlist
+	opts := embyclient.PlaylistServiceApiPostPlaylistsOpts{
+		Name:      optional.NewString(name),
+		MediaType: optional.NewString("Mixed"),
+	}
+
+	playlist, resp, err := e.client.PlaylistServiceApi.PostPlaylists(ctx, &opts)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("name", name).
+			Msg("Failed to create playlist in Emby")
+		return nil, fmt.Errorf("failed to create playlist: %w", err)
+	}
+
+	log.Info().
+		Int("statusCode", resp.StatusCode).
+		Str("playlistID", playlist.Id).
+		Str("playlistName", playlist.Name).
+		Msg("Successfully created playlist in Emby")
+
+	// Convert to our playlist format
+	playlistItem, err := GetPlaylistItem(ctx, e, &playlist)
+	if err != nil {
+		return nil, fmt.Errorf("error converting created playlist: %w", err)
+	}
+
+	// Create a media item for the playlist
+	mediaItem, err := GetMediaItem[*types.Playlist](ctx, e, playlistItem, playlist.Id)
+	if err != nil {
+		return nil, fmt.Errorf("error creating media item for playlist: %w", err)
+	}
+
+	return mediaItem, nil
+}
+
+// Update updates an existing playlist in Emby
+// Implements ListProvider[*types.Playlist] interface method
+func (e *EmbyClient) UpdatePlaylist(ctx context.Context, playlistID string, name string, description string) (*models.MediaItem[*types.Playlist], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Info().
+		Str("playlistID", playlistID).
+		Str("name", name).
+		Uint64("clientID", e.GetClientID()).
+		Msg("Updating playlist in Emby")
+
+	// Get user ID
+	userID := e.getUserID()
+	if userID == "" {
+		log.Error().Msg("User ID is required for Emby queries but was not provided or resolved")
+		return nil, fmt.Errorf("failed to update playlist: missing user ID")
+	}
+
+	// QueryResultBaseItemDto
+	// First get the existing playlist
+	existingPlaylists, resp, err := e.client.ItemsServiceApi.GetItems(ctx,
+		&embyclient.ItemsServiceApiGetItemsOpts{
+			UserId: optional.NewString(userID),
+			Ids:    optional.NewString(playlistID),
+		})
+	existingPlaylist := existingPlaylists.Items[0]
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("playlistID", playlistID).
+			Msg("Failed to get existing playlist from Emby")
+		return nil, fmt.Errorf("failed to get existing playlist: %w", err)
+	}
+
+	log.Info().
+		Int("statusCode", resp.StatusCode).
+		Str("playlistID", existingPlaylist.Id).
+		Msg("Retrieved existing playlist from Emby")
+
+	// Update the playlist - Emby doesn't have a dedicated update playlist endpoint
+	// We'd need to use the item update endpoint with the updated data
+	updateBody := embyclient.BaseItemDto{
+		Id:       playlistID,
+		Name:     name,
+		Overview: description,
+	}
+
+	_, err = e.client.ItemUpdateServiceApi.PostItemsByItemid(ctx, updateBody, playlistID)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("playlistID", playlistID).
+			Msg("Failed to update playlist in Emby")
+		return nil, fmt.Errorf("failed to update playlist: %w", err)
+	}
+
+	// Get the updated playlist
+	updatedPlaylists, resp, err := e.client.ItemsServiceApi.GetItems(ctx, &embyclient.ItemsServiceApiGetItemsOpts{
+		UserId: optional.NewString(userID),
+		Ids:    optional.NewString(playlistID),
+	})
+	updatedPlaylist := updatedPlaylists.Items[0]
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("playlistID", playlistID).
+			Msg("Failed to get updated playlist from Emby")
+		return nil, fmt.Errorf("failed to get updated playlist: %w", err)
+	}
+
+	// Convert to our playlist format
+	playlistItem, err := GetItem[*types.Playlist](ctx, e, &updatedPlaylist)
+	if err != nil {
+		return nil, fmt.Errorf("error converting updated playlist: %w", err)
+	}
+
+	// Create a media item for the playlist
+	mediaItem, err := GetMediaItem[*types.Playlist](ctx, e, playlistItem, updatedPlaylist.Id)
+	if err != nil {
+		return nil, fmt.Errorf("error creating media item for updated playlist: %w", err)
+	}
+
+	log.Info().
+		Str("playlistID", playlistID).
+		Msg("Successfully updated playlist in Emby")
+
+	return mediaItem, nil
+}
+
+// Delete removes a playlist from Emby
+// Implements ListProvider[*types.Playlist] interface method
+func (e *EmbyClient) DeletePlaylist(ctx context.Context, playlistID string) error {
+	log := logger.LoggerFromContext(ctx)
+	log.Info().
+		Str("playlistID", playlistID).
+		Uint64("clientID", e.GetClientID()).
+		Msg("Deleting playlist from Emby")
+
+	entryIDs := ""
+
+	// TODO: Implement playlist deletion for Emby, the API doesn't support it, but we should
+	// be able to delete all of the items in the playlist and delete the playlist itself.
+	// check old python code for example on deleting playlists
+
+	// Delete the item (playlist)
+	resp, err := e.client.PlaylistServiceApi.DeletePlaylistsByIdItems(ctx, playlistID, entryIDs)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("playlistID", playlistID).
+			Msg("Failed to delete playlist from Emby")
+		return fmt.Errorf("failed to delete playlist: %w", err)
+	}
+
+	log.Info().
+		Int("statusCode", resp.StatusCode).
+		Str("playlistID", playlistID).
+		Msg("Successfully deleted playlist from Emby")
+
+	return nil
+}
+
+// AddPlaylistItem adds an item to a playlist in Emby
+// Implementation detail - called by AddItemPlaylist to match the PlaylistProvider interface
+func (e *EmbyClient) AddPlaylistItem(ctx context.Context, playlistID string, itemID string) error {
+	log := logger.LoggerFromContext(ctx)
+	log.Info().
+		Str("playlistID", playlistID).
+		Str("itemID", itemID).
+		Uint64("clientID", e.GetClientID()).
+		Msg("Adding item to playlist in Emby")
+
+	// Get user ID
+	userID := e.getUserID()
+	if userID == "" {
+		log.Error().Msg("User ID is required for Emby queries but was not provided or resolved")
+		return fmt.Errorf("failed to add item to playlist: missing user ID")
+	}
+
+	// Use the Emby API to add items to playlist
+	opts := embyclient.PlaylistServiceApiPostPlaylistsByIdItemsOpts{
+		UserId: optional.NewString(userID),
+	}
+
+	result, resp, err := e.client.PlaylistServiceApi.PostPlaylistsByIdItems(ctx, itemID, playlistID, &opts)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("playlistID", playlistID).
+			Str("itemID", itemID).
+			Msg("Failed to add item to playlist in Emby")
+		return fmt.Errorf("failed to add item to playlist: %w", err)
+	}
+
+	log.Info().
+		Int("statusCode", resp.StatusCode).
+		Str("playlistID", playlistID).
+		Str("itemID", itemID).
+		Msg("Successfully added item to playlist in Emby")
+
+	if result.ItemAddedCount == 0 {
+		return fmt.Errorf("failed to add item to playlist: no items added")
+	}
+
+	return nil
+}
+
+// AddItemPlaylist adds an item to a playlist in Emby
+// Implements PlaylistProvider interface method
+func (e *EmbyClient) AddItemPlaylist(ctx context.Context, playlistID string, itemID string) error {
+	// Delegate to the existing implementation
+	return e.AddPlaylistItem(ctx, playlistID, itemID)
+}
+
+// RemoveItem removes an item from a playlist in Emby
+// Implements ListProvider[*types.Playlist] interface method
+func (e *EmbyClient) RemovePlaylistItem(ctx context.Context, playlistID string, itemID string) error {
+	log := logger.LoggerFromContext(ctx)
+	log.Info().
+		Str("playlistID", playlistID).
+		Str("itemID", itemID).
+		Uint64("clientID", e.GetClientID()).
+		Msg("Removing item from playlist in Emby")
+
+	// Get user ID
+	userID := e.getUserID()
+	if userID == "" {
+		log.Error().Msg("User ID is required for Emby queries but was not provided or resolved")
+		return fmt.Errorf("failed to remove item from playlist: missing user ID")
+	}
+
+	// Use the Emby API to remove item from playlist
+	// We need to get the position of the item in the playlist first
+	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
+		ParentId:  optional.NewString(playlistID),
+		UserId:    optional.NewString(userID),
+		Recursive: optional.NewBool(false),
+	}
+
+	// Get all items in the playlist
+	items, _, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("playlistID", playlistID).
+			Msg("Failed to get playlist items for removal")
+		return fmt.Errorf("failed to get playlist items for removal: %w", err)
+	}
+
+	// Find the item to remove and its position
+	var entryID string
+	found := false
+	for _, item := range items.Items {
+		if item.Id == itemID {
+			found = true
+			entryID = item.Id
+			break
+		}
+	}
+
+	if !found {
+		log.Warn().
+			Str("playlistID", playlistID).
+			Str("itemID", itemID).
+			Msg("Item not found in playlist, nothing to remove")
+		return nil
+	}
+
+	resp, err := e.client.PlaylistServiceApi.DeletePlaylistsByIdItems(ctx, playlistID, itemID)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("playlistID", playlistID).
+			Str("entryID", entryID).
+			Msg("Failed to remove item from playlist in Emby")
+		return fmt.Errorf("failed to remove item from playlist: %w", err)
+	}
+
+	log.Info().
+		Int("statusCode", resp.StatusCode).
+		Str("playlistID", playlistID).
+		Str("entryID", entryID).
+		Msg("Successfully removed item from playlist in Emby")
+
+	return nil
+}
+
+// ReorderItems reorders items in a playlist in Emby
+// Implements ListProvider[*types.Playlist] interface method
+func (e *EmbyClient) ReorderPlaylistItems(ctx context.Context, playlistID string, itemIDs []string) error {
+	log := logger.LoggerFromContext(ctx)
+	log.Info().
+		Str("playlistID", playlistID).
+		Uint64("clientID", e.GetClientID()).
+		Msg("Reordering items in playlist in Emby")
+
+	// Get user ID
+	userID := e.getUserID()
+	if userID == "" {
+		log.Error().Msg("User ID is required for Emby queries but was not provided or resolved")
+		return fmt.Errorf("failed to reorder playlist items: missing user ID")
+	}
+
+	// Emby API doesn't have a direct method to reorder playlist items
+	// We would need to get the original playlist, remove all items, then add them in the desired order
+
+	// Get the original playlist
+	originalPlaylists, resp, err := e.client.ItemsServiceApi.GetItems(ctx, &embyclient.ItemsServiceApiGetItemsOpts{
+		Ids: optional.NewString(playlistID),
+	})
+	originalPlaylist := originalPlaylists.Items[0]
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("playlistID", playlistID).
+			Msg("Failed to get original playlist from Emby")
+		return fmt.Errorf("failed to get original playlist: %w", err)
+	}
+
+	opts := embyclient.PlaylistServiceApiGetPlaylistsByIdItemsOpts{
+		UserId: optional.NewString(userID),
+	}
+
+	// get playlist items
+	result, resp, err := e.client.PlaylistServiceApi.GetPlaylistsByIdItems(ctx, originalPlaylist.Id, &opts)
+	playlistItems := result.Items
+
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("playlistID", playlistID).
+			Msg("Failed to get playlist items from Emby")
+		return fmt.Errorf("failed to get playlist items: %w", err)
+	}
+
+	entryIDs := ""
+	for _, item := range playlistItems {
+		entryIDs += item.Id
+		entryIDs += ","
+	}
+
+	// Delete the original playlist items
+	_, err = e.client.PlaylistServiceApi.DeletePlaylistsByIdItems(ctx, playlistID, originalPlaylist.Id)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("playlistID", playlistID).
+			Msg("Failed to delete original playlist items from Emby")
+		return fmt.Errorf("failed to delete original playlist items: %w", err)
+	}
+
+	log.Info().
+		Int("statusCode", resp.StatusCode).
+		Str("playlistName", originalPlaylist.Name).
+		Msg("Retrieved original playlist from Emby")
+
+	// As a workaround to reorder the playlist, we can:
+	// 1. Clear the playlist
+	// 2. Add items back in the desired order
+
+	// First, get all current items to remove them
+	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
+		ParentId:  optional.NewString(playlistID),
+		UserId:    optional.NewString(userID),
+		Recursive: optional.NewBool(false),
+	}
+
+	items, _, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("playlistID", playlistID).
+			Msg("Failed to get playlist items for reordering")
+		return fmt.Errorf("failed to get playlist items for reordering: %w", err)
+	}
+
+	// Remove all items
+	entryIds := ""
+	for i, item := range items.Items {
+		if i > 0 {
+			entryIds += ","
+		}
+		entryIds += item.Id
+	}
+
+	_, err = e.client.PlaylistServiceApi.DeletePlaylistsByIdItems(ctx, playlistID, entryIds)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("playlistID", playlistID).
+			Msg("Failed to clear playlist for reordering")
+		return fmt.Errorf("failed to clear playlist for reordering: %w", err)
+	}
+
+	addItemIDs := ""
+	// Add items back in the desired order
+	for _, itemID := range itemIDs {
+		addItemIDs += itemID
+		addItemIDs += ","
+	}
+	updateOpts := embyclient.PlaylistServiceApiPostPlaylistsByIdItemsOpts{
+		UserId: optional.NewString(userID),
+	}
+	_, respItems, err := e.client.PlaylistServiceApi.PostPlaylistsByIdItems(ctx, addItemIDs, playlistID, &updateOpts)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("playlistID", playlistID).
+			Strs("itemIDs", itemIDs).
+			Msg("Failed to add item to playlist during reordering")
+		return fmt.Errorf("failed to add item during reordering: %w", err)
+	}
+	if respItems.StatusCode != 200 {
+		log.Error().
+			Err(err).
+			Str("playlistID", playlistID).
+			Strs("itemIDs", itemIDs).
+			Msg("Failed to add item to playlist during reordering")
+		return fmt.Errorf("failed to add item during reordering: %w", err)
+	}
+
+	log.Info().
+		Str("playlistID", playlistID).
+		Int("itemCount", len(itemIDs)).
+		Msg("Successfully reordered items in playlist in Emby")
+
+	return nil
 }

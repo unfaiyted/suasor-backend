@@ -53,7 +53,7 @@ func (e *EmbyClient) GetPlayHistory(ctx context.Context, options *types.QueryOpt
 	queryParams.Limit = optional.NewInt32(100)
 	queryParams.StartIndex = optional.NewInt32(0)
 	// Apply options
-	// ApplyClientQueryOptions(&queryParams, options)
+	// ApplyClientQueryOptions(ctx, &queryParams, options)
 
 	log.Debug().
 		Int32("limit", queryParams.Limit.Value()).

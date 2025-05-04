@@ -49,6 +49,7 @@ func (c *PlexClient) GetMovies(ctx context.Context, options *types.QueryOptions)
 
 	// Handle pagination when fetching all movies (limit=0, offset=0)
 	if options.Limit == 0 && options.Offset == 0 {
+		log.Debug().Msg("Fetching all movies, NO LIMITS!")
 		return c.getAllMovies(ctx, sectionKey)
 	}
 
@@ -117,7 +118,16 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (*models.Media
 		Str("movieID", id).
 		Msg("Retrieving specific movie from Plex server")
 
-	ratingKey, _ := strconv.Atoi(id)
+	ratingKey, err := strconv.Atoi(id)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
+			Str("movieID", id).
+			Msg("Invalid movie ID format")
+		return nil, fmt.Errorf("invalid movie ID format: %w", err)
+	}
 	int64RatingKey := int64(ratingKey)
 
 	log.Debug().
@@ -165,8 +175,53 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (*models.Media
 		Str("movieTitle", item.Title).
 		Msg("Successfully retrieved movie from Plex")
 
+	// Convert Plex metadata to Movie object
 	itemMovie, err := GetItemFromMetadata[*types.Movie](ctx, c, &item)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
+			Str("movieID", id).
+			Msg("Failed to convert movie metadata")
+		return nil, fmt.Errorf("failed to convert movie metadata: %w", err)
+	}
+
+	// Verify that the movie has a Details field
+	if itemMovie.Details == nil {
+		log.Error().
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
+			Str("movieID", id).
+			Msg("Movie metadata is missing Details field")
+			
+		// Create a minimal Details field if it's nil
+		itemMovie.Details = &types.MediaDetails{
+			Title: item.Title,
+		}
+	}
+
+	// Create MediaItem from Movie object
 	movie, err := GetMediaItem[*types.Movie](ctx, c, itemMovie, item.RatingKey)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
+			Str("movieID", id).
+			Msg("Failed to create media item")
+		return nil, fmt.Errorf("failed to create media item: %w", err)
+	}
+
+	// Verify the movie's data before logging
+	if movie.Data == nil || movie.Data.Details == nil {
+		log.Error().
+			Uint64("clientID", c.GetClientID()).
+			Str("clientType", string(c.GetClientType())).
+			Str("movieID", id).
+			Msg("Movie data or details is nil")
+		return nil, fmt.Errorf("movie data conversion failed: nil data or details")
+	}
 
 	log.Info().
 		Uint64("clientID", c.GetClientID()).

@@ -47,7 +47,7 @@ func (e *EmbyClient) Search(ctx context.Context, options *types.QueryOptions) (r
 	}
 
 	// Apply additional options (filters, sorting, pagination)
-	ApplyClientQueryOptions(&queryParams, options)
+	ApplyClientQueryOptions(ctx, &queryParams, options)
 
 	// Filter by media type if specified, otherwise search all supported types
 	if options.MediaType != "" && options.MediaType != types.MediaTypeAll {
@@ -312,4 +312,3 @@ func (e *EmbyClient) Search(ctx context.Context, options *types.QueryOptions) (r
 
 	return results, nil
 }
-

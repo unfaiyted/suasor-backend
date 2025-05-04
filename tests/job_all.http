@@ -1,0 +1,66 @@
+### Master file to run all client media tests
+
+# Import test files
+import ./client_media_common.http
+import ./job_multi_client_sync.http
+
+# Run authentication
+run #login
+
+# Run client creation tests
+run #createEmbyClient
+run #createJellyfinClient
+run #createPlexClient
+run #createSubsonicClient
+
+# Run get client tests
+run #getEmbyClients
+run #getJellyfinClients
+run #getPlexClients
+run #getSubsonicClients
+
+# Run connection tests
+run #testEmbyConnection
+run #testJellyfinConnection
+run #testPlexConnection
+run #testSubsonicConnection
+
+# Run setup movie sync jobs  
+run #setUpEmbyMovieSync
+run #setUpJellyfinMovieSync
+run #setUpPlexMovieSync
+
+# Run movie sync jobs
+run #runEmbyMovieSync
+run #runJellyfinMovieSync
+run #runPlexMovieSync
+
+# Run setup history sync jobs  
+run #setUpEmbyHistorySync
+run #setUpJellyfinHistorySync
+run #setUpPlexHistorySync
+run #setUpSubsonicHistorySync
+
+# Run history sync jobs
+run #runEmbyHistorySync
+run #runJellyfinHistorySync
+run #runPlexHistorySync
+run #runSubsonicHistorySync
+
+# Run setup playlist sync jobs  
+run #setUpEmbyPlaylistSync
+run #setUpJellyfinPlaylistSync
+run #setUpPlexPlaylistSync
+run #setUpSubsonicPlaylistSync
+
+# Run playlist sync jobs
+run #runEmbyPlaylistSync
+run #runJellyfinPlaylistSync
+run #runPlexPlaylistSync
+run #runSubsonicPlaylistSync
+
+# Run setup collection sync jobs  
+run #setUpEmbyCollectionSync
+run #setUpJellyfinCollectionSync
+run #setUpPlexCollectionSync
+run #setUpSubsonicCollectionSync

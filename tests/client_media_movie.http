@@ -2,6 +2,8 @@ import ./client_media_common.http
 
 run #login
 run #createEmbyClient
+run #createJellyfinClient
+run #createPlexClient
 
 ###
 # @name getEmbyMovieByID
@@ -115,5 +117,159 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 # @name deleteEmbyMovie
 # Delete an Emby movie
 DELETE {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/movie/{{TEST_EMBY_MOVIE_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Jellyfin Movie Tests
+
+###
+# @name getJellyfinMovieByID
+# Get a specific movie from Jellyfin by ID
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/movie/{{TEST_JELLYFIN_MOVIE_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getAllJellyfinMovies
+# Get all movies from Jellyfin
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/movie
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name searchJellyfinMovies
+# Search for movies in Jellyfin
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/movie/search?q={{TEST_MOVIE_SEARCH_QUERY}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getJellyfinMoviesByGenre
+# Get movies from Jellyfin by genre
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/movie/genre/{{TEST_MOVIE_GENRE}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getJellyfinMoviesByYear
+# Get movies from Jellyfin by year
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/movie/year/{{TEST_MOVIE_YEAR}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name recordJellyfinMoviePlay
+# Record a play event for a Jellyfin movie
+POST {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/movie/{{TEST_JELLYFIN_MOVIE_ID}}/play
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "positionTicks": 0,
+  "isMuted": false,
+  "isPaused": false
+}
+
+###
+# @name getJellyfinMoviePlaybackState
+# Get the playback state for a Jellyfin movie
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/movie/{{TEST_JELLYFIN_MOVIE_ID}}/state
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name updateJellyfinMoviePlaybackState
+# Update the playback state for a Jellyfin movie
+PUT {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/movie/{{TEST_JELLYFIN_MOVIE_ID}}/state
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "positionTicks": 5000000,
+  "isMuted": false,
+  "isPaused": true
+}
+
+###
+# @name syncJellyfinMovie
+# Sync a Jellyfin movie
+GET {{baseUrl}}/client/{{createJellyfinClient.response.body.$.data.id}}/media/movie/sync?movieId={{TEST_JELLYFIN_MOVIE_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Plex Movie Tests
+
+###
+# @name getPlexMovieByID
+# Get a specific movie from Plex by ID
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/movie/{{TEST_PLEX_MOVIE_ID}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getAllPlexMovies
+# Get all movies from Plex
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/movie
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name searchPlexMovies
+# Search for movies in Plex
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/movie/search?q={{TEST_MOVIE_SEARCH_QUERY}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPlexMoviesByGenre
+# Get movies from Plex by genre
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/movie/genre/{{TEST_MOVIE_GENRE}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name getPlexMoviesByYear
+# Get movies from Plex by year
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/movie/year/{{TEST_MOVIE_YEAR}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name recordPlexMoviePlay
+# Record a play event for a Plex movie
+POST {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/movie/{{TEST_PLEX_MOVIE_ID}}/play
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "positionTicks": 0,
+  "isMuted": false,
+  "isPaused": false
+}
+
+###
+# @name getPlexMoviePlaybackState
+# Get the playback state for a Plex movie
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/movie/{{TEST_PLEX_MOVIE_ID}}/state
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+###
+# @name updatePlexMoviePlaybackState
+# Update the playback state for a Plex movie
+PUT {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/movie/{{TEST_PLEX_MOVIE_ID}}/state
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "positionTicks": 5000000,
+  "isMuted": false,
+  "isPaused": true
+}
+
+###
+# @name syncPlexMovie
+# Sync a Plex movie
+GET {{baseUrl}}/client/{{createPlexClient.response.body.$.data.id}}/media/movie/sync?movieId={{TEST_PLEX_MOVIE_ID}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
