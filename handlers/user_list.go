@@ -492,7 +492,7 @@ func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			id			path		int																true	"List ID"
+//	@Param			listID		path		int																true	"List ID"
 //	@Param			request		body		requests.ListReorderRequest										true	"Reorder request"
 //	@Param			listType	path		string															true	"List type (e.g. 'playlist', 'collection')"
 //	@Success		200			{object}	responses.APIResponse[models.MediaItem[types.ListData]]	"List reordered successfully"
@@ -501,7 +501,7 @@ func (h *userListHandler[T]) RemoveItem(c *gin.Context) {
 //	@Failure		403			{object}	responses.ErrorResponse[any]									"Forbidden"
 //	@Failure		404			{object}	responses.ErrorResponse[any]									"List not found"
 //	@Failure		500			{object}	responses.ErrorResponse[any]									"Server error"
-//	@Router			/{listType}/{id}/reorder [post]
+//	@Router			/{listType}/{listID}/reorder [post]
 func (h *userListHandler[T]) ReorderItems(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
@@ -510,9 +510,9 @@ func (h *userListHandler[T]) ReorderItems(c *gin.Context) {
 	userID, _ := checkUserAccess(c)
 
 	// Parse list ID
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Param("listID"), 10, 64)
 	if err != nil {
-		log.Warn().Err(err).Str("id", c.Param("id")).Msg("Invalid list ID")
+		log.Warn().Err(err).Str("id", c.Param("listID")).Msg("Invalid list ID")
 		responses.RespondBadRequest(c, err, "Invalid list ID")
 		return
 	}
