@@ -10,6 +10,7 @@ import (
 type CollectionProvider interface {
 	GetCollectionItems(ctx context.Context, playlistID string, options *types.QueryOptions) ([]*models.MediaItem[*types.Collection], error)
 	CreateCollection(ctx context.Context, name string, description string) (*models.MediaItem[*types.Collection], error)
+	CreateCollectionWithItems(ctx context.Context, name string, description string, itemIDs []string) (*models.MediaItem[*types.Collection], error)
 	UpdateCollection(ctx context.Context, playlistID string, name string, description string) (*models.MediaItem[*types.Collection], error)
 	DeleteCollection(ctx context.Context, playlistID string) error
 	AddItemCollection(ctx context.Context, playlistID string, itemID string) error
@@ -25,6 +26,7 @@ type CollectionProvider interface {
 type PlaylistProvider interface {
 	GetPlaylistItems(ctx context.Context, playlistID string, options *types.QueryOptions) ([]*models.MediaItem[*types.Playlist], error)
 	CreatePlaylist(ctx context.Context, name string, description string) (*models.MediaItem[*types.Playlist], error)
+	CreatePlaylistWithItems(ctx context.Context, name string, description string, itemIDs []string) (*models.MediaItem[*types.Playlist], error)
 	UpdatePlaylist(ctx context.Context, playlistID string, name string, description string) (*models.MediaItem[*types.Playlist], error)
 	DeletePlaylist(ctx context.Context, playlistID string) error
 	AddItemPlaylist(ctx context.Context, playlistID string, itemID string) error
@@ -41,6 +43,7 @@ type ListProvider[T types.ListData] interface {
 	// Full playlist management capabilities
 	GetListItems(ctx context.Context, playlistID string, options *types.QueryOptions) ([]*models.MediaItem[T], error)
 	CreateList(ctx context.Context, name string, description string) (*models.MediaItem[T], error)
+	CreateListWithItems(ctx context.Context, name string, description string, itemIDs []string) (*models.MediaItem[T], error)
 	UpdateList(ctx context.Context, playlistID string, name string, description string) (*models.MediaItem[T], error)
 	DeleteList(ctx context.Context, playlistID string) error
 	AddItemList(ctx context.Context, playlistID string, itemID string) error

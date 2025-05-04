@@ -4,7 +4,7 @@ package providers
 import (
 	"context"
 	"fmt"
-	
+
 	mediatypes "suasor/clients/media/types"
 	"suasor/types/models"
 )
@@ -23,6 +23,10 @@ func NewPlaylistListAdapter(provider PlaylistProvider) ListProvider[*mediatypes.
 
 func (a *PlaylistListAdapter) GetListItems(ctx context.Context, listID string, options *mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Playlist], error) {
 	return a.provider.GetPlaylistItems(ctx, listID, options)
+}
+
+func (a *PlaylistListAdapter) CreateListWithItems(ctx context.Context, name string, description string, itemIDs []string) (*models.MediaItem[*mediatypes.Playlist], error) {
+	return a.provider.CreatePlaylistWithItems(ctx, name, description, itemIDs)
 }
 
 func (a *PlaylistListAdapter) CreateList(ctx context.Context, name string, description string) (*models.MediaItem[*mediatypes.Playlist], error) {
@@ -74,9 +78,11 @@ func (a *CollectionListAdapter) GetListItems(ctx context.Context, listID string,
 }
 
 func (a *CollectionListAdapter) CreateList(ctx context.Context, name string, description string) (*models.MediaItem[*mediatypes.Collection], error) {
-	// The CreateCollection method takes an additional itemIDs parameter that's not part of the interface
-	// In this adapter, we'll provide an empty slice by default
-	return a.provider.CreateCollection(ctx, name, description, []string{})
+	return a.provider.CreateCollection(ctx, name, description)
+}
+
+func (a *CollectionListAdapter) CreateListWithItems(ctx context.Context, name string, description string, itemIDs []string) (*models.MediaItem[*mediatypes.Collection], error) {
+	return a.provider.CreateCollectionWithItems(ctx, name, description, itemIDs)
 }
 
 func (a *CollectionListAdapter) UpdateList(ctx context.Context, listID string, name string, description string) (*models.MediaItem[*mediatypes.Collection], error) {
@@ -126,7 +132,7 @@ func NewDynamicListAdapter(
 }
 
 // determineListType tries to identify if a list is a playlist or collection
-func (a *DynamicListAdapter) determineListType(ctx context.Context, listID string) (string, error) {
+func (a *DynamicListAdapter) determineListType(ctx context.Context, listID string) (mediatypes.MediaType, error) {
 	// Try playlist first
 	if a.playlistAdapter != nil {
 		playlists, err := a.playlistAdapter.SearchLists(ctx, &mediatypes.QueryOptions{
@@ -136,7 +142,7 @@ func (a *DynamicListAdapter) determineListType(ctx context.Context, listID strin
 			return mediatypes.MediaTypePlaylist, nil
 		}
 	}
-	
+
 	// Then try collection
 	if a.collectionAdapter != nil {
 		collections, err := a.collectionAdapter.SearchLists(ctx, &mediatypes.QueryOptions{
@@ -146,60 +152,36 @@ func (a *DynamicListAdapter) determineListType(ctx context.Context, listID strin
 			return mediatypes.MediaTypeCollection, nil
 		}
 	}
-	
+
 	// If not found, but we have only one type of adapter, assume it's that type
 	if a.playlistAdapter != nil && a.collectionAdapter == nil {
 		return mediatypes.MediaTypePlaylist, nil
 	} else if a.collectionAdapter != nil && a.playlistAdapter == nil {
 		return mediatypes.MediaTypeCollection, nil
 	}
-	
+
 	return "", fmt.Errorf("unable to determine list type for ID: %s", listID)
 }
 
 // GetListItems retrieves items from a list based on the list type
 func (a *DynamicListAdapter) GetListItems(
-	ctx context.Context, 
-	listID string, 
+	ctx context.Context,
+	listID string,
 	options *mediatypes.QueryOptions,
 ) ([]*models.MediaItem[mediatypes.ListData], error) {
 	listType, err := a.determineListType(ctx, listID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to determine list type: %w", err)
 	}
-	
+
 	// Implementation would need type conversion from concrete types to ListData interface
-	// This is challenging in Go with generics since we can't directly convert 
+	// This is challenging in Go with generics since we can't directly convert
 	// []MediaItem[*Playlist] to []MediaItem[ListData]
-	
+
 	// For a working implementation, we might need:
 	// 1. Ensure all items implement a GetAsListData() method
 	// 2. Use type assertions in a conversion helper
-	
+
 	// For now, let's return a placeholder error
 	return nil, fmt.Errorf("dynamic conversion not implemented for type: %s", listType)
-}
-
-// Helper function to convert a type that implements ListData interface to a concrete interface value
-// Note: This is a conceptual example. In Go, this specific type conversion might require additional work
-func convertToListData[T mediatypes.ListData](items []*models.MediaItem[T]) []*models.MediaItem[mediatypes.ListData] {
-	result := make([]*models.MediaItem[mediatypes.ListData], len(items))
-	for i, item := range items {
-		// This is a simplified approach - in actual code, the type conversion
-		// would need to ensure the ListData interface requirements are met
-		result[i] = &models.MediaItem[mediatypes.ListData]{
-			ID:          item.ID,
-			UUID:        item.UUID,
-			OwnerID:     item.OwnerID,
-			SyncClients: item.SyncClients,
-			ExternalIDs: item.ExternalIDs,
-			IsPublic:    item.IsPublic,
-			Type:        item.Type,
-			Title:       item.Title,
-			ReleaseDate: item.ReleaseDate,
-			ReleaseYear: item.ReleaseYear,
-			Data:        item.Data, // Note: Type system will not allow this direct assignment
-		}
-	}
-	return result
 }

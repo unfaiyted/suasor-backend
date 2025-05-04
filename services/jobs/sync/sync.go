@@ -216,132 +216,100 @@ func (j *MediaSyncJob) RunFullSync(ctx context.Context, userID uint64) error {
 	}
 
 	// Get all clients for this user
-	clientList, err := j.clientRepos.GetAllMediaClients(ctx)
+	clientList, err := j.clientRepos.GetAllMediaClientsForUser(ctx, userID)
 	if err != nil {
 		errorMsg := fmt.Sprintf("Failed to get media clients: %v", err)
 		j.completeJobRun(ctx, jobRun.ID, models.JobStatusFailed, errorMsg)
 		return fmt.Errorf(errorMsg)
 	}
 
-	// Filter clients to those belonging to this user
-	userClients := make([]models.ClientMedia, 0)
-	for _, client := range clientList.GetUserClients(userID) {
-		userClients = append(userClients, client)
-	}
-
-	if len(userClients) == 0 {
+	if clientList.GetTotal() == 0 {
 		errorMsg := "No media clients found for user"
 		j.completeJobRun(ctx, jobRun.ID, models.JobStatusFailed, errorMsg)
 		return fmt.Errorf(errorMsg)
 	}
 
 	log.Info().
-		Int("clientCount", len(userClients)).
+		Int("clientCount", clientList.GetTotal()).
 		Msg("Found media clients for user")
 
 	// Update job progress
-	j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 10, fmt.Sprintf("Found %d clients", len(userClients)))
+	j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 10, fmt.Sprintf("Found %d clients", clientList.GetTotal()))
 
 	// Create a sync helper for more advanced sync operations
 	syncHelper := NewListSyncHelper(j)
-	
+
 	// Process each client for list sync
-	for i, clientInfo := range userClients {
-		// First sync playlists
-		log.Info().
-			Uint64("clientID", clientInfo.GetID()).
-			Str("clientName", clientInfo.GetName()).
-			Msg("Syncing playlists from client")
-
-		// Get the client connection
-		clientMedia, _, err := j.getClientMedia(ctx, clientInfo.GetID())
-		if err != nil {
-			log.Error().
-				Err(err).
-				Uint64("clientID", clientInfo.GetID()).
-				Msg("Failed to get client connection, skipping")
-			continue
-		}
-
-		// Create sub-job for playlist sync
-		syncJob := models.MediaSyncJob{
-			UserID:     userID,
-			ClientID:   clientInfo.GetID(),
-			ClientType: clientInfo.GetClientType().AsClientType(),
-			SyncType:   models.SyncTypePlaylists,
-		}
-
-		// Run the playlist sync
-		err = j.runSyncJob(ctx, syncJob)
-		if err != nil {
-			log.Error().
-				Err(err).
-				Uint64("clientID", clientInfo.GetID()).
-				Msg("Error syncing playlists from client")
-		}
-
+	i := 0
+	for clientID, client := range clientList.Emby {
+		i++
+		processClientPlaylistJob[*clienttypes.EmbyConfig](ctx, j, jobRun, userID, client)
 		// Update progress
-		progress := 10 + int(float64(i+1)/float64(len(userClients))*40.0)
-		j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, progress, 
-			fmt.Sprintf("Processed client %d/%d", i+1, len(userClients)))
+		progress := 10 + int(float64(i+1)/float64(clientList.GetTotal())*40.0)
+		j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, progress,
+			fmt.Sprintf("Processed client %d/%d", i+1, clientList.GetTotal()))
+
+		log.Info().
+			Uint64("clientID", clientID).
+			Msg("Processed client")
 	}
 
 	// Special sync for items that need multiple clients
-	if len(userClients) >= 2 && syncHelper != nil {
-		// Update progress
-		j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 60, "Starting cross-client syncs")
-
-		// For each pair of clients, sync lists from one to the other
-		for i := 0; i < len(userClients); i++ {
-			for j := i + 1; j < len(userClients); j++ {
-				sourceClientInfo := userClients[i]
-				targetClientInfo := userClients[j]
-
-				log.Info().
-					Uint64("sourceClientID", sourceClientInfo.GetID()).
-					Uint64("targetClientID", targetClientInfo.GetID()).
-					Msg("Syncing lists between clients")
-
-				// Get client connections
-				sourceClient, _, err := j.getClientMedia(ctx, sourceClientInfo.GetID())
-				if err != nil {
-					log.Error().
-						Err(err).
-						Uint64("clientID", sourceClientInfo.GetID()).
-						Msg("Failed to get source client connection, skipping")
-					continue
-				}
-
-				targetClient, _, err := j.getClientMedia(ctx, targetClientInfo.GetID())
-				if err != nil {
-					log.Error().
-						Err(err).
-						Uint64("clientID", targetClientInfo.GetID()).
-						Msg("Failed to get target client connection, skipping")
-					continue
-				}
-
-				// Check if both clients support playlists
-				sourcePlaylistProvider, sourceOk := sourceClient.(providers.ListProvider[mediatypes.ListData])
-				targetPlaylistProvider, targetOk := targetClient.(providers.ListProvider[mediatypes.ListData])
-
-				if sourceOk && targetOk {
-					// Use the sync helper to sync lists between clients
-					syncOptions := &SyncOptions{
-						MediaTypes: []mediatypes.MediaType{mediatypes.MediaTypePlaylist},
-					}
-
-					err = syncHelper.SyncLists(ctx, sourceClient, targetClient, syncOptions)
-					if err != nil {
-						log.Error().
-							Err(err).
-							Uint64("sourceClientID", sourceClientInfo.GetID()).
-							Uint64("targetClientID", targetClientInfo.GetID()).
-							Msg("Error syncing lists between clients")
-					}
-				}
-			}
-		}
+	if clientList.GetTotal() >= 2 && syncHelper != nil {
+		// // Update progress
+		// j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, 60, "Starting cross-client syncs")
+		//
+		// // For each pair of clients, sync lists from one to the other
+		// for i := 0; i < len(userClients); i++ {
+		// 	for j := i + 1; j < len(userClients); j++ {
+		// 		sourceClientInfo := userClients[i]
+		// 		targetClientInfo := userClients[j]
+		//
+		// 		log.Info().
+		// 			Uint64("sourceClientID", sourceClientInfo.GetID()).
+		// 			Uint64("targetClientID", targetClientInfo.GetID()).
+		// 			Msg("Syncing lists between clients")
+		//
+		// 		// Get client connections
+		// 		sourceClient, _, err := j.getClientMedia(ctx, sourceClientInfo.GetID())
+		// 		if err != nil {
+		// 			log.Error().
+		// 				Err(err).
+		// 				Uint64("clientID", sourceClientInfo.GetID()).
+		// 				Msg("Failed to get source client connection, skipping")
+		// 			continue
+		// 		}
+		//
+		// 		targetClient, _, err := j.getClientMedia(ctx, targetClientInfo.GetID())
+		// 		if err != nil {
+		// 			log.Error().
+		// 				Err(err).
+		// 				Uint64("clientID", targetClientInfo.GetID()).
+		// 				Msg("Failed to get target client connection, skipping")
+		// 			continue
+		// 		}
+		//
+		// 		// Check if both clients support playlists
+		// 		sourcePlaylistProvider, sourceOk := sourceClient.(providers.ListProvider[mediatypes.ListData])
+		// 		targetPlaylistProvider, targetOk := targetClient.(providers.ListProvider[mediatypes.ListData])
+		//
+		// 		if sourceOk && targetOk {
+		// 			// Use the sync helper to sync lists between clients
+		// 			syncOptions := &SyncOptions{
+		// 				MediaTypes: []mediatypes.MediaType{mediatypes.MediaTypePlaylist},
+		// 			}
+		//
+		// 			err = syncHelper.SyncLists(ctx, sourceClient, targetClient, syncOptions)
+		// 			if err != nil {
+		// 				log.Error().
+		// 					Err(err).
+		// 					Uint64("sourceClientID", sourceClientInfo.GetID()).
+		// 					Uint64("targetClientID", targetClientInfo.GetID()).
+		// 					Msg("Error syncing lists between clients")
+		// 			}
+		// 		}
+		// 	}
+		// }
 	}
 
 	// Also run other sync types for completeness
@@ -358,12 +326,12 @@ func (j *MediaSyncJob) RunFullSync(ctx context.Context, userID uint64) error {
 			Str("syncType", string(syncType)).
 			Msg("Starting sync for media type")
 
-		for _, clientInfo := range userClients {
+		for _, clientInfo := range clientList.Emby {
 			// Create sub-job
 			syncJob := models.MediaSyncJob{
 				UserID:     userID,
 				ClientID:   clientInfo.GetID(),
-				ClientType: clientInfo.GetClientType().AsClientType(),
+				ClientType: clientInfo.GetClientType(),
 				SyncType:   syncType,
 			}
 
@@ -380,7 +348,7 @@ func (j *MediaSyncJob) RunFullSync(ctx context.Context, userID uint64) error {
 
 		// Update progress
 		progress := 60 + int(float64(i+1)/float64(len(syncTypes))*40.0)
-		j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, progress, 
+		j.jobRepo.UpdateJobProgress(ctx, jobRun.ID, progress,
 			fmt.Sprintf("Completed %s sync", syncType))
 	}
 
@@ -531,7 +499,7 @@ func (j *MediaSyncJob) runSyncJob(ctx context.Context, syncJob models.MediaSyncJ
 // syncPlaylists syncs playlists from the client to the database
 func (j *MediaSyncJob) syncPlaylists(ctx context.Context, clientMedia media.ClientMedia, jobRunID uint64, clientID uint64) error {
 	log := logger.LoggerFromContext(ctx)
-	
+
 	// Update job progress
 	j.jobRepo.UpdateJobProgress(ctx, jobRunID, 10, "Fetching playlists from client")
 
@@ -551,7 +519,7 @@ func (j *MediaSyncJob) syncPlaylists(ctx context.Context, clientMedia media.Clie
 		Uint64("clientID", clientID).
 		Str("clientType", string(clientType)).
 		Msg("Fetching all playlists from client")
-	
+
 	playlists, err := playlistProvider.SearchPlaylists(ctx, &mediatypes.QueryOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to get playlists: %w", err)
@@ -573,8 +541,8 @@ func (j *MediaSyncJob) syncPlaylists(ctx context.Context, clientMedia media.Clie
 	if helper := NewListSyncHelper(j); helper != nil {
 		// Use the modern sync helper approach for better sync capabilities
 		log.Info().Msg("Using ListSyncHelper for playlist sync")
-		
-		// Process each playlist 
+
+		// Process each playlist
 		for _, playlist := range playlists {
 			// Check if playlist already exists in the local database
 			var clientItemID string
@@ -584,19 +552,19 @@ func (j *MediaSyncJob) syncPlaylists(ctx context.Context, clientMedia media.Clie
 					break
 				}
 			}
-			
+
 			if clientItemID == "" {
 				log.Warn().
 					Str("playlistTitle", playlist.Title).
 					Msg("Could not determine client item ID for playlist, skipping")
 				continue
 			}
-			
+
 			log.Debug().
 				Str("playlistTitle", playlist.Title).
 				Str("clientItemID", clientItemID).
 				Msg("Processing playlist")
-			
+
 			// Fetch playlist items from the client
 			playlistItems, err := playlistProvider.GetPlaylistItems(ctx, clientItemID, &mediatypes.QueryOptions{})
 			if err != nil {
@@ -607,12 +575,12 @@ func (j *MediaSyncJob) syncPlaylists(ctx context.Context, clientMedia media.Clie
 					Msg("Error fetching playlist items, continuing with next playlist")
 				continue
 			}
-			
+
 			log.Debug().
 				Str("playlistTitle", playlist.Title).
 				Int("itemCount", len(playlistItems)).
 				Msg("Retrieved playlist items")
-			
+
 			// Update the playlist with its items in the local database
 			// First check if it already exists
 			existingPlaylist, err := j.itemRepos.PlaylistUserRepo().GetByClientItemID(ctx, clientID, clientItemID)
@@ -620,16 +588,16 @@ func (j *MediaSyncJob) syncPlaylists(ctx context.Context, clientMedia media.Clie
 				// Try to find by title as fallback
 				existingPlaylist, err = j.itemRepos.PlaylistUserRepo().GetByTitle(ctx, clientID, playlist.Title)
 			}
-			
+
 			if err == nil && existingPlaylist != nil {
 				// Update existing playlist
 				log.Info().
 					Str("playlistTitle", playlist.Title).
 					Msg("Updating existing playlist in database")
-				
+
 				// Merge the data but keep our existing relationships
 				existingPlaylist.Merge(playlist)
-				
+
 				// Update the playlist items
 				if err := j.processPlaylistItems(ctx, existingPlaylist, playlistItems, clientID); err != nil {
 					log.Error().
@@ -637,7 +605,7 @@ func (j *MediaSyncJob) syncPlaylists(ctx context.Context, clientMedia media.Clie
 						Str("playlistTitle", playlist.Title).
 						Msg("Error updating playlist items")
 				}
-				
+
 				// Save the updated playlist
 				_, err = j.itemRepos.PlaylistUserRepo().Update(ctx, existingPlaylist)
 				if err != nil {
@@ -651,10 +619,10 @@ func (j *MediaSyncJob) syncPlaylists(ctx context.Context, clientMedia media.Clie
 				log.Info().
 					Str("playlistTitle", playlist.Title).
 					Msg("Creating new playlist in database")
-				
+
 				// Set top level title and other required fields
 				playlist.Title = playlist.Data.ItemList.Details.Title
-				
+
 				// Process the playlist items
 				if err := j.processPlaylistItems(ctx, playlist, playlistItems, clientID); err != nil {
 					log.Error().
@@ -662,7 +630,7 @@ func (j *MediaSyncJob) syncPlaylists(ctx context.Context, clientMedia media.Clie
 						Str("playlistTitle", playlist.Title).
 						Msg("Error processing playlist items for new playlist")
 				}
-				
+
 				// Create the playlist in the database
 				_, err = j.itemRepos.PlaylistUserRepo().Create(ctx, playlist)
 				if err != nil {
@@ -672,7 +640,7 @@ func (j *MediaSyncJob) syncPlaylists(ctx context.Context, clientMedia media.Clie
 						Msg("Error creating new playlist")
 				}
 			}
-			
+
 			processedPlaylists++
 			progress := 30 + int(float64(processedPlaylists)/float64(totalPlaylists)*70.0)
 			j.jobRepo.UpdateJobProgress(ctx, jobRunID, progress, fmt.Sprintf("Processed %d/%d playlists", processedPlaylists, totalPlaylists))
@@ -680,7 +648,7 @@ func (j *MediaSyncJob) syncPlaylists(ctx context.Context, clientMedia media.Clie
 	} else {
 		// Use the original batch processing method as fallback
 		log.Info().Msg("Using legacy batch processing for playlist sync")
-		
+
 		for i := 0; i < totalPlaylists; i += batchSize {
 			end := i + batchSize
 			if end > totalPlaylists {
@@ -958,4 +926,41 @@ func (j *MediaSyncJob) getClientMedia(ctx context.Context, clientID uint64) (med
 	}
 
 	return clientMedia, userID, nil
+}
+
+func processClientPlaylistJob[T clienttypes.ClientConfig](ctx context.Context, j *MediaSyncJob, jobRun *models.JobRun, userID uint64, clientInfo *models.Client[T]) {
+	log := logger.LoggerFromContext(ctx)
+	// First sync playlists
+	log.Info().
+		Uint64("clientID", clientInfo.GetID()).
+		Str("clientName", clientInfo.GetName()).
+		Msg("Syncing playlists from client")
+
+	// Get the client connection
+	_, _, err := j.getClientMedia(ctx, clientInfo.GetID())
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("clientID", clientInfo.GetID()).
+			Msg("Failed to get client connection, skipping")
+		return
+	}
+
+	// Create sub-job for playlist sync
+	syncJob := models.MediaSyncJob{
+		UserID:     userID,
+		ClientID:   clientInfo.GetID(),
+		ClientType: clientInfo.GetClientType(),
+		SyncType:   models.SyncTypePlaylists,
+	}
+
+	// Run the playlist sync
+	err = j.runSyncJob(ctx, syncJob)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("clientID", clientInfo.GetID()).
+			Msg("Error syncing playlists from client")
+	}
+
 }

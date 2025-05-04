@@ -92,7 +92,7 @@ func (s *clientListService[T, U]) GetClientList(ctx context.Context, clientID ui
 		ExternalSourceID: clientListID,
 	}
 
-	mediaType := mediatypes.GetMediaType[U]()
+	// mediaType := mediatypes.GetMediaType[U]()
 
 	playlists, err := provider.SearchLists(ctx, options)
 	if err != nil {
@@ -118,7 +118,7 @@ func (s *clientListService[T, U]) GetClientLists(ctx context.Context, clientID u
 		Limit: limit,
 	}
 
-	playlists, err := provider.Search(ctx, options)
+	playlists, err := provider.SearchLists(ctx, options)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func (s *clientListService[T, U]) GetClientListsByUserID(ctx context.Context, us
 			Limit: count,
 		}
 
-		playlists, err := provider.Search(ctx, options)
+		playlists, err := provider.SearchLists(ctx, options)
 		if err != nil {
 			continue
 		}
@@ -167,7 +167,7 @@ func (s *clientListService[T, U]) CreateClientList(ctx context.Context, clientID
 	}
 
 	// Create the playlist
-	playlist, err := provider.Create(ctx, name, description)
+	playlist, err := provider.CreateList(ctx, name, description)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -208,7 +208,7 @@ func (s *clientListService[T, U]) UpdateClientList(ctx context.Context, clientID
 	}
 
 	// Update the playlist
-	playlist, err := provider.Update(ctx, clientListID, name, description)
+	playlist, err := provider.UpdateList(ctx, clientListID, name, description)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -241,7 +241,7 @@ func (s *clientListService[T, U]) DeleteClientList(ctx context.Context, clientID
 	}
 
 	// Delete the playlist
-	err = provider.Delete(ctx, clientListID)
+	err = provider.DeleteList(ctx, clientListID)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -265,7 +265,7 @@ func (s *clientListService[T, U]) AddClientItem(ctx context.Context, clientID ui
 		return err
 	}
 
-	err = provider.AddItem(ctx, clientListID, itemID)
+	err = provider.AddItemList(ctx, clientListID, itemID)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -280,7 +280,7 @@ func (s *clientListService[T, U]) AddClientItem(ctx context.Context, clientID ui
 	options := &mediatypes.QueryOptions{
 		ExternalSourceID: clientListID,
 	}
-	lists, err := provider.SearchPlaylist(ctx, options)
+	lists, err := provider.SearchLists(ctx, options)
 	if err == nil && len(lists) > 0 {
 		// Record the change in the playlist metadata
 		now := time.Now()
@@ -333,7 +333,7 @@ func (s *clientListService[T, U]) RemoveClientItem(ctx context.Context, clientID
 	}
 
 	// Remove item from playlist
-	err = provider.RemoveItem(ctx, clientListID, itemID)
+	err = provider.RemoveListItem(ctx, clientListID, itemID)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -365,7 +365,7 @@ func (s *clientListService[T, U]) GetClientItems(ctx context.Context, clientID u
 	}
 
 	// Get all items in the playlist
-	items, err := provider.GetItems(ctx, clientListID, nil)
+	items, err := provider.GetListItems(ctx, clientListID, nil)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -393,7 +393,7 @@ func (s *clientListService[T, U]) ReorderClientItems(ctx context.Context, client
 	}
 
 	// Reorder items in the playlist
-	err = provider.ReorderItems(ctx, clientListID, itemIDs)
+	err = provider.ReorderListItems(ctx, clientListID, itemIDs)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -407,7 +407,7 @@ func (s *clientListService[T, U]) ReorderClientItems(ctx context.Context, client
 	options := &mediatypes.QueryOptions{
 		ExternalSourceID: clientListID,
 	}
-	playlists, err := provider.Search(ctx, options)
+	playlists, err := provider.SearchLists(ctx, options)
 	if err == nil && len(playlists) > 0 {
 		// Record the change in the playlist metadata
 		now := time.Now()
@@ -535,7 +535,7 @@ func (s *clientListService[T, U]) SearchClientLists(ctx context.Context, clientI
 	if err != nil {
 		return nil, err
 	}
-	lists, err := listProvider.Search(ctx, &query)
+	lists, err := listProvider.SearchLists(ctx, &query)
 	if err != nil {
 		return nil, err
 	}
@@ -553,7 +553,7 @@ func (s *clientListService[T, U]) SearchUsersClientsLists(ctx context.Context, u
 
 	for _, listProvider := range providers {
 
-		playlists, err := listProvider.Search(ctx, &query)
+		playlists, err := listProvider.SearchLists(ctx, &query)
 		if err != nil {
 			continue
 		}

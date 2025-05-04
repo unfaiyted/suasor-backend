@@ -308,7 +308,7 @@ func (j *PlaylistSyncJob) performPlaylistSync(ctx context.Context, userID uint64
 	clientPlaylists := make(map[uint64][]*models.MediaItem[*mediatypes.Playlist])
 	for clientID, client := range playlistClients {
 		provider := client.(providers.PlaylistProvider)
-		playlists, err := provider.Search(ctx, &mediatypes.QueryOptions{})
+		playlists, err := provider.SearchPlaylists(ctx, &mediatypes.QueryOptions{})
 		if err != nil {
 			logger.Printf("Error fetching playlists from client %d: %v", clientID, err)
 			continue
@@ -414,7 +414,7 @@ func (j *PlaylistSyncJob) syncPrimaryToClients(
 
 			if targetPlaylist == nil {
 				// Create new playlist on target
-				newPlaylist, err := targetProvider.Create(ctx,
+				newPlaylist, err := targetProvider.CreatePlaylist(ctx,
 					playlist.Data.ItemList.Details.Title,
 					playlist.Data.ItemList.Details.Description)
 				if err != nil {
@@ -487,7 +487,7 @@ func (j *PlaylistSyncJob) syncClientsToPrimary(
 
 			if !exists {
 				// Create new playlist on primary
-				newPlaylist, err := primaryProvider.Create(ctx,
+				newPlaylist, err := primaryProvider.CreatePlaylist(ctx,
 					playlist.Data.ItemList.Details.Title,
 					playlist.Data.ItemList.Details.Description)
 				if err != nil {
@@ -662,7 +662,7 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 		}
 
 		// Add the item to the target playlist on the client
-		err = targetProvider.AddItem(ctx, targetPlaylistID, targetItemID)
+		err = targetProvider.AddItemPlaylist(ctx, targetPlaylistID, targetItemID)
 		if err != nil {
 			logger.Printf("Error adding item to target playlist: %v", err)
 			continue
@@ -845,7 +845,7 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 		ExternalSourceID: playlistID,
 	}
 
-	sourcePlaylists, err := sourceProvider.Search(ctx, options)
+	sourcePlaylists, err := sourceProvider.SearchPlaylists(ctx, options)
 	if err != nil {
 		return fmt.Errorf("error getting source playlist: %w", err)
 	}
@@ -862,7 +862,7 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 	}
 
 	// Get the playlist items for this source playlist
-	playlistItems, err := sourceProvider.GetItems(ctx, playlistID, nil)
+	playlistItems, err := sourceProvider.GetPlaylistItems(ctx, playlistID, nil)
 	if err != nil {
 		logger.Printf("Error getting playlist items for source playlist: %v", err)
 		// Continue with empty items rather than failing completely
@@ -920,7 +920,7 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 		}
 
 		// Check if playlist already exists in target
-		targetPlaylists, err := targetProvider.Search(ctx, &mediatypes.QueryOptions{})
+		targetPlaylists, err := targetProvider.SearchPlaylists(ctx, &mediatypes.QueryOptions{})
 		if err != nil {
 			logger.Printf("Error getting playlists from target client %d: %v", clientInfo.ClientID, err)
 			continue
@@ -937,7 +937,7 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 		// Create or update target playlist
 		if targetPlaylist == nil {
 			// Create new playlist on target
-			newPlaylist, err := targetProvider.Create(ctx,
+			newPlaylist, err := targetProvider.CreatePlaylist(ctx,
 				sourcePlaylist.Data.ItemList.Details.Title,
 				sourcePlaylist.Data.ItemList.Details.Description)
 			if err != nil {

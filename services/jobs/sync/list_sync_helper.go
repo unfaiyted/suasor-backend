@@ -4,6 +4,7 @@ package sync
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"suasor/clients/media"
@@ -409,15 +410,16 @@ func (h *ListSyncHelper) syncListItems(
 
 // updateListSyncState updates the sync state for a list
 func updateListSyncState(list *models.MediaItem[mediatypes.ListData], clientID uint64, listID string) {
-	if list.Data.ItemList.SyncStates == nil {
-		list.Data.ItemList.SyncStates = mediatypes.ListSyncStates{}
+	itemList := list.GetData().GetItemList()
+	if itemList.SyncStates == nil {
+		itemList.SyncStates = mediatypes.ListSyncStates{}
 	}
 
 	// Check if we already have a sync state for this client
 	var syncState *mediatypes.ListSyncState
-	for i := range list.Data.ItemList.SyncStates {
-		if list.Data.ItemList.SyncStates[i].ClientID == clientID {
-			syncState = &list.Data.ItemList.SyncStates[i]
+	for i := range itemList.SyncStates {
+		if itemList.SyncStates[i].ClientID == clientID {
+			syncState = &itemList.SyncStates[i]
 			break
 		}
 	}
@@ -426,7 +428,7 @@ func updateListSyncState(list *models.MediaItem[mediatypes.ListData], clientID u
 
 	// If no sync state exists, create a new one
 	if syncState == nil {
-		list.Data.ItemList.SyncStates = append(list.Data.ItemList.SyncStates, mediatypes.ListSyncState{
+		itemList.SyncStates = append(itemList.SyncStates, mediatypes.ListSyncState{
 			ClientID:     clientID,
 			ClientListID: listID,
 			LastSynced:   now,
@@ -439,7 +441,7 @@ func updateListSyncState(list *models.MediaItem[mediatypes.ListData], clientID u
 	}
 
 	// Update the overall last synced time
-	list.Data.ItemList.LastSynced = now
+	itemList.LastSynced = now
 }
 
 // SyncOptions defines options for list syncing
@@ -575,7 +577,7 @@ func (h *ListSyncHelper) SyncLists(
 			// Create a new list in the target client
 			newList, err := targetProvider.CreateList(ctx,
 				sourceList.Data.GetTitle(),
-				sourceList.Data.ItemList.Details.Description)
+				sourceList.GetData().GetItemList().Details.Description)
 			if err != nil {
 				log.Error().
 					Err(err).
@@ -645,4 +647,3 @@ func (h *ListSyncHelper) SyncLists(
 
 	return nil
 }
-

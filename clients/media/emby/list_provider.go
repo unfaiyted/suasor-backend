@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/antihax/optional"
-	"suasor/clients/media/providers"
 	"suasor/clients/media/types"
 	embyclient "suasor/internal/clients/embyAPI"
 	"suasor/types/models"
@@ -17,39 +16,22 @@ func (e *EmbyClient) SupportsLists() bool {
 	return true
 }
 
-// Adapter helpers to create proper ListProvider adapters
-func (e *EmbyClient) AsPlaylistListProvider() providers.ListProvider[*types.Playlist] {
-	return providers.NewPlaylistListAdapter(e)
-}
-
-func (e *EmbyClient) AsCollectionListProvider() providers.ListProvider[*types.Collection] {
-	return providers.NewCollectionListAdapter(e)
-}
-
-func (e *EmbyClient) AsTypedListProvider() *providers.TypedListProvider {
-	return providers.NewTypedListProvider(
-		e,
-		func() providers.PlaylistProvider { return e },
-		func() providers.CollectionProvider { return e },
-	)
-}
-
 // determineListType tries to identify if a list is a playlist or collection
 func (e *EmbyClient) determineListType(ctx context.Context, listID string) (types.MediaType, error) {
 	log := logger.LoggerFromContext(ctx)
-	
+
 	// Get user ID if available
 	userID := e.getUserID()
-	
+
 	// Try to get the item details
 	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
 		Ids: optional.NewString(listID),
 	}
-	
+
 	if userID != "" {
 		queryParams.UserId = optional.NewString(userID)
 	}
-	
+
 	itemsResult, _, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
 	if err != nil {
 		log.Error().
@@ -58,13 +40,13 @@ func (e *EmbyClient) determineListType(ctx context.Context, listID string) (type
 			Msg("Failed to get list details from Emby")
 		return "", fmt.Errorf("failed to get list details: %w", err)
 	}
-	
+
 	if len(itemsResult.Items) == 0 {
 		return "", fmt.Errorf("list not found: %s", listID)
 	}
-	
+
 	item := itemsResult.Items[0]
-	
+
 	// Determine the type based on the Emby item type
 	switch item.Type_ {
 	case "Playlist":
@@ -75,8 +57,6 @@ func (e *EmbyClient) determineListType(ctx context.Context, listID string) (type
 		return "", fmt.Errorf("unknown list type: %s", item.Type_)
 	}
 }
-
-// Helper type conversion functions
 
 // Convert a playlist MediaItem to a generic ListData MediaItem
 func convertPlaylistToListData(playlist *models.MediaItem[*types.Playlist]) *models.MediaItem[types.ListData] {
@@ -109,3 +89,4 @@ func convertCollectionsToListData(collections []*models.MediaItem[*types.Collect
 	// In reality, this would require more complex type handling.
 	return nil
 }
+

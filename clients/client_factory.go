@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"suasor/clients/media/providers"
+	mediatypes "suasor/clients/media/types"
 	"suasor/clients/types"
 	"suasor/utils/logger"
 	"sync"
@@ -50,7 +51,7 @@ func (s *ClientProviderFactoryService) RegisterClientProviderFactory(clientType 
 // UnregisterClient unregisters a client
 func (s *ClientProviderFactoryService) UnregisterClient(ctx context.Context, clientID uint64, config types.ClientConfig) {
 	log := logger.LoggerFromContext(ctx)
-	
+
 	// Validate input parameters
 	if config == nil {
 		log.Error().
@@ -58,7 +59,7 @@ func (s *ClientProviderFactoryService) UnregisterClient(ctx context.Context, cli
 			Msg("Cannot unregister client: config is nil")
 		return
 	}
-	
+
 	clientType := config.GetType()
 	key := ClientKey{Type: clientType, ID: clientID}
 	log.Debug().
@@ -99,7 +100,7 @@ func (s *ClientProviderFactoryService) UnregisterClient(ctx context.Context, cli
 // GetClient returns an existing client or creates a new one
 func (s *ClientProviderFactoryService) GetClient(ctx context.Context, clientID uint64, config types.ClientConfig) (Client, error) {
 	log := logger.LoggerFromContext(ctx)
-	
+
 	// Validate input parameters
 	if config == nil {
 		err := fmt.Errorf("cannot get client: config is nil for clientID=%d", clientID)
@@ -108,7 +109,7 @@ func (s *ClientProviderFactoryService) GetClient(ctx context.Context, clientID u
 			Msg(err.Error())
 		return nil, err
 	}
-	
+
 	clientType := config.GetType()
 	key := ClientKey{Type: clientType, ID: clientID}
 	log.Debug().
@@ -188,17 +189,17 @@ func (s *ClientProviderFactoryService) GetMovieProvider(ctx context.Context, cli
 	if config == nil {
 		return nil, fmt.Errorf("cannot get movie provider: config is nil for clientID=%d", clientID)
 	}
-	
+
 	client, err := s.GetClient(ctx, clientID, config)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	movieProvider, ok := client.(providers.MovieProvider)
 	if !ok {
 		return nil, fmt.Errorf("client does not implement MovieProvider interface")
 	}
-	
+
 	return movieProvider, nil
 }
 
@@ -206,17 +207,17 @@ func (s *ClientProviderFactoryService) GetSeriesProvider(ctx context.Context, cl
 	if config == nil {
 		return nil, fmt.Errorf("cannot get series provider: config is nil for clientID=%d", clientID)
 	}
-	
+
 	client, err := s.GetClient(ctx, clientID, config)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	seriesProvider, ok := client.(providers.SeriesProvider)
 	if !ok {
 		return nil, fmt.Errorf("client does not implement SeriesProvider interface")
 	}
-	
+
 	return seriesProvider, nil
 }
 
@@ -224,17 +225,17 @@ func (s *ClientProviderFactoryService) GetMusicProvider(ctx context.Context, cli
 	if config == nil {
 		return nil, fmt.Errorf("cannot get music provider: config is nil for clientID=%d", clientID)
 	}
-	
+
 	client, err := s.GetClient(ctx, clientID, config)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	musicProvider, ok := client.(providers.MusicProvider)
 	if !ok {
 		return nil, fmt.Errorf("client does not implement MusicProvider interface")
 	}
-	
+
 	return musicProvider, nil
 }
 
@@ -242,17 +243,17 @@ func (s *ClientProviderFactoryService) GetPlaylistProvider(ctx context.Context, 
 	if config == nil {
 		return nil, fmt.Errorf("cannot get playlist provider: config is nil for clientID=%d", clientID)
 	}
-	
+
 	client, err := s.GetClient(ctx, clientID, config)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	playlistProvider, ok := client.(providers.PlaylistProvider)
 	if !ok {
 		return nil, fmt.Errorf("client does not implement PlaylistProvider interface")
 	}
-	
+
 	return playlistProvider, nil
 }
 
@@ -260,18 +261,57 @@ func (s *ClientProviderFactoryService) GetCollectionProvider(ctx context.Context
 	if config == nil {
 		return nil, fmt.Errorf("cannot get collection provider: config is nil for clientID=%d", clientID)
 	}
-	
+
 	client, err := s.GetClient(ctx, clientID, config)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	collectionProvider, ok := client.(providers.CollectionProvider)
 	if !ok {
 		return nil, fmt.Errorf("client does not implement CollectionProvider interface")
 	}
-	
+
 	return collectionProvider, nil
+}
+
+func (s *ClientProviderFactoryService) GetListProviderPlaylist(ctx context.Context, clientID uint64, config types.ClientConfig) (providers.ListProvider[*mediatypes.Playlist], error) {
+	if config == nil {
+		return nil, fmt.Errorf("cannot get list provider: config is nil for clientID=%d", clientID)
+	}
+
+	client, err := s.GetClient(ctx, clientID, config)
+	if err != nil {
+		return nil, err
+	}
+
+	originalProvider, ok := client.(providers.PlaylistProvider)
+	if !ok {
+		return nil, fmt.Errorf("client does not implement ListProvider[*types.Playlist] interface")
+	}
+
+	listPlaylistProvider := providers.NewPlaylistListAdapter(originalProvider)
+
+	return listPlaylistProvider, nil
+}
+
+func (s *ClientProviderFactoryService) GetListProviderCollection(ctx context.Context, clientID uint64, config types.ClientConfig) (providers.ListProvider[*mediatypes.Collection], error) {
+	if config == nil {
+		return nil, fmt.Errorf("cannot get list provider: config is nil for clientID=%d", clientID)
+	}
+
+	client, err := s.GetClient(ctx, clientID, config)
+	if err != nil {
+		return nil, err
+	}
+
+	originalProvider, ok := client.(providers.CollectionProvider)
+	if !ok {
+		return nil, fmt.Errorf("client does not implement ListProvider[*types.Collection] interface")
+	}
+
+	listCollectionProvider := providers.NewCollectionListAdapter(originalProvider)
+	return listCollectionProvider, nil
 }
 
 // Convenience package-level functions for working with the singleton
@@ -304,20 +344,20 @@ func UnregisterClient(ctx context.Context, clientID uint64, config types.ClientC
 // GetClientFromModel creates a client from a client model
 func (s *ClientProviderFactoryService) GetClientFromModel(ctx context.Context, model interface{}) (Client, error) {
 	log := logger.LoggerFromContext(ctx)
-	
+
 	// Check if model is nil
 	if model == nil {
 		err := fmt.Errorf("cannot get client: model is nil")
 		log.Error().Msg(err.Error())
 		return nil, err
 	}
-	
+
 	// Try to extract client ID and config from the model
 	clientID, config, err := ExtractClientInfo(model)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Check if extracted config is nil
 	if config == nil {
 		err := fmt.Errorf("cannot get client: extracted config is nil for model type %T", model)

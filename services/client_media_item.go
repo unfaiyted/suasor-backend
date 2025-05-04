@@ -382,7 +382,7 @@ func (s *clientMediaItemService[T, U]) GetByClientID(ctx context.Context, client
 		if !ok {
 			return nil, fmt.Errorf("provider does not support playlists")
 		}
-		playlists, err := playlistProvider.Search(ctx, options)
+		playlists, err := playlistProvider.SearchPlaylists(ctx, options)
 		if err != nil {
 			log.Error().Err(err).
 				Uint64("clientID", clientID).
@@ -400,7 +400,7 @@ func (s *clientMediaItemService[T, U]) GetByClientID(ctx context.Context, client
 		if !ok {
 			return nil, fmt.Errorf("provider does not support collections")
 		}
-		collections, err := collectionProvider.Search(ctx, options)
+		collections, err := collectionProvider.SearchCollections(ctx, options)
 		if err != nil {
 			log.Error().Err(err).
 				Uint64("clientID", clientID).
