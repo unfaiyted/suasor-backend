@@ -49,7 +49,7 @@ type ListProvider[T types.ListData] interface {
 	GetListItems(ctx context.Context, playlistID string, options *types.QueryOptions) ([]*models.MediaItem[T], error)
 	CreateList(ctx context.Context, name string, description string) (*models.MediaItem[T], error)
 	CreateListWithItems(ctx context.Context, name string, description string, itemIDs []string) (*models.MediaItem[T], error)
-	UpdateList(ctx context.Context, playlistID string, name string, description string) (*models.MediaItem[T], error)
+	UpdateList(ctx context.Context, playlistID string, name string, description string, itemIDs []string) (*models.MediaItem[T], error)
 	DeleteList(ctx context.Context, playlistID string) error
 	AddListItem(ctx context.Context, playlistID string, itemID string) error
 	AddListItems(ctx context.Context, playlistID string, itemIDs []string) error

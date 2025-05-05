@@ -5,6 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"suasor/clients/types"
+	"time"
+)
+
+type SyncStatus string
+
+const (
+	SyncStatusSuccess SyncStatus = "success"
+	SyncStatusFailed  SyncStatus = "failed"
+	SyncStatusPending SyncStatus = "pending"
 )
 
 // ExternalID represents an ID that identifies this media item in an external system
@@ -15,15 +24,20 @@ type SyncClient struct {
 	Type types.ClientType `json:"clientType,omitempty" gorm:"type:varchar(50)"`
 	// The actual ID value in the external system
 	ItemID string `json:"itemID"`
+	// The last time this item was synced
+	LastSynced time.Time  `json:"lastSynced,omitempty"`
+	SyncStatus SyncStatus `json:"syncStatus,omitempty"`
 }
 
 type SyncClients []*SyncClient
 
 func (s *SyncClients) AddClient(clientID uint64, clientType types.ClientType, itemID string) {
 	*s = append(*s, &SyncClient{
-		ID:     clientID,
-		Type:   clientType,
-		ItemID: itemID,
+		ID:         clientID,
+		Type:       clientType,
+		ItemID:     itemID,
+		LastSynced: time.Now(),
+		SyncStatus: SyncStatusPending,
 	})
 }
 
@@ -99,4 +113,33 @@ func (s *SyncClients) Scan(value any) error {
 	}
 
 	return json.Unmarshal(data, s)
+}
+
+func (s *SyncClients) IsClientPresent(clientID uint64) bool {
+	for _, client := range *s {
+		if client.ID == clientID {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *SyncClients) UpdateSyncStatus(clientID uint64, syncState SyncStatus) {
+	for i, client := range *s {
+		if client.ID == clientID {
+			(*s)[i].SyncStatus = syncState
+			(*s)[i].LastSynced = time.Now()
+			return
+		}
+	}
+}
+
+func (s *SyncClients) GetSyncStatus(clientID uint64) SyncStatus {
+	for _, client := range *s {
+		if client.ID == clientID {
+			return client.SyncStatus
+		}
+	}
+	// If not found, return pending
+	return SyncStatusPending
 }

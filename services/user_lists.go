@@ -100,11 +100,6 @@ func (s *userListService[T]) Create(ctx context.Context, userID uint64, list *mo
 		itemList.Items = []mediatypes.ListItem{}
 	}
 
-	// Initialize sync client states if nil
-	if itemList.SyncStates == nil {
-		itemList.SyncStates = mediatypes.ListSyncStates{}
-	}
-
 	// Set creation time for LastModified
 	itemList.Details.AddedAt = time.Now()
 	itemList.Details.UpdatedAt = time.Now()
@@ -181,9 +176,7 @@ func (s *userListService[T]) Update(ctx context.Context, userID uint64, list *mo
 	}
 
 	// Preserve sync client states if not provided
-	if itemList.SyncStates == nil || len(itemList.SyncStates) == 0 {
-		itemList.SyncStates = existingItemList.SyncStates
-	}
+	list.SyncClients = existing.SyncClients
 
 	// Update last modified time
 	itemList.LastModified = time.Now()

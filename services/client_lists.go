@@ -30,7 +30,7 @@ type ClientListService[T types.ClientMediaConfig, U mediatypes.ListData] interfa
 	GetClientListsByUserID(ctx context.Context, userID uint64, count int) ([]*models.MediaItem[U], error)
 
 	CreateClientList(ctx context.Context, clientID uint64, name string, description string) (*models.MediaItem[U], error)
-	UpdateClientList(ctx context.Context, clientID uint64, clientListID string, name string, description string) (*models.MediaItem[U], error)
+	UpdateClientList(ctx context.Context, clientID uint64, clientListID string, name string, description string, itemIDs []string) (*models.MediaItem[U], error)
 	DeleteClientList(ctx context.Context, clientID uint64, clientListID string) error
 
 	// Playlist item operations
@@ -200,7 +200,7 @@ func (s *clientListService[T, U]) CreateClientList(ctx context.Context, clientID
 
 	return playlist, nil
 }
-func (s *clientListService[T, U]) UpdateClientList(ctx context.Context, clientID uint64, clientListID string, name string, description string) (*models.MediaItem[U], error) {
+func (s *clientListService[T, U]) UpdateClientList(ctx context.Context, clientID uint64, clientListID string, name string, description string, itemIDs []string) (*models.MediaItem[U], error) {
 	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getListProvider(ctx, clientID)
 	if err != nil {
@@ -208,7 +208,7 @@ func (s *clientListService[T, U]) UpdateClientList(ctx context.Context, clientID
 	}
 
 	// Update the playlist
-	playlist, err := provider.UpdateList(ctx, clientListID, name, description)
+	playlist, err := provider.UpdateList(ctx, clientListID, name, description, itemIDs)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -265,7 +265,7 @@ func (s *clientListService[T, U]) AddClientItem(ctx context.Context, clientID ui
 		return err
 	}
 
-	err = provider.AddItemList(ctx, clientListID, itemID)
+	err = provider.AddListItem(ctx, clientListID, itemID)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -651,31 +651,13 @@ func (s *clientListService[T, U]) Sync(ctx context.Context, clientID uint64, lis
 	// 3. Add these items to the client-specific list
 	// 4. Store the client-specific list IDs and item IDs in the SyncStates
 	// 5. Update the LastSynced timestamp
-	itemList := list.GetData().GetItemList()
 	// For now, just create a placeholder in the SyncStates to show intent
-	now := time.Now()
 	for _, clientID := range targetClientIDs {
 
-		// Create a placeholder sync client state
-		syncState := itemList.SyncStates.GetListSyncState(clientID)
-		if syncState == nil {
-			// Create empty sync list items
-			syncItems := mediatypes.ClientListItems{}
+		// syncState := list.SyncClients.GetSyncStatus(clientID)
+		list.SyncClients.UpdateSyncStatus(clientID, models.SyncStatusSuccess)
 
-			// Add a new state for this client
-			newState := mediatypes.ListSyncState{
-				ClientID:     clientID,
-				Items:        syncItems,
-				ClientListID: "", // Empty for now, would be the client-specific list ID
-				LastSynced:   now,
-			}
-
-			itemList.SyncStates = append(itemList.SyncStates, newState)
-		}
 	}
-
-	// Update the LastSynced timestamp
-	itemList.LastSynced = now
 
 	// Save the updated list
 	_, err = s.userItemRepo.Update(ctx, list)

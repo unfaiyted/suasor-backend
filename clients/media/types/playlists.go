@@ -14,34 +14,34 @@ type Playlist struct {
 }
 
 // DetectItemOrderConflicts finds conflicts in item ordering
-func (p *Playlist) DetectItemOrderConflicts(clientState ListSyncState,
-	mappingService IDMappingService,
-	serviceType string) []string {
-	conflicts := []string{}
-
-	// Create position map for local items
-	localPositions := make(map[uint64]int)
-	for _, item := range p.Items {
-		localPositions[item.ItemID] = item.Position
-	}
-
-	// Check each client item
-	for _, clientItem := range clientState.Items {
-		internalID, err := mappingService.ExternalToInternal(clientItem.ItemID, serviceType)
-		if err != nil {
-			continue // Skip items we can't map
-		}
-
-		// If item exists locally with different position, it's a conflict
-		if localPos, exists := localPositions[internalID]; exists {
-			if localPos != clientItem.Position {
-				conflicts = append(conflicts, clientItem.ItemID)
-			}
-		}
-	}
-
-	return conflicts
-}
+// func (p *Playlist) DetectItemOrderConflicts(clientState ListSyncState,
+// 	mappingService IDMappingService,
+// 	serviceType string) []string {
+// 	conflicts := []string{}
+//
+// 	// Create position map for local items
+// 	localPositions := make(map[uint64]int)
+// 	for _, item := range p.Items {
+// 		localPositions[item.ItemID] = item.Position
+// 	}
+//
+// 	// Check each client item
+// 	for _, clientItem := range clientState.Items {
+// 		internalID, err := mappingService.ExternalToInternal(clientItem.ItemID, serviceType)
+// 		if err != nil {
+// 			continue // Skip items we can't map
+// 		}
+//
+// 		// If item exists locally with different position, it's a conflict
+// 		if localPos, exists := localPositions[internalID]; exists {
+// 			if localPos != clientItem.Position {
+// 				conflicts = append(conflicts, clientItem.ItemID)
+// 			}
+// 		}
+// 	}
+//
+// 	return conflicts
+// }
 
 // ReorderItem changes an item's position within the playlist
 func (p *Playlist) ReorderItem(itemID uint64, newPosition int, clientID uint64) error {

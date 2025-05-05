@@ -624,15 +624,9 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 	var sourceItems []string
 
 	// First, check if we have a SyncClientState for the source client
-	if sourcePlaylist.Data.ItemList.SyncStates != nil {
-		sourceState := sourcePlaylist.Data.ItemList.SyncStates.GetListSyncState(sourceClientID)
-		if sourceState != nil && len(sourceState.Items) > 0 {
-			// Use client-specific item IDs from the sync state
-			for _, item := range sourceState.Items {
-				sourceItems = append(sourceItems, item.ItemID)
-			}
-			logger.Printf("Using %d items from sync client state for client %d", len(sourceItems), sourceClientID)
-		}
+	if sourcePlaylist.SyncClients.IsClientPresent(sourceClientID) {
+		sourceStatus := sourcePlaylist.SyncClients.GetSyncStatus(sourceClientID)
+		logger.Printf("Using %d items from sync client state for client %d", len(sourceItems), sourceClientID)
 	}
 
 	// If no items found in sync state, check the Items array
@@ -662,7 +656,7 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 		}
 
 		// Add the item to the target playlist on the client
-		err = targetProvider.AddItemPlaylist(ctx, targetPlaylistID, targetItemID)
+		err = targetProvider.AddPlaylistItem(ctx, targetPlaylistID, targetItemID)
 		if err != nil {
 			logger.Printf("Error adding item to target playlist: %v", err)
 			continue
@@ -714,33 +708,15 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 		}
 	}
 
-	// Update the SyncStates to store the latest client-specific IDs
-	// This ensures we have a record of which items are on each client
-	if targetPlaylist.Data.ItemList.SyncStates == nil {
-		targetPlaylist.Data.ItemList.SyncStates = mediatypes.ListSyncStates{}
-	}
-
 	// Create the SyncListItems from strings
 	syncItems := transformToSyncListItems(targetItems)
 
 	// Check if state exists, then update or create
-	existingState := targetPlaylist.Data.ItemList.SyncStates.GetListSyncState(targetClientID)
-	if existingState != nil {
-		// Update existing state
-		existingState.Items = syncItems
-		existingState.ClientListID = targetPlaylistID
-		existingState.LastSynced = time.Now()
-	} else {
-		// Add a new state
-		targetPlaylist.Data.ItemList.SyncStates = append(
-			targetPlaylist.Data.ItemList.SyncStates,
-			mediatypes.ListSyncState{
-				ClientID:     targetClientID,
-				Items:        syncItems,
-				ClientListID: targetPlaylistID,
-				LastSynced:   time.Now(),
-			})
-	}
+	existingState := targetPlaylist.SyncClients.GetSyncStatus(targetClientID)
+	// Update existing state
+	targetPlaylist.SyncClients.UpdateSyncStatus(targetClientID, models.SyncStatusSuccess)
+	// Add a new state
+	targetPlaylist.SyncClients.AddClient(targetClientID, clienttypes.ClientTypePlex, targetPlaylistID)
 
 	// Update last synced timestamp for both playlists
 	now := time.Now()
@@ -857,8 +833,8 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 	sourcePlaylist := sourcePlaylists[0]
 
 	// Update the SyncClientState for this playlist if needed
-	if sourcePlaylist.Data.ItemList.SyncStates == nil {
-		sourcePlaylist.Data.ItemList.SyncStates = mediatypes.ListSyncStates{}
+	if sourcePlaylist.SyncClients == nil {
+		sourcePlaylist.SyncClients.AddClient(sourceClientID, clienttypes.ClientTypePlex, playlistID)
 	}
 
 	// Get the playlist items for this source playlist
@@ -881,22 +857,13 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 		syncItems := transformToSyncListItems(sourceItemIDs)
 
 		// Check if state exists, then update or create
-		existingState := sourcePlaylist.Data.ItemList.SyncStates.GetListSyncState(sourceClientID)
+		existingState := sourcePlaylist.SyncClients.GetSyncStatus(sourceClientID)
 		if existingState != nil {
 			// Update existing state
-			existingState.Items = syncItems
-			existingState.ClientListID = playlistID
-			existingState.LastSynced = time.Now()
+			sourcePlaylist.SyncClients.UpdateSyncStatus(sourceClientID, models.SyncStatusSuccess)
 		} else {
 			// Add a new state
-			sourcePlaylist.Data.ItemList.SyncStates = append(
-				sourcePlaylist.Data.ItemList.SyncStates,
-				mediatypes.ListSyncState{
-					ClientID:     sourceClientID,
-					Items:        syncItems,
-					ClientListID: playlistID,
-					LastSynced:   time.Now(),
-				})
+			sourcePlaylist.SyncClients.AddClient(sourceClientID, clienttypes.ClientTypePlex, playlistID)
 		}
 	}
 

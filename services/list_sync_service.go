@@ -8,6 +8,7 @@ import (
 	"suasor/clients"
 	"suasor/clients/media/providers"
 	mediatypes "suasor/clients/media/types"
+	clienttypes "suasor/clients/types"
 	"suasor/repository"
 	repobundle "suasor/repository/bundles"
 	"suasor/types/models"
@@ -23,10 +24,10 @@ type ListSyncService[T mediatypes.ListData] interface {
 	SyncFromClient(ctx context.Context, userID uint64, clientID uint64, clientListID string) (*models.MediaItem[T], error)
 
 	// GetSyncStatus gets the sync status for a list
-	GetSyncStatus(ctx context.Context, listID uint64) (mediatypes.ListSyncStates, error)
+	GetSyncClients(ctx context.Context, listID uint64) (*models.SyncClients, error)
 
 	// UpdateSyncStatus updates the sync status for a list
-	UpdateSyncStatus(ctx context.Context, userID uint64, listID uint64, clientID uint64, syncState mediatypes.SyncState) error
+	UpdateSyncStatus(ctx context.Context, userID uint64, listID uint64, clientID uint64, syncState models.SyncStatus) error
 }
 
 // listSyncService implements the ListSyncService interface
@@ -66,7 +67,7 @@ func (s *listSyncService[T]) SyncToClient(ctx context.Context, userID uint64, li
 	if err != nil {
 		return fmt.Errorf("failed to get local list: %w", err)
 	}
-	listProvider, err := s.getProvider(ctx, clientID)
+	listProvider, config, err := s.getProvider(ctx, clientID)
 	if err != nil {
 		return fmt.Errorf("failed to get provider: %w", err)
 	}
@@ -76,20 +77,22 @@ func (s *listSyncService[T]) SyncToClient(ctx context.Context, userID uint64, li
 
 	// Check if the list is already synced to this client
 	clientListID := ""
-	if itemList.SyncStates != nil {
-		if itemList.SyncStates.IsClientPresent(clientID) {
+	if localList.SyncClients != nil {
+		if localList.SyncClients.IsClientPresent(clientID) {
 			log.Info().
 				Str("clientListID", clientListID).
 				Msg("List already exists on client, will update")
-			clientListID = itemList.SyncStates.GetListSyncState(clientID).ClientListID
+			clientListID = localList.SyncClients.GetClientItemID(clientID)
 		}
 
 	}
 
 	// Get the items in the list that need to be synced
 	items := make([]mediatypes.ListItem, 0, len(itemList.Items))
+	strItemIDs := make([]string, 0, len(itemList.Items))
 	for _, item := range itemList.Items {
 		items = append(items, item)
+		strItemIDs = append(strItemIDs, string(item.ItemID))
 	}
 
 	// If clientListID is empty, create a new list on the client
@@ -100,23 +103,31 @@ func (s *listSyncService[T]) SyncToClient(ctx context.Context, userID uint64, li
 	if clientListID == "" {
 		// Create new list on client
 		log.Info().Msg("Creating new list on client")
-		resultClientListID, resultErr = listProvider.CreateListWithItems(ctx, &mediatypes.List{
-			Name:        itemList.Details.Title,
-			Description: itemList.Details.Description,
-			Items:       items,
-			IsPublic:    itemList.IsPublic,
-		})
+		mediaItem, err := listProvider.CreateListWithItems(ctx,
+			itemList.Details.Title,
+			itemList.Details.Description,
+			strItemIDs,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to create list on client: %w", err)
+		}
+
+		localList.SyncClients.AddClient(clientID, config.GetType(), mediaItem.SyncClients.GetClientItemID(clientID))
+
 	} else {
 		// Update existing list on client
 		log.Info().
 			Str("clientListID", clientListID).
 			Msg("Updating existing list on client")
-		resultErr = listProvider.UpdateList(ctx, clientListID, &mediatypes.List{
-			Name:        itemList.Details.Title,
-			Description: itemList.Details.Description,
-			Items:       items,
-			IsPublic:    itemList.IsPublic,
-		})
+		_, err := listProvider.UpdateList(ctx, clientListID,
+			itemList.Details.Title,
+			itemList.Details.Description,
+			strItemIDs,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to update list on client: %w", err)
+		}
+
 		resultClientListID = clientListID
 	}
 
@@ -125,15 +136,7 @@ func (s *listSyncService[T]) SyncToClient(ctx context.Context, userID uint64, li
 	}
 
 	// Update local list with sync status
-	if itemList.SyncStates == nil {
-		itemList.SyncStates = make(mediatypes.ListSyncStates)
-	}
-
-	itemList.SyncStates[clientID] = mediatypes.SyncState{
-		ClientListID: resultClientListID,
-		LastSynced:   time.Now(),
-		Status:       mediatypes.SyncStatusSuccess,
-	}
+	localList.SyncClients.AddClient(clientID, config.GetType(), resultClientListID)
 
 	// Save updated list
 	localList.GetData().SetItemList(*itemList)
@@ -165,7 +168,7 @@ func (s *listSyncService[T]) SyncFromClient(ctx context.Context, userID uint64, 
 	var zero T
 	mediaType := mediatypes.GetMediaTypeFromTypeName(zero)
 
-	listProvider, err := s.getProvider(ctx, clientID)
+	listProvider, _, err := s.getProvider(ctx, clientID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get provider: %w", err)
 	}
@@ -188,9 +191,8 @@ func (s *listSyncService[T]) SyncFromClient(ctx context.Context, userID uint64, 
 	// Look for existing list with this client ID
 	var existingList *models.MediaItem[T]
 	for _, list := range existingLists {
-		itemList := list.GetData().GetItemList()
-		if itemList.SyncStates != nil {
-			if syncState, exists := itemList.SyncStates[clientID]; exists && syncState.ClientListID == clientListID {
+		if list.SyncClients != nil {
+			if syncState, exists := list.SyncClients.GetByClientID(clientID); exists && syncState.ItemID == clientListID {
 				existingList = list
 				break
 			}
@@ -204,15 +206,16 @@ func (s *listSyncService[T]) SyncFromClient(ctx context.Context, userID uint64, 
 			Msg("Updating existing local list")
 
 		// Update list details
-		itemList := existingList.GetData().GetItemList()
-		itemList.Details.Title = clientList.Name
-		itemList.Details.Description = clientList.Description
-		itemList.IsPublic = clientList.IsPublic
+		existingItemList := existingList.GetData().GetItemList()
+		existingItemList.Details.Title = clientList.Title
+		existingItemList.Details.Description = clientList.GetData().GetDetails().Description
+		existingItemList.IsPublic = clientList.IsPublic
 
 		// Update items
-		itemList.Items = []mediatypes.ListItem{}
-		for i, item := range clientList.Items {
-			itemList.Items = append(itemList.Items, mediatypes.ListItem{
+		existingItemList.Items = []mediatypes.ListItem{}
+
+		for i, item := range clientList.GetData().GetItemList().Items {
+			existingItemList.Items = append(existingItemList.Items, mediatypes.ListItem{
 				ItemID:      item.ItemID,
 				Position:    i,
 				LastChanged: time.Now(),
@@ -228,17 +231,10 @@ func (s *listSyncService[T]) SyncFromClient(ctx context.Context, userID uint64, 
 		}
 
 		// Update sync state
-		if itemList.SyncStates == nil {
-			itemList.SyncStates = make(mediatypes.ListSyncStates)
-		}
-		itemList.SyncStates[clientID] = mediatypes.SyncState{
-			ClientListID: clientListID,
-			LastSynced:   time.Now(),
-			Status:       mediatypes.SyncStatusSuccess,
-		}
+		existingList.SyncClients.UpdateSyncStatus(clientID, models.SyncStatusSuccess)
 
 		// Save updates
-		existingList.GetData().SetItemList(*itemList)
+		existingList.GetData().SetItemList(*existingItemList)
 		result, err := s.mediaItemRepo.Update(ctx, existingList)
 		if err != nil {
 			return nil, fmt.Errorf("failed to update local list: %w", err)
@@ -250,30 +246,21 @@ func (s *listSyncService[T]) SyncFromClient(ctx context.Context, userID uint64, 
 		log.Info().Msg("Creating new local list from client list")
 
 		// Create item list
-		itemList := mediatypes.ItemList{
-			Details: &mediatypes.MediaDetails{
-				Title:       clientList.Name,
-				Description: clientList.Description,
-				AddedAt:     time.Now(),
-				UpdatedAt:   time.Now(),
-			},
-			IsPublic:     clientList.IsPublic,
-			ItemCount:    len(clientList.Items),
-			OwnerID:      userID,
-			ModifiedBy:   userID,
-			LastModified: time.Now(),
-			Items:        []mediatypes.ListItem{},
-			SyncStates: mediatypes.ListSyncStates{
-				clientID: mediatypes.SyncState{
-					ClientListID: clientListID,
-					LastSynced:   time.Now(),
-					Status:       mediatypes.SyncStatusSuccess,
-				},
-			},
-		}
+		itemList := mediatypes.NewItemList(&mediatypes.MediaDetails{
+			Title:       clientList.Title,
+			Description: clientList.GetData().GetDetails().Description,
+			AddedAt:     time.Now(),
+			UpdatedAt:   time.Now(),
+		})
+		itemList.IsPublic = clientList.IsPublic
+		itemList.ItemCount = len(clientList.GetData().GetItemList().Items)
+		itemList.OwnerID = userID
+		itemList.ModifiedBy = userID
+		itemList.LastModified = time.Now()
+		itemList.Items = clientList.Data.GetItemList().Items
 
 		// Add items
-		for i, item := range clientList.Items {
+		for i, item := range clientList.Data.GetItemList().Items {
 			itemList.Items = append(itemList.Items, mediatypes.ListItem{
 				ItemID:      item.ItemID,
 				Position:    i,
@@ -295,7 +282,7 @@ func (s *listSyncService[T]) SyncFromClient(ctx context.Context, userID uint64, 
 
 		// Create media item
 		newList := models.NewMediaItem[T](mediaType, data)
-		newList.Title = clientList.Name
+		newList.Title = clientList.Title
 		newList.OwnerID = userID
 
 		// Save new list
@@ -309,7 +296,7 @@ func (s *listSyncService[T]) SyncFromClient(ctx context.Context, userID uint64, 
 }
 
 // GetSyncStatus gets the sync status for a list
-func (s *listSyncService[T]) GetSyncStatus(ctx context.Context, listID uint64) (mediatypes.ListSyncStates, error) {
+func (s *listSyncService[T]) GetSyncClients(ctx context.Context, listID uint64) (*models.SyncClients, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
@@ -322,16 +309,36 @@ func (s *listSyncService[T]) GetSyncStatus(ctx context.Context, listID uint64) (
 	}
 
 	// Get sync states
-	itemList := localList.GetData().GetItemList()
-	if itemList.SyncStates == nil {
-		return mediatypes.ListSyncStates{}, nil
+	if localList.SyncClients == nil {
+		return &models.SyncClients{}, nil
 	}
 
-	return itemList.SyncStates, nil
+	return &localList.SyncClients, nil
+}
+
+func (s *listSyncService[T]) GetSyncStatus(ctx context.Context, clientID, listID uint64) (*models.SyncStatus, error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Debug().
+		Uint64("clientID", clientID).
+		Uint64("listID", listID).
+		Msg("Getting sync status for list")
+
+	syncClients, err := s.GetSyncClients(ctx, listID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sync clients: %w", err)
+	}
+	if syncClients == nil {
+		return nil, nil
+	}
+
+	// Get the sync status for this client
+	syncStatus := syncClients.GetSyncStatus(clientID)
+
+	return &syncStatus, nil
 }
 
 // UpdateSyncStatus updates the sync status for a list
-func (s *listSyncService[T]) UpdateSyncStatus(ctx context.Context, userID uint64, listID uint64, clientID uint64, syncState mediatypes.SyncState) error {
+func (s *listSyncService[T]) UpdateSyncStatus(ctx context.Context, userID uint64, listID uint64, clientID uint64, syncState models.SyncStatus) error {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("userID", userID).
@@ -345,16 +352,9 @@ func (s *listSyncService[T]) UpdateSyncStatus(ctx context.Context, userID uint64
 		return fmt.Errorf("failed to get local list: %w", err)
 	}
 
-	// Update sync status
-	itemList := localList.GetData().GetItemList()
-	if itemList.SyncStates == nil {
-		itemList.SyncStates = make(mediatypes.ListSyncStates)
-	}
-
-	itemList.SyncStates[clientID] = syncState
+	localList.SyncClients.UpdateSyncStatus(clientID, syncState)
 
 	// Save updated list
-	localList.GetData().SetItemList(*itemList)
 	_, err = s.mediaItemRepo.Update(ctx, localList)
 	if err != nil {
 		return fmt.Errorf("failed to update local list with sync status: %w", err)
@@ -369,17 +369,17 @@ func (s *listSyncService[T]) UpdateSyncStatus(ctx context.Context, userID uint64
 	return nil
 }
 
-func (s *listSyncService[T]) getProvider(ctx context.Context, clientID uint64) (providers.ListProvider[T], error) {
+func (s *listSyncService[T]) getProvider(ctx context.Context, clientID uint64) (providers.ListProvider[T], clienttypes.ClientConfig, error) {
 	// Get client
 	allMediaClients, err := s.clientRepos.GetAllMediaClients(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get client: %w", err)
+		return nil, nil, fmt.Errorf("failed to get client: %w", err)
 	}
 
 	// Get client config
 	config := allMediaClients.GetClientConfig(clientID)
 	if config == nil {
-		return nil, fmt.Errorf("client not found")
+		return nil, nil, fmt.Errorf("client not found")
 	}
 
 	var listProvider providers.ListProvider[T]
@@ -390,18 +390,18 @@ func (s *listSyncService[T]) getProvider(ctx context.Context, clientID uint64) (
 	if mediaType == mediatypes.MediaTypePlaylist {
 		playlistProvider, err := s.clientFactories.GetListProviderPlaylist(ctx, clientID, config)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get playlist provider: %w", err)
+			return nil, nil, fmt.Errorf("failed to get playlist provider: %w", err)
 		}
 		listProvider = playlistProvider.(providers.ListProvider[T])
 	} else if mediaType == mediatypes.MediaTypeCollection {
 		collectionProvider, err := s.clientFactories.GetListProviderCollection(ctx, clientID, config)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get collection provider: %w", err)
+			return nil, nil, fmt.Errorf("failed to get collection provider: %w", err)
 		}
 		listProvider = collectionProvider.(providers.ListProvider[T])
 	} else {
-		return nil, fmt.Errorf("unsupported list type: %s", mediaType)
+		return nil, nil, fmt.Errorf("unsupported list type: %s", mediaType)
 	}
 
-	return listProvider, nil
+	return listProvider, config, nil
 }

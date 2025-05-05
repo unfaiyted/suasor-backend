@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	jellyfin "github.com/sj14/jellyfin-go/api"
-	t "suasor/clients/media/types"
+	"suasor/clients/media/types"
+	clienttypes "suasor/clients/types"
+
 	"suasor/types/models"
 	"suasor/utils/logger"
 	"time"
@@ -16,7 +18,7 @@ func (j *JellyfinClient) SupportsPlaylists() bool {
 }
 
 // GetPlaylists retrieves playlists from Jellyfin
-func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *t.QueryOptions) ([]models.MediaItem[*t.Playlist], error) {
+func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *types.QueryOptions) ([]models.MediaItem[*types.Playlist], error) {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
 
@@ -46,11 +48,11 @@ func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 
 	if response.Items == nil || len(response.Items) == 0 {
 		log.Info().Msg("No playlists returned from Jellyfin")
-		return []models.MediaItem[*t.Playlist]{}, nil
+		return []models.MediaItem[*types.Playlist]{}, nil
 	}
 
 	// Convert Jellyfin items to playlist models
-	playlists := make([]models.MediaItem[*t.Playlist], 0, len(response.Items))
+	playlists := make([]models.MediaItem[*types.Playlist], 0, len(response.Items))
 
 	for _, item := range response.Items {
 		// Safely handle name/title
@@ -72,10 +74,10 @@ func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 		}
 
 		// Convert to our playlist model
-		playlist := models.MediaItem[*t.Playlist]{
-			Data: &t.Playlist{
-				ItemList: t.ItemList{
-					Details: &t.MediaDetails{
+		playlist := models.MediaItem[*types.Playlist]{
+			Data: &types.Playlist{
+				ItemList: types.ItemList{
+					Details: &types.MediaDetails{
 						Title:       title,
 						Description: description,
 						Artwork:     *j.getArtworkURLs(&item),
@@ -98,7 +100,7 @@ func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *t.QueryOptio
 }
 
 // GetPlaylistItems retrieves items in a playlist from Jellyfin
-func (j *JellyfinClient) GetPlaylistItems(ctx context.Context, playlistID string, options *t.QueryOptions) (*models.MediaItemList, error) {
+func (j *JellyfinClient) GetPlaylistItems(ctx context.Context, playlistID string, options *types.QueryOptions) (*models.MediaItemList, error) {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
 
@@ -143,7 +145,7 @@ func (j *JellyfinClient) GetPlaylistItems(ctx context.Context, playlistID string
 }
 
 // CreatePlaylist creates a new playlist in Jellyfin
-func (j *JellyfinClient) CreatePlaylist(ctx context.Context, name string, description string) (*models.MediaItem[*t.Playlist], error) {
+func (j *JellyfinClient) CreatePlaylist(ctx context.Context, name string, description string) (*models.MediaItem[*types.Playlist], error) {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
 
@@ -180,10 +182,10 @@ func (j *JellyfinClient) CreatePlaylist(ctx context.Context, name string, descri
 	}
 
 	// Convert response to our internal playlist model
-	playlist := &models.MediaItem[*t.Playlist]{
-		Data: &t.Playlist{
-			ItemList: t.ItemList{
-				Details: &t.MediaDetails{
+	playlist := &models.MediaItem[*types.Playlist]{
+		Data: &types.Playlist{
+			ItemList: types.ItemList{
+				Details: &types.MediaDetails{
 					Title:       name,
 					Description: description,
 					// Use default artwork and fill in when items are added
@@ -210,7 +212,7 @@ func (j *JellyfinClient) CreatePlaylist(ctx context.Context, name string, descri
 }
 
 // UpdatePlaylist updates an existing playlist in Jellyfin
-func (j *JellyfinClient) UpdatePlaylist(ctx context.Context, playlistID string, name string, description string) (*models.MediaItem[*t.Playlist], error) {
+func (j *JellyfinClient) UpdatePlaylist(ctx context.Context, playlistID string, name string, description string) (*models.MediaItem[*types.Playlist], error) {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
 
@@ -264,7 +266,7 @@ func (j *JellyfinClient) UpdatePlaylist(ctx context.Context, playlistID string, 
 	// }
 
 	// Re-fetch the item to get the updated version
-	item, _, err := j.client.PlaylistsAPI.GetPlaylist(ctx, playlistID).Execute()
+	clientItem, _, err := j.client.PlaylistsAPI.GetPlaylist(ctx, playlistID).Execute()
 	if err != nil {
 		log.Warn().
 			Err(err).
@@ -273,28 +275,26 @@ func (j *JellyfinClient) UpdatePlaylist(ctx context.Context, playlistID string, 
 		// Continue anyway since we know it was updated
 	}
 
-	var syncItems = t.ClientListItems{}
-	for index, item := range item.ItemIds {
-		syncItems = append(syncItems, t.ClientListItem{
-			ItemID:        item,
+	var syncItems = types.ClientListItems{}
+	for index, itemId := range clientItem.ItemIds {
+		syncItems = append(syncItems, types.ClientListItem{
+			ItemID:        itemId,
 			Position:      index + 1,
 			LastChanged:   time.Now(),
-			ChangeHistory: []t.ChangeRecord{},
+			ChangeHistory: []types.ChangeRecord{},
 		})
 	}
 
-	syncClientState := t.ListSyncState{
-		ClientID:     j.GetClientID(),
-		Items:        syncItems,
-		ClientListID: "", // Empty for now, would be the client-specific playlist ID
-		LastSynced:   time.Now(),
-	}
+	// syncClientState := models.SyncClient{
+	// 	ID:     j.GetClientID(),
+	// 	ItemID: playlist.ID,
+	// 	LastSynced:   time.Now(),
+	// }
 
 	// Create our internal model with updated info
-	playlist := models.NewMediaItem[*t.Playlist](t.MediaTypePlaylist, &t.Playlist{
-		ItemList: t.ItemList{
-			SyncStates: t.ListSyncStates{syncClientState},
-			Details: &t.MediaDetails{
+	playlist := models.NewMediaItem[*types.Playlist](types.MediaTypePlaylist, &types.Playlist{
+		ItemList: types.ItemList{
+			Details: &types.MediaDetails{
 				Title:       name,
 				Description: description,
 				// TODO: need to look into playlist artwork handling
@@ -308,6 +308,8 @@ func (j *JellyfinClient) UpdatePlaylist(ctx context.Context, playlistID string, 
 			IsPublic:  true,
 		},
 	})
+
+	playlist.SyncClients.AddClient(j.GetClientID(), clienttypes.ClientTypeJellyfin, playlistID)
 
 	// get items from the playlist
 	itemReq := j.client.PlaylistsAPI.GetPlaylistItems(ctx, playlistID)

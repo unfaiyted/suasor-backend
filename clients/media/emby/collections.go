@@ -50,7 +50,16 @@ func (e *EmbyClient) SearchCollections(ctx context.Context, options *types.Query
 	collections := make([]*models.MediaItem[*types.Collection], 0, len(results.Items))
 
 	for _, item := range results.Items {
-		collection := e.ConvertItemToCollection(item)
+		itemCollection, err := GetItem[*types.Collection](ctx, e, &item)
+		collection, err := GetMediaItem[*types.Collection](ctx, e, itemCollection, item.Id)
+		if err != nil {
+			log.Warn().
+				Err(err).
+				Str("itemID", item.Id).
+				Str("itemName", item.Name).
+				Msg("Error converting Emby item to collection format")
+			continue
+		}
 		if collection != nil {
 			collection.SetClientInfo(e.GetClientID(), e.GetClientType(), item.Id)
 			collections = append(collections, collection)
@@ -187,8 +196,17 @@ func (e *EmbyClient) CreateCollection(ctx context.Context, name string, descript
 	}
 
 	// Convert to Collection model
-	collection := e.ConvertItemToCollection(collectionResponse.Items[0])
-	collection.SetClientInfo(e.GetClientID(), e.GetClientType(), newCollection.Id)
+	collectionItem, err := GetItem[*types.Collection](ctx, e, &collectionResponse.Items[0])
+	collection, err := GetMediaItem[*types.Collection](ctx, e, collectionItem, collectionResponse.Items[0].Id)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Str("collectionId", collectionID).
+			Str("name", name).
+			Msg("Error converting Emby item to collection format")
+		return nil, err
+	}
+	// collection.SetClientInfo(e.GetClientID(), e.GetClientType(), newCollection.Id)
 
 	log.Info().
 		Str("collectionId", collectionID).

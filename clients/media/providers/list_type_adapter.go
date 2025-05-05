@@ -14,7 +14,7 @@ import (
 // This is useful when you need to handle both playlist and collection types uniformly
 type TypedListProvider struct {
 	// The client that will be queried
-	client interface{}
+	client any
 
 	// Functions to access the specialized providers
 	getPlaylistProvider   func() PlaylistProvider
@@ -23,7 +23,7 @@ type TypedListProvider struct {
 
 // NewTypedListProvider creates a new adapter
 func NewTypedListProvider(
-	client interface{},
+	client any,
 	getPlaylistProvider func() PlaylistProvider,
 	getCollectionProvider func() CollectionProvider,
 ) *TypedListProvider {
@@ -252,7 +252,7 @@ func (p *TypedListProvider) AddItemToList(
 			return fmt.Errorf("playlist provider not available")
 		}
 
-		return playlistProvider.AddItemPlaylist(ctx, listID, itemID)
+		return playlistProvider.AddPlaylistItem(ctx, listID, itemID)
 
 	case mediatypes.MediaTypeCollection:
 		collectionProvider := p.getCollectionProvider()
@@ -260,7 +260,7 @@ func (p *TypedListProvider) AddItemToList(
 			return fmt.Errorf("collection provider not available")
 		}
 
-		return collectionProvider.AddItemCollection(ctx, listID, itemID)
+		return collectionProvider.AddCollectionItem(ctx, listID, itemID)
 
 	default:
 		return fmt.Errorf("unsupported list type: %s", listType)
@@ -337,7 +337,7 @@ func (h *TypeHelper) GetListTitle(item interface{}) (string, error) {
 }
 
 // GetListDescription safely extracts the description from a list item
-func (h *TypeHelper) GetListDescription(item interface{}) (string, error) {
+func (h *TypeHelper) GetListDescription(item any) (string, error) {
 	if playlist, ok := item.(*models.MediaItem[*mediatypes.Playlist]); ok {
 		return playlist.Data.ItemList.Details.Description, nil
 	}
@@ -347,4 +347,3 @@ func (h *TypeHelper) GetListDescription(item interface{}) (string, error) {
 
 	return "", fmt.Errorf("unknown item type: %s", reflect.TypeOf(item))
 }
-
