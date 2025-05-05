@@ -30,7 +30,9 @@ func (f *ListProviderFactory) CreateCollectionListProvider(provider CollectionPr
 // ListSyncAdapter is a generic adapter for syncing lists between providers
 type ListSyncAdapter[T mediatypes.ListData] struct {
 	sourceProvider ListProvider[T]
+	sourceClientID uint64
 	targetProvider ListProvider[T]
+	targetClientID uint64
 }
 
 // NewListSyncAdapter creates a new adapter for syncing lists
@@ -112,44 +114,40 @@ func (a *ListSyncAdapter[T]) SyncListItems(
 	targetListID string,
 ) error {
 	// Get source list items
-	sourceItems, err := a.sourceProvider.GetListItems(ctx, sourceListID, nil)
+
+	// listType := mediatypes.GetListType[T]()
+	sourceItems, err := a.sourceProvider.GetListItems(ctx, sourceListID)
 	if err != nil {
 		return fmt.Errorf("failed to get source list items: %w", err)
 	}
-
 	// Get target list items for comparison
-	targetItems, err := a.targetProvider.GetListItems(ctx, targetListID, nil)
+	targetItems, err := a.targetProvider.GetListItems(ctx, targetListID)
 	if err != nil {
 		// If target is empty, just continue (it might be a new list)
-		targetItems = []*models.MediaItem[T]{}
+		targetItems = models.NewMediaItemList[T](targetItems.ListOriginID, targetItems.OwnerID)
 	}
 
-	// Create a map of existing items to avoid duplicates
-	targetItemMap := make(map[string]bool)
-	for _, item := range targetItems {
-		targetItemMap[item.Title] = true
+	// Delete all liste items in target
+	err = a.targetProvider.RemoveAllListItems(ctx, targetListID)
+	if err != nil {
+		return fmt.Errorf("failed to delete target list items: %w", err)
 	}
 
-	// Add each source item to target if not already present
-	for _, sourceItem := range sourceItems {
-		if targetItemMap[sourceItem.Title] {
-			// Item already exists in target, skip
-			continue
+	// Add each source item to target
+	sourceItems.ForEach(func(UUID string, mediaType mediatypes.MediaType, item any) bool {
+		typedItem, ok := item.(*models.MediaItem[T])
+		if !ok {
+			return true
 		}
-
-		// Get the item ID from source
-		var sourceItemID string
-		for _, id := range sourceItem.SyncClients {
-			sourceItemID = id.ItemID
-			break
-		}
-
 		// Add to target
-		err = a.targetProvider.AddListItem(ctx, targetListID, sourceItemID)
+
+		targetItemID := typedItem.SyncClients.GetClientItemID(a.targetClientID)
+		err = a.targetProvider.AddListItem(ctx, targetListID, targetItemID)
 		if err != nil {
-			return fmt.Errorf("failed to add item to target list: %w", err)
+			return false
 		}
-	}
+		return true
+	})
 
 	return nil
 }
@@ -201,4 +199,3 @@ func (c *ListMappingCollector[T]) GetMappings(ctx context.Context) (map[string]m
 
 	return mappings, nil
 }
-

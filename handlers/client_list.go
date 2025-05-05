@@ -269,7 +269,7 @@ func (h *clientListHandler[T, U]) UpdateList(c *gin.Context) {
 		Str("name", req.Name).
 		Msg("Updating playlist")
 
-	list, err := h.listService.UpdateClientList(ctx, clientID, listID, req.Name, req.Description)
+	list, err := h.listService.UpdateClientList(ctx, clientID, listID, req.Name, req.Description, nil)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).

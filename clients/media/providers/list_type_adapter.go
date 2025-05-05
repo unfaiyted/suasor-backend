@@ -156,7 +156,7 @@ func (p *TypedListProvider) GetListItems(
 			return nil, fmt.Errorf("playlist provider not available")
 		}
 
-		items, err := playlistProvider.GetPlaylistItems(ctx, listID, options)
+		items, err := playlistProvider.GetPlaylistItems(ctx, listID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get playlist items: %w", err)
 		}
@@ -172,7 +172,7 @@ func (p *TypedListProvider) GetListItems(
 			return nil, fmt.Errorf("collection provider not available")
 		}
 
-		items, err := collectionProvider.GetCollectionItems(ctx, listID, options)
+		items, err := collectionProvider.GetCollectionItems(ctx, listID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get collection items: %w", err)
 		}

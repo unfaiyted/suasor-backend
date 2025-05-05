@@ -566,7 +566,7 @@ func (j *MediaSyncJob) syncPlaylists(ctx context.Context, clientMedia media.Clie
 				Msg("Processing playlist")
 
 			// Fetch playlist items from the client
-			playlistItems, err := playlistProvider.GetPlaylistItems(ctx, clientItemID, &mediatypes.QueryOptions{})
+			playlistItems, err := playlistProvider.GetPlaylistItems(ctx, clientItemID)
 			if err != nil {
 				log.Warn().
 					Err(err).
@@ -578,7 +578,7 @@ func (j *MediaSyncJob) syncPlaylists(ctx context.Context, clientMedia media.Clie
 
 			log.Debug().
 				Str("playlistTitle", playlist.Title).
-				Int("itemCount", len(playlistItems)).
+				Int("itemCount", playlistItems.GetTotalItems()).
 				Msg("Retrieved playlist items")
 
 			// Update the playlist with its items in the local database
@@ -702,7 +702,7 @@ func (j *MediaSyncJob) processPlaylistBatch(ctx context.Context, playlists []*mo
 		}
 
 		// Fetch the playlist items
-		playlistItems, err := provider.GetPlaylistItems(ctx, clientItemID, &mediatypes.QueryOptions{})
+		playlistItems, err := provider.GetPlaylistItems(ctx, clientItemID)
 		if err != nil {
 			log.Printf("Error getting items for playlist %s: %v", playlist.Data.ItemList.Details.Title, err)
 			continue
@@ -751,41 +751,32 @@ func (j *MediaSyncJob) processPlaylistBatch(ctx context.Context, playlists []*mo
 }
 
 // processPlaylistItems processes items in a playlist and links them to media items
-func (j *MediaSyncJob) processPlaylistItems(ctx context.Context, playlist *models.MediaItem[*mediatypes.Playlist], playlistItems []*models.MediaItem[*mediatypes.Playlist], clientID uint64) error {
-	// Create or update the sync state for this client
-	if playlist.Data.ItemList.SyncStates == nil {
-		playlist.Data.ItemList.SyncStates = mediatypes.ListSyncStates{}
-	}
-
+func (j *MediaSyncJob) processPlaylistItems(ctx context.Context, playlist *models.MediaItem[*mediatypes.Playlist], playlistItems *models.MediaItemList, clientID uint64) error {
+	log := logger.LoggerFromContext(ctx)
 	// Get or create the sync state for this client
-	syncState := playlist.Data.ItemList.SyncStates.GetListSyncState(clientID)
-	if syncState == nil {
-		clientSyncState := mediatypes.ListSyncState{
-			ClientID:     clientID,
-			ClientListID: "", // Will be set below
-			Items:        mediatypes.ClientListItems{},
-			LastSynced:   time.Now(),
-		}
-		playlist.Data.ItemList.SyncStates = append(playlist.Data.ItemList.SyncStates, clientSyncState)
-		syncState = &playlist.Data.ItemList.SyncStates[len(playlist.Data.ItemList.SyncStates)-1]
+	_, exists := playlist.SyncClients.GetSyncStatus(clientID)
+	if !exists {
+		log.Error().
+			Uint64("clientID", clientID).
+			Str("clientListID", playlist.SyncClients.GetClientItemID(clientID)).
+			Msg("Client not found in sync state")
+		return fmt.Errorf("client not found in sync state")
 	}
 
-	// Set the client list ID
-	for _, cid := range playlist.SyncClients {
-		if cid.ID == clientID {
-			syncState.ClientListID = cid.ItemID
-			break
+	playlist.SyncClients.UpdateSyncStatus(clientID, models.SyncStatusPending)
+
+	playlistItems.ForEach(func(itemID string, mediaType mediatypes.MediaType, item any) bool {
+		typedItem, ok := item.(*models.MediaItem[mediatypes.MediaData])
+		if !ok {
+			log.Warn().
+				Str("itemID", itemID).
+				Str("itemName", typedItem.GetTitle()).
+				Msg("Could not convert item to media item, skipping")
+			return true
 		}
-	}
-
-	// Create a new client items list
-	clientItems := make(mediatypes.ClientListItems, 0, len(playlistItems))
-
-	// Process each item in the playlist
-	for i, item := range playlistItems {
 		// Find the client-specific ID for this item
 		itemClientID := ""
-		for _, cid := range item.SyncClients {
+		for _, cid := range typedItem.SyncClients {
 			if cid.ID == clientID {
 				itemClientID = cid.ItemID
 				break
@@ -793,47 +784,18 @@ func (j *MediaSyncJob) processPlaylistItems(ctx context.Context, playlist *model
 		}
 
 		if itemClientID == "" {
-			log.Printf("No client ID found for playlist item: %v", item.ID)
-			continue
-		}
-
-		// Find existing media item in our database or create it if needed
-		localMediaItem, err := j.findOrCreateMediaItem(ctx, item, clientID)
-		if err != nil {
-			log.Printf("Error processing media item: %v", err)
-			continue
+			log.Warn().
+				Str("itemID", itemID).
+				Str("itemName", typedItem.GetTitle()).
+				Msg("Could not determine client item ID for item, skipping")
+			return true
 		}
 
 		// Add this item to the list of client items
-		clientItem := mediatypes.ClientListItem{
-			ItemID:      itemClientID,
-			Position:    i,
-			LastChanged: time.Now(),
-		}
-		clientItems = append(clientItems, clientItem)
-
-		// Add this item to the playlist's Items array if it's not already there
-		found := false
-		for _, existingItem := range playlist.Data.ItemList.Items {
-			if existingItem.ItemID == localMediaItem.ID {
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			playlist.Data.ItemList.AddItemWithClientID(mediatypes.ListItem{
-				ItemID:      localMediaItem.ID,
-				Type:        localMediaItem.Type,
-				Position:    i,
-				LastChanged: time.Now(),
-			}, clientID)
-		}
-	}
+		return true
+	})
 
 	// Update the sync state with the new items
-	syncState.Items = clientItems
-	syncState.LastSynced = time.Now()
 	playlist.Data.ItemList.LastSynced = time.Now()
 	playlist.Data.ItemList.ItemCount = len(playlist.Data.ItemList.Items)
 

@@ -150,3 +150,18 @@ func GetMultiple[T any](c *Container, typeKeys []string) ([]T, error) {
 		Msg("GetMultiple succeeded")
 	return results, nil
 }
+
+// LazyValue is a helper for lazy dependency resolution in container
+type LazyValue[T any] struct {
+	container *Container
+}
+
+// NewLazyValue creates a new lazy value
+func NewLazyValue[T any](c *Container) LazyValue[T] {
+	return LazyValue[T]{container: c}
+}
+
+// Value resolves the dependency
+func (l LazyValue[T]) Value() T {
+	return MustGet[T](l.container)
+}

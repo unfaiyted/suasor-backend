@@ -99,6 +99,12 @@ func NewMediaItemCopy[T types.MediaData, U types.MediaData](item *MediaItem[T]) 
 func (m *MediaItem[T]) GetData() T {
 	return m.Data
 }
+func (m *MediaItem[T]) GetTitle() string {
+	return m.Title
+}
+func (m *MediaItem[T]) GetDescription() string {
+	return m.Data.GetDetails().Description
+}
 
 func (m *MediaItem[T]) SetData(data T) {
 	m.Data = data

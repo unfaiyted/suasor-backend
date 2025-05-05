@@ -26,9 +26,13 @@ func RegisterServices(ctx context.Context, c *container.Container) {
 	log.Info().Msg("Registering media data services")
 	registerMediaDataServices(ctx, c)
 
-	// Register list services
+	// Register list services - IMPORTANT: List services must be registered before sync services
 	log.Info().Msg("Registering list services")
 	registerListServices(ctx, c)
+
+	// List sync services - Now registered after list services to avoid circular dependencies
+	log.Info().Msg("Registering list sync services")
+	RegisterListSyncServices(c)
 
 	// Register jobs
 	log.Info().Msg("Registering jobs")
@@ -41,8 +45,4 @@ func RegisterServices(ctx context.Context, c *container.Container) {
 	// Recommendation service
 	log.Info().Msg("Registering recommendation service")
 	registerRecommendationService(ctx, c)
-
-	// List sync services
-	log.Info().Msg("Registering list sync services")
-	RegisterListSyncServices(c)
 }

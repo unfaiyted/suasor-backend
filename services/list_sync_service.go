@@ -122,8 +122,8 @@ func (s *listSyncService[T]) SyncToClient(ctx context.Context, userID uint64, li
 		_, err := listProvider.UpdateList(ctx, clientListID,
 			itemList.Details.Title,
 			itemList.Details.Description,
-			strItemIDs,
 		)
+		listProvider.AddListItems(ctx, clientListID, strItemIDs)
 		if err != nil {
 			return fmt.Errorf("failed to update list on client: %w", err)
 		}
@@ -332,7 +332,10 @@ func (s *listSyncService[T]) GetSyncStatus(ctx context.Context, clientID, listID
 	}
 
 	// Get the sync status for this client
-	syncStatus := syncClients.GetSyncStatus(clientID)
+	syncStatus, exists := syncClients.GetSyncStatus(clientID)
+	if !exists {
+		return nil, nil
+	}
 
 	return &syncStatus, nil
 }

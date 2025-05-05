@@ -225,10 +225,6 @@ func (j *JellyfinClient) UpdatePlaylist(ctx context.Context, playlistID string, 
 
 	updateReq := jellyfin.UpdatePlaylistDto{
 		Name: *jellyfin.NewNullableString(&name),
-		// Users:
-		// Ids:  jellyfin.NewNullableStringSlice(itemIDs),
-		// Description: description,
-		// IsPublic:    jellyfin.NewNullableBool(true),
 	}
 
 	// First, get the current item to make sure it exists and is a playlist
@@ -244,52 +240,6 @@ func (j *JellyfinClient) UpdatePlaylist(ctx context.Context, playlistID string, 
 			Msg("Failed to get playlist from Jellyfin")
 		return nil, err
 	}
-
-	// // Use the update API to modify the playlist metadata
-	// updateReq := j.client.ItemsAPI.UpdateItem(ctx, playlistID)
-	//
-	// // Set the name and description to update
-	// updateReq = updateReq.Name(name)
-	// if description != "" {
-	// 	updateReq = updateReq.Overview(description)
-	// }
-
-	// Execute the update request
-	// _, resp, err = updateReq.Execute()
-	// if err != nil {
-	// 	log.Error().
-	// 		Err(err).
-	// 		Str("playlistID", playlistID).
-	// 		Int("statusCode", resp.StatusCode).
-	// 		Msg("Failed to update playlist in Jellyfin")
-	// 	return nil, err
-	// }
-
-	// Re-fetch the item to get the updated version
-	clientItem, _, err := j.client.PlaylistsAPI.GetPlaylist(ctx, playlistID).Execute()
-	if err != nil {
-		log.Warn().
-			Err(err).
-			Str("playlistID", playlistID).
-			Msg("Failed to get updated playlist from Jellyfin")
-		// Continue anyway since we know it was updated
-	}
-
-	var syncItems = types.ClientListItems{}
-	for index, itemId := range clientItem.ItemIds {
-		syncItems = append(syncItems, types.ClientListItem{
-			ItemID:        itemId,
-			Position:      index + 1,
-			LastChanged:   time.Now(),
-			ChangeHistory: []types.ChangeRecord{},
-		})
-	}
-
-	// syncClientState := models.SyncClient{
-	// 	ID:     j.GetClientID(),
-	// 	ItemID: playlist.ID,
-	// 	LastSynced:   time.Now(),
-	// }
 
 	// Create our internal model with updated info
 	playlist := models.NewMediaItem[*types.Playlist](types.MediaTypePlaylist, &types.Playlist{

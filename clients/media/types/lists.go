@@ -17,6 +17,7 @@ type ListType string
 const (
 	ListTypePlaylist   ListType = "playlist"
 	ListTypeCollection ListType = "collection"
+	ListTypeUnknown    ListType = "unknown"
 )
 
 type ListData interface {

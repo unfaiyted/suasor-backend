@@ -1,4 +1,3 @@
-
 /*
  * Emby Server REST API
  *
@@ -9,12 +8,12 @@ package embyclient
 
 import (
 	"context"
+	"fmt"
+	"github.com/antihax/optional"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
-	"fmt"
-	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -23,13 +22,13 @@ var (
 )
 
 type CollectionServiceApiService service
+
 /*
 CollectionServiceApiService Removes items from a collection
 Requires authentication as user
- * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param ids Item id, comma delimited
- * @param id
-
+  - @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @param ids Item id, comma delimited
+  - @param id
 */
 func (a *CollectionServiceApiService) DeleteCollectionsByIdItems(ctx context.Context, ids string, id string) (*http.Response, error) {
 	var (
@@ -37,7 +36,6 @@ func (a *CollectionServiceApiService) DeleteCollectionsByIdItems(ctx context.Con
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -75,7 +73,7 @@ func (a *CollectionServiceApiService) DeleteCollectionsByIdItems(ctx context.Con
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -95,10 +93,9 @@ func (a *CollectionServiceApiService) DeleteCollectionsByIdItems(ctx context.Con
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr
@@ -106,6 +103,7 @@ func (a *CollectionServiceApiService) DeleteCollectionsByIdItems(ctx context.Con
 
 	return localVarHttpResponse, nil
 }
+
 /*
 CollectionServiceApiService Creates a new collection
 Requires authentication as user
@@ -119,18 +117,18 @@ Requires authentication as user
 */
 
 type CollectionServiceApiPostCollectionsOpts struct {
-    IsLocked optional.Bool
-    Name optional.String
-    ParentId optional.String
-    Ids optional.String
+	IsLocked optional.Bool
+	Name     optional.String
+	ParentId optional.String
+	Ids      optional.String
 }
 
 func (a *CollectionServiceApiService) PostCollections(ctx context.Context, localVarOptionals *CollectionServiceApiPostCollectionsOpts) (CollectionsCollectionCreationResult, *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarHttpMethod  = strings.ToUpper("Post")
+		localVarPostBody    interface{}
+		localVarFileName    string
+		localVarFileBytes   []byte
 		localVarReturnValue CollectionsCollectionCreationResult
 	)
 
@@ -179,7 +177,7 @@ func (a *CollectionServiceApiService) PostCollections(ctx context.Context, local
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -201,39 +199,39 @@ func (a *CollectionServiceApiService) PostCollections(ctx context.Context, local
 
 	if localVarHttpResponse.StatusCode < 300 {
 		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-		if err == nil { 
+		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+		if err == nil {
 			return localVarReturnValue, localVarHttpResponse, err
 		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
 			var v CollectionsCollectionCreationResult
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarReturnValue, localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
 
 	return localVarReturnValue, localVarHttpResponse, nil
 }
+
 /*
 CollectionServiceApiService Adds items to a collection
 Requires authentication as user
- * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param ids Item id, comma delimited
- * @param id
-
+  - @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @param ids Item id, comma delimited
+  - @param id
 */
 func (a *CollectionServiceApiService) PostCollectionsByIdItems(ctx context.Context, ids string, id string) (*http.Response, error) {
 	var (
@@ -241,7 +239,6 @@ func (a *CollectionServiceApiService) PostCollectionsByIdItems(ctx context.Conte
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -279,7 +276,7 @@ func (a *CollectionServiceApiService) PostCollectionsByIdItems(ctx context.Conte
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -299,10 +296,9 @@ func (a *CollectionServiceApiService) PostCollectionsByIdItems(ctx context.Conte
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr
@@ -310,13 +306,13 @@ func (a *CollectionServiceApiService) PostCollectionsByIdItems(ctx context.Conte
 
 	return localVarHttpResponse, nil
 }
+
 /*
 CollectionServiceApiService Removes items from a collection
 Requires authentication as user
- * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param ids Item id, comma delimited
- * @param id
-
+  - @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @param ids Item id, comma delimited
+  - @param id
 */
 func (a *CollectionServiceApiService) PostCollectionsByIdItemsDelete(ctx context.Context, ids string, id string) (*http.Response, error) {
 	var (
@@ -324,7 +320,6 @@ func (a *CollectionServiceApiService) PostCollectionsByIdItemsDelete(ctx context
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -362,7 +357,7 @@ func (a *CollectionServiceApiService) PostCollectionsByIdItemsDelete(ctx context
 			} else {
 				key = auth.Key
 			}
-			
+
 			localVarQueryParams.Add("api_key", key)
 		}
 	}
@@ -382,10 +377,9 @@ func (a *CollectionServiceApiService) PostCollectionsByIdItemsDelete(ctx context
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		return localVarHttpResponse, newErr

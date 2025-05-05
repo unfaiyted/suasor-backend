@@ -98,6 +98,19 @@ const (
 	MediaTypeUnknown    MediaType = "unknown"
 )
 
+func GetListTypeFromTypeName(ofType any) ListType {
+	// First try direct type assertion which is more reliable
+	switch ofType.(type) {
+	case *Playlist:
+		return ListTypePlaylist
+	case *Collection:
+		return ListTypeCollection
+	default:
+		// Fallback (should not reach here in practice)
+		return ListTypeUnknown
+	}
+}
+
 func GetMediaTypeFromTypeName(ofType any) MediaType {
 	// First try direct type assertion which is more reliable
 	switch ofType.(type) {
@@ -165,6 +178,11 @@ func GetMediaTypeFromTypeName(ofType any) MediaType {
 func GetMediaType[T MediaData]() MediaType {
 	var item T
 	return GetMediaTypeFromTypeName(item)
+}
+
+func GetListType[T MediaData]() ListType {
+	var item T
+	return GetListTypeFromTypeName(item)
 }
 
 func (m *MediaDetails) Merge(other *MediaDetails) {

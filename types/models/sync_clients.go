@@ -14,6 +14,7 @@ const (
 	SyncStatusSuccess SyncStatus = "success"
 	SyncStatusFailed  SyncStatus = "failed"
 	SyncStatusPending SyncStatus = "pending"
+	SyncStatusUnknown SyncStatus = "unknown"
 )
 
 // ExternalID represents an ID that identifies this media item in an external system
@@ -134,12 +135,13 @@ func (s *SyncClients) UpdateSyncStatus(clientID uint64, syncState SyncStatus) {
 	}
 }
 
-func (s *SyncClients) GetSyncStatus(clientID uint64) SyncStatus {
+func (s *SyncClients) GetSyncStatus(clientID uint64) (SyncStatus, bool) {
+
 	for _, client := range *s {
 		if client.ID == clientID {
-			return client.SyncStatus
+			return client.SyncStatus, true
 		}
 	}
 	// If not found, return pending
-	return SyncStatusPending
+	return SyncStatusUnknown, false
 }

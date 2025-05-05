@@ -73,7 +73,8 @@ func (j *MediaSyncJob) syncListItems(
 		Msg("Determined list type")
 
 	// Get detailed items for the list from source client
-	listItems, err := sourceProvider.GetListItems(ctx, sourceListID, &mediatypes.QueryOptions{})
+	sourceListItems, err := sourceProvider.GetListItems(ctx, sourceListID)
+	// These list items will not have the proper details from our local database
 	if err != nil {
 		return fmt.Errorf("failed to get source list items: %w", err)
 	}
@@ -86,48 +87,59 @@ func (j *MediaSyncJob) syncListItems(
 		if err != nil {
 			return fmt.Errorf("failed to create list on target: %w", err)
 		}
-		targetListID = getClientItemID(targetList, targetClient.GetClientID())
+		targetListID = targetList.SyncClients.GetClientItemID(targetClient.GetClientID())
 		log.Info().
 			Str("listTitle", sourceList.Title).
 			Str("targetListID", targetListID).
 			Msg("Created new list on target client")
 	} else {
 		// Get the existing list on target
-		targetLists, err := targetProvider.SearchLists(ctx, &mediatypes.QueryOptions{
-			ExternalSourceID: targetListID,
-		})
-		if err != nil || len(targetLists) == 0 {
+		targetList, err := targetProvider.GetList(ctx, targetListID)
+		if err != nil {
 			return fmt.Errorf("could not find target list: %w", err)
 		}
-		targetList = targetLists[0]
 		log.Debug().
 			Str("targetListID", targetListID).
 			Str("listTitle", targetList.Title).
 			Msg("Found existing list on target client")
 	}
 
-	// Map items from source to target
-	for _, item := range listItems {
-		// Get corresponding item ID in target client
-		sourceItemID := getClientItemID(item, sourceClient.GetClientID())
-		if sourceItemID == "" {
-			log.Printf("No item ID found in source client for item %s", item.Title)
-			continue
+	sourceListItems.ForEach(func(UUID string, mediaType mediatypes.MediaType, item any) bool {
+		typedItem, ok := item.(*models.MediaItem[mediatypes.MediaData])
+		if !ok {
+			return true
 		}
+		// Get corresponding item ID in target client
+		sourceItemID := typedItem.SyncClients.GetClientItemID(sourceClient.GetClientID())
+		if sourceItemID == "" {
+			log.Printf("No item ID found in source client for item %s", typedItem.Title)
+			return true
+		}
+		// Get the local list item that matches the one created by the sourceClient.
+		// We should see be able t get the syncClient ItemID for the targetClient
+		j.mergeListItemsWithLocalDatabase(ctx, sourceClient.GetClientID(), sourceListID, sourceListItems)
 
 		// Find matching item in target client
-		targetItemID, err := j.findMatchingItemInTargetClient(ctx, sourceClient.GetClientID(), sourceItemID, targetClient.GetClientID())
-		if err != nil {
-			log.Printf("Could not find matching item in target client: %v", err)
-			continue
-		}
+		sourceListItems.ForEach(func(UUID string, mediaType mediatypes.MediaType, item any) bool {
+			typedItem, ok := item.(*models.MediaItem[mediatypes.MediaData])
+			if !ok {
+				return true
+			}
+			// Get corresponding item ID in target client
+			targetItemID := typedItem.SyncClients.GetClientItemID(targetClient.GetClientID())
+			if targetItemID == "" {
+				log.Printf("No item ID found in target client for item %s", typedItem.Title)
+				return true
+			}
+			if err != nil {
+				log.Printf("Could not find matching item in target client: %v", err)
+				return true
+			}
+			return true
+		})
 
-		// Add item to target list
-		if err := targetProvider.AddListItem(ctx, targetListID, targetItemID); err != nil {
-			log.Printf("Failed to add item to target list: %v", err)
-			continue
-		}
-	}
+		return true
+	})
 
 	return nil
 }
@@ -297,113 +309,40 @@ func (h *ListSyncHelper) syncListItems(
 
 	// Get source items
 	sourceProvider, _ := sourceClient.(providers.ListProvider[mediatypes.ListData])
-	targetProvider, _ := targetClient.(providers.ListProvider[mediatypes.ListData])
+	// targetProvider, _ := targetClient.(providers.ListProvider[mediatypes.ListData])
 
-	sourceItems, err := sourceProvider.GetListItems(ctx, sourceListID, &mediatypes.QueryOptions{})
+	sourceItems, err := sourceProvider.GetListItems(ctx, sourceListID)
 	if err != nil {
 		return fmt.Errorf("failed to get items from source list: %w", err)
 	}
 
 	// Get existing target items to avoid duplicates
-	targetItems, err := targetProvider.GetListItems(ctx, targetListID, &mediatypes.QueryOptions{})
+	// targetItems, err := targetProvider.GetListItems(ctx, targetListID)
 	if err != nil {
 		log.Warn().
 			Err(err).
 			Str("targetListID", targetListID).
 			Msg("Failed to get items from target list, continuing with sync")
 		// Continue with empty slice rather than aborting
-		targetItems = []*models.MediaItem[mediatypes.ListData]{}
+		// targetItems = models.NewMediaItemList[mediatypes.ListData](0, 0)
 	}
 
-	// Create a map of existing target items by title for quick lookups
-	existingTargetTitles := make(map[string]bool)
-	for _, item := range targetItems {
-		existingTargetTitles[item.Title] = true
-	}
-
-	// Process each source item
-	addedItems := 0
-	for _, sourceItem := range sourceItems {
-		// Skip if this item already exists in the target by title
-		if existingTargetTitles[sourceItem.Title] {
-			log.Debug().
-				Str("itemTitle", sourceItem.Title).
-				Msg("Item already exists in target list, skipping")
-			continue
+	sourceItems.ForEach(func(UUID string, mediaType mediatypes.MediaType, item any) bool {
+		typedItem, ok := item.(*models.MediaItem[mediatypes.MediaData])
+		if !ok {
+			return true
 		}
-
-		// Find source client-specific ID
-		var sourceItemID string
-		for _, clientID := range sourceItem.SyncClients {
-			if clientID.ID == sourceClient.GetClientID() {
-				sourceItemID = clientID.ItemID
-				break
-			}
-		}
-
-		if sourceItemID == "" {
-			log.Warn().
-				Str("itemTitle", sourceItem.Title).
-				Msg("Could not find source item ID, skipping")
-			continue
-		}
-
-		// Find matching item ID in target client using UUID if available
-		var targetItemID string
-
-		// First try to get the target ID from existing mappings
-		for _, clientID := range sourceItem.SyncClients {
-			if clientID.ID == targetClient.GetClientID() {
-				targetItemID = clientID.ItemID
-				break
-			}
-		}
-
-		// If no direct mapping is found, try to find by UUID using the media sync job's helper
-		if targetItemID == "" && h.mediaJob != nil {
-			mappedID, err := h.mediaJob.findMatchingItemInTargetClient(ctx,
-				sourceClient.GetClientID(),
-				sourceItemID,
-				targetClient.GetClientID())
-			if err == nil {
-				targetItemID = mappedID
-			}
-		}
-
+		// Get corresponding item ID in target client
+		targetItemID := typedItem.SyncClients.GetClientItemID(targetClient.GetClientID())
 		if targetItemID == "" {
 			log.Warn().
-				Str("itemTitle", sourceItem.Title).
+				Str("itemTitle", typedItem.Title).
 				Msg("Could not find matching item in target client, skipping")
-			continue
+			return true
 		}
-
-		// Add to the target list
-		err := targetProvider.AddListItem(ctx, targetListID, targetItemID)
-		if err != nil {
-			log.Error().
-				Err(err).
-				Str("targetListID", targetListID).
-				Str("targetItemID", targetItemID).
-				Msg("Failed to add item to target list")
-			continue
-		}
-
-		addedItems++
-		log.Debug().
-			Str("itemTitle", sourceItem.Title).
-			Str("targetItemID", targetItemID).
-			Msg("Added item to target list")
-	}
-
-	// Update list sync states for tracking
-	updateListSyncState(sourceList, sourceClient.GetClientID(), sourceListID)
-	updateListSyncState(targetList, targetClient.GetClientID(), targetListID)
-
-	log.Info().
-		Uint64("sourceClientID", sourceClient.GetClientID()).
-		Uint64("targetClientID", targetClient.GetClientID()).
-		Int("addedItems", addedItems).
-		Msg("Finished syncing list items")
+		// Add this item to the list of client items
+		return true
+	})
 
 	return nil
 }
@@ -621,5 +560,79 @@ func (h *ListSyncHelper) SyncLists(
 		Int("totalSourceLists", len(sourceLists)).
 		Msg("Completed list synchronization")
 
+	return nil
+}
+
+func (j *MediaSyncJob) mergeListItemsWithLocalDatabase(ctx context.Context, sourceClientID uint64, sourceListID string, sourceListItems *models.MediaItemList) error {
+	// Get the source items - using the most appropriate method based on what's available
+	// Loop over the sourceListITems and then find the corresponding item in the local database
+	sourceListItems.ForEach(func(UUID string, mediaType mediatypes.MediaType, item any) bool {
+		sourceItem, ok := item.(*models.MediaItem[mediatypes.MediaData])
+		if !ok {
+			return true
+		}
+		// Get corresponding item ID in target client
+		sourceItemID := sourceItem.SyncClients.GetClientItemID(sourceClientID)
+		if sourceItemID == "" {
+			log.Printf("No item ID found in source client for item %s", sourceItem.Title)
+			return true
+		}
+		switch mediaType {
+		case mediatypes.MediaTypeMovie:
+			localItem, err := j.itemRepos.MovieUserRepo().GetByClientItemID(ctx, sourceClientID, sourceItemID)
+			if err != nil {
+				return true
+			}
+			movieSourceItem := item.(*models.MediaItem[*mediatypes.Movie])
+			movieSourceItem.Merge(localItem)
+		case mediatypes.MediaTypeSeries:
+			localItem, err := j.itemRepos.SeriesUserRepo().GetByClientItemID(ctx, sourceClientID, sourceItemID)
+			if err != nil {
+				return true
+			}
+			seriesSourceItem := item.(*models.MediaItem[*mediatypes.Series])
+			seriesSourceItem.Merge(localItem)
+		case mediatypes.MediaTypeEpisode:
+			localItem, err := j.itemRepos.EpisodeUserRepo().GetByClientItemID(ctx, sourceClientID, sourceItemID)
+			if err != nil {
+				return true
+			}
+			episodeSourceItem := item.(*models.MediaItem[*mediatypes.Episode])
+			episodeSourceItem.Merge(localItem)
+		case mediatypes.MediaTypeSeason:
+			localItem, err := j.itemRepos.SeasonUserRepo().GetByClientItemID(ctx, sourceClientID, sourceItemID)
+			if err != nil {
+				return true
+			}
+			seasonSourceItem := item.(*models.MediaItem[*mediatypes.Season])
+			seasonSourceItem.Merge(localItem)
+		case mediatypes.MediaTypeTrack:
+			localItem, err := j.itemRepos.TrackUserRepo().GetByClientItemID(ctx, sourceClientID, sourceItemID)
+			if err != nil {
+				return true
+			}
+			trackSourceItem := item.(*models.MediaItem[*mediatypes.Track])
+			trackSourceItem.Merge(localItem)
+		case mediatypes.MediaTypeAlbum:
+			localItem, err := j.itemRepos.AlbumUserRepo().GetByClientItemID(ctx, sourceClientID, sourceItemID)
+			if err != nil {
+				return true
+			}
+			albumSourceItem := item.(*models.MediaItem[*mediatypes.Album])
+			albumSourceItem.Merge(localItem)
+		case mediatypes.MediaTypeArtist:
+			localItem, err := j.itemRepos.ArtistUserRepo().GetByClientItemID(ctx, sourceClientID, sourceItemID)
+			if err != nil {
+				return true
+			}
+			artistSourceItem := item.(*models.MediaItem[*mediatypes.Artist])
+			artistSourceItem.Merge(localItem)
+		default:
+			return true
+		}
+
+		return true
+
+	})
 	return nil
 }

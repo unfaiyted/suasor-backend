@@ -625,7 +625,7 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 
 	// First, check if we have a SyncClientState for the source client
 	if sourcePlaylist.SyncClients.IsClientPresent(sourceClientID) {
-		sourceStatus := sourcePlaylist.SyncClients.GetSyncStatus(sourceClientID)
+		// sourceStatus := sourcePlaylist.SyncClients.GetSyncStatus(sourceClientID)
 		logger.Printf("Using %d items from sync client state for client %d", len(sourceItems), sourceClientID)
 	}
 
@@ -709,10 +709,10 @@ func (j *PlaylistSyncJob) syncPlaylistItems(
 	}
 
 	// Create the SyncListItems from strings
-	syncItems := transformToSyncListItems(targetItems)
+	// syncItems := transformToSyncListItems(targetItems)
 
 	// Check if state exists, then update or create
-	existingState := targetPlaylist.SyncClients.GetSyncStatus(targetClientID)
+	// existingState := targetPlaylist.SyncClients.GetSyncStatus(targetClientID)
 	// Update existing state
 	targetPlaylist.SyncClients.UpdateSyncStatus(targetClientID, models.SyncStatusSuccess)
 	// Add a new state
@@ -838,32 +838,38 @@ func (j *PlaylistSyncJob) SyncSinglePlaylist(ctx context.Context, userID uint64,
 	}
 
 	// Get the playlist items for this source playlist
-	playlistItems, err := sourceProvider.GetPlaylistItems(ctx, playlistID, nil)
+	playlistItems, err := sourceProvider.GetPlaylistItems(ctx, playlistID)
 	if err != nil {
 		logger.Printf("Error getting playlist items for source playlist: %v", err)
 		// Continue with empty items rather than failing completely
 	} else {
 		// Extract item IDs for syncing
 		var sourceItemIDs []string
-		for _, item := range playlistItems {
+
+		playlistItems.ForEach(func(UUID string, mediaType mediatypes.MediaType, item any) bool {
+			typedItem, ok := item.(*models.MediaItem[mediatypes.MediaData])
+			if !ok {
+				return true
+			}
 			// Get the client-specific ID for this item
-			clientItemID, found := findClientItemID(item, sourceClientID)
+			clientItemID, found := findClientItemID(typedItem, sourceClientID)
 			if found {
 				sourceItemIDs = append(sourceItemIDs, clientItemID)
 			}
-		}
+			return true
+		})
 
 		// Create the SyncListItems from strings
-		syncItems := transformToSyncListItems(sourceItemIDs)
+		// syncItems := transformToSyncListItems(sourceItemIDs)
 
 		// Check if state exists, then update or create
-		existingState := sourcePlaylist.SyncClients.GetSyncStatus(sourceClientID)
-		if existingState != nil {
+		_, exists := sourcePlaylist.SyncClients.GetSyncStatus(sourceClientID)
+		if exists {
 			// Update existing state
 			sourcePlaylist.SyncClients.UpdateSyncStatus(sourceClientID, models.SyncStatusSuccess)
 		} else {
 			// Add a new state
-			sourcePlaylist.SyncClients.AddClient(sourceClientID, clienttypes.ClientTypePlex, playlistID)
+			sourcePlaylist.SyncClients.UpdateSyncStatus(sourceClientID, models.SyncStatusPending)
 		}
 	}
 
@@ -1030,19 +1036,6 @@ func (j *PlaylistSyncJob) UpdatePlaylistSyncPreferences(ctx context.Context, use
 	}
 
 	return nil
-}
-
-// Helper function to transform string IDs to SyncListItems
-func transformToSyncListItems(ids []string) mediatypes.ClientListItems {
-	items := make(mediatypes.ClientListItems, len(ids))
-	for i, id := range ids {
-		items[i] = mediatypes.ClientListItem{
-			ItemID:      id,
-			Position:    i,
-			LastChanged: time.Now(),
-		}
-	}
-	return items
 }
 
 // Helper function to parse uint64 safely, returns 0 if error

@@ -21,8 +21,8 @@ func NewPlaylistListAdapter(provider PlaylistProvider) ListProvider[*mediatypes.
 
 // Implementation of ListProvider[*types.Playlist] interface methods
 
-func (a *PlaylistListAdapter) GetListItems(ctx context.Context, listID string, options *mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Playlist], error) {
-	return a.provider.GetPlaylistItems(ctx, listID, options)
+func (a *PlaylistListAdapter) GetListItems(ctx context.Context, listID string) (*models.MediaItemList, error) {
+	return a.provider.GetPlaylistItems(ctx, listID)
 }
 
 func (a *PlaylistListAdapter) CreateListWithItems(ctx context.Context, name string, description string, itemIDs []string) (*models.MediaItem[*mediatypes.Playlist], error) {
@@ -37,7 +37,7 @@ func (a *PlaylistListAdapter) CreateList(ctx context.Context, name string, descr
 	return a.provider.CreatePlaylist(ctx, name, description)
 }
 
-func (a *PlaylistListAdapter) UpdateList(ctx context.Context, listID string, name string, description string, itemIDs []string) (*models.MediaItem[*mediatypes.Playlist], error) {
+func (a *PlaylistListAdapter) UpdateList(ctx context.Context, listID string, name string, description string) (*models.MediaItem[*mediatypes.Playlist], error) {
 	return a.provider.UpdatePlaylist(ctx, listID, name, description)
 }
 
@@ -57,12 +57,23 @@ func (a *PlaylistListAdapter) RemoveListItem(ctx context.Context, listID string,
 	return a.provider.RemovePlaylistItem(ctx, listID, itemID)
 }
 
+func (a *PlaylistListAdapter) RemoveListItems(ctx context.Context, listID string, itemIDs []string) error {
+	return a.provider.RemovePlaylistItems(ctx, listID, itemIDs)
+}
+
+func (a *PlaylistListAdapter) RemoveAllListItems(ctx context.Context, listID string) error {
+	return a.provider.RemoveAllPlaylistItems(ctx, listID)
+}
+
 func (a *PlaylistListAdapter) ReorderListItems(ctx context.Context, listID string, itemIDs []string) error {
 	return a.provider.ReorderPlaylistItems(ctx, listID, itemIDs)
 }
 
 func (a *PlaylistListAdapter) SearchLists(ctx context.Context, options *mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Playlist], error) {
 	return a.provider.SearchPlaylists(ctx, options)
+}
+func (a *PlaylistListAdapter) SearchListItems(ctx context.Context, listID string, options *mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Playlist], error) {
+	return a.provider.SearchPlaylistItems(ctx, listID, options)
 }
 
 func (a *PlaylistListAdapter) SupportsLists() bool {
@@ -81,8 +92,8 @@ func NewCollectionListAdapter(provider CollectionProvider) ListProvider[*mediaty
 
 // Implementation of ListProvider[*types.Collection] interface methods
 
-func (a *CollectionListAdapter) GetListItems(ctx context.Context, listID string, options *mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Collection], error) {
-	return a.provider.GetCollectionItems(ctx, listID, options)
+func (a *CollectionListAdapter) GetListItems(ctx context.Context, listID string) (*models.MediaItemList, error) {
+	return a.provider.GetCollectionItems(ctx, listID)
 }
 
 func (a *CollectionListAdapter) CreateList(ctx context.Context, name string, description string) (*models.MediaItem[*mediatypes.Collection], error) {
@@ -97,7 +108,7 @@ func (a *CollectionListAdapter) CreateListWithItems(ctx context.Context, name st
 	return a.provider.CreateCollectionWithItems(ctx, name, description, itemIDs)
 }
 
-func (a *CollectionListAdapter) UpdateList(ctx context.Context, listID string, name string, description string, itemIDs []string) (*models.MediaItem[*mediatypes.Collection], error) {
+func (a *CollectionListAdapter) UpdateList(ctx context.Context, listID string, name string, description string) (*models.MediaItem[*mediatypes.Collection], error) {
 	return a.provider.UpdateCollection(ctx, listID, name, description)
 }
 
@@ -117,12 +128,24 @@ func (a *CollectionListAdapter) RemoveListItem(ctx context.Context, listID strin
 	return a.provider.RemoveCollectionItem(ctx, listID, itemID)
 }
 
+func (a *CollectionListAdapter) RemoveListItems(ctx context.Context, listID string, itemIDs []string) error {
+	return a.provider.RemoveCollectionItems(ctx, listID, itemIDs)
+}
+
+func (a *CollectionListAdapter) RemoveAllListItems(ctx context.Context, listID string) error {
+	return a.provider.RemoveAllCollectionItems(ctx, listID)
+}
+
 func (a *CollectionListAdapter) ReorderListItems(ctx context.Context, listID string, itemIDs []string) error {
 	return a.provider.ReorderCollectionItems(ctx, listID, itemIDs)
 }
 
 func (a *CollectionListAdapter) SearchLists(ctx context.Context, options *mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Collection], error) {
 	return a.provider.SearchCollections(ctx, options)
+}
+
+func (a *CollectionListAdapter) SearchListItems(ctx context.Context, listID string, options *mediatypes.QueryOptions) ([]*models.MediaItem[*mediatypes.Collection], error) {
+	return a.provider.SearchCollectionItems(ctx, listID, options)
 }
 
 func (a *CollectionListAdapter) SupportsLists() bool {

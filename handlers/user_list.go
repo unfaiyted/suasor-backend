@@ -795,5 +795,5 @@ func (h *userListHandler[T]) Sync(c *gin.Context) {
 		Uint64("listID", listID).
 		Uint64("clientID", clientID).
 		Msg("List synced successfully")
-	responses.RespondOK(c, nil, "List synced successfully")
+	responses.RespondOK(c, http.StatusOK, "List synced successfully")
 }

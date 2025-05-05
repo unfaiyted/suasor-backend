@@ -73,6 +73,56 @@ func (e *EmbyClient) SearchCollections(ctx context.Context, options *types.Query
 	return collections, nil
 }
 
+func (e *EmbyClient) SearchCollectionItems(ctx context.Context, collectionID string, options *types.QueryOptions) (*models.MediaItemList, error) {
+	// Get logger from context
+	log := logger.LoggerFromContext(ctx)
+
+	log.Info().
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
+		Str("collectionID", collectionID).
+		Msg("Searching collection items from Emby")
+
+	// Prepare the query options
+	includeItemTypes := "BoxSet"
+
+	queryParams := embyclient.ItemsServiceApiGetItemsOpts{
+		IncludeItemTypes: optional.NewString(includeItemTypes),
+		Recursive:        optional.NewBool(true),
+	}
+
+	ApplyClientQueryOptions(ctx, &queryParams, options)
+
+	// Get collection
+	results, _, err := e.client.ItemsServiceApi.GetItems(ctx, &queryParams)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("collectionID", collectionID).
+			Msg("Failed to fetch collection items from Emby")
+		return nil, err
+	}
+
+	if results.Items == nil || len(results.Items) == 0 {
+		log.Info().
+			Str("collectionID", collectionID).
+			Msg("No items found in collection")
+		return nil, nil
+	}
+
+	items, err := GetMixedMediaItems(e, ctx, results.Items)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info().
+		Str("collectionID", collectionID).
+		Int("itemCount", items.GetTotalItems()).
+		Msg("Successfully retrieved collection items from Emby")
+
+	return items, nil
+}
+
 func (e *EmbyClient) GetCollection(ctx context.Context, collectionID string) (*models.MediaItem[*types.Collection], error) {
 	return e.GetCollectionByID(ctx, collectionID)
 }
@@ -349,24 +399,77 @@ func (e *EmbyClient) RemoveCollectionItems(ctx context.Context, collectionID str
 		Int("itemCount", len(itemIDs)).
 		Msg("Removing items from collection in Emby")
 
-	// Emby requires a separate call for each item
-	for _, itemID := range itemIDs {
-		// Remove item from collection
-		_, err := e.client.CollectionServiceApi.PostCollectionsByIdItemsDelete(ctx, collectionID, itemID)
-		if err != nil {
-			log.Error().
-				Err(err).
-				Str("collectionID", collectionID).
-				Str("itemID", itemID).
-				Msg("Failed to remove item from collection in Emby")
-			return err
-		}
+	strItemIDs := strings.Join(itemIDs, ",")
+
+	_, err := e.client.CollectionServiceApi.PostCollectionsByIdItemsDelete(ctx, strItemIDs, collectionID)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("collectionID", collectionID).
+			Strs("itemIDs", itemIDs).
+			Msg("Failed to remove item from collection in Emby")
+		return err
 	}
 
 	log.Info().
 		Str("collectionID", collectionID).
 		Int("itemCount", len(itemIDs)).
 		Msg("Successfully removed items from collection in Emby")
+
+	return nil
+}
+
+func (e *EmbyClient) RemoveAllCollectionItems(ctx context.Context, collectionID string) error {
+	// Get logger from context
+	log := logger.LoggerFromContext(ctx)
+
+	log.Info().
+		Uint64("clientID", e.GetClientID()).
+		Str("clientType", string(e.GetClientType())).
+		Str("collectionID", collectionID).
+		Msg("Removing all items from collection in Emby")
+	// Get all the items in the collection
+	items, _, err := e.client.ItemsServiceApi.GetItems(ctx, &embyclient.ItemsServiceApiGetItemsOpts{
+		ParentId:  optional.NewString(collectionID),
+		Recursive: optional.NewBool(true),
+		SortBy:    optional.NewString("SortName"),
+		SortOrder: optional.NewString("Ascending"),
+	})
+
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("collectionID", collectionID).
+			Msg("Failed to fetch collection items from Emby")
+		return err
+	}
+
+	if len(items.Items) == 0 {
+		log.Info().
+			Str("collectionID", collectionID).
+			Msg("No items found in collection")
+		return nil
+	}
+
+	itemIDs := make([]string, 0, len(items.Items))
+	for _, item := range items.Items {
+		itemIDs = append(itemIDs, item.Id)
+	}
+	strItemIDs := strings.Join(itemIDs, ",")
+
+	// Emby requires a separate call for each item
+	_, err = e.client.CollectionServiceApi.PostCollectionsByIdItemsDelete(ctx, strItemIDs, collectionID)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("collectionID", collectionID).
+			Msg("Failed to remove all items from collection in Emby")
+		return err
+	}
+
+	log.Info().
+		Str("collectionID", collectionID).
+		Msg("Successfully removed all items from collection in Emby")
 
 	return nil
 }

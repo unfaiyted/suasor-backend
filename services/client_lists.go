@@ -34,7 +34,7 @@ type ClientListService[T types.ClientMediaConfig, U mediatypes.ListData] interfa
 	DeleteClientList(ctx context.Context, clientID uint64, clientListID string) error
 
 	// Playlist item operations
-	GetClientItems(ctx context.Context, clientID uint64, clientListID string) ([]*models.MediaItem[U], error)
+	GetClientItems(ctx context.Context, clientID uint64, clientListID string) (*models.MediaItemList, error)
 	AddClientItem(ctx context.Context, clientID uint64, clientListID string, itemID string) error
 	RemoveClientItem(ctx context.Context, clientID uint64, clientListID string, itemID string) error
 	ReorderClientItems(ctx context.Context, clientID uint64, clientListID string, itemIDs []string) error
@@ -208,7 +208,7 @@ func (s *clientListService[T, U]) UpdateClientList(ctx context.Context, clientID
 	}
 
 	// Update the playlist
-	playlist, err := provider.UpdateList(ctx, clientListID, name, description, itemIDs)
+	playlist, err := provider.UpdateList(ctx, clientListID, name, description)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -218,6 +218,10 @@ func (s *clientListService[T, U]) UpdateClientList(ctx context.Context, clientID
 		return nil, err
 	}
 	itemList := playlist.Data.GetItemList()
+
+	if itemIDs != nil {
+		provider.AddListItems(ctx, clientListID, itemIDs)
+	}
 
 	// Update modification timestamp and client ID
 	now := time.Now()
@@ -357,7 +361,7 @@ func (s *clientListService[T, U]) RemoveClientItem(ctx context.Context, clientID
 }
 
 // GetPlaylistItems gets all items in a playlist
-func (s *clientListService[T, U]) GetClientItems(ctx context.Context, clientID uint64, clientListID string) ([]*models.MediaItem[U], error) {
+func (s *clientListService[T, U]) GetClientItems(ctx context.Context, clientID uint64, clientListID string) (*models.MediaItemList, error) {
 	log := logger.LoggerFromContext(ctx)
 	provider, err := s.getListProvider(ctx, clientID)
 	if err != nil {
@@ -365,7 +369,7 @@ func (s *clientListService[T, U]) GetClientItems(ctx context.Context, clientID u
 	}
 
 	// Get all items in the playlist
-	items, err := provider.GetListItems(ctx, clientListID, nil)
+	items, err := provider.GetListItems(ctx, clientListID)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -378,7 +382,7 @@ func (s *clientListService[T, U]) GetClientItems(ctx context.Context, clientID u
 	log.Info().
 		Uint64("clientID", clientID).
 		Str("clientListID", clientListID).
-		Int("itemCount", len(items)).
+		Int("itemCount", items.GetTotalItems()).
 		Msg("Retrieved playlist items")
 
 	return items, nil
