@@ -24,8 +24,8 @@ type AIHandler[T types.AIClientConfig] interface {
 
 // aiHandler implements AI-related handlers with support for multiple AI client types
 type aiHandler[T types.AIClientConfig] struct {
-	factory             *clients.ClientProviderFactoryService
-	service             services.ClientService[T]
+	factory *clients.ClientProviderFactoryService
+	service services.ClientService[T]
 	// Conversation service for persistent storage
 	conversationService services.AIConversationService
 	// Map to track active conversations by conversationID
@@ -219,9 +219,9 @@ func (h *aiHandler[T]) StartConversation(c *gin.Context) {
 
 	// Save the conversation both in our tracking map and in the database
 	h.activeConversations[conversationID] = userID.(uint64)
-	
+
 	// Store it in the database through the conversation service
-	_, err = h.conversationService.StartConversation(
+	_, _, err = h.conversationService.StartConversation(
 		ctx,
 		userID.(uint64),
 		req.ClientID,
@@ -368,7 +368,7 @@ func (h *aiHandler[T]) SendConversationMessage(c *gin.Context) {
 	}
 
 	// Persist the conversation message and recommendations to the database
-	err = h.conversationService.SendMessage(
+	_, _, err = h.conversationService.SendMessage(
 		ctx,
 		req.ConversationID,
 		userID.(uint64),
@@ -389,3 +389,4 @@ func (h *aiHandler[T]) SendConversationMessage(c *gin.Context) {
 
 	responses.RespondOK(c, response, "Message sent successfully")
 }
+

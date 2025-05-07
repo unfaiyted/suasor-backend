@@ -85,4 +85,4 @@ run #deleteEmbyCreatePlaylist
 run #deleteTestMovie1
 run #deleteTestMovie2
 # run #deleteEmbyClient
-# run #deletePlexClient
+run #deletePlexClient

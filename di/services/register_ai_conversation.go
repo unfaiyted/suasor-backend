@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"suasor/clients"
 	"suasor/clients/types"
 	"suasor/di/container"
 	"suasor/repository"
@@ -26,7 +27,7 @@ func registerAIConversationService(ctx context.Context, c *container.Container) 
 	log.Info().Msg("Registering AI conversation service")
 	container.RegisterFactory[services.AIConversationService](c, func(c *container.Container) services.AIConversationService {
 		repo := container.MustGet[repository.AIConversationRepository](c)
-		clientFactory := container.MustGet[*services.ClientProviderFactoryService](c)
+		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
 		clientService := container.MustGet[services.ClientService[types.AIClientConfig]](c)
 
 		return services.NewAIConversationService(repo, clientService, clientFactory)

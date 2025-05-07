@@ -17,9 +17,11 @@ const (
 type SortType string
 
 const (
-	SortTypeCreatedAt SortType = "created_at"
-	SortTypeUpdatedAt SortType = "updated_at"
-	SortTypeAddedAt   SortType = "added_at"
+	SortTypeCreatedAt  SortType = "created_at"
+	SortTypeUpdatedAt  SortType = "updated_at"
+	SortTypeAddedAt    SortType = "added_at"
+	SortTypePopularity SortType = "popularity"
+	SortTypeRating     SortType = "rating"
 )
 
 // QueryOptions provides parameters for filtering and pagination
@@ -35,6 +37,7 @@ type QueryOptions struct {
 	// Common, typed query filters
 	Favorites       bool       `json:"favorites,omitempty"`       // Filter to favorites only
 	Genre           string     `json:"genre,omitempty"`           // Filter by genre
+	Genres          []string   `json:"genres,omitempty"`          // Filter by multiple genres
 	Year            int        `json:"year,omitempty"`            // Filter by release year
 	Actor           string     `json:"actor,omitempty"`           // Filter by actor name/ID
 	Director        string     `json:"director,omitempty"`        // Filter by director name/ID
@@ -65,8 +68,10 @@ type QueryOptions struct {
 	OwnerID          uint64 `json:"ownerID,omitempty"`          // Filter by owner ID
 	ClientID         uint64 `json:"clientID,omitempty"`         // Filter by client ID
 	PersonID         uint64 `json:"personID,omitempty"`         // Filter by person ID
+	PersonType       string `json:"personType,omitempty"`       // Filter by person type (Actor, Director, etc.)
 	ClientArtistID   string `json:"artistID,omitempty"`         // Filter by artist ID
 	ClientAlbumID    string `json:"albumID,omitempty"`          // Filter by album ID
+	ClientPersonID   string `json:"clientPersonID,omitempty"`   // Filter by person ID
 	ItemIDs          string `json:"itemIDs,omitempty"`          // Filter by external ID (emby, jellyfin, plex, etc.)
 	ExternalSourceID string `json:"externalSourceID,omitempty"` // Filter by external source ID (TMDB, IMDB, etc.)
 }

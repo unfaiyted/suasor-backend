@@ -311,7 +311,7 @@ GET http://localhost:8080/api/v1/collection/search?q=Updated
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-# ===========================================
+### ===========================================
 # Combined List Operations (across types)
 # ===========================================
 
@@ -329,7 +329,7 @@ GET http://localhost:8080/api/v1/list/user
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-# ===========================================
+### ===========================================
 # Cleanup
 # ===========================================
 

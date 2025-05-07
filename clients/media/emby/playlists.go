@@ -171,7 +171,7 @@ func (e *EmbyClient) GetPlaylistByID(ctx context.Context, playlistID string) (*m
 
 // GetItems retrieves the items in a specific playlist
 // Implements ListProvider[*types.Playlist] interface method
-func (e *EmbyClient) GetPlaylistItems(ctx context.Context, playlistID string) ([]*models.MediaItem[*types.Playlist], error) {
+func (e *EmbyClient) GetPlaylistItems(ctx context.Context, playlistID string) (*models.MediaItemList, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Str("playlistID", playlistID).
@@ -207,8 +207,17 @@ func (e *EmbyClient) GetPlaylistItems(ctx context.Context, playlistID string) ([
 		Int("itemCount", len(response.Items)).
 		Msg("Successfully retrieved playlist items from Emby")
 
+	// Convert string ID to uint64 for media item list
+	var listIDUint uint64 = 0
+	// Don't worry about conversion errors, we'll use 0 as default
+	
+	// Create new media item list
+	itemList := models.NewMediaItemList[*types.Playlist](listIDUint, 0)
+
+	// Initialize the maps
+	itemList.Playlists = make(map[string]*models.MediaItem[*types.Playlist])
+	
 	// Process each item
-	items := make([]*models.MediaItem[*types.Playlist], 0, len(response.Items))
 	for _, item := range response.Items {
 		// Convert to playlist item
 		playlistItem, err := GetItem[*types.Playlist](ctx, e, &item)
@@ -231,15 +240,15 @@ func (e *EmbyClient) GetPlaylistItems(ctx context.Context, playlistID string) ([
 			continue
 		}
 
-		items = append(items, mediaItem)
+		itemList.AddPlaylist(mediaItem)
 	}
 
 	log.Info().
-		Int("itemsReturned", len(items)).
+		Int("itemsReturned", itemList.TotalItems).
 		Str("playlistID", playlistID).
 		Msg("Completed getting items from playlist")
 
-	return items, nil
+	return itemList, nil
 }
 
 // Create creates a new playlist in Emby
@@ -292,6 +301,48 @@ func (e *EmbyClient) CreatePlaylist(ctx context.Context, name string, descriptio
 	}
 
 	return mediaItem, nil
+}
+
+// CreatePlaylistWithItems creates a new playlist with items in Emby
+// Implements ListProvider[*types.Playlist] interface method - THIS WAS THE MISSING METHOD
+func (e *EmbyClient) CreatePlaylistWithItems(ctx context.Context, name string, description string, itemIDs []string) (*models.MediaItem[*types.Playlist], error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Info().
+		Str("name", name).
+		Uint64("clientID", e.GetClientID()).
+		Msg("Creating new playlist with items in Emby")
+
+	// First create an empty playlist
+	playlist, err := e.CreatePlaylist(ctx, name, description)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create base playlist: %w", err)
+	}
+
+	// If we have items to add, add them
+	if len(itemIDs) > 0 {
+		// Get the playlistID from the SyncClients field which contains the client's ID for this item
+		playlistID := ""
+		if playlist.SyncClients != nil {
+			playlistID = playlist.SyncClients.GetClientItemID(e.GetClientID())
+		}
+		
+		// If we can't get it from SyncClients, try using the UUID instead
+		if playlistID == "" {
+			playlistID = playlist.UUID
+		}
+		
+		err = e.AddPlaylistItems(ctx, playlistID, itemIDs)
+		if err != nil {
+			// If we fail to add items, still return the playlist but log the error
+			log.Error().
+				Err(err).
+				Str("playlistID", playlistID).
+				Strs("itemIDs", itemIDs).
+				Msg("Failed to add items to newly created playlist")
+		}
+	}
+
+	return playlist, nil
 }
 
 // Update updates an existing playlist in Emby

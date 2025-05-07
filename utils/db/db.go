@@ -65,6 +65,9 @@ func CreateTestAdminUser(ctx context.Context, db *gorm.DB) error {
 
 // Initialize sets up the database connection and migrations
 func Initialize(ctx context.Context, dbConfig types.DatabaseConfig) (*gorm.DB, error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Info().Msg("Initializing database connection and migrations")
+	
 	postgresDSN := fmt.Sprintf("host=%s user=%s password=%s dbname=postgres port=%s sslmode=disable",
 		dbConfig.Host,
 		dbConfig.User,
@@ -141,6 +144,12 @@ func Initialize(ctx context.Context, dbConfig types.DatabaseConfig) (*gorm.DB, e
 		&models.JobRun{},
 		&models.Recommendation{},
 		&models.MediaSyncJob{},
+		
+		// AI Conversation models
+		&models.AIConversation{},
+		&models.AIMessage{},
+		&models.AIRecommendation{},
+		&models.AIConversationAnalytics{},
 	); err != nil {
 		return nil, fmt.Errorf("failed to migrate database schema: %w", err)
 	}
@@ -150,5 +159,6 @@ func Initialize(ctx context.Context, dbConfig types.DatabaseConfig) (*gorm.DB, e
 		// We don't return the error to avoid breaking the app initialization
 	}
 
+	log.Info().Msg("Database initialization completed successfully")
 	return db, nil
 }

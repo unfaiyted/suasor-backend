@@ -16,7 +16,7 @@ func RegisterHandlers(ctx context.Context, c *container.Container) {
 	// Register media handlers
 	RegisterMediaItemHandlers(ctx, c)
 
-	// Register meida data handlers
+	// Register media data handlers
 	RegisterMediaDataHandlers(ctx, c)
 
 	// Register job handlers
@@ -27,4 +27,7 @@ func RegisterHandlers(ctx context.Context, c *container.Container) {
 
 	// Register media list handlers
 	RegisterMediaListHandlers(ctx, c)
+	
+	// Register client list handlers
+	RegisterClientListHandlers(ctx, c)
 }

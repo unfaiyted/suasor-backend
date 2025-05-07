@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"suasor/clients"
 	"suasor/clients/ai"
-	"suasor/clients/ai/types"
+	clienttypes "suasor/clients/types"
 	"suasor/repository"
 	"suasor/types/models"
 	"suasor/utils"
@@ -38,17 +39,17 @@ type AIConversationService interface {
 
 // aiConversationService implements the AIConversationService interface
 type aiConversationService struct {
-	repo            repository.AIConversationRepository
-	clientService   ClientService[types.AIClientConfig]
-	clientFactory   *ClientProviderFactoryService
-	activeClients   map[string]ai.ClientAI // conversationID -> client
+	repo          repository.AIConversationRepository
+	clientService ClientService[clienttypes.AIClientConfig]
+	clientFactory *clients.ClientProviderFactoryService
+	activeClients map[string]ai.ClientAI // conversationID -> client
 }
 
 // NewAIConversationService creates a new AI conversation service
 func NewAIConversationService(
 	repo repository.AIConversationRepository,
-	clientService ClientService[types.AIClientConfig],
-	clientFactory *ClientProviderFactoryService,
+	clientService ClientService[clienttypes.AIClientConfig],
+	clientFactory *clients.ClientProviderFactoryService,
 ) AIConversationService {
 	return &aiConversationService{
 		repo:          repo,
@@ -216,7 +217,7 @@ func (s *aiConversationService) SendMessage(
 		"assistant",
 		aiResponse,
 	)
-	
+
 	// Add response time and other metadata
 	metadata := map[string]any{
 		"responseTime": responseDuration.Milliseconds(),
@@ -224,7 +225,7 @@ func (s *aiConversationService) SendMessage(
 	if err := aiMsg.SetMetadataMap(metadata); err != nil {
 		log.Warn().Err(err).Msg("Failed to set message metadata")
 	}
-	
+
 	msgID, err := s.repo.AddMessage(ctx, aiMsg)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to save AI response")
@@ -240,12 +241,12 @@ func (s *aiConversationService) SendMessage(
 			if title == "" {
 				title = "Unknown"
 			}
-			
+
 			itemType := conversation.ContentType
 			if specificType, ok := rec["type"].(string); ok && specificType != "" {
 				itemType = specificType
 			}
-			
+
 			// Create recommendation object
 			recommendation := models.NewAIRecommendation(
 				utils.GenerateRandomID(16),
@@ -255,13 +256,13 @@ func (s *aiConversationService) SendMessage(
 				itemType,
 				title,
 			)
-			
+
 			// Save the full data
 			if err := recommendation.SetDataMap(rec); err != nil {
 				log.Warn().Err(err).Msg("Failed to set recommendation data")
 				continue
 			}
-			
+
 			// Set reason if available
 			if reason, ok := rec["reason"].(string); ok && reason != "" {
 				recommendation.Reason = sql.NullString{
@@ -269,7 +270,7 @@ func (s *aiConversationService) SendMessage(
 					Valid:  true,
 				}
 			}
-			
+
 			// Set external ID if available
 			if externalID, ok := rec["externalId"].(string); ok && externalID != "" {
 				recommendation.ExternalID = sql.NullString{
@@ -277,7 +278,7 @@ func (s *aiConversationService) SendMessage(
 					Valid:  true,
 				}
 			}
-			
+
 			// Save to database
 			_, err := s.repo.AddRecommendation(ctx, recommendation)
 			if err != nil {
@@ -498,7 +499,7 @@ func (s *aiConversationService) GetConversationInsights(
 	messageSummary := make(map[string]int)
 	messageSummary["user"] = 0
 	messageSummary["assistant"] = 0
-	
+
 	for _, msg := range messages {
 		messageSummary[msg.Role]++
 	}
@@ -527,10 +528,10 @@ func (s *aiConversationService) GetConversationInsights(
 
 	// Build insights
 	insights := &models.ConversationInsights{
-		Conversation:               conversation,
-		Analytics:                  analytics,
-		MessageSummary:             messageSummary,
-		TimingData:                 timingData,
+		Conversation:                conversation,
+		Analytics:                   analytics,
+		MessageSummary:              messageSummary,
+		TimingData:                  timingData,
 		RecommendationEffectiveness: recommendationEffectiveness,
 	}
 
@@ -577,10 +578,10 @@ func (s *aiConversationService) GetUserAIInteractionSummary(
 
 	// Build summary
 	summary := &models.AIInteractionSummary{
-		UserID:              userID,
-		Stats:               *stats,
-		RecentConversations: recentConversations,
-		TopRecommendations:  topRecommendations,
+		UserID:               userID,
+		Stats:                *stats,
+		RecentConversations:  recentConversations,
+		TopRecommendations:   topRecommendations,
 		ContentTypeBreakdown: contentTypeBreakdown,
 	}
 
@@ -592,27 +593,27 @@ func (s *aiConversationService) GetUserAIInteractionSummary(
 // getAIClient retrieves or creates an AI client
 func (s *aiConversationService) getAIClient(ctx context.Context, clientID uint64) (ai.ClientAI, error) {
 	log := logger.LoggerFromContext(ctx)
-	
+
 	// Get the client model
 	clientModel, err := s.clientService.GetByID(ctx, clientID)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get AI client")
 		return nil, err
 	}
-	
+
 	// Get client from factory
 	client, err := s.clientFactory.GetClient(ctx, clientModel.ID, clientModel.Config)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get AI client from factory")
 		return nil, err
 	}
-	
+
 	// Convert to AI client
 	aiClient, ok := client.(ai.ClientAI)
 	if !ok {
 		return nil, fmt.Errorf("client is not an AI client")
 	}
-	
+
 	return aiClient, nil
 }
 
@@ -622,13 +623,13 @@ func (s *aiConversationService) getClientForConversation(ctx context.Context, co
 	if client, exists := s.activeClients[conversationID]; exists {
 		return client, nil
 	}
-	
+
 	// Otherwise get a new client
 	client, err := s.getAIClient(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Store for future use
 	s.activeClients[conversationID] = client
 	return client, nil
@@ -642,21 +643,21 @@ func (s *aiConversationService) updateConversationAnalytics(
 	responseDuration time.Duration,
 ) {
 	log := logger.LoggerFromContext(ctx)
-	
+
 	// Get existing analytics or create new ones
 	analytics, err := s.repo.GetConversationAnalytics(ctx, conversationID)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get conversation analytics")
 		return
 	}
-	
+
 	// Update based on message role
 	if messageRole == "user" {
 		analytics.TotalUserMessages++
 	} else if messageRole == "assistant" {
 		analytics.TotalAssistantMessages++
 	}
-	
+
 	// Update response time if this is an assistant message
 	if messageRole == "assistant" && responseDuration > 0 {
 		// Calculate new average
@@ -664,10 +665,10 @@ func (s *aiConversationService) updateConversationAnalytics(
 		totalTime += float64(responseDuration.Milliseconds())
 		analytics.AverageResponseTime = totalTime / float64(analytics.TotalAssistantMessages)
 	}
-	
+
 	// Update last updated
 	analytics.LastUpdatedAt = time.Now()
-	
+
 	// Save analytics
 	err = s.repo.UpdateConversationAnalytics(ctx, analytics)
 	if err != nil {
@@ -684,24 +685,24 @@ func calculateTimingData(messages []*models.AIMessage) map[string]any {
 			"totalConversationTime":   0,
 		}
 	}
-	
+
 	var userResponseTimes []int64
 	var aiResponseTimes []int64
-	
+
 	for i := 1; i < len(messages); i++ {
 		currentMsg := messages[i]
 		prevMsg := messages[i-1]
-		
+
 		// Time difference in milliseconds
 		timeDiff := currentMsg.Timestamp.Sub(prevMsg.Timestamp).Milliseconds()
-		
+
 		if currentMsg.Role == "user" {
 			userResponseTimes = append(userResponseTimes, timeDiff)
 		} else {
 			aiResponseTimes = append(aiResponseTimes, timeDiff)
 		}
 	}
-	
+
 	// Calculate averages
 	var avgUserTime int64 = 0
 	if len(userResponseTimes) > 0 {
@@ -711,7 +712,7 @@ func calculateTimingData(messages []*models.AIMessage) map[string]any {
 		}
 		avgUserTime = sum / int64(len(userResponseTimes))
 	}
-	
+
 	var avgAITime int64 = 0
 	if len(aiResponseTimes) > 0 {
 		var sum int64 = 0
@@ -720,7 +721,7 @@ func calculateTimingData(messages []*models.AIMessage) map[string]any {
 		}
 		avgAITime = sum / int64(len(aiResponseTimes))
 	}
-	
+
 	// Total conversation time
 	totalTime := int64(0)
 	if len(messages) >= 2 {
@@ -728,7 +729,7 @@ func calculateTimingData(messages []*models.AIMessage) map[string]any {
 		last := messages[len(messages)-1]
 		totalTime = last.Timestamp.Sub(first.Timestamp).Milliseconds()
 	}
-	
+
 	return map[string]any{
 		"averageUserResponseTime": avgUserTime,
 		"averageAIResponseTime":   avgAITime,
