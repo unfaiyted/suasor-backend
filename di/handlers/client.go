@@ -48,10 +48,12 @@ func RegisterClientHandlers(ctx context.Context, c *container.Container) {
 	container.RegisterFactory[handlers.AIHandler[*types.ClaudeConfig]](c, func(c *container.Container) handlers.AIHandler[*types.ClaudeConfig] {
 		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
 		clientService := container.MustGet[services.ClientService[*types.ClaudeConfig]](c)
+		conversationService := container.MustGet[services.AIConversationService](c)
 
 		handler := handlers.NewAIHandler(
 			clientFactory,
 			clientService,
+			conversationService,
 		)
 		return handler
 	})
@@ -59,10 +61,12 @@ func RegisterClientHandlers(ctx context.Context, c *container.Container) {
 	container.RegisterFactory[handlers.AIHandler[*types.OpenAIConfig]](c, func(c *container.Container) handlers.AIHandler[*types.OpenAIConfig] {
 		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
 		clientService := container.MustGet[services.ClientService[*types.OpenAIConfig]](c)
+		conversationService := container.MustGet[services.AIConversationService](c)
 
 		handler := handlers.NewAIHandler(
 			clientFactory,
 			clientService,
+			conversationService,
 		)
 		return handler
 	})
@@ -70,10 +74,12 @@ func RegisterClientHandlers(ctx context.Context, c *container.Container) {
 	container.RegisterFactory[handlers.AIHandler[*types.OllamaConfig]](c, func(c *container.Container) handlers.AIHandler[*types.OllamaConfig] {
 		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
 		clientService := container.MustGet[services.ClientService[*types.OllamaConfig]](c)
+		conversationService := container.MustGet[services.AIConversationService](c)
 
 		handler := handlers.NewAIHandler(
 			clientFactory,
 			clientService,
+			conversationService,
 		)
 		return handler
 	})
@@ -81,10 +87,12 @@ func RegisterClientHandlers(ctx context.Context, c *container.Container) {
 	container.RegisterFactory[handlers.AIHandler[types.AIClientConfig]](c, func(c *container.Container) handlers.AIHandler[types.AIClientConfig] {
 		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
 		clientService := container.MustGet[services.ClientService[*types.OllamaConfig]](c)
+		conversationService := container.MustGet[services.AIConversationService](c)
 
 		handler := handlers.NewAIHandler(
 			clientFactory,
 			clientService,
+			conversationService,
 		)
 		return handler
 	})

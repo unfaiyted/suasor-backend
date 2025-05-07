@@ -24,8 +24,10 @@ type AIHandler[T types.AIClientConfig] interface {
 
 // aiHandler implements AI-related handlers with support for multiple AI client types
 type aiHandler[T types.AIClientConfig] struct {
-	factory *clients.ClientProviderFactoryService
-	service services.ClientService[T]
+	factory             *clients.ClientProviderFactoryService
+	service             services.ClientService[T]
+	// Conversation service for persistent storage
+	conversationService services.AIConversationService
 	// Map to track active conversations by conversationID
 	activeConversations map[string]uint64 // conversationID -> userID
 }
@@ -34,10 +36,12 @@ type aiHandler[T types.AIClientConfig] struct {
 func NewAIHandler[T types.AIClientConfig](
 	factory *clients.ClientProviderFactoryService,
 	service services.ClientService[T],
+	conversationService services.AIConversationService,
 ) AIHandler[T] {
 	return &aiHandler[T]{
 		factory:             factory,
 		service:             service,
+		conversationService: conversationService,
 		activeConversations: make(map[string]uint64),
 	}
 }
@@ -201,7 +205,7 @@ func (h *aiHandler[T]) StartConversation(c *gin.Context) {
 		return
 	}
 
-	// Start the conversation
+	// Start the conversation with the AI client
 	conversationID, welcomeMessage, err := aiClient.StartRecommendationConversation(
 		ctx,
 		req.ContentType,
@@ -213,8 +217,22 @@ func (h *aiHandler[T]) StartConversation(c *gin.Context) {
 		return
 	}
 
-	// Save the conversation in our tracking map
+	// Save the conversation both in our tracking map and in the database
 	h.activeConversations[conversationID] = userID.(uint64)
+	
+	// Store it in the database through the conversation service
+	_, err = h.conversationService.StartConversation(
+		ctx,
+		userID.(uint64),
+		req.ClientID,
+		req.ContentType,
+		req.Preferences,
+		req.SystemInstructions,
+	)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to persist conversation to database, continuing anyway")
+		// Not returning error as we can still continue with in-memory conversation
+	}
 
 	// Prepare and send response
 	response := responses.ConversationResponse{
@@ -304,11 +322,16 @@ func (h *aiHandler[T]) SendConversationMessage(c *gin.Context) {
 	// Verify conversation exists and belongs to this user
 	conversationOwnerID, exists := h.activeConversations[req.ConversationID]
 	if !exists {
-		responses.RespondNotFound(c, nil, "Conversation not found")
-		return
-	}
-
-	if conversationOwnerID != userID.(uint64) {
+		// Check if it exists in the database
+		conversation, err := h.conversationService.GetConversationHistory(ctx, req.ConversationID, userID.(uint64))
+		if err != nil || len(conversation) == 0 {
+			responses.RespondNotFound(c, nil, "Conversation not found")
+			return
+		}
+		// If it exists in the database but not in memory, add it to memory
+		h.activeConversations[req.ConversationID] = userID.(uint64)
+		conversationOwnerID = userID.(uint64)
+	} else if conversationOwnerID != userID.(uint64) {
 		responses.RespondForbidden(c, nil, "You do not have access to this conversation")
 		return
 	}
@@ -342,6 +365,19 @@ func (h *aiHandler[T]) SendConversationMessage(c *gin.Context) {
 	if err != nil {
 		responses.RespondInternalError(c, err, "Failed to continue conversation")
 		return
+	}
+
+	// Persist the conversation message and recommendations to the database
+	err = h.conversationService.SendMessage(
+		ctx,
+		req.ConversationID,
+		userID.(uint64),
+		req.Message,
+		context,
+	)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to persist message to database, continuing anyway")
+		// Not returning error as we can still continue with in-memory conversation
 	}
 
 	// Prepare and send response

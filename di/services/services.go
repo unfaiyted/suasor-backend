@@ -45,4 +45,8 @@ func RegisterServices(ctx context.Context, c *container.Container) {
 	// Recommendation service
 	log.Info().Msg("Registering recommendation service")
 	registerRecommendationService(ctx, c)
+	
+	// AI Conversation service
+	log.Info().Msg("Registering AI conversation service")
+	registerAIConversationService(ctx, c)
 }
