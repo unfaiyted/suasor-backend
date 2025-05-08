@@ -39,23 +39,32 @@ type AIConversationService interface {
 
 // aiConversationService implements the AIConversationService interface
 type aiConversationService struct {
-	repo          repository.AIConversationRepository
-	clientService ClientService[clienttypes.AIClientConfig]
-	clientFactory *clients.ClientProviderFactoryService
-	activeClients map[string]ai.ClientAI // conversationID -> client
+	repo                repository.AIConversationRepository
+	claudeClientService ClientService[*clienttypes.ClaudeConfig]
+	openaiClientService ClientService[*clienttypes.OpenAIConfig]
+	ollamaClientService ClientService[*clienttypes.OllamaConfig]
+	clientHelper        repository.ClientHelper
+	clientFactory       *clients.ClientProviderFactoryService
+	activeClients       map[string]ai.ClientAI // conversationID -> client
 }
 
 // NewAIConversationService creates a new AI conversation service
 func NewAIConversationService(
 	repo repository.AIConversationRepository,
-	clientService ClientService[clienttypes.AIClientConfig],
+	claudeClientService ClientService[*clienttypes.ClaudeConfig],
+	openaiClientService ClientService[*clienttypes.OpenAIConfig],
+	ollamaClientService ClientService[*clienttypes.OllamaConfig],
+	clientHelper repository.ClientHelper,
 	clientFactory *clients.ClientProviderFactoryService,
 ) AIConversationService {
 	return &aiConversationService{
-		repo:          repo,
-		clientService: clientService,
-		clientFactory: clientFactory,
-		activeClients: make(map[string]ai.ClientAI),
+		repo:                repo,
+		claudeClientService: claudeClientService,
+		openaiClientService: openaiClientService,
+		ollamaClientService: ollamaClientService,
+		clientHelper:        clientHelper,
+		clientFactory:       clientFactory,
+		activeClients:       make(map[string]ai.ClientAI),
 	}
 }
 
@@ -594,18 +603,38 @@ func (s *aiConversationService) GetUserAIInteractionSummary(
 func (s *aiConversationService) getAIClient(ctx context.Context, clientID uint64) (ai.ClientAI, error) {
 	log := logger.LoggerFromContext(ctx)
 
-	// Get the client model
-	clientModel, err := s.clientService.GetByID(ctx, clientID)
+	clientType, err := s.clientHelper.GetClientTypeByClientID(ctx, clientID)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get AI client")
 		return nil, err
 	}
 
-	// Get the actual AIClientConfig from the scanner
-	aiConfig := clientModel.GetConfig()
+	var aiConfig clienttypes.ClientConfig
+	if clientType == clienttypes.ClientTypeOpenAI {
+		clientService, err := s.openaiClientService.GetByID(ctx, clientID)
+		aiConfig = clientService.GetConfig()
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to get AI client")
+			return nil, err
+		}
+	} else if clientType == clienttypes.ClientTypeOllama {
+		clientService, err := s.ollamaClientService.GetByID(ctx, clientID)
+		aiConfig = clientService.GetConfig()
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to get AI client")
+			return nil, err
+		}
+	} else if clientType == clienttypes.ClientTypeClaude {
+		clientService, err := s.claudeClientService.GetByID(ctx, clientID)
+		aiConfig = clientService.GetConfig()
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to get AI client")
+			return nil, err
+		}
+	}
 
 	// Get client from factory using the actual config
-	client, err := s.clientFactory.GetClient(ctx, clientModel.ID, aiConfig)
+	client, err := s.clientFactory.GetClient(ctx, clientID, aiConfig)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get AI client from factory")
 		return nil, err

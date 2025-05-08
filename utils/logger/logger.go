@@ -21,7 +21,16 @@ func Initialize() {
 func InitializeWithLevel(level zerolog.Level) {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	zerolog.SetGlobalLevel(level)
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	// Enable caller information (file and line)
+	consoleWriter := zerolog.ConsoleWriter{
+		Out:        os.Stderr,
+		TimeFormat: "15:04:05",
+	}
+	log.Logger = zerolog.New(consoleWriter).
+		With().
+		Timestamp().
+		Caller().
+		Logger()
 }
 
 // SetLogLevel changes the global log level
@@ -54,4 +63,9 @@ func WithRequestID(ctx context.Context, requestID string) (context.Context, zero
 func WithJobID(ctx context.Context, jobID uint64) (context.Context, zerolog.Logger) {
 	logger := LoggerFromContext(ctx).With().Uint64("job_id", jobID).Logger()
 	return WithContext(ctx, logger), logger
+}
+
+// WithCaller adds file and line information to the logger
+func WithCaller() zerolog.Logger {
+	return log.Logger.With().Caller().Logger()
 }

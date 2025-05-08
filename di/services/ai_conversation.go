@@ -28,10 +28,11 @@ func registerAIConversationService(ctx context.Context, c *container.Container) 
 	container.RegisterFactory[services.AIConversationService](c, func(c *container.Container) services.AIConversationService {
 		repo := container.MustGet[repository.AIConversationRepository](c)
 		clientFactory := container.MustGet[*clients.ClientProviderFactoryService](c)
-		// Use the AIConfigScanner instead of the interface directly
-		clientService := container.MustGet[services.ClientService[types.AIClientConfig]](c)
+		claudeClientService := container.MustGet[services.ClientService[*types.ClaudeConfig]](c)
+		openaiClientService := container.MustGet[services.ClientService[*types.OpenAIConfig]](c)
+		ollamaClientService := container.MustGet[services.ClientService[*types.OllamaConfig]](c)
+		clientHelper := container.MustGet[repository.ClientHelper](c)
 
-		return services.NewAIConversationService(repo, clientService, clientFactory)
+		return services.NewAIConversationService(repo, claudeClientService, openaiClientService, ollamaClientService, clientHelper, clientFactory)
 	})
 }
-

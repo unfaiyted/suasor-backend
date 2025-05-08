@@ -16,6 +16,10 @@ func registerClientRepositories(ctx context.Context, c *container.Container) {
 	log := logger.LoggerFromContext(ctx)
 	db := container.MustGet[*gorm.DB](c)
 
+	container.RegisterFactory(c, func(c *container.Container) repository.ClientHelper {
+		return repository.NewClientHelper(db)
+	})
+
 	// Media client repositories
 	log.Info().Msg("Registering client repositories")
 	registerClientRepository[*clienttypes.EmbyConfig](c, db)
