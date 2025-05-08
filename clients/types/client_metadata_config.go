@@ -1,6 +1,9 @@
 package types
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 	"suasor/clients/metadata/types"
 )
 
@@ -21,7 +24,7 @@ type ClientMetadataConfig interface {
 // clientMetadataConfig provides a base implementation of MetadataClientConfig
 type clientMetadataConfig struct {
 	ClientConfig        `json:"core"`
-	Type                ClientType `json:"type"`
+	ClientType          ClientType `json:"type"`
 	SupportsMovies      bool       `json:"supportsMovies"`
 	SupportsTV          bool       `json:"supportsTV"`
 	SupportsPersons     bool       `json:"supportsPersons"`
@@ -45,7 +48,7 @@ func (m *clientMetadataConfig) SupportsCollectionMetadata() bool {
 }
 
 func (m *clientMetadataConfig) GetClientType() ClientType {
-	return m.Type
+	return m.ClientType
 }
 
 func (m *clientMetadataConfig) SupportsMetadataType(metadataType types.MetadataType) bool {
@@ -61,4 +64,62 @@ func (m *clientMetadataConfig) SupportsMetadataType(metadataType types.MetadataT
 	default:
 		return false
 	}
+}
+
+// Value implements driver.Valuer for database storage
+func (c *clientMetadataConfig) Value() (driver.Value, error) {
+	// Serialize the entire item to JSON for storage
+	return json.Marshal(c)
+}
+
+// Scan implements sql.Scanner for database retrieval
+func (m *clientMetadataConfig) Scan(value any) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+
+	// Use our custom unmarshaling
+	err := m.UnmarshalJSON(bytes)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface
+func (m *clientMetadataConfig) UnmarshalJSON(data []byte) error {
+	// Create a temporary struct without the embedded interface
+	type Alias clientMetadataConfig
+	temp := struct {
+		Core json.RawMessage `json:"core"`
+		*Alias
+	}{
+		Alias: (*Alias)(m),
+	}
+
+	// Unmarshal the basic fields
+	if err := json.Unmarshal(data, &temp); err != nil {
+		return err
+	}
+
+	// Handle the ClientConfig by creating a concrete instance
+	if len(temp.Core) > 0 {
+		baseConfig := clientConfig{}
+		if err := json.Unmarshal(temp.Core, &baseConfig); err != nil {
+			return err
+		}
+		m.ClientConfig = &baseConfig
+	} else {
+		// If no base config provided, create a default one
+		m.ClientConfig = &clientConfig{
+			Type:     m.ClientType,
+			Category: ClientCategoryMedia,
+			Name:     "Default Client",
+			Enabled:  true,
+		}
+	}
+
+	return nil
 }

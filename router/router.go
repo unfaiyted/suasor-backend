@@ -88,6 +88,10 @@ func Setup(ctx context.Context, c *container.Container) *gin.Engine {
 
 		// {base}/search/
 		RegisterSearchRoutes(authenticated, c) // Register search routes
+		
+		// AI routes for clients and users
+		RegisterAIClientRoutes(ctx, authenticated, c) // Register AI client routes (/client/:clientID/ai/...)
+		RegisterAIConversationRoutes(authenticated, c) // Register AI conversation history routes
 	}
 
 	//Admin Routes

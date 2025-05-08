@@ -33,6 +33,10 @@ func RegisterCore(ctx context.Context, c *container.Container, db *gorm.DB, conf
 	// Then register client factories which depend on the registry
 	log.Info().Msg("Registering client factories")
 	factories.RegisterClientFactories(ctx, c)
+	
+	// Register AI client factories
+	log.Info().Msg("Registering AI client factories")
+	factories.RegisterAIClientFactories(ctx, c)
 
 	// Register config repository
 	log.Info().Msg("Registering config repository")

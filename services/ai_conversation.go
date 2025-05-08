@@ -601,8 +601,11 @@ func (s *aiConversationService) getAIClient(ctx context.Context, clientID uint64
 		return nil, err
 	}
 
-	// Get client from factory
-	client, err := s.clientFactory.GetClient(ctx, clientModel.ID, clientModel.Config)
+	// Get the actual AIClientConfig from the scanner
+	aiConfig := clientModel.GetConfig()
+
+	// Get client from factory using the actual config
+	client, err := s.clientFactory.GetClient(ctx, clientModel.ID, aiConfig)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get AI client from factory")
 		return nil, err

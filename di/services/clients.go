@@ -23,6 +23,9 @@ func registerClientServices(ctx context.Context, c *container.Container) {
 	registerClientService[*types.ClaudeConfig](c)
 	registerClientService[*types.OpenAIConfig](c)
 	registerClientService[*types.OllamaConfig](c)
+	
+	// AI client registration
+	registerClientService[types.AIClientConfig](c)
 
 	// Register ClientSeriesService for each media client type
 	registerClientSeriesService[*types.JellyfinConfig](c)

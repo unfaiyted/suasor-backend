@@ -28,16 +28,15 @@ func RegisterClientListRoutes(ctx context.Context, rg *gin.RouterGroup, c *conta
 	clientGroup.Use(middleware.ClientTypeMiddleware(db))
 	{
 		// Register routes for playlists
-		registerMediaRoutes[*mediatypes.Playlist](clientGroup, c)
-		registerMediaRoutes[*mediatypes.Collection](clientGroup, c)
+		registerListRoutes[*mediatypes.Playlist](clientGroup, c)
+		registerListRoutes[*mediatypes.Collection](clientGroup, c)
 	}
 }
 
-// registerMediaRoutes sets up routes for a specific media resource type
-func registerMediaRoutes[T mediatypes.ListData](rg *gin.RouterGroup, c *container.Container) {
+// registerListRoutes sets up routes for a specific media resource type
+func registerListRoutes[T mediatypes.ListData](rg *gin.RouterGroup, c *container.Container) {
 
-	var zero T
-	mediaType := mediatypes.GetMediaTypeFromTypeName(zero)
+	mediaType := mediatypes.GetMediaType[T]()
 
 	// /playlists or /collections
 	listGroup := rg.Group("/" + string(mediaType))
@@ -45,22 +44,22 @@ func registerMediaRoutes[T mediatypes.ListData](rg *gin.RouterGroup, c *containe
 		// Get all lists
 		listGroup.GET("", func(g *gin.Context) {
 			if handler := getHandler[T](g, c); handler != nil {
-				handler.GetAll(g)
+				handler.GetClientLists(g)
 			}
 		})
 		listGroup.GET("/:listID", func(g *gin.Context) {
 			if handler := getHandler[T](g, c); handler != nil {
-				handler.GetByID(g)
+				handler.GetClientListByID(g)
 			}
 		})
 		listGroup.GET("/genre/:genre", func(g *gin.Context) {
 			if handler := getHandler[T](g, c); handler != nil {
-				handler.GetByGenre(g)
+				handler.GetClientListsByGenre(g)
 			}
 		})
 		listGroup.GET("/year/:year", func(g *gin.Context) {
 			if handler := getHandler[T](g, c); handler != nil {
-				handler.GetByYear(g)
+				handler.GetClientListsByYear(g)
 			}
 		})
 		// listGroup.GET("/actor/:actor", func(g *gin.Context) {
@@ -75,34 +74,34 @@ func registerMediaRoutes[T mediatypes.ListData](rg *gin.RouterGroup, c *containe
 		// })
 		listGroup.GET("/rating", func(g *gin.Context) {
 			if handler := getHandler[T](g, c); handler != nil {
-				handler.GetByRating(g)
+				handler.GetClientListsByRating(g)
 			}
 		})
 		listGroup.GET("/latest/:count", func(g *gin.Context) {
 			if handler := getHandler[T](g, c); handler != nil {
-				handler.GetLatestListsByAdded(g)
+				handler.GetClientLatestListsByAdded(g)
 			}
 		})
 		listGroup.GET("/popular/:count", func(g *gin.Context) {
 			if handler := getHandler[T](g, c); handler != nil {
-				handler.GetPopularLists(g)
+				handler.GetClientPopularLists(g)
 			}
 		})
 		listGroup.GET("/top-rated/:count", func(g *gin.Context) {
 			if handler := getHandler[T](g, c); handler != nil {
-				handler.GetTopRatedLists(g)
+				handler.GetClientTopRatedLists(g)
 			}
 		})
 		listGroup.GET("/search", func(g *gin.Context) {
 			if handler := getHandler[T](g, c); handler != nil {
-				handler.SearchLists(g)
+				handler.SearchClientLists(g)
 			}
 		})
 
-		// Get items in a list - use specialized handler
+		// Get items in a list
 		listGroup.GET("/:listID/items", func(g *gin.Context) {
 			if handler := getHandler[T](g, c); handler != nil {
-				handler.GetItemsByListID(g)
+				handler.GetClientListItems(g)
 			}
 		})
 
@@ -110,19 +109,33 @@ func registerMediaRoutes[T mediatypes.ListData](rg *gin.RouterGroup, c *containe
 
 }
 
-func getHandlerMap[T mediatypes.ListData](c *container.Container, clientType string) (handlers.ClientListHandler[clienttypes.ClientMediaConfig, T], bool) {
-	handlers := map[string]handlers.ClientListHandler[clienttypes.ClientMediaConfig, T]{
-		"emby":     container.MustGet[handlers.ClientListHandler[*clienttypes.EmbyConfig, T]](c),
-		"jellyfin": container.MustGet[handlers.ClientListHandler[*clienttypes.JellyfinConfig, T]](c),
-		"plex":     container.MustGet[handlers.ClientListHandler[*clienttypes.PlexConfig, T]](c),
-		"subsonic": container.MustGet[handlers.ClientListHandler[*clienttypes.SubsonicConfig, T]](c),
+func getHandlerMap[T mediatypes.ListData](c *container.Container, clientType clienttypes.ClientType) (handlers.ClientListHandler[clienttypes.ClientMediaConfig, T], bool) {
+	handlers := map[clienttypes.ClientType]handlers.ClientListHandler[clienttypes.ClientMediaConfig, T]{
+		clienttypes.ClientTypeEmby:     container.MustGet[handlers.ClientListHandler[*clienttypes.EmbyConfig, T]](c),
+		clienttypes.ClientTypeJellyfin: container.MustGet[handlers.ClientListHandler[*clienttypes.JellyfinConfig, T]](c),
+		clienttypes.ClientTypePlex:     container.MustGet[handlers.ClientListHandler[*clienttypes.PlexConfig, T]](c),
+		clienttypes.ClientTypeSubsonic: container.MustGet[handlers.ClientListHandler[*clienttypes.SubsonicConfig, T]](c),
 	}
 	handler, exists := handlers[clientType]
 	return handler, exists
 }
 
 func getHandler[T mediatypes.ListData](g *gin.Context, c *container.Container) handlers.ClientListHandler[clienttypes.ClientMediaConfig, mediatypes.ListData] {
-	clientType := g.Param("clientType")
+	// Get the client type from the context which was set by the ClientTypeMiddleware
+	clientTypeValue, exists := g.Get("clientType")
+	if !exists {
+		err := fmt.Errorf("client type not found in context")
+		responses.RespondBadRequest(g, err, "Client type not found")
+		return nil
+	}
+
+	clientType, ok := clientTypeValue.(clienttypes.ClientType)
+	if !ok {
+		err := fmt.Errorf("invalid client type format")
+		responses.RespondBadRequest(g, err, "Invalid client type format")
+		return nil
+	}
+
 	handler, exists := getHandlerMap[T](c, clientType)
 	if !exists {
 		err := fmt.Errorf("unsupported client type: %s", clientType)

@@ -131,3 +131,68 @@ type ConversationMessageRequest struct {
 	// Client ID to use for the conversation
 	ClientID uint64 `json:"clientID,omitempty"`
 }
+
+// ContinueConversationRequest defines a request to continue a past conversation
+// @Description Request to continue a previous AI conversation from history
+type ContinueConversationRequest struct {
+	// The user's message to continue the conversation with
+	// required: true
+	// example: What other movies would you recommend based on our previous discussion?
+	Message string `json:"message" binding:"required"`
+
+	// Optional context information for this message
+	// example: {"extractRecommendations": true}
+	Context map[string]any `json:"context,omitempty"`
+}
+
+// GetUserConversationsRequest defines filters for retrieving conversation history
+// @Description Filters for retrieving AI conversation history
+type GetUserConversationsRequest struct {
+	// Number of conversations to return (default: 20)
+	// example: 10
+	Limit int `form:"limit,default=20"`
+
+	// Offset for pagination (default: 0)
+	// example: 20
+	Offset int `form:"offset,default=0"`
+
+	// Filter by conversation status (active, archived, all)
+	// example: active
+	Status string `form:"status"`
+
+	// Field to sort by (default: updatedAt)
+	// example: createdAt
+	SortBy string `form:"sortBy,default=updatedAt"`
+
+	// Sort direction (asc or desc) (default: desc)
+	// example: desc
+	SortDir string `form:"sortDir,default=desc"`
+}
+
+// GetUserRecommendationsRequest defines filters for retrieving recommendation history
+// @Description Filters for retrieving AI recommendation history
+type GetUserRecommendationsRequest struct {
+	// Number of recommendations to return (default: 20)
+	// example: 10
+	Limit int `form:"limit,default=20"`
+
+	// Offset for pagination (default: 0)
+	// example: 20
+	Offset int `form:"offset,default=0"`
+
+	// Filter by item type (movie, music, etc)
+	// example: movie
+	ItemType string `form:"itemType"`
+
+	// Filter by selection status (true for selected, false for not selected)
+	// example: true
+	Selected *bool `form:"selected"`
+
+	// Field to sort by (default: createdAt)
+	// example: title
+	SortBy string `form:"sortBy,default=createdAt"`
+
+	// Sort direction (asc or desc) (default: desc)
+	// example: desc
+	SortDir string `form:"sortDir,default=desc"`
+}

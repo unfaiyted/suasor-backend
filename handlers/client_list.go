@@ -17,16 +17,18 @@ import (
 type ClientListHandler[T clienttypes.ClientMediaConfig, U types.ListData] interface {
 	CoreListHandler[U]
 
-	GetListByID(c *gin.Context)
-	GetListsByGenre(c *gin.Context)
-	GetListsByYear(c *gin.Context)
-	GetListsByActor(c *gin.Context)
-	GetListsByCreator(c *gin.Context)
-	GetListsByRating(c *gin.Context)
-	GetLatestListsByAdded(c *gin.Context)
-	GetPopularLists(c *gin.Context)
-	GetTopRatedLists(c *gin.Context)
-	SearchLists(c *gin.Context)
+	GetClientLists(c *gin.Context)
+	GetClientListItems(c *gin.Context)
+	GetClientListByID(c *gin.Context)
+	GetClientListsByGenre(c *gin.Context)
+	GetClientListsByYear(c *gin.Context)
+	GetClientListsByActor(c *gin.Context)
+	GetClientListsByCreator(c *gin.Context)
+	GetClientListsByRating(c *gin.Context)
+	GetClientLatestListsByAdded(c *gin.Context)
+	GetClientPopularLists(c *gin.Context)
+	GetClientTopRatedLists(c *gin.Context)
+	SearchClientLists(c *gin.Context)
 }
 
 // clientListHandler handles playlist-related operations for media clients
@@ -61,7 +63,7 @@ func NewClientListHandler[T clienttypes.ClientMediaConfig, U types.ListData](
 //	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/client/{clientID}/{listType}/{listID} [get]
-func (h *clientListHandler[T, U]) GetListByID(c *gin.Context) {
+func (h *clientListHandler[T, U]) GetClientListByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting list by ID")
@@ -78,26 +80,21 @@ func (h *clientListHandler[T, U]) GetListByID(c *gin.Context) {
 
 	// Parse client ID from URL
 	clientID, err := strconv.ParseUint(c.Param("clientID"), 10, 64)
-	if err != nil {
-		log.Error().Err(err).Str("clientID", c.Param("clientID")).Msg("Invalid client ID format")
-		responses.RespondBadRequest(c, err, "Invalid client ID")
-		return
-	}
 
-	playlistID := c.Param("id")
+	listID := c.Param("listId")
 
 	log.Info().
 		Uint64("userID", uid).
 		Uint64("clientID", clientID).
-		Str("playlistID", playlistID).
+		Str("playlistID", listID).
 		Msg("Retrieving playlist by ID")
 
-	playlist, err := h.listService.GetClientList(ctx, uid, playlistID)
+	list, err := h.listService.GetClientList(ctx, uid, listID)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
 			Uint64("clientID", clientID).
-			Str("playlistID", playlistID).
+			Str("playlistID", listID).
 			Msg("Failed to retrieve playlist")
 		responses.RespondInternalError(c, err, "Failed to retrieve playlist")
 		return
@@ -106,9 +103,48 @@ func (h *clientListHandler[T, U]) GetListByID(c *gin.Context) {
 	log.Info().
 		Uint64("userID", uid).
 		Uint64("clientID", clientID).
-		Str("playlistID", playlistID).
+		Str("playlistID", listID).
 		Msg("List retrieved successfully")
-	responses.RespondOK(c, playlist, "List retrieved successfully")
+	responses.RespondOK(c, list, "List retrieved successfully")
+}
+
+// GetClientListItems godoc
+//
+//	@Summary		Get tracks in a list
+//	@Description	Retrieves all tracks in a specific list
+//	@Tags			lists, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int											true	"Client ID"
+//	@Param			listID		path		string										true	"List ID"
+//	@Param			listType	path		string										true	"List type (e.g. 'playlist', 'collection')"
+//	@Success		200			{object}	responses.APIResponse[models.MediaItemList]	"Tracks retrieved successfully"
+//	@Failure		400			{object}	responses.ErrorResponse[any]				"Invalid request"
+//	@Failure		404			{object}	responses.ErrorResponse[any]				"List not found"
+//	@Failure		500			{object}	responses.ErrorResponse[any]				"Server error"
+//	@Router			/client/{clientID}/{listType}/{listID}/items [get]
+func (h *clientListHandler[T, U]) GetClientListItems(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := logger.LoggerFromContext(ctx)
+
+	listID, _ := checkClientItemID(c, "listID")
+	clientID, _ := checkClientID(c)
+
+	log.Debug().
+		Str("listID", listID).
+		Msg("Getting tracks for list")
+
+	list, err := h.listService.GetClientItems(ctx, clientID, listID)
+	if handleServiceError(c, err, "Failed to retrieve list", "List not found", "List not found") {
+		return
+	}
+
+	log.Info().
+		Str("listID", listID).
+		Int("itemCount", list.GetTotalItems()).
+		Msg("List tracks retrieved successfully")
+	responses.RespondOK(c, list, "Items retrieved successfully")
 }
 
 // GetLists godoc
@@ -127,7 +163,7 @@ func (h *clientListHandler[T, U]) GetListByID(c *gin.Context) {
 //	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/client/{clientID}/{listType} [get]
-func (h *clientListHandler[T, U]) GetLists(c *gin.Context) {
+func (h *clientListHandler[T, U]) GetClientLists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Getting all lists")
@@ -136,12 +172,14 @@ func (h *clientListHandler[T, U]) GetLists(c *gin.Context) {
 	uid, _ := checkUserAccess(c)
 	limit := utils.GetLimit(c, 10, 100, true)
 
+	clientID, _ := checkClientID(c)
+
 	log.Info().
 		Uint64("userID", uid).
 		Int("count", limit).
 		Msg("Retrieving lists")
 
-	lists, err := h.listService.GetClientLists(ctx, uid, limit)
+	lists, err := h.listService.GetClientLists(ctx, clientID, limit)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).
@@ -175,7 +213,7 @@ func (h *clientListHandler[T, U]) GetLists(c *gin.Context) {
 //	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/client/{clientID}/{listType}/genre/{genre} [get]
-func (h *clientListHandler[T, U]) GetListsByGenre(c *gin.Context) {
+func (h *clientListHandler[T, U]) GetClientListsByGenre(c *gin.Context) {
 	// This would typically query the client with a genre filter
 	// For now, just use the SearchClientLists method with a genre query
 	ctx := c.Request.Context()
@@ -220,7 +258,7 @@ func (h *clientListHandler[T, U]) GetListsByGenre(c *gin.Context) {
 //	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/client/{clientID}/{listType}/year/{year} [get]
-func (h *clientListHandler[T, U]) GetListsByYear(c *gin.Context) {
+func (h *clientListHandler[T, U]) GetClientListsByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
@@ -274,7 +312,7 @@ func (h *clientListHandler[T, U]) GetListsByYear(c *gin.Context) {
 //	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/client/{clientID}/{listType}/actor/{actorID} [get]
-func (h *clientListHandler[T, U]) GetListsByActor(c *gin.Context) {
+func (h *clientListHandler[T, U]) GetClientListsByActor(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
@@ -320,7 +358,7 @@ func (h *clientListHandler[T, U]) GetListsByActor(c *gin.Context) {
 //	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/client/{clientID}/{listType}/creator/{creatorID} [get]
-func (h *clientListHandler[T, U]) GetListsByCreator(c *gin.Context) {
+func (h *clientListHandler[T, U]) GetClientListsByCreator(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
@@ -372,7 +410,7 @@ func (h *clientListHandler[T, U]) GetListsByCreator(c *gin.Context) {
 //	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/client/{clientID}/{listType}/rating [get]
-func (h *clientListHandler[T, U]) GetListsByRating(c *gin.Context) {
+func (h *clientListHandler[T, U]) GetClientListsByRating(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
@@ -428,7 +466,7 @@ func (h *clientListHandler[T, U]) GetListsByRating(c *gin.Context) {
 //	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/client/{clientID}/{listType}/latest/{count} [get]
-func (h *clientListHandler[T, U]) GetLatestListsByAdded(c *gin.Context) {
+func (h *clientListHandler[T, U]) GetClientLatestListsByAdded(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
@@ -486,7 +524,7 @@ func (h *clientListHandler[T, U]) GetLatestListsByAdded(c *gin.Context) {
 //	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/client/{clientID}/{listType}/popular/{count} [get]
-func (h *clientListHandler[T, U]) GetPopularLists(c *gin.Context) {
+func (h *clientListHandler[T, U]) GetClientPopularLists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
@@ -544,7 +582,7 @@ func (h *clientListHandler[T, U]) GetPopularLists(c *gin.Context) {
 //	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/client/{clientID}/{listType}/top-rated/{count} [get]
-func (h *clientListHandler[T, U]) GetTopRatedLists(c *gin.Context) {
+func (h *clientListHandler[T, U]) GetClientTopRatedLists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
@@ -598,7 +636,7 @@ func (h *clientListHandler[T, U]) GetTopRatedLists(c *gin.Context) {
 //	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
 //	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
 //	@Router			/client/{clientID}/{listType}/search [get]
-func (h *clientListHandler[T, U]) SearchLists(c *gin.Context) {
+func (h *clientListHandler[T, U]) SearchClientLists(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 	log.Info().Msg("Searching lists")

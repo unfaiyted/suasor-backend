@@ -602,7 +602,35 @@ func (s *clientListService[T, U]) getListProvider(ctx context.Context, clientID 
 		Uint64("clientID", clientID).
 		Str("clientType", clientConfig.Config.GetType().String()).
 		Msg("Retrieved client")
-	return client.(providers.ListProvider[U]), nil
+	// Instead of directly casting to ListProvider[U], we need to check if it's a playlist or collection
+	// and use the proper adapter
+	
+	// For playlists
+	mediaType := mediatypes.GetMediaType[U]()
+	if mediaType == mediatypes.MediaTypePlaylist {
+		playlistProvider, ok := client.(providers.PlaylistProvider)
+		if !ok {
+			return nil, fmt.Errorf("client does not implement PlaylistProvider interface")
+		}
+		
+		// Create adapter to convert PlaylistProvider to ListProvider[*Playlist]
+		listProvider := providers.NewPlaylistListAdapter(playlistProvider)
+		return listProvider.(providers.ListProvider[U]), nil
+	}
+	
+	// For collections
+	if mediaType == mediatypes.MediaTypeCollection {
+		collectionProvider, ok := client.(providers.CollectionProvider)
+		if !ok {
+			return nil, fmt.Errorf("client does not implement CollectionProvider interface")
+		}
+		
+		// Create adapter to convert CollectionProvider to ListProvider[*Collection]
+		listProvider := providers.NewCollectionListAdapter(collectionProvider)
+		return listProvider.(providers.ListProvider[U]), nil
+	}
+	
+	return nil, fmt.Errorf("unsupported media type: %s", mediaType)
 }
 func (s *clientListService[T, U]) getUserListProviders(ctx context.Context, userID uint64) ([]providers.ListProvider[U], error) {
 	log := logger.LoggerFromContext(ctx)

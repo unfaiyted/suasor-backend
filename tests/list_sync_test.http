@@ -147,6 +147,7 @@ POST http://localhost:8080/api/v1/playlist/{{createLocalPlaylist.response.body.$
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
+
 ###
 # @name checkEmbyPlaylists
 # Check for the synced playlist in Emby
@@ -157,7 +158,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 ###
 # @name findSyncedPlaylistInEmby
 # Find the specific synced playlist in Emby by name
-GET http://localhost:8080/api/v1/client/{{createEmbyClient.response.body.$.data.id}}/playlist/search?query=Sync Test Playlist
+GET http://localhost:8080/api/v1/client/{{createEmbyClient.response.body.$.data.id}}/playlist/search?q=Playlist
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 

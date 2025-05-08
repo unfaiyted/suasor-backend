@@ -150,19 +150,33 @@ func registerClientDataRoutes[T mediatypes.MediaData](rg *gin.RouterGroup, c *co
 
 }
 
-func getClientDataHandlerMap[T mediatypes.MediaData](c *container.Container, clientType string) (handlers.ClientUserMediaItemDataHandler[clienttypes.ClientMediaConfig, T], bool) {
-	handlers := map[string]handlers.ClientUserMediaItemDataHandler[clienttypes.ClientMediaConfig, T]{
-		"emby":     container.MustGet[handlers.ClientUserMediaItemDataHandler[*clienttypes.EmbyConfig, T]](c),
-		"jellyfin": container.MustGet[handlers.ClientUserMediaItemDataHandler[*clienttypes.JellyfinConfig, T]](c),
-		"plex":     container.MustGet[handlers.ClientUserMediaItemDataHandler[*clienttypes.PlexConfig, T]](c),
-		"subsonic": container.MustGet[handlers.ClientUserMediaItemDataHandler[*clienttypes.SubsonicConfig, T]](c),
+func getClientDataHandlerMap[T mediatypes.MediaData](c *container.Container, clientType clienttypes.ClientType) (handlers.ClientUserMediaItemDataHandler[clienttypes.ClientMediaConfig, T], bool) {
+	handlers := map[clienttypes.ClientType]handlers.ClientUserMediaItemDataHandler[clienttypes.ClientMediaConfig, T]{
+		clienttypes.ClientTypeEmby:     container.MustGet[handlers.ClientUserMediaItemDataHandler[*clienttypes.EmbyConfig, T]](c),
+		clienttypes.ClientTypeJellyfin: container.MustGet[handlers.ClientUserMediaItemDataHandler[*clienttypes.JellyfinConfig, T]](c),
+		clienttypes.ClientTypePlex:     container.MustGet[handlers.ClientUserMediaItemDataHandler[*clienttypes.PlexConfig, T]](c),
+		clienttypes.ClientTypeSubsonic: container.MustGet[handlers.ClientUserMediaItemDataHandler[*clienttypes.SubsonicConfig, T]](c),
 	}
 	handler, exists := handlers[clientType]
 	return handler, exists
 }
 
 func getClientDataHandler[T mediatypes.MediaData](g *gin.Context, c *container.Container) handlers.ClientUserMediaItemDataHandler[clienttypes.ClientMediaConfig, T] {
-	clientType := g.Param("clientType")
+	// Get the client type from the context which was set by the ClientTypeMiddleware
+	clientTypeValue, exists := g.Get("clientType")
+	if !exists {
+		err := fmt.Errorf("client type not found in context")
+		responses.RespondBadRequest(g, err, "Client type not found")
+		return nil
+	}
+	
+	clientType, ok := clientTypeValue.(clienttypes.ClientType)
+	if !ok {
+		err := fmt.Errorf("invalid client type format")
+		responses.RespondBadRequest(g, err, "Invalid client type format")
+		return nil
+	}
+	
 	handler, exists := getClientDataHandlerMap[T](c, clientType)
 	if !exists {
 		err := fmt.Errorf("unsupported client type: %s", clientType)

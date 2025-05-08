@@ -37,6 +37,13 @@ type EmptyResponse struct {
 	Success bool `json:"success"`
 }
 
+// PaginationData contains pagination metadata
+type PaginationData struct {
+	TotalCount int `json:"totalCount" example:"100"`
+	Limit      int `json:"limit" example:"20"`
+	Offset     int `json:"offset" example:"0"`
+}
+
 // TestConnectionResponse contains details about a connection test
 type TestConnectionResponse struct {
 	Success bool   `json:"success"`
@@ -89,4 +96,24 @@ func RespondCreated[T any](c *gin.Context, data T, message ...string) {
 		msg = message[0]
 	}
 	RespondSuccess(c, http.StatusCreated, data, msg)
+}
+
+// RespondOKWithPagination sends a paginated response with 200 OK status
+func RespondOKWithPagination[T any](c *gin.Context, data T, pagination PaginationData, message ...string) {
+	msg := "Success"
+	if len(message) > 0 && message[0] != "" {
+		msg = message[0]
+	}
+
+	type paginatedResponse struct {
+		Items      T            `json:"items"`
+		Pagination PaginationData `json:"pagination"`
+	}
+
+	wrappedData := paginatedResponse{
+		Items:      data,
+		Pagination: pagination,
+	}
+
+	RespondSuccess(c, http.StatusOK, wrappedData, msg)
 }

@@ -75,6 +75,11 @@ func checkClientID(c *gin.Context) (uint64, bool) {
 
 	// Check if clientID is a valid uint64
 	clientIDStr, exists := c.Get("clientID")
+	paramClientID := c.Param("clientID")
+	if !exists && paramClientID != "" {
+		clientIDStr = paramClientID
+		exists = true
+	}
 	if !exists {
 		log.Warn().Msg("Client ID not found in context")
 		responses.RespondBadRequest(c, nil, "Client ID not found in context")

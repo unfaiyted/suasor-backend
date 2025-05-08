@@ -29,30 +29,37 @@ This document outlines a plan to enhance the AI conversation capabilities in Sua
 - [x] Analyze current AI conversation implementation
 - [x] Design database schema for conversation storage
 - [x] Create repository interface definitions
-- [ ] Implement database models
-- [ ] Create database migrations
+- [x] Implement database models
+- [x] Create database migrations
 
 ### Phase 2: Repository Implementation
 
-- [ ] Implement conversation repository
-- [ ] Implement message repository
-- [ ] Implement recommendation repository
+- [x] Implement conversation repository
+- [x] Implement message repository
+- [x] Implement recommendation repository
 - [ ] Add unit tests for repository layer
 
 ### Phase 3: Service Layer 
 
-- [ ] Create AI conversation service
-- [ ] Implement business logic for conversation management
-- [ ] Add recommendation tracking
-- [ ] Implement conversation history retrieval
+- [x] Create AI conversation service
+- [x] Implement business logic for conversation management
+- [x] Add recommendation tracking
+- [x] Implement conversation history retrieval
 - [ ] Add unit tests for service layer
 
 ### Phase 4: Handler & Client Integration
 
-- [ ] Update AI handlers to use new services
-- [ ] Modify Claude client to persist conversations
+- [x] Update AI handlers to use new services
+- [x] Modify Claude client to persist conversations
 - [ ] Add endpoints for conversation history retrieval
-- [ ] Update service registrations in DI container
+    - [ ] GET /api/v1/user/ai/conversations
+    - [ ] GET /api/v1/user/ai/conversations/:conversationId
+    - [ ] GET /api/v1/user/ai/conversations/:conversationId/messages
+    - [ ] GET /api/v1/user/ai/recommendations
+    - [ ] POST /api/v1/user/ai/conversations/:conversationId/continue
+    - [ ] PUT /api/v1/user/ai/conversations/:conversationId/archive
+    - [ ] DELETE /api/v1/user/ai/conversations/:conversationId
+- [x] Update service registrations in DI container
 
 ### Phase 5: Testing & Optimization
 

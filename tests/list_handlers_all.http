@@ -9,7 +9,7 @@ import ./client_media_common.http
 ### Log in to get an access token
 run #login
 
-# Run the CRUD tests for local operations
+### Run the CRUD tests for local operations
 run #createTestMovie1
 run #createTestMovie2
 run #createPlaylist
@@ -26,7 +26,7 @@ run #removeItemFromPlaylist
 run #verifyItemRemoval
 run #searchPlaylists
 
-# Collection CRUD tests
+### Collection CRUD tests
 run #createCollection
 run #getCollectionById
 run #getAllCollections
@@ -39,30 +39,31 @@ run #removeItemFromCollection
 run #verifyCollectionItemRemoval
 run #searchCollections
 
-# Combined list operations
+### Combined list operations
 run #searchAllListTypes
 run #getUserAllListTypes
 
-# Run the sync tests
+### Run the sync tests
 # Client setup
 run #createEmbyClient
 run #createPlexClient
 run #testEmbyConnection
 run #testPlexConnection
 
-# Playlist sync tests
+### Playlist sync tests
 run #createLocalPlaylist
 run #addItemsToLocalPlaylist
 run #addSecondItemToLocalPlaylist
 run #getEmbyMovies
 run #getPlexMovies
+run #createLocalPlaylist
 run #syncPlaylistToEmby
 run #checkEmbyPlaylists
 run #findSyncedPlaylistInEmby
 run #syncPlaylistToPlex
 run #checkPlexPlaylists
 
-# Collection sync tests
+### Collection sync tests
 run #createLocalCollection
 run #addItemsToLocalCollection
 run #addSecondItemToLocalCollection
@@ -71,13 +72,13 @@ run #checkEmbyCollections
 run #syncCollectionToPlex
 run #checkPlexCollections
 
-# Bidirectional sync tests
+### Bidirectional sync tests
 run #createEmbyPlaylist
 run #addMoviesToEmbyPlaylist
 run #syncEmbyPlaylistToLocal
 run #checkLocalPlaylists
 
-# Cleanup after all tests
+### Cleanup after all tests
 run #deleteLocalPlaylist
 run #deleteLocalCollection
 run #deleteSyncedPlaylists

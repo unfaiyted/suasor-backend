@@ -14,11 +14,13 @@ type OllamaConfig struct {
 }
 
 func NewOllamaConfig(baseURL string, model string, temperature float64, enabled bool, validateConn bool) OllamaConfig {
-	clientConfig := NewClientAIConfig(AIClientTypeOllama, ClientCategoryAI, "Ollama", baseURL, "", enabled, validateConn)
+	// Default reasonable values for tokens since Ollama doesn't explicitly set them
+	maxTokens := 2048
+	maxContextTokens := 4096
+	
+	clientConfig := NewClientAIConfig(AIClientTypeOllama, ClientCategoryAI, "Ollama", baseURL, "", model, temperature, maxTokens, maxContextTokens, enabled, validateConn)
 	return OllamaConfig{
 		AIClientConfig: clientConfig,
-		Model:          model,
-		Temperature:    temperature,
 	}
 }
 

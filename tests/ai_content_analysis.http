@@ -17,10 +17,20 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 {
   "name": "Claude Content Analysis",
   "clientType": "claude",
-  "client": {
-    "enabled": true,
-    "baseURL": "https://api.anthropic.com",
-    "apiKey": "{{$processEnv CLAUDE_API_KEY}}",
+  "isEnabled": true,
+  "config": {
+    "details": {
+      "core": {
+        "type": "claude",
+        "category": "ai",
+        "name": "Claude Content Analysis",
+        "baseURL": "https://api.anthropic.com",
+        "enabled": true,
+        "validateConn": true
+      },
+      "clientType": "claude",
+      "apiKey": "{{$processEnv CLAUDE_API_KEY}}"
+    },
     "model": "claude-3-5-sonnet-20240620",
     "temperature": 0.2,
     "maxTokens": 2000,

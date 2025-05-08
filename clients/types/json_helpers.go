@@ -172,7 +172,13 @@ func unmarshalAIConfig[T interface {
 	*ClaudeConfig | *OpenAIConfig | *OllamaConfig
 }](data []byte, details json.RawMessage, config T) error {
 	// Create a temporary struct to handle basic fields
-	baseStruct := struct{}{}
+	baseStruct := struct {
+		// Fields that might appear at the root level
+		Model            string  `json:"model"`
+		Temperature      float64 `json:"temperature"`
+		MaxTokens        int     `json:"maxTokens"`
+		MaxContextTokens int     `json:"maxContextTokens"`
+	}{}
 
 	if err := json.Unmarshal(data, &baseStruct); err != nil {
 		return fmt.Errorf("error unmarshaling base fields: %w", err)
@@ -193,8 +199,26 @@ func unmarshalAIConfig[T interface {
 			c.AIClientConfig = aiConfig
 		case *OpenAIConfig:
 			c.AIClientConfig = aiConfig
+			// Copy over any root-level fields
+			if baseStruct.Model != "" {
+				c.Model = baseStruct.Model
+			}
+			if baseStruct.Temperature != 0 {
+				c.Temperature = baseStruct.Temperature
+			}
+			if baseStruct.MaxTokens != 0 {
+				c.MaxTokens = baseStruct.MaxTokens
+			}
 		case *OllamaConfig:
 			c.AIClientConfig = aiConfig
+			// Copy over any root-level fields
+			if baseStruct.Model != "" {
+				c.Model = baseStruct.Model
+			}
+			if baseStruct.Temperature != 0 {
+				c.Temperature = baseStruct.Temperature
+			}
+			// Note: OllamaConfig might not have MaxTokens field
 		}
 	}
 

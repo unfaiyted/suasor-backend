@@ -16,13 +16,9 @@ type OpenAIConfig struct {
 }
 
 func NewOpenAIConfig(apiKey string, baseURL string, model string, temperature float64, maxTokens int, maxContextTokens int, enabled bool, validateConn bool) OpenAIConfig {
-	clientConfig := NewClientAIConfig(AIClientTypeOpenAI, ClientCategoryAI, "OpenAI", baseURL, apiKey, enabled, validateConn)
+	clientConfig := NewClientAIConfig(AIClientTypeOpenAI, ClientCategoryAI, "OpenAI", baseURL, apiKey, model, temperature, maxTokens, maxContextTokens, enabled, validateConn)
 	return OpenAIConfig{
-		AIClientConfig:   clientConfig,
-		Model:            model,
-		Temperature:      temperature,
-		MaxTokens:        maxTokens,
-		MaxContextTokens: maxContextTokens,
+		AIClientConfig: clientConfig,
 	}
 }
 

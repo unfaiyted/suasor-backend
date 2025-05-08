@@ -210,13 +210,13 @@ func (e *EmbyClient) GetPlaylistItems(ctx context.Context, playlistID string) (*
 	// Convert string ID to uint64 for media item list
 	var listIDUint uint64 = 0
 	// Don't worry about conversion errors, we'll use 0 as default
-	
+
 	// Create new media item list
 	itemList := models.NewMediaItemList[*types.Playlist](listIDUint, 0)
 
 	// Initialize the maps
 	itemList.Playlists = make(map[string]*models.MediaItem[*types.Playlist])
-	
+
 	// Process each item
 	for _, item := range response.Items {
 		// Convert to playlist item
@@ -325,12 +325,12 @@ func (e *EmbyClient) CreatePlaylistWithItems(ctx context.Context, name string, d
 		if playlist.SyncClients != nil {
 			playlistID = playlist.SyncClients.GetClientItemID(e.GetClientID())
 		}
-		
+
 		// If we can't get it from SyncClients, try using the UUID instead
 		if playlistID == "" {
 			playlistID = playlist.UUID
 		}
-		
+
 		err = e.AddPlaylistItems(ctx, playlistID, itemIDs)
 		if err != nil {
 			// If we fail to add items, still return the playlist but log the error
@@ -757,3 +757,4 @@ func (e *EmbyClient) ReorderPlaylistItems(ctx context.Context, playlistID string
 
 	return nil
 }
+

@@ -167,7 +167,9 @@ func (h *aiHandler[T]) AnalyzeContent(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
+//	@Param			clientID	path		int															true	"Client ID"
 //	@Param			request	body		requests.StartConversationRequest						true	"Conversation initialization request"
+//	@Success		200		{object}	responses.APIResponse[responses.AiContentAnalysisResponse]	"Analysis response"
 //	@Success		200		{object}	responses.APIResponse[responses.ConversationResponse]	"Conversation started"
 //	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]			"Invalid request"
 //	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]			"Unauthorized"
@@ -178,11 +180,7 @@ func (h *aiHandler[T]) StartConversation(c *gin.Context) {
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
+	userID, _ := checkUserAccess(c)
 
 	var req requests.StartConversationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -191,15 +189,18 @@ func (h *aiHandler[T]) StartConversation(c *gin.Context) {
 	}
 	clientType := types.ClientType(c.Param("clientType"))
 
+	clientID, _ := checkClientID(c)
+	req.ClientID = clientID
+
 	log.Info().
-		Uint64("userID", userID.(uint64)).
+		Uint64("userID", userID).
 		Str("contentType", req.ContentType).
 		Uint64("clientID", req.ClientID).
 		Str("clientType", clientType.String()).
 		Msg("Starting AI recommendation conversation")
 
 	// Get available AI client based on specified type or default
-	aiClient, err := h.getAIClient(ctx, userID.(uint64), clientType, req.ClientID)
+	aiClient, err := h.getAIClient(ctx, userID, clientType, req.ClientID)
 	if err != nil {
 		responses.RespondInternalError(c, err, "Failed to initialize AI client")
 		return
@@ -218,12 +219,12 @@ func (h *aiHandler[T]) StartConversation(c *gin.Context) {
 	}
 
 	// Save the conversation both in our tracking map and in the database
-	h.activeConversations[conversationID] = userID.(uint64)
+	h.activeConversations[conversationID] = userID
 
 	// Store it in the database through the conversation service
 	_, _, err = h.conversationService.StartConversation(
 		ctx,
-		userID.(uint64),
+		userID,
 		req.ClientID,
 		req.ContentType,
 		req.Preferences,
@@ -282,39 +283,38 @@ func (h *aiHandler[T]) getAIClient(ctx context.Context, userID uint64, clientTyp
 
 // SendConversationMessage godoc
 //
-//	@Summary		Send a message in an existing AI conversation
-//	@Description	Continue a conversation with the AI by sending a new message
-//	@Tags			ai
-//	@Accept			json
-//	@Produce		json
-//	@Security		BearerAuth
-//	@Param			request	body		requests.ConversationMessageRequest								true	"Message request"
-//	@Success		200		{object}	responses.APIResponse[responses.ConversationMessageResponse]	"AI response"
-//	@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid request"
-//	@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
-//	@Failure		403		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Conversation not owned by user"
-//	@Failure		404		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Conversation not found"
-//	@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
-//	@Router			/client/{clientID}/ai/conversation/message [post]
+//		@Summary		Send a message in an existing AI conversation
+//		@Description	Continue a conversation with the AI by sending a new message
+//		@Tags			ai
+//		@Accept			json
+//		@Produce		json
+//		@Security		BearerAuth
+//	  @Param	    clientID	path		int															true	"Client ID"
+//		@Param			request	body		requests.ConversationMessageRequest								true	"Message request"
+//		@Success		200		{object}	responses.APIResponse[responses.ConversationMessageResponse]	"AI response"
+//		@Failure		400		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid request"
+//		@Failure		401		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
+//		@Failure		403		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Conversation not owned by user"
+//		@Failure		404		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Conversation not found"
+//		@Failure		500		{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
+//		@Router			/client/{clientID}/ai/conversation/message [post]
 func (h *aiHandler[T]) SendConversationMessage(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.LoggerFromContext(ctx)
 
 	// Get authenticated user ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		responses.RespondUnauthorized(c, nil, "Authentication required")
-		return
-	}
+	userID, _ := checkUserAccess(c)
 
 	var req requests.ConversationMessageRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		responses.RespondValidationError(c, err)
 		return
 	}
+	clientID, _ := checkClientID(c)
+	req.ClientID = clientID
 
 	log.Info().
-		Uint64("userID", userID.(uint64)).
+		Uint64("userID", userID).
 		Str("conversationID", req.ConversationID).
 		Str("message", req.Message).
 		Msg("Sending message in AI conversation")
@@ -323,15 +323,15 @@ func (h *aiHandler[T]) SendConversationMessage(c *gin.Context) {
 	conversationOwnerID, exists := h.activeConversations[req.ConversationID]
 	if !exists {
 		// Check if it exists in the database
-		conversation, err := h.conversationService.GetConversationHistory(ctx, req.ConversationID, userID.(uint64))
+		conversation, err := h.conversationService.GetConversationHistory(ctx, req.ConversationID, userID)
 		if err != nil || len(conversation) == 0 {
 			responses.RespondNotFound(c, nil, "Conversation not found")
 			return
 		}
 		// If it exists in the database but not in memory, add it to memory
-		h.activeConversations[req.ConversationID] = userID.(uint64)
-		conversationOwnerID = userID.(uint64)
-	} else if conversationOwnerID != userID.(uint64) {
+		h.activeConversations[req.ConversationID] = userID
+		conversationOwnerID = userID
+	} else if conversationOwnerID != userID {
 		responses.RespondForbidden(c, nil, "You do not have access to this conversation")
 		return
 	}
@@ -340,7 +340,7 @@ func (h *aiHandler[T]) SendConversationMessage(c *gin.Context) {
 	// Get available AI client
 	// Note: We don't need to specify a client type here as the conversation is already
 	// associated with a specific AI client from the start conversation request
-	aiClient, err := h.getAIClient(ctx, userID.(uint64), clientType, req.ClientID)
+	aiClient, err := h.getAIClient(ctx, userID, clientType, req.ClientID)
 	if err != nil {
 		responses.RespondInternalError(c, err, "Failed to initialize AI client")
 		return
@@ -371,7 +371,7 @@ func (h *aiHandler[T]) SendConversationMessage(c *gin.Context) {
 	_, _, err = h.conversationService.SendMessage(
 		ctx,
 		req.ConversationID,
-		userID.(uint64),
+		userID,
 		req.Message,
 		context,
 	)
@@ -389,4 +389,3 @@ func (h *aiHandler[T]) SendConversationMessage(c *gin.Context) {
 
 	responses.RespondOK(c, response, "Message sent successfully")
 }
-

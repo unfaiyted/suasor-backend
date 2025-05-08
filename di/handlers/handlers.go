@@ -30,4 +30,7 @@ func RegisterHandlers(ctx context.Context, c *container.Container) {
 	
 	// Register client list handlers
 	RegisterClientListHandlers(ctx, c)
+	
+	// Register AI conversation handlers
+	RegisterAIConversationHandlers(ctx, c)
 }

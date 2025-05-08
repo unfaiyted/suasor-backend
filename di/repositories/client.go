@@ -40,6 +40,12 @@ func registerClientRepositories(ctx context.Context, c *container.Container) {
 	registerClientRepository[*clienttypes.OpenAIConfig](c, db)
 	registerClientRepository[*clienttypes.OllamaConfig](c, db)
 
+	// Generic AI client repository for conversation service
+	// We use AIConfigScanner instead of the interface directly for database scanning
+	container.RegisterFactory[repository.ClientRepository[clienttypes.AIClientConfig]](c, func(c *container.Container) repository.ClientRepository[clienttypes.AIClientConfig] {
+		return repository.NewClientRepository[clienttypes.AIClientConfig](db)
+	})
+
 	// Metadata client service
 	registerClientRepository[*clienttypes.TMDBConfig](c, db)
 

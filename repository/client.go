@@ -85,7 +85,7 @@ func (r *clientRepository[T]) Update(ctx context.Context, client models.Client[T
 
 }
 
-// GetByID retrieves a media client by ID
+// GetByID retrieves a client by ID
 func (r *clientRepository[T]) GetByID(ctx context.Context, id uint64) (*models.Client[T], error) {
 	log := logger.LoggerFromContext(ctx)
 	var client models.Client[T]

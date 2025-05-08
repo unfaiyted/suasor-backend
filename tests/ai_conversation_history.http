@@ -1,0 +1,136 @@
+### AI Conversation History - Tests
+### These tests verify the functionalty of AI conversation history endpoints
+
+### Login to get an authentication token
+# @name login
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@dev.com",
+  "password": "TestPassword123"
+}
+
+### Create a Claude client for testing
+# @name createClaudeClient
+POST http://localhost:8080/api/v1/admin/client/claude
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "name": "Claude Conversation History Test",
+  "clientType": "claude",
+  "isEnabled": true,
+  "client": {
+    "baseURL": "https://api.anthropic.com",
+    "apiKey": "{{CLAUDE_API_KEY}}",
+    "model": "claude-3-haiku-20240307",
+    "temperature": 0.7,
+    "maxTokens": 1000,
+    "maxContextTokens": 100000
+  }
+}
+
+### Start a conversation to have data for history tests
+# @name startConversation
+POST http://localhost:8080/api/v1/client/{{createClaudeClient.response.body.$.data.id}}/ai/conversation/start
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "contentType": "movie",
+  "preferences": {
+    "favoriteGenres": ["sci-fi", "thriller", "drama"],
+    "recentlyWatched": ["Interstellar", "Tenet", "Dune"]
+  },
+  "systemInstructions": "You are a helpful movie recommendation assistant specializing in sci-fi films. Provide thoughtful recommendations based on the user's preferences."
+}
+
+### Send a message to generate some conversation history
+# @name sendMessage1
+POST http://localhost:8080/api/v1/client/{{createClaudeClient.response.body.$.data.id}}/ai/conversation/message
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "conversationID": "{{startConversation.response.body.$.data.conversationID}}",
+  "message": "I'm looking for sci-fi movies with complex time travel plots."
+}
+
+### Test: Get User Conversations
+# @name getUserConversations
+GET http://localhost:8080/api/v1/user/ai/conversations
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Test: Get User Conversations with pagination
+GET http://localhost:8080/api/v1/user/ai/conversations?limit=5&offset=0
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Test: Get Conversation History
+# @name getConversationHistory
+GET http://localhost:8080/api/v1/user/ai/conversations/{{startConversation.response.body.$.data.conversationID}}/messages
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Test: Get User Recommendations
+# @name getUserRecommendations
+GET http://localhost:8080/api/v1/user/ai/recommendations
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Test: Get User Recommendations filtered by type
+GET http://localhost:8080/api/v1/user/ai/recommendations?itemType=movie
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Test: Continue a conversation from history
+# @name continueConversation
+POST http://localhost:8080/api/v1/user/ai/conversations/{{startConversation.response.body.$.data.conversationID}}/continue
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "message": "That was helpful. Can you also recommend some sci-fi movies with AI themes?",
+  "context": {
+    "extractRecommendations": true
+  }
+}
+
+### Test: Archive a conversation
+# @name archiveConversation
+PUT http://localhost:8080/api/v1/user/ai/conversations/{{startConversation.response.body.$.data.conversationID}}/archive
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Start another conversation for deletion test
+# @name startDeleteTestConversation
+POST http://localhost:8080/api/v1/client/{{createClaudeClient.response.body.$.data.id}}/ai/conversation/start
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "contentType": "movie",
+  "preferences": {
+    "favoriteGenres": ["comedy", "action"]
+  }
+}
+
+### Test: Delete a conversation
+# @name deleteConversation
+DELETE http://localhost:8080/api/v1/user/ai/conversations/{{startDeleteTestConversation.response.body.$.data.conversationID}}
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Test error cases
+
+### Test: Get history for non-existent conversation
+GET http://localhost:8080/api/v1/user/ai/conversations/non-existent-id/messages
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+### Test: Continue non-existent conversation
+POST http://localhost:8080/api/v1/user/ai/conversations/non-existent-id/continue
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
+{
+  "message": "This should fail because the conversation doesn't exist"
+}
+
+### Cleanup: Delete test clients
+DELETE http://localhost:8080/api/v1/admin/client/claude/{{createClaudeClient.response.body.$.data.id}}
+Authorization: Bearer {{login.response.body.$.data.accessToken}}

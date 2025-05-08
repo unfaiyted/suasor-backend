@@ -44,16 +44,16 @@ func NewClaudeClient(ctx context.Context, clientID uint64, cfg types.ClaudeConfi
 	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("clientID", clientID).
-		Str("model", cfg.Model).
+		Str("model", cfg.AIClientConfig.GetModel()).
 		Msg("Creating new Claude client")
 
 	// Create gollm LLM instance with Claude configuration
 	llm, err := gollm.NewLLM(
 		gollm.SetProvider("anthropic"),
-		gollm.SetModel(cfg.Model),
-		gollm.SetAPIKey(cfg.GetAPIKey()),
-		gollm.SetMaxTokens(cfg.MaxTokens),
-		gollm.SetTemperature(cfg.Temperature),
+		gollm.SetModel(cfg.AIClientConfig.GetModel()),
+		gollm.SetAPIKey(cfg.AIClientConfig.GetAPIKey()),
+		gollm.SetMaxTokens(cfg.AIClientConfig.GetMaxTokens()),
+		gollm.SetTemperature(cfg.AIClientConfig.GetTemperature()),
 		gollm.SetMaxRetries(3),
 		gollm.SetMemory(4096), // Enable memory for conversational context
 	)
@@ -244,8 +244,8 @@ func (c *ClaudeClient) GetCapabilities() *aitypes.AICapabilities {
 		SupportsStructuredOutput: true,
 		SupportsConversation:     true,
 		SupportsStreaming:        false, // Implement if needed
-		MaxContextTokens:         c.config.MaxContextTokens,
-		DefaultMaxTokens:         c.config.MaxTokens,
+		MaxContextTokens:         c.config.AIClientConfig.GetMaxContextTokens(),
+		DefaultMaxTokens:         c.config.AIClientConfig.GetMaxTokens(),
 	}
 }
 
@@ -612,7 +612,7 @@ func (c *ClaudeClient) CreateMessage(ctx context.Context, messageRequest aitypes
 	// Set model or use default
 	model := messageRequest.Model
 	if model == "" {
-		model = c.config.Model // Use default model from config
+		model = c.config.AIClientConfig.GetModel() // Use default model from config
 	}
 
 	// Call GenerateContent to handle the actual request
@@ -653,8 +653,8 @@ func (c *ClaudeClient) GenerateContent(ctx context.Context, systemPrompt string,
 		Msg("Generating content with Claude")
 
 	// Apply custom options if provided
-	tempToUse := c.config.Temperature
-	maxTokensToUse := c.config.MaxTokens
+	tempToUse := c.config.AIClientConfig.GetTemperature()
+	maxTokensToUse := c.config.AIClientConfig.GetMaxTokens()
 
 	if options != nil {
 		if temp, ok := options["temperature"].(float64); ok && temp > 0 {
