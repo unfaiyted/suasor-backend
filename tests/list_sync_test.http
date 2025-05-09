@@ -165,7 +165,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 ### syncPlaylistToPlex
 # @name syncPlaylistToPlex
 # Sync the local playlist to Plex
-POST http://localhost:8080/api/v1/client/{{createPlexClient}}/sync/playlist/{{createLocalPlaylist.response.body.$.data.id}}
+POST http://localhost:8080/api/v1/client/{{createPlexClient.response.body.$.data.id}}/sync/playlist/{{createLocalPlaylist.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
