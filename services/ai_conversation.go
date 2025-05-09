@@ -20,6 +20,8 @@ type AIConversationService interface {
 	// Core conversation methods
 	StartConversation(ctx context.Context, userID uint64, clientID uint64, contentType string,
 		preferences map[string]any, systemInstructions string) (string, string, error)
+	StartConversationWithID(ctx context.Context, conversationID string, userID uint64, clientID uint64, contentType string,
+		preferences map[string]any, systemInstructions string, welcomeMessage string) (string, error)
 	SendMessage(ctx context.Context, conversationID string, userID uint64, message string,
 		context map[string]any) (string, []map[string]any, error)
 	GetConversationHistory(ctx context.Context, conversationID string, userID uint64) ([]*models.AIMessage, error)
@@ -143,6 +145,74 @@ func (s *aiConversationService) StartConversation(
 	s.activeClients[conversationID] = aiClient
 
 	return conversationID, welcomeMessage, nil
+}
+
+// StartConversationWithID begins a new AI conversation with a pre-defined ID
+func (s *aiConversationService) StartConversationWithID(
+	ctx context.Context,
+	conversationID string,
+	userID uint64,
+	clientID uint64,
+	contentType string,
+	preferences map[string]any,
+	systemInstructions string,
+	welcomeMessage string,
+) (string, error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Info().
+		Str("conversationID", conversationID).
+		Uint64("userID", userID).
+		Uint64("clientID", clientID).
+		Str("contentType", contentType).
+		Msg("Starting new AI conversation with provided ID")
+
+	// Get AI client for storing in active clients
+	aiClient, err := s.getAIClient(ctx, clientID)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to get AI client")
+		return "", err
+	}
+
+	// Store conversation in database using the provided ID
+	conversation := models.NewAIConversation(
+		conversationID,
+		userID,
+		clientID,
+		contentType,
+		systemInstructions,
+	)
+
+	// Store preferences
+	if err := conversation.SetUserPreferencesMap(preferences); err != nil {
+		log.Error().Err(err).Msg("Failed to set user preferences")
+		return "", err
+	}
+
+	// Save to database
+	_, err = s.repo.CreateConversation(ctx, conversation)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to create conversation in database")
+		return "", err
+	}
+
+	// Save welcome message from AI
+	welcomeMsg := models.NewAIMessage(
+		utils.GenerateRandomID(16),
+		conversationID,
+		"assistant", // Role is assistant for the welcome message
+		welcomeMessage,
+	)
+	_, err = s.repo.AddMessage(ctx, welcomeMsg)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to save welcome message")
+		// Continue even if saving the message fails
+		log.Warn().Msg("Continuing despite message save failure")
+	}
+
+	// Store AI client in active clients map
+	s.activeClients[conversationID] = aiClient
+
+	return conversationID, nil
 }
 
 // SendMessage sends a message in an existing conversation

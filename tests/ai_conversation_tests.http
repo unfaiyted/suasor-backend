@@ -64,7 +64,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "conversationID": "{{startMovieConversation.response.body.$.data.conversationID}}",
+  "conversationID": "{{startMovieConversation.response.body.$.data.conversationId}}",
   "message": "I'm looking for recent sci-fi movies with complex plots and strong visuals, similar to Arrival or Blade Runner 2049."
 }
 
@@ -75,7 +75,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "conversationID": "{{startMovieConversation.response.body.$.data.conversationID}}",
+  "conversationID": "{{startMovieConversation.response.body.$.data.conversationId}}",
   "message": "I especially enjoy films that explore the concept of time, like Interstellar did."
 }
 
@@ -86,7 +86,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "conversationID": "{{startMovieConversation.response.body.$.data.conversationID}}",
+  "conversationID": "{{startMovieConversation.response.body.$.data.conversationId}}",
   "message": "From your recommendations, which one would you say has the most emotional impact?",
   "context": {
     "extractRecommendations": false
@@ -94,14 +94,14 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 }
 
 ### 
-# Test TV Series Conversation - Start a conversation about TV shows
-# @name startTVConversation
+# Test series Series Conversation - Start a conversation about series shows
+# @name startSeriesConversation
 POST http://localhost:8080/api/v1/client/{{createClaudeClient.response.body.$.data.id}}/ai/conversation/start
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "contentType": "tv",
+  "contentType": "series",
   "preferences": {
     "favoriteGenres": ["comedy", "drama", "mystery"],
     "recentlyWatched": ["The Office", "Breaking Bad", "True Detective"],
@@ -111,24 +111,24 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 }
 
 ### 
-# @name tvMessage1
+# @name seriesMessage1
 POST http://localhost:8080/api/v1/client/{{createClaudeClient.response.body.$.data.id}}/ai/conversation/message
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "conversationID": "{{startTVConversation.response.body.$.data.conversationID}}",
+  "conversationID": "{{startSeriesConversation.response.body.$.data.conversationId}}",
   "message": "I'm looking for a dark comedy series with well-developed characters, preferably something that's completed so I can binge-watch it."
 }
 
 ### 
-# @name tvMessage2
+# @name seriesMessage2
 POST http://localhost:8080/api/v1/client/{{createClaudeClient.response.body.$.data.id}}/ai/conversation/message
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "conversationID": "{{startTVConversation.response.body.$.data.conversationID}}",
+  "conversationID": "{{startSeriesConversation.response.body.$.data.conversationId}}",
   "message": "I enjoy shows with morally complex protagonists, like in Breaking Bad."
 }
 
@@ -155,7 +155,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "conversationID": "{{startMusicConversation.response.body.$.data.conversationID}}",
+  "conversationID": "{{startMusicConversation.response.body.$.data.conversationId}}",
   "message": "I'm interested in discovering new bands with complex, atmospheric sounds similar to Radiohead."
 }
 
@@ -166,7 +166,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 {
-  "conversationID": "{{startMusicConversation.response.body.$.data.conversationID}}",
+  "conversationID": "{{startMusicConversation.response.body.$.data.conversationId}}",
   "message": "I particularly enjoy albums with cohesive themes that work well as a complete listening experience.",
   "context": {
     "focusOn": "albumRecommendations"

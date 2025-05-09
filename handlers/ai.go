@@ -221,14 +221,17 @@ func (h *aiHandler[T]) StartConversation(c *gin.Context) {
 	// Save the conversation both in our tracking map and in the database
 	h.activeConversations[conversationID] = userID
 
-	// Store it in the database through the conversation service
-	_, _, err = h.conversationService.StartConversation(
+	// Store it in the database through the conversation service with the same ID
+	// that was returned by the AI client
+	_, err = h.conversationService.StartConversationWithID(
 		ctx,
+		conversationID,
 		userID,
 		req.ClientID,
 		req.ContentType,
 		req.Preferences,
 		req.SystemInstructions,
+		welcomeMessage,
 	)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to persist conversation to database, continuing anyway")
@@ -266,6 +269,14 @@ func (h *aiHandler[T]) getAIClient(ctx context.Context, userID uint64, clientTyp
 		Str("clientType", clientType.String()).
 		Uint64("clientID", clientID).
 		Msg("Client Model retrieved")
+
+	// Check if the config is nil before using it
+	if &clientModel.Config == nil {
+		err := fmt.Errorf("client config is nil for clientID=%d", clientID)
+		log.Error().Err(err).Msg("Failed to get AI client: nil config")
+		return nil, err
+	}
+
 	// from factory
 	aiClient, err := h.factory.GetClient(ctx, clientModel.ID, clientModel.Config)
 	if err != nil {

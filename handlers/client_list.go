@@ -29,6 +29,9 @@ type ClientListHandler[T clienttypes.ClientMediaConfig, U types.ListData] interf
 	GetClientPopularLists(c *gin.Context)
 	GetClientTopRatedLists(c *gin.Context)
 	SearchClientLists(c *gin.Context)
+
+	// Synchronization methods
+	SyncLocalListToClient(c *gin.Context)
 }
 
 // clientListHandler handles playlist-related operations for media clients
@@ -689,4 +692,56 @@ func (h *clientListHandler[T, U]) SearchClientLists(c *gin.Context) {
 		Int("resultsCount", len(lists)).
 		Msg("List search completed successfully")
 	responses.RespondMediaItemListOK(c, lists, "Lists retrieved successfully")
+}
+
+// SyncLocalClientList godoc
+//
+//	@Summary		Synchronize local list with remote client
+//	@Description	Synchronizes a local list with a remote client
+//	@Tags			lists, clients
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			clientID	path		int																	true	"Client ID"
+//	@Param			listType	path		string															true	"List type (e.g. 'playlist', 'collection')"
+//	@Param			listID		path		int																	true	"Local List ID"
+//	@Success		200			{object}	responses.APIResponse[responses.MediaItemList[types.ListData]]	"List retrieved"
+//	@Failure		400			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Invalid client ID"
+//	@Failure		401			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Unauthorized"
+//	@Failure		500			{object}	responses.ErrorResponse[responses.ErrorDetails]					"Server error"
+//	@Router			/client/{clientID}/{listType}/sync/{listID} [post]
+func (h *clientListHandler[T, U]) SyncLocalListToClient(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := logger.LoggerFromContext(ctx)
+	log.Info().Msg("Synchronizing local list with remote client")
+
+	uid, _ := checkUserAccess(c)
+	clientID, _ := checkClientID(c)
+	listID, _ := checkItemID(c, "listID")
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Uint64("listID", listID).
+		Msg("Synchronizing list")
+
+	list, err := h.listService.SyncLocalListToClient(ctx, clientID, listID)
+
+	if err != nil {
+		log.Error().Err(err).
+			Uint64("userID", uid).
+			Uint64("clientID", clientID).
+			Uint64("listID", listID).
+			Msg("Failed to synchronize list")
+		responses.RespondInternalError(c, err, "Failed to synchronize list")
+		return
+	}
+
+	log.Info().
+		Uint64("userID", uid).
+		Uint64("clientID", clientID).
+		Uint64("listID", listID).
+		Msg("List synchronized successfully")
+
+	responses.RespondOK(c, list, "List synchronized successfully")
 }

@@ -30,6 +30,7 @@ func RegisterClientListRoutes(ctx context.Context, rg *gin.RouterGroup, c *conta
 		// Register routes for playlists
 		registerListRoutes[*mediatypes.Playlist](clientGroup, c)
 		registerListRoutes[*mediatypes.Collection](clientGroup, c)
+
 	}
 }
 
@@ -107,6 +108,14 @@ func registerListRoutes[T mediatypes.ListData](rg *gin.RouterGroup, c *container
 
 	}
 
+	syncGroup := rg.Group("/sync/" + string(mediaType))
+	{
+		syncGroup.POST("/:listID", func(g *gin.Context) {
+			if handler := getHandler[T](g, c); handler != nil {
+				handler.SyncLocalListToClient(g)
+			}
+		})
+	}
 }
 
 func getHandlerMap[T mediatypes.ListData](c *container.Container, clientType clienttypes.ClientType) (handlers.ClientListHandler[clienttypes.ClientMediaConfig, T], bool) {

@@ -1,7 +1,7 @@
 ### List Sync Test
 # This file contains HTTP tests for syncing lists (playlists and collections) between local and remote clients
 
-###
+### login
 # @name login
 POST http://localhost:8080/api/v1/auth/login
 Content-Type: application/json
@@ -11,7 +11,7 @@ Content-Type: application/json
   "password": "TestPassword123"
 }
 
-###
+### getUserProfile
 # @name getUserProfile
 # Get user profile to ensure we have user ID for tests
 GET http://localhost:8080/api/v1/user/profile
@@ -19,7 +19,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 
-###
+### getAllClients
 # @name getAllClients
 # Get all configured clients to check what's available
 GET http://localhost:8080/api/v1/clients
@@ -27,7 +27,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 
-###
+### createTestMovie1
 # @name createTestMovie1
 # Create a test movie for list operations
 POST http://localhost:8080/api/v1/media/movie
@@ -56,7 +56,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   "externalIds": []
 }
 
-###
+### createTestMovie2
 # @name createTestMovie2
 # Create a second test movie
 POST http://localhost:8080/api/v1/media/movie
@@ -86,7 +86,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 }
 
 
-###
+### createLocalPlaylist
 # @name createLocalPlaylist
 # Create a playlist in the local database
 POST http://localhost:8080/api/v1/playlist
@@ -112,35 +112,35 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   }
 }
 
-###
+### addItemsToLocalPlaylist
 # @name addItemsToLocalPlaylist
 # Add items to the local playlist
 POST http://localhost:8080/api/v1/playlist/{{createLocalPlaylist.response.body.$.data.id}}/item/{{createTestMovie1.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### addSecondItemToLocalPlaylist
 # @name addSecondItemToLocalPlaylist
 # Add second item to the local playlist
 POST http://localhost:8080/api/v1/playlist/{{createLocalPlaylist.response.body.$.data.id}}/item/{{createTestMovie2.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### getEmbyMovies
 # @name getEmbyMovies
 # Get movie items from Emby to use in playlists
 GET http://localhost:8080/api/v1/client/{{createEmbyClient.response.body.$.data.id}}/media/movie/search?q=test&limit=5
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### getPlexMovies
 # @name getPlexMovies
 # Get movie items from Plex to use in playlists
 GET http://localhost:8080/api/v1/client/{{createPlexClient.response.body.$.data.id}}/media/movie/search?q=test&limit=5
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### syncPlaylistToEmby
 # @name syncPlaylistToEmby
 # Sync the local playlist to Emby
 POST http://localhost:8080/api/v1/playlist/{{createLocalPlaylist.response.body.$.data.id}}/sync/{{createEmbyClient.response.body.$.data.id}}
@@ -148,24 +148,24 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 
-###
+### checkEmbyPlaylists
 # @name checkEmbyPlaylists
 # Check for the synced playlist in Emby
 GET http://localhost:8080/api/v1/client/{{createEmbyClient.response.body.$.data.id}}/playlist
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### findSyncedPlaylistInEmby
 # @name findSyncedPlaylistInEmby
 # Find the specific synced playlist in Emby by name
 GET http://localhost:8080/api/v1/client/{{createEmbyClient.response.body.$.data.id}}/playlist/search?q=Playlist
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### syncPlaylistToPlex
 # @name syncPlaylistToPlex
 # Sync the local playlist to Plex
-POST http://localhost:8080/api/v1/playlist/{{createLocalPlaylist.response.body.$.data.id}}/sync
+POST http://localhost:8080/api/v1/client/{{createPlexClient}}/sync/playlist/{{createLocalPlaylist.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -173,10 +173,10 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   "clientID": {{createPlexClient.response.body.$.data.id}}
 }
 
-###
+### checkPlexPlaylists
 # @name checkPlexPlaylists
 # Check for the synced playlist in Plex
-GET http://localhost:8080/api/v1/client/plex/{{createPlexClient.response.body.$.data.id}}/playlists
+GET http://localhost:8080/api/v1/client/{{createPlexClient.response.body.$.data.id}}/playlists
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -184,7 +184,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 # Collection Sync Tests
 # ===========================================
 
-###
+### createLocalCollection
 # @name createLocalCollection
 @title=New Collection
 # Create a collection in the local database
@@ -211,21 +211,21 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   }
 }
 
-###
+### addItemsToLocalCollection
 # @name addItemsToLocalCollection
 # Add items to the local collection
 POST http://localhost:8080/api/v1/collection/{{createLocalCollection.response.body.$.data.id}}/item/{{createTestMovie1.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### addSecondItemToLocalCollection
 # @name addSecondItemToLocalCollection
 # Add second item to the local collection
 POST http://localhost:8080/api/v1/collection/{{createLocalCollection.response.body.$.data.id}}/item/{{createTestMovie2.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### syncCollectionToEmby
 # @name syncCollectionToEmby
 # Sync the local collection to Emby
 POST http://localhost:8080/api/v1/collection/{{createLocalCollection.response.body.$.data.id}}/sync
@@ -236,14 +236,14 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   "clientID": {{createEmbyClient.response.body.$.data.id}}
 }
 
-###
+### checkEmbyCollections
 # @name checkEmbyCollections
 # Check for the synced collection in Emby
 GET http://localhost:8080/api/v1/client/emby/{{createEmbyClient.response.body.$.data.id}}/collections
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### syncCollectionToPlex
 # @name syncCollectionToPlex
 # Sync the local collection to Plex
 POST http://localhost:8080/api/v1/collections/{{createLocalCollection.response.body.$.data.id}}/sync
@@ -254,7 +254,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   "clientID": {{createPlexClient.response.body.$.data.id}}
 }
 
-###
+### checkPlexCollections
 # @name checkPlexCollections
 # Check for the synced collection in Plex
 GET http://localhost:8080/api/v1/client/plex/{{createPlexClient.response.body.$.data.id}}/collections
@@ -262,7 +262,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
 
-###
+### createEmbyPlaylist
 # @name createEmbyPlaylist
 # Create a playlist directly in Emby
 POST http://localhost:8080/api/v1/client/emby/{{createEmbyClient.response.body.$.data.id}}/playlists
@@ -274,7 +274,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   "description": "Playlist created directly in Emby to test sync back to local"
 }
 
-###
+### addMoviesToEmbyPlaylist
 # @name addMoviesToEmbyPlaylist
 # Add a movie to the Emby playlist if movies exist
 POST http://localhost:8080/api/v1/client/emby/{{createEmbyClient.response.body.$.data.id}}/playlists/{{createEmbyPlaylist.response.body.$.data.clientIDs.emby}}/items
@@ -285,14 +285,14 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   "itemID": "{{getEmbyMovies.response.body.$.data.items[0].clientIDs.emby}}"
 }
 
-###
+### syncEmbyPlaylistToLocal
 # @name syncEmbyPlaylistToLocal
 # Sync the Emby-created playlist back to local database
 POST http://localhost:8080/api/v1/client/emby/{{createEmbyClient.response.body.$.data.id}}/playlists/{{createEmbyPlaylist.response.body.$.data.clientIDs.emby}}/sync-to-local
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### checkLocalPlaylists
 # @name checkLocalPlaylists
 # Check if the Emby playlist was synced to local
 GET http://localhost:8080/api/v1/playlists/search?q=Emby Created

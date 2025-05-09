@@ -2,14 +2,13 @@ package repository
 
 import (
 	"context"
-	"database/sql"
-	"errors"
-	"fmt"
 	"suasor/types/models"
-	"suasor/utils/logger"
 	"time"
 
-	"github.com/jmoiron/sqlx"
+	"errors"
+	"fmt"
+	"gorm.io/gorm"
+	"suasor/utils/logger"
 )
 
 // AIConversationRepository defines the interface for managing AI conversations in the database
@@ -21,18 +20,18 @@ type AIConversationRepository interface {
 	UpdateConversationStatus(ctx context.Context, conversationID string, status string) error
 	DeleteConversation(ctx context.Context, conversationID string) error
 	ArchiveOldConversations(ctx context.Context, olderThan time.Duration) (int, error)
-	
+
 	// Message methods
 	AddMessage(ctx context.Context, message *models.AIMessage) (string, error)
 	GetMessagesByConversationID(ctx context.Context, conversationID string, limit, offset int) ([]*models.AIMessage, int, error)
 	GetConversationHistory(ctx context.Context, conversationID string) ([]*models.AIMessage, error)
-	
+
 	// Recommendation methods
 	AddRecommendation(ctx context.Context, recommendation *models.AIRecommendation) (string, error)
 	GetRecommendationsByConversationID(ctx context.Context, conversationID string) ([]*models.AIRecommendation, error)
 	GetRecommendationsByUserID(ctx context.Context, userID uint64, limit, offset int) ([]*models.AIRecommendation, int, error)
 	UpdateRecommendationSelection(ctx context.Context, recommendationID string, selected bool) error
-	
+
 	// Analytics methods
 	GetConversationAnalytics(ctx context.Context, conversationID string) (*models.AIConversationAnalytics, error)
 	UpdateConversationAnalytics(ctx context.Context, analytics *models.AIConversationAnalytics) error
@@ -40,19 +39,24 @@ type AIConversationRepository interface {
 }
 
 // sqlAIConversationRepository implements the AIConversationRepository interface using SQL
-type sqlAIConversationRepository struct {
-	db *sqlx.DB
-}
+// type sqlAIConversationRepository struct {
+// 	db *sqlx.DB
+// }
 
 // NewAIConversationRepository creates a new AI conversation repository
-func NewAIConversationRepository(db *sqlx.DB) AIConversationRepository {
-	return &sqlAIConversationRepository{
+func NewAIConversationRepository(db *gorm.DB) AIConversationRepository {
+	return &aiConversationRepository{
 		db: db,
 	}
 }
 
+// aiConversationRepository implements the AIConversationRepository interface using GORM
+type aiConversationRepository struct {
+	db *gorm.DB
+}
+
 // CreateConversation creates a new AI conversation in the database
-func (r *sqlAIConversationRepository) CreateConversation(ctx context.Context, conversation *models.AIConversation) (string, error) {
+func (r *aiConversationRepository) CreateConversation(ctx context.Context, conversation *models.AIConversation) (string, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Str("conversationID", conversation.ID).
@@ -61,50 +65,35 @@ func (r *sqlAIConversationRepository) CreateConversation(ctx context.Context, co
 		Str("contentType", conversation.ContentType).
 		Msg("Creating new AI conversation")
 
-	query := `
-		INSERT INTO ai_conversations (
-			id, user_id, client_id, content_type, status, system_prompt, 
-			user_preferences, created_at, updated_at, expires_at, message_count
-		) VALUES (
-			:id, :user_id, :client_id, :content_type, :status, :system_prompt,
-			:user_preferences, :created_at, :updated_at, :expires_at, :message_count
-		)
-	`
-
-	_, err := r.db.NamedExecContext(ctx, query, conversation)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to create AI conversation")
-		return "", fmt.Errorf("failed to create conversation: %w", err)
+	result := r.db.WithContext(ctx).Create(conversation)
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to create AI conversation")
+		return "", fmt.Errorf("failed to create conversation: %w", result.Error)
 	}
 
 	return conversation.ID, nil
 }
 
 // GetConversationByID retrieves an AI conversation by ID
-func (r *sqlAIConversationRepository) GetConversationByID(ctx context.Context, conversationID string) (*models.AIConversation, error) {
+func (r *aiConversationRepository) GetConversationByID(ctx context.Context, conversationID string) (*models.AIConversation, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().Str("conversationID", conversationID).Msg("Getting AI conversation by ID")
 
-	query := `
-		SELECT * FROM ai_conversations
-		WHERE id = ?
-	`
-
 	var conversation models.AIConversation
-	err := r.db.GetContext(ctx, &conversation, query, conversationID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+	result := r.db.WithContext(ctx).First(&conversation, "id = ?", conversationID)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, nil // Not found
 		}
-		log.Error().Err(err).Msg("Failed to get AI conversation")
-		return nil, fmt.Errorf("failed to get conversation: %w", err)
+		log.Error().Err(result.Error).Msg("Failed to get AI conversation")
+		return nil, fmt.Errorf("failed to get conversation: %w", result.Error)
 	}
 
 	return &conversation, nil
 }
 
 // GetConversationsByUserID retrieves conversations for a user with pagination
-func (r *sqlAIConversationRepository) GetConversationsByUserID(ctx context.Context, userID uint64, limit, offset int) ([]*models.AIConversation, int, error) {
+func (r *aiConversationRepository) GetConversationsByUserID(ctx context.Context, userID uint64, limit, offset int) ([]*models.AIConversation, int, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("userID", userID).
@@ -118,101 +107,96 @@ func (r *sqlAIConversationRepository) GetConversationsByUserID(ctx context.Conte
 	}
 
 	// Get total count first
-	var count int
-	countQuery := `SELECT COUNT(*) FROM ai_conversations WHERE user_id = ?`
-	err := r.db.GetContext(ctx, &count, countQuery, userID)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to count AI conversations")
-		return nil, 0, fmt.Errorf("failed to count conversations: %w", err)
+	var count int64
+	result := r.db.WithContext(ctx).Model(&models.AIConversation{}).Where("user_id = ?", userID).Count(&count)
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to count AI conversations")
+		return nil, 0, fmt.Errorf("failed to count conversations: %w", result.Error)
 	}
 
 	// Now get the actual conversations
-	query := `
-		SELECT * FROM ai_conversations
-		WHERE user_id = ?
-		ORDER BY updated_at DESC
-		LIMIT ? OFFSET ?
-	`
-
 	var conversations []*models.AIConversation
-	err = r.db.SelectContext(ctx, &conversations, query, userID, limit, offset)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to get AI conversations")
-		return nil, 0, fmt.Errorf("failed to get conversations: %w", err)
+	result = r.db.WithContext(ctx).
+		Where("user_id = ?", userID).
+		Order("updated_at DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&conversations)
+
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to get AI conversations")
+		return nil, 0, fmt.Errorf("failed to get conversations: %w", result.Error)
 	}
 
-	return conversations, count, nil
+	return conversations, int(count), nil
 }
 
 // UpdateConversationStatus updates the status of a conversation
-func (r *sqlAIConversationRepository) UpdateConversationStatus(ctx context.Context, conversationID string, status string) error {
+func (r *aiConversationRepository) UpdateConversationStatus(ctx context.Context, conversationID string, status string) error {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Str("conversationID", conversationID).
 		Str("status", status).
 		Msg("Updating AI conversation status")
 
-	query := `
-		UPDATE ai_conversations
-		SET status = ?, updated_at = NOW()
-		WHERE id = ?
-	`
+	result := r.db.WithContext(ctx).
+		Model(&models.AIConversation{}).
+		Where("id = ?", conversationID).
+		Updates(map[string]interface{}{
+			"status":     status,
+			"updated_at": time.Now(),
+		})
 
-	_, err := r.db.ExecContext(ctx, query, status, conversationID)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to update AI conversation status")
-		return fmt.Errorf("failed to update conversation status: %w", err)
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to update AI conversation status")
+		return fmt.Errorf("failed to update conversation status: %w", result.Error)
 	}
 
 	return nil
 }
 
 // DeleteConversation deletes a conversation and all related data
-func (r *sqlAIConversationRepository) DeleteConversation(ctx context.Context, conversationID string) error {
+func (r *aiConversationRepository) DeleteConversation(ctx context.Context, conversationID string) error {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().Str("conversationID", conversationID).Msg("Deleting AI conversation")
 
 	// Start a transaction
-	tx, err := r.db.BeginTxx(ctx, nil)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to begin transaction")
-		return fmt.Errorf("failed to begin transaction: %w", err)
+	tx := r.db.WithContext(ctx).Begin()
+	if tx.Error != nil {
+		log.Error().Err(tx.Error).Msg("Failed to begin transaction")
+		return fmt.Errorf("failed to begin transaction: %w", tx.Error)
 	}
 
 	// Delete related analytics (if exists)
-	_, err = tx.ExecContext(ctx, "DELETE FROM ai_conversation_analytics WHERE conversation_id = ?", conversationID)
-	if err != nil {
+	if err := tx.Where("conversation_id = ?", conversationID).Delete(&models.AIConversationAnalytics{}).Error; err != nil {
 		tx.Rollback()
 		log.Error().Err(err).Msg("Failed to delete AI conversation analytics")
 		return fmt.Errorf("failed to delete conversation analytics: %w", err)
 	}
 
 	// Delete related recommendations
-	_, err = tx.ExecContext(ctx, "DELETE FROM ai_recommendations WHERE conversation_id = ?", conversationID)
-	if err != nil {
+	if err := tx.Where("conversation_id = ?", conversationID).Delete(&models.AIRecommendation{}).Error; err != nil {
 		tx.Rollback()
 		log.Error().Err(err).Msg("Failed to delete AI recommendations")
 		return fmt.Errorf("failed to delete recommendations: %w", err)
 	}
 
 	// Delete related messages
-	_, err = tx.ExecContext(ctx, "DELETE FROM ai_messages WHERE conversation_id = ?", conversationID)
-	if err != nil {
+	if err := tx.Where("conversation_id = ?", conversationID).Delete(&models.AIMessage{}).Error; err != nil {
 		tx.Rollback()
 		log.Error().Err(err).Msg("Failed to delete AI messages")
 		return fmt.Errorf("failed to delete messages: %w", err)
 	}
 
 	// Delete the conversation
-	_, err = tx.ExecContext(ctx, "DELETE FROM ai_conversations WHERE id = ?", conversationID)
-	if err != nil {
+	if err := tx.Delete(&models.AIConversation{}, "id = ?", conversationID).Error; err != nil {
 		tx.Rollback()
 		log.Error().Err(err).Msg("Failed to delete AI conversation")
 		return fmt.Errorf("failed to delete conversation: %w", err)
 	}
 
 	// Commit the transaction
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit().Error; err != nil {
 		log.Error().Err(err).Msg("Failed to commit transaction")
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
@@ -221,35 +205,30 @@ func (r *sqlAIConversationRepository) DeleteConversation(ctx context.Context, co
 }
 
 // ArchiveOldConversations archives conversations older than the specified duration
-func (r *sqlAIConversationRepository) ArchiveOldConversations(ctx context.Context, olderThan time.Duration) (int, error) {
+func (r *aiConversationRepository) ArchiveOldConversations(ctx context.Context, olderThan time.Duration) (int, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().Str("olderThan", olderThan.String()).Msg("Archiving old AI conversations")
 
 	cutoffTime := time.Now().Add(-olderThan)
 
-	query := `
-		UPDATE ai_conversations
-		SET status = 'archived', updated_at = NOW()
-		WHERE status = 'active' AND updated_at < ?
-	`
+	result := r.db.WithContext(ctx).
+		Model(&models.AIConversation{}).
+		Where("status = ? AND updated_at < ?", "active", cutoffTime).
+		Updates(map[string]interface{}{
+			"status":     "archived",
+			"updated_at": time.Now(),
+		})
 
-	result, err := r.db.ExecContext(ctx, query, cutoffTime)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to archive old AI conversations")
-		return 0, fmt.Errorf("failed to archive old conversations: %w", err)
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to archive old AI conversations")
+		return 0, fmt.Errorf("failed to archive old conversations: %w", result.Error)
 	}
 
-	affected, err := result.RowsAffected()
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to get rows affected")
-		return 0, fmt.Errorf("failed to get rows affected: %w", err)
-	}
-
-	return int(affected), nil
+	return int(result.RowsAffected), nil
 }
 
 // AddMessage adds a new message to a conversation
-func (r *sqlAIConversationRepository) AddMessage(ctx context.Context, message *models.AIMessage) (string, error) {
+func (r *aiConversationRepository) AddMessage(ctx context.Context, message *models.AIMessage) (string, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Str("messageID", message.ID).
@@ -258,46 +237,34 @@ func (r *sqlAIConversationRepository) AddMessage(ctx context.Context, message *m
 		Msg("Adding new AI message")
 
 	// Start a transaction
-	tx, err := r.db.BeginTxx(ctx, nil)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to begin transaction")
-		return "", fmt.Errorf("failed to begin transaction: %w", err)
+	tx := r.db.WithContext(ctx).Begin()
+	if tx.Error != nil {
+		log.Error().Err(tx.Error).Msg("Failed to begin transaction")
+		return "", fmt.Errorf("failed to begin transaction: %w", tx.Error)
 	}
 
 	// Insert the message
-	insertQuery := `
-		INSERT INTO ai_messages (
-			id, conversation_id, role, content, timestamp, metadata, token_usage
-		) VALUES (
-			:id, :conversation_id, :role, :content, :timestamp, :metadata, :token_usage
-		)
-	`
-
-	_, err = tx.NamedExecContext(ctx, insertQuery, message)
-	if err != nil {
+	if err := tx.Create(message).Error; err != nil {
 		tx.Rollback()
 		log.Error().Err(err).Msg("Failed to add AI message")
 		return "", fmt.Errorf("failed to add message: %w", err)
 	}
 
 	// Update the conversation's message count and last message time
-	updateQuery := `
-		UPDATE ai_conversations
-		SET message_count = message_count + 1, 
-		    last_message_time = ?,
-		    updated_at = NOW()
-		WHERE id = ?
-	`
-
-	_, err = tx.ExecContext(ctx, updateQuery, message.Timestamp, message.ConversationID)
-	if err != nil {
+	if err := tx.Model(&models.AIConversation{}).
+		Where("id = ?", message.ConversationID).
+		Updates(map[string]interface{}{
+			"message_count":     gorm.Expr("message_count + 1"),
+			"last_message_time": message.Timestamp,
+			"updated_at":        time.Now(),
+		}).Error; err != nil {
 		tx.Rollback()
 		log.Error().Err(err).Msg("Failed to update conversation")
 		return "", fmt.Errorf("failed to update conversation: %w", err)
 	}
 
 	// Commit the transaction
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit().Error; err != nil {
 		log.Error().Err(err).Msg("Failed to commit transaction")
 		return "", fmt.Errorf("failed to commit transaction: %w", err)
 	}
@@ -306,7 +273,7 @@ func (r *sqlAIConversationRepository) AddMessage(ctx context.Context, message *m
 }
 
 // GetMessagesByConversationID retrieves messages for a conversation with pagination
-func (r *sqlAIConversationRepository) GetMessagesByConversationID(ctx context.Context, conversationID string, limit, offset int) ([]*models.AIMessage, int, error) {
+func (r *aiConversationRepository) GetMessagesByConversationID(ctx context.Context, conversationID string, limit, offset int) ([]*models.AIMessage, int, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Str("conversationID", conversationID).
@@ -320,55 +287,55 @@ func (r *sqlAIConversationRepository) GetMessagesByConversationID(ctx context.Co
 	}
 
 	// Get total count first
-	var count int
-	countQuery := `SELECT COUNT(*) FROM ai_messages WHERE conversation_id = ?`
-	err := r.db.GetContext(ctx, &count, countQuery, conversationID)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to count AI messages")
-		return nil, 0, fmt.Errorf("failed to count messages: %w", err)
+	var count int64
+	result := r.db.WithContext(ctx).
+		Model(&models.AIMessage{}).
+		Where("conversation_id = ?", conversationID).
+		Count(&count)
+
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to count AI messages")
+		return nil, 0, fmt.Errorf("failed to count messages: %w", result.Error)
 	}
 
 	// Now get the actual messages
-	query := `
-		SELECT * FROM ai_messages
-		WHERE conversation_id = ?
-		ORDER BY timestamp
-		LIMIT ? OFFSET ?
-	`
-
 	var messages []*models.AIMessage
-	err = r.db.SelectContext(ctx, &messages, query, conversationID, limit, offset)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to get AI messages")
-		return nil, 0, fmt.Errorf("failed to get messages: %w", err)
+	result = r.db.WithContext(ctx).
+		Where("conversation_id = ?", conversationID).
+		Order("timestamp ASC").
+		Limit(limit).
+		Offset(offset).
+		Find(&messages)
+
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to get AI messages")
+		return nil, 0, fmt.Errorf("failed to get messages: %w", result.Error)
 	}
 
-	return messages, count, nil
+	return messages, int(count), nil
 }
 
 // GetConversationHistory retrieves the full history of a conversation
-func (r *sqlAIConversationRepository) GetConversationHistory(ctx context.Context, conversationID string) ([]*models.AIMessage, error) {
+func (r *aiConversationRepository) GetConversationHistory(ctx context.Context, conversationID string) ([]*models.AIMessage, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().Str("conversationID", conversationID).Msg("Getting full conversation history")
 
-	query := `
-		SELECT * FROM ai_messages
-		WHERE conversation_id = ?
-		ORDER BY timestamp
-	`
-
 	var messages []*models.AIMessage
-	err := r.db.SelectContext(ctx, &messages, query, conversationID)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to get conversation history")
-		return nil, fmt.Errorf("failed to get conversation history: %w", err)
+	result := r.db.WithContext(ctx).
+		Where("conversation_id = ?", conversationID).
+		Order("timestamp ASC").
+		Find(&messages)
+
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to get conversation history")
+		return nil, fmt.Errorf("failed to get conversation history: %w", result.Error)
 	}
 
 	return messages, nil
 }
 
 // AddRecommendation adds a new recommendation extracted from a conversation
-func (r *sqlAIConversationRepository) AddRecommendation(ctx context.Context, recommendation *models.AIRecommendation) (string, error) {
+func (r *aiConversationRepository) AddRecommendation(ctx context.Context, recommendation *models.AIRecommendation) (string, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Str("recommendationID", recommendation.ID).
@@ -377,50 +344,36 @@ func (r *sqlAIConversationRepository) AddRecommendation(ctx context.Context, rec
 		Str("title", recommendation.Title).
 		Msg("Adding new AI recommendation")
 
-	query := `
-		INSERT INTO ai_recommendations (
-			id, message_id, conversation_id, user_id, item_type, 
-			title, external_id, data, reason, created_at, 
-			selected, selected_at
-		) VALUES (
-			:id, :message_id, :conversation_id, :user_id, :item_type,
-			:title, :external_id, :data, :reason, :created_at,
-			:selected, :selected_at
-		)
-	`
-
-	_, err := r.db.NamedExecContext(ctx, query, recommendation)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to add AI recommendation")
-		return "", fmt.Errorf("failed to add recommendation: %w", err)
+	result := r.db.WithContext(ctx).Create(recommendation)
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to add AI recommendation")
+		return "", fmt.Errorf("failed to add recommendation: %w", result.Error)
 	}
 
 	return recommendation.ID, nil
 }
 
 // GetRecommendationsByConversationID retrieves all recommendations for a conversation
-func (r *sqlAIConversationRepository) GetRecommendationsByConversationID(ctx context.Context, conversationID string) ([]*models.AIRecommendation, error) {
+func (r *aiConversationRepository) GetRecommendationsByConversationID(ctx context.Context, conversationID string) ([]*models.AIRecommendation, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().Str("conversationID", conversationID).Msg("Getting recommendations for conversation")
 
-	query := `
-		SELECT * FROM ai_recommendations
-		WHERE conversation_id = ?
-		ORDER BY created_at DESC
-	`
-
 	var recommendations []*models.AIRecommendation
-	err := r.db.SelectContext(ctx, &recommendations, query, conversationID)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to get recommendations")
-		return nil, fmt.Errorf("failed to get recommendations: %w", err)
+	result := r.db.WithContext(ctx).
+		Where("conversation_id = ?", conversationID).
+		Order("created_at DESC").
+		Find(&recommendations)
+
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to get recommendations")
+		return nil, fmt.Errorf("failed to get recommendations: %w", result.Error)
 	}
 
 	return recommendations, nil
 }
 
 // GetRecommendationsByUserID retrieves recommendations for a user with pagination
-func (r *sqlAIConversationRepository) GetRecommendationsByUserID(ctx context.Context, userID uint64, limit, offset int) ([]*models.AIRecommendation, int, error) {
+func (r *aiConversationRepository) GetRecommendationsByUserID(ctx context.Context, userID uint64, limit, offset int) ([]*models.AIRecommendation, int, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Uint64("userID", userID).
@@ -434,178 +387,246 @@ func (r *sqlAIConversationRepository) GetRecommendationsByUserID(ctx context.Con
 	}
 
 	// Get total count first
-	var count int
-	countQuery := `SELECT COUNT(*) FROM ai_recommendations WHERE user_id = ?`
-	err := r.db.GetContext(ctx, &count, countQuery, userID)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to count recommendations")
-		return nil, 0, fmt.Errorf("failed to count recommendations: %w", err)
+	var count int64
+	result := r.db.WithContext(ctx).
+		Model(&models.AIRecommendation{}).
+		Where("user_id = ?", userID).
+		Count(&count)
+
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to count recommendations")
+		return nil, 0, fmt.Errorf("failed to count recommendations: %w", result.Error)
 	}
 
 	// Now get the actual recommendations
-	query := `
-		SELECT * FROM ai_recommendations
-		WHERE user_id = ?
-		ORDER BY created_at DESC
-		LIMIT ? OFFSET ?
-	`
-
 	var recommendations []*models.AIRecommendation
-	err = r.db.SelectContext(ctx, &recommendations, query, userID, limit, offset)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to get recommendations")
-		return nil, 0, fmt.Errorf("failed to get recommendations: %w", err)
+	result = r.db.WithContext(ctx).
+		Where("user_id = ?", userID).
+		Order("created_at DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&recommendations)
+
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to get recommendations")
+		return nil, 0, fmt.Errorf("failed to get recommendations: %w", result.Error)
 	}
 
-	return recommendations, count, nil
+	return recommendations, int(count), nil
 }
 
 // UpdateRecommendationSelection updates the selection status of a recommendation
-func (r *sqlAIConversationRepository) UpdateRecommendationSelection(ctx context.Context, recommendationID string, selected bool) error {
+func (r *aiConversationRepository) UpdateRecommendationSelection(ctx context.Context, recommendationID string, selected bool) error {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Str("recommendationID", recommendationID).
 		Bool("selected", selected).
 		Msg("Updating recommendation selection")
 
-	var query string
-	var args []interface{}
-
-	if selected {
-		query = `
-			UPDATE ai_recommendations
-			SET selected = TRUE, selected_at = NOW()
-			WHERE id = ?
-		`
-		args = []interface{}{recommendationID}
-	} else {
-		query = `
-			UPDATE ai_recommendations
-			SET selected = FALSE, selected_at = NULL
-			WHERE id = ?
-		`
-		args = []interface{}{recommendationID}
+	updates := map[string]interface{}{
+		"selected": selected,
 	}
 
-	_, err := r.db.ExecContext(ctx, query, args...)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to update recommendation selection")
-		return fmt.Errorf("failed to update recommendation selection: %w", err)
+	if selected {
+		updates["selected_at"] = time.Now()
+	} else {
+		updates["selected_at"] = nil
+	}
+
+	result := r.db.WithContext(ctx).
+		Model(&models.AIRecommendation{}).
+		Where("id = ?", recommendationID).
+		Updates(updates)
+
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to update recommendation selection")
+		return fmt.Errorf("failed to update recommendation selection: %w", result.Error)
 	}
 
 	return nil
 }
 
 // GetConversationAnalytics retrieves analytics for a conversation
-func (r *sqlAIConversationRepository) GetConversationAnalytics(ctx context.Context, conversationID string) (*models.AIConversationAnalytics, error) {
+func (r *aiConversationRepository) GetConversationAnalytics(ctx context.Context, conversationID string) (*models.AIConversationAnalytics, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().Str("conversationID", conversationID).Msg("Getting conversation analytics")
 
-	query := `
-		SELECT * FROM ai_conversation_analytics
-		WHERE conversation_id = ?
-	`
-
 	var analytics models.AIConversationAnalytics
-	err := r.db.GetContext(ctx, &analytics, query, conversationID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+	result := r.db.WithContext(ctx).
+		Where("conversation_id = ?", conversationID).
+		First(&analytics)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			// If no analytics exist yet, create a new one
 			return models.NewAIConversationAnalytics(conversationID), nil
 		}
-		log.Error().Err(err).Msg("Failed to get conversation analytics")
-		return nil, fmt.Errorf("failed to get conversation analytics: %w", err)
+		log.Error().Err(result.Error).Msg("Failed to get conversation analytics")
+		return nil, fmt.Errorf("failed to get conversation analytics: %w", result.Error)
 	}
 
 	return &analytics, nil
 }
 
 // UpdateConversationAnalytics updates analytics for a conversation
-func (r *sqlAIConversationRepository) UpdateConversationAnalytics(ctx context.Context, analytics *models.AIConversationAnalytics) error {
+func (r *aiConversationRepository) UpdateConversationAnalytics(ctx context.Context, analytics *models.AIConversationAnalytics) error {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().Str("conversationID", analytics.ConversationID).Msg("Updating conversation analytics")
 
 	// Check if analytics already exist
-	checkQuery := `SELECT COUNT(*) FROM ai_conversation_analytics WHERE conversation_id = ?`
-	var count int
-	err := r.db.GetContext(ctx, &count, checkQuery, analytics.ConversationID)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to check if analytics exist")
-		return fmt.Errorf("failed to check if analytics exist: %w", err)
+	var count int64
+	result := r.db.WithContext(ctx).
+		Model(&models.AIConversationAnalytics{}).
+		Where("conversation_id = ?", analytics.ConversationID).
+		Count(&count)
+
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to check if analytics exist")
+		return fmt.Errorf("failed to check if analytics exist: %w", result.Error)
 	}
 
-	var query string
 	if count > 0 {
 		// Update existing analytics
-		query = `
-			UPDATE ai_conversation_analytics
-			SET 
-				total_user_messages = :total_user_messages,
-				total_assistant_messages = :total_assistant_messages,
-				total_recommendations = :total_recommendations,
-				selected_recommendations = :selected_recommendations,
-				total_tokens_used = :total_tokens_used,
-				average_response_time = :average_response_time,
-				conversation_duration = :conversation_duration,
-				last_updated_at = NOW()
-			WHERE conversation_id = :conversation_id
-		`
+		result = r.db.WithContext(ctx).
+			Model(&models.AIConversationAnalytics{}).
+			Where("conversation_id = ?", analytics.ConversationID).
+			Updates(map[string]interface{}{
+				"total_user_messages":      analytics.TotalUserMessages,
+				"total_assistant_messages": analytics.TotalAssistantMessages,
+				"total_recommendations":    analytics.TotalRecommendations,
+				"selected_recommendations": analytics.SelectedRecommendations,
+				"total_tokens_used":        analytics.TotalTokensUsed,
+				"average_response_time":    analytics.AverageResponseTime,
+				"conversation_duration":    analytics.ConversationDuration,
+				"last_updated_at":          time.Now(),
+			})
 	} else {
 		// Insert new analytics
-		query = `
-			INSERT INTO ai_conversation_analytics (
-				conversation_id, total_user_messages, total_assistant_messages,
-				total_recommendations, selected_recommendations, total_tokens_used,
-				average_response_time, conversation_duration, last_updated_at
-			) VALUES (
-				:conversation_id, :total_user_messages, :total_assistant_messages,
-				:total_recommendations, :selected_recommendations, :total_tokens_used,
-				:average_response_time, :conversation_duration, NOW()
-			)
-		`
+		result = r.db.WithContext(ctx).Create(analytics)
 	}
 
-	_, err = r.db.NamedExecContext(ctx, query, analytics)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to update conversation analytics")
-		return fmt.Errorf("failed to update conversation analytics: %w", err)
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to update conversation analytics")
+		return fmt.Errorf("failed to update conversation analytics: %w", result.Error)
 	}
 
 	return nil
 }
 
 // GetUserConversationStats retrieves aggregated statistics for a user's AI interactions
-func (r *sqlAIConversationRepository) GetUserConversationStats(ctx context.Context, userID uint64) (*models.UserConversationStats, error) {
+func (r *aiConversationRepository) GetUserConversationStats(ctx context.Context, userID uint64) (*models.UserConversationStats, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().Uint64("userID", userID).Msg("Getting user conversation stats")
 
-	query := `
-		SELECT
-			? AS user_id,
-			COUNT(DISTINCT c.id) AS total_conversations,
-			SUM(c.message_count) AS total_messages,
-			(SELECT COUNT(*) FROM ai_recommendations r WHERE r.user_id = ?) AS total_recommendations,
-			(SELECT COUNT(*) FROM ai_recommendations r WHERE r.user_id = ? AND r.selected = TRUE) AS selected_recommendations,
-			IFNULL(AVG(c.message_count), 0) AS average_messages_per_conv,
-			(
-				SELECT content_type
-				FROM ai_conversations
-				WHERE user_id = ?
-				GROUP BY content_type
-				ORDER BY COUNT(*) DESC
-				LIMIT 1
-			) AS favorite_content_type,
-			IFNULL(MAX(c.updated_at), NOW()) AS last_conversation
-		FROM ai_conversations c
-		WHERE c.user_id = ?
-	`
-
-	var stats models.UserConversationStats
-	err := r.db.GetContext(ctx, &stats, query, userID, userID, userID, userID, userID)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to get user conversation stats")
-		return nil, fmt.Errorf("failed to get user conversation stats: %w", err)
+	stats := &models.UserConversationStats{
+		UserID: userID,
 	}
 
-	return &stats, nil
+	// Get total conversations count
+	var totalConversations int64
+	result := r.db.WithContext(ctx).
+		Model(&models.AIConversation{}).
+		Where("user_id = ?", userID).
+		Count(&totalConversations)
+
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to count user conversations")
+		return nil, fmt.Errorf("failed to count user conversations: %w", result.Error)
+	}
+
+	stats.TotalConversations = int(totalConversations)
+
+	// Get total messages
+	var totalMessages int64
+	result = r.db.WithContext(ctx).
+		Model(&models.AIConversation{}).
+		Where("user_id = ?", userID).
+		Select("SUM(message_count)").
+		Scan(&totalMessages)
+
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to count user messages")
+		return nil, fmt.Errorf("failed to count user messages: %w", result.Error)
+	}
+
+	stats.TotalMessages = int(totalMessages)
+
+	// Calculate average messages per conversation
+	if totalConversations > 0 {
+		stats.AverageMessagesPerConv = float64(totalMessages) / float64(totalConversations)
+	}
+
+	// Get total recommendations
+	var totalRecommendations int64
+	result = r.db.WithContext(ctx).
+		Model(&models.AIRecommendation{}).
+		Where("user_id = ?", userID).
+		Count(&totalRecommendations)
+
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to count user recommendations")
+		return nil, fmt.Errorf("failed to count user recommendations: %w", result.Error)
+	}
+
+	stats.TotalRecommendations = int(totalRecommendations)
+
+	// Get selected recommendations
+	var selectedRecommendations int64
+	result = r.db.WithContext(ctx).
+		Model(&models.AIRecommendation{}).
+		Where("user_id = ? AND selected = true", userID).
+		Count(&selectedRecommendations)
+
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to count selected recommendations")
+		return nil, fmt.Errorf("failed to count selected recommendations: %w", result.Error)
+	}
+
+	stats.SelectedRecommendations = int(selectedRecommendations)
+
+	// Get favorite content type (most used)
+	type contentTypeCount struct {
+		ContentType string
+		Count       int
+	}
+
+	var favoriteContentType contentTypeCount
+	result = r.db.WithContext(ctx).
+		Model(&models.AIConversation{}).
+		Select("content_type, COUNT(*) as count").
+		Where("user_id = ?", userID).
+		Group("content_type").
+		Order("count DESC").
+		Limit(1).
+		Scan(&favoriteContentType)
+
+	if result.Error != nil {
+		log.Error().Err(result.Error).Msg("Failed to get favorite content type")
+		return nil, fmt.Errorf("failed to get favorite content type: %w", result.Error)
+	}
+
+	stats.FavoriteContentType = favoriteContentType.ContentType
+
+	// Get last conversation time
+	var lastConversation models.AIConversation
+	result = r.db.WithContext(ctx).
+		Model(&models.AIConversation{}).
+		Where("user_id = ?", userID).
+		Order("updated_at DESC").
+		Limit(1).
+		Select("updated_at").
+		Scan(&lastConversation)
+
+	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		log.Error().Err(result.Error).Msg("Failed to get last conversation time")
+		return nil, fmt.Errorf("failed to get last conversation time: %w", result.Error)
+	}
+
+	if !lastConversation.UpdatedAt.IsZero() {
+		stats.LastConversation = lastConversation.UpdatedAt
+	} else {
+		stats.LastConversation = time.Now()
+	}
+
+	return stats, nil
 }

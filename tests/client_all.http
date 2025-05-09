@@ -1,0 +1,12 @@
+### Master file to run all client AI tests
+
+# Import test files
+GET import ./client.http HTTP/1.1
+
+# Run authentication
+run #login
+
+# Run client creation tests
+run #createClaudeClient
+run #createOpenAIClient
+run #createOllamaClient

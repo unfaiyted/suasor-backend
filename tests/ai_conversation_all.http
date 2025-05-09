@@ -1,0 +1,35 @@
+### Master file to run all  ai conversation tests
+
+# Import test files
+import ./ai_conversation_tests.http
+
+### Run authentication
+run #login
+
+### Run client creation tests
+run #createClaudeClient
+
+### Movie conversation tests
+run #startMovieConversation
+run #movieMessage1
+run #movieMessage2
+run #movieMessage3
+
+### Series conversation tests
+run #startSeriesConversation
+run #seriesMessage1
+run #seriesMessage2
+run #seriesMessage3
+
+### Music conversation tests
+run #startMusicConversation
+run #musicMessage1
+run #musicMessage2
+run #musicMessage3
+
+### Book conversation tests
+run #startBookConversation
+run #bookMessage1
+run #bookMessage2
+run #bookMessage3
+

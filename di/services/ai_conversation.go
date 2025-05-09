@@ -20,7 +20,7 @@ func registerAIConversationService(ctx context.Context, c *container.Container) 
 	// Register the AI conversation repository
 	container.RegisterFactory[repository.AIConversationRepository](c, func(c *container.Container) repository.AIConversationRepository {
 		db := container.MustGet[*gorm.DB](c)
-		return repository.NewGormAIConversationRepository(db)
+		return repository.NewAIConversationRepository(db)
 	})
 
 	// Register the AI conversation service

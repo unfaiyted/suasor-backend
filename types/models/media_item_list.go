@@ -52,6 +52,16 @@ func (m *MediaItemList) GetTotalItems() int {
 	return m.TotalItems
 }
 
+func (m *MediaItemList) GetSyncClientItemIDs(clientID uint64) []string {
+	ids := make([]string, 0)
+	m.ForEach(func(uuid string, mediaType types.MediaType, item any) bool {
+		ids = append(ids, item.(*MediaItem[types.MediaData]).SyncClients.GetClientItemID(clientID))
+		return true
+	})
+
+	return ids
+}
+
 // AddMovie adds a movie to the media items
 func (m *MediaItemList) AddMovie(item *MediaItem[*types.Movie]) {
 	m.Movies[item.UUID] = item

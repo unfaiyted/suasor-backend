@@ -5,7 +5,7 @@ run #createEmbyClient
 run #createJellyfinClient
 run #createPlexClient
 
-###
+### getEmbyMovieByID
 # @name getEmbyMovieByID
 # Get a specific movie from Emby by ID
 GET {{baseUrl}}/client/{{createEmbyClient.response.body.$.data.id}}/media/movie/{{TEST_EMBY_MOVIE_ID}}

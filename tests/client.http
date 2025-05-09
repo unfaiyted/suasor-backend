@@ -1,4 +1,4 @@
-###
+### login
 
 # @name login
 POST http://localhost:8080/api/v1/auth/login HTTP/1.1
@@ -9,7 +9,7 @@ Content-Type: application/json
   "password": "TestPassword123"
 }
 
-###
+### createEmbyClient
 
 # @name createEmbyClient
 POST http://localhost:8080/api/v1/admin/client/emby HTTP/1.1
@@ -26,40 +26,26 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
         "type": "emby",
         "category": "media",
         "name": "Emby",
-        "baseURL": "http://192.168.1.100:8096",
+        "baseURL": "{{EMBY_TEST_URL}}",
         "enabled": true,
         "validateConn": true
       },
       "clientType": "emby",
-      "baseURL": "http://192.168.1.100:8096",
-      "apiKey": "your-emby-apikey",
+      "apiKey": "{{EMBY_TEST_API_KEY}}",
       "ssl": false
     },
     "username": "admin"
   }
 }
 
-###
+### getEmbyClients
 
-# @name GetEmbyClients
+# @name getEmbyClients
 GET http://localhost:8080/api/v1/admin/client/emby HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-
-
-###
-
-# @name GetMovieByID
-# @require embyClient
-# @after embyClient
-GET http://localhost:8080/api/v1/client/{{GetEmbyClients.response.body.$.data[0].id}}/movie/1 HTTP/1.1
-Content-Type: application/json
-Authorization: Bearer {{login.response.body.$.data.accessToken}}
-
-
-
-###
+### createJellyfinClient
 
 # @name createJellyfinClient
 POST http://localhost:8080/api/v1/admin/client/jellyfin HTTP/1.1
@@ -76,20 +62,19 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
         "type": "jellyfin",
         "category": "media",
         "name": "Jellyfin",
-        "baseURL": "http://192.168.1.101:9097",
+        "baseURL": "{{JELLYFIN_TEST_URL}}",
         "enabled": true,
         "validateConn": true
       },
       "clientType": "jellyfin",
-      "baseURL": "http://192.168.1.101:9097",
-      "apiKey": "your-jellyfin-apikey",
+      "apiKey": "{{JELLYFIN_TEST_API_KEY}}",
       "ssl": false
     },
     "username": "admin"
   }
 }
 
-###
+### createLidarrClient
 
 # @name createLidarrClient
 POST http://localhost:8080/api/v1/admin/client/lidarr HTTP/1.1
@@ -118,10 +103,10 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   }
 }
 
-###
+### createRadarrClient
 
 # @name createRadarrClient
-POST http://localhost:8080/api/v1/client/radarr HTTP/1.1
+POST http://localhost:8080/api/v1/admin/client/radarr HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -147,10 +132,10 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   }
 }
 
-###
+### createSonarrClient
 
 # @name createSonarrClient
-POST http://localhost:8080/api/v1/client/sonarr HTTP/1.1
+POST http://localhost:8080/api/v1/admin/client/sonarr HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -176,10 +161,10 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   }
 }
 
-###
+### createSubsonicClient
 
 # @name createSubsonicClient
-POST http://localhost:8080/api/v1/client/subsonic HTTP/1.1
+POST http://localhost:8080/api/v1/admin/client/subsonic HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -206,10 +191,10 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   }
 }
 
-###
+### createPlexClient
 
 # @name createPlexClient
-POST http://localhost:8080/api/v1/client/plex HTTP/1.1
+POST http://localhost:8080/api/v1/admin/client/plex HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -235,10 +220,10 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   }
 }
 
-###
+### createClaudeClient
 
 # @name createClaudeClient
-POST http://localhost:8080/api/v1/client/claude HTTP/1.1
+POST http://localhost:8080/api/v1/admin/client/claude HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -267,10 +252,10 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   }
 }
 
-###
+### createOpenAIClient
 
 # @name createOpenAIClient
-POST http://localhost:8080/api/v1/client/openai HTTP/1.1
+POST http://localhost:8080/api/v1/admin/client/openai HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -299,10 +284,10 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   }
 }
 
-###
+### createOllamaClient
 
 # @name createOllamaClient
-POST http://localhost:8080/api/v1/client/ollama HTTP/1.1
+POST http://localhost:8080/api/v1/admin/client/ollama HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -330,7 +315,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   }
 }
 
-###
+### updateEmbyClient
 
 # @name updateEmbyClient
 PUT http://localhost:8080/api/v1/admin/client/{{createEmbyClient.response.body.$.data.id}} HTTP/1.1
@@ -360,98 +345,98 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
   }
 }
 
-###
+### getAllClients
 
 # Get all clients without filtering
 # @name getAllClients
-GET http://localhost:8080/api/v1/clients HTTP/1.1
+GET http://localhost:8080/api/v1/admin/clients HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### getMediaClients
 
 # Get only media clients (emby, jellyfin, plex, subsonic, sonarr, radarr, lidarr)
 # @name getMediaClients
-GET http://localhost:8080/api/v1/clients?type=media HTTP/1.1
+GET http://localhost:8080/api/v1/admin/clients?type=media HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### getJellyfinClients
 
 # Get only Jellyfin clients
 # @name getJellyfinClients
-GET http://localhost:8080/api/v1/clients?clientType=jellyfin HTTP/1.1
+GET http://localhost:8080/api/v1/admin/clients?clientType=jellyfin HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### getEmbyClients
 
 # Get only Emby clients
 # @name getEmbyClients
-GET http://localhost:8080/api/v1/clients?clientType=emby HTTP/1.1
+GET http://localhost:8080/api/v1/admin/clients?clientType=emby HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### getRadarrClients
 
 # Get only Radarr clients
 # @name getRadarrClients
-GET http://localhost:8080/api/v1/clients?clientType=radarr HTTP/1.1
+GET http://localhost:8080/api/v1/admin/clients?clientType=radarr HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### getSonarrClients
 
 # Get only Sonarr clients
 # @name getSonarrClients
-GET http://localhost:8080/api/v1/clients?clientType=sonarr HTTP/1.1
+GET http://localhost:8080/api/v1/admin/clients?clientType=sonarr HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### getLidarrClients
 
 # Get only Lidarr clients
 # @name getLidarrClients
-GET http://localhost:8080/api/v1/clients?clientType=lidarr HTTP/1.1
+GET http://localhost:8080/api/v1/admin/clients?clientType=lidarr HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### getSubsonicClients
 
 # Get only Subsonic clients
 # @name getSubsonicClients
-GET http://localhost:8080/api/v1/clients?clientType=subsonic HTTP/1.1
+GET http://localhost:8080/api/v1/admin/clients?clientType=subsonic HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### getOpenAIClients
 
 # Get only OpenAI clients
 # @name getOpenAIClients
-GET http://localhost:8080/api/v1/clients?clientType=openai HTTP/1.1
+GET http://localhost:8080/api/v1/admin/clients?clientType=openai HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### getClaudeClients
 
 # Get only Claude clients
 # @name getClaudeClients
-GET http://localhost:8080/api/v1/clients?clientType=claude HTTP/1.1
+GET http://localhost:8080/api/v1/admin/clients?clientType=claude HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### getOllamaClients
 
 # Get only Ollama clients
 # @name getOllamaClients
-GET http://localhost:8080/api/v1/clients?clientType=ollama HTTP/1.1
+GET http://localhost:8080/api/v1/admin/clients?clientType=ollama HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-###
+### getNonExistentTypeClients
 
 # Get clients of a non-existent type (should return empty array)
 # @name getNonExistentTypeClients
-GET http://localhost:8080/api/v1/clients?clientType=nonexistent HTTP/1.1
+GET http://localhost:8080/api/v1/admin/clients?clientType=nonexistent HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}

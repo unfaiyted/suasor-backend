@@ -30,7 +30,6 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
         "validateConn": true
       },
       "clientType": "emby",
-      "baseURL": "{{EMBY_TEST_URL}}",
       "apiKey": "{{EMBY_TEST_API_KEY}}",
       "ssl": false
     },
