@@ -8,9 +8,8 @@ import (
 	"suasor/clients/media/types"
 	"suasor/types/models"
 	"suasor/utils/logger"
-	"time"
 
-	"github.com/LukeHagar/plexgo/models/operations"
+	"github.com/unfaiyted/plexgo/models/operations"
 )
 
 // GetPlaylists retrieves playlists from Plex
@@ -80,7 +79,7 @@ func (c *PlexClient) GetPlaylist(ctx context.Context, playlistID string) (*model
 	}
 
 	// Get playlist metadata from Plex
-	res, err := c.plexAPI.Playlists.GetPlaylist(ctx, playlistRatingKey)
+	res, err := c.plexAPI.Playlists.GetPlaylist(ctx, float64(playlistRatingKey))
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -98,25 +97,17 @@ func (c *PlexClient) GetPlaylist(ctx context.Context, playlistID string) (*model
 
 	// Convert single Plex playlist to MediaItem
 	plexMetadata := res.Object.MediaContainer.Metadata[0]
-	playlist := types.NewPlaylist()
-	playlist.MediaItemList.Details = &types.MediaDetails{
-		Title:       plexMetadata.Title,
-		Description: plexMetadata.Summary,
-		AddedAt:     time.Unix(int64(*plexMetadata.AddedAt), 0),
-		UpdatedAt:   time.Unix(int64(*plexMetadata.UpdatedAt), 0),
+	playlist, err := GetItemFromPlaylistMetadata[*types.Playlist](ctx, c, &plexMetadata)
+	if err != nil {
+		return nil, err
 	}
 
 	// Create MediaItem
 	mediaItem := models.NewMediaItem(types.MediaTypePlaylist, playlist)
 	mediaItem.ID = c.GetClientID()
-	mediaItem.Title = plexMetadata.Title
-	mediaItem.ClientID = c.GetClientID()
-	mediaItem.ClientItemID = strconv.Itoa(*plexMetadata.RatingKey)
+	mediaItem.Title = playlist.GetTitle()
 
-	// Set sync clients
-	syncClients := models.SyncClients{}
-	syncClients.AddClient(c.GetClientID(), c.GetClientType(), strconv.Itoa(*plexMetadata.RatingKey))
-	mediaItem.SyncClients = syncClients
+	mediaItem.SetClientInfo(c.GetClientID(), c.GetClientType(), *plexMetadata.RatingKey)
 
 	log.Info().
 		Str("playlistID", playlistID).
@@ -147,7 +138,7 @@ func (c *PlexClient) GetPlaylistItems(ctx context.Context, playlistID string) (*
 	}
 
 	// Get playlist contents from Plex
-	res, err := c.plexAPI.Playlists.GetPlaylistContents(ctx, playlistRatingKey)
+	itemList, err := c.GetAllPlaylistContentsTypes(ctx, float64(playlistRatingKey))
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -156,45 +147,9 @@ func (c *PlexClient) GetPlaylistItems(ctx context.Context, playlistID string) (*
 		return nil, fmt.Errorf("failed to get playlist contents: %w", err)
 	}
 
-	if res.Object.MediaContainer == nil || res.Object.MediaContainer.Metadata == nil {
-		log.Error().
-			Str("playlistID", playlistID).
-			Msg("Playlist contents not found or empty response from Plex")
-		return nil, fmt.Errorf("playlist contents not found")
-	}
-
-	// Create MediaItemList
-	itemList := &models.MediaItemList{
-		Items: make([]*models.MediaItemListItem, 0, len(res.Object.MediaContainer.Metadata)),
-	}
-
-	// Add items to list
-	for i, item := range res.Object.MediaContainer.Metadata {
-		mediaType := types.MediaTypeUnknown
-		// Determine media type based on Plex media type
-		switch item.Type {
-		case "movie":
-			mediaType = types.MediaTypeMovie
-		case "episode":
-			mediaType = types.MediaTypeEpisode
-		case "track":
-			mediaType = types.MediaTypeTrack
-		default:
-			mediaType = types.MediaTypeUnknown
-		}
-
-		itemList.Items = append(itemList.Items, &models.MediaItemListItem{
-			ID:       strconv.Itoa(*item.RatingKey),
-			Position: i,
-			Title:    item.Title,
-			Type:     mediaType,
-		})
-	}
-
-	itemList.ItemCount = len(itemList.Items)
 	log.Info().
 		Str("playlistID", playlistID).
-		Int("itemCount", itemList.ItemCount).
+		Int("itemCount", itemList.GetTotalItems()).
 		Msg("Retrieved playlist items from Plex")
 
 	return itemList, nil
@@ -210,13 +165,16 @@ func (c *PlexClient) CreatePlaylist(ctx context.Context, name string, descriptio
 		Str("name", name).
 		Msg("Creating playlist in Plex server")
 
+	createRequest := &operations.CreatePlaylistRequest{
+		Title: name,
+		Type:  operations.CreatePlaylistQueryParamTypeAudio,
+		Smart: operations.SmartZero,
+	}
+
 	// Create playlist in Plex
 	res, err := c.plexAPI.Playlists.CreatePlaylist(
 		ctx,
-		operations.CreatePlaylistType.Audio,
-		operations.CreatePlaylistTitle(name),
-		operations.CreatePlaylistSmart.False,
-		operations.CreatePlaylistSummary(description),
+		*createRequest,
 	)
 	if err != nil {
 		log.Error().
@@ -235,28 +193,17 @@ func (c *PlexClient) CreatePlaylist(ctx context.Context, name string, descriptio
 
 	// Create MediaItem from created playlist
 	plexMetadata := res.Object.MediaContainer.Metadata[0]
-	playlist := types.NewPlaylist()
-	playlist.MediaItemList.Details = &types.MediaDetails{
-		Title:       plexMetadata.Title,
-		Description: plexMetadata.Summary,
-		AddedAt:     time.Now(),
-		UpdatedAt:   time.Now(),
-	}
+
+	playlist, err := GetItemFromPlaylistCreate[*types.Playlist](ctx, c, &plexMetadata)
 
 	mediaItem := models.NewMediaItem(types.MediaTypePlaylist, playlist)
 	mediaItem.ID = c.GetClientID()
-	mediaItem.Title = plexMetadata.Title
-	mediaItem.ClientID = c.GetClientID()
-	mediaItem.ClientItemID = strconv.Itoa(*plexMetadata.RatingKey)
-
-	// Set sync clients
-	syncClients := models.SyncClients{}
-	syncClients.AddClient(c.GetClientID(), c.GetClientType(), strconv.Itoa(*plexMetadata.RatingKey))
-	mediaItem.SyncClients = syncClients
+	mediaItem.Title = *plexMetadata.Title
+	mediaItem.SetClientInfo(c.GetClientID(), c.GetClientType(), *plexMetadata.RatingKey)
 
 	log.Info().
 		Str("name", name).
-		Str("playlistID", mediaItem.ClientItemID).
+		Str("playlistID", mediaItem.SyncClients.GetClientItemID(c.GetClientID())).
 		Msg("Created playlist in Plex")
 
 	return mediaItem, nil
@@ -281,14 +228,15 @@ func (c *PlexClient) CreatePlaylistWithItems(ctx context.Context, name string, d
 
 	// Then add items if there are any
 	if len(itemIDs) > 0 {
-		err = c.AddPlaylistItems(ctx, mediaItem.ClientItemID, itemIDs)
+		clientItemID := mediaItem.SyncClients.GetClientItemID(c.GetClientID())
+		err = c.AddPlaylistItems(ctx, clientItemID, itemIDs)
 		if err != nil {
 			log.Error().
 				Err(err).
-				Str("playlistID", mediaItem.ClientItemID).
+				Str("playlistID", clientItemID).
 				Msg("Failed to add items to newly created playlist")
 			// Consider cleaning up by deleting the playlist
-			c.DeletePlaylist(ctx, mediaItem.ClientItemID)
+			c.DeletePlaylist(ctx, clientItemID)
 			return nil, fmt.Errorf("failed to add items to newly created playlist: %w", err)
 		}
 	}
@@ -349,7 +297,7 @@ func (c *PlexClient) DeletePlaylist(ctx context.Context, playlistID string) erro
 	}
 
 	// Delete playlist in Plex
-	_, err = c.plexAPI.Playlists.DeletePlaylist(ctx, playlistRatingKey)
+	_, err = c.plexAPI.Playlists.DeletePlaylist(ctx, float64(playlistRatingKey))
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -410,9 +358,15 @@ func (c *PlexClient) AddPlaylistItems(ctx context.Context, playlistID string, it
 		}
 
 		// We need the server's machine identifier to construct the URI
-		// Since this requires custom implementation, we'll have to mock it
-		// In a real implementation, you would need to get this from the server
-		machineID := "PLACEHOLDER" // In real implementation, get this from server info
+		serverInfo, err := c.plexAPI.Server.GetServerIdentity(ctx)
+		if err != nil {
+			log.Error().
+				Err(err).
+				Str("itemID", id).
+				Msg("Failed to get server info to construct URI")
+			continue
+		}
+		machineID := serverInfo.Object.MediaContainer.MachineIdentifier
 		uri := fmt.Sprintf("server://%s/library/metadata/%d", machineID, itemRatingKey)
 		uris = append(uris, uri)
 	}
@@ -423,12 +377,12 @@ func (c *PlexClient) AddPlaylistItems(ctx context.Context, playlistID string, it
 	}
 
 	// Use AddPlaylistContents API
-	// Note: This is a simplified implementation. In reality, you need the correct URIs
 	uriString := strings.Join(uris, ",")
 	_, err = c.plexAPI.Playlists.AddPlaylistContents(
 		ctx,
-		playlistRatingKey,
-		operations.AddPlaylistContentsUri(uriString),
+		float64(playlistRatingKey),
+		uriString,
+		nil,
 	)
 	if err != nil {
 		log.Error().
@@ -508,7 +462,7 @@ func (c *PlexClient) RemoveAllPlaylistItems(ctx context.Context, playlistID stri
 	}
 
 	// Clear playlist contents
-	_, err = c.plexAPI.Playlists.ClearPlaylistContents(ctx, playlistRatingKey)
+	_, err = c.plexAPI.Playlists.ClearPlaylistContents(ctx, float64(playlistRatingKey))
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -603,4 +557,136 @@ func (c *PlexClient) SearchPlaylistItems(ctx context.Context, playlistID string,
 // SupportsPlaylists returns whether the client supports playlists
 func (c *PlexClient) SupportsPlaylists() bool {
 	return true
+}
+
+func (c *PlexClient) GetAllPlaylistContentsTypes(ctx context.Context, playlistID float64) (*models.MediaItemList, error) {
+	log := logger.LoggerFromContext(ctx)
+	log.Info().
+		Uint64("clientID", c.GetClientID()).
+		Str("clientType", string(c.GetClientType())).
+		Float64("playlistID", playlistID).
+		Msg("Retrieving all playlist contents types from Plex server")
+
+	// TODO: userID should be passed in
+	itemList := models.NewMediaItemList[*types.Playlist](c.GetClientID(), 0)
+
+	playlistContentsTypes := make([]operations.GetPlaylistContentsQueryParamType, 0, 10)
+	playlistContentsTypes = append(playlistContentsTypes,
+		operations.GetPlaylistContentsQueryParamTypeMovie,
+		operations.GetPlaylistContentsQueryParamTypeTvShow,
+		operations.GetPlaylistContentsQueryParamTypeSeason,
+		operations.GetPlaylistContentsQueryParamTypeEpisode,
+		operations.GetPlaylistContentsQueryParamTypeAudio,
+		operations.GetPlaylistContentsQueryParamTypeAlbum,
+		operations.GetPlaylistContentsQueryParamTypeTrack,
+	)
+
+	for _, playlistType := range playlistContentsTypes {
+		log.Debug().
+			Float64("playlistID", playlistID).
+			Str("playlistType", string(playlistType)).
+			Msg("Retrieving playlist contents of type")
+		res, err := c.plexAPI.Playlists.GetPlaylistContents(ctx, playlistID, playlistType)
+		if err != nil {
+			return nil, err
+		}
+
+		// Add the playlist items to the list
+		if res.Object.MediaContainer != nil && res.Object.MediaContainer.Metadata != nil {
+			for _, item := range res.Object.MediaContainer.Metadata {
+				log.Debug().
+					Float64("playlistID", playlistID).
+					Str("playlistType", string(playlistType)).
+					Msg("Adding playlist item to list")
+
+				switch playlistType {
+				case operations.GetPlaylistContentsQueryParamTypeMovie:
+					rawItem, err := GetItemFromPlaylistContents[*types.Movie](ctx, c, &item)
+					if err != nil {
+						return nil, err
+					}
+					mediaItem, err := GetMediaItem[*types.Movie](ctx, c, rawItem, *item.RatingKey)
+					if err != nil {
+						return nil, err
+					}
+					mediaItem.SetClientInfo(c.GetClientID(), c.GetClientType(), *item.RatingKey)
+					itemList.AddMovie(mediaItem)
+				case operations.GetPlaylistContentsQueryParamTypeTvShow:
+					rawItem, err := GetItemFromPlaylistContents[*types.Series](ctx, c, &item)
+					if err != nil {
+						return nil, err
+					}
+					mediaItem, err := GetMediaItem[*types.Series](ctx, c, rawItem, *item.RatingKey)
+					if err != nil {
+						return nil, err
+					}
+					mediaItem.SetClientInfo(c.GetClientID(), c.GetClientType(), *item.RatingKey)
+					itemList.AddSeries(mediaItem)
+				case operations.GetPlaylistContentsQueryParamTypeSeason:
+					rawItem, err := GetItemFromPlaylistContents[*types.Season](ctx, c, &item)
+					if err != nil {
+						return nil, err
+					}
+					mediaItem, err := GetMediaItem[*types.Season](ctx, c, rawItem, *item.RatingKey)
+					if err != nil {
+						return nil, err
+					}
+					mediaItem.SetClientInfo(c.GetClientID(), c.GetClientType(), *item.RatingKey)
+					itemList.AddSeason(mediaItem)
+				case operations.GetPlaylistContentsQueryParamTypeEpisode:
+					rawItem, err := GetItemFromPlaylistContents[*types.Episode](ctx, c, &item)
+					if err != nil {
+						return nil, err
+					}
+					mediaItem, err := GetMediaItem[*types.Episode](ctx, c, rawItem, *item.RatingKey)
+					if err != nil {
+						return nil, err
+					}
+					mediaItem.SetClientInfo(c.GetClientID(), c.GetClientType(), *item.RatingKey)
+					itemList.AddEpisode(mediaItem)
+				case operations.GetPlaylistContentsQueryParamTypeAudio:
+					rawItem, err := GetItemFromPlaylistContents[*types.Track](ctx, c, &item)
+					if err != nil {
+						return nil, err
+					}
+					mediaItem, err := GetMediaItem[*types.Track](ctx, c, rawItem, *item.RatingKey)
+					if err != nil {
+						return nil, err
+					}
+					mediaItem.SetClientInfo(c.GetClientID(), c.GetClientType(), *item.RatingKey)
+					itemList.AddTrack(mediaItem)
+				case operations.GetPlaylistContentsQueryParamTypeAlbum:
+					rawItem, err := GetItemFromPlaylistContents[*types.Album](ctx, c, &item)
+					if err != nil {
+						return nil, err
+					}
+					mediaItem, err := GetMediaItem[*types.Album](ctx, c, rawItem, *item.RatingKey)
+					if err != nil {
+						return nil, err
+					}
+					mediaItem.SetClientInfo(c.GetClientID(), c.GetClientType(), *item.RatingKey)
+					itemList.AddAlbum(mediaItem)
+				case operations.GetPlaylistContentsQueryParamTypeTrack:
+					rawItem, err := GetItemFromPlaylistContents[*types.Track](ctx, c, &item)
+					if err != nil {
+						return nil, err
+					}
+					mediaItem, err := GetMediaItem[*types.Track](ctx, c, rawItem, *item.RatingKey)
+					if err != nil {
+						return nil, err
+					}
+					mediaItem.SetClientInfo(c.GetClientID(), c.GetClientType(), *item.RatingKey)
+					itemList.AddTrack(mediaItem)
+				default:
+					log.Error().
+						Float64("playlistID", playlistID).
+						Str("playlistType", string(playlistType)).
+						Msg("Unknown playlist item type")
+					return nil, fmt.Errorf("unknown playlist item type: %s", playlistType)
+				}
+
+			}
+		}
+	}
+	return itemList, nil
 }

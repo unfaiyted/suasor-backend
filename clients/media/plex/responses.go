@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"context"
-	"github.com/LukeHagar/plexgo/models/operations"
+	"github.com/unfaiyted/plexgo/models/operations"
 	"io"
 	"suasor/utils/logger"
 )

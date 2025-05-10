@@ -9,7 +9,7 @@ import (
 	clienttypes "suasor/clients/types"
 	"suasor/utils/logger"
 
-	"github.com/LukeHagar/plexgo"
+	"github.com/unfaiyted/plexgo"
 )
 
 // PlexClient implements MediaContentProvider for Plex
@@ -58,12 +58,10 @@ func NewPlexClient(ctx context.Context, registry *media.ClientItemRegistry, clie
 }
 
 // Capability methods
-func (c *PlexClient) SupportsMovies() bool      { return true }
-func (c *PlexClient) SupportsSeries() bool      { return true }
-func (c *PlexClient) SupportsMusic() bool       { return true }
-func (c *PlexClient) SupportsPlaylists() bool   { return true }
-func (c *PlexClient) SupportsCollections() bool { return true }
-func (c *PlexClient) SupportsHistory() bool     { return true }
+func (c *PlexClient) SupportsMovies() bool  { return true }
+func (c *PlexClient) SupportsSeries() bool  { return true }
+func (c *PlexClient) SupportsMusic() bool   { return true }
+func (c *PlexClient) SupportsHistory() bool { return true }
 
 func (c *PlexClient) plexConfig() *clienttypes.PlexConfig {
 	// First check if c.config is already set

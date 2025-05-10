@@ -8,8 +8,9 @@ import (
 	mediatypes "suasor/clients/media/types"
 	"suasor/types/models"
 	"suasor/utils/logger"
+	"time"
 
-	"github.com/LukeHagar/plexgo/models/operations"
+	"github.com/unfaiyted/plexgo/models/operations"
 )
 
 // Helper functions for item conversion using the factory pattern
@@ -32,6 +33,37 @@ func GetItemFromMetadata[T mediatypes.MediaData](
 ) (T, error) {
 	return media.ConvertTo[*PlexClient, *operations.GetMediaMetaDataMetadata, T](
 		client, ctx, item)
+}
+
+func GetItemFromPlaylistMetadata[T mediatypes.MediaData](
+	ctx context.Context,
+	client *PlexClient,
+	item *operations.GetPlaylistMetadata,
+) (T, error) {
+	return media.ConvertTo[*PlexClient, *operations.GetPlaylistMetadata, T](
+		client, ctx, item)
+}
+
+func GetItemFromPlaylistCreate[T mediatypes.MediaData](
+	ctx context.Context,
+	client *PlexClient,
+	item *operations.CreatePlaylistMetadata,
+) (T, error) {
+	newItem := mapPlaylistCreateMetadataToPlaylistMetadata(item)
+	return GetItemFromPlaylistMetadata[T](ctx, client, newItem)
+
+}
+
+func GetItemFromPlaylistContents[T mediatypes.MediaData](
+	ctx context.Context,
+	client *PlexClient,
+	item *operations.GetPlaylistContentsMetadata,
+) (T, error) {
+
+	newItem := mapPlaylistContentsMetadataToChildrenMetadata(item)
+
+	return media.ConvertTo[*PlexClient, *operations.GetMetadataChildrenMetadata, T](
+		client, ctx, newItem)
 }
 
 func GetItemFromPlaylist[T mediatypes.MediaData](
@@ -162,14 +194,14 @@ func GetMediaItemListFromPlaylist[T mediatypes.MediaData](
 	return mediaItems, nil
 }
 
-func (c *PlexClient) findLibrarySectionByType(ctx context.Context, sectionType string) (string, error) {
+func (c *PlexClient) findLibrarySectionByType(ctx context.Context, sectionType operations.GetAllLibrariesType) (string, error) {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
 
 	log.Debug().
 		Uint64("clientID", c.GetClientID()).
 		Str("clientType", string(c.GetClientType())).
-		Str("sectionType", sectionType).
+		Str("sectionType", string(sectionType)).
 		Msg("Finding library section by type")
 
 	libraries, err := c.plexAPI.Library.GetAllLibraries(ctx)
@@ -178,7 +210,7 @@ func (c *PlexClient) findLibrarySectionByType(ctx context.Context, sectionType s
 			Err(err).
 			Uint64("clientID", c.GetClientID()).
 			Str("clientType", string(c.GetClientType())).
-			Str("sectionType", sectionType).
+			Str("sectionType", string(sectionType)).
 			Msg("Failed to get libraries from Plex")
 		return "", fmt.Errorf("failed to get libraries: %w", err)
 	}
@@ -194,7 +226,7 @@ func (c *PlexClient) findLibrarySectionByType(ctx context.Context, sectionType s
 			log.Debug().
 				Uint64("clientID", c.GetClientID()).
 				Str("clientType", string(c.GetClientType())).
-				Str("sectionType", sectionType).
+				Str("sectionType", string(sectionType)).
 				Str("sectionKey", dir.Key).
 				Str("sectionTitle", dir.Title).
 				Msg("Found matching library section")
@@ -205,7 +237,7 @@ func (c *PlexClient) findLibrarySectionByType(ctx context.Context, sectionType s
 	log.Debug().
 		Uint64("clientID", c.GetClientID()).
 		Str("clientType", string(c.GetClientType())).
-		Str("sectionType", sectionType).
+		Str("sectionType", string(sectionType)).
 		Msg("No matching library section found")
 
 	return "", nil
@@ -224,3 +256,69 @@ func (c *PlexClient) makeFullURL(resourcePath string) string {
 	return fmt.Sprintf("%s%s", c.plexConfig().GetBaseURL(), resourcePath)
 }
 
+func mapPlaylistContentsMetadataToChildrenMetadata(item *operations.GetPlaylistContentsMetadata) *operations.GetMetadataChildrenMetadata {
+	newItem := &operations.GetMetadataChildrenMetadata{
+		RatingKey: item.RatingKey,
+		Key:       item.Key,
+		GUID:      item.GUID,
+		Type:      item.Type,
+		Title:     item.Title,
+		Summary:   item.Summary,
+		Thumb:     item.Thumb,
+		Art:       item.Art,
+		AddedAt:   item.AddedAt,
+		UpdatedAt: item.UpdatedAt,
+	}
+
+	return newItem
+}
+func mapPlaylistCreateMetadataToPlaylistMetadata(item *operations.CreatePlaylistMetadata) *operations.GetPlaylistMetadata {
+	newItem := &operations.GetPlaylistMetadata{
+		RatingKey:    item.RatingKey,
+		Key:          item.Key,
+		GUID:         item.GUID,
+		Type:         item.Type,
+		Title:        item.Title,
+		Summary:      item.Summary,
+		AddedAt:      item.AddedAt,
+		UpdatedAt:    item.UpdatedAt,
+		PlaylistType: item.PlaylistType,
+		Smart:        item.Smart,
+		Icon:         item.Icon,
+		Duration:     item.Duration,
+		LeafCount:    item.LeafCount,
+		Composite:    item.Composite,
+	}
+
+	return newItem
+}
+
+func setMediaListToItemList(list *models.MediaItemList, itemList *mediatypes.ItemList) {
+
+	// Loop over all the items in the MediaItemList
+	list.ForEach(func(uuid string, mediaType mediatypes.MediaType, item any) bool {
+		// Cast the item to the correct type
+		itemT, ok := item.(*models.MediaItem[mediatypes.MediaData])
+		if !ok {
+			return true
+		}
+		// Find the corresponding item in the ItemList
+		foundItem, index, found := itemList.FindItemByID(itemT.ID)
+		if found {
+			// Update the item in the ItemList
+			itemList.Items[index].Position = foundItem.Position
+			itemList.Items[index].LastChanged = foundItem.LastChanged
+			itemList.Items[index].ChangeHistory = foundItem.ChangeHistory
+		} else {
+			// Add the item to the ItemList
+			itemList.AddItem(mediatypes.ListItem{
+				ItemID:        itemT.ID,
+				Position:      0,
+				LastChanged:   time.Now(),
+				ChangeHistory: []mediatypes.ChangeRecord{},
+			})
+		}
+		return true
+	})
+
+}

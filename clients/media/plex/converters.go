@@ -6,7 +6,7 @@ import (
 	"suasor/clients/media/types"
 	"time"
 
-	"github.com/LukeHagar/plexgo/models/operations"
+	"github.com/unfaiyted/plexgo/models/operations"
 )
 
 func (c *PlexClient) createDetailsFromMetadataChildren(item *operations.GetMetadataChildrenMetadata) *types.MediaDetails {
@@ -141,14 +141,14 @@ func (c *PlexClient) createDetailsFromMediaMetadata(item *operations.GetMediaMet
 		metadata.AddedAt = time.Unix(int64(item.AddedAt), 0)
 	}
 
-	metadata.UpdatedAt = time.Unix(int64(item.UpdatedAt), 0)
-	metadata.ReleaseYear = item.Year
+	metadata.UpdatedAt = time.Unix(int64(*item.UpdatedAt), 0)
+	metadata.ReleaseYear = *item.Year
 
-	if item.Rating != nil {
+	if &item.Rating != nil {
 		metadata.Ratings = types.Ratings{
 			types.Rating{
 				Source: "plex",
-				Value:  float32(*item.Rating),
+				Value:  float32(item.Rating),
 			},
 		}
 	}

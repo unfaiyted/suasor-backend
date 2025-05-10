@@ -188,6 +188,10 @@ github.com/twitchyliquid64/golang-asm v0.15.1 h1:SU5vSMR7hnwNxj24w34ZyCi/FmDZTkS
 github.com/twitchyliquid64/golang-asm v0.15.1/go.mod h1:a1lVb/DtPvCB8fslRZhAngC2+aY1QWCk3Cedj/Gdt08=
 github.com/ugorji/go/codec v1.2.12 h1:9LC83zGrHhuUA9l16C9AHXAqEV/2wBQ4nkvumAE65EE=
 github.com/ugorji/go/codec v1.2.12/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
+github.com/unfaiyted/plexgo v0.0.0-20250509231151-de532698d7c5 h1:Ijf0E4RjOYJBA/j6CZAspQYD6dGyQsceOXwuhop3mMo=
+github.com/unfaiyted/plexgo v0.0.0-20250509231151-de532698d7c5/go.mod h1:diCCw4KiLA6++hycUdhQe/v40bR1NQ49v2IvtyK/mN4=
+github.com/unfaiyted/plexgo v0.0.0-20250509233252-d889c92c8710 h1:71CqTUZomaNJcb22nPbF5hpLSEaEL26hdAZiCdbJ9C0=
+github.com/unfaiyted/plexgo v0.0.0-20250509233252-d889c92c8710/go.mod h1:diCCw4KiLA6++hycUdhQe/v40bR1NQ49v2IvtyK/mN4=
 github.com/wk8/go-ordered-map/v2 v2.1.8 h1:5h/BUHu93oj4gIdvHHHGsScSTMijfx5PeYkE/fJgbpc=
 github.com/wk8/go-ordered-map/v2 v2.1.8/go.mod h1:5nJHM5DyteebpVlHnWMV0rPz6Zp7+xBAnxjb1X5vnTw=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=

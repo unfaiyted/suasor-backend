@@ -4,12 +4,26 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"time"
 )
 
 // Collection represents an unordered set of unique media items
 type Collection struct {
 	ItemList `json:"list"`
 	itemMap  map[uint64]int // Maps IDs to indices for fast lookup
+}
+
+func NewCollection(details *MediaDetails) *Collection {
+	return &Collection{
+		ItemList: ItemList{
+			Details: &MediaDetails{
+				Title:       details.Title,
+				Description: details.Description,
+				AddedAt:     time.Now(),
+				UpdatedAt:   time.Now(),
+			},
+		},
+	}
 }
 
 // Initialize the collection's item map

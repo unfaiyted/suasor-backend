@@ -8,7 +8,7 @@ import (
 	"suasor/types/models"
 	"suasor/utils/logger"
 
-	"github.com/LukeHagar/plexgo/models/operations"
+	"github.com/unfaiyted/plexgo/models/operations"
 )
 
 // GetMovies retrieves movies from Plex
@@ -158,12 +158,12 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (*models.Media
 	}
 
 	item := res.Object.MediaContainer.Metadata[0]
-	if item.Type != "movie" {
+	if item.Type != operations.GetMediaMetaDataTypeMovie {
 		log.Error().
 			Uint64("clientID", c.GetClientID()).
 			Str("clientType", string(c.GetClientType())).
 			Str("movieID", id).
-			Str("actualType", item.Type).
+			Str("actualType", string(item.Type)).
 			Msg("Item retrieved is not a movie")
 		return nil, fmt.Errorf("item is not a movie")
 	}
@@ -194,7 +194,7 @@ func (c *PlexClient) GetMovieByID(ctx context.Context, id string) (*models.Media
 			Str("clientType", string(c.GetClientType())).
 			Str("movieID", id).
 			Msg("Movie metadata is missing Details field")
-			
+
 		// Create a minimal Details field if it's nil
 		itemMovie.Details = &types.MediaDetails{
 			Title: item.Title,

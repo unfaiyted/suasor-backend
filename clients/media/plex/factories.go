@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/LukeHagar/plexgo/models/operations"
+	"github.com/unfaiyted/plexgo/models/operations"
+
 	media "suasor/clients/media"
 	"suasor/clients/media/types"
 	"suasor/di/container"
@@ -23,7 +24,7 @@ func RegisterMediaItemFactories(c *container.Container) {
 			return client.movieFactory(ctx, item)
 		},
 	)
-	
+
 	// Register factory for GetMediaMetaData response type for Movie
 	media.RegisterFactory[*PlexClient, *operations.GetMediaMetaDataMetadata, *types.Movie](
 		&registry,
@@ -137,7 +138,7 @@ func (c *PlexClient) movieMetadataFactory(ctx context.Context, item *operations.
 
 	// Create base metadata using helper
 	metadata := c.createDetailsFromMediaMetadata(item)
-	
+
 	// Make sure metadata is not nil
 	if metadata == nil {
 		metadata = &types.MediaDetails{
@@ -294,8 +295,8 @@ func (c *PlexClient) episodeFactory(ctx context.Context, item *operations.GetMed
 	}
 
 	// Add specific episode fields
-	if item.Index != nil {
-		episode.Number = int64(*item.Index)
+	if &item.Index != nil {
+		episode.Number = int64(item.Index)
 	}
 
 	if item.ParentIndex != nil {
@@ -506,8 +507,8 @@ func (c *PlexClient) artistFactory(ctx context.Context, item *operations.GetMedi
 	}
 
 	// Add specific artist fields
-	if item.ChildCount != nil {
-		artist.AlbumCount = int(*item.ChildCount)
+	if &item.ChildCount != nil {
+		artist.AlbumCount = int(item.ChildCount)
 	}
 
 	log.Debug().

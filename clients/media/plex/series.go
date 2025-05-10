@@ -8,7 +8,7 @@ import (
 	"suasor/types/models"
 	"suasor/utils/logger"
 
-	"github.com/LukeHagar/plexgo/models/operations"
+	"github.com/unfaiyted/plexgo/models/operations"
 )
 
 // GetSeriess retrieves TV shows from Plex
@@ -307,12 +307,12 @@ func (c *PlexClient) GetSeriesByID(ctx context.Context, id string) (*models.Medi
 	}
 
 	item := res.Object.MediaContainer.Metadata[0]
-	if item.Type != "show" {
+	if item.Type != operations.GetMediaMetaDataTypeTvShow {
 		log.Error().
 			Uint64("clientID", c.GetClientID()).
 			Str("clientType", string(c.GetClientType())).
 			Str("showID", id).
-			Str("actualType", item.Type).
+			Str("actualType", string(item.Type)).
 			Msg("Item retrieved is not a TV show")
 		return nil, fmt.Errorf("item is not a TV show")
 	}
@@ -369,7 +369,7 @@ func (c *PlexClient) GetEpisodeByID(ctx context.Context, id string) (*models.Med
 
 	item := res.Object.MediaContainer.Metadata[0]
 	if item.Type != "episode" {
-		log.Error().Str("episodeID", id).Str("actualType", item.Type).Msg("Item retrieved is not an episode")
+		log.Error().Str("episodeID", id).Str("actualType", string(item.Type)).Msg("Item retrieved is not an episode")
 		return nil, fmt.Errorf("item is not an episode")
 	}
 

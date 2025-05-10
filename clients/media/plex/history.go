@@ -9,7 +9,7 @@ import (
 	"suasor/utils"
 	"time"
 
-	"github.com/LukeHagar/plexgo/models/operations"
+	"github.com/unfaiyted/plexgo/models/operations"
 	"suasor/utils/logger"
 )
 
@@ -230,4 +230,3 @@ func (c *PlexClient) GetPlayHistory(ctx context.Context, options *types.QueryOpt
 
 	return mediaItemDataList, nil
 }
-
