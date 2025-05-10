@@ -586,7 +586,12 @@ func (j *MediaSyncJob) syncPlaylists(ctx context.Context, clientMedia media.Clie
 			existingPlaylist, err := j.itemRepos.PlaylistUserRepo().GetByClientItemID(ctx, clientID, clientItemID)
 			if err != nil || existingPlaylist == nil {
 				// Try to find by title as fallback
-				existingPlaylist, err = j.itemRepos.PlaylistUserRepo().GetByTitle(ctx, clientID, playlist.Title)
+				// Try to find by title as fallback but handle possible empty results
+				existingPlaylist2, err2 := j.itemRepos.PlaylistUserRepo().GetByTitle(ctx, clientID, playlist.Title)
+				if err2 == nil && existingPlaylist2 != nil {
+					existingPlaylist = existingPlaylist2
+					err = nil
+				}
 			}
 
 			if err == nil && existingPlaylist != nil {
@@ -719,7 +724,12 @@ func (j *MediaSyncJob) processPlaylistBatch(ctx context.Context, playlists []*mo
 
 		if err != nil || existingPlaylist == nil {
 			// Try to find by title - not ideal but a fallback
-			existingPlaylist, err = j.itemRepos.PlaylistUserRepo().GetByTitle(ctx, clientID, playlist.Data.ItemList.Details.Title)
+			// Try to find by title as fallback but handle possible empty results
+			existingPlaylist2, err2 := j.itemRepos.PlaylistUserRepo().GetByTitle(ctx, clientID, playlist.Data.ItemList.Details.Title)
+			if err2 == nil && existingPlaylist2 != nil {
+				existingPlaylist = existingPlaylist2
+				err = nil
+			}
 		}
 
 		if err == nil && existingPlaylist != nil {
@@ -770,7 +780,6 @@ func (j *MediaSyncJob) processPlaylistItems(ctx context.Context, playlist *model
 		if !ok {
 			log.Warn().
 				Str("itemID", itemID).
-				Str("itemName", typedItem.GetTitle()).
 				Msg("Could not convert item to media item, skipping")
 			return true
 		}

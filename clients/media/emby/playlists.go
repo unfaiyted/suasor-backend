@@ -489,6 +489,14 @@ func (e *EmbyClient) AddPlaylistItems(ctx context.Context, playlistID string, it
 		return fmt.Errorf("failed to add item to playlist: missing user ID")
 	}
 
+	// If there are no items to add, return immediately without error
+	if len(itemIDs) == 0 {
+		log.Info().
+			Str("playlistID", playlistID).
+			Msg("No items to add to playlist in Emby")
+		return nil
+	}
+
 	// Use the Emby API to add items to playlist
 	opts := embyclient.PlaylistServiceApiPostPlaylistsByIdItemsOpts{
 		UserId: optional.NewString(userID),
@@ -512,7 +520,7 @@ func (e *EmbyClient) AddPlaylistItems(ctx context.Context, playlistID string, it
 		Strs("itemIDs", itemIDs).
 		Msg("Successfully added item to playlist in Emby")
 
-	if result.ItemAddedCount == 0 {
+	if len(itemIDs) > 0 && result.ItemAddedCount == 0 {
 		return fmt.Errorf("failed to add item to playlist: no items added")
 	}
 

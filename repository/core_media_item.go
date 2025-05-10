@@ -695,7 +695,7 @@ func generateTitleVariants(title string) []string {
 	return variants
 }
 
-// GetByTitle returns a media item array by title
+// GetByTitle returns a media item by title
 func (r *mediaItemRepository[T]) GetByTitle(ctx context.Context, clientID uint64, title string) (*models.MediaItem[T], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
@@ -712,6 +712,11 @@ func (r *mediaItemRepository[T]) GetByTitle(ctx context.Context, clientID uint64
 		Where("data->'details'->>'title' = ?", title).
 		Find(&items).Error; err != nil {
 		return nil, fmt.Errorf("failed to get media items by title: %w", err)
+	}
+
+	// Check if items slice is empty before accessing index 0
+	if len(items) == 0 {
+		return nil, fmt.Errorf("no media item found with title: %s", title)
 	}
 
 	return items[0], nil

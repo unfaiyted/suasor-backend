@@ -143,9 +143,10 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 ### syncPlaylistToEmby
 # @name syncPlaylistToEmby
 # Sync the local playlist to Emby
-POST http://localhost:8080/api/v1/playlist/{{createLocalPlaylist.response.body.$.data.id}}/sync/{{createEmbyClient.response.body.$.data.id}}
+POST http://localhost:8080/api/v1/client/{{createEmbyClient.response.body.$.data.id}}/sync/playlist/{{createLocalPlaylist.response.body.$.data.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
+
 
 
 ### checkEmbyPlaylists
@@ -176,7 +177,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 ### checkPlexPlaylists
 # @name checkPlexPlaylists
 # Check for the synced playlist in Plex
-GET http://localhost:8080/api/v1/client/{{createPlexClient.response.body.$.data.id}}/playlists
+GET http://localhost:8080/api/v1/client/{{createPlexClient.response.body.$.data.id}}/playlist
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
@@ -228,7 +229,7 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 ### syncCollectionToEmby
 # @name syncCollectionToEmby
 # Sync the local collection to Emby
-POST http://localhost:8080/api/v1/collection/{{createLocalCollection.response.body.$.data.id}}/sync
+POST http://localhost:8080/api/v1/client/{{createEmbyClient.response.body.$.data.id}}/collection/{{createLocalCollection.response.body.$.data.id}}/sync
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
