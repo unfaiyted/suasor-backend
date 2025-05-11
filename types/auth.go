@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // TokenDetails contains the metadata of both JWT token types

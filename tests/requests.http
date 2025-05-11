@@ -16,7 +16,7 @@ Content-Type: application/json
   "email": "test@example.com",
   "password": "testpassword"
 }
-### use access token from previousy request
+### use access token from previously request
 
 ###
 GET http://localhost:8080/api/v1/auth/validate

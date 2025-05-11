@@ -3,7 +3,6 @@ module suasor
 go 1.23.8
 
 require (
-	github.com/LukeHagar/plexgo v0.19.2
 	github.com/antihax/optional v1.0.0
 	github.com/cyruzin/golang-tmdb v1.6.9
 	github.com/devopsarr/lidarr-go v1.2.0
@@ -11,7 +10,6 @@ require (
 	github.com/devopsarr/sonarr-go v1.1.0
 	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-gonic/gin v1.10.0
-	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/knadh/koanf/parsers/dotenv v1.0.0
@@ -28,11 +26,13 @@ require (
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.4
 	github.com/teilomillet/gollm v0.1.9
+	github.com/unfaiyted/plexgo v0.0.0-20250509233252-d889c92c8710
 	golang.org/x/crypto v0.37.0
 	golang.org/x/oauth2 v0.28.0
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.25.12
+  github.com/golang-jwt/jwt/v5 v5.2.2
 )
 
 require (
@@ -65,7 +65,6 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/jmoiron/sqlx v1.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
@@ -83,14 +82,10 @@ require (
 	github.com/pkoukk/tiktoken-go v0.1.7 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
-	github.com/sarulabs/di v1.4.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
-	github.com/unfaiyted/plexgo v0.0.0-20250509233252-d889c92c8710 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
-	go.uber.org/multierr v1.10.0 // indirect
-	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/arch v0.15.0 // indirect
 	golang.org/x/image v0.13.0 // indirect
 	golang.org/x/net v0.39.0 // indirect

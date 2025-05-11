@@ -4,12 +4,14 @@ package handlers
 import (
 	"strconv"
 	"suasor/clients/media/types"
-	clienttypes "suasor/clients/types"
 	"suasor/services"
-	_ "suasor/types/models"
 	"suasor/types/responses"
 	"suasor/utils"
 	"suasor/utils/logger"
+
+	clienttypes "suasor/clients/types"
+
+	_ "suasor/types/models"
 
 	"github.com/gin-gonic/gin"
 )
@@ -43,7 +45,8 @@ type clientListHandler[T clienttypes.ClientMediaConfig, U types.ListData] struct
 // NewClientListHandler creates a new media client playlist handler
 func NewClientListHandler[T clienttypes.ClientMediaConfig, U types.ListData](
 	coreHandler CoreListHandler[U],
-	listService services.ClientListService[T, U]) ClientListHandler[T, U] {
+	listService services.ClientListService[T, U],
+) ClientListHandler[T, U] {
 	return &clientListHandler[T, U]{
 		CoreListHandler: coreHandler,
 		listService:     listService,
@@ -726,7 +729,6 @@ func (h *clientListHandler[T, U]) SyncLocalListToClient(c *gin.Context) {
 		Msg("Synchronizing list")
 
 	list, err := h.listService.SyncLocalListToClient(ctx, clientID, listID)
-
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("userID", uid).

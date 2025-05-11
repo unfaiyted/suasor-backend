@@ -1,5 +1,5 @@
 ### AI Conversation History - Tests
-### These tests verify the functionalty of AI conversation history endpoints
+### These tests verify the functionality of AI conversation history endpoints
 import ./client.http
 
 run #login

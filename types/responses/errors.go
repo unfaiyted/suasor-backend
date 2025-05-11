@@ -2,8 +2,9 @@ package responses
 
 import (
 	"net/http"
-	"suasor/types/errors"
 	"time"
+
+	"suasor/types/errors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -152,9 +153,9 @@ func NewGenericError(errorType errors.ErrorType, message string, statusCode uint
 
 // ErrorDetails captures all information from Go error objects
 type ErrorDetails struct {
-	Error     string                 `json:"error"`
-	StackInfo string                 `json:"stackInfo,omitempty"`
-	Metadata  map[string]interface{} `json:"metadata,omitempty"`
+	Error     string         `json:"error"`
+	StackInfo string         `json:"stackInfo,omitempty"`
+	Metadata  map[string]any `json:"metadata,omitempty"`
 }
 
 // CreateErrorDetails extracts all available information from an error
