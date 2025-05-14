@@ -147,14 +147,14 @@ func (c *PlexClient) GetCollection(ctx context.Context, collectionID string) (*m
 	// Set collection items if available
 	if plexCollection.ChildCount > 0 {
 		// Get collection items
-		collectionItemList, err := c.GetCollectionItems(ctx, plexCollection.RatingKey)
+		collectionList, err := c.GetCollectionItems(ctx, plexCollection.RatingKey)
 		if err != nil {
 			log.Error().
 				Err(err).
 				Str("collectionID", plexCollection.RatingKey).
 				Msg("Failed to get collection items")
 		} else {
-			setMediaListToItemList(collectionItemList, &mediaItem.Data.ItemList)
+			setMediaListToItemList(collectionList.Items, &mediaItem.Data.ItemList)
 		}
 	}
 
@@ -167,8 +167,13 @@ func (c *PlexClient) GetCollection(ctx context.Context, collectionID string) (*m
 }
 
 // GetCollectionItems retrieves items in a collection
-func (c *PlexClient) GetCollectionItems(ctx context.Context, collectionID string) (*models.MediaItemList, error) {
+func (c *PlexClient) GetCollectionItems(ctx context.Context, collectionID string) (*models.MediaItemList[*types.Collection], error) {
 	log := logger.LoggerFromContext(ctx)
+
+	list, err := c.GetCollection(ctx, collectionID)
+	if err != nil {
+		return nil, err
+	}
 
 	log.Info().
 		Uint64("clientID", c.GetClientID()).
@@ -200,11 +205,11 @@ func (c *PlexClient) GetCollectionItems(ctx context.Context, collectionID string
 		log.Info().
 			Str("collectionID", collectionID).
 			Msg("Collection contains no items")
-		return models.NewMediaItemList[*types.Collection](c.GetClientID(), 0), nil
+		return models.NewMediaItemList[*types.Collection](list, c.GetClientID(), 0), nil
 	}
 
 	// Create MediaItemList
-	itemList := models.NewMediaItemList[*types.Collection](c.GetClientID(), 0)
+	itemList := models.NewMediaItemList[*types.Collection](list, c.GetClientID(), 0)
 
 	// Get details for each item
 	for _, itemID := range itemIDs {
@@ -266,7 +271,7 @@ func (c *PlexClient) GetCollectionItems(ctx context.Context, collectionID string
 				continue
 			}
 
-			itemList.AddMovie(mediaItem)
+			itemList.Items.AddMovie(mediaItem)
 		case "show":
 			show, err := GetItemFromMetadata[*types.Series](ctx, c, &item)
 			if err != nil {
@@ -285,7 +290,7 @@ func (c *PlexClient) GetCollectionItems(ctx context.Context, collectionID string
 				continue
 			}
 
-			itemList.AddSeries(mediaItem)
+			itemList.Items.AddSeries(mediaItem)
 		case "episode":
 			episode, err := GetItemFromMetadata[*types.Episode](ctx, c, &item)
 			if err != nil {
@@ -303,7 +308,7 @@ func (c *PlexClient) GetCollectionItems(ctx context.Context, collectionID string
 					Msg("Failed to create media item for episode, skipping")
 				continue
 			}
-			itemList.AddEpisode(mediaItem)
+			itemList.Items.AddEpisode(mediaItem)
 		case "track":
 			track, err := GetItemFromMetadata[*types.Track](ctx, c, &item)
 			if err != nil {
@@ -321,7 +326,7 @@ func (c *PlexClient) GetCollectionItems(ctx context.Context, collectionID string
 					Msg("Failed to create media item for track, skipping")
 				continue
 			}
-			itemList.AddTrack(mediaItem)
+			itemList.Items.AddTrack(mediaItem)
 		case "album":
 			album, err := GetItemFromMetadata[*types.Album](ctx, c, &item)
 			if err != nil {
@@ -339,7 +344,7 @@ func (c *PlexClient) GetCollectionItems(ctx context.Context, collectionID string
 					Msg("Failed to create media item for album, skipping")
 				continue
 			}
-			itemList.AddAlbum(mediaItem)
+			itemList.Items.AddAlbum(mediaItem)
 		case "artist":
 			artist, err := GetItemFromMetadata[*types.Artist](ctx, c, &item)
 			if err != nil {
@@ -357,7 +362,7 @@ func (c *PlexClient) GetCollectionItems(ctx context.Context, collectionID string
 					Msg("Failed to create media item for artist, skipping")
 				continue
 			}
-			itemList.AddArtist(mediaItem)
+			itemList.Items.AddArtist(mediaItem)
 		default:
 			log.Warn().
 				Str("collectionID", collectionID).
@@ -369,7 +374,7 @@ func (c *PlexClient) GetCollectionItems(ctx context.Context, collectionID string
 
 	log.Info().
 		Str("collectionID", collectionID).
-		Int("itemCount", itemList.GetTotalItems()).
+		Int("itemCount", itemList.Len()).
 		Msg("Retrieved collection items from Plex")
 
 	return itemList, nil
@@ -683,7 +688,7 @@ func (c *PlexClient) RemoveAllCollectionItems(ctx context.Context, collectionID 
 		return fmt.Errorf("failed to get collection items: %w", err)
 	}
 
-	if itemList == nil || itemList.GetTotalItems() == 0 {
+	if itemList == nil || itemList.Len() == 0 {
 		log.Info().
 			Str("collectionID", collectionID).
 			Msg("No items to remove from collection")

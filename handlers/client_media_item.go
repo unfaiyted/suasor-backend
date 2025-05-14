@@ -84,7 +84,7 @@ func (h *clientMediaItemHandler[T, U]) CreateClientItem(c *gin.Context) {
 		Msg("Creating client media item")
 
 	// Create the media item
-	mediaItem := models.NewMediaItem(mediaType, req.Data)
+	mediaItem := models.NewMediaItem(req.Data)
 
 	// Set client info
 	mediaItem.SetClientInfo(req.ClientID, req.ClientType, req.ExternalID)
@@ -144,10 +144,7 @@ func (h *clientMediaItemHandler[T, U]) UpdateClientItem(c *gin.Context) {
 		Str("clientType", string(req.ClientType)).
 		Msg("Updating client media item")
 
-	// Update the media item
-	mediaType := types.MediaType(req.Type)
-
-	mediaItem := models.NewMediaItem(mediaType, req.Data)
+	mediaItem := models.NewMediaItem(req.Data)
 	mediaItem.SetClientInfo(req.ClientID, req.ClientType, req.ExternalID)
 	// Set client info
 

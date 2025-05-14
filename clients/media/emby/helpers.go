@@ -4,19 +4,16 @@ package emby
 import (
 	"context"
 	"fmt"
-	"time"
+	"strings"
+	"suasor/clients/media"
 	"suasor/clients/media/types"
 	"suasor/types/models"
-
 	"time"
 
 	"github.com/antihax/optional"
-	"github.com/antihax/optional"
-
-
+	"suasor/utils/logger"
 
 	embyclient "suasor/internal/clients/embyAPI"
-	"suasor/types/models"
 )
 
 func GetItem[T types.MediaData](
@@ -43,9 +40,8 @@ func GetMediaItem[T types.MediaData](
 	item T,
 	itemID string,
 ) (*models.MediaItem[T], error) {
-	mediaItem := models.NewMediaItem[T](diaType(), item)
+	mediaItem := models.NewMediaItem[T](item)
 	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), itemID)
-
 
 	return mediaItem, nil
 }
@@ -69,11 +65,11 @@ func GetMediaItemList[T types.MediaData](
 		mediaItems = append(mediaItems, mediaItem)
 	}
 
-
 	return &mediaItems, nil
 }
 
 func GetMediaItemData[T types.MediaData](
+	ctx context.Context,
 	e *EmbyClient,
 	item *embyclient.BaseItemDto,
 ) (*models.UserMediaItemData[T], error) {
@@ -94,6 +90,7 @@ func GetMediaItemData[T types.MediaData](
 
 func GetMediaItemDataList[T types.MediaData](
 	ctx context.Context,
+	e *EmbyClient,
 	items []embyclient.BaseItemDto,
 ) ([]*models.UserMediaItemData[T], error) {
 	var mediaItems []*models.UserMediaItemData[T]
@@ -112,7 +109,10 @@ func GetMixedMediaItems(
 	e *EmbyClient,
 	ctx context.Context,
 	items []embyclient.BaseItemDto,
-) (*models.MediaItemList, error) {
+) (*models.MediaItemResults, error) {
+
+	mediaItems := models.NewMediaItemResults()
+
 	for _, item := range items {
 		if item.Type_ == "Movie" {
 			movie, err := GetItem[*types.Movie](ctx, e, &item)
@@ -187,16 +187,18 @@ func GetMixedMediaItems(
 		}
 	}
 
-}
+	return mediaItems, nil
 
+}
 
 func GetMixedMediaItemsData(
 	e *EmbyClient,
 	ctx context.Context,
 	items []embyclient.BaseItemDto,
 ) (*models.MediaItemDataList, error) {
+
 	log := logger.LoggerFromContext(ctx)
-	datas := models.NewMediaItemDataList()
+	dataList := models.NewMediaItemDataList()
 
 	for _, item := range items {
 
@@ -217,7 +219,7 @@ func GetMixedMediaItemsData(
 					Msg("Error converting Emby item to media data format")
 				continue
 			}
-			datas.AddMovie(movie)
+			dataList.AddMovie(movie)
 		} else if item.Type_ == "Episode" {
 			episode, err := GetMediaItemData[*types.Episode](ctx, e, &item)
 			if err != nil {
@@ -228,7 +230,7 @@ func GetMixedMediaItemsData(
 					Msg("Error converting Emby item to media data format")
 				continue
 			}
-			datas.AddEpisode(episode)
+			dataList.AddEpisode(episode)
 		} else if item.Type_ == "Audio" {
 			track, err := GetMediaItemData[*types.Track](ctx, e, &item)
 			if err != nil {
@@ -239,7 +241,7 @@ func GetMixedMediaItemsData(
 					Msg("Error converting Emby item to media data format")
 				continue
 			}
-			datas.AddTrack(track)
+			dataList.AddTrack(track)
 		} else if item.Type_ == "Playlist" {
 			playlist, err := GetMediaItemData[*types.Playlist](ctx, e, &item)
 			if err != nil {
@@ -250,7 +252,7 @@ func GetMixedMediaItemsData(
 					Msg("Error converting Emby item to media data format")
 				continue
 			}
-			datas.AddPlaylist(playlist)
+			dataList.AddPlaylist(playlist)
 		} else if item.Type_ == "Series" {
 			series, err := GetMediaItemData[*types.Series](ctx, e, &item)
 			if err != nil {
@@ -261,7 +263,7 @@ func GetMixedMediaItemsData(
 					Msg("Error converting Emby item to media data format")
 				continue
 			}
-			datas.AddSeries(series)
+			dataList.AddSeries(series)
 		} else if item.Type_ == "Season" {
 			season, err := GetMediaItemData[*types.Season](ctx, e, &item)
 			if err != nil {
@@ -273,7 +275,7 @@ func GetMixedMediaItemsData(
 				continue
 			}
 
-			datas.AddSeason(season)
+			dataList.AddSeason(season)
 		} else if item.Type_ == "Collection" {
 			collection, err := GetMediaItemData[*types.Collection](ctx, e, &item)
 			if err != nil {
@@ -284,24 +286,24 @@ func GetMixedMediaItemsData(
 					Msg("Error converting Emby item to media data format")
 				continue
 			}
-			datas.AddCollection(collection)
+			dataList.AddCollection(collection)
 		}
 
 	}
 
 	log.Info().
-		Int("totalMovies", len(datas.Movies)).
-		Int("totalSeries", len(datas.Series)).
-		Int("totalEpisodes", len(datas.Episodes)).
-		Int("totalTracks", len(datas.Tracks)).
-		Int("totalAlbums", len(datas.Albums)).
-		Int("totalArtists", len(datas.Artists)).
-		Int("totalPlaylists", len(datas.Playlists)).
-		Int("totalCollections", len(datas.Collections)).
-		Int("totalItems", datas.GetTotalItems()).
+		Int("totalMovies", len(dataList.Movies)).
+		Int("totalSeries", len(dataList.Series)).
+		Int("totalEpisodes", len(dataList.Episodes)).
+		Int("totalTracks", len(dataList.Tracks)).
+		Int("totalAlbums", len(dataList.Albums)).
+		Int("totalArtists", len(dataList.Artists)).
+		Int("totalPlaylists", len(dataList.Playlists)).
+		Int("totalCollections", len(dataList.Collections)).
+		Int("totalItems", dataList.GetTotalItems()).
 		Msg("Completed GetMixedMediaItemsData request")
 
-	return datas, nil
+	return dataList, nil
 }
 
 // Converts intenal mapped QueryOptions to external Emby API query options
@@ -458,6 +460,7 @@ func ApplyClientQueryOptions(ctx context.Context, queryParams *embyclient.ItemsS
 	if options.MinimumRating > 0 {
 		log.Debug().Float32("minimumRating", options.MinimumRating).Msg("Applying minimum rating filter")
 		queryParams.MinCommunityRating = optional.NewFloat64(float64(options.MinimumRating))
+	}
 }
 
 func convertToExternalIDs(providerIds *map[string]string) types.ExternalIDs {

@@ -35,7 +35,7 @@ type CoreMusicService interface {
 	GetTrackByTitleAndArtistName(ctx context.Context, title string, artistName string) (*models.MediaItem[*types.Track], error)
 	GetAlbumByTitleAndArtistName(ctx context.Context, title string, artistName string) (*models.MediaItem[*types.Album], error)
 
-	// Music external_IDs often have somthing like
+	// Music external_IDs often have something like
 	// [{ "id": "1234", "source": "musicbrainzartist"},{"id": "1234", "source":"discogartist" }]
 	// These ids may show up on the album or track details
 	GetArtistByExternalIDs(ctx context.Context, externalIDs types.ExternalIDs) (*models.MediaItem[*types.Artist], error)
@@ -43,7 +43,7 @@ type CoreMusicService interface {
 	GetArtistAlbumsByExternalIDs(ctx context.Context, externalIDs types.ExternalIDs) ([]*models.MediaItem[*types.Album], error)
 
 	// Search operations
-	SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error)
+	SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemResults, error)
 }
 
 // coreMusicService implements the CoreMusicService interface
@@ -341,7 +341,7 @@ func (s *coreMusicService) GetArtistsByGenre(ctx context.Context, genre string, 
 }
 
 // SearchMusicLibrary performs a comprehensive search across all music items
-func (s *coreMusicService) SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error) {
+func (s *coreMusicService) SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemResults, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("query", query.Query).

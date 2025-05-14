@@ -148,7 +148,7 @@ func (h *clientListHandler[T, U]) GetClientListItems(c *gin.Context) {
 
 	log.Info().
 		Str("listID", listID).
-		Int("itemCount", list.GetTotalItems()).
+		Int("itemCount", list.Len()).
 		Msg("List tracks retrieved successfully")
 	responses.RespondOK(c, list, "Items retrieved successfully")
 }

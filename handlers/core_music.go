@@ -561,7 +561,7 @@ func (h *coreMusicHandler) GetGenreRecommendations(c *gin.Context) {
 
 	log.Info().
 		Str("genre", genre).
-		Int("count", items.GetTotalItems()).
+		Int("count", items.Len()).
 		Msg("Genre recommendations retrieved successfully")
 	responses.RespondOK(c, items, "Genre recommendations retrieved successfully")
 }
@@ -1093,7 +1093,7 @@ func (h *coreMusicHandler) SearchMusic(c *gin.Context) {
 
 	log.Info().
 		Str("query", query).
-		Int("count", results.GetTotalItems()).
+		Int("count", results.Len()).
 		Msg("Music search completed successfully")
 	responses.RespondOK(c, results, "Search results retrieved successfully")
 }

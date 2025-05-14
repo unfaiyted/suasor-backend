@@ -110,7 +110,7 @@ func GetMediaItem[T mediatypes.MediaData](
 	item T,
 	itemID string,
 ) (*models.MediaItem[T], error) {
-	mediaItem := models.NewMediaItem[T](item.GetMediaType(), item)
+	mediaItem := models.NewMediaItem[T](item)
 	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), itemID)
 
 	return mediaItem, nil
@@ -122,7 +122,7 @@ func GetChildMediaItem[T mediatypes.MediaData](
 	item T,
 	itemID string,
 ) (*models.MediaItem[T], error) {
-	mediaItem := models.NewMediaItem[T](item.GetMediaType(), item)
+	mediaItem := models.NewMediaItem[T](item)
 	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), itemID)
 
 	return mediaItem, nil
@@ -293,7 +293,7 @@ func mapPlaylistCreateMetadataToPlaylistMetadata(item *operations.CreatePlaylist
 	return newItem
 }
 
-func setMediaListToItemList(list *models.MediaItemList, itemList *mediatypes.ItemList) {
+func setMediaListToItemList(list *models.MediaItemResults, itemList *mediatypes.ItemList) {
 
 	// Loop over all the items in the MediaItemList
 	list.ForEach(func(uuid string, mediaType mediatypes.MediaType, item any) bool {

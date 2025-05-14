@@ -63,8 +63,41 @@ func (j *JellyfinClient) GetCollections(ctx context.Context, options *t.QueryOpt
 	return collections, nil
 }
 
+func (j *JellyfinClient) GetCollectionByID(ctx context.Context, collectionID string) (*models.MediaItem[*t.Collection], error) {
+	// Get logger from context
+	log := logger.LoggerFromContext(ctx)
+
+	log.Info().
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
+		Str("collectionID", collectionID).
+		Msg("Retrieving collection by ID from Jellyfin")
+
+	options := &t.QueryOptions{
+		ItemIDs:   collectionID,
+		MediaType: t.MediaTypeCollection,
+		Limit:     1,
+	}
+	collections, err := j.GetCollections(ctx, options)
+
+	if err != nil {
+		log.Error().Err(err).
+			Str("collectionID", collectionID).
+			Msg("Failed to get collection by ID from Jellyfin")
+		return nil, err
+	}
+	if len(collections) == 0 {
+		log.Info().
+			Str("collectionID", collectionID).
+			Msg("No collections found in Jellyfin")
+		return nil, nil
+	}
+
+	return collections[0], nil
+}
+
 // GetCollectionItems retrieves all items in a collection from Jellyfin
-func (j *JellyfinClient) GetCollectionItems(ctx context.Context, collectionID string, options *t.QueryOptions) (*models.MediaItemList, error) {
+func (j *JellyfinClient) GetCollectionItems(ctx context.Context, collectionID string, options *t.QueryOptions) (*models.MediaItemList[*t.Collection], error) {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
 
@@ -112,20 +145,28 @@ func (j *JellyfinClient) GetCollectionItems(ctx context.Context, collectionID st
 		log.Info().
 			Str("collectionID", collectionID).
 			Msg("No items found in collection")
-		return &models.MediaItemList{}, nil
+		return &models.MediaItemList[*t.Collection]{}, nil
 	}
 
-	mediaItems, err := GetMixedMediaItems(j, ctx, result.Items)
+	mediaItemResults, err := GetMixedMediaItems(j, ctx, result.Items)
 	if err != nil {
 		return nil, err
 	}
 
 	log.Info().
 		Str("collectionID", collectionID).
-		Int("itemCount", mediaItems.GetTotalItems()).
+		Int("itemCount", mediaItemResults.Len()).
 		Msg("Successfully retrieved collection items from Jellyfin")
 
-	return mediaItems, nil
+	list, err := j.GetCollectionByID(ctx, collectionID)
+	if err != nil {
+		return nil, err
+	}
+
+	mediaItemList := models.NewMediaItemList[*t.Collection](list, j.GetClientID(), 0)
+	mediaItemList.Items = mediaItemResults
+	return mediaItemList, nil
+
 }
 
 // SupportsCollections indicates if this client supports collections

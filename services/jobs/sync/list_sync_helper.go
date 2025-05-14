@@ -117,7 +117,7 @@ func (j *MediaSyncJob) syncListItems(
 		}
 		// Get the local list item that matches the one created by the sourceClient.
 		// We should see be able t get the syncClient ItemID for the targetClient
-		j.mergeListItemsWithLocalDatabase(ctx, sourceClient.GetClientID(), sourceListID, sourceListItems)
+		j.mergeListItemsWithLocalDatabase(ctx, sourceClient.GetClientID(), sourceListID, sourceListItems.Items)
 
 		// Find matching item in target client
 		sourceListItems.ForEach(func(UUID string, mediaType mediatypes.MediaType, item any) bool {
@@ -563,10 +563,10 @@ func (h *ListSyncHelper) SyncLists(
 	return nil
 }
 
-func (j *MediaSyncJob) mergeListItemsWithLocalDatabase(ctx context.Context, sourceClientID uint64, sourceListID string, sourceListItems *models.MediaItemList) error {
+func (j *MediaSyncJob) mergeListItemsWithLocalDatabase(ctx context.Context, sourceClientID uint64, sourceListID string, sourceListResults *models.MediaItemResults) error {
 	// Get the source items - using the most appropriate method based on what's available
 	// Loop over the sourceListITems and then find the corresponding item in the local database
-	sourceListItems.ForEach(func(UUID string, mediaType mediatypes.MediaType, item any) bool {
+	sourceListResults.ForEach(func(UUID string, mediaType mediatypes.MediaType, item any) bool {
 		sourceItem, ok := item.(*models.MediaItem[mediatypes.MediaData])
 		if !ok {
 			return true

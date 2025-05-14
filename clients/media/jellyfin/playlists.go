@@ -161,7 +161,7 @@ func (j *JellyfinClient) GetPlaylistItems(ctx context.Context, playlistID string
 				return nil, err
 			}
 			movie, err := GetMediaItem[*types.Movie](ctx, j, movieItem, *item.Id)
-			playlist.AddMovie(movie)
+			playlist.Items.AddMovie(movie)
 		} else if item.Type == jellyfin.BASEITEMKIND_EPISODE.Ptr() {
 			episodeItem, err := GetItem[*types.Episode](ctx, j, &item)
 			if err != nil {
@@ -171,7 +171,7 @@ func (j *JellyfinClient) GetPlaylistItems(ctx context.Context, playlistID string
 			if err != nil {
 				return nil, err
 			}
-			playlist.AddEpisode(episode)
+			playlist.Items.AddEpisode(episode)
 		} else if item.Type == jellyfin.BASEITEMKIND_AUDIO.Ptr() {
 			trackItem, err := GetItem[*types.Track](ctx, j, &item)
 			if err != nil {
@@ -181,7 +181,7 @@ func (j *JellyfinClient) GetPlaylistItems(ctx context.Context, playlistID string
 			if err != nil {
 				return nil, err
 			}
-			playlist.AddTrack(track)
+			playlist.Items.AddTrack(track)
 		} else if item.Type == jellyfin.BASEITEMKIND_PLAYLIST.Ptr() {
 			// playlistItem, err := GetItem[*types.Playlist](ctx, j, &item)
 			// if err != nil {
@@ -201,7 +201,7 @@ func (j *JellyfinClient) GetPlaylistItems(ctx context.Context, playlistID string
 			if err != nil {
 				return nil, err
 			}
-			playlist.AddSeries(series)
+			playlist.Items.AddSeries(series)
 		} else if item.Type == jellyfin.BASEITEMKIND_SEASON.Ptr() {
 			seasonItem, err := GetItem[*types.Season](ctx, j, &item)
 			if err != nil {
@@ -211,7 +211,7 @@ func (j *JellyfinClient) GetPlaylistItems(ctx context.Context, playlistID string
 			if err != nil {
 				return nil, err
 			}
-			playlist.AddSeason(season)
+			playlist.Items.AddSeason(season)
 		} else if item.Type == jellyfin.BASEITEMKIND_COLLECTION_FOLDER.Ptr() {
 			// collection, err := GetItem[*types.Collection](ctx, j, &item)
 			// if err != nil {

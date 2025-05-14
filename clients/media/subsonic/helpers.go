@@ -119,7 +119,6 @@ func GetTrackItem(
 	}
 
 	mediaItem := models.NewMediaItem[*mediatypes.Track](
-		mediatypes.MediaTypeTrack,
 		track)
 
 	return mediaItem, nil
@@ -137,7 +136,6 @@ func GetAlbumItem(
 	}
 
 	mediaItem := models.NewMediaItem[*mediatypes.Album](
-		mediatypes.MediaTypeAlbum,
 		album)
 
 	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), item.ID)
@@ -157,7 +155,6 @@ func GetArtistItem(
 	}
 
 	mediaItem := models.NewMediaItem[*mediatypes.Artist](
-		mediatypes.MediaTypeArtist,
 		artist)
 	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), item.ID)
 
@@ -176,7 +173,6 @@ func GetPlaylistItem(
 	}
 
 	mediaItem := models.NewMediaItem[*mediatypes.Playlist](
-		playlist.GetMediaType(),
 		playlist,
 	)
 	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), item.ID)

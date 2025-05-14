@@ -159,7 +159,7 @@ func (c *PlexClient) GetPlayHistory(ctx context.Context, options *types.QueryOpt
 				// }
 
 				// Create a MediaItem for this movie
-				mediaItem := models.NewMediaItem(mediatypes.MediaTypeMovie, movie)
+				mediaItem := models.NewMediaItem(movie)
 				mediaItem.SetClientInfo(c.GetClientID(), c.GetClientType(), *session.Key)
 
 				// Create a history data item for this movie
@@ -179,7 +179,7 @@ func (c *PlexClient) GetPlayHistory(ctx context.Context, options *types.QueryOpt
 				}
 
 				// Create a MediaItem for this episode
-				mediaItem := models.NewMediaItem(mediatypes.MediaTypeEpisode, episode)
+				mediaItem := models.NewMediaItem(episode)
 				mediaItem.SetClientInfo(c.GetClientID(), c.GetClientType(), *session.Key)
 
 				// Create a history data item for this episode
@@ -199,7 +199,7 @@ func (c *PlexClient) GetPlayHistory(ctx context.Context, options *types.QueryOpt
 				}
 
 				// Create a MediaItem for this track
-				mediaItem := models.NewMediaItem(mediatypes.MediaTypeTrack, track)
+				mediaItem := models.NewMediaItem(track)
 				mediaItem.SetClientInfo(c.GetClientID(), c.GetClientType(), *session.Key)
 
 				// Create a history data item for this track

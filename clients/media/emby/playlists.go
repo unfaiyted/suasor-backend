@@ -218,9 +218,6 @@ func (e *EmbyClient) GetPlaylistItems(ctx context.Context, playlistID string) (*
 	// Create new media item list
 	itemList := models.NewMediaItemList[*types.Playlist](playlist, listIDUint, 0)
 
-	// Initialize the maps
-	itemList.Playlists = make(map[string]*models.MediaItem[*types.Playlist])
-
 	// Process each item
 	for _, item := range response.Items {
 		// Convert to playlist item
@@ -244,11 +241,11 @@ func (e *EmbyClient) GetPlaylistItems(ctx context.Context, playlistID string) (*
 			continue
 		}
 
-		itemList.AddPlaylist(mediaItem)
+		itemList.Items.AddPlaylist(mediaItem)
 	}
 
 	log.Info().
-		Int("itemsReturned", itemList.TotalItems).
+		Int("itemsReturned", itemList.Len()).
 		Str("playlistID", playlistID).
 		Msg("Completed getting items from playlist")
 

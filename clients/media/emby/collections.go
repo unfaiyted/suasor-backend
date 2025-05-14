@@ -73,7 +73,7 @@ func (e *EmbyClient) SearchCollections(ctx context.Context, options *types.Query
 	return collections, nil
 }
 
-func (e *EmbyClient) SearchCollectionItems(ctx context.Context, collectionID string, options *types.QueryOptions) (*models.MediaItemList, error) {
+func (e *EmbyClient) SearchCollectionItems(ctx context.Context, collectionID string, options *types.QueryOptions) (*models.MediaItemResults, error) {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
 
@@ -117,7 +117,7 @@ func (e *EmbyClient) SearchCollectionItems(ctx context.Context, collectionID str
 
 	log.Info().
 		Str("collectionID", collectionID).
-		Int("itemCount", items.GetTotalItems()).
+		Int("itemCount", items.Len()).
 		Msg("Successfully retrieved collection items from Emby")
 
 	return items, nil
@@ -145,7 +145,7 @@ func (e *EmbyClient) GetCollectionByID(ctx context.Context, collectionID string)
 	return collection, err
 }
 
-func (e *EmbyClient) GetCollectionItems(ctx context.Context, collectionID string) (*models.MediaItemList, error) {
+func (e *EmbyClient) GetCollectionItems(ctx context.Context, collectionID string) (*models.MediaItemList[*types.Collection], error) {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
 
@@ -164,7 +164,7 @@ func (e *EmbyClient) GetCollectionItems(ctx context.Context, collectionID string
 		EnableImages: optional.NewBool(true),
 	}
 
-	response, _, err := e.client.ItemsServiceApi.GetItems(ctx, &opts)
+	itemsResponse, _, err := e.client.ItemsServiceApi.GetItems(ctx, &opts)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -173,24 +173,30 @@ func (e *EmbyClient) GetCollectionItems(ctx context.Context, collectionID string
 		return nil, err
 	}
 
-	if response.Items == nil || len(response.Items) == 0 {
+	if itemsResponse.Items == nil || len(itemsResponse.Items) == 0 {
 		log.Info().
 			Str("collectionID", collectionID).
 			Msg("No items found in collection")
 		return nil, nil
 	}
 
-	items, err := GetMixedMediaItems(e, ctx, response.Items)
+	items, err := GetMixedMediaItems(e, ctx, itemsResponse.Items)
 	if err != nil {
 		return nil, err
 	}
 
 	log.Info().
 		Str("collectionID", collectionID).
-		Int("itemCount", items.GetTotalItems()).
+		Int("itemCount", items.Len()).
 		Msg("Successfully retrieved collection items from Emby")
 
-	return items, nil
+	list, err := e.GetCollectionByID(ctx, collectionID)
+	if err != nil {
+		return nil, err
+	}
+	mediaItemList := models.NewMediaItemList[*types.Collection](list, e.GetClientID(), 0)
+
+	return mediaItemList, nil
 }
 
 func (e *EmbyClient) CreateCollection(ctx context.Context, name string, description string, itemIDs []string) (*models.MediaItem[*types.Collection], error) {

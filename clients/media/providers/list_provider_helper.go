@@ -124,11 +124,11 @@ func (a *ListSyncAdapter[T]) SyncListItems(
 	targetList, err := a.targetProvider.GetListItems(ctx, targetListID)
 	if err != nil {
 		// If target is empty, just continue (it might be a new list)
-		targetList = models.NewMediaItemList[T](sourceList.List, sourceList.ListOriginID, sourceList.OwnerID)
+		targetList = models.NewMediaItemList(sourceList.List, sourceList.ListOriginClientID, sourceList.OwnerID)
 	}
 
 	// Delete all liste items in target
-	if targetList.TotalItems > 0 {
+	if targetList.Len() > 0 {
 		err = a.targetProvider.RemoveAllListItems(ctx, targetListID)
 		if err != nil {
 			return fmt.Errorf("failed to delete target list items: %w", err)

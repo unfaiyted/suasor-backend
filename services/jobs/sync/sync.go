@@ -578,7 +578,7 @@ func (j *MediaSyncJob) syncPlaylists(ctx context.Context, clientMedia media.Clie
 
 			log.Debug().
 				Str("playlistTitle", playlist.Title).
-				Int("itemCount", playlistItems.GetTotalItems()).
+				Int("itemCount", playlistItems.Len()).
 				Msg("Retrieved playlist items")
 
 			// Update the playlist with its items in the local database
@@ -761,7 +761,7 @@ func (j *MediaSyncJob) processPlaylistBatch(ctx context.Context, playlists []*mo
 }
 
 // processPlaylistItems processes items in a playlist and links them to media items
-func (j *MediaSyncJob) processPlaylistItems(ctx context.Context, playlist *models.MediaItem[*mediatypes.Playlist], playlistItems *models.MediaItemList, clientID uint64) error {
+func (j *MediaSyncJob) processPlaylistItems(ctx context.Context, playlist *models.MediaItem[*mediatypes.Playlist], playlistItems *models.MediaItemList[*mediatypes.Playlist], clientID uint64) error {
 	log := logger.LoggerFromContext(ctx)
 	// Get or create the sync state for this client
 	_, exists := playlist.SyncClients.GetSyncStatus(clientID)
@@ -844,7 +844,7 @@ func (j *MediaSyncJob) findOrCreateMediaItem(ctx context.Context, item *models.M
 	switch item.Type {
 	case mediatypes.MediaTypePlaylist:
 		// Create a new playlist item
-		newItem := models.NewMediaItem(mediatypes.MediaTypePlaylist, item.Data)
+		newItem := models.NewMediaItem[*mediatypes.Playlist](item.Data)
 		newItem.Title = item.Data.GetDetails().Title
 		newItem.SyncClients = item.SyncClients
 

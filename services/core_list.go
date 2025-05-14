@@ -18,7 +18,7 @@ type CoreListService[T mediatypes.ListData] interface {
 	GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error)
 
 	// list-specific operations
-	GetItems(ctx context.Context, listID uint64) (*models.MediaItemList, error)
+	GetItems(ctx context.Context, listID uint64) (*models.MediaItemList[T], error)
 	GetRecent(ctx context.Context, days int, limit int) ([]*models.MediaItem[T], error)
 
 	Search(ctx context.Context, query mediatypes.QueryOptions) ([]*models.MediaItem[T], error)
@@ -74,7 +74,7 @@ func (s coreListService[T]) GetByUserID(ctx context.Context, userID uint64, limi
 }
 
 // list-specific operations
-func (s coreListService[T]) GetItems(ctx context.Context, listID uint64) (*models.MediaItemList, error) {
+func (s coreListService[T]) GetItems(ctx context.Context, listID uint64) (*models.MediaItemList[T], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Uint64("listID", listID).
@@ -83,14 +83,14 @@ func (s coreListService[T]) GetItems(ctx context.Context, listID uint64) (*model
 	// Get the list
 	list, err := s.GetByID(ctx, listID)
 	if err != nil {
-		return &models.MediaItemList{}, fmt.Errorf("failed to get list items: %w", err)
+		return &models.MediaItemList[T]{}, fmt.Errorf("failed to get list items: %w", err)
 	}
 
 	itemList := list.GetData().GetItemList()
 
 	// Return empty array if the list has no items
 	if len(itemList.Items) == 0 {
-		return &models.MediaItemList{}, nil
+		return &models.MediaItemList[T]{}, nil
 	}
 
 	// Extract item IDs for batch retrieval
@@ -100,7 +100,7 @@ func (s coreListService[T]) GetItems(ctx context.Context, listID uint64) (*model
 	}
 
 	// Fetch the actual media items using the core media repository
-	actualItems, err := s.itemRepo.GetMixedMediaItemsByIDs(ctx, itemIDs)
+	itemResults, err := s.itemRepo.GetMixedMediaItemsByIDs(ctx, itemIDs)
 	if err != nil {
 		log.Error().Err(err).
 			Uint64("listID", listID).
@@ -108,7 +108,10 @@ func (s coreListService[T]) GetItems(ctx context.Context, listID uint64) (*model
 		return nil, fmt.Errorf("failed to get list items: %w", err)
 	}
 
-	return actualItems, nil
+	mediaList := models.NewMediaItemList(list, itemList.OriginClientID, itemList.OwnerID)
+	mediaList.Items = itemResults
+
+	return mediaList, nil
 
 }
 func (s coreListService[T]) Search(ctx context.Context, query mediatypes.QueryOptions) ([]*models.MediaItem[T], error) {

@@ -41,7 +41,7 @@ type CoreSeriesService interface {
 	GetEpisodesAiredBetween(ctx context.Context, startDate time.Time, endDate time.Time) ([]*models.MediaItem[*types.Episode], error)
 
 	// Search operations
-	SearchSeriesLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error)
+	SearchSeriesLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemResults, error)
 }
 
 // coreSeriesService implements the CoreSeriesService interface
@@ -445,7 +445,7 @@ func (s *coreSeriesService) GetEpisodesAiredBetween(ctx context.Context, startDa
 }
 
 // SearchSeriesLibrary performs a comprehensive search across all series items
-func (s *coreSeriesService) SearchSeriesLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error) {
+func (s *coreSeriesService) SearchSeriesLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemResults, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("query", query.Query).
@@ -461,4 +461,3 @@ func (s *coreSeriesService) SearchSeriesLibrary(ctx context.Context, query types
 
 	return results, nil
 }
-

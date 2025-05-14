@@ -38,8 +38,9 @@ type ItemList struct {
 	Items     []ListItem    `json:"items"`
 	ItemCount int           `json:"itemCount"`
 
-	OwnerID  uint64 `json:"ownerId"`
-	IsPublic bool   `json:"isPublic"`
+	OwnerID        uint64 `json:"ownerId"`
+	OriginClientID uint64 `json:"originClientId"` // 0 for internal db, otherwise external clientID
+	IsPublic       bool   `json:"isPublic"`
 	// ListCollaboratorIDs
 	SharedWith []uint64 `json:"sharedWith"`
 
@@ -242,312 +243,6 @@ func (il *ItemList) GetPage(page, pageSize int) []ListItem {
 	return il.Items[start:end]
 }
 
-// Apply changes from client with proper ID mapping
-// func (il *ItemList) ApplyClientChanges(clientID uint64, clientItems ClientListItems,
-// 	mappingService IDMappingService, serviceType string) error {
-// 	now := time.Now()
-// 	internalItems := make([]ListItem, 0, len(clientItems))
-//
-// 	clientListID := "" // Get this from somewhere or add a parameter
-// 	existingState := il.SyncStates.GetListSyncState(clientID)
-// 	if existingState != nil {
-// 		clientListID = existingState.ClientListID
-// 	}
-//
-// 	// Map external IDs to internal ones
-// 	for _, item := range clientItems {
-// 		internalID, err := mappingService.ExternalToInternal(item.ItemID, serviceType)
-// 		if err != nil {
-// 			// log.Printf("Failed to map external ID %s: %v", item.ItemID, err)
-// 			continue
-// 		}
-//
-// 		internalItems = append(internalItems, ListItem{
-// 			ItemID:        internalID,
-// 			Position:      item.Position,
-// 			LastChanged:   item.LastChanged,
-// 			ChangeHistory: item.ChangeHistory,
-// 		})
-// 	}
-//
-// 	// Create lookup map for internal items
-// 	existingItemsMap := make(map[uint64]int) // Maps ID to index
-// 	for i, item := range il.Items {
-// 		existingItemsMap[item.ItemID] = i
-// 	}
-//
-// 	// Apply changes
-// 	for _, newItem := range internalItems {
-// 		if existingIndex, exists := existingItemsMap[newItem.ItemID]; exists {
-// 			// Item exists - update if newer
-// 			if newItem.LastChanged.After(il.Items[existingIndex].LastChanged) {
-// 				il.Items[existingIndex].Position = newItem.Position
-// 				il.Items[existingIndex].LastChanged = now
-// 				il.Items[existingIndex].ChangeHistory = append(
-// 					il.Items[existingIndex].ChangeHistory,
-// 					ChangeRecord{
-// 						ClientID:   clientID,
-// 						ItemID:     fmt.Sprintf("%d", newItem.ItemID),
-// 						ChangeType: "update",
-// 						Timestamp:  now,
-// 					})
-// 			}
-// 		} else {
-// 			// New item - add it
-// 			il.AddItemWithClientID(newItem, clientID)
-// 		}
-// 	}
-//
-// 	// Handle removals (items in playlist but not in client items)
-// 	if len(internalItems) > 0 {
-// 		clientItemsMap := make(map[uint64]bool)
-// 		for _, item := range internalItems {
-// 			clientItemsMap[item.ItemID] = true
-// 		}
-//
-// 		// Find items to remove
-// 		var itemsToRemove []int
-// 		for i, item := range il.Items {
-// 			if !clientItemsMap[item.ItemID] {
-// 				itemsToRemove = append(itemsToRemove, i)
-// 			}
-// 		}
-//
-// 		// Remove items (in reverse order to maintain indices)
-// 		for i := len(itemsToRemove) - 1; i >= 0; i-- {
-// 			idx := itemsToRemove[i]
-// 			// il.Items = append(il.Items[:idx], il.Items[idx+1:]...)
-// 			il.Items = slices.Delete(il.Items, idx, idx+1)
-// 		}
-// 	}
-//
-// 	il.NormalizePositions()
-// 	il.updateClientState(clientID, clientItems, clientListID)
-// 	il.ItemCount = len(il.Items)
-// 	il.LastModified = now
-// 	il.ModifiedBy = clientID
-//
-// 	return nil
-// }
-
-// SynchronizeWithClient compares local state with a client state and resolves differences
-// func (il *ItemList) SynchronizeListWithClient(clientID uint64, mappingService IDMappingService, serviceType string) (bool, error) {
-// 	state := il.SyncStates.GetListSyncState(clientID)
-// 	if state == nil {
-// 		return false, fmt.Errorf("no state exists for client %d", clientID)
-// 	}
-//
-// 	// Generate new sync payload
-// 	currentItems, err := il.GenerateSyncPayload(clientID, mappingService, serviceType)
-// 	if err != nil {
-// 		return false, err
-// 	}
-//
-// 	// Compare with existing client state
-// 	changes := false
-// 	localItemMap := make(map[string]ClientListItem)
-// 	for _, item := range currentItems {
-// 		localItemMap[item.ItemID] = item
-// 	}
-//
-// 	// Check for additions or changes
-// 	for _, clientItem := range state.Items {
-// 		localItem, exists := localItemMap[clientItem.ItemID]
-// 		if !exists || clientItem.Position != localItem.Position {
-// 			changes = true
-// 			break
-// 		}
-// 	}
-//
-// 	// Check for removals
-// 	if len(currentItems) != len(state.Items) {
-// 		changes = true
-// 	}
-//
-// 	if changes {
-// 		state.Items = currentItems
-// 		state.LastSynced = time.Now()
-// 	}
-//
-// 	return changes, nil
-// }
-
-// SynchronizeWithClient compares local state with a client state and resolves differences
-// func (mi *ItemList) SynchronizeWithClient(clientID uint64, mappingService IDMappingService, serviceType string) (bool, error) {
-// 	state := mi.SyncStates.GetListSyncState(clientID)
-// 	if state == nil {
-// 		return false, fmt.Errorf("no state exists for client %d", clientID)
-// 	}
-//
-// 	// Generate new sync payload
-// 	currentItems, err := mi.GenerateSyncPayload(clientID, mappingService, serviceType)
-// 	if err != nil {
-// 		return false, err
-// 	}
-//
-// 	// Compare with existing client state
-// 	changes := false
-// 	localItemMap := make(map[string]ClientListItem)
-// 	for _, item := range currentItems {
-// 		localItemMap[item.ItemID] = item
-// 	}
-//
-// 	// Check for additions or changes
-// 	for _, clientItem := range state.Items {
-// 		localItem, exists := localItemMap[clientItem.ItemID]
-// 		if !exists || clientItem.Position != localItem.Position {
-// 			changes = true
-// 			break
-// 		}
-// 	}
-//
-// 	// Check for removals
-// 	if len(currentItems) != len(state.Items) {
-// 		changes = true
-// 	}
-//
-// 	if changes {
-// 		state.Items = currentItems
-// 		state.LastSynced = time.Now()
-// 	}
-//
-// 	return changes, nil
-// }
-
-// ApplyChangesFromMultipleClients safely applies changes from multiple clients
-// func (mi *ItemList) ApplyChangesFromMultipleClients(
-// 	clientChanges map[uint64]ClientListItems,
-// 	mappingService IDMappingService,
-// 	serviceType string) error {
-//
-// 	// First collect and convert all changes
-// 	allChanges := make(map[uint64][]ListItem)
-// 	now := time.Now()
-//
-// 	for cID, items := range clientChanges {
-// 		internalItems := make([]ListItem, 0, len(items))
-//
-// 		for _, item := range items {
-// 			internaID, err := mappingService.ExternalToInternal(item.ItemID, serviceType)
-// 			if err != nil {
-// 				continue
-// 			}
-// 			internalItems = append(internalItems, ListItem{
-// 				ItemID:      internaID,
-// 				Position:    item.Position,
-// 				LastChanged: item.LastChanged,
-// 				// ChangeHistory: item.ChangeHistory,
-// 			})
-// 		}
-//
-// 		allChanges[cID] = internalItems
-// 	}
-//
-// 	// Create a map to track the latest version of each item
-// 	latestItems := make(map[uint64]ListItem)
-// 	latestTimestamps := make(map[uint64]time.Time)
-//
-// 	// Find the latest version of each item across all clients
-// 	for _, items := range allChanges {
-// 		for _, item := range items {
-// 			currentLatestTime, exists := latestTimestamps[item.ItemID]
-// 			if !exists || item.LastChanged.After(currentLatestTime) {
-// 				latestItems[item.ItemID] = item
-// 				latestTimestamps[item.ItemID] = item.LastChanged
-// 			}
-// 		}
-// 	}
-//
-// 	// Apply the latest version of each item
-// 	for itemID, item := range latestItems {
-// 		existingItem, idx, found := mi.FindItemByID(itemID)
-// 		if found {
-// 			if item.LastChanged.After(existingItem.LastChanged) {
-// 				// Update existing item
-// 				mi.Items[idx].Position = item.Position
-// 				mi.Items[idx].LastChanged = now
-// 				mi.Items[idx].ChangeHistory = append(
-// 					mi.Items[idx].ChangeHistory,
-// 					ChangeRecord{
-// 						ClientID:   mi.ModifiedBy,
-// 						ItemID:     fmt.Sprintf("%d", itemID),
-// 						ChangeType: "multi-client-update",
-// 						Timestamp:  now,
-// 					})
-// 			}
-// 		} else {
-// 			// Add new item
-// 			mi.AddItemWithClientID(item, mi.ModifiedBy)
-// 		}
-// 	}
-//
-// 	mi.NormalizePositions()
-// 	mi.LastModified = now
-// 	mi.ItemCount = len(mi.Items)
-//
-// 	return nil
-// }
-
-// Generate sync payload with proper ID mapping
-// func (mi *ItemList) GenerateSyncPayload(clientID uint64,
-// 	mappingService IDMappingService,
-// 	serviceType string) (ClientListItems, error) {
-// 	payload := make(ClientListItems, 0, len(mi.Items))
-//
-// 	for _, item := range mi.Items {
-// 		// Map internal ID to external ID for this service
-// 		externalID, err := mappingService.InternalToExternal(item.ItemID, serviceType)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("failed to map item %d: %w", item.ItemID, err)
-// 		}
-//
-// 		payload = append(payload, ClientListItem{
-// 			ItemID:        externalID,
-// 			Position:      item.Position,
-// 			LastChanged:   item.LastChanged,
-// 			ChangeHistory: item.ChangeHistory,
-// 		})
-// 	}
-//
-// 	return payload, nil
-// }
-
-// Update client state
-// func (mi *ItemList) updateClientState(clientID uint64, clientItems ClientListItems, clientListID string) {
-// 	now := time.Now()
-// 	state := mi.SyncStates.GetListSyncState(clientID)
-//
-// 	if clientListID == "" {
-// 		if state := mi.SyncStates.GetListSyncState(clientID); state != nil {
-// 			clientListID = state.ClientListID
-// 		}
-// 	}
-//
-// 	if state != nil {
-// 		// Update existing state
-// 		state.Items = clientItems
-// 		state.LastSynced = now
-// 		state.ClientListID = clientListID
-// 	} else {
-// 		// Add new state
-// 		mi.SyncStates = append(mi.SyncStates, ListSyncState{
-// 			ClientID:     clientID,
-// 			Items:        clientItems,
-// 			ClientListID: clientListID,
-// 			LastSynced:   now,
-// 		})
-// 	}
-//
-// 	mi.LastSynced = now
-//
-// }
-//
-// // Interface for ID mapping service
-// type IDMappingService interface {
-// 	ExternalToInternal(externalID string, serviceType string) (uint64, error)
-// 	InternalToExternal(internalID uint64, serviceType string) (string, error)
-// }
-
 // Scan
 func (m *ItemList) Scan(value any) error {
 	if value == nil {
@@ -571,7 +266,6 @@ func (m *ItemList) Value() (driver.Value, error) {
 func (m *ItemList) Merge(other *ItemList) {
 	m.Details.Merge(other.Details)
 	// TODO: Additional merge logic for fields
-
 }
 
 // RemoveItemAtPosition removes an item from a list at a specific position
@@ -627,5 +321,13 @@ func (il *ItemList) RemoveItemAtPosition(itemID uint64, position int, clientID u
 func (il *ItemList) normalizePositions() {
 	for i := range il.Items {
 		il.Items[i].Position = i
+	}
+}
+
+func (il *ItemList) ForEach(callback func(item ListItem) bool) {
+	for _, item := range il.Items {
+		if !callback(item) {
+			return
+		}
 	}
 }
