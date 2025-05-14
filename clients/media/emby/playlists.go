@@ -5,12 +5,13 @@ import (
 	"context"
 	"fmt"
 	"strings"
-
-	"github.com/antihax/optional"
 	"suasor/clients/media/types"
-	embyclient "suasor/internal/clients/embyAPI"
 	"suasor/types/models"
 	"suasor/utils/logger"
+
+	"github.com/antihax/optional"
+
+	embyclient "suasor/internal/clients/embyAPI"
 )
 
 // SupportsPlaylists returns true since Emby supports playlists
@@ -148,7 +149,6 @@ func (e *EmbyClient) GetPlaylist(ctx context.Context, playlistID string) (*model
 }
 
 func (e *EmbyClient) GetPlaylistByID(ctx context.Context, playlistID string) (*models.MediaItem[*types.Playlist], error) {
-
 	// opts := embclient.ItemsServiceApiGetItemsOpts{
 	// 	Ids:    optional.NewString(collectionID),
 	// 	Fields: optional.NewString("PrimaryImageAspectRatio,BasicSyncInfo,CanDelete,Container,DateCreated,PremiereDate,Genres,MediaSources,Overview,ParentId,Path,SortName,Studios,Taglines"),
@@ -171,7 +171,7 @@ func (e *EmbyClient) GetPlaylistByID(ctx context.Context, playlistID string) (*m
 
 // GetItems retrieves the items in a specific playlist
 // Implements ListProvider[*types.Playlist] interface method
-func (e *EmbyClient) GetPlaylistItems(ctx context.Context, playlistID string) (*models.MediaItemList, error) {
+func (e *EmbyClient) GetPlaylistItems(ctx context.Context, playlistID string) (*models.MediaItemList[*types.Playlist], error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Info().
 		Str("playlistID", playlistID).
@@ -211,8 +211,12 @@ func (e *EmbyClient) GetPlaylistItems(ctx context.Context, playlistID string) (*
 	var listIDUint uint64 = 0
 	// Don't worry about conversion errors, we'll use 0 as default
 
+	playlist, err := e.GetPlaylistByID(ctx, playlistID)
+	if err != nil {
+		return nil, err
+	}
 	// Create new media item list
-	itemList := models.NewMediaItemList[*types.Playlist](listIDUint, 0)
+	itemList := models.NewMediaItemList[*types.Playlist](playlist, listIDUint, 0)
 
 	// Initialize the maps
 	itemList.Playlists = make(map[string]*models.MediaItem[*types.Playlist])
@@ -765,4 +769,3 @@ func (e *EmbyClient) ReorderPlaylistItems(ctx context.Context, playlistID string
 
 	return nil
 }
-

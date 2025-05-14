@@ -2,6 +2,7 @@ package providers
 
 import (
 	"context"
+
 	"suasor/clients/media/types"
 	"suasor/types/models"
 )
@@ -9,7 +10,7 @@ import (
 // CollectionProvider defines collection capabilities
 type CollectionProvider interface {
 	GetCollection(ctx context.Context, collectionID string) (*models.MediaItem[*types.Collection], error)
-	GetCollectionItems(ctx context.Context, collectionID string) (*models.MediaItemList, error)
+	GetCollectionItems(ctx context.Context, collectionID string) (*models.MediaItemList[*types.Collection], error)
 	CreateCollection(ctx context.Context, name string, description string) (*models.MediaItem[*types.Collection], error)
 	CreateCollectionWithItems(ctx context.Context, name string, description string, itemIDs []string) (*models.MediaItem[*types.Collection], error)
 	UpdateCollection(ctx context.Context, collectionID string, name string, description string) (*models.MediaItem[*types.Collection], error)
@@ -30,7 +31,7 @@ type CollectionProvider interface {
 // PlaylistProvider defines playlist capabilities
 type PlaylistProvider interface {
 	GetPlaylist(ctx context.Context, playlistID string) (*models.MediaItem[*types.Playlist], error)
-	GetPlaylistItems(ctx context.Context, playlistID string) (*models.MediaItemList, error)
+	GetPlaylistItems(ctx context.Context, playlistID string) (*models.MediaItemList[*types.Playlist], error)
 	CreatePlaylist(ctx context.Context, name string, description string) (*models.MediaItem[*types.Playlist], error)
 	CreatePlaylistWithItems(ctx context.Context, name string, description string, itemIDs []string) (*models.MediaItem[*types.Playlist], error)
 	UpdatePlaylist(ctx context.Context, playlistID string, name string, description string) (*models.MediaItem[*types.Playlist], error)
@@ -49,10 +50,9 @@ type PlaylistProvider interface {
 }
 
 type ListProvider[T types.ListData] interface {
-
 	// Full collection management capabilities
 	GetList(ctx context.Context, listID string) (*models.MediaItem[T], error)
-	GetListItems(ctx context.Context, collectionID string) (*models.MediaItemList, error)
+	GetListItems(ctx context.Context, collectionID string) (*models.MediaItemList[T], error)
 	CreateList(ctx context.Context, name string, description string) (*models.MediaItem[T], error)
 	CreateListWithItems(ctx context.Context, name string, description string, itemIDs []string) (*models.MediaItem[T], error)
 	UpdateList(ctx context.Context, collectionID string, name string, description string) (*models.MediaItem[T], error)

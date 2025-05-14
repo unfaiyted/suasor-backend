@@ -105,7 +105,7 @@ func (h *ClientMediaItemHelper) GetOrCreateMediaItemMapping(
 	}
 
 	// Create a new media item with this sync client
-	mediaItem := models.NewMediaItem(mediaType, data)
+	mediaItem := models.NewMediaItem(data)
 	mediaItem.SetClientInfo(clientID, clientType, clientItemID)
 
 	// Insert the new media item

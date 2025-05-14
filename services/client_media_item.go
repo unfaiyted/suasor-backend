@@ -721,7 +721,7 @@ func (s *clientMediaItemService[T, U]) SearchAcrossClients(ctx context.Context, 
 					continue
 				}
 
-				mediaItem := models.NewMediaItem(movie.Type, movieData)
+				mediaItem := models.NewMediaItem(movieData)
 				mediaItem.SetClientInfo(clientID, client.Config.GetType(), movie.SyncClients[0].ItemID)
 
 				clientResults = append(clientResults, mediaItem)
@@ -734,7 +734,7 @@ func (s *clientMediaItemService[T, U]) SearchAcrossClients(ctx context.Context, 
 					continue
 				}
 
-				mediaItem := models.NewMediaItem(series.Type, seriesData)
+				mediaItem := models.NewMediaItem(seriesData)
 				mediaItem.SetClientInfo(clientID, client.Config.GetType(), series.SyncClients[0].ItemID)
 
 				clientResults = append(clientResults, mediaItem)
@@ -909,7 +909,7 @@ func (s *clientMediaItemService[T, U]) SearchClient(ctx context.Context, clientI
 				continue
 			}
 
-			mediaItem := models.NewMediaItem(movie.Type, movieData)
+			mediaItem := models.NewMediaItem(movieData)
 			mediaItem.Title = movie.Title
 			mediaItem.ReleaseDate = movie.ReleaseDate
 			mediaItem.ReleaseYear = movie.ReleaseYear
@@ -929,7 +929,7 @@ func (s *clientMediaItemService[T, U]) SearchClient(ctx context.Context, clientI
 				continue
 			}
 
-			mediaItem := models.NewMediaItem(series.Type, seriesData)
+			mediaItem := models.NewMediaItem(seriesData)
 			mediaItem.Title = series.Title
 			mediaItem.ReleaseDate = series.ReleaseDate
 			mediaItem.ReleaseYear = series.ReleaseYear
@@ -949,7 +949,7 @@ func (s *clientMediaItemService[T, U]) SearchClient(ctx context.Context, clientI
 				continue
 			}
 
-			mediaItem := models.NewMediaItem(artist.Type, artistData)
+			mediaItem := models.NewMediaItem(artistData)
 			mediaItem.Title = artist.Title
 			mediaItem.UpdatedAt = time.Now()
 			mediaItem.SetClientInfo(clientID, clientType, artist.SyncClients[0].ItemID)
@@ -967,7 +967,7 @@ func (s *clientMediaItemService[T, U]) SearchClient(ctx context.Context, clientI
 				continue
 			}
 
-			mediaItem := models.NewMediaItem(album.Type, albumData)
+			mediaItem := models.NewMediaItem(albumData)
 			mediaItem.Title = album.Title
 			mediaItem.ReleaseDate = album.ReleaseDate
 			mediaItem.ReleaseYear = album.ReleaseYear
@@ -987,7 +987,7 @@ func (s *clientMediaItemService[T, U]) SearchClient(ctx context.Context, clientI
 				continue
 			}
 
-			mediaItem := models.NewMediaItem(track.Type, trackData)
+			mediaItem := models.NewMediaItem(trackData)
 			mediaItem.Title = track.Title
 			mediaItem.ReleaseDate = track.ReleaseDate
 			mediaItem.ReleaseYear = track.ReleaseYear
@@ -1007,7 +1007,7 @@ func (s *clientMediaItemService[T, U]) SearchClient(ctx context.Context, clientI
 				continue
 			}
 
-			mediaItem := models.NewMediaItem(playlist.Type, playlistData)
+			mediaItem := models.NewMediaItem(playlistData)
 			mediaItem.Title = playlist.Title
 			mediaItem.UpdatedAt = time.Now()
 			mediaItem.SetClientInfo(clientID, clientType, playlist.SyncClients[0].ItemID)
@@ -1025,7 +1025,7 @@ func (s *clientMediaItemService[T, U]) SearchClient(ctx context.Context, clientI
 				continue
 			}
 
-			mediaItem := models.NewMediaItem(collection.Type, collectionData)
+			mediaItem := models.NewMediaItem(collectionData)
 			mediaItem.Title = collection.Title
 			mediaItem.UpdatedAt = time.Now()
 			mediaItem.SetClientInfo(clientID, clientType, collection.SyncClients[0].ItemID)

@@ -16,13 +16,14 @@ package repository
 import (
 	"context"
 	"fmt"
-	"gorm.io/gorm"
 	"regexp"
 	"strings"
 	"suasor/clients/media/types"
 	"suasor/types/models"
 	"suasor/utils/logger"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // CoreMediaItemRepository defines the interface for generic media item operations
@@ -34,7 +35,7 @@ type CoreMediaItemRepository[T types.MediaData] interface {
 	GetByUserID(ctx context.Context, userID uint64, limit int, offset int) ([]*models.MediaItem[T], error)
 	GetByClientItemID(ctx context.Context, clientID uint64, clientItemID string) (*models.MediaItem[T], error)
 
-	GetMixedMediaItemsByIDs(ctx context.Context, ids []uint64) (*models.MediaItemList, error)
+	GetMixedMediaItemsByIDs(ctx context.Context, ids []uint64) (*models.MediaItemResults, error)
 
 	// Query operations
 	GetByType(ctx context.Context, mediaType types.MediaType) ([]*models.MediaItem[T], error)
@@ -156,7 +157,7 @@ func (r *mediaItemRepository[T]) Search(ctx context.Context, query types.QueryOp
 	// Add search condition
 	if query.Query != "" {
 		// Use ILIKE for case-insensitive search in PostgreSQL
-		// TODOL: user paramater string
+		// TODOL: user parameter string
 		dbQuery = dbQuery.Where("title ILIKE ?", "%"+query.Query+"%")
 	}
 
@@ -294,7 +295,7 @@ func (r *mediaItemRepository[T]) GetItemsByAttributes(ctx context.Context, attri
 	return items, nil
 }
 
-func (r *mediaItemRepository[T]) GetMixedMediaItemsByIDs(ctx context.Context, ids []uint64) (*models.MediaItemList, error) {
+func (r *mediaItemRepository[T]) GetMixedMediaItemsByIDs(ctx context.Context, ids []uint64) (*models.MediaItemResults, error) {
 	// Fetch movies
 	movies, err := fetchMediaItemsByType[*types.Movie](ctx, r.db, ids, types.MediaTypeMovie)
 	if err != nil {
@@ -332,7 +333,7 @@ func (r *mediaItemRepository[T]) GetMixedMediaItemsByIDs(ctx context.Context, id
 	if err != nil {
 		return nil, err
 	}
-	var mediaItems models.MediaItemList
+	var mediaItems models.MediaItemResults
 
 	mediaItems.AddMovieList(movies)
 	mediaItems.AddSeriesList(series)
@@ -343,9 +344,7 @@ func (r *mediaItemRepository[T]) GetMixedMediaItemsByIDs(ctx context.Context, id
 	mediaItems.AddTrackList(tracks)
 	mediaItems.AddPlaylistList(playlists)
 	mediaItems.AddCollectionList(collections)
-
 	return &mediaItems, nil
-
 }
 
 func (r *mediaItemRepository[T]) GetAll(ctx context.Context, limit int, offset int, publicOnly bool) ([]*models.MediaItem[T], error) {
@@ -376,7 +375,7 @@ func (r *mediaItemRepository[T]) GetAll(ctx context.Context, limit int, offset i
 	}
 	dbQuery = dbQuery.Order("created_at DESC")
 	if publicOnly {
-		//TODO: validate this is correct path to this public indicator
+		// TODO: validate this is correct path to this public indicator
 		dbQuery = dbQuery.Where("is_public = ?", true)
 	}
 	if mediaType != types.MediaTypeUnknown || mediaType != types.MediaTypeAll {
@@ -452,8 +451,7 @@ func (r *mediaItemRepository[T]) GetByUserID(ctx context.Context, userID uint64,
 
 		return items, nil
 	}
-	return nil, fmt.Errorf("media type not supported")
-
+	return nil, fmt.Errorf("no media items found for user")
 }
 
 func (r *mediaItemRepository[T]) GetByTitleAndYear(ctx context.Context, clientID uint64, title string, year int) (*models.MediaItem[T], error) {

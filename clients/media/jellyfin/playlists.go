@@ -3,13 +3,15 @@ package jellyfin
 import (
 	"context"
 	"fmt"
-	jellyfin "github.com/sj14/jellyfin-go/api"
-	"suasor/clients/media/types"
-	clienttypes "suasor/clients/types"
+	"time"
 
+	"suasor/clients/media/types"
 	"suasor/types/models"
 	"suasor/utils/logger"
-	"time"
+
+	clienttypes "suasor/clients/types"
+
+	jellyfin "github.com/sj14/jellyfin-go/api"
 )
 
 // SupportsPlaylists indicates if this client supports playlists
@@ -74,20 +76,17 @@ func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *types.QueryO
 		}
 
 		// Convert to our playlist model
-		playlist := models.MediaItem[*types.Playlist]{
-			Data: &types.Playlist{
-				ItemList: types.ItemList{
-					Details: &types.MediaDetails{
-						Title:       title,
-						Description: description,
-						Artwork:     *j.getArtworkURLs(&item),
-					},
-					ItemCount: itemCount,
-					IsPublic:  true, // Assume public by default in Jellyfin
+		playlist := *models.NewMediaItem[*types.Playlist](&types.Playlist{
+			ItemList: types.ItemList{
+				Details: &types.MediaDetails{
+					Title:       title,
+					Description: description,
+					Artwork:     *j.getArtworkURLs(&item),
 				},
+				ItemCount: itemCount,
+				IsPublic:  true, // Assume public by default in Jellyfin
 			},
-			Type: "playlist",
-		}
+		})
 		playlist.SetClientInfo(j.GetClientID(), j.GetClientType(), *item.Id)
 		playlists = append(playlists, playlist)
 	}
@@ -99,8 +98,26 @@ func (j *JellyfinClient) GetPlaylists(ctx context.Context, options *types.QueryO
 	return playlists, nil
 }
 
+// Getplaylist retrieves a playlist from Jellyfin
+func (j *JellyfinClient) GetPlaylist(ctx context.Context, playlistID string) *models.MediaItem[*types.Playlist] {
+	// Get logger from context
+	log := logger.LoggerFromContext(ctx)
+
+	log.Info().
+		Uint64("clientID", j.GetClientID()).
+		Str("clientType", string(j.GetClientType())).
+		Str("playlistID", playlistID).
+		Msg("Retrieving playlist from Jellyfin")
+
+	// Get playlist from Jellyfin
+	getReq := j.client.PlaylistsAPI.GetPlaylist(ctx, playlistID)
+	getReq.Execute()
+
+	return nil
+}
+
 // GetPlaylistItems retrieves items in a playlist from Jellyfin
-func (j *JellyfinClient) GetPlaylistItems(ctx context.Context, playlistID string, options *types.QueryOptions) (*models.MediaItemList, error) {
+func (j *JellyfinClient) GetPlaylistItems(ctx context.Context, playlistID string, options *types.QueryOptions) (*models.MediaItemList[*types.Playlist], error) {
 	// Get logger from context
 	log := logger.LoggerFromContext(ctx)
 
@@ -110,11 +127,12 @@ func (j *JellyfinClient) GetPlaylistItems(ctx context.Context, playlistID string
 		Str("playlistID", playlistID).
 		Msg("Retrieving playlist items from Jellyfin")
 
-	// }
+	playlistDetails := j.GetPlaylist(ctx, playlistID)
+
+	playlist := models.NewMediaItemList[*types.Playlist](playlistDetails, 0, 0)
+
 	playlistRes := j.client.PlaylistsAPI.GetPlaylistItems(ctx, playlistID)
-
 	jellyfinPlaylist, _, err := playlistRes.Execute()
-
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -131,17 +149,86 @@ func (j *JellyfinClient) GetPlaylistItems(ctx context.Context, playlistID string
 	}
 
 	// Convert Jellyfin items to models
-	mediaItems, err := GetMixedMediaItems(j, ctx, jellyfinPlaylist.Items)
+	mediaResults, err := GetMixedMediaItems(j, ctx, jellyfinPlaylist.Items)
 	if err != nil {
 		return nil, err
 	}
 
+	for _, item := range jellyfinPlaylist.Items {
+		if item.Type == jellyfin.BASEITEMKIND_MOVIE.Ptr() {
+			movieItem, err := GetItem[*types.Movie](ctx, j, &item)
+			if err != nil {
+				return nil, err
+			}
+			movie, err := GetMediaItem[*types.Movie](ctx, j, movieItem, *item.Id)
+			playlist.AddMovie(movie)
+		} else if item.Type == jellyfin.BASEITEMKIND_EPISODE.Ptr() {
+			episodeItem, err := GetItem[*types.Episode](ctx, j, &item)
+			if err != nil {
+				return nil, err
+			}
+			episode, err := GetMediaItem[*types.Episode](ctx, j, episodeItem, *item.Id)
+			if err != nil {
+				return nil, err
+			}
+			playlist.AddEpisode(episode)
+		} else if item.Type == jellyfin.BASEITEMKIND_AUDIO.Ptr() {
+			trackItem, err := GetItem[*types.Track](ctx, j, &item)
+			if err != nil {
+				return nil, err
+			}
+			track, err := GetMediaItem[*types.Track](ctx, j, trackItem, *item.Id)
+			if err != nil {
+				return nil, err
+			}
+			playlist.AddTrack(track)
+		} else if item.Type == jellyfin.BASEITEMKIND_PLAYLIST.Ptr() {
+			// playlistItem, err := GetItem[*types.Playlist](ctx, j, &item)
+			// if err != nil {
+			// 	return nil, err
+			// }
+			// playlist, err := GetMediaItem[*types.Playlist](ctx, j, playlistItem, *item.Id)
+			// if err != nil {
+			// 	return nil, err
+			// }
+			// playlist.AddPlaylist(playlist)
+		} else if item.Type == jellyfin.BASEITEMKIND_SERIES.Ptr() {
+			seriesItem, err := GetItem[*types.Series](ctx, j, &item)
+			if err != nil {
+				return nil, err
+			}
+			series, err := GetMediaItem[*types.Series](ctx, j, seriesItem, *item.Id)
+			if err != nil {
+				return nil, err
+			}
+			playlist.AddSeries(series)
+		} else if item.Type == jellyfin.BASEITEMKIND_SEASON.Ptr() {
+			seasonItem, err := GetItem[*types.Season](ctx, j, &item)
+			if err != nil {
+				return nil, err
+			}
+			season, err := GetMediaItem[*types.Season](ctx, j, seasonItem, *item.Id)
+			if err != nil {
+				return nil, err
+			}
+			playlist.AddSeason(season)
+		} else if item.Type == jellyfin.BASEITEMKIND_COLLECTION_FOLDER.Ptr() {
+			// collection, err := GetItem[*types.Collection](ctx, j, &item)
+			// if err != nil {
+			// 	return nil, err
+			// }
+			// playlist.AddCollection(collection)
+
+		}
+
+	}
+
 	log.Info().
 		Str("playlistID", playlistID).
-		Int("itemCount", mediaItems.GetTotalItems()).
+		Int("itemCount", mediaResults.Len()).
 		Msg("Successfully retrieved playlist items from Jellyfin")
 
-	return mediaItems, nil
+	return playlist, nil
 }
 
 // CreatePlaylist creates a new playlist in Jellyfin
@@ -242,7 +329,7 @@ func (j *JellyfinClient) UpdatePlaylist(ctx context.Context, playlistID string, 
 	}
 
 	// Create our internal model with updated info
-	playlist := models.NewMediaItem[*types.Playlist](types.MediaTypePlaylist, &types.Playlist{
+	playlist := models.NewMediaItem[*types.Playlist](&types.Playlist{
 		ItemList: types.ItemList{
 			Details: &types.MediaDetails{
 				Title:       name,

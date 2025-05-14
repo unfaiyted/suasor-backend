@@ -5,18 +5,18 @@ import (
 	"time"
 )
 
-type MediaItemList struct {
-	Details *MediaItem[types.ListData]
+type MediaItemList[T types.ListData] struct {
+	List *MediaItem[T] `json:"list"`
 
-	Movies      map[string]*MediaItem[*types.Movie]      `json:"movies"`
-	Series      map[string]*MediaItem[*types.Series]     `json:"series"`
-	Episodes    map[string]*MediaItem[*types.Episode]    `json:"episodes"`
-	Seasons     map[string]*MediaItem[*types.Season]     `json:"seasons"`
-	Tracks      map[string]*MediaItem[*types.Track]      `json:"tracks"`
-	Albums      map[string]*MediaItem[*types.Album]      `json:"albums"`
-	Artists     map[string]*MediaItem[*types.Artist]     `json:"artists"`
-	Playlists   map[string]*MediaItem[*types.Playlist]   `json:"playlists"`
-	Collections map[string]*MediaItem[*types.Collection] `json:"collections"`
+	Movies      map[string]*MediaItem[*types.Movie]      `json:"movies,omitempty"`
+	Series      map[string]*MediaItem[*types.Series]     `json:"series,omitempty"`
+	Episodes    map[string]*MediaItem[*types.Episode]    `json:"episodes,omitempty"`
+	Seasons     map[string]*MediaItem[*types.Season]     `json:"seasons,omitempty"`
+	Tracks      map[string]*MediaItem[*types.Track]      `json:"tracks,omitempty"`
+	Albums      map[string]*MediaItem[*types.Album]      `json:"albums,omitempty"`
+	Artists     map[string]*MediaItem[*types.Artist]     `json:"artists,omitempty"`
+	Playlists   map[string]*MediaItem[*types.Playlist]   `json:"playlists,omitempty"`
+	Collections map[string]*MediaItem[*types.Collection] `json:"collections,omitempty"`
 
 	ListType     types.ListType `json:"listType"`
 	ListOriginID uint64         `json:"listOriginID"` // 0 for internal db, otherwise external client/ProviderID
@@ -27,11 +27,12 @@ type MediaItemList struct {
 	TotalItems int `json:"totalItems"`
 }
 
-func NewMediaItemList[T types.ListData](listOriginID uint64, ownerID uint64) *MediaItemList {
+func NewMediaItemList[T types.ListData](list *MediaItem[T], listOriginID uint64, ownerID uint64) *MediaItemList[T] {
 
 	listType := types.GetListType[T]()
 
-	return &MediaItemList{
+	return &MediaItemList[T]{
+		List:         list,
 		ListType:     listType,
 		ListOriginID: listOriginID,
 		OwnerID:      ownerID,
@@ -40,7 +41,7 @@ func NewMediaItemList[T types.ListData](listOriginID uint64, ownerID uint64) *Me
 	}
 }
 
-func (m *MediaItemList) AddListItem(itemUUID string, itemPosition int) {
+func (m *MediaItemList[T]) AddListItem(itemUUID string, itemPosition int) {
 	m.Order = append(m.Order, ListItem{
 		ItemUUID:    itemUUID,
 		Position:    itemPosition,
@@ -48,14 +49,20 @@ func (m *MediaItemList) AddListItem(itemUUID string, itemPosition int) {
 	})
 }
 
-func (m *MediaItemList) GetTotalItems() int {
+func (m *MediaItemList[T]) GetTotalItems() int {
 	return m.TotalItems
 }
 
-func (m *MediaItemList) GetSyncClientItemIDs(clientID uint64) []string {
+func (m *MediaItemList[T]) GetSyncClientItemIDs(clientID uint64) []string {
 	ids := make([]string, 0)
 	m.ForEach(func(uuid string, mediaType types.MediaType, item any) bool {
-		ids = append(ids, item.(*MediaItem[types.MediaData]).SyncClients.GetClientItemID(clientID))
+		if mediaItem, ok := item.(*MediaItem[types.MediaData]); ok && mediaItem != nil {
+			clientItemID := mediaItem.SyncClients.GetClientItemID(clientID)
+			// Only add non-empty client IDs
+			if clientItemID != "" {
+				ids = append(ids, clientItemID)
+			}
+		}
 		return true
 	})
 
@@ -63,117 +70,117 @@ func (m *MediaItemList) GetSyncClientItemIDs(clientID uint64) []string {
 }
 
 // AddMovie adds a movie to the media items
-func (m *MediaItemList) AddMovie(item *MediaItem[*types.Movie]) {
+func (m *MediaItemList[T]) AddMovie(item *MediaItem[*types.Movie]) {
 	m.Movies[item.UUID] = item
 	m.AddListItem(item.UUID, m.TotalItems+1)
 	m.TotalItems++
 }
 
-func (m *MediaItemList) AddMovieList(items []*MediaItem[*types.Movie]) {
+func (m *MediaItemList[T]) AddMovieList(items []*MediaItem[*types.Movie]) {
 	for _, item := range items {
 		m.AddMovie(item)
 	}
 }
 
 // AddSeries adds a series to the media items
-func (m *MediaItemList) AddSeries(item *MediaItem[*types.Series]) {
+func (m *MediaItemList[T]) AddSeries(item *MediaItem[*types.Series]) {
 	m.Series[item.UUID] = item
 	m.AddListItem(item.UUID, m.TotalItems+1)
 	m.TotalItems++
 }
 
-func (m *MediaItemList) AddSeriesList(items []*MediaItem[*types.Series]) {
+func (m *MediaItemList[T]) AddSeriesList(items []*MediaItem[*types.Series]) {
 	for _, item := range items {
 		m.AddSeries(item)
 	}
 }
 
 // AddSeason adds a season to the media items
-func (m *MediaItemList) AddSeason(item *MediaItem[*types.Season]) {
+func (m *MediaItemList[T]) AddSeason(item *MediaItem[*types.Season]) {
 	m.Seasons[item.UUID] = item
 	m.AddListItem(item.UUID, m.TotalItems+1)
 	m.TotalItems++
 }
 
-func (m *MediaItemList) AddSeasonList(items []*MediaItem[*types.Season]) {
+func (m *MediaItemList[T]) AddSeasonList(items []*MediaItem[*types.Season]) {
 	for _, item := range items {
 		m.AddSeason(item)
 	}
 }
 
 // AddEpisode adds an episode to the media items
-func (m *MediaItemList) AddEpisode(item *MediaItem[*types.Episode]) {
+func (m *MediaItemList[T]) AddEpisode(item *MediaItem[*types.Episode]) {
 	m.Episodes[item.UUID] = item
 	m.AddListItem(item.UUID, m.TotalItems+1)
 	m.TotalItems++
 }
 
-func (m *MediaItemList) AddEpisodeList(items []*MediaItem[*types.Episode]) {
+func (m *MediaItemList[T]) AddEpisodeList(items []*MediaItem[*types.Episode]) {
 	for _, item := range items {
 		m.AddEpisode(item)
 	}
 }
 
 // AddArtist adds an artist to the media items
-func (m *MediaItemList) AddArtist(item *MediaItem[*types.Artist]) {
+func (m *MediaItemList[T]) AddArtist(item *MediaItem[*types.Artist]) {
 	m.Artists[item.UUID] = item
 	m.AddListItem(item.UUID, m.TotalItems+1)
 	m.TotalItems++
 }
 
-func (m *MediaItemList) AddArtistList(items []*MediaItem[*types.Artist]) {
+func (m *MediaItemList[T]) AddArtistList(items []*MediaItem[*types.Artist]) {
 	for _, item := range items {
 		m.AddArtist(item)
 	}
 }
 
 // AddAlbum adds an album to the media items
-func (m *MediaItemList) AddAlbum(item *MediaItem[*types.Album]) {
+func (m *MediaItemList[T]) AddAlbum(item *MediaItem[*types.Album]) {
 	m.Albums[item.UUID] = item
 	m.AddListItem(item.UUID, m.TotalItems+1)
 	m.TotalItems++
 }
 
-func (m *MediaItemList) AddAlbumList(items []*MediaItem[*types.Album]) {
+func (m *MediaItemList[T]) AddAlbumList(items []*MediaItem[*types.Album]) {
 	for _, item := range items {
 		m.AddAlbum(item)
 	}
 }
 
 // AddTrack adds a track to the media items
-func (m *MediaItemList) AddTrack(item *MediaItem[*types.Track]) {
+func (m *MediaItemList[T]) AddTrack(item *MediaItem[*types.Track]) {
 	m.Tracks[item.UUID] = item
 	m.AddListItem(item.UUID, m.TotalItems+1)
 	m.TotalItems++
 }
 
-func (m *MediaItemList) AddTrackList(items []*MediaItem[*types.Track]) {
+func (m *MediaItemList[T]) AddTrackList(items []*MediaItem[*types.Track]) {
 	for _, item := range items {
 		m.AddTrack(item)
 	}
 }
 
 // AddPlaylist adds a playlist to the media items
-func (m *MediaItemList) AddPlaylist(item *MediaItem[*types.Playlist]) {
+func (m *MediaItemList[T]) AddPlaylist(item *MediaItem[*types.Playlist]) {
 	m.Playlists[item.UUID] = item
 	m.AddListItem(item.UUID, m.TotalItems+1)
 	m.TotalItems++
 }
 
-func (m *MediaItemList) AddPlaylistList(items []*MediaItem[*types.Playlist]) {
+func (m *MediaItemList[T]) AddPlaylistList(items []*MediaItem[*types.Playlist]) {
 	for _, item := range items {
 		m.AddPlaylist(item)
 	}
 }
 
 // AddCollection adds a collection to the media items
-func (m *MediaItemList) AddCollection(item *MediaItem[*types.Collection]) {
+func (m *MediaItemList[T]) AddCollection(item *MediaItem[*types.Collection]) {
 	m.Collections[item.UUID] = item
 	m.AddListItem(item.UUID, m.TotalItems+1)
 	m.TotalItems++
 }
 
-func (m *MediaItemList) AddCollectionList(items []*MediaItem[*types.Collection]) {
+func (m *MediaItemList[T]) AddCollectionList(items []*MediaItem[*types.Collection]) {
 	for _, item := range items {
 		m.AddCollection(item)
 	}
@@ -182,7 +189,7 @@ func (m *MediaItemList) AddCollectionList(items []*MediaItem[*types.Collection])
 // ForEach iterates over all media items in the list in the specified order.
 // The callback function receives the UUID, media type, and the item itself.
 // If the callback returns false, iteration stops early.
-func (m *MediaItemList) ForEach(callback func(uuid string, mediaType types.MediaType, item any) bool) {
+func (m *MediaItemList[T]) ForEach(callback func(uuid string, mediaType types.MediaType, item any) bool) {
 	for _, listItem := range m.Order {
 		uuid := listItem.ItemUUID
 
@@ -245,7 +252,7 @@ func (m *MediaItemList) ForEach(callback func(uuid string, mediaType types.Media
 }
 
 // IsItemAtPosition checks if a media item is at a specific position
-func (m *MediaItemList) IsItemAtPosition(uuid string, position int) bool {
+func (m *MediaItemList[T]) IsItemAtPosition(uuid string, position int) bool {
 	for _, item := range m.Order {
 		if item.ItemUUID == uuid && item.Position == position {
 			return true

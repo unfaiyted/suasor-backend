@@ -5,8 +5,9 @@ import (
 	"context"
 	"fmt"
 
-	mediatypes "suasor/clients/media/types"
 	"suasor/types/models"
+
+	mediatypes "suasor/clients/media/types"
 )
 
 // PlaylistListAdapter adapts a PlaylistProvider to a ListProvider[*types.Playlist]
@@ -21,7 +22,7 @@ func NewPlaylistListAdapter(provider PlaylistProvider) ListProvider[*mediatypes.
 
 // Implementation of ListProvider[*types.Playlist] interface methods
 
-func (a *PlaylistListAdapter) GetListItems(ctx context.Context, listID string) (*models.MediaItemList, error) {
+func (a *PlaylistListAdapter) GetListItems(ctx context.Context, listID string) (*models.MediaItemList[*mediatypes.Playlist], error) {
 	return a.provider.GetPlaylistItems(ctx, listID)
 }
 
@@ -92,7 +93,7 @@ func NewCollectionListAdapter(provider CollectionProvider) ListProvider[*mediaty
 
 // Implementation of ListProvider[*types.Collection] interface methods
 
-func (a *CollectionListAdapter) GetListItems(ctx context.Context, listID string) (*models.MediaItemList, error) {
+func (a *CollectionListAdapter) GetListItems(ctx context.Context, listID string) (*models.MediaItemList[*mediatypes.Collection], error) {
 	return a.provider.GetCollectionItems(ctx, listID)
 }
 

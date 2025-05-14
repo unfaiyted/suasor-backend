@@ -43,12 +43,18 @@ func (s *SyncClients) AddClient(clientID uint64, clientType types.ClientType, it
 }
 
 func (s *SyncClients) GetSyncClients() []*SyncClient {
+	if s == nil {
+		return []*SyncClient{}
+	}
 	return *s
 }
 
 func (s *SyncClients) GetClientItemID(clientID uint64) string {
+	if s == nil {
+		return ""
+	}
 	for _, id := range *s {
-		if id.ID == clientID {
+		if id != nil && id.ID == clientID {
 			return id.ItemID
 		}
 	}
@@ -56,8 +62,11 @@ func (s *SyncClients) GetClientItemID(clientID uint64) string {
 }
 
 func (s *SyncClients) GetByClientID(clientID uint64) (*SyncClient, bool) {
+	if s == nil {
+		return &SyncClient{}, false
+	}
 	for _, client := range *s {
-		if client.ID == clientID {
+		if client != nil && client.ID == clientID {
 			return client, true
 		}
 	}
@@ -65,10 +74,20 @@ func (s *SyncClients) GetByClientID(clientID uint64) (*SyncClient, bool) {
 }
 
 func (s *SyncClients) Merge(other SyncClients) {
+	if s == nil {
+		return
+	}
+
 	for _, otherClient := range other {
+		if otherClient == nil {
+			continue
+		}
+
 		found := false
 		for i, client := range *s {
-			if client.ID == otherClient.ID && client.Type == otherClient.Type {
+			if client != nil && otherClient != nil &&
+			   client.ID == otherClient.ID &&
+			   client.Type == otherClient.Type {
 				// Update existing entry
 				(*s)[i].ItemID = otherClient.ItemID
 				found = true
@@ -117,8 +136,11 @@ func (s *SyncClients) Scan(value any) error {
 }
 
 func (s *SyncClients) IsClientPresent(clientID uint64) bool {
+	if s == nil {
+		return false
+	}
 	for _, client := range *s {
-		if client.ID == clientID {
+		if client != nil && client.ID == clientID {
 			return true
 		}
 	}
@@ -126,8 +148,11 @@ func (s *SyncClients) IsClientPresent(clientID uint64) bool {
 }
 
 func (s *SyncClients) UpdateSyncStatus(clientID uint64, syncState SyncStatus) {
+	if s == nil {
+		return
+	}
 	for i, client := range *s {
-		if client.ID == clientID {
+		if client != nil && client.ID == clientID {
 			(*s)[i].SyncStatus = syncState
 			(*s)[i].LastSynced = time.Now()
 			return
@@ -136,9 +161,11 @@ func (s *SyncClients) UpdateSyncStatus(clientID uint64, syncState SyncStatus) {
 }
 
 func (s *SyncClients) GetSyncStatus(clientID uint64) (SyncStatus, bool) {
-
+	if s == nil {
+		return SyncStatusUnknown, false
+	}
 	for _, client := range *s {
-		if client.ID == clientID {
+		if client != nil && client.ID == clientID {
 			return client.SyncStatus, true
 		}
 	}

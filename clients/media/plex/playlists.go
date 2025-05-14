@@ -567,8 +567,11 @@ func (c *PlexClient) GetAllPlaylistContentsTypes(ctx context.Context, playlistID
 		Float64("playlistID", playlistID).
 		Msg("Retrieving all playlist contents types from Plex server")
 
-	// TODO: userID should be passed in
-	itemList := models.NewMediaItemList[*types.Playlist](c.GetClientID(), 0)
+	playlist, err := c.GetPlaylist(ctx, string(playlistID))
+	if err != nil {
+		return nil, err
+	}
+	itemList := models.NewMediaItemList[*types.Playlist](&playlist, 0, c.GetClientID())
 
 	playlistContentsTypes := make([]operations.GetPlaylistContentsQueryParamType, 0, 10)
 	playlistContentsTypes = append(playlistContentsTypes,

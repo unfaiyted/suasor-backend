@@ -38,10 +38,11 @@ func (MediaItem[T]) TableName() string {
 	return "media_items"
 }
 
-func NewMediaItem[T types.MediaData](itemType types.MediaType, data T) *MediaItem[T] {
+func NewMediaItem[T types.MediaData](data T) *MediaItem[T] {
 	// Initialize with empty arrays
 	clientIDs := make(SyncClients, 0)
 	externalIDs := make(types.ExternalIDs, 0)
+	itemType := types.GetMediaType[T]()
 
 	// Make sure data has a valid Details field
 	details := data.GetDetails()
@@ -79,7 +80,7 @@ func NewMediaItemCopy[T types.MediaData, U types.MediaData](item *MediaItem[T]) 
 
 	expectedType = any(item.Data).(U)
 
-	NewItem := NewMediaItem[U](item.Type, expectedType)
+	NewItem := NewMediaItem[U](expectedType)
 	NewItem.UUID = item.UUID
 	NewItem.SyncClients = item.SyncClients
 	NewItem.ExternalIDs = item.ExternalIDs

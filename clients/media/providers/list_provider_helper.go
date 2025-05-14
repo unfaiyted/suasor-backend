@@ -116,25 +116,27 @@ func (a *ListSyncAdapter[T]) SyncListItems(
 	// Get source list items
 
 	// listType := mediatypes.GetListType[T]()
-	sourceItems, err := a.sourceProvider.GetListItems(ctx, sourceListID)
+	sourceList, err := a.sourceProvider.GetListItems(ctx, sourceListID)
 	if err != nil {
 		return fmt.Errorf("failed to get source list items: %w", err)
 	}
 	// Get target list items for comparison
-	targetItems, err := a.targetProvider.GetListItems(ctx, targetListID)
+	targetList, err := a.targetProvider.GetListItems(ctx, targetListID)
 	if err != nil {
 		// If target is empty, just continue (it might be a new list)
-		targetItems = models.NewMediaItemList[T](targetItems.ListOriginID, targetItems.OwnerID)
+		targetList = models.NewMediaItemList[T](sourceList.List, sourceList.ListOriginID, sourceList.OwnerID)
 	}
 
 	// Delete all liste items in target
-	err = a.targetProvider.RemoveAllListItems(ctx, targetListID)
-	if err != nil {
-		return fmt.Errorf("failed to delete target list items: %w", err)
+	if targetList.TotalItems > 0 {
+		err = a.targetProvider.RemoveAllListItems(ctx, targetListID)
+		if err != nil {
+			return fmt.Errorf("failed to delete target list items: %w", err)
+		}
 	}
 
 	// Add each source item to target
-	sourceItems.ForEach(func(UUID string, mediaType mediatypes.MediaType, item any) bool {
+	sourceList.ForEach(func(UUID string, mediaType mediatypes.MediaType, item any) bool {
 		typedItem, ok := item.(*models.MediaItem[T])
 		if !ok {
 			return true

@@ -391,7 +391,7 @@ func (j *JellyfinClient) GetMusicArtistByID(ctx context.Context, artistID string
 		},
 	}
 
-	mediaItem := models.NewMediaItem[*t.Artist](mediatype.MediaTypeArtist, &artist)
+	mediaItem := models.NewMediaItem[*t.Artist](&artist)
 
 	// Set album info if available
 	if resultItem.AlbumId.IsSet() && resultItem.ArtistItems != nil {
@@ -463,7 +463,7 @@ func (j *JellyfinClient) GetMusicAlbumByID(ctx context.Context, albumID string) 
 		TrackCount: int(*resultItem.ChildCount.Get()),
 	}
 
-	mediaItem := models.NewMediaItem[*t.Album](mediatype.MediaTypeAlbum, &album)
+	mediaItem := models.NewMediaItem[*t.Album](&album)
 	mediaItem.SetClientInfo(j.GetClientID(), j.GetClientType(), *resultItem.Id)
 
 	embedProviderIDs(ctx, &resultItem.ProviderIds, &album.Details.ExternalIDs)

@@ -29,7 +29,7 @@ func GetMediaItem[T types.MediaData](
 	item T,
 	itemID string,
 ) (*models.MediaItem[T], error) {
-	mediaItem := models.NewMediaItem[T](item.GetMediaType(), item)
+	mediaItem := models.NewMediaItem[T](item)
 	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), itemID)
 
 	return mediaItem, nil
@@ -136,8 +136,8 @@ func GetMixedMediaItems(
 	j *JellyfinClient,
 	ctx context.Context,
 	items []jellyfin.BaseItemDto,
-) (*models.MediaItemList, error) {
-	mediaItems := models.MediaItemList{}
+) (*models.MediaItemResults, error) {
+	mediaItems := models.NewMediaItemResults()
 	for _, item := range items {
 		if item.Id == nil || item.Type == nil {
 			continue
@@ -217,7 +217,7 @@ func GetMixedMediaItems(
 		}
 	}
 
-	return &mediaItems, nil
+	return mediaItems, nil
 }
 
 func GetMixedMediaItemsData(

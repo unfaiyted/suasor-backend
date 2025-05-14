@@ -3,11 +3,13 @@ package repository
 import (
 	"context"
 	"fmt"
-	"gorm.io/gorm"
+	"time"
+
 	"suasor/clients/media/types"
 	"suasor/types/models"
 	"suasor/utils/logger"
-	"time"
+
+	"gorm.io/gorm"
 )
 
 // SeriesRepository interface defines operations specific to TV series in the database
@@ -39,7 +41,7 @@ type SeriesRepository interface {
 	GetEpisodesByAttribute(ctx context.Context, attribute string, value interface{}, limit int) ([]*models.MediaItem[*types.Episode], error)
 
 	// Advanced search operations
-	SearchSeriesLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error)
+	SearchSeriesLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemResults, error)
 	GetSimilarSeries(ctx context.Context, seriesID uint64, limit int) ([]*models.MediaItem[*types.Series], error)
 
 	// Calendar operations
@@ -408,7 +410,7 @@ func (r *seriesRepository) GetEpisodesByAttribute(ctx context.Context, attribute
 }
 
 // SearchSeriesLibrary performs a comprehensive search across all series items
-func (r *seriesRepository) SearchSeriesLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error) {
+func (r *seriesRepository) SearchSeriesLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemResults, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("query", query.Query).
@@ -432,7 +434,7 @@ func (r *seriesRepository) SearchSeriesLibrary(ctx context.Context, query types.
 	}
 
 	// Execute separate queries for each type to populate the MediaItems struct
-	var mediaItems models.MediaItemList = models.MediaItemList{}
+	var mediaItems models.MediaItemResults = models.MediaItemResults{}
 
 	// Find series
 	var seriesList []*models.MediaItem[*types.Series]

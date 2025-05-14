@@ -281,7 +281,7 @@ func (s *listSyncService[T]) SyncFromClient(ctx context.Context, userID uint64, 
 		data.SetItemList(itemList)
 
 		// Create media item
-		newList := models.NewMediaItem[T](mediaType, data)
+		newList := models.NewMediaItem[T](data)
 		newList.Title = clientList.Title
 		newList.OwnerID = userID
 

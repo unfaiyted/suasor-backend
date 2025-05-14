@@ -13,6 +13,19 @@ type Playlist struct {
 	// TODO: Add Ways to perserver order of playlists
 }
 
+func NewPlaylist(details *MediaDetails, ownerID uint64, isPublic, isSmart bool) *Playlist {
+	return &Playlist{
+		ItemList: ItemList{
+			Details:   details,
+			OwnerID:   ownerID,
+			IsPublic:  isPublic,
+			IsSmart:   isSmart,
+			Items:     []ListItem{},
+			ItemCount: 0,
+		},
+	}
+}
+
 // DetectItemOrderConflicts finds conflicts in item ordering
 // func (p *Playlist) DetectItemOrderConflicts(clientState ListSyncState,
 // 	mappingService IDMappingService,

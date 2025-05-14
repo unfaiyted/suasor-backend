@@ -3,10 +3,11 @@ package repository
 import (
 	"context"
 	"fmt"
-	"gorm.io/gorm"
 	"suasor/clients/media/types"
 	"suasor/types/models"
 	"suasor/utils/logger"
+
+	"gorm.io/gorm"
 )
 
 // MusicRepository interface defines operations specific to music in the database
@@ -38,7 +39,7 @@ type MusicRepository interface {
 	GetTrackByTitleAndArtistName(ctx context.Context, title string, artistName string) (*models.MediaItem[*types.Track], error)
 	GetAlbumByTitleAndArtistName(ctx context.Context, title string, artistName string) (*models.MediaItem[*types.Album], error)
 
-	// Music external_IDs often have somthing like
+	// Music external_IDs often have something like
 	// [{ "id": "1234", "source": "musicbrainzartist"},{"id": "1234", "source":"discogartist" }]
 	// These ids may show up on the album or track details
 	GetArtistByExternalIDs(ctx context.Context, externalIDs types.ExternalIDs) (*models.MediaItem[*types.Artist], error)
@@ -46,7 +47,7 @@ type MusicRepository interface {
 	GetArtistAlbumsByExternalIDs(ctx context.Context, externalIDs types.ExternalIDs) ([]*models.MediaItem[*types.Album], error)
 
 	// Advanced search operations
-	SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error)
+	SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemResults, error)
 	GetSimilarTracks(ctx context.Context, trackID uint64, limit int) ([]*models.MediaItem[*types.Track], error)
 }
 
@@ -365,7 +366,7 @@ func (r *musicRepository) GetArtistsByGenre(ctx context.Context, genre string, l
 }
 
 // SearchMusicLibrary performs a comprehensive search across all music items
-func (r *musicRepository) SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemList, error) {
+func (r *musicRepository) SearchMusicLibrary(ctx context.Context, query types.QueryOptions) (*models.MediaItemResults, error) {
 	log := logger.LoggerFromContext(ctx)
 	log.Debug().
 		Str("query", query.Query).
@@ -389,7 +390,7 @@ func (r *musicRepository) SearchMusicLibrary(ctx context.Context, query types.Qu
 	}
 
 	// Execute separate queries for each type to populate the MediaItems struct
-	var mediaItems models.MediaItemList = models.MediaItemList{}
+	var mediaItems *models.MediaItemResults = models.NewMediaItemResults()
 
 	// Find artists
 	var artists []*models.MediaItem[*types.Artist]
@@ -412,7 +413,7 @@ func (r *musicRepository) SearchMusicLibrary(ctx context.Context, query types.Qu
 	}
 	mediaItems.AddTrackList(tracks)
 
-	return &mediaItems, nil
+	return mediaItems, nil
 }
 
 // GetSimilarTracks finds tracks similar to a given track based on attributes
@@ -615,7 +616,5 @@ func (r *musicRepository) GetArtistAlbumsByExternalIDs(ctx context.Context, exte
 	if len(albums) == 0 {
 		return nil, fmt.Errorf("no artist album found matching external IDs")
 	}
-
 	return albums, nil
-
 }

@@ -4,15 +4,19 @@ package emby
 import (
 	"context"
 	"fmt"
-	"github.com/antihax/optional"
-	"strings"
-	"suasor/utils/logger"
-
-	media "suasor/clients/media"
+	"time"
 	"suasor/clients/media/types"
+	"suasor/types/models"
+
+	"time"
+
+	"github.com/antihax/optional"
+	"github.com/antihax/optional"
+
+
+
 	embyclient "suasor/internal/clients/embyAPI"
 	"suasor/types/models"
-	"time"
 )
 
 func GetItem[T types.MediaData](
@@ -39,11 +43,13 @@ func GetMediaItem[T types.MediaData](
 	item T,
 	itemID string,
 ) (*models.MediaItem[T], error) {
-	mediaItem := models.NewMediaItem[T](item.GetMediaType(), item)
+	mediaItem := models.NewMediaItem[T](diaType(), item)
 	mediaItem.SetClientInfo(client.GetClientID(), client.GetClientType(), itemID)
+
 
 	return mediaItem, nil
 }
+
 func GetMediaItemList[T types.MediaData](
 	ctx context.Context,
 	client *EmbyClient,
@@ -63,14 +69,14 @@ func GetMediaItemList[T types.MediaData](
 		mediaItems = append(mediaItems, mediaItem)
 	}
 
+
 	return &mediaItems, nil
 }
+
 func GetMediaItemData[T types.MediaData](
-	ctx context.Context,
 	e *EmbyClient,
 	item *embyclient.BaseItemDto,
 ) (*models.UserMediaItemData[T], error) {
-
 	baseItem, err := GetItem[T](ctx, e, item)
 	mediaItem, err := GetMediaItem[T](ctx, e, baseItem, item.Id)
 
@@ -88,10 +94,8 @@ func GetMediaItemData[T types.MediaData](
 
 func GetMediaItemDataList[T types.MediaData](
 	ctx context.Context,
-	e *EmbyClient,
 	items []embyclient.BaseItemDto,
 ) ([]*models.UserMediaItemData[T], error) {
-
 	var mediaItems []*models.UserMediaItemData[T]
 	for _, item := range items {
 		mediaItemData, err := GetMediaItemData[T](ctx, e, &item)
@@ -109,9 +113,7 @@ func GetMixedMediaItems(
 	ctx context.Context,
 	items []embyclient.BaseItemDto,
 ) (*models.MediaItemList, error) {
-	mediaItems := models.MediaItemList{}
 	for _, item := range items {
-
 		if item.Type_ == "Movie" {
 			movie, err := GetItem[*types.Movie](ctx, e, &item)
 			if err != nil {
@@ -185,9 +187,9 @@ func GetMixedMediaItems(
 		}
 	}
 
-	return &mediaItems, nil
-
 }
+
+
 func GetMixedMediaItemsData(
 	e *EmbyClient,
 	ctx context.Context,
@@ -456,8 +458,6 @@ func ApplyClientQueryOptions(ctx context.Context, queryParams *embyclient.ItemsS
 	if options.MinimumRating > 0 {
 		log.Debug().Float32("minimumRating", options.MinimumRating).Msg("Applying minimum rating filter")
 		queryParams.MinCommunityRating = optional.NewFloat64(float64(options.MinimumRating))
-	}
-
 }
 
 func convertToExternalIDs(providerIds *map[string]string) types.ExternalIDs {

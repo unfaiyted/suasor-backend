@@ -453,13 +453,10 @@ func (s *userListService[T]) CreateSmartList(ctx context.Context, userID uint64,
 		Interface("criteria", criteria).
 		Msg("Creating smart list")
 
-	var zero T
-	mediaType := mediatypes.GetMediaTypeFromTypeName(zero)
-
 	// Create a new list with smart flag enabled
 
 	data := createList[T](name, description, criteria, userID)
-	list := models.NewMediaItem[T](mediaType, data)
+	list := models.NewMediaItem[T](data)
 
 	// Create the list
 	result, err := s.Create(ctx, userID, list)
